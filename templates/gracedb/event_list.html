@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block heading %}{{ title }}{% endblock %}
+
+{% block content %}
+<p>{{ message }}</p>
+
+{% if object_list.count %}
+<table>
+    <tr>
+            <th>UID</th>
+            <th>Submitter</th>
+            <th>Group</th>
+            <th>Type</th>
+            <th>Web</th>
+            <th>Wiki</th>
+    </tr>
+
+{% for obj in object_list %}
+    <tr class={% cycle 'odd' 'even' %}>
+        <td>{{ obj.uid }}</td>
+        <td>{{ obj.submitter }} </td>
+        <td>{{ obj.group }} </td>
+        <td>{{ obj.get_analysisType_display }} </td>
+        <td><a href="{{ obj.weburl }}">Web: {{ obj.uid }}</a></td>
+        <td><a href="{{ obj.wikiurl }}">Wiki: {{ obj.uid }}</a></td>
+    </tr>
+{% endfor %}
+</table>
+{% else %}
+    <h3>No Events.</h3>
+{% endif %}
+
+{% endblock %}

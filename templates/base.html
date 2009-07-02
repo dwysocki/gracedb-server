@@ -1,0 +1,60 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <link rel="stylesheet" href="/lars-static/css/style.css" />
+    <title>GraceDb | {% block title %}{% endblock %}</title>
+</head>
+
+<body>
+
+    <div id="content">
+
+ <table width="100%%">
+  <tr>
+   <td align="center">
+    <img width="69" height="50" src="/gracedb-static/images/LIGO_logo50.png">
+    <!-- 673px 487px -->
+   </td>
+
+   <td align="center">
+    <img width="273" height="50" src="/gracedb-static/images/Virgo_logo50.png">
+    <!-- 4,829px 884px -->
+   </td>
+
+   <td align="center">
+    <img width="144" height="50" src="/gracedb-static/images/anim2.gif">
+    <!-- 287px 101px -->
+   </td>
+
+   <td align="center">
+    <img width="118" height="50" src="/gracedb-static/images/LSC_logo50.png">
+    <!-- 6,261px 2,652px -->
+   </td>
+  </tr>
+ </table>
+
+ <center>
+ <h1>GraceDB: Gravitational-Wave Candidate Event Database</h1>
+ </center>
+
+
+        <h2>{% block heading %}Title{% endblock %}</h2>
+        {% if ligouser %}Authenticated as: {{ ligouser.name }}{% endif %}
+        {% block content %}{% endblock %}
+    </div>
+
+    <div id="footer">
+        <table><tr><td><img width="50" height="37"
+             src="/lars-static/images/ligo-blue.gif" alt="LIGO" /></td>
+        <td width="50%">&nbsp;</td>
+        <td>
+           <!--<p>GraceDB is a product of the LIGO Scientific Collaboration</p>-->
+           <!-- <p>Copyright &#169; 2008 LIGO</p> -->
+        </td>
+        </tr></table>
+    </div>
+
+
+</body>
+</html>

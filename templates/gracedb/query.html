@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Query{% endblock %}
+{% block heading %}Query{% endblock %}
+
+{% block content %}
+
+<form method="POST">
+<table>
+{{ form.as_table }}
+<tr><td></td><td><input type="Submit"/></td></tr>
+</table>
+</form>
+    
+{% endblock %}

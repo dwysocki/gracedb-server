@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Create Event{% endblock %}
+{% block heading %}Create Event{% endblock %}
+
+{% block content %}
+
+<h2>Create Event</h2>
+<form enctype="multipart/form-data" action="" method="POST">
+<table>
+    {{ form }}
+    <tr><td>Submitter:</td><td>{{ ligouser }}</td></tr>
+    <tr><td><input type="submit" value="Submit"></td></tr>
+</table>
+</form>
+
+{% endblock %}

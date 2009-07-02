@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+{% block heading %}GraceDB{% endblock %}
+
+{% block content %}
+
+<h2>Overview</h2>
+<p>
+GraceDB.  An event database.
+<a href="{% url search %}">Search events.</a>
+<a href="{% url create %}">Create event.</a>
+</p>
+
+<p>
+    GraceDB is in an early stage of development.  More information will appear here shortly.
+</p>
+
+{% endblock %}
