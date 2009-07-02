@@ -71,10 +71,6 @@ class Group(models.Model):
         return self.name
 
 
-class Approval(models.Model):
-    approver = models.ForeignKey(User)
-    created = models.DateTimeField(auto_now_add=True)
-
 class Event(models.Model):
     ANALYSIS_TYPE_CHOICES = (
         ("LM",  "LowMass"),
@@ -92,9 +88,6 @@ class Event(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Group)
     analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
-#   ligoApproved = models.ForeignKey(Approval, null=True)
-#   virgoApproved = models.ForeignKey(Approval, null=True)
-
     def weburl(self):
         return "https://ldas-jobs.phys.uwm.edu/gracedb/data/%s" % self.uid
 
@@ -103,4 +96,11 @@ class Event(models.Model):
 
     def clusterurl(self):
         return "pcdev1.phys.uwm.edu:/archive/gracedb/data/%s" % self.uid
+
+class Approval(models.Model):
+    COLLABORATION_CHOICES = ( ('L','LIGO'), ('V','Virgo'), )
+    approver = models.ForeignKey(User)
+    created = models.DateTimeField(auto_now_add=True)
+    approvedEvent = models.ForeignKey(Event, null=False)
+    approvingCollaboration = models.CharField(max_length=1, choices=COLLABORATION_CHOICES)
 
