@@ -22,3 +22,7 @@ class EventSearchForm(forms.Form):
     group = forms.ChoiceField(choices=groupChoices, required=False)
     type = forms.ChoiceField(choices=typeChoices, required=False)
     submitter = forms.ChoiceField(choices=submitterChoices, required=False)
+
+    ligoApproved = forms.BooleanField(initial=False, required=False, label="LIGO Approved Only")
+    virgoApproved = forms.BooleanField(initial=False, required=False, label="Virgo Approved Only")
+

@@ -8,7 +8,11 @@
 
 {% if object_list.count %}
 <table>
+    <tr>    <th colspan="2">Approvals</th>
+    </tr>
     <tr>
+            <th>LIGO</th>
+            <th>Virgo</th>
             <th>UID</th>
             <th>Submitter</th>
             <th>Group</th>
@@ -19,6 +23,24 @@
 
 {% for obj in object_list %}
     <tr class={% cycle 'odd' 'even' %}>
+        <!--
+            https://archie.phys.uwm.edu/media/img/admin/icon-no.gif
+            https://archie.phys.uwm.edu/media/img/admin/icon-yes.gif
+        -->
+        <td align="center">
+            {% if obj.ligoApproved %}
+                <img src="/media/img/admin/icon-yes.gif"/>
+            {% else %}
+                <img src="/media/img/admin/icon-no.gif"/>
+            {% endif %}
+        </td>
+        <td align="center">
+            {% if obj.virgoApproved %}
+                <img src="/media/img/admin/icon-yes.gif"/>
+            {% else %}
+                <img src="/media/img/admin/icon-no.gif"/>
+            {% endif %}
+        </td>
         <td>{{ obj.uid }}</td>
         <td>{{ obj.submitter }} </td>
         <td>{{ obj.group }} </td>

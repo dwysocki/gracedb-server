@@ -95,7 +95,14 @@ class Event(models.Model):
         return "https://www.lsc-group.phys.uwm.edu/twiki/bin/view/Sandbox/%s" % self.uid
 
     def clusterurl(self):
-        return "pcdev1.phys.uwm.edu:/archive/gracedb/data/%s" % self.uid
+        #return "pcdev1.phys.uwm.edu:/archive/gracedb/data/%s" % self.uid
+        return "file://pcdev1.phys.uwm.edu/archive/gracedb/data/%s" % self.uid
+
+    def ligoApproved(self):
+        return self.approval_set.filter(approvingCollaboration='L').count()
+
+    def virgoApproved(self):
+        return self.approval_set.filter(approvingCollaboration='V').count()
 
 class Approval(models.Model):
     COLLABORATION_CHOICES = ( ('L','LIGO'), ('V','Virgo'), )
