@@ -11,15 +11,15 @@ def issueAlert(event, location):
     issueEmailAlert(event, location)
 
 def issueEmailAlert(event, location):
-    subject = "[gracedb] New %s event. ID: %s" % (event.get_analysisType_display(), event.uid)
+    subject = "[gracedb] New %s event. ID: %s" % (event.get_analysisType_display(), event.graceid())
     message = """
     New Event
     %s / %s
-    UID:        %s
+    GRACEID:    %s
     Location:   %s
     TWiki Page: %s
 """
-    message %= (event.group.name, event.get_analysisType_display(), event.uid, location, event.wikiurl())
+    message %= (event.group.name, event.get_analysisType_display(), event.graceid(), location, event.wikiurl())
     fromaddress = settings.ALERT_EMAIL_FROM
     to = settings.ALERT_EMAIL_TO
     send_mail(subject, message, fromaddress, to)
@@ -45,7 +45,7 @@ def issueXMPPAlert(event, location):
         stdout=null,
         stderr=STDOUT,
         env=env)
-    msg = createPayload(event.uid, location)
+    msg = createPayload(event.graceid(), location)
     p.stdin.write(msg)
     p.stdin.close()
     for i in range(1,10):
@@ -61,7 +61,7 @@ def issueXMPPAlert(event, location):
 #    resource = "sender"
 #    password = "w4k3upal1ve"
 #    node = "cbc_mbta_online"
-#    voevent = createPayload(event.uid, location)
+#    voevent = createPayload(event.graceid(), location)
 #
 #    myjid=JID(username+"@"+server+"/"+resource)
 #    recpt=JID("pubsub."+server)

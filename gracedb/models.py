@@ -14,42 +14,6 @@ def intToLetters( i, str='' ):
     else:
         return intToLetters( i/26, string.lowercase[i%26] + str )
 
-class Genid:
-    # XXX dear heaven this is awful.
-    def __init__(self):
-        self.lastCalledDate = datetime.datetime.now().date()
-
-        # XXX Find latest suffix from Event table
-        self.next = 0
-        self.lock = thread.allocate_lock()
-        prefix = self.lastCalledDate.strftime('%y%m%d')
-        plen = len(prefix)
-        analyses = Event.objects.filter(uid__contains=prefix)
-        if len(analyses) >0:
-            self.next = 1 + max([lettersToInt(a.uid[plen:]) for a in analyses])
-    
-    def __call__(self):
-        self.lock.acquire()
-        today = datetime.datetime.now().date()
-        assert (today >= self.lastCalledDate)
-        if today != self.lastCalledDate:
-            self.next = 0
-            self.lastCalledDate = today
-        prefix = datetime.datetime.now().strftime('%y%m%d')
-        rv = prefix + intToLetters(self.next)
-        self.next += 1
-        self.lock.release()
-        return rv
-
-# XXX Yarg.
-_genid = None
-def genid():
-    global _genid
-    if not _genid: _genid = Genid()
-    return _genid()
-
-
-
 class User(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()
@@ -83,20 +47,30 @@ class Event(models.Model):
         ("CWB", "CWB"),
         ("MBTA", "MBTA Online"),
     )
-    uid = models.CharField(max_length=20, unique=True, default=genid)
     submitter = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Group)
     analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
+
+    # XXX Deprecated.  Only useful for old test data.
+    # Remove this when it won't freak people out to lose
+    # old date encoded uids.
+    uid = models.CharField(max_length=20, unique=False, default="")
+
+    def graceid(self):
+        if self.uid:
+            return self.uid
+        return "G%04d" % self.id
+
     def weburl(self):
-        return "https://ldas-jobs.phys.uwm.edu/gracedb/data/%s" % self.uid
+        return "https://ldas-jobs.phys.uwm.edu/gracedb/data/%s" % self.graceid()
 
     def wikiurl(self):
-        return "https://www.lsc-group.phys.uwm.edu/twiki/bin/view/Sandbox/%s" % self.uid
+        return "https://www.lsc-group.phys.uwm.edu/twiki/bin/view/Sandbox/%s" % self.graceid()
 
     def clusterurl(self):
-        #return "pcdev1.phys.uwm.edu:/archive/gracedb/data/%s" % self.uid
-        return "file://pcdev1.phys.uwm.edu/archive/gracedb/data/%s" % self.uid
+        #return "pcdev1.phys.uwm.edu:/archive/gracedb/data/%s" % self.graceid()
+        return "file://pcdev1.phys.uwm.edu/archive/gracedb/data/%s" % self.graceid()
 
     def ligoApproved(self):
         return self.approval_set.filter(approvingCollaboration='L').count()

@@ -27,43 +27,56 @@ def create(request):
         form = CreateEventForm()
     else:
         form = CreateEventForm(request.POST, request.FILES)
+        saved = False
         if form.is_valid():
-            group = Group.objects.filter(name=form.cleaned_data['group'])
-            type = form.cleaned_data['type']
-            # Create Event
-            event = Event()
-            event.submitter = request.ligouser
-            event.group = group[0]
-            event.analysisType = type
-            # Create data directory/directories
-            #    Save uploaded file.
-            dirPrefix = "/mnt/gracedb-web/data"
-            eventDir = os.path.join(dirPrefix, event.uid)
-            os.mkdir( eventDir )
-            os.mkdir( os.path.join(eventDir,"private") )
-            os.mkdir( os.path.join(eventDir,"general") )
-            #os.chmod( os.path.join(eventDir,"general"), int("041777",8) )
-            os.chmod( os.path.join(eventDir,"general"), 041777 )
-            f = request.FILES['eventFile']
-            uploadDestination = os.path.join(eventDir, "private", f.name)
-            fdest = open(uploadDestination, 'w')
-            # XXX probably want to check exit code
-            # Oh.  and it doesn't work.
-            os.system("/usr/bin/sudo /usr/local/bin/fixgracedirs %s >/dev/null" % event.uid)
-            #fdest.write("[%s] %s bytes\n" % (f.name, f.size))
+            try:
+                group = Group.objects.filter(name=form.cleaned_data['group'])
+                type = form.cleaned_data['type']
+                # Create Event
+                event = Event()
+                event.submitter = request.ligouser
+                event.group = group[0]
+                event.analysisType = type
+                #  ARGH.  We don't get a graceid until we save,
+                #  but we don't know in advance if we can actually
+                #  create all the things we need for success!
+                #  What to do?!
+                event.save()
+                saved = True  # in case we have to undo this.
+                # Create data directory/directories
+                #    Save uploaded file.
+                dirPrefix = "/mnt/gracedb-web/data"
+                eventDir = os.path.join(dirPrefix, event.graceid())
+                os.mkdir( eventDir )
+                os.mkdir( os.path.join(eventDir,"private") )
+                os.mkdir( os.path.join(eventDir,"general") )
+                #os.chmod( os.path.join(eventDir,"general"), int("041777",8) )
+                os.chmod( os.path.join(eventDir,"general"), 041777 )
+                f = request.FILES['eventFile']
+                uploadDestination = os.path.join(eventDir, "private", f.name)
+                fdest = open(uploadDestination, 'w')
+                # XXX probably want to check exit code
+                # Oh.  and it doesn't work.
+                os.system("/usr/bin/sudo /usr/local/bin/fixgracedirs %s >/dev/null" % event.graceid())
+                #fdest.write("[%s] %s bytes\n" % (f.name, f.size))
 
-            # Save uploaded file into user private area.
-            for chunk in f.chunks():
-                fdest.write(chunk)
-            fdest.close()
-            # Create WIKI page
-            createWikiPage(event.uid)
-            event.save()  # if everything worked... save.
-            # Send an alert.
-            issueAlert(event, os.path.join(event.clusterurl(), "private", f.name))
-            #return HttpResponseRedirect(reverse(view, args=[event.uid]))
+                # Save uploaded file into user private area.
+                for chunk in f.chunks():
+                    fdest.write(chunk)
+                fdest.close()
+                # Create WIKI page
+                createWikiPage(event.graceid())
+                # Send an alert.
+                issueAlert(event, os.path.join(event.clusterurl(), "private", f.name))
+                #return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
+            except:
+                # something went wrong.
+                if saved:
+                    # undo save.
+                    event.delete()
+                raise
             if 'cli' in request.POST:
-                msg = str(event.uid)
+                msg = str(event.graceid())
                 response = HttpResponse(mimetype='text/xml')
                 response.write(msg)
                 response['Content-length'] = len(msg)
@@ -98,15 +111,29 @@ def search(request):
         form = EventSearchForm(request.POST)
         if form.is_valid():
             objects = Event.objects.all()
-            start = form.cleaned_data['uidStart']
-            end = form.cleaned_data['uidEnd']
+            start = form.cleaned_data['graceidStart']
+            end = form.cleaned_data['graceidEnd']
             submitter = form.cleaned_data['submitter']
             groupname = form.cleaned_data['group']
             typename = form.cleaned_data['type']
+
             if start:
-                objects = objects.filter(uid__gte=start)
+                if start[0] != 'G':
+                    # XXX This is the deprecated uid stuff. Take it out when uid is gone.
+                    objects = objects.filter(uid__gte=start)
+                    objects = objects.filter(uid__startswith="0")
+                else:
+                    objects = objects.filter(id__gte=int(start[1:]))
+                    objects = objects.filter(uid="")
             if end:
-                objects = objects.filter(uid__lte=end)
+                if end[0] != 'G':
+                    # XXX This is the deprecated uid stuff. Take it out when uid is gone.
+                    objects = objects.filter(uid__lte=end)
+                    objects = objects.filter(uid__startswith="0")
+                else:
+                    objects = objects.filter(id__lte=int(end[1:]))
+                    objects = objects.filter(uid="")
+
             if submitter:
                 objects = objects.filter(submitter=submitter)
             if groupname:
@@ -130,13 +157,13 @@ def search(request):
 # Things that aren't views and should really be elsewhere.
 #-----------------------------------------------------------------
 
-def createWikiPage(uid):
+def createWikiPage(graceid):
     twikiroot = "/mnt/htdocs/uwmlsc/secure/twiki/data/Sandbox/"
     plainFile = """
 Initial Entry for %s
 
 %%TOC{depth="2"}%%
-""" % uid
+""" % graceid
     rcsFile = """head    1.1;
 access; 
 symbols;
@@ -166,9 +193,9 @@ Initial Entry for %s
 
 %%TOC{depth="2"}%%
 @
-""" % uid
-    pname = os.path.join(twikiroot, uid+".txt")
-    rcsname = os.path.join(twikiroot, uid+".txt,r")
+""" % graceid
+    pname = os.path.join(twikiroot, graceid+".txt")
+    rcsname = os.path.join(twikiroot, graceid+".txt,r")
     f = open(pname, "w")
     f.write(plainFile)
     f.close()

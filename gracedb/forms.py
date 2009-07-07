@@ -17,8 +17,8 @@ class EventSearchForm(forms.Form):
     submitterList = User.objects.filter(id__in=submitterIds).order_by('name')
     submitterChoices = [("","")]+ [ (u.id, u.name) for u in submitterList]
 
-    uidStart = forms.CharField(required=False)
-    uidEnd = forms.CharField(required=False)
+    graceidStart = forms.CharField(required=False)
+    graceidEnd = forms.CharField(required=False)
     group = forms.ChoiceField(choices=groupChoices, required=False)
     type = forms.ChoiceField(choices=typeChoices, required=False)
     submitter = forms.ChoiceField(choices=submitterChoices, required=False)
