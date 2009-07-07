@@ -57,6 +57,9 @@ class Event(models.Model):
     # old date encoded uids.
     uid = models.CharField(max_length=20, unique=False, default="")
 
+    class Meta:
+        ordering = ["-id"]
+
     def graceid(self):
         if self.uid:
             return self.uid
