@@ -9,8 +9,11 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-ALERT_EMAIL_FROM = "bmoe@uwm.edu"
-ALERT_EMAIL_TO = ["bmoe@gravity.phys.uwm.edu"]
+ALERT_EMAIL_FROM = "root@archie.phys.uwm.edu"
+ALERT_EMAIL_TO = ["patrick@gravity.phys.uwm.edu",
+                  "larry@gravity.phys.uwm.edu",
+                  "bmoe@gravity.phys.uwm.edu",
+                 ]
 
 DATABASE_ENGINE = 'mysql'
 DATABASE_NAME = 'gracedb'
