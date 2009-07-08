@@ -8,7 +8,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 from models import Event, Group
-from views import view
+from views import view, search
 
 class EventFeed(Feed):
     def get_object(self, bits):
@@ -42,9 +42,8 @@ class EventFeed(Feed):
         return title
 
     def link(self, obj):
-        # XXX  WHAT is THIS??
-        # Breaks the feed if it's not there.  Appears in <link> tags.  Eh?
-        return "/linky"
+        # This is the link around the title for the entire feed.
+        return reverse(search)
 
     def item_link(self, obj):
         return reverse(view, args=[obj.graceid()])
