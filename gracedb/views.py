@@ -16,7 +16,6 @@ def index(request):
 #   assert request.ligouser
     return render_to_response(
             'gracedb/index.html',
-#           {'hi':request.ligouser},
             {},
             context_instance=RequestContext(request))
 
@@ -102,6 +101,16 @@ def create(request):
                 { 'form' : form },
                 context_instance=RequestContext(request))
 
+def view(request, graceid):
+    context = {}
+    a = Event.getByGraceid(graceid)
+    if not a:
+        return HttpResponseNotFound()
+    context['object'] = a
+    return render_to_response(
+        'gracedb/event_detail.html',
+        context,
+        context_instance=RequestContext(request))
 
 def search(request):
     assert request.ligouser

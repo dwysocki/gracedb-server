@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}View {{ object.graceid }}{% endblock %}
+{% block heading %}View {{ object.graceid }}{% endblock %}
+
+{% block content %}
+<p>{{ message }}</p>
+
+<table>
+  <tr><th>ID</th><td>{{ object.graceid }}</td></tr>
+  <tr><th>Data</th><td>
+    <a href="{{ object.weburl }}">{{ object.weburl }}</a>
+    </td></tr>
+  <tr><th>TWiki</th><td>
+    <a href="{{ object.wikiurl }}">{{ object.wikiurl }}</a>
+    </td></tr>
+  <tr><th>Sumitter</th><td>{{ object.submitter.name }}</td></tr>
+  <tr><th>Created</th><td>{{ object.created }}</td></tr>
+</table>
+
+{% endblock %}

@@ -45,7 +45,7 @@ class Event(models.Model):
         ("Q",   "Q"),
         ("X",   "X"),
         ("CWB", "CWB"),
-        ("MBTA", "MBTA Online"),
+        ("MBTA", "MBTAOnline"),
     )
     submitter = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
@@ -80,6 +80,13 @@ class Event(models.Model):
 
     def virgoApproved(self):
         return self.approval_set.filter(approvingCollaboration='V').count()
+
+    @classmethod
+    def getByGraceid(cls, id):
+        if not id: return None
+        if id[0] == "G":
+            return cls.objects.get(id=int(id[1:]))
+        return cls.objects.get(uid=id)
 
 class Approval(models.Model):
     COLLABORATION_CHOICES = ( ('L','LIGO'), ('V','Virgo'), )

@@ -4,13 +4,20 @@ from django.conf.urls.defaults import *
 from django.contrib import admin
 admin.autodiscover()
 
+from gracedb.feeds import EventFeed, feedview
+
+feeds = {
+    'latest' : EventFeed
+}
+
 urlpatterns = patterns('',
-    # Example:
-    # (r'^gracedb/', include('gracedb.foo.urls')),
 
     (r'^$', 'gracedb.gracedb.views.index'),
     (r'^events/', include('gracedb.gracedb.urls')),
     (r'^cli/create', 'gracedb.gracedb.views.create'),
+    (r'^feeds/(?P<url>.*)/$', 'django.contrib.syndication.views.feed', 
+        {'feed_dict': feeds}),
+    (r'^feeds/$', feedview),
 
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
     # to INSTALLED_APPS to enable admin documentation:

@@ -7,6 +7,8 @@ urlpatterns = patterns('gracedb.gracedb.views',
     (r'^$', 'index'),
     url (r'^create/$', 'create', name="create"),
     url (r'^search/$', 'search', name="search"),
+    url (r'^view/(?P<graceid>[\w\d]+)', 'view', name="view"),
+
 #   (r'^view/(?P<uid>[\w\d]+)', 'view'),
 #   (r'^edit/(?P<uid>[\w\d]+)', 'edit'),
 #   (r'^request_archive/(?P<uid>[\w\d]+)(?P<rescind>/rescind)?', 'request_archive'),
