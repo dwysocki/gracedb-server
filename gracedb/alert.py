@@ -11,15 +11,16 @@ def issueAlert(event, location):
     issueEmailAlert(event, location)
 
 def issueEmailAlert(event, location):
-    subject = "[gracedb] New %s event. ID: %s" % (event.get_analysisType_display(), event.graceid())
+    subject = "[gracedb] %s event. ID: %s" % (event.get_analysisType_display(), event.graceid())
     message = """
     New Event
     %s / %s
-    GRACEID:    %s
-    Location:   %s
-    TWiki Page: %s
+    GRACEID:  %s
+    Location: %s
+              %s
+    TWiki:    %s
 """
-    message %= (event.group.name, event.get_analysisType_display(), event.graceid(), location, event.wikiurl())
+    message %= (event.group.name, event.get_analysisType_display(), event.graceid(), event.weburl(), location, event.wikiurl())
     fromaddress = settings.ALERT_EMAIL_FROM
     to = settings.ALERT_EMAIL_TO
     send_mail(subject, message, fromaddress, to)
