@@ -5,15 +5,23 @@
 
 {% block content %}
 
-<h2>Overview</h2>
 <p>
 GraceDB.  An event database.
 <a href="{% url search %}">Search events.</a>
 <a href="{% url create %}">Create event.</a>
 </p>
 
+<h2>Overview</h2>
 <p>
-    GraceDB is in an early stage of development.  More information will appear here shortly.
+The gravitational-wave candidate event database (GraCEDb) is a
+prototype system to organize candidate events from gravitational-wave
+searches and to provide an environment to record information about
+follow-ups. A simple client tool is provided in
+<a href="https://www.lsc-group.phys.uwm.edu/daswg/projects/glue.html">Glue</a>
+to submit a candidate event to the database.
+You can read about using the service at the
+<a href="https://www.lsc-group.phys.uwm.edu/daswg/wiki/HowtoGraceDb">Howto page</a>.  More details are available at the
+<a href="https://www.lsc-group.phys.uwm.edu/daswg/projects/gracedb.html">Project page</a>.
 </p>
 
 {% endblock %}
