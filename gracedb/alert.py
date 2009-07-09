@@ -71,22 +71,22 @@ def issueXMPPAlert(event, location):
 #    s.connect()
 #    s.send_myevent(voevent, node)
 #    s.loop(1)
-#
-#def createPayload (uid, filename):
-#    template = """<?xml version='1.0' encoding='utf-8'?>
-#<!DOCTYPE LIGO_LW SYSTEM "http://ldas-sw.ligo.caltech.edu/doc/ligolwAPI/html/ligolw_dtd.txt">
-#<LIGO_LW>
-#        <Table Name="LVAlert:table">
-#                <Column Type="lstring" Name="LVAlert:uid"/>
-#                <Column Type="lstring" Name="LVAlert:file"/>
-#                <Stream Name="LVAlert:table" Type="Local" Delimiter=",">
-#                        "%(uid)s","%(filename)s"
-#                </Stream>
-#        </Table>
-#</LIGO_LW>
-#"""
-#    return template % { 'uid': uid, 'filename': filename }
-#
+
+def createPayload (uid, filename):
+    template = """<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE LIGO_LW SYSTEM "http://ldas-sw.ligo.caltech.edu/doc/ligolwAPI/html/ligolw_dtd.txt">
+<LIGO_LW>
+        <Table Name="LVAlert:table">
+                <Column Type="lstring" Name="LVAlert:uid"/>
+                <Column Type="lstring" Name="LVAlert:file"/>
+                <Stream Name="LVAlert:table" Type="Local" Delimiter=",">
+                        "%(uid)s","%(filename)s"
+                </Stream>
+        </Table>
+</LIGO_LW>
+"""
+    return template % { 'uid': uid, 'filename': filename }
+
 ## pubsub import must come first because it overloads part of the
 ## StanzaProcessor class
 #from glue.lvalert import pubsub
