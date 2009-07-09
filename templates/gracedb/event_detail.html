@@ -20,4 +20,24 @@
   <tr><th>Created</th><td>{{ object.created }}</td></tr>
 </table>
 
+{% if object.eventlog_set.count %}
+  <h3>Log Entries:</h3>
+  <table>
+    <tr>
+      <th>Date</th>
+      <th>Submitter</th>
+      <th>File</th>
+      <th>Comment</th>
+    </tr>
+  {% for log in object.eventlog_set.iterator %}
+    <tr class={% cycle 'odd' 'even' %}>
+        <td>{{ log.created }}</td>
+        <td>{{ log.issuer }}</td>
+        <td><a href="{{ log.fileurl }}">{{ log.filename }}</a></td>
+        <td>{{ log.comment }}</td>
+    </tr>  
+  {% endfor %}
+  </table>
+{% endif %}
+
 {% endblock %}

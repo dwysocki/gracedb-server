@@ -2,17 +2,7 @@ from django.db import models
 import datetime
 import thread
 import string
-
-def lettersToInt( str ):
-    """turn a string of letters into a base 26 number"""
-    return reduce( lambda x, y: 26*x + y, map( string.lowercase.index, str ))
-
-def intToLetters( i, str='' ):
-    """convert a number into a string of lowercase letters"""
-    if i == 0:
-        return str or 'a'
-    else:
-        return intToLetters( i/26, string.lowercase[i%26] + str )
+import os
 
 class User(models.Model):
     name = models.CharField(max_length=100)
@@ -87,6 +77,21 @@ class Event(models.Model):
         if id[0] == "G":
             return cls.objects.get(id=int(id[1:]))
         return cls.objects.get(uid=id)
+
+class EventLog(models.Model):
+    class Meta:
+        ordering = ["-created"]
+    event = models.ForeignKey(Event, null=False)
+    created = models.DateTimeField(auto_now_add=True)
+    issuer = models.ForeignKey(User)
+    filename = models.CharField(max_length=100, default="")
+    comment = models.CharField(max_length=200, null=False, default="")
+
+    def fileurl(self):
+        if self.filename:
+            return os.path.join(self.event.weburl(), 'private', self.filename)
+        else:
+            return None
 
 class Approval(models.Model):
     COLLABORATION_CHOICES = ( ('L','LIGO'), ('V','Virgo'), )

@@ -6,7 +6,7 @@ from django.shortcuts import render_to_response
 
 from django.views.generic.list_detail import object_detail, object_list
 
-from models import Event, Group
+from models import Event, Group, EventLog
 from forms import CreateEventForm, EventSearchForm
 from alert import issueAlert
 
@@ -54,11 +54,6 @@ def create(request):
                 f = request.FILES['eventFile']
                 uploadDestination = os.path.join(eventDir, "private", f.name)
                 fdest = open(uploadDestination, 'w')
-                # XXX probably want to check exit code
-                # Oh.  and it doesn't work.
-                os.system("/usr/bin/sudo /usr/local/bin/fixgracedirs %s >/dev/null" % event.graceid())
-                #fdest.write("[%s] %s bytes\n" % (f.name, f.size))
-
                 # Save uploaded file into user private area.
                 for chunk in f.chunks():
                     fdest.write(chunk)
@@ -76,7 +71,7 @@ def create(request):
                 raise
             if 'cli' in request.POST:
                 msg = str(event.graceid())
-                response = HttpResponse(mimetype='text/xml')
+                response = HttpResponse(mimetype='text/plain')
                 response.write(msg)
                 response['Content-length'] = len(msg)
                 return response
@@ -91,15 +86,86 @@ def create(request):
                 if not group:
                     validGroups = [group.name for group in Group.objects.all()]
                     msg = "ERROR: group must be one of: %s" % ", ".join(validGroups)
-                    response = HttpResponse(mimetype='text/xml')
-                    response.write(msg)
-                    response['Content-length'] = len(msg)
-                    return response
+                else:
+                    msg = "ERROR: malformed request"
+                response = HttpResponse(mimetype='text/plain')
+                response.write(msg)
+                response['Content-length'] = len(msg)
+                return response
 
             # if not a command line request, let it fall through
     return render_to_response('gracedb/create.html',
                 { 'form' : form },
                 context_instance=RequestContext(request))
+
+def upload(request):
+    graceid = request.POST.get('graceid', None)
+    comment = request.POST.get('comment', None)
+    uploadedfile = request.FILES['upload']
+    response = HttpResponse(mimetype='text/plain')
+    event = graceid and Event.getByGraceid(graceid)
+    # uploadedFile.{name/chunks()}
+    if not (comment and uploadedfile and graceid):
+        msg = "ERROR: missing arg(s)"
+    elif not event:
+        msg = "ERROR: Event '%s' does not exist" % graceid
+    else:
+        #event issuer comment
+        log = EventLog(event=event,
+                       issuer=request.ligouser,
+                       filename=uploadedfile.name,
+                       comment=comment)
+        try:
+            log.save()
+            msg = "OK"
+        except:
+            msg = "ERROR: problem creating log entry"
+        try:
+            # XXX
+            # Badnesses:
+            #   Same hardcoded path in multiple places.
+            #   What if we're clobbering an existing file?
+            fname = os.path.join("/mnt/gracedb-web/data", event.graceid(), "private", uploadedfile.name)
+            f = open(fname, "w")
+            for chunk in uploadedfile.chunks():
+                f.write(chunk)
+            f.close()
+        except Exception, e:
+            msg = "ERROR: could not save file " + fname + " " + str(e)
+            log.delete()
+    response = HttpResponse(mimetype='text/plain')
+    response.write(msg)
+    response['Content-length'] = len(msg)
+    return response
+
+def log(request):
+    message = request.POST.get('message')
+    graceid = request.POST.get('graceid')
+    response = HttpResponse(mimetype='text/plain')
+    event = graceid and Event.getByGraceid(graceid)
+    if not (message and graceid):
+        msg = "ERROR: missing arg(s)"
+    elif not event:
+        msg = "ERROR: Event '%s' does not exist" % graceid
+    else:
+        #event issuer comment
+        log = EventLog(event=event, issuer=request.ligouser, comment=message)
+        try:
+            log.save()
+            msg = "OK"
+        except:
+            msg = "ERROR: problem creating log entry"
+    response = HttpResponse(mimetype='text/plain')
+    response.write(msg)
+    response['Content-length'] = len(msg)
+    return response
+
+def ping(request):
+    ack = request.POST.get('ack', None) or request.GET.get('ack','ACK')
+    response = HttpResponse(mimetype='text/plain')
+    response.write(ack)
+    response['Content-length'] = len(ack)
+    return response
 
 def view(request, graceid):
     context = {}
