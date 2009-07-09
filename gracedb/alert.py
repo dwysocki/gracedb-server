@@ -37,7 +37,7 @@ def issueXMPPAlert(event, location):
         nodename = "cbc_mbta_online"
     else:
         nodename = "%s_%s"% (event.group.name, event.get_analysisType_display())
-        nodenae = nodename.lower()
+        nodename = nodename.lower()
 
     null = open('/dev/null','w')
     p = Popen(
