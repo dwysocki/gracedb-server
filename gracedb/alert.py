@@ -5,6 +5,9 @@ from subprocess import Popen, PIPE, STDOUT
 
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.sites.models import Site
+from django.core.urlresolvers import reverse, get_script_prefix
+
 
 def issueAlert(event, location):
     issueXMPPAlert(event, location)
@@ -15,12 +18,21 @@ def issueEmailAlert(event, location):
     message = """
     New Event
     %s / %s
-    GRACEID:  %s
-    Location: %s
-              %s
-    TWiki:    %s
+    GRACEID:   %s
+    Info:      %s
+    Data:      %s
+    TWiki:     %s
+    Submitter: %s
+    Original Data: %s
 """
-    message %= (event.group.name, event.get_analysisType_display(), event.graceid(), event.weburl(), location, event.wikiurl())
+    message %= (event.group.name,
+                event.get_analysisType_display(),
+                event.graceid(),
+                'https://'+Site.objects.get_current().domain+ reverse("view", args=[event.graceid()]),
+                event.weburl(),
+                event.wikiurl(),
+                event.submitter.name,
+                location)
     fromaddress = settings.ALERT_EMAIL_FROM
     to = settings.ALERT_EMAIL_TO
     send_mail(subject, message, fromaddress, to)
