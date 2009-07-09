@@ -27,19 +27,25 @@ def issueEmailAlert(event, location):
 
 def issueXMPPAlert(event, location):
     # XXX awful!
-    if event.analysisType != 'MBTA':
+    if event.analysisType != 'MBTA' and event.group.name != 'Test':
         return
 
     env = {}
-    pythonpath = ":".join(sys.path)
-    env["PYTHONPATH"] = pythonpath
+    env["PYTHONPATH"] = ":".join(sys.path)
+
+    if event.analysisType == 'MBTA' and event.group.name == 'CBC':
+        nodename = "cbc_mbta_online"
+    else:
+        nodename = "%s_%s"% (event.group.name, event.get_analysisType_display())
+        nodenae = nodename.lower()
+
     null = open('/dev/null','w')
     p = Popen(
         ["lvalert_send",
          "--username=gracedb",
          "--password=w4k3upal1ve",
          "--file=-",
-         "--node=cbc_mbta_online"
+         "--node=%s" % nodename,
         ],
         executable="/opt/lscsoft/glue/bin/lvalert_send",
         stdin=PIPE,
