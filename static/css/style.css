@@ -1,0 +1,252 @@
+
+html, body {
+  color: black;
+  background-color: #ddd;
+  font: x-small "Lucida Grande", "Lucida Sans Unicode", geneva, verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+td, th {padding:3px;border:none;}
+tr th {text-align:left;background-color:#f0f0f0;color:#333;}
+tr.odd td {background-color:#edf3fe;}
+tr.even td {background-color:#fff;}
+
+#header {
+  height: 80px;
+  /* width: 777px; */
+  width: 95%;
+  padding: 10px;
+  /* background: blue URL('../images/header_inner.png') no-repeat; */
+  background: #2f85de URL('../images/lars-logo.gif') no-repeat;
+  border-left: 1px solid #aaa;
+  border-right: 1px solid #aaa;
+  margin: 0 auto 0 auto;
+}
+
+a.link, a, a.active {
+  color: #369;
+}
+
+
+#content {
+  color: black;
+  font-size: 127%;
+  background-color: white;
+/*  width: 757px; */
+  width: 95%;
+  margin: 0 auto 0 auto;
+  border-left: 1px solid #aaa;
+  border-right: 1px solid #aaa;
+  padding: 10px;
+}
+
+/* Nav */
+#nav {
+    margin:0;
+    padding:0;
+    background:#eee;    /* Nav base color */
+    float: left;
+    width: 100%;
+    border:1px solid #42432d;
+    border-width:1px 1px;
+}
+
+#nav li {
+    display:inline;
+    padding:0;
+    margin:0;
+}
+/*
+#nav li:first-child a {
+    border-left:1px solid #42432d;
+}
+*/
+
+#nav a:link,
+#nav a:visited {
+    color:#000;
+    background:#eee;    /* Nav base color */
+    /* padding:20px 40px 4px 10px; */
+    padding:4px 20px 4px 20px;
+    float: left;
+    width: auto;
+    border-right:1px solid #42432d;
+
+    text-decoration:none;
+    font:bold 1em/1em Arial, Helvetica, sans-serif;
+    text-transform:uppercase;
+    text-shadow: 2px 2px 2px #555;
+}
+#nav a:hover {
+    /* color:#fff;  / * Use if bg is dark */
+    background: #dce2ed;  /* Nav hover color */
+}
+
+#home #nav-home a,
+#about #nav-about a,
+#archive #nav-archive a,
+#lab #nav-lab a,
+#reviews #nav-reviews a,
+#contact #nav-contact a {
+    /* background:#e35a00; */
+    background: #a9b0ba;  /* Nav selected color */
+    /* color:#fff;  / * Use if bg is dark */
+    text-shadow:none;
+}
+#home #nav-home a:hover,
+#about #nav-about a:hover,
+#archive #nav-archive a:hover,
+#lab #nav-lab a:hover,
+#reviews #nav-reviews a:hover,
+#contact #nav-contact a:hover {
+    /* background:#e35a00; */
+    background: #a9b0ba;  /* Nav selected color */
+}
+#nav a:active {
+    /* background:#e35a00; */
+    background: #a9b0ba;  /* Nav selected color */
+    color:#fff;
+}
+
+
+
+/*
+#nav {
+    clear:both;
+    padding-top:3px;
+    font:1em/2 "Helvetica Neue",Arial,Helvetica,sans-serif;
+}
+#nav ul {
+    float:left;
+    width:100%;
+    margin:0;
+    padding:0;
+    list-style:none;
+    background:#970601 url(/i/nav-tab.png) repeat-x;
+}
+#nav li {
+    display:inline;
+    margin:0;
+    padding:0;
+}
+#nav a {
+    display:block;
+    float:left;
+    padding:0 12px;
+    border-right:1px solid #bb1600;
+    border-bottom:none;
+    border-left:1px solid #b21203;
+    color:#fff;
+    background:#970601 url(/i/nav-tab.png) repeat-x;
+    text-decoration:none;
+}
+#nav a:hover,
+#nav a:focus {background:#b31203 url(/i/nav-tab.png) repeat-x 0 -150px;}
+#nav .sel a {background:#720000 url(/i/nav-tab.png) repeat-x 0 -300px;}
+#nav .sel a:hover,
+#nav .sel a:focus {background:#b31203 url(/i/nav-tab.png) repeat-x 0 -150px;}
+*/
+
+
+#sidebar {
+  border: 1px solid #aaa;
+  background-color: #eee;
+  margin: 0.5em;
+  padding: 1em;
+  float: right;
+  width: 200px;
+  font-size: 88%;
+}
+
+#sidebar h2 {
+  margin-top: 0;
+}
+
+#sidebar ul {
+  margin-left: 1.5em;
+  padding-left: 0;
+}
+
+h1,h2,h3,h4,h5,h6,#getting_started_steps {
+  font-family: "Century Schoolbook L", Georgia, serif;
+  font-weight: bold;
+}
+
+h2 {
+  font-size: 150%;
+}
+
+#getting_started_steps a {
+  text-decoration: none;
+}
+
+#getting_started_steps a:hover {
+  text-decoration: underline;
+}
+
+#getting_started_steps li {
+  font-size: 80%;
+  margin-bottom: 0.5em;
+}
+
+#getting_started_steps h2 {
+  font-size: 120%;
+}
+
+#getting_started_steps p {
+  font: 100% "Lucida Grande", "Lucida Sans Unicode", geneva, verdana, sans-serif;
+}
+
+#footer {
+  border: 1px solid #aaa;
+  border-top: 0px none;
+  color: #999;
+  background-color: white;
+  padding: 10px;
+  font-size: 80%;
+  text-align: center;
+  /* width: 757px; */
+  width: 95%;
+  margin: 0 auto 1em auto;
+}
+
+.code {
+  font-family: monospace;
+}
+
+span.code {
+  font-weight: bold;
+  background: #eee;
+}
+
+#status_block {
+  margin: 0 auto 0.5em auto;
+  padding: 15px 10px 15px 55px;
+  background: #cec URL('../images/ok.png') left center no-repeat;
+  border: 1px solid #9c9;
+  width: 450px;
+  font-size: 120%;
+  font-weight: bolder;
+}
+
+.notice {
+  margin: 0.5em auto 0.5em auto;
+  padding: 15px 10px 15px 55px;
+  width: 450px;
+  background: #eef URL('../images/info.png') left center no-repeat;
+  border: 1px solid #cce;
+}
+
+.fielderror {
+    color: red;
+    font-weight: bold;
+}
+
+/* SORTABLE TABLES */
+thead th a:link, thead th a:visited { color:#666; display:block; }
+table thead th.sorted { background-position:bottom left !important; }
+table thead th.sorted a { padding-right:13px; }
+table thead th.ascending a { background:url(/lars-static/images/arrow-down.gif) right .4em no-repeat; }
+table thead th.descending a { background:url(/lars-static/images/arrow-up.gif) right .4em no-repeat; }
+
