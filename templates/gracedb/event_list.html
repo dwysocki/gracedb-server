@@ -2,6 +2,7 @@
 
 {% block title %}{{ title }}{% endblock %}
 {% block heading %}{{ title }}{% endblock %}
+{% block pageid %}search{% endblock %}
 
 {% block content %}
 <p>{{ message }}</p>
@@ -41,7 +42,7 @@
                 <img src="/media/img/admin/icon-no.gif"/>
             {% endif %}
         </td>
-        <td>{{ obj.graceid }}</td>
+        <td><a href="{% url view obj.graceid %}">{{ obj.graceid }}</a></td>
         <td>{{ obj.submitter }} </td>
         <td>{{ obj.group }} </td>
         <td>{{ obj.get_analysisType_display }} </td>

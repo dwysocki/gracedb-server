@@ -6,10 +6,10 @@
     <title>GraceDb | {% block title %}{% endblock %}</title>
 </head>
 
-<body>
+<body id="{% block pageid %}{% endblock %}">
 
-    <div id="content">
-
+<div id="header">
+<!-- Header -->
  <table width="100%%">
   <tr>
    <td align="center">
@@ -33,15 +33,31 @@
    </td>
   </tr>
  </table>
+<!-- End Header -->
+</div>
 
+<div id="content">
  <center>
  <h1>GraceDB: Gravitational-Wave Candidate Event Database</h1>
  </center>
 
+{% block nav %}
+<ul id="nav">
+    <li id="nav-home"><a href="{% url home %}">Home</a></li>
+    <li id="nav-search"><a href="{% url search %}">Search</a></li>
+    <li id="nav-create"><a href="{% url create %}">Create</a></li>
+    <li id="nav-feeds"><a href="{% url feeds %}">RSS</a></li>
+    {% if ligouser %}<li id="nav-user">Authenticated as: {{ ligouser.name }}</li>{% endif %}
+</ul>
+{% endblock %}
+
+        <p>&nbsp;</p> <!-- bad way to create vertical space -->
 
         <h2>{% block heading %}Title{% endblock %}</h2>
-        {% if ligouser %}Authenticated as: {{ ligouser.name }}{% endif %}
+
+
         {% block content %}{% endblock %}
+
     </div>
 
     <div id="footer">

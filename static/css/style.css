@@ -12,6 +12,12 @@ tr th {text-align:left;background-color:#f0f0f0;color:#333;}
 tr.odd td {background-color:#edf3fe;}
 tr.even td {background-color:#fff;}
 
+.text {
+    width: 500px;
+    margin-left: 50px;
+    margin-right: auto;
+}
+
 #header {
   height: 80px;
   /* width: 777px; */
@@ -29,6 +35,18 @@ a.link, a, a.active {
 }
 
 
+#header {
+  color: black;
+  font-size: 127%;
+  background-color: white;
+/*  width: 757px; */
+  width: 95%;
+  margin: 0 auto 0 auto;
+  border-left: 1px solid #aaa;
+  border-right: 1px solid #aaa;
+  padding: 0px 10px 0px 10px;
+}
+
 #content {
   color: black;
   font-size: 127%;
@@ -38,7 +56,7 @@ a.link, a, a.active {
   margin: 0 auto 0 auto;
   border-left: 1px solid #aaa;
   border-right: 1px solid #aaa;
-  padding: 10px;
+  padding: 10px 10px 10px 10px;
 }
 
 /* Nav */
@@ -50,6 +68,19 @@ a.link, a, a.active {
     width: 100%;
     border:1px solid #42432d;
     border-width:1px 1px;
+}
+
+#nav #nav-user
+{
+    color:#000;
+    background:#eee;    /* Nav base color */
+    padding:4px 20px 4px 20px;
+    float: right;
+    width: auto;
+    text-decoration:none;
+    font:bold 1em/1em Arial, Helvetica, sans-serif;
+    text-transform:uppercase;
+    text-shadow: 2px 2px 2px #555;
 }
 
 #nav li {
@@ -84,17 +115,22 @@ a.link, a, a.active {
 }
 
 #home #nav-home a,
+#create #nav-create a,
+#search #nav-search a,
+#feeds #nav-feeds a,
 #about #nav-about a,
 #archive #nav-archive a,
 #lab #nav-lab a,
 #reviews #nav-reviews a,
 #contact #nav-contact a {
-    /* background:#e35a00; */
     background: #a9b0ba;  /* Nav selected color */
     /* color:#fff;  / * Use if bg is dark */
     text-shadow:none;
 }
 #home #nav-home a:hover,
+#create #nav-create a,
+#search #nav-search a,
+#feeds #nav-feeds a,
 #about #nav-about a:hover,
 #archive #nav-archive a:hover,
 #lab #nav-lab a:hover,
@@ -108,45 +144,6 @@ a.link, a, a.active {
     background: #a9b0ba;  /* Nav selected color */
     color:#fff;
 }
-
-
-
-/*
-#nav {
-    clear:both;
-    padding-top:3px;
-    font:1em/2 "Helvetica Neue",Arial,Helvetica,sans-serif;
-}
-#nav ul {
-    float:left;
-    width:100%;
-    margin:0;
-    padding:0;
-    list-style:none;
-    background:#970601 url(/i/nav-tab.png) repeat-x;
-}
-#nav li {
-    display:inline;
-    margin:0;
-    padding:0;
-}
-#nav a {
-    display:block;
-    float:left;
-    padding:0 12px;
-    border-right:1px solid #bb1600;
-    border-bottom:none;
-    border-left:1px solid #b21203;
-    color:#fff;
-    background:#970601 url(/i/nav-tab.png) repeat-x;
-    text-decoration:none;
-}
-#nav a:hover,
-#nav a:focus {background:#b31203 url(/i/nav-tab.png) repeat-x 0 -150px;}
-#nav .sel a {background:#720000 url(/i/nav-tab.png) repeat-x 0 -300px;}
-#nav .sel a:hover,
-#nav .sel a:focus {background:#b31203 url(/i/nav-tab.png) repeat-x 0 -150px;}
-*/
 
 
 #sidebar {
