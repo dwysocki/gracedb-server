@@ -4,7 +4,7 @@ from django.conf.urls.defaults import *
 #import django.views.generic.list_detail
 
 urlpatterns = patterns('gracedb.gracedb.views',
-    (r'^$', 'index'),
+    url (r'^$', 'index', name="home"),
     url (r'^create/$', 'create', name="create"),
     url (r'^search/$', 'search', name="search"),
     url (r'^view/(?P<graceid>[\w\d]+)', 'view', name="view"),

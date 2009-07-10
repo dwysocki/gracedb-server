@@ -8,16 +8,21 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 from models import Event, Group
-from views import view, search
+from views import view, search, index
 
 class EventFeed(Feed):
     def get_object(self, bits):
         # [] , ['cbc'], ['cbc','lowmass']
+        objs = Event.objects.order_by("-id")
+        if 'test' not in bits:
+            # Filter out test group
+            testGroup = Group.objects.filter(name__iexact='Test')
+            if testGroup.count():
+                objs = objs.exclude(group=testGroup[0])
         if len(bits) not in [0,1,2]:
             raise FeedDoesNotExist
         if not bits:
-            title = "GraCEDB Events"
-            objs = Event.objects.order_by("-id")
+            title = "GraCEDb Events"
         else:
             group = Group.objects.filter(name__iexact=bits[0])
             if not group.count():
@@ -25,7 +30,7 @@ class EventFeed(Feed):
             group = group[0]
             objs = Event.objects.filter(group=group)
             if len(bits) == 1:
-                title = "GraCEDB Events for %s Group" % group.name
+                title = "GraCEDb %s Events" % group.name
             else:
                 requestedtype = bits[1]
                 type = [(c,t) for (c,t) in Event.ANALYSIS_TYPE_CHOICES \
@@ -33,7 +38,7 @@ class EventFeed(Feed):
                 if not type:
                     raise FeedDoesNotExist
                 typecode, type = type[0]
-                title = "GraCEDB Events for %s / %s" % (group.name, type)
+                title = "GraCEDb %s / %s Events" % (group.name, type)
                 objs = objs.filter(analysisType=typecode)
         return title, objs[:10]
 
@@ -43,7 +48,7 @@ class EventFeed(Feed):
 
     def link(self, obj):
         # This is the link around the title for the entire feed.
-        return reverse(search)
+        return reverse("home")
 
     def item_link(self, obj):
         return reverse(view, args=[obj.graceid()])
