@@ -187,12 +187,18 @@ def search(request):
     else:
         form = EventSearchForm(request.POST)
         if form.is_valid():
-            objects = Event.objects.all()
             start = form.cleaned_data['graceidStart']
             end = form.cleaned_data['graceidEnd']
             submitter = form.cleaned_data['submitter']
             groupname = form.cleaned_data['group']
             typename = form.cleaned_data['type']
+
+            if not groupname:
+                # don't show test events unless explicitly requested
+                # Scales?  Or should we find test group and do group= ?
+                objects = Event.objects.exclude(group__name='Test')
+            else:
+                objects = Event.objects.all()
 
             if start:
                 if start[0] != 'G':
@@ -220,9 +226,9 @@ def search(request):
                 objects = objects.filter(analysisType=typename)
             if form.cleaned_data['ligoApproved']:
                 objects = objects.filter(approval__approvingCollaboration='L')
-
             if form.cleaned_data['virgoApproved']:
                 objects = objects.filter(approval__approvingCollaboration='V')
+
             return object_list(request, objects, extra_context={'title':"Query Results"})
 
 
