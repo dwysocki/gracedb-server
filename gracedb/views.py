@@ -3,6 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.template import RequestContext
 from django.core.urlresolvers import reverse, get_script_prefix
 from django.shortcuts import render_to_response
+from django.contrib.sites.models import Site
 
 from django.views.generic.list_detail import object_detail, object_list
 
@@ -161,7 +162,8 @@ def log(request):
     return response
 
 def ping(request):
-    ack = request.POST.get('ack', None) or request.GET.get('ack','ACK')
+    ack = "(%s) " % Site.objects.get_current()
+    ack += request.POST.get('ack', None) or request.GET.get('ack','ACK')
     response = HttpResponse(mimetype='text/plain')
     response.write(ack)
     response['Content-length'] = len(ack)

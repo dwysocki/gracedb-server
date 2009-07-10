@@ -4,18 +4,25 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
+    ('Brian Moe', 'bmoe@gravity.phys.uwm.edu'),
 )
 
 MANAGERS = ADMINS
 
-ALERT_EMAIL_FROM = "root@archie.phys.uwm.edu"
+ALERT_EMAIL_FROM = "Gracedb Alert <root@archie.phys.uwm.edu>"
 ALERT_EMAIL_TO = ["patrick@gravity.phys.uwm.edu",
                   "larry@gravity.phys.uwm.edu",
                   "bmoe@gravity.phys.uwm.edu",
                   'Frederique Marion <marionf@lapp.in2p3.fr>',
                   "Benoit MOURS <mours@lapp.in2p3.fr>",
+                  "Jonah Kanner <jkanner@umd.edu>",
                  ]
+
+ALERT_TEST_EMAIL_FROM = "Gracedb TEST Alert <root@archie.phys.uwm.edu>"
+ALERT_TEST_EMAIL_TO = ["patrick@gravity.phys.uwm.edu",
+                       "larry@gravity.phys.uwm.edu",
+                       "bmoe@gravity.phys.uwm.edu",
+                      ]
 
 DATABASE_ENGINE = 'mysql'
 DATABASE_NAME = 'gracedb'

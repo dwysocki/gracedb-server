@@ -14,6 +14,12 @@ def issueAlert(event, location):
     issueEmailAlert(event, location)
 
 def issueEmailAlert(event, location):
+    if event.group.name == 'Test':
+        fromaddress = settings.ALERT_TEST_EMAIL_FROM
+        toaddress = settings.ALERT_TEST_EMAIL_TO
+    else:
+        fromaddress = settings.ALERT_EMAIL_FROM
+        toaddress = settings.ALERT_EMAIL_TO
     subject = "[gracedb] %s event. ID: %s" % (event.get_analysisType_display(), event.graceid())
     message = """
     New Event
@@ -33,23 +39,20 @@ def issueEmailAlert(event, location):
                 event.wikiurl(),
                 event.submitter.name,
                 location)
-    fromaddress = settings.ALERT_EMAIL_FROM
-    to = settings.ALERT_EMAIL_TO
-    send_mail(subject, message, fromaddress, to)
+    send_mail(subject, message, fromaddress, toaddress)
 
 def issueXMPPAlert(event, location):
     # XXX awful!
+    # Need a good way to know which things to send out to lvalert.
+    # Currently, only Test/* and CBC/MBTAOnline get alerts.
     if event.analysisType != 'MBTA' and event.group.name != 'Test':
         return
 
     env = {}
     env["PYTHONPATH"] = ":".join(sys.path)
 
-    if event.analysisType == 'MBTA' and event.group.name == 'CBC':
-        nodename = "cbc_mbta_online"
-    else:
-        nodename = "%s_%s"% (event.group.name, event.get_analysisType_display())
-        nodename = nodename.lower()
+    nodename = "%s_%s"% (event.group.name, event.get_analysisType_display())
+    nodename = nodename.lower()
 
     null = open('/dev/null','w')
     p = Popen(
@@ -74,22 +77,6 @@ def issueXMPPAlert(event, location):
         else:
             break
 
-#def issueAlertX(event, location):
-#    username = "gracedb"
-#    server = "lvalert.phys.uwm.edu"
-#    resource = "sender"
-#    password = "w4k3upal1ve"
-#    node = "cbc_mbta_online"
-#    voevent = createPayload(event.graceid(), location)
-#
-#    myjid=JID(username+"@"+server+"/"+resource)
-#    recpt=JID("pubsub."+server)
-#
-#    s=MyClient(jid=myjid, password=password, recpt=recpt)
-#    s.connect()
-#    s.send_myevent(voevent, node)
-#    s.loop(1)
-
 def createPayload (uid, filename):
     template = """<?xml version='1.0' encoding='utf-8'?>
 <!DOCTYPE LIGO_LW SYSTEM "http://ldas-sw.ligo.caltech.edu/doc/ligolwAPI/html/ligolw_dtd.txt">
@@ -105,52 +92,3 @@ def createPayload (uid, filename):
 """
     return template % { 'uid': uid, 'filename': filename }
 
-## pubsub import must come first because it overloads part of the
-## StanzaProcessor class
-#from glue.lvalert import pubsub
-#
-#from pyxmpp.all import JID, TLSSettings
-#from pyxmpp.jabber.all import Client
-#
-#
-#class MyClient(Client):
-#    def __init__(self, jid, password, recpt):
-#        # if bare JID is provided add a resource -- it is required
-#        if not jid.resource:
-#            jid=JID(jid.node, jid.domain, "sender")
-#        self.myrecpt = recpt
-#
-#        # we require a TLS connection
-#        t=TLSSettings(require=True,verify_peer=False)
-#
-#        # setup client with provided connection information
-#        # and identity data
-#        Client.__init__(self, jid, password, \
-#            auth_methods=["sasl:GSSAPI","sasl:PLAIN"], tls_settings=t)
-#
-#    def stream_state_changed(self,state,arg):
-#        """This one is called when the state of stream connecting the component
-#        to a server changes. This will usually be used to let the user
-#        know what is going on."""
-#        pass
-#
-#    def session_started(self):
-#        self.stream.set_response_handlers(self.pspl, \
-#            self.pspl.generic_result,self.pspl.create_error,\
-#            self.pspl.create_timeout)
-#        self.stream.send(self.pspl)
-#
-#    def idle(self):
-#        if self.stream and self.session_established:
-#            self.disconnect()
-#        time.sleep(2)
-#
-#    def post_disconnect(self):
-#        raise Disconnected
-#
-#    def send_myevent(self, voevent, node):
-#        self.pspl=pubsub.PubSub(from_jid = self.jid, to_jid = self.myrecpt, stream = self, stanza_type="get")
-#        self.pspl.publish(voevent,node)
-
-
-# vi: sts=4 et sw=4

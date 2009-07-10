@@ -4,15 +4,20 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
+    ('Brian Moe', 'bmoe@gravity.phys.uwm.edu'),
 )
 
 MANAGERS = ADMINS
 
-ALERT_EMAIL_FROM = "bmoe@uwm.edu"
+ALERT_EMAIL_FROM = "Dev Alert <root@moe.phys.uwm.edu>"
 ALERT_EMAIL_TO = [
     "Brian Moe <bmoe@gravity.phys.uwm.edu>",
     "bmoe@uwm.edu",
+    ]
+
+ALERT_TEST_EMAIL_FROM = "Dev Test Alert <root@moe.phys.uwm.edu>"
+ALERT_TEST_EMAIL_TO = [
+    "Brian Moe <bmoe@gravity.phys.uwm.edu>",
     ]
 
 DATABASE_ENGINE = 'mysql'
