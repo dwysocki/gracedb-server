@@ -1,0 +1,12 @@
+#from gracedb.gracedb.models import Analysis, Group, User
+from models import Event, EventLog, User
+from django.contrib import admin
+
+#class AnalysisAdmin(admin.ModelAdmin):
+#    list_display = ['uid', 'group', 'analysisType', 'description', 'owner']
+
+#admin.site.register(Analysis, AnalysisAdmin)
+admin.site.register(Event)
+admin.site.register(EventLog)
+admin.site.register(User)
+
