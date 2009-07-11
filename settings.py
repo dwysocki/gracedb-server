@@ -77,8 +77,10 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.debug",
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
-    "lars.middleware.auth.LigoAuthContext",
+    "gracedb.middleware.auth.LigoAuthContext",
 )
+
+AUTHENTICATION_BACKENDS = ('lars.middleware.auth.LigoAuthBackend',)
 
 MIDDLEWARE_CLASSES = (
     'gracedb.middleware.accept.AcceptMiddleware',
@@ -99,9 +101,9 @@ TEMPLATE_DIRS = (
 
 INSTALLED_APPS = (
     'django.contrib.auth',
-    'django.contrib.admin',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
+    'django.contrib.admin',
     'gracedb.gracedb',
 )

@@ -244,6 +244,6 @@ span.code {
 thead th a:link, thead th a:visited { color:#666; display:block; }
 table thead th.sorted { background-position:bottom left !important; }
 table thead th.sorted a { padding-right:13px; }
-table thead th.ascending a { background:url(/lars-static/images/arrow-down.gif) right .4em no-repeat; }
-table thead th.descending a { background:url(/lars-static/images/arrow-up.gif) right .4em no-repeat; }
+table thead th.ascending a { background:url(/gracedb-static/images/arrow-down.gif) right .4em no-repeat; }
+table thead th.descending a { background:url(/gracedb-static/images/arrow-up.gif) right .4em no-repeat; }
 

@@ -76,6 +76,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "lars.middleware.auth.LigoAuthContext",
 )
 
+AUTHENTICATION_BACKENDS = ('lars.middleware.auth.LigoAuthBackend',)
+
 MIDDLEWARE_CLASSES = (
     'gracedb.middleware.accept.AcceptMiddleware',
     'gracedb.middleware.auth.LigoAuthMiddleware',
