@@ -73,10 +73,10 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.debug",
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
-    "lars.middleware.auth.LigoAuthContext",
+    "gracedb.middleware.auth.LigoAuthContext",
 )
 
-AUTHENTICATION_BACKENDS = ('lars.middleware.auth.LigoAuthBackend',)
+AUTHENTICATION_BACKENDS = ('gracedb.middleware.auth.LigoAuthBackend',)
 
 MIDDLEWARE_CLASSES = (
     'gracedb.middleware.accept.AcceptMiddleware',
