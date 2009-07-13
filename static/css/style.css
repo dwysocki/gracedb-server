@@ -16,6 +16,7 @@ tr.even td {background-color:#fff;}
     width: 500px;
     margin-left: 50px;
     margin-right: auto;
+    padding: 5px;
 }
 
 #header {
