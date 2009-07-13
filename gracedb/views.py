@@ -11,6 +11,9 @@ from models import Event, Group, EventLog
 from forms import CreateEventForm, EventSearchForm
 from alert import issueAlert
 
+from glue.gracedb.utils import populate_inspiral_tables, populate_coinc_tables, write_output_files
+
+
 import os
 
 def index(request):
@@ -61,11 +64,20 @@ def create(request):
                 fdest.close()
                 # Create WIKI page
                 createWikiPage(event.graceid())
+
+                # Extract Info from uploaded data
+                handle_uploaded_data(event, uploadDestination)
+
                 # Send an alert.
                 issueAlert(event, os.path.join(event.clusterurl(), "private", f.name))
                 #return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
             except:
                 # something went wrong.
+                # XXX We need to make sure we clean up EVERYTHING.
+                # We don't.  Wiki page and data directories remain.
+                # According to Django docs, EventLog entries cascade on delete.
+                # Also, we probably want to keep track of what's failing
+                # and send out an email (or something)
                 if saved:
                     # undo save.
                     event.delete()
@@ -76,7 +88,7 @@ def create(request):
                 response.write(msg)
                 response['Content-length'] = len(msg)
                 return response
-            return HttpResponseRedirect(reverse(search))
+            return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
         else: # form not valid
             if 'cli' in request.POST:
                 # Error occurred in command line client.
@@ -290,13 +302,30 @@ Initial Entry for %s
     os.chmod(pname, 0644)
     os.chmod(rcsname, 0444)
 
-        #  f=open(twikiroot+eventid+".txt","w")
-        #  entry=[]
-        #  entry.append('%TOC{depth="2"}%\n')
-        #  entry.append('---+ Twiki page for candidate event ' + eventid) 
-        #  f.writelines(entry)
-        #  f.close()
-        #  os.chdir(twikiroot)
-        #  command='echo "initial entry" | ci -l ' +eventid+".txt"
-        #  os.popen(command)
+def handle_uploaded_data(event, datafilename,
+                         log_filename='event.log',
+                         coinc_table_filename='coinc.xml'):
+    from glue.gracedb.utils import InspiralCoincId, InspiralCoincDef
+    from glue.gracedb.utils import insp_event_id_dict
+
+    if event.analysisType == 'MBTA':
+        xmldoc, log_data = populate_inspiral_tables(datafilename)
+        populate_coinc_tables(xmldoc, InspiralCoincId, insp_event_id_dict, InspiralCoincDef)
+
+        output_dir = os.path.dirname(datafilename)
+        write_output_files(output_dir, xmldoc, log_data,
+                           xml_fname=coinc_table_filename,
+                           log_fname=log_filename)
+
+        # Create EventLog entries about these files.
+        private_data_url = os.path.join(event.weburl(), 'private')
+        log_comment = "Log File Created" 
+        log_file_url = os.path.join(private_data_url, log_filename)
+        log = EventLog(event=event, filename=log_file_url, issuer=event.submitter, comment=log_comment)
+        log.save()
+        comment="Coinc Table Created"
+        coinc_table_url = os.path.join(private_data_url, coinc_table_filename)
+        #comment="Coinc Table: %s" % os.path.join(output_dir, coinc_table_filename)
+        log = EventLog(event=event, filename=coinc_table_url, issuer=event.submitter, comment=comment)
+        log.save()
 
