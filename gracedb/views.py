@@ -320,12 +320,16 @@ def handle_uploaded_data(event, datafilename,
         # Create EventLog entries about these files.
         private_data_url = os.path.join(event.weburl(), 'private')
         log_comment = "Log File Created" 
-        log_file_url = os.path.join(private_data_url, log_filename)
-        log = EventLog(event=event, filename=log_file_url, issuer=event.submitter, comment=log_comment)
+        log = EventLog(event=event,
+                       filename=log_filename,
+                       issuer=event.submitter,
+                       comment=log_comment)
         log.save()
         comment="Coinc Table Created"
-        coinc_table_url = os.path.join(private_data_url, coinc_table_filename)
         #comment="Coinc Table: %s" % os.path.join(output_dir, coinc_table_filename)
-        log = EventLog(event=event, filename=coinc_table_url, issuer=event.submitter, comment=comment)
+        log = EventLog(event=event,
+                       filename=coinc_table_filename,
+                       issuer=event.submitter,
+                       comment=comment)
         log.save()
 
