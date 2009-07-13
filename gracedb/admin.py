@@ -1,5 +1,5 @@
 #from gracedb.gracedb.models import Analysis, Group, User
-from models import Event, EventLog, User
+from models import Event, EventLog, User, Group
 from django.contrib import admin
 
 #class AnalysisAdmin(admin.ModelAdmin):
@@ -9,4 +9,5 @@ from django.contrib import admin
 admin.site.register(Event)
 admin.site.register(EventLog)
 admin.site.register(User)
+admin.site.register(Group)
 

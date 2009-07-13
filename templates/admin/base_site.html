@@ -1,0 +1,30 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block extrastyle %}
+    <link rel="stylesheet" href="/gracedb-static/css/admin-nav.css" />
+{% endblock %}
+
+
+{% block title %}{{ title }} | {% trans 'Django site admin' %}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">{% trans 'Django administration' %}</h1>
+{% endblock %}
+
+{% block nav-global %}
+<!--
+    <span id="nav-home"><a href="{% url home %}">Home</a></span>
+    <span id="nav-search"><a href="{% url search %}">Search</a></span>
+    <span id="nav-create"><a href="{% url create %}">Create</a></span>
+    <span id="nav-feeds"><a href="{% url feeds %}">RSS</a></span>
+    {% if ligouser %}<div id="nav-user">Authenticated as: {{ ligouser.name }}</div>{% endif %}
+-->
+<ul id="nav">
+    <li id="nav-home"><a href="{% url home %}">Home</a></li>
+    <li id="nav-search"><a href="{% url search %}">Search</a></li>
+    <li id="nav-create"><a href="{% url create %}">Create</a></li>
+    <li id="nav-feeds"><a href="{% url feeds %}">RSS</a></li>
+    {% if ligouser %}<li id="nav-user">Authenticated as: {{ ligouser.name }}</li>{% endif %}
+<ul>
+{% endblock %}

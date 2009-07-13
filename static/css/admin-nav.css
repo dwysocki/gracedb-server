@@ -1,0 +1,85 @@
+/* Nav */
+#nav {
+    margin:0;
+    padding:0;
+    background:#eee;    /* Nav base color */
+    float: left;
+    width: 100%;
+    border:1px solid #42432d;
+    border-width:1px 1px;
+}
+
+#nav #nav-user
+{
+    color:#000;
+    background:#eee;    /* Nav base color */
+    padding:4px 20px 4px 20px;
+    float: right;
+    width: auto;
+    text-decoration:none;
+    font:bold 1em/1em Arial, Helvetica, sans-serif;
+    text-transform:uppercase;
+    text-shadow: 2px 2px 2px #555;
+}
+
+#nav li {
+    display:inline;
+    padding:0;
+    margin:0;
+}
+/*
+#nav li:first-child a {
+    border-left:1px solid #42432d;
+}
+*/
+
+#nav a:link,
+#nav a:visited {
+    color:#000;
+    background:#eee;    /* Nav base color */
+    /* padding:20px 40px 4px 10px; */
+    padding:4px 20px 4px 20px;
+    float: left;
+    width: auto;
+    border-right:1px solid #42432d;
+
+    text-decoration:none;
+    font:bold 1em/1em Arial, Helvetica, sans-serif;
+    text-transform:uppercase;
+    text-shadow: 2px 2px 2px #555;
+}
+#nav a:hover {
+    /* color:#fff;  / * Use if bg is dark */
+    background: #dce2ed;  /* Nav hover color */
+}
+
+#home #nav-home a,
+#create #nav-create a,
+#search #nav-search a,
+#feeds #nav-feeds a,
+#about #nav-about a,
+#archive #nav-archive a,
+#lab #nav-lab a,
+#reviews #nav-reviews a,
+#contact #nav-contact a {
+    background: #a9b0ba;  /* Nav selected color */
+    /* color:#fff;  / * Use if bg is dark */
+    text-shadow:none;
+}
+#home #nav-home a:hover,
+#create #nav-create a,
+#search #nav-search a,
+#feeds #nav-feeds a,
+#about #nav-about a:hover,
+#archive #nav-archive a:hover,
+#lab #nav-lab a:hover,
+#reviews #nav-reviews a:hover,
+#contact #nav-contact a:hover {
+    /* background:#e35a00; */
+    background: #a9b0ba;  /* Nav selected color */
+}
+#nav a:active {
+    /* background:#e35a00; */
+    background: #a9b0ba;  /* Nav selected color */
+    color:#fff;
+}
