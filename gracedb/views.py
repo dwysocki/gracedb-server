@@ -229,13 +229,13 @@ def search(request):
                     objects = objects.filter(id__lte=int(end[1:]))
                     objects = objects.filter(uid="")
 
-            if gpsStart or gpsEnd:
-                if gpsStart and (gpsStart == gpsEnd):
+            if gpsStart != None or gpsEnd != None :
+                if gpsStart == gpsEnd:
                     objects = objects.filter(gpstime=gpsStart)
                 else:
-                    if gpsStart:
+                    if gpsStart != None:
                         objects = objects.filter(gpstime__gte=gpsStart)
-                    if gpsEnd:
+                    if gpsEnd != None:
                         objects = objects.filter(gpstime__lte=gpsEnd)
 
             if submitter:
