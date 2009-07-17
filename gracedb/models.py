@@ -41,6 +41,16 @@ class Event(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Group)
     analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
+    # From ligolw coinc_event table -- none are required.  yet.
+    instruments = models.CharField(max_length=20, default="")
+    nevents = models.PositiveIntegerField(null=True)
+    likelihood = models.FloatField(null=True)
+
+    # NOT from coinc_event, but so, so common.
+    #   Note that the semantics for this is different depending
+    #   on search type, so in some sense, querying on this may
+    #   be considered, umm, wrong?  But it is a starting point.
+    gpstime = models.PositiveIntegerField(null=True)
 
     # XXX Deprecated.  Only useful for old test data.
     # Remove this when it won't freak people out to lose

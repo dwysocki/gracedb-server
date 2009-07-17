@@ -10,9 +10,7 @@ from django.views.generic.list_detail import object_detail, object_list
 from models import Event, Group, EventLog
 from forms import CreateEventForm, EventSearchForm
 from alert import issueAlert
-
-from glue.gracedb.utils import populate_inspiral_tables, populate_coinc_tables, write_output_files
-
+from translator import handle_uploaded_data
 
 import os
 
@@ -204,6 +202,8 @@ def search(request):
             submitter = form.cleaned_data['submitter']
             groupname = form.cleaned_data['group']
             typename = form.cleaned_data['type']
+            gpsStart =  form.cleaned_data['gpsStart']
+            slop =  form.cleaned_data['gpsSlop']
 
             if not groupname:
                 # don't show test events unless explicitly requested
@@ -228,6 +228,16 @@ def search(request):
                 else:
                     objects = objects.filter(id__lte=int(end[1:]))
                     objects = objects.filter(uid="")
+
+            if gpsStart:
+                slop = slop or 0
+                if not slop:
+                    objects = objects.filter(gpstime=gpsStart)
+                else:
+                    gpsStart = int(gpsStart)
+                    slop = int(slop) / 2
+                    objects = objects.filter(gpstime__gte=gpsStart-slop)
+                    objects = objects.filter(gpstime__lte=gpsStart+slop)
 
             if submitter:
                 objects = objects.filter(submitter=submitter)
@@ -301,35 +311,4 @@ Initial Entry for %s
 
     os.chmod(pname, 0644)
     os.chmod(rcsname, 0444)
-
-def handle_uploaded_data(event, datafilename,
-                         log_filename='event.log',
-                         coinc_table_filename='coinc.xml'):
-    from glue.gracedb.utils import InspiralCoincId, InspiralCoincDef
-    from glue.gracedb.utils import insp_event_id_dict
-
-    if event.analysisType == 'MBTA':
-        xmldoc, log_data = populate_inspiral_tables(datafilename)
-        populate_coinc_tables(xmldoc, InspiralCoincId, insp_event_id_dict, InspiralCoincDef)
-
-        output_dir = os.path.dirname(datafilename)
-        write_output_files(output_dir, xmldoc, log_data,
-                           xml_fname=coinc_table_filename,
-                           log_fname=log_filename)
-
-        # Create EventLog entries about these files.
-        private_data_url = os.path.join(event.weburl(), 'private')
-        log_comment = "Log File Created" 
-        log = EventLog(event=event,
-                       filename=log_filename,
-                       issuer=event.submitter,
-                       comment=log_comment)
-        log.save()
-        comment="Coinc Table Created"
-        #comment="Coinc Table: %s" % os.path.join(output_dir, coinc_table_filename)
-        log = EventLog(event=event,
-                       filename=coinc_table_filename,
-                       issuer=event.submitter,
-                       comment=comment)
-        log.save()
 
