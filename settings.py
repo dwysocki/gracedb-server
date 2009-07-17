@@ -12,7 +12,7 @@ MANAGERS = ADMINS
 ALERT_EMAIL_FROM = "GraCEDb <gracedb@archie.phys.uwm.edu>"
 ALERT_EMAIL_TO = [
 #                 "patrick@gravity.phys.uwm.edu",
-                  "larry@gravity.phys.uwm.edu",
+#                 "larry@gravity.phys.uwm.edu",
 #                 "bmoe@gravity.phys.uwm.edu",
                   'Frederique Marion <marionf@lapp.in2p3.fr>',
                   "Benoit MOURS <mours@lapp.in2p3.fr>",
