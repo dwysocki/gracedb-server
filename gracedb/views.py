@@ -203,7 +203,7 @@ def search(request):
             groupname = form.cleaned_data['group']
             typename = form.cleaned_data['type']
             gpsStart =  form.cleaned_data['gpsStart']
-            slop =  form.cleaned_data['gpsSlop']
+            gpsEnd =  form.cleaned_data['gpsEnd']
 
             if not groupname:
                 # don't show test events unless explicitly requested
@@ -229,15 +229,14 @@ def search(request):
                     objects = objects.filter(id__lte=int(end[1:]))
                     objects = objects.filter(uid="")
 
-            if gpsStart:
-                slop = slop or 0
-                if not slop:
+            if gpsStart or gpsEnd:
+                if gpsStart and (gpsStart == gpsEnd):
                     objects = objects.filter(gpstime=gpsStart)
                 else:
-                    gpsStart = int(gpsStart)
-                    slop = int(slop) / 2
-                    objects = objects.filter(gpstime__gte=gpsStart-slop)
-                    objects = objects.filter(gpstime__lte=gpsStart+slop)
+                    if gpsStart:
+                        objects = objects.filter(gpstime__gte=gpsStart)
+                    if gpsEnd:
+                        objects = objects.filter(gpstime__lte=gpsEnd)
 
             if submitter:
                 objects = objects.filter(submitter=submitter)

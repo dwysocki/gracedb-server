@@ -21,8 +21,8 @@ class EventSearchForm(forms.Form):
     graceidEnd = forms.CharField(required=False)
     group = forms.ChoiceField(choices=groupChoices, required=False)
     type = forms.ChoiceField(choices=typeChoices, required=False)
-    gpsStart = forms.IntegerField(min_value=0, required=False)
-    gpsSlop = forms.IntegerField(min_value=0, required=False)
+    gpsStart = forms.IntegerField(min_value=0, required=False, label="GPS Start")
+    gpsEnd = forms.IntegerField(min_value=0, required=False, label="GPS End")
     submitter = forms.ChoiceField(choices=submitterChoices, required=False)
 
     ligoApproved = forms.BooleanField(initial=False, required=False, label="LIGO Approved Only")
