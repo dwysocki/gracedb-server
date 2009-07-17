@@ -10,6 +10,9 @@
   <tr><th>ID</th><td>{{ object.graceid }}</td></tr>
   <tr><th>Group</th><td>{{ object.group.name }}</td></tr>
   <tr><th>Type</th><td>{{ object.get_analysisType_display }}</td></tr>
+{% if object.gpstime %}
+  <tr><th>GPS Time</th><td>{{ object.gpstime }}</td></tr>
+{% endif %}
   <tr><th>Data</th><td>
     <a href="{{ object.weburl }}">{{ object.weburl }}</a>
     </td></tr>
