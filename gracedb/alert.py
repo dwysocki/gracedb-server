@@ -50,17 +50,17 @@ Event Summary:
     send_mail(subject, message, fromaddress, toaddress)
 
 def issueXMPPAlert(event, location):
+    nodename = "%s_%s"% (event.group.name, event.get_analysisType_display())
+    nodename = nodename.lower()
+
     # XXX awful!
     # Need a good way to know which things to send out to lvalert.
-    # Currently, only Test/* and CBC/MBTAOnline get alerts.
-    if event.analysisType != 'MBTA' and event.group.name != 'Test':
+    # Currently, only MBTAOnline and Omega get alerts.
+    if nodename not in ['cbc_mbtaonline', 'burst_omega', 'test_omega', 'test_mbtaonline']:
         return
 
     env = {}
     env["PYTHONPATH"] = ":".join(sys.path)
-
-    nodename = "%s_%s"% (event.group.name, event.get_analysisType_display())
-    nodename = nodename.lower()
 
     null = open('/dev/null','w')
     p = Popen(
