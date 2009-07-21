@@ -120,6 +120,8 @@ def upload(request):
         msg = "ERROR: missing arg(s)"
     elif not event:
         msg = "ERROR: Event '%s' does not exist" % graceid
+    elif event.submitter != request.ligouser:
+        msg = "ERROR: Only submitter can upload files"
     else:
         #event issuer comment
         log = EventLog(event=event,
@@ -158,6 +160,8 @@ def log(request):
         msg = "ERROR: missing arg(s)"
     elif not event:
         msg = "ERROR: Event '%s' does not exist" % graceid
+    elif event.submitter != request.ligouser:
+        msg = "ERROR: Only submitter can add log messages"
     else:
         #event issuer comment
         log = EventLog(event=event, issuer=request.ligouser, comment=message)

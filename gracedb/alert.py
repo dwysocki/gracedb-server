@@ -13,6 +13,13 @@ def issueAlert(event, location):
     issueXMPPAlert(event, location)
     issueEmailAlert(event, location)
 
+def indent(nindent, text):
+    return "\n".join([(nindent*' ')+line for line in text.split('\n')])
+
+def prepareSummary(event):
+    # XXX TBD what exactly this summary is.
+    return "GPS Time: %s" % event.gpstime
+
 def issueEmailAlert(event, location):
     if event.group.name == 'Test':
         fromaddress = settings.ALERT_TEST_EMAIL_FROM
@@ -22,14 +29,15 @@ def issueEmailAlert(event, location):
         toaddress = settings.ALERT_EMAIL_TO
     subject = "[gracedb] %s event. ID: %s" % (event.get_analysisType_display(), event.graceid())
     message = """
-    New Event
-    %s / %s
-    GRACEID:   %s
-    Info:      %s
-    Data:      %s
-    TWiki:     %s
-    Submitter: %s
-    Original Data: %s
+New Event
+%s / %s
+GRACEID:   %s
+Info:      %s
+Data:      %s
+TWiki:     %s
+Submitter: %s
+Event Summary:
+%s
 """
     message %= (event.group.name,
                 event.get_analysisType_display(),
@@ -38,7 +46,7 @@ def issueEmailAlert(event, location):
                 event.weburl(),
                 event.wikiurl(),
                 event.submitter.name,
-                location)
+                indent(3, prepareSummary(event)))
     send_mail(subject, message, fromaddress, toaddress)
 
 def issueXMPPAlert(event, location):
