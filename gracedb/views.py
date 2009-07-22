@@ -14,6 +14,8 @@ from translator import handle_uploaded_data
 
 import os
 
+FOLLOWUP_USER_NAMES = ['LUMIN']
+
 def index(request):
 #   assert request.ligouser
     return render_to_response(
@@ -120,8 +122,9 @@ def upload(request):
         msg = "ERROR: missing arg(s)"
     elif not event:
         msg = "ERROR: Event '%s' does not exist" % graceid
-    elif event.submitter != request.ligouser:
-        msg = "ERROR: Only submitter can upload files"
+    elif event.submitter != request.ligouser and \
+           request.ligouser.name not in FOLLOWUP_USER_NAMES:
+        msg = "ERROR: Only submitter or authorized follow-ups can upload files"
     else:
         #event issuer comment
         log = EventLog(event=event,
@@ -160,8 +163,9 @@ def log(request):
         msg = "ERROR: missing arg(s)"
     elif not event:
         msg = "ERROR: Event '%s' does not exist" % graceid
-    elif event.submitter != request.ligouser:
-        msg = "ERROR: Only submitter can add log messages"
+    elif event.submitter != request.ligouser and \
+           request.ligouser.name not in FOLLOWUP_USER_NAMES:
+        msg = "ERROR: Only submitter or authorized follow-ups can log messages"
     else:
         #event issuer comment
         log = EventLog(event=event, issuer=request.ligouser, comment=message)
