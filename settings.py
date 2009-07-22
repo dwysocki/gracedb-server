@@ -39,7 +39,9 @@ DATABASE_PORT = ''             # Set to empty string for default.
 # although not all choices may be available on all operating systems.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
+
 TIME_ZONE = 'America/Chicago'
+GRACE_DATETIME_FORMAT = 'Y-m-d H:i:s T'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -104,9 +106,9 @@ TEMPLATE_DIRS = (
 
 INSTALLED_APPS = (
     'django.contrib.auth',
+    'django.contrib.admin',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'django.contrib.admin',
     'gracedb.gracedb',
 )
