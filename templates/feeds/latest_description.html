@@ -1,6 +1,7 @@
+{% load timeutil %}
 <ul>
     <li><a href="{{ obj.weburl }}">Data</a></li>
     <li><a href="{{ obj.wikiurl }}">TWiki</a></li>
 </ul>
 Sumbmitter: {{ obj.submitter.name }}<br/>
-Created: {{ obj.created }}
+Created: {{ obj.created|utc }}
