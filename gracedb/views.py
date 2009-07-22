@@ -116,7 +116,10 @@ def upload(request):
     comment = request.POST.get('comment', None)
     uploadedfile = request.FILES['upload']
     response = HttpResponse(mimetype='text/plain')
-    event = graceid and Event.getByGraceid(graceid)
+    try:
+        event = graceid and Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        event = None
     # uploadedFile.{name/chunks()}
     if not (comment and uploadedfile and graceid):
         msg = "ERROR: missing arg(s)"
@@ -158,7 +161,11 @@ def log(request):
     message = request.POST.get('message')
     graceid = request.POST.get('graceid')
     response = HttpResponse(mimetype='text/plain')
-    event = graceid and Event.getByGraceid(graceid)
+    try:
+        event = graceid and Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        event = None
+
     if not (message and graceid):
         msg = "ERROR: missing arg(s)"
     elif not event:
