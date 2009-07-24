@@ -125,9 +125,10 @@ def upload(request):
         msg = "ERROR: missing arg(s)"
     elif not event:
         msg = "ERROR: Event '%s' does not exist" % graceid
-    elif event.submitter != request.ligouser and \
-           request.ligouser.name not in FOLLOWUP_USER_NAMES:
-        msg = "ERROR: Only submitter or authorized follow-ups can upload files"
+#   Removed per Patrick's request. 7/24/09 bmoe
+#   elif event.submitter != request.ligouser and \
+#          request.ligouser.name not in FOLLOWUP_USER_NAMES:
+#       msg = "ERROR: Only submitter or authorized follow-ups can upload files"
     else:
         #event issuer comment
         log = EventLog(event=event,
@@ -170,9 +171,10 @@ def log(request):
         msg = "ERROR: missing arg(s)"
     elif not event:
         msg = "ERROR: Event '%s' does not exist" % graceid
-    elif event.submitter != request.ligouser and \
-           request.ligouser.name not in FOLLOWUP_USER_NAMES:
-        msg = "ERROR: Only submitter or authorized follow-ups can log messages"
+#   Removed per Patrick's request. 7/24/09 bmoe
+#   elif event.submitter != request.ligouser and \
+#          request.ligouser.name not in FOLLOWUP_USER_NAMES:
+#       msg = "ERROR: Only submitter or authorized follow-ups can log messages"
     else:
         #event issuer comment
         log = EventLog(event=event, issuer=request.ligouser, comment=message)
