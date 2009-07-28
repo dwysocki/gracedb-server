@@ -3,7 +3,7 @@ import os
 
 from models import EventLog
 
-import glue
+import glue, glue.ligolw.utils
 from glue.gracedb.utils import InspiralCoincIdBase, InspiralCoincDef
 from glue.gracedb.utils import BurstCoincIdBase, BurstCoincDef
 
@@ -18,6 +18,48 @@ from glue.gracedb.utils import populate_inspiral_tables, \
 def handle_uploaded_data(event, datafilename,
                          log_filename='event.log',
                          coinc_table_filename='coinc.xml'):
+
+    if event.analysisType == 'HM':
+        # Wildly speculative
+        xmldoc = glue.ligolw.utils.read_filename(datafilename)
+        log_data = "LOG DATA TBD\n"
+        output_dir = os.path.dirname(datafilename)
+        write_output_files(output_dir, xmldoc, log_data,
+                           xml_fname=coinc_table_filename,
+                           log_fname=log_filename)
+
+        # Create EventLog entries about these files.
+        private_data_url = os.path.join(event.weburl(), 'private')
+
+        log = EventLog(event=event,
+                       filename=log_filename,
+                       issuer=event.submitter,
+                       comment="Log File Created" )
+        log.save()
+
+        log = EventLog(event=event,
+                       filename=coinc_table_filename,
+                       issuer=event.submitter,
+                       comment="Coinc Table Created")
+        log.save()
+
+
+        # Extract relevant data from xmldoc.
+        coinc_table = glue.ligolw.table.getTablesByName(
+                            xmldoc,
+                            glue.ligolw.lsctables.CoincInspiralTable.tableName)
+        coinc_table = coinc_table[0]
+        event.gpstime = coinc_table[0].end_time
+
+        coinc_table = glue.ligolw.table.getTablesByName(
+                            xmldoc,
+                            glue.ligolw.lsctables.CoincTable.tableName)
+        coinc_table = coinc_table[0]
+        event.instruments = coinc_table[0].instruments
+        event.nevents = coinc_table[0].nevents
+        event.likelihood = coinc_table[0].likelihood
+        event.save()
+
 
     if event.analysisType == 'MBTA':
         xmldoc, log_data, detectors = \
