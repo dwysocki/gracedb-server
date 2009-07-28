@@ -21,7 +21,7 @@ def handle_uploaded_data(event, datafilename,
 
     if event.analysisType == 'HM':
         # Wildly speculative
-        xmldoc = glue.ligolw.utils.read_filename(datafilename)
+        xmldoc = glue.ligolw.utils.load_filename(datafilename)
         log_data = "LOG DATA TBD\n"
         output_dir = os.path.dirname(datafilename)
         write_output_files(output_dir, xmldoc, log_data,
