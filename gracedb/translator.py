@@ -43,6 +43,12 @@ def handle_uploaded_data(event, datafilename,
                        comment="Coinc Table Created")
         log.save()
 
+        log = EventLog(event=event,
+                       filename=datafilename,
+                       issuer=event.submitter,
+                       comment="Original Data")
+        log.save()
+
 
         # Extract relevant data from xmldoc.
         coinc_table = glue.ligolw.table.getTablesByName(
@@ -95,6 +101,12 @@ def handle_uploaded_data(event, datafilename,
                        comment="Coinc Table Created")
         log.save()
 
+        log = EventLog(event=event,
+                       filename=datafilename,
+                       issuer=event.submitter,
+                       comment="Original Data")
+        log.save()
+
         # Extract relevant data from xmldoc.
         coinc_table = glue.ligolw.table.getTablesByName(
                             xmldoc,
@@ -134,6 +146,12 @@ def handle_uploaded_data(event, datafilename,
                        filename=coinc_table_filename,
                        issuer=event.submitter,
                        comment="Coinc Table Created")
+        log.save()
+
+        log = EventLog(event=event,
+                       filename=os.path.basename(datafilename),
+                       issuer=event.submitter,
+                       comment="Original Data")
         log.save()
 
         # Extract relevant data from xmldoc.
