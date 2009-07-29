@@ -4,8 +4,8 @@ import os
 from models import EventLog
 
 import glue, glue.ligolw.utils
-from glue.gracedb.utils import InspiralCoincIdBase, InspiralCoincDef
-from glue.gracedb.utils import BurstCoincIdBase, BurstCoincDef
+from glue.gracedb.utils import InspiralCoincDef
+from glue.gracedb.utils import BurstCoincDef
 
 from glue.gracedb.utils import insp_event_id_dict
 from glue.gracedb.utils import coherent_event_id_dict
@@ -44,7 +44,7 @@ def handle_uploaded_data(event, datafilename,
         log.save()
 
         log = EventLog(event=event,
-                       filename=datafilename,
+                       filename=os.path.basename(datafilename),
                        issuer=event.submitter,
                        comment="Original Data")
         log.save()
@@ -68,15 +68,15 @@ def handle_uploaded_data(event, datafilename,
 
 
     if event.analysisType == 'MBTA':
-        xmldoc, log_data, detectors = \
-                populate_inspiral_tables(datafilename, 0)
-                # XXX ligolw wants ints.
-                #populate_inspiral_tables(datafilename, #event.graceid())
+        #xmldoc, log_data, detectors, cid = populate_inspiral_tables("MbtaFake-930909680-16.gwf")
+        #final_xmldoc = populate_coinc_tables(xmldoc,cid,insp_event_id_dict,\
+        #                                     InspiralCoincDef,detectors)
+        #write the output
+        #write_output_files('.', xmldoc, log_data)
+        xmldoc, log_data, detectors, cid = \
+                populate_inspiral_tables(datafilename)
         xmldoc = populate_coinc_tables(xmldoc,
-                                       # XXX ligolw wants ints.
-                                       #event.graceid(),
-                                       0,
-                                       InspiralCoincIdBase,
+                                       cid,
                                        insp_event_id_dict,
                                        InspiralCoincDef,
                                        detectors)
@@ -102,7 +102,7 @@ def handle_uploaded_data(event, datafilename,
         log.save()
 
         log = EventLog(event=event,
-                       filename=datafilename,
+                       filename=os.path.basename(datafilename),
                        issuer=event.submitter,
                        comment="Original Data")
         log.save()
@@ -124,9 +124,13 @@ def handle_uploaded_data(event, datafilename,
         event.save()
 
     elif event.analysisType == 'OM': # Omega
-        xmldoc, log_data, detectors = populate_burst_tables(datafilename, 0)
+        #xmldoc, log_data, detectors, cid = populate_burst_tables("initial.data")
+        #final_xmldoc = populate_coinc_tables(xmldoc,cid, coherent_event_id_dict,\
+        #                                     BurstCoincDef, detectors)
+        #write_output_files('.', final_xmldoc, log_data)
+        xmldoc, log_data, detectors, cid = populate_burst_tables(datafilename)
         xmldoc = populate_coinc_tables(
-                        xmldoc, 0, BurstCoincIdBase, \
+                        xmldoc, cid, \
                         coherent_event_id_dict, BurstCoincDef, \
                         detectors)
 
