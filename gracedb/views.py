@@ -66,10 +66,14 @@ def create(request):
                 createWikiPage(event.graceid())
 
                 # Extract Info from uploaded data
-                handle_uploaded_data(event, uploadDestination)
+                # Temp (ha!) hack to deal with
+                # out of band data from Omega to LUMIN.
+                temp_data_loc = handle_uploaded_data(event, uploadDestination)
 
                 # Send an alert.
-                issueAlert(event, os.path.join(event.clusterurl(), "private", f.name))
+                issueAlert(event,
+                           os.path.join(event.clusterurl(), "private", f.name),
+                           temp_data_loc)
                 #return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
             except:
                 # something went wrong.

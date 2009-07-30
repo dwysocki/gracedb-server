@@ -2,15 +2,19 @@
 import sys
 import time
 from subprocess import Popen, PIPE, STDOUT
+import StringIO
 
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse, get_script_prefix
 
+import glue.ligolw.utils
+import glue.lvalert.utils
 
-def issueAlert(event, location):
-    issueXMPPAlert(event, location)
+
+def issueAlert(event, location, temp_data_loc):
+    issueXMPPAlert(event, location, temp_data_loc)
     issueEmailAlert(event, location)
 
 def indent(nindent, text):
@@ -49,7 +53,7 @@ Event Summary:
                 indent(3, prepareSummary(event)))
     send_mail(subject, message, fromaddress, toaddress)
 
-def issueXMPPAlert(event, location):
+def issueXMPPAlert(event, location, temp_data_loc):
     nodename = "%s_%s"% (event.group.name, event.get_analysisType_display())
     nodename = nodename.lower()
 
@@ -75,7 +79,13 @@ def issueXMPPAlert(event, location):
         stdout=null,
         stderr=STDOUT,
         env=env)
-    msg = createPayload(event.graceid(), location)
+
+    #msg = createPayload(event.graceid(), location)
+    xmldoc = glue.lvalert.utils.make_LVAlertTable("", location, event.graceid(), temp_data_loc)
+    buf = StringIO.StringIO()
+    glue.ligolw.utils.write_fileobj(xmldoc, buf)
+    msg = buf.getvalue()
+
     p.stdin.write(msg)
     p.stdin.close()
     for i in range(1,10):

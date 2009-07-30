@@ -19,6 +19,7 @@ def handle_uploaded_data(event, datafilename,
                          log_filename='event.log',
                          coinc_table_filename='coinc.xml'):
 
+    temp_data_loc = ""
     if event.analysisType == 'HM':
         # Wildly speculative
         xmldoc = glue.ligolw.utils.load_filename(datafilename)
@@ -68,18 +69,14 @@ def handle_uploaded_data(event, datafilename,
 
 
     if event.analysisType == 'MBTA':
-        #xmldoc, log_data, detectors, cid = populate_inspiral_tables("MbtaFake-930909680-16.gwf")
-        #final_xmldoc = populate_coinc_tables(xmldoc,cid,insp_event_id_dict,\
-        #                                     InspiralCoincDef,detectors)
+        #here's how it works for inspirals
+        #populate the tables
+        #xmldoc, log_data, temp_data_loc = populate_inspiral_tables("MbtaFake-930909680-16.gwf") 
         #write the output
         #write_output_files('.', xmldoc, log_data)
-        xmldoc, log_data, detectors, cid = \
+
+        xmldoc, log_data, temp_data_loc = \
                 populate_inspiral_tables(datafilename)
-        xmldoc = populate_coinc_tables(xmldoc,
-                                       cid,
-                                       insp_event_id_dict,
-                                       InspiralCoincDef,
-                                       detectors)
 
         output_dir = os.path.dirname(datafilename)
         write_output_files(output_dir, xmldoc, log_data,
@@ -124,16 +121,11 @@ def handle_uploaded_data(event, datafilename,
         event.save()
 
     elif event.analysisType == 'OM': # Omega
-        #xmldoc, log_data, detectors, cid = populate_burst_tables("initial.data")
-        #final_xmldoc = populate_coinc_tables(xmldoc,cid, coherent_event_id_dict,\
-        #                                     BurstCoincDef, detectors)
+        #here's how it works for bursts
+        #xmldoc, log_data, temp_data_loc = populate_burst_tables("initial.data")
         #write_output_files('.', final_xmldoc, log_data)
-        xmldoc, log_data, detectors, cid = populate_burst_tables(datafilename)
-        xmldoc = populate_coinc_tables(
-                        xmldoc, cid, \
-                        coherent_event_id_dict, BurstCoincDef, \
-                        detectors)
 
+        xmldoc, log_data, temp_data_loc = populate_burst_tables(datafilename)
         output_dir = os.path.dirname(datafilename)
         write_output_files(output_dir, xmldoc, log_data)
 
@@ -175,3 +167,5 @@ def handle_uploaded_data(event, datafilename,
         event.save()
     else:
         pass
+
+    return temp_data_loc
