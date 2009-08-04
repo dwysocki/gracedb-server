@@ -1,7 +1,8 @@
 
-import os
+import os, sys
 
 from models import EventLog
+from subprocess import Popen, PIPE
 
 import glue, glue.ligolw.utils
 from glue.gracedb.utils import InspiralCoincDef
@@ -14,6 +15,36 @@ from glue.gracedb.utils import populate_inspiral_tables, \
                                populate_burst_tables,    \
                                populate_coinc_tables,    \
                                write_output_files
+
+# Importing this messes with other ligolw table actions.
+#from gracedb.ligolw.insert import insert_ligolw_tables
+import gracedb.ligolw
+
+def insert_ligolw_tables(xml_filename):
+    #insert_ligolw_tables(django.db.connection, xml_filename)
+    prog = os.path.dirname(gracedb.ligolw.__file__)
+    prog = os.path.join(prog, "insert.py")
+    e = dict(os.environ)
+    ppath = e.get("PYTHONPATH") or ""
+    ppath = ppath.split(':')
+    ppath = ppath + sys.path
+    e['PYTHONPATH'] = ':'.join(ppath)
+    p = Popen( (prog, "root", "", "gracedb", xml_filename), stdout=PIPE, stderr=PIPE, env=e)
+    out = p.stdout.read()
+    err = p.stderr.read()
+    p.wait()
+    out += p.stdout.read()
+    if out.find("OK") != 0:
+        coinc_id = None
+        try:
+            f = open('/tmp/foo','a')
+            f.write("ERROR (stdin): %s\n" % out)
+            f.write("ERROR (stderr): %s\n" % err)
+            f.close()
+        except: pass
+    else:
+        coinc_id = out[2:].strip()
+    return coinc_id
 
 def handle_uploaded_data(event, datafilename,
                          log_filename='event.log',
@@ -64,8 +95,11 @@ def handle_uploaded_data(event, datafilename,
         event.instruments = coinc_table[0].instruments
         event.nevents = coinc_table[0].nevents
         event.likelihood = coinc_table[0].likelihood
-        event.save()
 
+        xml_filename = os.path.join(output_dir, coinc_table_filename)
+        event.coincEvent_id = insert_ligolw_tables(xml_filename)
+
+        event.save()
 
     if event.analysisType == 'MBTA':
         #xmldoc, log_data, detectors, cid = populate_inspiral_tables("MbtaFake-930909680-16.gwf")
@@ -121,6 +155,10 @@ def handle_uploaded_data(event, datafilename,
         event.instruments = coinc_table[0].instruments
         event.nevents = coinc_table[0].nevents
         event.likelihood = coinc_table[0].likelihood
+
+        xml_filename = os.path.join(output_dir, coinc_table_filename)
+        event.coinc_id = insert_ligolw_tables(xml_filename)
+
         event.save()
 
     elif event.analysisType == 'OM': # Omega
@@ -172,6 +210,10 @@ def handle_uploaded_data(event, datafilename,
         event.instruments = coinc_table[0].instruments
         event.nevents = coinc_table[0].nevents
         event.likelihood = coinc_table[0].likelihood
+
+        xml_filename = os.path.join(output_dir, coinc_table_filename)
+        event.coinc_id = insert_ligolw_tables(xml_filename)
+
         event.save()
     else:
         pass
