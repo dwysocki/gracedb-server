@@ -4,6 +4,8 @@ import os, sys
 from models import EventLog
 from subprocess import Popen, PIPE
 
+from django.conf import settings
+
 import glue, glue.ligolw.utils
 from glue.gracedb.utils import InspiralCoincDef
 from glue.gracedb.utils import BurstCoincDef
@@ -29,7 +31,12 @@ def insert_ligolw_tables(xml_filename):
     ppath = ppath.split(':')
     ppath = ppath + sys.path
     e['PYTHONPATH'] = ':'.join(ppath)
-    p = Popen( (prog, "root", "", "gracedb", xml_filename), stdout=PIPE, stderr=PIPE, env=e)
+    p = Popen( (prog,
+                 settings.DATABASE_USER,
+                 settings.DATABASE_PASSWORD,
+                 settings.DATABASE_NAME,
+                 xml_filename),
+               stdout=PIPE, stderr=PIPE, env=e)
     out = p.stdout.read()
     err = p.stderr.read()
     p.wait()
@@ -154,7 +161,7 @@ def handle_uploaded_data(event, datafilename,
         event.likelihood = coinc_table[0].likelihood
 
         xml_filename = os.path.join(output_dir, coinc_table_filename)
-        event.coinc_id = insert_ligolw_tables(xml_filename)
+        event.coincEvent_id = insert_ligolw_tables(xml_filename)
 
         event.save()
 
@@ -204,7 +211,7 @@ def handle_uploaded_data(event, datafilename,
         event.likelihood = coinc_table[0].likelihood
 
         xml_filename = os.path.join(output_dir, coinc_table_filename)
-        event.coinc_id = insert_ligolw_tables(xml_filename)
+        event.coincEvent_id = insert_ligolw_tables(xml_filename)
 
         event.save()
     else:
