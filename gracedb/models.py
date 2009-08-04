@@ -4,6 +4,8 @@ import thread
 import string
 import os
 
+from gracedb.ligolw.models import CoincEvent
+
 class User(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()
@@ -45,6 +47,7 @@ class Event(models.Model):
     instruments = models.CharField(max_length=20, default="")
     nevents = models.PositiveIntegerField(null=True)
     likelihood = models.FloatField(null=True)
+    coincEvent = models.ForeignKey(CoincEvent, null=True)
 
     # NOT from coinc_event, but so, so common.
     #   Note that the semantics for this is different depending
