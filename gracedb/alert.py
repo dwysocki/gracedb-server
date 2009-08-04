@@ -81,7 +81,7 @@ def issueXMPPAlert(event, location, temp_data_loc):
         env=env)
 
     #msg = createPayload(event.graceid(), location)
-    xmldoc = glue.lvalert.utils.make_LVAlertTable("", location, event.graceid(), temp_data_loc)
+    xmldoc = glue.lvalert.utils.make_LVAlertTable(location, event.graceid(), temp_data_loc)
     buf = StringIO.StringIO()
     glue.ligolw.utils.write_fileobj(xmldoc, buf)
     msg = buf.getvalue()
