@@ -86,7 +86,6 @@ class Event(models.Model):
 
     @classmethod
     def getByGraceid(cls, id):
-        if not id: return None
         if id[0] == "G":
             return cls.objects.get(id=int(id[1:]))
         return cls.objects.get(uid=id)

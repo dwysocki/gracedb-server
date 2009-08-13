@@ -1,5 +1,6 @@
 
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
+from django.http import HttpResponse
+from django.http import HttpResponseRedirect, HttpResponseNotFound, Http404
 from django.template import RequestContext
 from django.core.urlresolvers import reverse, get_script_prefix
 from django.shortcuts import render_to_response
@@ -202,9 +203,10 @@ def ping(request):
 
 def view(request, graceid):
     context = {}
-    a = Event.getByGraceid(graceid)
-    if not a:
-        return HttpResponseNotFound()
+    try:
+        a = Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        raise Http404
     context['object'] = a
     return render_to_response(
         'gracedb/event_detail.html',
