@@ -5,6 +5,7 @@ TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     ('Brian Moe', 'bmoe@gravity.phys.uwm.edu'),
+    ('Larry Price', 'larry@gravity.phys.uwm.edu'),
 )
 
 MANAGERS = ADMINS
