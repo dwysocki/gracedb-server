@@ -15,8 +15,6 @@ from translator import handle_uploaded_data
 
 import os
 
-FOLLOWUP_USER_NAMES = ['LUMIN']
-
 def index(request):
 #   assert request.ligouser
     return render_to_response(
@@ -25,101 +23,169 @@ def index(request):
             context_instance=RequestContext(request))
 
 def create(request):
+    d = _create(request)
+    if isinstance(d, HttpResponse):
+        return d
+    elif 'cli' in request.POST:
+        if 'cli_version' in request.POST:
+            # XXX Risky.  msg should be json, not str.
+            # str(x) is *often* the same as json(x), but not always.
+            # It's not, because we don't reliably have json on the client side.
+            response = HttpResponse(mimetype='application/json')
+            if int(request.POST['cli_version']) == 1:
+                d['graceid'] = "UID: %s" % d['graceid']
+            msg = str(d)
+        else: # Old client
+            response = HttpResponse(mimetype='text/plain')
+            if 'error' in d:
+                msg = "ERROR: " + d['error']
+            else:
+                msg = d['graceid']
+        response.write(msg)
+        response['Content-length'] = len(msg)
+        return response
+    else:
+        return render_to_response('gracedb/create.html',
+                    d,
+                    context_instance=RequestContext(request))
+
+def _create(request):
     assert request.ligouser
 
+    rv = {}
+
     if request.method == "GET":
-        form = CreateEventForm()
+        rv['form'] = CreateEventForm()
     else:
         form = CreateEventForm(request.POST, request.FILES)
-        saved = False
         if form.is_valid():
-            try:
-                group = Group.objects.filter(name=form.cleaned_data['group'])
-                type = form.cleaned_data['type']
-                # Create Event
-                event = Event()
-                event.submitter = request.ligouser
-                event.group = group[0]
-                event.analysisType = type
-                #  ARGH.  We don't get a graceid until we save,
-                #  but we don't know in advance if we can actually
-                #  create all the things we need for success!
-                #  What to do?!
-                event.save()
-                saved = True  # in case we have to undo this.
-                # Create data directory/directories
-                #    Save uploaded file.
-                dirPrefix = "/mnt/gracedb-web/data"
-                eventDir = os.path.join(dirPrefix, event.graceid())
-                os.mkdir( eventDir )
-                os.mkdir( os.path.join(eventDir,"private") )
-                os.mkdir( os.path.join(eventDir,"general") )
-                #os.chmod( os.path.join(eventDir,"general"), int("041777",8) )
-                os.chmod( os.path.join(eventDir,"general"), 041777 )
-                f = request.FILES['eventFile']
-                uploadDestination = os.path.join(eventDir, "private", f.name)
-                fdest = open(uploadDestination, 'w')
-                # Save uploaded file into user private area.
-                for chunk in f.chunks():
-                    fdest.write(chunk)
-                fdest.close()
-                # Create WIKI page
-                createWikiPage(event.graceid())
-
-                # Extract Info from uploaded data
-                # Temp (ha!) hack to deal with
-                # out of band data from Omega to LUMIN.
-                temp_data_loc = handle_uploaded_data(event, uploadDestination)
-
-                # Send an alert.
-                issueAlert(event,
-                           os.path.join(event.clusterurl(), "private", f.name),
-                           temp_data_loc)
-                #return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
-            except:
-                # something went wrong.
-                # XXX We need to make sure we clean up EVERYTHING.
-                # We don't.  Wiki page and data directories remain.
-                # According to Django docs, EventLog entries cascade on delete.
-                # Also, we probably want to keep track of what's failing
-                # and send out an email (or something)
-                if saved:
-                    # undo save.
-                    event.delete()
-                raise
-            if 'cli' in request.POST:
-                msg = str(event.graceid())
-                response = HttpResponse(mimetype='text/plain')
-                response.write(msg)
-                response['Content-length'] = len(msg)
-                return response
-            return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
-        else: # form not valid
-            if 'cli' in request.POST:
+            event = _createEventFromForm(request, form)
+            if 'cli' not in request.POST:
+                return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
+            rv['graceid'] = str(event.graceid())
+        else:
+            if 'cli' not in request.POST:
+                rv['form'] = form
+            else:
                 # Error occurred in command line client.
                 # Most likely group name is wrong.
                 # XXX the form should have info about what is wrong.
-                groupname = request.POST.get('group', None)
-                group = Group.objects.filter(name=groupname)
-                if not group:
-                    validGroups = [group.name for group in Group.objects.all()]
-                    msg = "ERROR: group must be one of: %s" % ", ".join(validGroups)
-                else:
-                    msg = "ERROR: malformed request"
-                response = HttpResponse(mimetype='text/plain')
-                response.write(msg)
-                response['Content-length'] = len(msg)
-                return response
+                #groupname = request.POST.get('group', None)
+                #group = Group.objects.filter(name=groupname)
+                #if not group:
+                #    validGroups = [group.name for group in Group.objects.all()]
+                #    msg = "Group must be one of: %s" % ", ".join(validGroups)
+                #else:
+                #    msg = "Malformed request"
+                #rv['error'] = msg
+                rv['error'] = ""
+                for key in form.errors:
+                    rv['error'] += "%s: %s\n" % (key, "/".join(form.errors[key]))
+    return rv
 
-            # if not a command line request, let it fall through
-    return render_to_response('gracedb/create.html',
-                { 'form' : form },
-                context_instance=RequestContext(request))
+def _createEventFromForm(request, form):
+    saved = False
+    try:
+        group = Group.objects.filter(name=form.cleaned_data['group'])
+        type = form.cleaned_data['type']
+        # Create Event
+        event = Event()
+        event.submitter = request.ligouser
+        event.group = group[0]
+        event.analysisType = type
+        #  ARGH.  We don't get a graceid until we save,
+        #  but we don't know in advance if we can actually
+        #  create all the things we need for success!
+        #  What to do?!
+        event.save()
+        saved = True  # in case we have to undo this.
+        # Create data directory/directories
+        #    Save uploaded file.
+        dirPrefix = "/mnt/gracedb-web/data"
+        eventDir = os.path.join(dirPrefix, event.graceid())
+        os.mkdir( eventDir )
+        os.mkdir( os.path.join(eventDir,"private") )
+        os.mkdir( os.path.join(eventDir,"general") )
+        #os.chmod( os.path.join(eventDir,"general"), int("041777",8) )
+        os.chmod( os.path.join(eventDir,"general"), 041777 )
+        f = request.FILES['eventFile']
+        uploadDestination = os.path.join(eventDir, "private", f.name)
+        fdest = open(uploadDestination, 'w')
+        # Save uploaded file into user private area.
+        for chunk in f.chunks():
+            fdest.write(chunk)
+        fdest.close()
+        # Create WIKI page
+        createWikiPage(event.graceid())
+
+        # Extract Info from uploaded data
+        # Temp (ha!) hack to deal with
+        # out of band data from Omega to LUMIN.
+        temp_data_loc = handle_uploaded_data(event, uploadDestination)
+
+        # Send an alert.
+        issueAlert(event,
+                   os.path.join(event.clusterurl(), "private", f.name),
+                   temp_data_loc)
+        #return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
+    except:
+        # something went wrong.
+        # XXX We need to make sure we clean up EVERYTHING.
+        # We don't.  Wiki page and data directories remain.
+        # According to Django docs, EventLog entries cascade on delete.
+        # Also, we probably want to keep track of what's failing
+        # and send out an email (or something)
+        if saved:
+            # undo save.
+            event.delete()
+        raise
+    return event
+
+def _saveUploadedFile(event, uploadedFile):
+    # XXX Hardcoding.
+    fname = os.path.join("/mnt/gracedb-web/data", event.graceid(), "private", uploadedFile.name)
+    f = open(fname, "w")
+    for chunk in uploadedfile.chunks():
+        f.write(chunk)
+    f.close()
+    event.filename = uploadedFile.name
+
+def _createLog(request, graceid, comment, uploadedFile=None):
+    response = HttpResponse(mimetype='application/json')
+    rdict = {}
+
+    try:
+        event = graceid and Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        event = None
+
+    if not event:
+        rdict['error'] = "No such event id: %s" % graceid
+    elif (not comment) and (not uploadedFile):
+        rdict['error'] = "Missing argument(s)"
+    else:
+        logEntry = EventLog(event=event,
+                            issuer=request.ligouser,
+                            comment=comment)
+        if uploadedFile:
+            _saveUploadedFile(event, uploadedFile)
+        logEntry.save()
+
+    # XXX should be json
+    rval = str(rdict)
+    response['Content-length'] = len(rval)
+    response.write(rval)
+    return response
 
 def upload(request):
     graceid = request.POST.get('graceid', None)
     comment = request.POST.get('comment', None)
     uploadedfile = request.FILES['upload']
+
+    if 'cli_version' in request.POST:
+        return _createLog(request, graceid, comment, uploadedfile)
+
+    # else: old, old client
     response = HttpResponse(mimetype='text/plain')
     try:
         event = graceid and Event.getByGraceid(graceid)
@@ -130,10 +196,6 @@ def upload(request):
         msg = "ERROR: missing arg(s)"
     elif not event:
         msg = "ERROR: Event '%s' does not exist" % graceid
-#   Removed per Patrick's request. 7/24/09 bmoe
-#   elif event.submitter != request.ligouser and \
-#          request.ligouser.name not in FOLLOWUP_USER_NAMES:
-#       msg = "ERROR: Only submitter or authorized follow-ups can upload files"
     else:
         #event issuer comment
         log = EventLog(event=event,
@@ -166,6 +228,10 @@ def upload(request):
 def log(request):
     message = request.POST.get('message')
     graceid = request.POST.get('graceid')
+
+    if 'cli_version' in request.POST:
+        return _createLog(request, graceid, message)
+
     response = HttpResponse(mimetype='text/plain')
     try:
         event = graceid and Event.getByGraceid(graceid)
@@ -176,10 +242,6 @@ def log(request):
         msg = "ERROR: missing arg(s)"
     elif not event:
         msg = "ERROR: Event '%s' does not exist" % graceid
-#   Removed per Patrick's request. 7/24/09 bmoe
-#   elif event.submitter != request.ligouser and \
-#          request.ligouser.name not in FOLLOWUP_USER_NAMES:
-#       msg = "ERROR: Only submitter or authorized follow-ups can log messages"
     else:
         #event issuer comment
         log = EventLog(event=event, issuer=request.ligouser, comment=message)
@@ -196,9 +258,17 @@ def log(request):
 def ping(request):
     ack = "(%s) " % Site.objects.get_current()
     ack += request.POST.get('ack', None) or request.GET.get('ack','ACK')
-    response = HttpResponse(mimetype='text/plain')
-    response.write(ack)
-    response['Content-length'] = len(ack)
+
+    if 'cli_version' in request.POST:
+        response = HttpResponse(mimetype='application/json')
+        d = str({'output': ack})
+        response.write(d)
+        response['Content-length'] = len(d)
+    else:
+        # Old client
+        response = HttpResponse(mimetype='text/plain')
+        response.write(ack)
+        response['Content-length'] = len(ack)
     return response
 
 def view(request, graceid):
