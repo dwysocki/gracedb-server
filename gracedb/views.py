@@ -32,13 +32,15 @@ def create(request):
             # str(x) is *often* the same as json(x), but not always.
             # It's not, because we don't reliably have json on the client side.
             response = HttpResponse(mimetype='application/json')
-            if int(request.POST['cli_version']) == 1:
-                d['graceid'] = "UID: %s" % d['graceid']
+            d['output'] = "%s" % d['graceid']
+            d['graceid'] = "%s" % d['graceid']
             msg = str(d)
         else: # Old client
             response = HttpResponse(mimetype='text/plain')
             if 'error' in d:
                 msg = "ERROR: " + d['error']
+            elif 'warning' in d:
+                msg = "ERROR: " + d['warning']
             else:
                 msg = d['graceid']
         response.write(msg)
@@ -59,10 +61,18 @@ def _create(request):
     else:
         form = CreateEventForm(request.POST, request.FILES)
         if form.is_valid():
-            event = _createEventFromForm(request, form)
+            event, warnings = _createEventFromForm(request, form)
             if 'cli' not in request.POST:
+                if not event:
+                    # problem creating event...  XXX need an error page for this.
+                    raise Exception("\n".join(warnings))
                 return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
-            rv['graceid'] = str(event.graceid())
+            if event:
+                rv['graceid'] = str(event.graceid())
+                if warnings:
+                    rv['warning'] = "\n".join(warnings)
+            else:
+                rv['error'] = "\n".join(warnings)
         else:
             if 'cli' not in request.POST:
                 rv['form'] = form
@@ -85,6 +95,7 @@ def _create(request):
 
 def _createEventFromForm(request, form):
     saved = False
+    warnings = []
     try:
         group = Group.objects.filter(name=form.cleaned_data['group'])
         type = form.cleaned_data['type']
@@ -121,14 +132,16 @@ def _createEventFromForm(request, form):
         # Extract Info from uploaded data
         # Temp (ha!) hack to deal with
         # out of band data from Omega to LUMIN.
-        temp_data_loc = handle_uploaded_data(event, uploadDestination)
-
-        # Send an alert.
-        issueAlert(event,
-                   os.path.join(event.clusterurl(), "private", f.name),
-                   temp_data_loc)
+        try:
+            temp_data_loc = handle_uploaded_data(event, uploadDestination)
+            # Send an alert.
+            issueAlert(event,
+                       os.path.join(event.clusterurl(), "private", f.name),
+                       temp_data_loc)
+        except Exception, e:
+            warnings += ["Problem handling event creation (%s)" % e]
         #return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
-    except:
+    except Exception, e:
         # something went wrong.
         # XXX We need to make sure we clean up EVERYTHING.
         # We don't.  Wiki page and data directories remain.
@@ -138,17 +151,17 @@ def _createEventFromForm(request, form):
         if saved:
             # undo save.
             event.delete()
-        raise
-    return event
+        warnings += ["Problem creating event (%s)" % e]
+        event = None
+    return event, warnings
 
 def _saveUploadedFile(event, uploadedFile):
     # XXX Hardcoding.
     fname = os.path.join("/mnt/gracedb-web/data", event.graceid(), "private", uploadedFile.name)
     f = open(fname, "w")
-    for chunk in uploadedfile.chunks():
+    for chunk in uploadedFile.chunks():
         f.write(chunk)
     f.close()
-    event.filename = uploadedFile.name
 
 def _createLog(request, graceid, comment, uploadedFile=None):
     response = HttpResponse(mimetype='application/json')
@@ -168,7 +181,11 @@ def _createLog(request, graceid, comment, uploadedFile=None):
                             issuer=request.ligouser,
                             comment=comment)
         if uploadedFile:
-            _saveUploadedFile(event, uploadedFile)
+            try:
+                _saveUploadedFile(event, uploadedFile)
+                logEntry.filename = uploadedFile.name
+            except Exception, e:
+                rdict['error'] = "Problem saving file: %s" % str(e)
         logEntry.save()
 
     # XXX should be json
