@@ -12,6 +12,14 @@ from django.core.urlresolvers import reverse, get_script_prefix
 import glue.ligolw.utils
 import glue.lvalert.utils
 
+XMPP_ALERT_CHANNELS = [
+                        'burst_omega',
+                        'test_omega',
+                        'cbc_mbtaonline',
+                        'test_mbtaonline',
+                        'burst_cwb',
+                        'test_cwb',
+                      ]
 
 def issueAlert(event, location, temp_data_loc):
     issueXMPPAlert(event, location, temp_data_loc)
@@ -60,7 +68,7 @@ def issueXMPPAlert(event, location, temp_data_loc):
     # XXX awful!
     # Need a good way to know which things to send out to lvalert.
     # Currently, only MBTAOnline and Omega get alerts.
-    if nodename not in ['cbc_mbtaonline', 'burst_omega', 'test_omega', 'test_mbtaonline']:
+    if nodename not in XMPP_ALERT_CHANNELS:
         return
 
     env = {}
