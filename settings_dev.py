@@ -83,6 +83,7 @@ AUTHENTICATION_BACKENDS = ('gracedb.middleware.auth.LigoAuthBackend',)
 MIDDLEWARE_CLASSES = (
     'gracedb.middleware.accept.AcceptMiddleware',
     'gracedb.middleware.auth.LigoAuthMiddleware',
+    'gracedb.middleware.cli.CliExceptionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
