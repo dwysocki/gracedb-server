@@ -4,6 +4,9 @@ import thread
 import string
 import os
 
+from tagging.fields import TagField
+from tagging.models import Tag
+
 from gracedb.ligolw.models import CoincEvent
 
 class User(models.Model):
@@ -59,6 +62,11 @@ class Event(models.Model):
     # Remove this when it won't freak people out to lose
     # old date encoded uids.
     uid = models.CharField(max_length=20, unique=False, default="")
+
+    tags = TagField()
+
+    def get_tags(self):
+        return Tag.objects.get_for_object(self)
 
     class Meta:
         ordering = ["-id"]
