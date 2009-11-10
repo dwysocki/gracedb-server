@@ -24,6 +24,11 @@
   <tr><th>Sumitter</th><td>{{ object.submitter.name }}</td></tr>
   <tr><th>Created</th><td>{{ object.created|utc }}
                           </td></tr>
+  <tr><th>Tags</th><td>
+     {% for tag in object.get_tags %}
+        {{ tag.name }}
+     {% endfor %}
+     </td></tr>
 </table>
 
 {% if object.eventlog_set.count %}

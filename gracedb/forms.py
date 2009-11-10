@@ -2,6 +2,8 @@
 from django import forms
 from models import Event, User, Group
 
+from tagging.models import Tag
+
 class CreateEventForm(forms.Form):
     groupChoices = [("","")]+[(g.name, g.name) for g in Group.objects.all()]
     typeChoices= [("","")]+list(Event.ANALYSIS_TYPE_CHOICES)
@@ -17,6 +19,8 @@ class EventSearchForm(forms.Form):
     submitterList = User.objects.filter(id__in=submitterIds).order_by('name')
     submitterChoices = [("","")]+ [ (u.id, u.name) for u in submitterList]
 
+    tagChoices = [(tag.name,tag.name) for tag in Tag.objects.all()]
+
     graceidStart = forms.CharField(required=False)
     graceidEnd = forms.CharField(required=False)
     group = forms.ChoiceField(choices=groupChoices, required=False)
@@ -24,6 +28,8 @@ class EventSearchForm(forms.Form):
     gpsStart = forms.IntegerField(min_value=0, required=False, label="GPS Start")
     gpsEnd = forms.IntegerField(min_value=0, required=False, label="GPS End")
     submitter = forms.ChoiceField(choices=submitterChoices, required=False)
+
+    tags = forms.ChoiceField(choices=tagChoices, required=False)
 
     ligoApproved = forms.BooleanField(initial=False, required=False, label="LIGO Approved Only")
     virgoApproved = forms.BooleanField(initial=False, required=False, label="Virgo Approved Only")

@@ -242,6 +242,21 @@ def upload(request):
     response['Content-length'] = len(msg)
     return response
 
+def cli_tag(request):
+    graceid = request.POST.get('graceid')
+    tagname = request.POST.get('tag')
+
+    event = graceid and Event.getByGraceid(graceid)
+    event.add_tag(tagname)
+
+    msg = str({})
+    response = HttpResponse(mimetype='application/json')
+    response.write(msg)
+    response['Content-length'] = len(msg)
+
+    return response
+
+
 def log(request):
     message = request.POST.get('message')
     graceid = request.POST.get('graceid')
