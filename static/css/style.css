@@ -80,7 +80,7 @@ a.link, a, a.active {
     text-decoration:none;
     font:bold 1em/1em Arial, Helvetica, sans-serif;
     text-transform:uppercase;
-    text-shadow: 2px 2px 2px #555;
+    /* text-shadow: 2px 2px 2px #555; */
 }
 
 #nav li {
@@ -107,7 +107,7 @@ a.link, a, a.active {
     text-decoration:none;
     font:bold 1em/1em Arial, Helvetica, sans-serif;
     text-transform:uppercase;
-    text-shadow: 2px 2px 2px #555;
+    /* text-shadow: 2px 2px 2px #555; */
 }
 #nav a:hover {
     /* color:#fff;  / * Use if bg is dark */
@@ -125,7 +125,7 @@ a.link, a, a.active {
 #contact #nav-contact a {
     background: #a9b0ba;  /* Nav selected color */
     /* color:#fff;  / * Use if bg is dark */
-    text-shadow:none;
+    /* text-shadow:none; */
 }
 #home #nav-home a:hover,
 #create #nav-create a,
