@@ -101,6 +101,15 @@ def timeselect(label, default, autoescape=None):
     return mark_safe(rv)
 timeselect.needs_autoescape = True
 
+
+@register.filter(name='utc')
+def utc(dt, format=FORMAT):
+    if not dt.tzinfo:
+        dt = SERVER_TZ.localize(dt)
+    dt = dt.astimezone(pytz.utc)
+    return dateformat.format(dt, format)
+
+
 @register.filter
 def gpsdate(gpstime, format=FORMAT):
     return dateformat.format(gpsToUtc(gpstime), format)
