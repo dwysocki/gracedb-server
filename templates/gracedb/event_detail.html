@@ -12,8 +12,10 @@
   <tr><th>Group</th><td>{{ object.group.name }}</td></tr>
   <tr><th>Type</th><td>{{ object.get_analysisType_display }}</td></tr>
 {% if object.gpstime %}
-  <tr><th>GPS Time</th><td>
-        <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span></td></tr>
+  <tr><th>Event Time {{ "gps"|timeselect:"gps" }}</th>
+    <!-- <td><span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span></td> -->
+    <td>{{ object.gpstime|multiTime:"gps" }}</td>
+  </tr>
 {% endif %}
   <tr><th>Data</th><td>
     <a href="{{ object.weburl }}">{{ object.weburl }}</a>
@@ -22,7 +24,7 @@
     <a href="{{ object.wikiurl }}">{{ object.wikiurl }}</a>
     </td></tr>
   <tr><th>Sumitter</th><td>{{ object.submitter.name }}</td></tr>
-  <tr><th>Created</th><td>{{ object.created|utc }}
+  <tr><th>Created{{ "created"|timeselect:"utc" }}</th><td>{{ object.created|multiTime:"created" }}
                           </td></tr>
 </table>
 
@@ -30,14 +32,14 @@
   <h3>Log Entries:</h3>
   <table>
     <tr>
-      <th>Date</th>
+      <th>Date {{ "logtime"|timeselect:"utc" }}</th>
       <th>Submitter</th>
       <th>File</th>
       <th>Comment</th>
     </tr>
   {% for log in object.eventlog_set.iterator %}
     <tr class={% cycle 'odd' 'even' %}>
-        <td>{{ log.created|utc }}</td>
+        <td>{{ log.created|multiTime:"logtime" }}</td>
         <td>{{ log.issuer }}</td>
         <td><a href="{{ log.fileurl }}">{{ log.filename }}</a></td>
         <td>{{ log.comment }}</td>
