@@ -91,7 +91,7 @@ def timeselect(label, default, autoescape=None):
             ("gps", "GPS Time"),
             ("llo", "LLO Local"),
             ("lho", "LHO Local"),
-            ("virgo", "Virgo Time"),
+            ("virgo", "Virgo Local"),
             ("utc", "UTC"),]:
         selected = ""
         if value == default:
