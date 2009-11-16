@@ -90,7 +90,8 @@ def _create(request):
                 #rv['error'] = msg
                 rv['error'] = ""
                 for key in form.errors:
-                    rv['error'] += "%s: %s\n" % (key, "/".join(form.errors[key]))
+                    #rv['error'] += "%s: %s\n" % (key, "/".join(form.errors[key]))
+                    rv['error'] += "%s: %s\n" % (key, form.errors[key])
     return rv
 
 def _createEventFromForm(request, form):

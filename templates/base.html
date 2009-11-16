@@ -4,6 +4,19 @@
 <head>
     <link rel="stylesheet" href="/gracedb-static/css/style.css" />
     <title>GraceDb | {% block title %}{% endblock %}</title>
+<!-- START TESTING -->
+<script type="text/javascript">
+function changeTime(obj, label) {
+    var timetype= obj[obj.selectedIndex].value;
+    if (timetype=="") { return; }
+    var times = document.getElementsByName("time-"+label);
+    for (i=0; i<times.length; i++) {
+        newtime =  times[i].getAttribute(timetype);
+        times[i].innerHTML = newtime;
+    }
+}
+</script>
+<!-- END TESTING -->
 </head>
 
 <body id="{% block pageid %}{% endblock %}">

@@ -19,7 +19,7 @@
             <th>Submitter</th>
             <th>Group</th>
             <th>Type</th>
-            <th>GPS Time</th>
+            <th>Event Time {{ "gps"|timeselect:"gps" }}</th>
             <th>Web</th>
             <th>Wiki</th>
     </tr>
@@ -49,7 +49,8 @@
         <td>{{ obj.group }} </td>
         <td>{{ obj.get_analysisType_display }} </td>
         <td>{% if obj.gpstime%}
-                <span title="{{ obj.gpstime|gpsdate }}">{{ obj.gpstime }}</span>
+                <!-- <span title="{{ obj.gpstime|gpsdate }}">{{ obj.gpstime }}</span> -->
+                {{ obj.gpstime|multiTime:"gps" }}
             {% endif %}</td>
         <td><a href="{{ obj.weburl }}">Web: {{ obj.graceid }}</a></td>
         <td><a href="{{ obj.wikiurl }}">Wiki: {{ obj.graceid }}</a></td>

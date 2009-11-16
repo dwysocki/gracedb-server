@@ -109,7 +109,7 @@ def handle_uploaded_data(event, datafilename,
 
         event.save()
 
-    if event.analysisType == 'MBTA':
+    elif event.analysisType == 'MBTA':
         #here's how it works for inspirals
         #populate the tables
         #xmldoc, log_data, temp_data_loc = populate_inspiral_tables("MbtaFake-930909680-16.gwf") 
@@ -214,7 +214,28 @@ def handle_uploaded_data(event, datafilename,
         event.coincEvent_id = insert_ligolw_tables(xml_filename)
 
         event.save()
+    elif event.analysisType == 'CWB':
+        try:
+            f = open(datafilename, "r")
+            for line in f.readlines():
+                if line.startswith("time:"):
+                    times = line.split()
+                    event.gpstime = int(float(times[1]))
+                    event.save()
+                    break
+            f.close()
+        except:
+            pass
+        log = EventLog(event=event,
+                       filename=os.path.basename(datafilename),
+                       issuer=event.submitter,
+                       comment="Original Data")
+        log.save()
     else:
-        pass
+        log = EventLog(event=event,
+                       filename=os.path.basename(datafilename),
+                       issuer=event.submitter,
+                       comment="Original Data")
+        log.save()
 
     return temp_data_loc
