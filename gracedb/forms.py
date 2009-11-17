@@ -2,8 +2,6 @@
 from django import forms
 from models import Event, User, Group
 
-from tagging.models import Tag
-
 class CreateEventForm(forms.Form):
     groupChoices = [("","")]+[(g.name, g.name) for g in Group.objects.all()]
     typeChoices= [("","")]+list(Event.ANALYSIS_TYPE_CHOICES)
@@ -18,8 +16,6 @@ class EventSearchForm(forms.Form):
     submitterIds = Event.objects.values_list('submitter',flat=True).distinct()
     submitterList = User.objects.filter(id__in=submitterIds).order_by('name')
     submitterChoices = [("","")]+ [ (u.id, u.name) for u in submitterList]
-
-    tagChoices = [(tag.name,tag.name) for tag in Tag.objects.all()]
 
     graceidStart = forms.CharField(required=False)
     graceidEnd = forms.CharField(required=False)
