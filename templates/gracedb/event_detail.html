@@ -26,11 +26,12 @@
   <tr><th>Sumitter</th><td>{{ object.submitter.name }}</td></tr>
   <tr><th>Created{{ "created"|timeselect:"utc" }}</th><td>{{ object.created|multiTime:"created" }}
                           </td></tr>
-  <tr><th>Tags</th><td>
-     {% for tag in object.get_tags %}
-        {{ tag.name }}
+  <tr><th>Labels</th><td>
+     {% for labelling in object.labelling_set.all %}
+        <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
      {% endfor %}
      </td></tr>
+
 </table>
 
 {% if object.eventlog_set.count %}

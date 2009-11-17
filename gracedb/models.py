@@ -30,6 +30,12 @@ class Group(models.Model):
     def __unicode__(self):
         return self.name
 
+class Label(models.Model):
+    name = models.CharField(max_length=20)
+    # XXX really, does this belong here? probably not.
+    defaultColor = models.CharField(max_length=20, default="black")
+    def __unicode__(self):
+        return self.name
 
 class Event(models.Model):
     ANALYSIS_TYPE_CHOICES = (
@@ -63,6 +69,8 @@ class Event(models.Model):
     # Remove this when it won't freak people out to lose
     # old date encoded uids.
     uid = models.CharField(max_length=20, unique=False, default="")
+
+    labels = models.ManyToManyField(Label, through="Labelling")
 
     tags = TagField()
 
@@ -118,6 +126,12 @@ class EventLog(models.Model):
             return os.path.join(self.event.weburl(), 'private', self.filename)
         else:
             return None
+
+class Labelling(models.Model):
+    event = models.ForeignKey(Event)
+    label = models.ForeignKey(Label)
+    creator = models.ForeignKey(User)
+    created = models.DateTimeField(auto_now_add=True)
 
 class Approval(models.Model):
     COLLABORATION_CHOICES = ( ('L','LIGO'), ('V','Virgo'), )

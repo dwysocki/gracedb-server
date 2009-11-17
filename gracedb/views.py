@@ -8,7 +8,7 @@ from django.contrib.sites.models import Site
 
 from django.views.generic.list_detail import object_detail, object_list
 
-from models import Event, Group, EventLog
+from models import Event, Group, EventLog, Labelling, Label
 from forms import CreateEventForm, EventSearchForm
 from alert import issueAlert
 from translator import handle_uploaded_data
@@ -257,6 +257,32 @@ def cli_tag(request):
 
     return response
 
+def cli_label(request):
+    graceid = request.POST.get('graceid')
+    labelName = request.POST.get('label')
+
+    event = graceid and Event.getByGraceid(graceid)
+    
+    try:
+        label = Label.objects.filter(name=labelName)[0]
+    except IndexError:
+        raise ValueError("No such Label '%s'" % labelName)
+
+    # Don't add a label more than once.
+    if label not in event.labels.all():
+        labelling = Labelling(
+                event = event,
+                label = label,
+                creator = request.ligouser
+            )
+        labelling.save()
+
+    msg = str({})
+    response = HttpResponse(mimetype='application/json')
+    response.write(msg)
+    response['Content-length'] = len(msg)
+
+    return response
 
 def log(request):
     message = request.POST.get('message')
