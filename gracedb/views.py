@@ -403,6 +403,9 @@ def search(request):
             if labels:
                 objects = objects.filter(labels__in=labels)
 
+            # Need this because events with multiple labels can appear multiple times!
+            objects = objects.distinct()
+
             return object_list(request, objects, extra_context={'title':"Query Results"})
 
 
