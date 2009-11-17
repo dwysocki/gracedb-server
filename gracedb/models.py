@@ -28,9 +28,9 @@ class Group(models.Model):
         return self.name
 
 class Label(models.Model):
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=20, unique=True)
     # XXX really, does this belong here? probably not.
-    defaultColor = models.CharField(max_length=20, default="black")
+    defaultColor = models.CharField(max_length=20, unique=False, default="black")
     def __unicode__(self):
         return self.name
 

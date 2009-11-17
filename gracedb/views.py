@@ -244,6 +244,7 @@ def upload(request):
     return response
 
 def cli_tag(request):
+    raise Exception("tag is not implemented.  Maybe you're thinking of 'label'?")
     graceid = request.POST.get('graceid')
     tagname = request.POST.get('tag')
 
