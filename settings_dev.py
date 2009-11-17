@@ -105,5 +105,4 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'gracedb.gracedb',
-    'tagging',
 )

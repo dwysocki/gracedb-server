@@ -4,9 +4,6 @@ import thread
 import string
 import os
 
-from tagging.fields import TagField
-from tagging.models import Tag
-from tagging.utils import get_tag_list
 
 from gracedb.ligolw.models import CoincEvent
 
@@ -71,16 +68,6 @@ class Event(models.Model):
     uid = models.CharField(max_length=20, unique=False, default="")
 
     labels = models.ManyToManyField(Label, through="Labelling")
-
-    tags = TagField()
-
-    def get_tags(self):
-        return Tag.objects.get_for_object(self)
-
-    def add_tag(self, tag, must_already_exist=True):
-        if must_already_exist and not get_tag_list(tag):
-            raise ValueError("Tag '%s' does not exist." % tag)
-        Tag.objects.add_tag(self, tag)
 
     class Meta:
         ordering = ["-id"]
