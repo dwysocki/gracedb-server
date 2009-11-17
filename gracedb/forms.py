@@ -25,8 +25,6 @@ class EventSearchForm(forms.Form):
     gpsEnd = forms.IntegerField(min_value=0, required=False, label="GPS End")
     submitter = forms.ChoiceField(choices=submitterChoices, required=False)
 
-    tags = forms.ChoiceField(choices=tagChoices, required=False)
-
     ligoApproved = forms.BooleanField(initial=False, required=False, label="LIGO Approved Only")
     virgoApproved = forms.BooleanField(initial=False, required=False, label="Virgo Approved Only")
 
