@@ -277,6 +277,9 @@ def cli_label(request):
                 creator = request.ligouser
             )
         labelling.save()
+        message = "Label: %s" % label.name
+        log = EventLog(event=event, issuer=request.ligouser, comment=message)
+        log.save()
 
     msg = str({})
     response = HttpResponse(mimetype='application/json')
