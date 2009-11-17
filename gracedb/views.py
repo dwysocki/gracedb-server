@@ -355,6 +355,7 @@ def search(request):
             submitter = form.cleaned_data['submitter']
             groupname = form.cleaned_data['group']
             typename = form.cleaned_data['type']
+            labels = form.cleaned_data['labels']
             gpsStart =  form.cleaned_data['gpsStart']
             gpsEnd =  form.cleaned_data['gpsEnd']
 
@@ -398,6 +399,9 @@ def search(request):
                 objects = objects.filter(group=group)
             if typename:
                 objects = objects.filter(analysisType=typename)
+
+            if labels:
+                objects = objects.filter(labels__in=labels)
 
             return object_list(request, objects, extra_context={'title':"Query Results"})
 

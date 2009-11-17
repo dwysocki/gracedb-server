@@ -1,6 +1,6 @@
 
 from django import forms
-from models import Event, User, Group
+from models import Event, User, Group, Label
 
 class CreateEventForm(forms.Form):
     groupChoices = [("","")]+[(g.name, g.name) for g in Group.objects.all()]
@@ -12,10 +12,15 @@ class CreateEventForm(forms.Form):
 
 class EventSearchForm(forms.Form):
     groupChoices = [("","")]+[(g.name, g.name) for g in Group.objects.all()]
+
     typeChoices= [("","")]+list(Event.ANALYSIS_TYPE_CHOICES)
+
     submitterIds = Event.objects.values_list('submitter',flat=True).distinct()
     submitterList = User.objects.filter(id__in=submitterIds).order_by('name')
     submitterChoices = [("","")]+ [ (u.id, u.name) for u in submitterList]
+
+    labelChoices = [ ("hi%d"%n,"bye%d"%n) for n in [1,2,3]]
+    labelChoices = [ (label.id, label.name) for label in Label.objects.all() ]
 
     graceidStart = forms.CharField(required=False)
     graceidEnd = forms.CharField(required=False)
@@ -25,3 +30,4 @@ class EventSearchForm(forms.Form):
     gpsEnd = forms.IntegerField(min_value=0, required=False, label="GPS End")
     submitter = forms.ChoiceField(choices=submitterChoices, required=False)
 
+    labels = forms.MultipleChoiceField(choices=labelChoices, required=False)
