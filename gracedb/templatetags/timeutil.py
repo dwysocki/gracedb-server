@@ -49,7 +49,7 @@ def multiTime(t, label, autoescape=None):
         dt = t
         if not dt.tzinfo:
             dt = SERVER_TZ.localize(dt)
-        dt = dt.astimezone(pytz.utc)
+        #dt = dt.astimezone(pytz.utc)
         posix_time = time.mktime(dt.timetuple())
         gps_time = int(posixToGpsTime(posix_time))
     elif isinstance(t, int) or isinstance(t, long):
@@ -66,7 +66,7 @@ def multiTime(t, label, autoescape=None):
     lho_time = esc(dateformat.format(dt.astimezone(LHO_TZ), format))
     llo_time = esc(dateformat.format(dt.astimezone(LLO_TZ), format))
     virgo_time = esc(dateformat.format(dt.astimezone(VIRGO_TZ), format))
-    utc_time = esc(dateformat.format(dt, format))
+    utc_time = esc(dateformat.format(dt.astimezone(pytz.utc), format))
 
     if isinstance(t, datetime.datetime):
         display_time = utc_time

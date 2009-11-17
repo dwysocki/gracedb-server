@@ -2,43 +2,56 @@
 {% load timeutil %}
 
 {% block title %}View {{ object.graceid }}{% endblock %}
-{% block heading %}View {{ object.graceid }}{% endblock %}
+{% block heading %}{% endblock %}
 
 {% block content %}
 <p>{{ message }}</p>
 
-<table>
-  <tr><th>ID</th><td>{{ object.graceid }}</td></tr>
-  <tr><th>Group</th><td>{{ object.group.name }}</td></tr>
-  <tr><th>Type</th><td>{{ object.get_analysisType_display }}</td></tr>
-{% if object.gpstime %}
-  <tr><th>Event Time {{ "gps"|timeselect:"gps" }}</th>
-    <!-- <td><span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span></td> -->
-    <td>{{ object.gpstime|multiTime:"gps" }}</td>
-  </tr>
-{% endif %}
-  <tr><th>Data</th><td>
-    <a href="{{ object.weburl }}">{{ object.weburl }}</a>
-    </td></tr>
-  <tr><th>TWiki</th><td>
-    <a href="{{ object.wikiurl }}">{{ object.wikiurl }}</a>
-    </td></tr>
-  <tr><th>Sumitter</th><td>{{ object.submitter.name }}</td></tr>
-  <tr><th>Created{{ "created"|timeselect:"utc" }}</th><td>{{ object.created|multiTime:"created" }}
-                          </td></tr>
-  <tr><th>Labels</th><td>
-     {% for labelling in object.labelling_set.all %}
-        <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
-     {% endfor %}
-     </td></tr>
+
+<table class="event">
+    <tr>
+            <th valign="top">UID</th>
+            <th>Labels</th>
+            <th>Type</th>
+            <th>
+                {{ "gps"|timeselect:"gps" }}
+                Event Time
+            </th>
+            <th colspan="2">Links</th>
+            <th>
+                {{"created"|timeselect:"utc" }}
+                Submitted
+            </th>
+    </tr>
+
+
+    <tr>
+        <td>{{ object.graceid }}</td>
+        <td>
+             {% for labelling in object.labelling_set.all %}
+                <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
+             {% endfor %}
+        </td>
+        <td>{{ object.get_analysisType_display }} </td>
+        <td>{% if object.gpstime%}
+                <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
+                {{ object.gpstime|multiTime:"gps" }}
+            {% endif %}</td>
+        <td><a href="{{ object.weburl }}">Data</a></td>
+        <td><a href="{{ object.wikiurl }}">Wiki</a></td>
+        <td>{{ object.created|multiTime:"created" }}</td>
+    </tr>
 
 </table>
 
 {% if object.eventlog_set.count %}
-  <h3>Log Entries:</h3>
-  <table>
+  <p/>
+  <table class="event">
     <tr>
-      <th>Date {{ "logtime"|timeselect:"utc" }}</th>
+      <th>
+        {{ "logtime"|timeselect:"utc" }}
+        Log Entry Created
+      </th>
       <th>Submitter</th>
       <th>File</th>
       <th>Comment</th>

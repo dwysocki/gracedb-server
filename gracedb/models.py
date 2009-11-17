@@ -6,6 +6,13 @@ import os
 
 
 from gracedb.ligolw.models import CoincEvent
+from gracedb.gracedb.templatetags.timeutil import posixToGpsTime
+
+from django.conf import settings
+import pytz, time
+
+SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
+
 
 class User(models.Model):
     name = models.CharField(max_length=100)
@@ -92,6 +99,15 @@ class Event(models.Model):
 
     def virgoApproved(self):
         return self.approval_set.filter(approvingCollaboration='V').count()
+
+    def reportingLatency(self):
+        if self.gpstime:
+            dt = self.created
+            if not dt.tzinfo:
+                dt = SERVER_TZ.localize(dt)
+            posix_time = time.mktime(dt.timetuple())
+            gps_time = int(posixToGpsTime(posix_time))
+            return gps_time - self.gpstime
 
     @classmethod
     def getByGraceid(cls, id):

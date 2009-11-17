@@ -398,10 +398,6 @@ def search(request):
                 objects = objects.filter(group=group)
             if typename:
                 objects = objects.filter(analysisType=typename)
-            if form.cleaned_data['ligoApproved']:
-                objects = objects.filter(approval__approvingCollaboration='L')
-            if form.cleaned_data['virgoApproved']:
-                objects = objects.filter(approval__approvingCollaboration='V')
 
             return object_list(request, objects, extra_context={'title':"Query Results"})
 

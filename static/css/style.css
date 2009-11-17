@@ -7,6 +7,9 @@ html, body {
   padding: 0;
 }
 
+table.event th {padding:3px;border:none;text-align:center;vertical-align:bottom;}
+table.event {border-bottom:1px solid gray;}
+
 td, th {padding:3px;border:none;}
 tr th {text-align:left;background-color:#f0f0f0;color:#333;}
 tr.odd td {background-color:#edf3fe;}

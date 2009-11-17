@@ -9,51 +9,39 @@
 <p>{{ message }}</p>
 
 {% if object_list.count %}
-<table>
-    <tr>    <th colspan="2">Approvals</th>
-    </tr>
+<table class="event">
     <tr>
-            <th>LIGO</th>
-            <th>Virgo</th>
             <th>UID</th>
-            <th>Submitter</th>
-            <th>Group</th>
+            <th>Labels</th>
             <th>Type</th>
-            <th>Event Time {{ "gps"|timeselect:"gps" }}</th>
-            <th>Web</th>
-            <th>Wiki</th>
+            <th>
+                {{ "gps"|timeselect:"gps" }}
+                Event Time
+            </th>
+            <th colspan="2">Links</th>
+            <th>
+                {{"created"|timeselect:"utc" }}
+                Submitted
+            </th>
     </tr>
 
 {% for obj in object_list %}
     <tr class={% cycle 'odd' 'even' %}>
-        <!--
-            https://archie.phys.uwm.edu/media/img/admin/icon-no.gif
-            https://archie.phys.uwm.edu/media/img/admin/icon-yes.gif
-        -->
-        <td align="center">
-            {% if obj.ligoApproved %}
-                <img src="/media/img/admin/icon-yes.gif"/>
-            {% else %}
-                <img src="/media/img/admin/icon-no.gif"/>
-            {% endif %}
-        </td>
-        <td align="center">
-            {% if obj.virgoApproved %}
-                <img src="/media/img/admin/icon-yes.gif"/>
-            {% else %}
-                <img src="/media/img/admin/icon-no.gif"/>
-            {% endif %}
-        </td>
         <td><a href="{% url view obj.graceid %}">{{ obj.graceid }}</a></td>
-        <td>{{ obj.submitter }} </td>
-        <td>{{ obj.group }} </td>
+        <td>
+             {% for labelling in obj.labelling_set.all %}
+                <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
+             {% endfor %}
+        </td>
         <td>{{ obj.get_analysisType_display }} </td>
         <td>{% if obj.gpstime%}
                 <!-- <span title="{{ obj.gpstime|gpsdate }}">{{ obj.gpstime }}</span> -->
                 {{ obj.gpstime|multiTime:"gps" }}
-            {% endif %}</td>
-        <td><a href="{{ obj.weburl }}">Web: {{ obj.graceid }}</a></td>
-        <td><a href="{{ obj.wikiurl }}">Wiki: {{ obj.graceid }}</a></td>
+            {% endif %}
+        </td>
+        <td><a href="{{ obj.weburl }}">Data</a></td>
+        <td><a href="{{ obj.wikiurl }}">Wiki</a></td>
+        <td>{{ obj.created|multiTime:"created" }}</td>
     </tr>
 {% endfor %}
 </table>
