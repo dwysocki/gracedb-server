@@ -418,7 +418,7 @@ def search(request):
 
 def timeline(request):
     import simplejson
-    from templatetags.timeutil import gpsToUtc
+    gracedb.utils import gpsToUtc
     from django.utils import dateformat
 
     response = HttpResponse(mimetype='application/javascript')
