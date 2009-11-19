@@ -17,9 +17,10 @@ function changeTime(obj, label) {
 }
 </script>
 <!-- END TESTING -->
+{% block jscript %}{% endblock %}
 </head>
 
-<body id="{% block pageid %}{% endblock %}">
+<body id="{% block pageid %}{% endblock %}"{% block bodyattrs %}{% endblock %}>
 
 <div id="header">
 <!-- Header -->

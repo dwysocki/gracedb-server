@@ -416,6 +416,30 @@ def search(request):
             { 'form' : form },
             context_instance=RequestContext(request))
 
+def timeline(request):
+    import simplejson
+    from templatetags.timeutil import gpsToUtc
+    from django.utils import dateformat
+
+    response = HttpResponse(mimetype='application/javascript')
+    events = []
+    for event in Event.objects.exclude(group__name="Test").all():
+        if event.gpstime:
+            t = dateformat.format(gpsToUtc(event.gpstime), "F j, Y h:i:s")+" UTC"
+
+            events.append({
+                'start': t,
+                'title': event.get_analysisType_display(),
+                'description':
+                    "%s<br/>%s" %(event.get_analysisType_display(),"GPS time:%s"%event.gpstime),
+                'durationEvent':False,
+              })
+    d = {'events': events}
+    msg = simplejson.dumps(d)
+    response['Content-length'] = len(msg)
+    response.write(msg)
+    return response
+
 #-----------------------------------------------------------------
 # Things that aren't views and should really be elsewhere.
 #-----------------------------------------------------------------
