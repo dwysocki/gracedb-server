@@ -6,7 +6,7 @@ import os
 
 
 from gracedb.ligolw.models import CoincEvent
-from gracedb.gracedb.templatetags.timeutil import posixToGpsTime
+from gracedb.utils import posixToGpsTime
 
 from django.conf import settings
 import pytz, time
