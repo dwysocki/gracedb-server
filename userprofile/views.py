@@ -10,7 +10,7 @@ from django.shortcuts import render_to_response
 
 from gracedb.userprofile.models import Trigger, Contact
 
-from forms import TriggerForm, ContactForm
+from forms import ContactForm, triggerFormFactory
 
 def index(request):
     triggers = Trigger.objects.filter(user=request.ligouser)
@@ -24,7 +24,7 @@ def create(request):
     explanation = ""
     message = ""
     if request.method == "POST":
-        form = TriggerForm(request.POST)
+        form = triggerFormFactory(request.POST, user=request.ligouser)
         if form.is_valid():
             # Create the Trigger
             t = Trigger(user=request.ligouser)
@@ -43,14 +43,18 @@ def create(request):
                 t.save()
                 request.session['flash_msg'] = "Created: %s" % t.userlessDisplay()
                 return HttpResponseRedirect(reverse(index))
-
         # Data was bad
-        if not contacts:
-            message += "You must specify at least one contact. "
-        if not (labels or atypes):
-            message += "You need to indicate label(s) and/or analysis type(s)."
+        try:
+            if not contacts:
+                message += "You must specify at least one contact. "
+            if not (labels or atypes):
+                message += "You need to indicate label(s) and/or analysis type(s)."
+        except NameError:
+            # form is not valid, so labels, contacts and atypes were not set.
+            # hopefully, there are error messages in the form.
+            pass
     else:
-        form = TriggerForm()
+        form = triggerFormFactory(user=request.ligouser)
     if message:
         request.session['flash_msg'] = message
     return render_to_response('profile/createNotification.html',
