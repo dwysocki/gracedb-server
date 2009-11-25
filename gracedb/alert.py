@@ -4,10 +4,12 @@ import time
 from subprocess import Popen, PIPE, STDOUT
 import StringIO
 
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse, get_script_prefix
+
+from gracedb.userprofile.models import Trigger, AnalysisType
 
 import glue.ligolw.utils
 import glue.lvalert.utils
@@ -32,13 +34,49 @@ def prepareSummary(event):
     # XXX TBD what exactly this summary is.
     return "GPS Time: %s" % event.gpstime
 
-def issueEmailAlert(event, location):
-    if event.group.name == 'Test':
+
+def issueEmailAlertForLabel(event, label):
+    profileRecips = []
+    atype = AnalysisType.objects.filter(code=event.analysisType)[0]
+    triggers = label.trigger_set.filter(atypes=atype)
+    for trigger in triggers:
+        for recip in trigger.contacts.all():
+            profileRecips.append(recip.email)
+
+    subject = "[gracedb] %s / %s / %s" % (label.name, event.get_analysisType_display(), event.graceid())
+
+    message = "A %s event with graceid %s was labelled with %s" % \
+              (event.get_analysisType_display(), event.graceid(), label.name)
+
+    if event.group.name == "Test":
         fromaddress = settings.ALERT_TEST_EMAIL_FROM
-        toaddress = settings.ALERT_TEST_EMAIL_TO
+        toaddresses = settings.ALERT_TEST_EMAIL_TO
+        message += "\n\nWould have send email to: %s" % str(profileRecips)
     else:
         fromaddress = settings.ALERT_EMAIL_FROM
-        toaddress = settings.ALERT_EMAIL_TO
+        toaddresses = profileRecips
+
+    if toaddresses:
+        email = EmailMessage(subject, message, fromaddress, [], toaddresses)
+        email.send()
+
+
+def issueEmailAlert(event, location):
+
+    # Gather Recipients
+    if event.group.name == 'Test':
+        fromaddress = settings.ALERT_TEST_EMAIL_FROM
+        toaddresses = settings.ALERT_TEST_EMAIL_TO
+    else:
+        fromaddress = settings.ALERT_EMAIL_FROM
+        toaddresses = settings.ALERT_EMAIL_TO
+
+        atype = AnalysisType.objects.filter(code=event.analysisType)[0]
+        triggers = atype.trigger_set.filter(labels=None)
+        for trigger in triggers:
+            for recip in trigger.contacts.all():
+                toaddresses.append(recip.email)
+
     subject = "[gracedb] %s event. ID: %s" % (event.get_analysisType_display(), event.graceid())
     message = """
 New Event
@@ -58,8 +96,13 @@ Event Summary:
                 event.weburl(),
                 event.wikiurl(),
                 event.submitter.name,
-                indent(3, prepareSummary(event)))
-    send_mail(subject, message, fromaddress, toaddress)
+                indent(3, prepareSummary(event))
+               )
+
+    email = EmailMessage(subject, message, fromaddress, [], toaddresses)
+    email.send()
+
+    #send_mail(subject, message, fromaddress, toaddresses)
 
 def issueXMPPAlert(event, location, temp_data_loc):
     nodename = "%s_%s"% (event.group.name, event.get_analysisType_display())

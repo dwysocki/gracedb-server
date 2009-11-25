@@ -61,6 +61,7 @@
 #archive #nav-archive a,
 #lab #nav-lab a,
 #reviews #nav-reviews a,
+#userprofile #nav-userprofile a,
 #contact #nav-contact a {
     background: #a9b0ba;  /* Nav selected color */
     /* color:#fff;  / * Use if bg is dark */
@@ -74,6 +75,7 @@
 #archive #nav-archive a:hover,
 #lab #nav-lab a:hover,
 #reviews #nav-reviews a:hover,
+#userprofile #nav-userprofile a:hover,
 #contact #nav-contact a:hover {
     /* background:#e35a00; */
     background: #a9b0ba;  /* Nav selected color */

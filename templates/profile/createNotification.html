@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Options | Create {{ creating }}{% endblock %}
+{% block heading %}Create {{ creating }}{% endblock %}
+{% block pageid %}userprofile{% endblock %}
+
+{% block content %}
+{{ explanation }}
+<form method="POST">
+    <table>
+        {{ form.as_table }}
+    </table>
+    <input type="submit" value="Submit"/>
+</form>
+{% endblock %}

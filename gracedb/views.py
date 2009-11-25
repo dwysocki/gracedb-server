@@ -10,7 +10,7 @@ from django.views.generic.list_detail import object_detail, object_list
 
 from models import Event, Group, EventLog, Labelling, Label
 from forms import CreateEventForm, EventSearchForm
-from alert import issueAlert
+from alert import issueAlert, issueEmailAlertForLabel
 from translator import handle_uploaded_data
 
 import os
@@ -140,7 +140,7 @@ def _createEventFromForm(request, form):
                        os.path.join(event.clusterurl(), "private", f.name),
                        temp_data_loc)
         except Exception, e:
-            warnings += ["Problem handling event creation (%s)" % e]
+            warnings += ["Problem issuing an alert (%s)" % e]
         #return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
     except Exception, e:
         # something went wrong.
@@ -262,6 +262,7 @@ def cli_label(request):
     graceid = request.POST.get('graceid')
     labelName = request.POST.get('label')
 
+    d = {}
     event = graceid and Event.getByGraceid(graceid)
     
     try:
@@ -281,7 +282,12 @@ def cli_label(request):
         log = EventLog(event=event, issuer=request.ligouser, comment=message)
         log.save()
 
-    msg = str({})
+    try:
+        issueEmailAlertForLabel(event, label)
+    except Exception, e:
+        d['warning'] = "Problem issuing email alert (%s)" % str(e)
+
+    msg = str(d)
     response = HttpResponse(mimetype='application/json')
     response.write(msg)
     response['Content-length'] = len(msg)

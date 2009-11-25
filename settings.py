@@ -83,6 +83,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.debug",
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
+    "django.core.context_processors.request",
     "gracedb.middleware.auth.LigoAuthContext",
 )
 
@@ -113,4 +114,5 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'gracedb.gracedb',
+    'gracedb.userprofile',
 )
