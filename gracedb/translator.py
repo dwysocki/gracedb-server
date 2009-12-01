@@ -14,7 +14,7 @@ from glue.gracedb.utils import insp_event_id_dict
 from glue.gracedb.utils import coherent_event_id_dict
 
 from glue.gracedb.utils import populate_inspiral_tables, \
-                               populate_burst_tables,    \
+                               populate_omega_tables,    \
                                populate_coinc_tables,    \
                                write_output_files
 
@@ -170,7 +170,7 @@ def handle_uploaded_data(event, datafilename,
         #xmldoc, log_data, temp_data_loc = populate_burst_tables("initial.data")
         #write_output_files('.', final_xmldoc, log_data)
 
-        xmldoc, log_data, temp_data_loc = populate_burst_tables(datafilename)
+        xmldoc, log_data, temp_data_loc = populate_omega_tables(datafilename)
         output_dir = os.path.dirname(datafilename)
         write_output_files(output_dir, xmldoc, log_data)
 

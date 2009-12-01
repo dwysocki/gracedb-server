@@ -57,7 +57,7 @@ def issueEmailAlertForLabel(event, label):
         toaddresses = profileRecips
 
     if toaddresses:
-        email = EmailMessage(subject, message, fromaddress, [], toaddresses)
+        email = EmailMessage(subject, message, fromaddress, toaddresses, [])
         email.send()
 
 
@@ -99,7 +99,7 @@ Event Summary:
                 indent(3, prepareSummary(event))
                )
 
-    email = EmailMessage(subject, message, fromaddress, [], toaddresses)
+    email = EmailMessage(subject, message, fromaddress, toaddresses, [])
     email.send()
 
     #send_mail(subject, message, fromaddress, toaddresses)
