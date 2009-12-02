@@ -2,6 +2,24 @@
 from django import forms
 from models import Event, User, Group, Label
 
+from query import parseQuery, ParseException
+
+class GraceQueryField(forms.CharField):
+    def clean(self, queryString):
+        from django.db.models import Q
+        queryString = forms.CharField.clean(self, queryString)
+        try:
+            return parseQuery(queryString)
+        except ParseException, e:
+            raise forms.ValidationError("Error near (*): "+ e.markInputline("(*)"))
+        except Exception, e:
+            # What could this be and how can we handle it better? XXX
+            raise forms.ValidationError(str(e))
+
+class SimpleSearchForm(forms.Form):
+    query = GraceQueryField(required=True, widget=forms.TextInput(attrs={'size':60}))
+
+
 class CreateEventForm(forms.Form):
     groupChoices = [("","")]+[(g.name, g.name) for g in Group.objects.all()]
     typeChoices= [("","")]+list(Event.ANALYSIS_TYPE_CHOICES)
@@ -9,6 +27,7 @@ class CreateEventForm(forms.Form):
     eventFile  = forms.FileField()
     group = forms.ChoiceField(groupChoices)
     type = forms.ChoiceField(choices=typeChoices)
+
 
 class EventSearchForm(forms.Form):
     groupChoices = [("","")]+[(g.name, g.name) for g in Group.objects.all()]

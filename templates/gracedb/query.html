@@ -6,11 +6,36 @@
 
 {% block content %}
 
+<dl>
+<dt>Hints on querying:</dt>
+<dd>
+  <ul>
+    <li>Limit results to a set of groups or analysis types by typing group or analysis type names.</li>
+    <li>Limit results to GPS times or time ranges by typing a GPS time or range, eg <code>941367090..941418534</code> or <code>941418534</code>.</li>
+    <li>Limit results to a range of graceids, <code>G0770..G0900</code>.</li>
+    <li>Limit results to events with certain labels, eg <code>LUMIN_GO</code> or <code>DQV</code>.</li>
+  </ul>
+</dd>
+</dl>
 <form method="POST">
-<table>
-{{ form.as_table }}
-<tr><td></td><td><input type="Submit"/></td></tr>
-</table>
+    <table>
+        {{ form.as_table }}
+        <tr><td></td><td><input type="Submit"/></td></tr>
+    </table>
 </form>
 
+{% if form2 %}
+<hr/>
+<h4>Simple Query</h4>
+<div id="hiddenqueryform" class=hideableForm>
+    <form method="POST">
+        <table>
+            {{ form2.as_table }}
+            <tr><td></td><td><input type="Submit"/></td></tr>
+        </table>
+    </form>
+</div>
+{% endif %}
+
 {% endblock %}
+

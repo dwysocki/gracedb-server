@@ -8,11 +8,18 @@
 {% block content %}
 <p>{{ message }}</p>
 
+{% if form %}
+    <form action="{{ formAction }}"method="POST">
+        {{ form.as_table }} <a href="{{queryLink}}">Link</a>
+    </form>
+{% endif %}
+
 {% if object_list.count %}
 <table class="event">
     <tr>
             <th>UID</th>
             <th>Labels</th>
+            <th>Group</th>
             <th>Type</th>
             <th>
                 {{ "gps"|timeselect:"gps" }}
@@ -33,6 +40,7 @@
                 <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
              {% endfor %}
         </td>
+        <td>{{ obj.group }} </td>
         <td>{{ obj.get_analysisType_display }} </td>
         <td>{% if obj.gpstime%}
                 <!-- <span title="{{ obj.gpstime|gpsdate }}">{{ obj.gpstime }}</span> -->

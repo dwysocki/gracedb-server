@@ -5,11 +5,12 @@ from django.template import RequestContext
 from django.core.urlresolvers import reverse, get_script_prefix
 from django.shortcuts import render_to_response
 from django.contrib.sites.models import Site
+from django.utils.html import strip_tags, escape
 
 from django.views.generic.list_detail import object_detail, object_list
 
 from models import Event, Group, EventLog, Labelling, Label
-from forms import CreateEventForm, EventSearchForm
+from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
 from alert import issueAlert, issueEmailAlertForLabel
 from translator import handle_uploaded_data
 
@@ -352,7 +353,77 @@ def view(request, graceid):
         context,
         context_instance=RequestContext(request))
 
+def cli_search(request):
+    assert request.ligouser
+    import simplejson
+    form = SimpleSearchForm(request.POST)
+    if form.is_valid():
+        query = form.cleaned_data['query']
+        objects = Event.objects.filter(query).distinct()
+        # Assemble the output... should be able to choose format.
+        outTable = ["#graceid\tlabels\tgroup\ttype\tgpstime\tcreatetime\turl"]
+        outTable += [
+            "%s\t%s\t%s\t%s\t%s\t%s\t%s" % (
+                e.graceid(),
+                ",".join([labelling.label.name for labelling in e.labelling_set.all()]),
+                e.group,
+                e.get_analysisType_display(),
+                e.gpstime or "",
+                e.created,
+                e.weburl(),
+            )
+            for e in objects
+        ]
+        d = {'output': "\n".join(outTable)}
+    else:
+        d = {'error': ""}
+        for key in form.errors:
+            d['error'] += "%s: %s\n" % (key, strip_tags(form.errors[key]))
+    response = HttpResponse(mimetype='application/javascript')
+    msg = simplejson.dumps(d)
+    response['Content-length'] = len(msg)
+    response.write(msg)
+    return response
+
 def search(request):
+    assert request.ligouser
+    # XXX DO NOT HARDCODE THIS
+    # Also, user should be notified if their result hits this limit.
+    limit = 1000
+    form2 = None
+    if request.method == "GET" and "query" not in request.GET:
+        form = SimpleSearchForm()
+        form2 = EventSearchForm()
+    else:
+        if request.method == "POST" and 'query' not in request.POST:
+            return oldsearch(request)
+        if request.method == "GET":
+            form = SimpleSearchForm(request.GET)
+            rawquery = request.GET['query']
+        else:
+            form = SimpleSearchForm(request.POST)
+            rawquery = request.POST['query']
+        if form.is_valid():
+            query = form.cleaned_data['query']
+            objects = Event.objects.filter(query).distinct()[:limit]
+            if objects.count() >= limit:
+                request.session['flash_msg'] = \
+                    "Number of events in results exceeds maximum (%s) allowed." % limit
+            context = {
+                'title':"Query Results. %s event(s)" % objects.count(),
+                'form': form,
+                'formAction': reverse(search),
+                'maxCount': limit,
+                'queryLink': reverse(search)+"?query="+escape(rawquery),
+            }
+            return object_list(request, objects, extra_context=context)
+    return render_to_response('gracedb/query.html',
+            { 'form' : form,
+              'form2' : form2,
+            },
+            context_instance=RequestContext(request))
+
+def oldsearch(request):
     assert request.ligouser
     if request.method == 'GET':
         form = EventSearchForm()
