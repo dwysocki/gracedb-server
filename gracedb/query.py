@@ -20,11 +20,12 @@ from pyparsing import \
     opAssoc, operatorPrecedence, oneOf, \
     stringStart, stringEnd, ParseException
 
-def maybeRange(name):
+def maybeRange(name, dbname=None):
+    dbname = dbname or name
     def f(toks):
         if len(toks) == 1:
-            return name, Q(**{name: toks[0]})
-        return name, Q(**{name+"__range": toks.asList()})
+            return name, Q(**{dbname: toks[0]})
+        return name, Q(**{dbname+"__range": toks.asList()})
     return f
 
 encodeType = dict(
@@ -73,6 +74,13 @@ gidRange = gid + Suppress("..") + gid
 gidQ = Optional(Suppress(Keyword("gid:"))) + (gid^gidRange)
 gidQ = gidQ.setParseAction(maybeRange("id"))
 
+# hardware injection id
+hid = Suppress("H")+Word("0123456789")
+hidRange = hid + Suppress("..") + hid
+hidQ = Optional(Suppress(Keyword("hid:"))) + (hid^hidRange)
+hidQ = hidQ.setParseAction(maybeRange("hid", dbname="id"))
+
+
 # Labels
 labelNames = ["DQV", "INJ", "LUMIN_NO", "LUMIN_GO", "SWIFT_NO", "SWIFT_GO"]
 label = Or([Literal(n) for n in labelNames]).\
@@ -97,7 +105,7 @@ dateQ = (Optional(Suppress(Keyword("date:"))) + dateTime).\
         setParseAction(doDate)
 
 
-q = (gidQ | groupQ | atypeQ | gpsQ | labelQ ).setName("query term")
+q = (gidQ | hidQ | groupQ | atypeQ | gpsQ | labelQ ).setName("query term")
 
 def parseQuery(s):
     d={}
@@ -109,5 +117,12 @@ def parseQuery(s):
             d["group"] &= ~Q(group__name="Test")
         else:
             d["group"] = ~Q(group__name="Test")
+    if "hid" in d:
+        d["hid"] = d["hid"] & Q(analysisType="HWINJ")
+    if "id" in d:
+        d["id"] = d["id"] & ~Q(analysisType="HWINJ")
+    if "id" in d and "hid" in d:
+        d["id"] = d["id"] | d["hid"]
+        del d["hid"]
     return reduce(Q.__and__, d.values(), Q())
 
