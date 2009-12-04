@@ -231,6 +231,23 @@ def handle_uploaded_data(event, datafilename,
                        issuer=event.submitter,
                        comment="Original Data")
         log.save()
+    elif event.analysisType == 'HWINJ':
+        try:
+            f = open(datafilename, "r")
+            for line in f.readlines():
+                if line.startswith("gpstime:"):
+                    times = line.split()
+                    event.gpstime = int(float(times[1]))
+                    event.save()
+                    break
+            f.close()
+        except:
+            pass
+        log = EventLog(event=event,
+                       filename=os.path.basename(datafilename),
+                       issuer=event.submitter,
+                       comment="Original Data")
+        log.save()
     else:
         log = EventLog(event=event,
                        filename=os.path.basename(datafilename),

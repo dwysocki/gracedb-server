@@ -52,6 +52,7 @@ class Event(models.Model):
         ("X",   "X"),
         ("CWB", "CWB"),
         ("MBTA", "MBTAOnline"),
+        ("HWINJ", "HardwareInjection"),
     )
     submitter = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
@@ -82,6 +83,8 @@ class Event(models.Model):
     def graceid(self):
         if self.uid:
             return self.uid
+        elif self.analysisType == "HWINJ":
+            return "H%04d" % self.id
         return "G%04d" % self.id
 
     def weburl(self):
@@ -111,9 +114,13 @@ class Event(models.Model):
 
     @classmethod
     def getByGraceid(cls, id):
-        if id[0] == "G":
-            return cls.objects.get(id=int(id[1:]))
-        return cls.objects.get(uid=id)
+        if id[0] not in "GH":
+            # Very old, probably useless data.
+            return cls.objects.get(uid=id)
+        e = cls.objects.get(id=int(id[1:]))
+        if (id[0] == "G" and e.analysisType != "HWINJ") or (id[0]=="H" and e.analysisType =="HWINJ"):
+            return e
+        raise cls.DoesNotExist()
 
 class EventLog(models.Model):
     class Meta:

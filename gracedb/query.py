@@ -11,11 +11,11 @@
 
 #import pyparsing as p
 
-from models import Event
+import models
 from django.db.models import Q
 
 from pyparsing import \
-    Word, nums, Literal, delimitedList, Suppress, Group, \
+    Word, nums, Literal, delimitedList, Suppress, \
     Keyword, Combine, Or, Optional, OneOrMore, alphas, Regex, \
     opAssoc, operatorPrecedence, oneOf, \
     stringStart, stringEnd, ParseException
@@ -27,7 +27,10 @@ def maybeRange(name):
         return name, Q(**{name+"__range": toks.asList()})
     return f
 
-encodeType = dict([(x[1],x[0]) for x in Event.ANALYSIS_TYPE_CHOICES])
+encodeType = dict(
+    [(x[1],x[0]) for x in models.Event.ANALYSIS_TYPE_CHOICES] +
+    [(x[0],x[0]) for x in models.Event.ANALYSIS_TYPE_CHOICES]
+    )
 
 def doType(toks):
     return ("type", Q(analysisType__in=[encodeType[tok] for tok in toks]))
@@ -48,7 +51,7 @@ gpsQ = Optional(Suppress(Keyword("gpstime:"))) + (gpstime^gpstimeRange)
 gpsQ = gpsQ.setParseAction(maybeRange("gpstime"))
 
 # Analysis Groups
-groupNames = ["Test", "Burst", "CBC", "Stochastic", "CW"]
+groupNames = [group.name for group in models.Group.objects.all()]
 group = Or(map(Literal, groupNames)).setName("analysis group name")
 groupList = delimitedList(group, delim='|').setName("analysis group list")
 groupQ = (Optional(Suppress(Keyword("group:"))) + groupList)
@@ -56,7 +59,6 @@ groupQ = groupQ.setParseAction(lambda toks: ("group", Q(group__name__in=toks.asL
 
 
 # Analysis Types
-atypeNames = ["LowMass", "HighMass", "Inspiral", "Omega", "X"]
 atypeNames = encodeType.keys()
 atype = Or(map(Literal, atypeNames))
 atypeList = delimitedList(atype, delim='|').\
