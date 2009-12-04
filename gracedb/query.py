@@ -15,7 +15,7 @@ import models
 from django.db.models import Q
 
 from pyparsing import \
-    Word, nums, Literal, delimitedList, Suppress, \
+    Word, nums, Literal, CaselessLiteral, delimitedList, Suppress, \
     Keyword, Combine, Or, Optional, OneOrMore, alphas, Regex, \
     opAssoc, operatorPrecedence, oneOf, \
     stringStart, stringEnd, ParseException
@@ -53,7 +53,7 @@ gpsQ = gpsQ.setParseAction(maybeRange("gpstime"))
 
 # Analysis Groups
 groupNames = [group.name for group in models.Group.objects.all()]
-group = Or(map(Literal, groupNames)).setName("analysis group name")
+group = Or(map(CaselessLiteral, groupNames)).setName("analysis group name")
 groupList = delimitedList(group, delim='|').setName("analysis group list")
 groupQ = (Optional(Suppress(Keyword("group:"))) + groupList)
 groupQ = groupQ.setParseAction(lambda toks: ("group", Q(group__name__in=toks.asList())))
@@ -61,7 +61,7 @@ groupQ = groupQ.setParseAction(lambda toks: ("group", Q(group__name__in=toks.asL
 
 # Analysis Types
 atypeNames = encodeType.keys()
-atype = Or(map(Literal, atypeNames))
+atype = Or(map(CaselessLiteral, atypeNames))
 atypeList = delimitedList(atype, delim='|').\
             setName("analylsis type list").\
             setResultsName("atypes")
@@ -83,7 +83,7 @@ hidQ = hidQ.setParseAction(maybeRange("hid", dbname="id"))
 
 # Labels
 labelNames = ["DQV", "INJ", "LUMIN_NO", "LUMIN_GO", "SWIFT_NO", "SWIFT_GO"]
-label = Or([Literal(n) for n in labelNames]).\
+label = Or([CaselessLiteral(n) for n in labelNames]).\
         setParseAction( lambda toks: Q(labels__name=toks[0]) )
 
 andop   = oneOf(", &").suppress()
@@ -105,7 +105,7 @@ dateQ = (Optional(Suppress(Keyword("date:"))) + dateTime).\
         setParseAction(doDate)
 
 
-q = (gidQ | hidQ | groupQ | atypeQ | gpsQ | labelQ ).setName("query term")
+q = (gidQ | hidQ | atypeQ | groupQ | gpsQ | labelQ ).setName("query term")
 
 def parseQuery(s):
     d={}
