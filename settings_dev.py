@@ -20,6 +20,13 @@ ALERT_TEST_EMAIL_TO = [
     "Brian Moe <bmoe@gravity.phys.uwm.edu>",
     ]
 
+# Don't sent out non-test XMPP alerts on dev box!
+XMPP_ALERT_CHANNELS = [
+                        'test_omega',
+                        'test_mbtaonline',
+                        'test_cwb',
+                      ]
+
 DATABASE_ENGINE = 'mysql'
 DATABASE_NAME = 'gracedb'
 DATABASE_USER = 'gracedb'

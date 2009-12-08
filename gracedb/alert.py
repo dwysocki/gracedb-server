@@ -14,15 +14,6 @@ from gracedb.userprofile.models import Trigger, AnalysisType
 import glue.ligolw.utils
 import glue.lvalert.utils
 
-XMPP_ALERT_CHANNELS = [
-                        'burst_omega',
-                        'test_omega',
-                        'cbc_mbtaonline',
-                        'test_mbtaonline',
-                        'burst_cwb',
-                        'test_cwb',
-                      ]
-
 def issueAlert(event, location, temp_data_loc):
     issueXMPPAlert(event, location, temp_data_loc)
     issueEmailAlert(event, location)
@@ -35,7 +26,15 @@ def prepareSummary(event):
     return "GPS Time: %s" % event.gpstime
 
 
-def issueEmailAlertForLabel(event, label):
+def issueAlertForUpdate(event, description, doxmpp):
+    if doxmpp:
+        issueXMPPAlert(event, "", "", "update", description)
+    # XXX No emails for this.  Argh.
+
+def issueAlertForLabel(event, label, doxmpp):
+    if doxmpp:
+        issueXMPPAlert(event, "", "", "label", label)
+    # Email
     profileRecips = []
     atype = AnalysisType.objects.filter(code=event.analysisType)[0]
     triggers = label.trigger_set.filter(atypes=atype)
@@ -104,15 +103,15 @@ Event Summary:
 
     #send_mail(subject, message, fromaddress, toaddresses)
 
-def issueXMPPAlert(event, location, temp_data_loc):
+def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description=""):
+    f = open('tmp/foo','a')
     nodename = "%s_%s"% (event.group.name, event.get_analysisType_display())
     nodename = nodename.lower()
 
-    # XXX awful!
-    # Need a good way to know which things to send out to lvalert.
-    # Currently, only MBTAOnline and Omega get alerts.
-    if nodename not in XMPP_ALERT_CHANNELS:
+    if nodename not in settings.XMPP_ALERT_CHANNELS:
+        f.write("nope.  not in list\n")
         return
+    f.write("Node: %s\n" % nodename)
 
     env = {}
     env["PYTHONPATH"] = ":".join(sys.path)
@@ -131,33 +130,34 @@ def issueXMPPAlert(event, location, temp_data_loc):
         stderr=STDOUT,
         env=env)
 
-    #msg = createPayload(event.graceid(), location)
-    xmldoc = glue.lvalert.utils.make_LVAlertTable(location, event.graceid(), temp_data_loc)
+    f.write("A\n")
+    xmldoc = glue.lvalert.utils.make_LVAlertTable(
+                    location,
+                    event.graceid(),
+                    temp_data_loc,
+                    alert_type,
+                    description)
+    f.write("B: %s\n" % str(xmldoc))
+
+    f.write("c\n")
     buf = StringIO.StringIO()
+    f.write("d\n")
     glue.ligolw.utils.write_fileobj(xmldoc, buf)
+    f.write("e\n")
     msg = buf.getvalue()
 
+    f.write("f\n")
     p.stdin.write(msg)
+    f.write("g\n")
     p.stdin.close()
+    f.write("h\n")
     for i in range(1,10):
         res = p.poll()
+        f.write("poll %d\n" % i)
         if res == None:
+            f.write("poll %d\n" % i)
             time.sleep(1)
         else:
+            f.write("poll end\n")
             break
-
-def createPayload (uid, filename):
-    template = """<?xml version='1.0' encoding='utf-8'?>
-<!DOCTYPE LIGO_LW SYSTEM "http://ldas-sw.ligo.caltech.edu/doc/ligolwAPI/html/ligolw_dtd.txt">
-<LIGO_LW>
-        <Table Name="LVAlert:table">
-                <Column Type="lstring" Name="LVAlert:uid"/>
-                <Column Type="lstring" Name="LVAlert:file"/>
-                <Stream Name="LVAlert:table" Type="Local" Delimiter=",">
-                        "%(uid)s","%(filename)s"
-                </Stream>
-        </Table>
-</LIGO_LW>
-"""
-    return template % { 'uid': uid, 'filename': filename }
 

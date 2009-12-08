@@ -28,6 +28,15 @@ ALERT_TEST_EMAIL_TO = [
                        "bmoe@gravity.phys.uwm.edu",
                       ]
 
+XMPP_ALERT_CHANNELS = [
+                        'burst_omega',
+                        'test_omega',
+                        'cbc_mbtaonline',
+                        'test_mbtaonline',
+                        'burst_cwb',
+                        'test_cwb',
+                      ]
+
 DATABASE_ENGINE = 'mysql'
 DATABASE_NAME = 'gracedb'
 DATABASE_USER = 'gracedb'

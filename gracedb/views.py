@@ -11,7 +11,7 @@ from django.views.generic.list_detail import object_detail, object_list
 
 from models import Event, Group, EventLog, Labelling, Label
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
-from alert import issueAlert, issueEmailAlertForLabel
+from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
 
 import os
@@ -190,6 +190,12 @@ def _createLog(request, graceid, comment, uploadedFile=None):
                 rdict['error'] = "Problem saving file: %s" % str(e)
         logEntry.save()
 
+        if request.POST.get('alert') == "True":
+            description = "LOG: "
+            if uploadedFile:
+                description = "UPLOAD: '%s' " % uploadedFile.name
+            issueAlertForUpdate(event, description+comment, doxmpp=True)
+
     # XXX should be json
     rval = str(rdict)
     response['Content-length'] = len(rval)
@@ -272,7 +278,9 @@ def cli_label(request):
         raise ValueError("No such Label '%s'" % labelName)
 
     # Don't add a label more than once.
-    if label not in event.labels.all():
+    if label in event.labels.all():
+            d['warning'] = "Event %s already labeled with '%s'" % (event.graceid(), labelName)
+    else:
         labelling = Labelling(
                 event = event,
                 label = label,
@@ -283,10 +291,11 @@ def cli_label(request):
         log = EventLog(event=event, issuer=request.ligouser, comment=message)
         log.save()
 
-    try:
-        issueEmailAlertForLabel(event, label)
-    except Exception, e:
-        d['warning'] = "Problem issuing email alert (%s)" % str(e)
+        try:
+            doxmpp = request.POST.get('alert') == "True"
+            issueAlertForLabel(event, label, doxmpp)
+        except Exception, e:
+            d['warning'] = "Problem issuing alert (%s)" % str(e)
 
     msg = str(d)
     response = HttpResponse(mimetype='application/json')
@@ -302,6 +311,7 @@ def log(request):
     if 'cli_version' in request.POST:
         return _createLog(request, graceid, message)
 
+    # old, old client only
     response = HttpResponse(mimetype='text/plain')
     try:
         event = graceid and Event.getByGraceid(graceid)
@@ -320,6 +330,7 @@ def log(request):
             msg = "OK"
         except:
             msg = "ERROR: problem creating log entry"
+
     response = HttpResponse(mimetype='text/plain')
     response.write(msg)
     response['Content-length'] = len(msg)
