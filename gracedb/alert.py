@@ -50,13 +50,15 @@ def issueAlertForLabel(event, label, doxmpp):
     if event.group.name == "Test":
         fromaddress = settings.ALERT_TEST_EMAIL_FROM
         toaddresses = settings.ALERT_TEST_EMAIL_TO
+        bccaddresses = []
         message += "\n\nWould have send email to: %s" % str(profileRecips)
     else:
         fromaddress = settings.ALERT_EMAIL_FROM
-        toaddresses = profileRecips
+        toaddresses =  []
+        bccaddresses = profileRecips
 
     if toaddresses:
-        email = EmailMessage(subject, message, fromaddress, toaddresses, [])
+        email = EmailMessage(subject, message, fromaddress, toaddresses, bccaddresses)
         email.send()
 
 
@@ -66,15 +68,17 @@ def issueEmailAlert(event, location):
     if event.group.name == 'Test':
         fromaddress = settings.ALERT_TEST_EMAIL_FROM
         toaddresses = settings.ALERT_TEST_EMAIL_TO
+        bccaddresses = []
     else:
         fromaddress = settings.ALERT_EMAIL_FROM
         toaddresses = settings.ALERT_EMAIL_TO
+        bccaddresses = settings.ALERT_EMAIL_BCC
 
         atype = AnalysisType.objects.filter(code=event.analysisType)[0]
         triggers = atype.trigger_set.filter(labels=None)
         for trigger in triggers:
             for recip in trigger.contacts.all():
-                toaddresses.append(recip.email)
+                bccaddresses.append(recip.email)
 
     subject = "[gracedb] %s event. ID: %s" % (event.get_analysisType_display(), event.graceid())
     message = """
@@ -98,7 +102,7 @@ Event Summary:
                 indent(3, prepareSummary(event))
                )
 
-    email = EmailMessage(subject, message, fromaddress, toaddresses, [])
+    email = EmailMessage(subject, message, fromaddress, toaddresses, bccaddresses)
     email.send()
 
     #send_mail(subject, message, fromaddress, toaddresses)
