@@ -11,6 +11,10 @@
 
 #import pyparsing as p
 
+# (weak) natural language time parsing.
+from nltime import nlTimeExpression as nltime_
+nltime = nltime_.setParseAction(lambda toks: toks["calculatedTime"])
+
 import models
 from django.db.models import Q
 
@@ -80,6 +84,11 @@ hidRange = hid + Suppress("..") + hid
 hidQ = Optional(Suppress(Keyword("hid:"))) + (hid^hidRange)
 hidQ = hidQ.setParseAction(maybeRange("hid", dbname="id"))
 
+# Created times
+nltimeRange = nltime + Suppress("..") + nltime
+createdQ = Optional(Suppress(Keyword("created:"))) + (nltime^nltimeRange)
+createdQ = createdQ.setParseAction(maybeRange("created"))
+
 
 # Labels
 labelNames = ["DQV", "INJ", "LUMIN_NO", "LUMIN_GO", "SWIFT_NO", "SWIFT_GO"]
@@ -105,7 +114,7 @@ dateQ = (Optional(Suppress(Keyword("date:"))) + dateTime).\
         setParseAction(doDate)
 
 
-q = (gidQ | hidQ | atypeQ | groupQ | gpsQ | labelQ ).setName("query term")
+q = (gidQ | hidQ | atypeQ | groupQ | gpsQ | labelQ | createdQ).setName("query term")
 
 def parseQuery(s):
     d={}
