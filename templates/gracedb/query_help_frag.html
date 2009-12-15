@@ -1,0 +1,54 @@
+
+<a onClick="toggle_visibility('hints');">Hints on querying:</a>
+<div id="hints" style="display: none;">
+ <h5>By GPS Time</h5>
+  Specifiy an exact GPS time, or a range.
+  Integers will be assumed to be GPS times, making the <code>gpstime:</code>
+  keyword optional.
+  <ul style="blank">
+     <li><code>999999000..999999999</code></li>
+     <li><code>gpstime: 999999999</code></li>
+     <li><code>gpstime: 999999000..999999999</code></li>
+  </ul>
+
+ <h5>By Creation Time</h5>
+  Creation time may be indicated by an exact time or a range.  Date/times are
+  in the format <code>2009-10-20 13:00:00</code>.  If the time is omitted, it
+  is assumed to be <code>00:00:00</code>.  Dates may also consist of certain
+  variants of English-like phrases.
+  The <code>created:</code> keyword is (generally) optional.
+  <ul>
+     <li><code>created: 2009-10-08 .. 2009-12-04 16:00:00</code></li>
+     <li><code>yesterday..now</code></li>
+     <li><code></code></li>
+     <li><code>created: 1 week ago .. now</code></li>
+  </ul>
+
+ <h5>By Graceid</h5>
+  GraceIds can be specified either individually, or as a range.
+  The <code>gid:</code> keyword is optional.
+  <ul>
+   <li>gid: G2011</li>
+   <li>G2011..G3000</li>
+   <li>G2011 G2032 G2033</li>
+  </ul>
+
+ <h5>By Group and Analysis Type</h5>
+  The <code>group:</code> and <code>type:</code> keywords are optional.  Group and analysis type names are case-insensitive.  Note that events in the Test group will not be shown unless explicitly requested.
+  <ul>
+   <li>CBC Burst</li>
+   <li>Inspiral CWB</li>
+   <li>group: Test type: cwb</li>
+   <li>Burst Omega</li>
+  </ul>
+
+ <h5>By Label</h5>
+  You may request only events that have a certain label.  The <code>label:</code> keyword
+  is optional.  Note that specifying multiple labels is an "OR" operation.  More complex
+  expressiveness is on the 'todo' list.
+  <ul>
+   <li>label: INJ</li>
+   <li>DQV LUMIN_GO</li>
+  </ul>
+
+</div>

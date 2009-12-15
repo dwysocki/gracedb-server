@@ -5,6 +5,21 @@
 {% block heading %}{{ title }}{% endblock %}
 {% block pageid %}search{% endblock %}
 
+{% block jscript %}
+    <script type="text/javascript">
+    <!--
+        function toggle_visibility(id) {
+           var e = document.getElementById(id);
+           if(e.style.display == 'block')
+              e.style.display = 'none';
+           else
+              e.style.display = 'block';
+        }
+    //-->
+    </script>
+{% endblock %}
+
+
 {% block content %}
 <p>{{ message }}</p>
 
@@ -12,6 +27,7 @@
     <form action="{{ formAction }}"method="POST">
         {{ form.as_table }} <a href="{{queryLink}}">Link</a>
     </form>
+    {% include "gracedb/query_help_frag.html" %}
 {% endif %}
 
 {% if object_list.count %}

@@ -15,6 +15,7 @@
 from nltime import nlTimeExpression as nltime_
 nltime = nltime_.setParseAction(lambda toks: toks["calculatedTime"])
 
+import time, datetime
 import models
 from django.db.models import Q
 
@@ -58,7 +59,8 @@ gpsQ = gpsQ.setParseAction(maybeRange("gpstime"))
 # Analysis Groups
 groupNames = [group.name for group in models.Group.objects.all()]
 group = Or(map(CaselessLiteral, groupNames)).setName("analysis group name")
-groupList = delimitedList(group, delim='|').setName("analysis group list")
+#groupList = delimitedList(group, delim='|').setName("analysis group list")
+groupList = OneOrMore(group).setName("analysis group list")
 groupQ = (Optional(Suppress(Keyword("group:"))) + groupList)
 groupQ = groupQ.setParseAction(lambda toks: ("group", Q(group__name__in=toks.asList())))
 
@@ -85,8 +87,23 @@ hidQ = Optional(Suppress(Keyword("hid:"))) + (hid^hidRange)
 hidQ = hidQ.setParseAction(maybeRange("hid", dbname="id"))
 
 # Created times
+
 nltimeRange = nltime + Suppress("..") + nltime
-createdQ = Optional(Suppress(Keyword("created:"))) + (nltime^nltimeRange)
+
+def doTime(tok):
+    x = datetime.datetime(*(map(int, tok)))
+    return x
+
+dash = Suppress('-')
+colon = Suppress(':')
+date_ = Regex(r'\d{4}') + dash +  Regex(r'\d{2}') + dash +  Regex(r'\d{2}')
+dt = date_ + Optional(Regex(r'\d{2}')+colon+Regex(r'\d{2}')+
+                Optional(colon+Regex(r'\d{2}')))
+dt.setParseAction(doTime)
+
+dtrange = dt + Suppress("..") + dt
+
+createdQ = Optional(Suppress(Keyword("created:"))) + (nltime^nltimeRange^dt^dtrange)
 createdQ = createdQ.setParseAction(maybeRange("created"))
 
 
@@ -107,14 +124,8 @@ labelQ_ = operatorPrecedence(label,
 
 labelQ = labelQ_.copy().setParseAction(lambda toks: ("label", toks[0]))
 
-# Date/Time
-# XXX Not yet included... requires conversion to gps.
-dateTime = Regex(r'\d{4}/\d{2}/\d{2}(-\d{2}:\d{2}(:\d{2})?( ?[A-Z]{3,4})?)?')
-dateQ = (Optional(Suppress(Keyword("date:"))) + dateTime).\
-        setParseAction(doDate)
 
-
-q = (gidQ | hidQ | atypeQ | groupQ | gpsQ | labelQ | createdQ).setName("query term")
+q = (gidQ | hidQ | atypeQ | groupQ | labelQ | createdQ | gpsQ).setName("query term")
 
 def parseQuery(s):
     d={}
