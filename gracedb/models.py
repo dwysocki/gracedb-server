@@ -113,6 +113,13 @@ class Event(models.Model):
             return gps_time - self.gpstime
 
     @classmethod
+    def getTypeLabel(cls, code):
+        for key, label in cls.ANALYSIS_TYPE_CHOICES:
+            if (key == code) or (code == label):
+                return label
+        raise KeyError("Unknown analysis type code: %s" % code)
+
+    @classmethod
     def getByGraceid(cls, id):
         if id[0] not in "GH":
             # Very old, probably useless data.

@@ -23,11 +23,24 @@
 {% block content %}
 <p>{{ message }}</p>
 
+{% for field in form %}
+{% endfor %}
+
 {% if form %}
     <form action="{{ formAction }}"method="POST">
-        {{ form.as_table }} <a href="{{queryLink}}">Link</a>
+    <table>
+        {{ form.as_table }}
+        <tr><td/>
+            <td>
+                <a onClick="toggle_visibility('hints');">Hints on querying</a>
+                {% if queryLink %}
+                    | <a href="{{queryLink}}">Link to current query</a>
+                {% endif %}
+            </td>
+        </tr>
+        <tr><td/><td>{% include "gracedb/query_help_frag.html" %}</td></tr>
+    </table>
     </form>
-    {% include "gracedb/query_help_frag.html" %}
 {% endif %}
 
 {% if object_list.count %}

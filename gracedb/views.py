@@ -450,6 +450,8 @@ def oldsearch(request):
             gpsStart =  form.cleaned_data['gpsStart']
             gpsEnd =  form.cleaned_data['gpsEnd']
 
+            textQuery = []
+
             if not groupname:
                 # don't show test events unless explicitly requested
                 # Scales?  Or should we find test group and do group= ?
@@ -474,30 +476,54 @@ def oldsearch(request):
                     objects = objects.filter(id__lte=int(end[1:]))
                     objects = objects.filter(uid="")
 
+            if start and end:
+                textQuery.append("gid: %s..%s" % (start, end))
+
             if gpsStart != None or gpsEnd != None :
                 if gpsStart == gpsEnd:
                     objects = objects.filter(gpstime=gpsStart)
+                    textQuery.append("gpstime: %s" % gpsStart)
                 else:
                     if gpsStart != None:
                         objects = objects.filter(gpstime__gte=gpsStart)
                     if gpsEnd != None:
                         objects = objects.filter(gpstime__lte=gpsEnd)
+                    if gpsStart and gpsEnd:
+                        textQuery.append("gpstime: %s .. %s" % (gpsStart, gpsEnd))
+                    elif gpsStart:
+                        textQuery.append("gpstime: %s..2000000000" % gpsStart)
+                    else:
+                        textQuery.append("gpstime: 0..%s" % gpsEnd)
 
             if submitter:
                 objects = objects.filter(submitter=submitter)
             if groupname:
                 group = Group.objects.filter(name=groupname)[0]
                 objects = objects.filter(group=group)
+                textQuery.append("group: %s" % group.name)
             if typename:
                 objects = objects.filter(analysisType=typename)
+                textQuery.append("type: %s" % Event.getTypeLabel(typename))
 
             if labels:
                 objects = objects.filter(labels__in=labels)
+                textQuery.append("label: %s" % " ".join([
+                    Label.objects.filter(id=l)[0].name for l in labels]))
 
             # Need this because events with multiple labels can appear multiple times!
             objects = objects.distinct()
 
-            return object_list(request, objects, extra_context={'title':"Query Results"})
+            extra_context = {'title':"Query Results. %s event(s)" % objects.count()}
+            if not submitter and (not (start or end) or (start and end)):
+                # ugh.  there is no submitter option in text query
+                # Also, text query needs both ends of a graceid search
+                # Sooo.... set up a simple search form...
+                textQuery = " ".join(textQuery)
+                extra_context['queryLink'] = reverse(search)+"?query="+escape(textQuery)
+                simple_form = SimpleSearchForm({'query': textQuery})
+                extra_context['form'] = simple_form
+
+            return object_list(request, objects, extra_context=extra_context)
 
 
     return render_to_response('gracedb/query.html',

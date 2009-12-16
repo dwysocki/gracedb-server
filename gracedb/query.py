@@ -122,7 +122,8 @@ labelQ_ = operatorPrecedence(label,
      (andop,   2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__and__, toks[0].asList(), Q())),
     ]).setParseAction(lambda toks: toks[0])
 
-labelQ = labelQ_.copy().setParseAction(lambda toks: ("label", toks[0]))
+labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
+labelQ.setParseAction(lambda toks: ("label", toks[0]))
 
 
 q = (gidQ | hidQ | atypeQ | groupQ | labelQ | createdQ | gpsQ).setName("query term")
