@@ -1,8 +1,18 @@
 
 from django import forms
+from django.utils.safestring import mark_safe
+from django.utils.html import escape
 from models import Event, User, Group, Label
 
 from query import parseQuery, ParseException
+
+htmlEntityStar = "&#9733;"
+htmlEntityRightPointingHand = "&#9758;"
+htmlEntitySkullAndCrossbones = "&#9760;"
+htmlEntityTriangularBuller = "&#8227;"
+htmlEntityRightArrow = "&rarr;"
+
+errorMarker = '<span style="color:red;">'+htmlEntityStar+'</span>'
 
 class GraceQueryField(forms.CharField):
     def clean(self, queryString):
@@ -11,7 +21,8 @@ class GraceQueryField(forms.CharField):
         try:
             return parseQuery(queryString)
         except ParseException, e:
-            raise forms.ValidationError("Error near (*): "+ e.markInputline("(*)"))
+            err = "Error: " + escape(e.pstr[:e.loc]) + errorMarker + escape(e.pstr[e.loc:])
+            raise forms.ValidationError(mark_safe(err))
         except Exception, e:
             # What could this be and how can we handle it better? XXX
             raise forms.ValidationError(str(e))
