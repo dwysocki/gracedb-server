@@ -83,6 +83,8 @@ class Event(models.Model):
     def graceid(self):
         if self.uid:
             return self.uid
+        elif self.group.name == "Test":
+            return "T%04d" % self.id
         elif self.analysisType == "HWINJ":
             return "H%04d" % self.id
         return "G%04d" % self.id
@@ -121,13 +123,15 @@ class Event(models.Model):
 
     @classmethod
     def getByGraceid(cls, id):
-        if id[0] not in "GH":
+        if id[0] not in "GHT":
             # Very old, probably useless data.
             return cls.objects.get(uid=id)
         e = cls.objects.get(id=int(id[1:]))
-        if (id[0] == "G" and e.analysisType != "HWINJ") or (id[0]=="H" and e.analysisType =="HWINJ"):
-            return e
-        raise cls.DoesNotExist()
+        if (id[0] == "T") and (e.group.name != "Test"):
+            raise cls.DoesNotExist()
+        if (id[0] == "H") and (e.analysisType == "HWINJ"):
+            raise cls.DoesNotExist()
+        return e
 
 class EventLog(models.Model):
     class Meta:

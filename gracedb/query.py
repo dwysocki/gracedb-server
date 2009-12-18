@@ -86,6 +86,12 @@ hidRange = hid + Suppress("..") + hid
 hidQ = Optional(Suppress(Keyword("hid:"))) + (hid^hidRange)
 hidQ = hidQ.setParseAction(maybeRange("hid", dbname="id"))
 
+# test event id
+tid = Suppress("T")+Word("0123456789")
+tidRange = tid + Suppress("..") + tid
+tidQ = Optional(Suppress(Keyword("tid:"))) + (tid^tidRange)
+tidQ = tidQ.setParseAction(maybeRange("tid", dbname="id"))
+
 # Created times
 
 nltimeRange = nltime + Suppress("..") + nltime
@@ -126,18 +132,20 @@ labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
 labelQ.setParseAction(lambda toks: ("label", toks[0]))
 
 
-q = (gidQ | hidQ | atypeQ | groupQ | labelQ | createdQ | gpsQ).setName("query term")
+q = (gidQ | hidQ | tidQ | atypeQ | groupQ | labelQ | createdQ | gpsQ).setName("query term")
 
 def parseQuery(s):
     d={}
     for (tag, qval) in (stringStart + OneOrMore(q) + stringEnd).parseString(s).asList():
         d[tag] = d.get(tag,Q()) | qval
-    if s.find("Test") < 0:
-        # Test group is not mentioned in the query, so we exclude it.
+    if s.find("Test") < 0 and "tid" not in d:
+        # If Test group is not mentioned in the query, we exclude it.
         if "group" in d:
             d["group"] &= ~Q(group__name="Test")
         else:
             d["group"] = ~Q(group__name="Test")
+    if "tid" in d:
+        d["tid"] = d["tid"] & Q(group__name="Test")
     if "hid" in d:
         d["hid"] = d["hid"] & Q(analysisType="HWINJ")
     if "id" in d:
