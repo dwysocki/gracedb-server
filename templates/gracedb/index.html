@@ -7,20 +7,32 @@
 {% block content %}
 
 <div class="text">
+<p>
 The gravitational-wave candidate event database (GraCEDb) is a
 prototype system to organize candidate events from gravitational-wave
 searches and to provide an environment to record information about
-follow-ups. A simple client tool is provided in
+follow-ups.
+</p>
+<p>
+A simple 
+<a href="http://www.lsc-group.phys.uwm.edu/cgit/lalsuite/plain/glue/bin/gracedb">client tool</a>
+is provided in
 <a href="https://www.lsc-group.phys.uwm.edu/daswg/projects/glue.html">Glue</a>
-to submit a candidate event to the database.
+which can submit a candidate event and query the event database.  The
+client is a standalone Python script and will run using only standard
+Python libraries.
+</p>
+<p>
 You can read about using the service at the
 <a href="https://www.lsc-group.phys.uwm.edu/daswg/wiki/HowtoGraceDb">Howto page</a>.  More details are available at the
 <a href="https://www.lsc-group.phys.uwm.edu/daswg/projects/gracedb.html">Project page</a>.
+</p>
 </div>
 
 <div class="text">
 To receive email alerts when GraCEDb events are created, sign up
-on the <a target="_blank" href="http://listserv.ligo.org/cgi-bin/mailman/listinfo/gracedb">gracedb mailing list</a>.
+on the <a target="_blank" href="http://listserv.ligo.org/cgi-bin/mailman/listinfo/gracedb">gracedb mailing list</a> or set up your own alert under the
+<a href="{% url userprofile-home %}">Options</a> menu item.
 </div>
 
 {% endblock %}
