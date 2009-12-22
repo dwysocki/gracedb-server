@@ -22,15 +22,25 @@ tr.even td {background-color:#fff;}
     padding: 5px;
 }
 
+/*
 #header {
   height: 80px;
-  /* width: 777px; */
+  / * width: 777px; * /
   width: 95%;
   padding: 10px;
-  /* background: blue URL('../images/header_inner.png') no-repeat; */
+  / * background: blue URL('../images/header_inner.png') no-repeat; * /
   border-left: 1px solid #aaa;
   border-right: 1px solid #aaa;
   margin: 0 auto 0 auto;
+}
+*/
+
+#header h1,h2,h3 {
+    padding: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
 }
 
 a.link, a, a.active {
@@ -47,7 +57,7 @@ a.link, a, a.active {
   margin: 0 auto 0 auto;
   border-left: 1px solid #aaa;
   border-right: 1px solid #aaa;
-  padding: 0px 10px 0px 10px;
+  padding: 10px 10px 0px 10px;
 }
 
 #content {
