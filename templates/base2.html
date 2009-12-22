@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <link rel="stylesheet" href="/gracedb-static/css/style.css" />
+    <title>GraceDb | {% block title %}{% endblock %}</title>
+<!-- START TESTING -->
+<script type="text/javascript">
+function changeTime(obj, label) {
+    var timetype= obj[obj.selectedIndex].value;
+    if (timetype=="") { return; }
+    var times = document.getElementsByName("time-"+label);
+    for (i=0; i<times.length; i++) {
+        newtime =  times[i].getAttribute(timetype);
+        times[i].innerHTML = newtime;
+    }
+}
+</script>
+<!-- END TESTING -->
+{% block jscript %}{% endblock %}
+</head>
+
+<body id="{% block pageid %}{% endblock %}"{% block bodyattrs %}{% endblock %}>
+
+<div id="content">
+
+<center>
+<h1> GraceDB &mdash; Gravitational-wave Candidate Event Database</h1>
+</center>
+
+{% block nav %}
+<ul id="nav">
+    <li id="nav-home"><a href="{% url home %}">Home</a></li>
+    <li id="nav-search"><a href="{% url search %}">Search</a></li>
+    <li id="nav-create"><a href="{% url create %}">Create</a></li>
+    <li id="nav-feeds"><a href="{% url feeds %}">RSS</a></li>
+    <li id="nav-userprofile"><a href="{% url userprofile-home %}">Options</a></li>
+    {% if ligouser %}<li id="nav-user">Authenticated as: {{ ligouser.name }}</li>{% endif %}
+</ul>
+{% endblock %}
+
+        <p>&nbsp;</p> <!-- bad way to create vertical space -->
+
+{% load flash %}
+{% flash %}
+    <div id="status_block" class="{{ params.class }}">{{ msg }}</div>
+{% endflash %}
+
+
+        <h2>{% block heading %}Title{% endblock %}</h2>
+
+
+        {% block content %}{% endblock %}
+
+    </div>
+
+<div id="header">
+<!-- Header -->
+ <table align="center" width="70%%">
+  <tr>
+   <td align="center">
+    <img width="52" height="36" src="/gracedb-static/images/ligo-blue.gif">
+    <!-- 673px 487px -->
+   </td>
+
+   <td align="center">
+    <img width="164" height="30" src="/gracedb-static/images/Virgo_logo50.png">
+    <!-- 4,829px 884px -->
+   </td>
+
+   <td align="center">
+    <img width="107" height="37" src="/gracedb-static/images/anim2.gif">
+    <!-- 287px 101px -->
+   </td>
+
+   <td align="center">
+    <img width="87" height="37" src="/gracedb-static/images/LSC_logo50.png">
+    <!-- 6,261px 2,652px -->
+   </td>
+  </tr>
+ </table>
+<!-- End Header -->
+</div>
+
+</body>
+</html>
