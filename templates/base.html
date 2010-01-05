@@ -22,43 +22,11 @@ function changeTime(obj, label) {
 
 <body id="{% block pageid %}{% endblock %}"{% block bodyattrs %}{% endblock %}>
 
-<div id="header">
-<!-- Header -->
- <table width="100%%">
-  <tr>
-   <td align="left" valign="bottom">
-       <h1>GraceDB</h1>
-   </td>
-
-   <td align="center">
-    <img width="52" height="37" src="/gracedb-static/images/ligo-blue.gif">
-    <!-- 673px 487px -->
-   </td>
-
-   <td align="center">
-    <img width="164" height="30" src="/gracedb-static/images/Virgo_logo50.png">
-    <!-- 4,829px 884px -->
-   </td>
-
-   <td align="center">
-    <img width="107" height="37" src="/gracedb-static/images/anim2.gif">
-    <!-- 287px 101px -->
-   </td>
-
-   <td align="center">
-    <img width="87" height="37" src="/gracedb-static/images/LSC_logo50.png">
-    <!-- 6,261px 2,652px -->
-   </td>
-  </tr>
-  <tr>
-   <td colspan="5" align="left">
-    <h2>Gravitational-Wave Candidate Event Database</h2>
-  </tr>
- </table>
-<!-- End Header -->
-</div>
-
 <div id="content">
+
+<center>
+<h1> GraceDB &mdash; Gravitational-wave Candidate Event Database</h1>
+</center>
 
 {% block nav %}
 <ul id="nav">
@@ -86,19 +54,33 @@ function changeTime(obj, label) {
 
     </div>
 
-    <div id="footer">
-        <table><tr><td><img
-             width="50" height="36"
-             src="/gracedb-static/images/ligo-blue.gif"
-             alt="LIGO" /></td>
-        <td width="50%">&nbsp;</td>
-        <td>
-           <!--<p>GraceDB is a product of the LIGO Scientific Collaboration</p>-->
-           <!-- <p>Copyright &#169; 2008 LIGO</p> -->
-        </td>
-        </tr></table>
-    </div>
+<div id="header">
+<!-- Header. Yea, this is actually a footer.  It *was* as header once, though. -->
+ <table align="center" width="90%%">
+  <tr>
+   <td align="center">
+    <img width="52" height="36" src="/gracedb-static/images/ligo-blue.gif">
+    <!-- 673px 487px -->
+   </td>
 
+   <td align="center">
+    <img width="164" height="30" src="/gracedb-static/images/Virgo_logo50.png">
+    <!-- 4,829px 884px -->
+   </td>
+
+   <td align="center">
+    <img width="107" height="37" src="/gracedb-static/images/anim2.gif">
+    <!-- 287px 101px -->
+   </td>
+
+   <td align="center">
+    <img width="87" height="37" src="/gracedb-static/images/LSC_logo50.png">
+    <!-- 6,261px 2,652px -->
+   </td>
+  </tr>
+ </table>
+<!-- End Header -->
+</div>
 
 </body>
 </html>
