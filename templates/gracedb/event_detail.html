@@ -7,6 +7,8 @@
 {% block content %}
 <p>{{ message }}</p>
 
+<table>
+<tr><td>
 
 <table class="event">
     <tr>
@@ -69,4 +71,13 @@
   </table>
 {% endif %}
 
+</td>
+<td rowspan="2" valign="top">
+
+{% if eventdesc %}
+<h3>Event Log File</h3>
+    {{ eventdesc }}
+{% endif %}
+
+</td></tr></table>
 {% endblock %}

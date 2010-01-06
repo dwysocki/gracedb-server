@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse, get_script_prefix
 from django.shortcuts import render_to_response
 from django.contrib.sites.models import Site
 from django.utils.html import strip_tags, escape
+from django.utils.safestring import mark_safe
 
 from django.views.generic.list_detail import object_detail, object_list
 
@@ -359,6 +360,7 @@ def view(request, graceid):
     except Event.DoesNotExist:
         raise Http404
     context['object'] = a
+    context['eventdesc'] = get_logfile(graceid)
     return render_to_response(
         'gracedb/event_detail.html',
         context,
@@ -557,6 +559,18 @@ def timeline(request):
 #-----------------------------------------------------------------
 # Things that aren't views and should really be elsewhere.
 #-----------------------------------------------------------------
+
+def get_logfile(graceid):
+    dirPrefix = "/mnt/gracedb-web/data"
+    logfilename = os.path.join(dirPrefix, graceid, "private", "event.log")
+    contents = ""
+    try:
+        lines = open(logfilename, "r").readlines()
+        contents = "<br/>".join([ escape(line) for line in lines])
+        contents = mark_safe(contents)
+    except Exception, e:
+        contents = None
+    return contents
 
 def createWikiPage(graceid):
     twikiroot = "/mnt/htdocs/uwmlsc/secure/twiki/data/Sandbox/"
