@@ -5,7 +5,7 @@ from django.template import RequestContext
 from django.core.urlresolvers import reverse, get_script_prefix
 from django.shortcuts import render_to_response
 from django.contrib.sites.models import Site
-from django.utils.html import strip_tags, escape
+from django.utils.html import strip_tags, escape, urlize
 from django.utils.safestring import mark_safe
 
 from django.views.generic.list_detail import object_detail, object_list
@@ -567,7 +567,7 @@ def get_logfile(graceid):
     try:
         lines = open(logfilename, "r").readlines()
         contents = "<br/>".join([ escape(line) for line in lines])
-        contents = mark_safe(contents)
+        contents = mark_safe(urlize(contents))
     except Exception, e:
         contents = None
     return contents
