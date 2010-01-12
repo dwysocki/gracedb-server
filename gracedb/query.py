@@ -132,7 +132,7 @@ labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
 labelQ.setParseAction(lambda toks: ("label", toks[0]))
 
 
-q = (gidQ | hidQ | tidQ | atypeQ | groupQ | labelQ | createdQ | gpsQ).setName("query term")
+q = (gidQ | hidQ | tidQ | atypeQ | groupQ | labelQ | gpsQ | createdQ).setName("query term")
 
 def parseQuery(s):
     d={}
