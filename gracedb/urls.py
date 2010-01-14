@@ -6,7 +6,7 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns('gracedb.gracedb.views',
     url (r'^$', 'index', name="home"),
     url (r'^create/$', 'create', name="create"),
-    url (r'^search/$', 'search', name="search"),
+    url (r'^search/(?P<format>(json|flex))?$', 'search', name="search"),
     url (r'^view/(?P<graceid>[\w\d]+)', 'view', name="view"),
 
 #   (r'^view/(?P<uid>[\w\d]+)', 'view'),

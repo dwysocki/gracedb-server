@@ -17,6 +17,8 @@ from translator import handle_uploaded_data
 
 import os
 
+import simplejson
+
 def index(request):
 #   assert request.ligouser
     return render_to_response(
@@ -398,12 +400,45 @@ def cli_search(request):
     response.write(msg)
     return response
 
-def search(request):
+def search(request, format=""):
     assert request.ligouser
     # XXX DO NOT HARDCODE THIS
     # Also, user should be notified if their result hits this limit.
     limit = 1000
     form2 = None
+
+    if format == "frex":
+        response = HttpResponse(mimetype='application/json')
+        rows = [
+                { 'id': 1, 'cell': 
+                    [ "G0966", "", "CBC", "MBTAOnline", 9382382, "Data Wiki", "today!"]
+                    },
+                { 'id': 2, 'cell':
+                    [ "G0967", "", "CBC", "MBTAOnline", 9382382, "Data Wiki", "today!"]
+                    },
+                { 'id': 3, 'cell':
+                    [ "G0968", "", "CBC", "MBTAOnline", 9382382, "Data Wiki", "today!"]
+                    },
+            ]
+        d = {
+                'page': 1, #self.page,
+                'total': 1, #p.count,
+                'rows': rows
+            }
+        msg = simplejson.dumps(d)
+        response['Content-length'] = len(msg)
+        response.write(msg)
+
+        query = request.POST['query']
+
+        f = open('/tmp/foo', 'a')
+        f.write('hello\n')
+        f.write(str(request.POST))
+        f.write("query is:  %s\n" % request.POST['query'])
+        f.write('\n\n')
+        f.close()
+        return response
+
     if request.method == "GET" and "query" not in request.GET:
         form = SimpleSearchForm()
         form2 = EventSearchForm()
@@ -418,18 +453,28 @@ def search(request):
             rawquery = request.POST['query']
         if form.is_valid():
             query = form.cleaned_data['query']
-            objects = Event.objects.filter(query).distinct()[:limit]
-            if objects.count() >= limit:
-                request.session['flash_msg'] = \
-                    "Number of events in results exceeds maximum (%s) allowed." % limit
-            context = {
-                'title':"Query Results. %s event(s)" % objects.count(),
-                'form': form,
-                'formAction': reverse(search),
-                'maxCount': limit,
-                'queryLink': reverse(search)+"?query="+escape(rawquery),
-            }
-            return object_list(request, objects, extra_context=context)
+
+            objects = Event.objects.filter(query).distinct()
+
+            if format == "json":
+                return HttpResponse("Not Implemented")
+            if format == "flex":
+                # Flexigrid request.
+                return flexigridResponse(request, objects)
+            else:
+                objects = objects[:limit]
+                if objects.count() >= limit:
+                    request.session['flash_msg'] = \
+                        "Number of events in results exceeds maximum (%s) allowed." % limit
+                context = {
+                    'title':"Query Results. %s event(s)" % objects.count(),
+                    'form': form,
+                    'formAction': reverse(search),
+                    'maxCount': limit,
+                    'queryLink': reverse(search)+"?query="+escape(rawquery),
+                    'rawquery' : rawquery,
+                }
+                return object_list(request, objects, extra_context=context)
     return render_to_response('gracedb/query.html',
             { 'form' : form,
               'form2' : form2,
@@ -559,6 +604,57 @@ def timeline(request):
 #-----------------------------------------------------------------
 # Things that aren't views and should really be elsewhere.
 #-----------------------------------------------------------------
+def flexigridResponse(request, objects):
+    response = HttpResponse(mimetype='application/json')
+
+    sortname = request.POST.get('sortname', None)
+    sortorder = request.POST.get('sortorder', 'desc')
+    page = int(request.POST.get('page', 1))
+    rp = int(request.POST.get('rp', 10))
+
+    if sortname:
+        if sortorder == "desc":
+            sortname = "-" + sortname
+        objects = objects.order_by(sortname)
+
+    start = (page-1) * rp
+    rows = []
+    for object in objects[start:start+rp]:
+        rows.append(
+            { 'id' : object.id,
+              'cell': [ '<a href="%s">%s</a>' %
+                            (reverse(view, args=[object.graceid()]), object.graceid()),
+                        " ".join(['<span title="%s %s" style="color: %s">%s</span>' %
+                                (label.creator.name, label.created, label.label.defaultColor, label.label.name)
+                                for label in object.labelling_set.all()
+                            ]),
+                        object.group.name,
+                        object.get_analysisType_display(),
+                        object.gpstime,
+                        #'<a href="#">Hello Links</a>',
+
+                        '<a href="%s">Data</a> <a href="%s">Wiki</a>' %
+                            (object.weburl(), object.wikiurl()),
+                        str(object.created),
+                      ]
+            }
+        )
+    d = {
+            'page': page,
+            'total': objects.count(),
+            'rows': rows,
+        }
+    try:
+        msg = simplejson.dumps(d)
+    except Exception, e:
+        # XXX Not right not right not right.
+        msg = "{}"
+    response['Content-length'] = len(msg)
+    response.write(msg)
+
+    query = request.POST['query']
+
+    return response
 
 def get_logfile(graceid):
     dirPrefix = "/mnt/gracedb-web/data"

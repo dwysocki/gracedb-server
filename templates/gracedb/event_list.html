@@ -6,6 +6,10 @@
 {% block pageid %}search{% endblock %}
 
 {% block jscript %}
+    <link rel="stylesheet" href="/gracedb-static/css/flexigrid/flexigrid.css" />
+
+    <script type="text/javascript" src="/gracedb-static/js/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="/gracedb-static/js/flexigrid.js"></script>
     <script type="text/javascript">
     <!--
         function toggle_visibility(id) {
@@ -16,6 +20,48 @@
               e.style.display = 'block';
         }
     //-->
+    </script>
+    <script type="text/javascript">
+    <!--
+        function test() { alert("test"); }
+        $(document).ready(function(){
+            $("#flex1").flexigrid
+            (
+            {
+            url: 'https://moe.phys.uwm.edu/gracedb/events/search/flex',
+            dataType: 'json',
+            query: '{{ rawquery }}',
+            colModel : [
+               {display: 'UID', name : 'id', width : 100, sortable : true, align: 'left'},
+               {display: 'Labels', name : 'labels', width : 100, sortable : false, align: 'left'},
+               {display: 'Group', name : 'group', width : 100, sortable : false, align: 'left'},
+               {display: 'Type', name : 'type', width : 130, sortable : true, align: 'left', hide: false},
+               {display: 'Event Time', name : 'gpstime', width : 100, sortable : true, align: 'right'},
+               {display: 'Links', name : 'links', width : 100, sortable : false, align: 'center'},
+               {display: 'Submitted', name : 'created', width : 100, sortable : true, align: 'right'},
+                ],
+            buttons : [
+                //{name: 'Add', bclass: 'add', onpress : test},
+                //{name: 'Delete', bclass: 'delete', onpress : test},
+                //{separator: true}
+                ],
+//           searchitems : [
+//               {display: 'UID', name : 'id'},
+//               //{display: 'Name', name : 'name', isdefault: true}
+//               ],
+            sortname: "id",
+            sortorder: "desc",
+            usepager: true,
+            title: 'Results',
+            useRp: true,
+            rp: 25,
+            showTableToggleBtn: true,
+            width: 'auto',
+            height: 'auto'
+            }
+            );   
+        });
+    -->
     </script>
 {% endblock %}
 
@@ -43,24 +89,26 @@
     </form>
 {% endif %}
 
+{% if false %}
 {% if object_list.count %}
 <table class="event">
+    <thead>
     <tr>
-            <th>UID</th>
-            <th>Labels</th>
-            <th>Group</th>
-            <th>Type</th>
-            <th>
-                {{ "gps"|timeselect:"gps" }}
+            <th width="100">UID</th>
+            <th width="100">Labels</th>
+            <th width="100">Group</th>
+            <th width="100">Type</th>
+            <th width="100">
                 Event Time
             </th>
-            <th colspan="2">Links</th>
-            <th>
-                {{"created"|timeselect:"utc" }}
+            <th width="100">Links</th>
+            <th width="100">
                 Submitted
             </th>
     </tr>
+    </thead>
 
+    <tbody>
 {% for obj in object_list %}
     <tr class={% cycle 'odd' 'even' %}>
         <td><a href="{% url view obj.graceid %}">{{ obj.graceid }}</a></td>
@@ -72,18 +120,23 @@
         <td>{{ obj.group }} </td>
         <td>{{ obj.get_analysisType_display }} </td>
         <td>{% if obj.gpstime%}
-                <!-- <span title="{{ obj.gpstime|gpsdate }}">{{ obj.gpstime }}</span> -->
-                {{ obj.gpstime|multiTime:"gps" }}
+                {{ obj.gpstime }}
             {% endif %}
         </td>
-        <td><a href="{{ obj.weburl }}">Data</a></td>
-        <td><a href="{{ obj.wikiurl }}">Wiki</a></td>
-        <td>{{ obj.created|multiTime:"created" }}</td>
+        <td><a href="{{ obj.weburl }}">Data</a>
+            <a href="{{ obj.wikiurl }}">Wiki</a></td>
+        <td>{{ obj.created }}</td>
     </tr>
 {% endfor %}
+    </tbody>
 </table>
 {% else %}
     <h3>No Events.</h3>
 {% endif %}
+{% endif %}
+
+
+<table id="flex1"></table>
+
 
 {% endblock %}
