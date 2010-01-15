@@ -462,12 +462,12 @@ def search(request, format=""):
                 # Flexigrid request.
                 return flexigridResponse(request, objects)
             else:
-                objects = objects[:limit]
-                if objects.count() >= limit:
-                    request.session['flash_msg'] = \
-                        "Number of events in results exceeds maximum (%s) allowed." % limit
+                #objects = objects[:limit]
+                #if objects.count() >= limit:
+                #    request.session['flash_msg'] = \
+                #        "Number of events in results exceeds maximum (%s) allowed." % limit
                 context = {
-                    'title':"Query Results. %s event(s)" % objects.count(),
+                    'title':"Query Results", #. %s event(s)" % objects.count(),
                     'form': form,
                     'formAction': reverse(search),
                     'maxCount': limit,
