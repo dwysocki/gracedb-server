@@ -407,7 +407,7 @@ def search(request, format=""):
     limit = 1000
     form2 = None
 
-    if format == "frex":
+    if format == "flex":
         response = HttpResponse(mimetype='application/json')
         rows = [
                 { 'id': 1, 'cell': 
@@ -422,19 +422,21 @@ def search(request, format=""):
             ]
         d = {
                 'page': 1, #self.page,
-                'total': 1, #p.count,
+                'total': 1,
+                'records' : 3,
                 'rows': rows
             }
         msg = simplejson.dumps(d)
         response['Content-length'] = len(msg)
         response.write(msg)
 
-        query = request.POST['query']
+        #query = request.POST['query']
+        query = "blah"
 
         f = open('/tmp/foo', 'a')
         f.write('hello\n')
         f.write(str(request.POST))
-        f.write("query is:  %s\n" % request.POST['query'])
+        #f.write("query is:  %s\n" % request.POST['query'])
         f.write('\n\n')
         f.close()
         return response
@@ -607,10 +609,15 @@ def timeline(request):
 def flexigridResponse(request, objects):
     response = HttpResponse(mimetype='application/json')
 
-    sortname = request.POST.get('sortname', None)
-    sortorder = request.POST.get('sortorder', 'desc')
-    page = int(request.POST.get('page', 1))
-    rp = int(request.POST.get('rp', 10))
+    #sortname = request.POST.get('sortname', None)
+    #sortorder = request.POST.get('sortorder', 'desc')
+    #page = int(request.POST.get('page', 1))
+    #rp = int(request.POST.get('rp', 10))
+
+    sortname = request.POST.get('sidx', None)    # get index row - i.e. user click to sort
+    sortorder = request.POST.get('sord', 'desc') # get the direction
+    page = int(request.POST.get('page', 1))      # get the requested page
+    rp = int(request.POST.get('rows', 10))       # get how many rows we want to have into the grid
 
     if sortname:
         if sortorder == "desc":
@@ -619,6 +626,11 @@ def flexigridResponse(request, objects):
 
     start = (page-1) * rp
     rows = []
+    total = objects.count()
+    total_pages = total / rp
+    if page > total_pages:
+        page = total_pages
+
     for object in objects[start:start+rp]:
         rows.append(
             { 'id' : object.id,
@@ -631,8 +643,6 @@ def flexigridResponse(request, objects):
                         object.group.name,
                         object.get_analysisType_display(),
                         object.gpstime,
-                        #'<a href="#">Hello Links</a>',
-
                         '<a href="%s">Data</a> <a href="%s">Wiki</a>' %
                             (object.weburl(), object.wikiurl()),
                         str(object.created),
@@ -641,7 +651,8 @@ def flexigridResponse(request, objects):
         )
     d = {
             'page': page,
-            'total': objects.count(),
+            'total': total_pages,
+            'records': total,
             'rows': rows,
         }
     try:

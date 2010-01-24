@@ -6,10 +6,10 @@
 {% block pageid %}search{% endblock %}
 
 {% block jscript %}
-    <link rel="stylesheet" href="/gracedb-static/css/flexigrid/flexigrid.css" />
+    <!-- <link rel="stylesheet" href="jquery.jqGrid.min.js" /> -->
 
     <script type="text/javascript" src="/gracedb-static/js/jquery-1.3.2.min.js"></script>
-    <script type="text/javascript" src="/gracedb-static/js/flexigrid.js"></script>
+    <script type="text/javascript" src="/gracedb-static/js/jquery.jqGrid.min.js"></script>
     <script type="text/javascript">
     <!--
         function toggle_visibility(id) {
@@ -25,7 +25,7 @@
     <!--
         function test() { alert("test"); }
         $(document).ready(function(){
-            $("#flex1").flexigrid
+            $("#flex1").jqGrid
             (
             {
             url: 'https://moe.phys.uwm.edu/gracedb/events/search/flex',
@@ -40,15 +40,6 @@
                {display: 'Links', name : 'links', width : 100, sortable : false, align: 'center'},
                {display: 'Submitted', name : 'created', width : 100, sortable : true, align: 'right'},
                 ],
-            buttons : [
-                //{name: 'Add', bclass: 'add', onpress : test},
-                //{name: 'Delete', bclass: 'delete', onpress : test},
-                //{separator: true}
-                ],
-//           searchitems : [
-//               {display: 'UID', name : 'id'},
-//               //{display: 'Name', name : 'name', isdefault: true}
-//               ],
             sortname: "id",
             sortorder: "desc",
             usepager: true,
@@ -61,6 +52,7 @@
             }
             );   
         });
+        jQuery("#flex1").jqGrid('navGrid','#pager1',{edit:false,add:false,del:false});
     -->
     </script>
 {% endblock %}
@@ -137,6 +129,7 @@
 
 
 <table id="flex1"></table>
+<div id="pager1"></div>
 
 
 {% endblock %}
