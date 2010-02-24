@@ -407,7 +407,8 @@ def search(request, format=""):
     limit = 1000
     form2 = None
 
-    if format == "flex":
+    # This block is crap and for debugging.  Remove it!
+    if False and format == "flex":
         response = HttpResponse(mimetype='application/json')
         rows = [
                 { 'id': 1, 'cell': 
@@ -431,14 +432,9 @@ def search(request, format=""):
         response.write(msg)
 
         #query = request.POST['query']
+        # ???!!!
         query = "blah"
 
-        f = open('/tmp/foo', 'a')
-        f.write('hello\n')
-        f.write(str(request.POST))
-        #f.write("query is:  %s\n" % request.POST['query'])
-        f.write('\n\n')
-        f.close()
         return response
 
     if request.method == "GET" and "query" not in request.GET:
@@ -460,9 +456,11 @@ def search(request, format=""):
 
             if format == "json":
                 return HttpResponse("Not Implemented")
-            if format == "flex":
+            elif format == "flex":
                 # Flexigrid request.
                 return flexigridResponse(request, objects)
+            elif format == "jqgrid":
+                return jqgridResponse(request, objects)
             else:
                 #objects = objects[:limit]
                 #if objects.count() >= limit:
@@ -606,6 +604,13 @@ def timeline(request):
 #-----------------------------------------------------------------
 # Things that aren't views and should really be elsewhere.
 #-----------------------------------------------------------------
+
+from templatetags.timeutil import timeSelections
+
+def jqgridResponse(request, objects):
+    # "GET /data?_search=false&nd=1266350238476&rows=10&page=1&sidx=invid&sord=asc HTTP/1.1"
+    pass
+
 def flexigridResponse(request, objects):
     response = HttpResponse(mimetype='application/json')
 
@@ -614,10 +619,10 @@ def flexigridResponse(request, objects):
     #page = int(request.POST.get('page', 1))
     #rp = int(request.POST.get('rp', 10))
 
-    sortname = request.POST.get('sidx', None)    # get index row - i.e. user click to sort
-    sortorder = request.POST.get('sord', 'desc') # get the direction
-    page = int(request.POST.get('page', 1))      # get the requested page
-    rp = int(request.POST.get('rows', 10))       # get how many rows we want to have into the grid
+    sortname = request.GET.get('sidx', None)    # get index row - i.e. user click to sort
+    sortorder = request.GET.get('sord', 'desc') # get the direction
+    page = int(request.GET.get('page', 1))      # get the requested page
+    rp = int(request.GET.get('rows', 10))       # get how many rows we want to have into the grid
 
     if sortname:
         if sortorder == "desc":
@@ -627,11 +632,18 @@ def flexigridResponse(request, objects):
     start = (page-1) * rp
     rows = []
     total = objects.count()
-    total_pages = total / rp
+
+    if total:
+        total_pages = (total / rp) + 1
+    else:
+        total_pages = 0
+
     if page > total_pages:
         page = total_pages
 
     for object in objects[start:start+rp]:
+        event_times = timeSelections(object.gpstime)
+        created_times = timeSelections(object.created)
         rows.append(
             { 'id' : object.id,
               'cell': [ '<a href="%s">%s</a>' %
@@ -642,10 +654,16 @@ def flexigridResponse(request, objects):
                             ]),
                         object.group.name,
                         object.get_analysisType_display(),
-                        object.gpstime,
+
+                        event_times.get('gps',""),
+                        #event_times['utc'],
+
                         '<a href="%s">Data</a> <a href="%s">Wiki</a>' %
                             (object.weburl(), object.wikiurl()),
-                        str(object.created),
+
+                        #created_times['gps'],
+                        created_times.get('utc',""),
+
                       ]
             }
         )
@@ -663,7 +681,7 @@ def flexigridResponse(request, objects):
     response['Content-length'] = len(msg)
     response.write(msg)
 
-    query = request.POST['query']
+    #query = request.POST['query']
 
     return response
 

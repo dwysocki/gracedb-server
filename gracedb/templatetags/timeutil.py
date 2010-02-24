@@ -115,3 +115,34 @@ def utc(dt, format=FORMAT):
 def gpsdate(gpstime, format=FORMAT):
     return dateformat.format(gpsToUtc(gpstime), format)
 
+
+def timeSelections(t):
+    rv = {}
+    if t is None:
+        return rv
+    format = FORMAT
+    if isinstance(t, datetime.datetime):
+        dt = t
+        if not dt.tzinfo:
+            dt = SERVER_TZ.localize(dt)
+        #dt = dt.astimezone(pytz.utc)
+        posix_time = time.mktime(dt.timetuple())
+        gps_time = int(posixToGpsTime(posix_time))
+    elif isinstance(t, int) or isinstance(t, long):
+        gps_time = t
+        dt = gpsToUtc(t)
+        posix_time = time.mktime(dt.timetuple())
+    else:
+        raise ValueError("time must be type int, long or datetime, not '%s'" % type(t))
+
+    # JavaScript -- parsable by Date() object constructor
+    # "Jan 2, 1985 00:00:00 UTC"
+    js_parsable_time = dateformat.format(dt, "F j, Y h:i:s")+" UTC"
+
+    rv['gps'] = gps_time
+    rv['lho'] = dateformat.format(dt.astimezone(LHO_TZ), format)
+    rv['llo'] = dateformat.format(dt.astimezone(LLO_TZ), format)
+    rv['virgo'] = dateformat.format(dt.astimezone(VIRGO_TZ), format)
+    rv['utc'] = dateformat.format(dt.astimezone(pytz.utc), format)
+
+    return rv
