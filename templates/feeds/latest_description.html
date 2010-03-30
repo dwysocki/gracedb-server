@@ -1,7 +1,21 @@
 {% load timeutil %}
+
+<table>
+ <tr><td>Created:</td>
+     <td>{{ obj.created|utc }}</td>
+     <td>{{ obj.created|gpstime }}</td>
+ </tr>
+{% if obj.gpstime %}
+ <tr><td>Event Time:</td>
+     <td>{{ obj.gpstime|gpsdate }}</td>
+     <td>{{ obj.gpstime }}</td>
+ </tr>
+ <tr><td>Reporting Latency:</td>
+     <td colspan="w">{{ obj.reportingLatency }} seconds</td></tr>
+{% endif %}
+</table>
 <ul>
     <li><a href="{{ obj.weburl }}">Data</a></li>
     <li><a href="{{ obj.wikiurl }}">TWiki</a></li>
 </ul>
 Sumbmitter: {{ obj.submitter.name }}<br/>
-Created: {{ obj.created|utc }}

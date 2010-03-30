@@ -115,6 +115,13 @@ def utc(dt, format=FORMAT):
 def gpsdate(gpstime, format=FORMAT):
     return dateformat.format(gpsToUtc(gpstime), format)
 
+@register.filter
+def gpstime(dt):
+    if not dt.tzinfo:
+        dt = SERVER_TZ.localize(dt)
+    posix_time = time.mktime(dt.timetuple())
+    gps_time = int(posixToGpsTime(posix_time))
+    return gps_time
 
 def timeSelections(t):
     rv = {}

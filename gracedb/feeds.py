@@ -53,6 +53,12 @@ class EventFeed(Feed):
     def item_link(self, obj):
         return reverse(view, args=[obj.graceid()])
 
+    def item_author_name(self, obj):
+        return obj.submitter.name
+
+    def item_pubdate(self, obj):
+        return obj.created
+
     def description(self, obj):
         # XXX Descriptive text for the feed itself.
         # I don't know what to put here
