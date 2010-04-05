@@ -36,8 +36,9 @@ def create(request):
             # str(x) is *often* the same as json(x), but not always.
             # It's not, because we don't reliably have json on the client side.
             response = HttpResponse(mimetype='application/json')
-            d['output'] = "%s" % d['graceid']
-            d['graceid'] = "%s" % d['graceid']
+            if 'graceid' in d:
+                d['output'] = "%s" % d['graceid']
+                d['graceid'] = "%s" % d['graceid']
             msg = str(d)
         else: # Old client
             response = HttpResponse(mimetype='text/plain')
@@ -94,8 +95,8 @@ def _create(request):
                 #rv['error'] = msg
                 rv['error'] = ""
                 for key in form.errors:
-                    #rv['error'] += "%s: %s\n" % (key, "/".join(form.errors[key]))
-                    rv['error'] += "%s: %s\n" % (key, form.errors[key])
+                    # as_text() not str() otherwise we get HTML.
+                    rv['error'] += "%s: %s\n" % (key, form.errors[key].as_text())
     return rv
 
 def _createEventFromForm(request, form):
