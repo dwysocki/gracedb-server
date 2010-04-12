@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 from django.core.management import execute_manager
+
+# THIS IS TERRIBLE, but some idiot named the project AND application gracedb.
+# Things looking for gracedb.settings fail because they find the app not the proj.
+# This also causes things wanting the app having to do gracedb.gracedb.whatever
+# all the time, but that mess has already been made.
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__),'..'))
+
 try:
     import settings # Assumed to be in the same directory.
 except ImportError:
