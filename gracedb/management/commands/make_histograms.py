@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from subprocess import Popen, PIPE, STDOUT
 
 
-DEST_DIR = "/tmp/foo"
+DEST_DIR = "/var/www/html/histo"
 
 
 def analysisTypes():
@@ -38,11 +38,11 @@ class Command(NoArgsCommand):
         start_week = now - timedelta(7)
         start_month = now - timedelta(30)
 
-        PAST = 91
-        now -= timedelta(PAST)
-        start_day -= timedelta(PAST)
-        start_week -= timedelta(PAST)
-        start_month -= timedelta(PAST)
+#       PAST = 91
+#       now -= timedelta(PAST)
+#       start_day -= timedelta(PAST)
+#       start_week -= timedelta(PAST)
+#       start_month -= timedelta(PAST)
 
         time_ranges =  [(start_day, "day"), (start_week, "week"), (start_month, "month")]
 
