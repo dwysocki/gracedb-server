@@ -4,6 +4,10 @@ from django.core.management.base import BaseCommand, NoArgsCommand
 from django.db import connection
 from django.utils import dateformat
 
+import datetime
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plot
 
 from gracedb.gracedb.models import Event
 
@@ -13,18 +17,7 @@ from subprocess import Popen, PIPE, STDOUT
 
 
 DEST_DIR = "/tmp/foo"
-
-
-def analysisTypes():
-    cursor = connection.cursor()
-    cursor.execute("""
-        SELECT DISTINCT e.analysisType
-        FROM gracedb_event e, gracedb_group g
-        WHERE
-          (e.group_id <> g.id AND g.name = 'Test') AND
-          (e.analysisType <> 'HWINJ')
-        """)
-    return [x[0] for x in cursor.fetchall()]
+MAX_X = 1800
 
 
 class Command(NoArgsCommand):
@@ -38,7 +31,7 @@ class Command(NoArgsCommand):
         start_week = now - timedelta(7)
         start_month = now - timedelta(30)
 
-        PAST = 91
+        PAST = 110
         now -= timedelta(PAST)
         start_day -= timedelta(PAST)
         start_week -= timedelta(PAST)
@@ -46,22 +39,92 @@ class Command(NoArgsCommand):
 
         time_ranges =  [(start_day, "day"), (start_week, "week"), (start_month, "month")]
 
-        valid_types = analysisTypes()
+        annotations = {}
 
+        # Make the histograms, save as png's.
         for atype, atype_name in Event.ANALYSIS_TYPE_CHOICES:
-            if atype not in valid_types:
-                continue
+            annotations[atype] = {}
             for start_time, time_range in time_ranges:
-                try:
-                    label = "Latencies for %s Events" % atype_name
-                except KeyError:
-                    label = "Bad analysis type: %s" % atype
-                #labels = [label, "%s previous to %s" % (time_range, str(now))]
-                labels = [label, "%s previous to %s" % (time_range, dateformat.format(now, settings.DATE_FORMAT))]
-                d = histogramData(atype, start_time, now)
-                h = histogramImage(d, labels)
+                note = {}
+                fname = os.path.join(DEST_DIR, "%s-%s.png" % (atype, time_range))
+                note['fname'] = fname
+                data = Event.objects.filter(analysisType=atype,
+                                            created__range=[start_time, now],
+                                            gpstime__gt=0)
+                data = [e.reportingLatency() for e in data]
+                note['count'] = data.count()
+                data = [d for d in data if d <= MAX_X]
+                note['npoints'] = len(data)
+                note['over'] = note['count'] - note['npoints']
+                if note['npoints'] <= 0:
+                    try:
+                        os.unlink(fname)
+                    except OSError:
+                        pass
+                else:
+                    makePlot(data, atype, maxx=MAX_X).savefig(fname)
+                annotations[atype][time_range] = note
 
-                open(os.path.join(DEST_DIR,"%s-%s.png" % (atype, time_range)),"w").write(h)
+
+def makePlot(data, title, maxx=1800, facecolor='green'):
+#   over = 0
+#   for d in data:
+#       if d > maxx:
+#           over += 1
+
+#   data = [d for d in data if d <= maxx]
+
+    nbins = maxx / 30
+    if not data:
+        data = [0]
+    n, bins, patches = plot.hist(data, nbins, facecolor=facecolor)
+
+    vmax = max(n)
+    if vmax <= 10:
+        vmax = 10
+    elif (vmax%10) == 0:
+        vmax += 10
+    else:
+        vmax += 10 - ((vmax) % 10)
+
+
+#   if over:
+#       plural = ""
+#       if over > 1:
+#           plural = "s"
+#       title += "\nNOTE: %d event%s > %d seconds" % (over, plural, maxx)
+
+    plot.xlabel('Seconds', fontsize=20)
+    plot.ylabel('Number of Events', fontsize=20)
+    plot.title(title)
+    plot.axis([0, maxx, 0, vmax])
+    plot.grid(True)
+
+    return plot
+
+
+
+#=================================================================
+# GNUPlot stuff.  Currently unused.
+#=================================================================
+
+# Usage:
+#   d = gnuplotHistogramData(atype, start_time, now)
+#   h = gnuplotHistogramImage(d, labels)
+#
+#   open(os.path.join(DEST_DIR,"%s-%s.png" % (atype, time_range)),"w").write(h)
+
+def analysisTypes():
+    cursor = connection.cursor()
+    cursor.execute("""
+        SELECT DISTINCT e.analysisType
+        FROM gracedb_event e, gracedb_group g
+        WHERE
+          (e.group_id <> g.id AND g.name = 'Test') AND
+          (e.analysisType <> 'HWINJ')
+        """)
+    return [x[0] for x in cursor.fetchall()]
+
 
 #label = "Latencies for %s Events" % Event.getTypeLabel(atype)
 #   data = Event.objects.extra(select={"date":"DATE(created)"}) \
@@ -103,7 +166,7 @@ class GnuPlot(object):
         return self.p.stdout.read() # XXX ugh.  will it always read the whole thing?
 
 
-def histogramData(atype, start, end):
+def gnuplotHistogramData(atype, start, end):
     hist_data = {}
 
     data = Event.objects.filter(analysisType=atype,
@@ -120,7 +183,7 @@ def histogramData(atype, start, end):
     return hist_data
 
 
-def histogramImage(data, labels=[], size=(400,200)):
+def gnuplotHistogramImage(data, labels=[], size=(400,200)):
     if not data:
         data = { 0:0 }
     if isinstance(labels, str):
@@ -162,4 +225,3 @@ def histogramImage(data, labels=[], size=(400,200)):
     g = GnuPlot(plotCode)
     g.write_data(data)
     return g.get_image()
-
