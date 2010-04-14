@@ -108,14 +108,11 @@ Event Summary:
     #send_mail(subject, message, fromaddress, toaddresses)
 
 def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description=""):
-    f = open('tmp/foo','a')
     nodename = "%s_%s"% (event.group.name, event.get_analysisType_display())
     nodename = nodename.lower()
 
     if nodename not in settings.XMPP_ALERT_CHANNELS:
-        f.write("nope.  not in list\n")
         return
-    f.write("Node: %s\n" % nodename)
 
     env = {}
     env["PYTHONPATH"] = ":".join(sys.path)
@@ -134,34 +131,22 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
         stderr=STDOUT,
         env=env)
 
-    f.write("A\n")
     xmldoc = glue.lvalert.utils.make_LVAlertTable(
                     location,
                     event.graceid(),
                     temp_data_loc,
                     alert_type,
                     description)
-    f.write("B: %s\n" % str(xmldoc))
-
-    f.write("c\n")
     buf = StringIO.StringIO()
-    f.write("d\n")
     glue.ligolw.utils.write_fileobj(xmldoc, buf)
-    f.write("e\n")
     msg = buf.getvalue()
 
-    f.write("f\n")
     p.stdin.write(msg)
-    f.write("g\n")
     p.stdin.close()
-    f.write("h\n")
     for i in range(1,10):
         res = p.poll()
-        f.write("poll %d\n" % i)
         if res == None:
-            f.write("poll %d\n" % i)
             time.sleep(1)
         else:
-            f.write("poll end\n")
             break
 
