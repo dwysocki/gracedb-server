@@ -43,12 +43,6 @@ def insert_ligolw_tables(xml_filename):
     out += p.stdout.read()
     if out.find("OK") != 0:
         coinc_id = None
-        try:
-            f = open('/tmp/foo','a')
-            f.write("ERROR (stdin): %s\n" % out)
-            f.write("ERROR (stderr): %s\n" % err)
-            f.close()
-        except: pass
     else:
         coinc_id = out[2:].strip()
     return coinc_id
