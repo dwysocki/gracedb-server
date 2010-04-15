@@ -16,23 +16,8 @@ from datetime import datetime, timedelta
 from subprocess import Popen, PIPE, STDOUT
 
 
-<<<<<<< HEAD:gracedb/management/commands/make_histograms.py
-DEST_DIR = "/var/www/html/histo"
-
-
-def analysisTypes():
-    cursor = connection.cursor()
-    cursor.execute("""
-        SELECT DISTINCT e.analysisType
-        FROM gracedb_event e, gracedb_group g
-        WHERE
-          (e.group_id <> g.id AND g.name = 'Test') AND
-          (e.analysisType <> 'HWINJ')
-        """)
-    return [x[0] for x in cursor.fetchall()]
-=======
-DEST_DIR = "/tmp/foo"
-MAX_X = 1800
+DEST_DIR = "/var/www/html/histo/2"
+MAX_X = 3600
 
 
 class Command(NoArgsCommand):
@@ -45,12 +30,6 @@ class Command(NoArgsCommand):
         start_day = now - timedelta(1)
         start_week = now - timedelta(7)
         start_month = now - timedelta(30)
-
-#       PAST = 91
-#       now -= timedelta(PAST)
-#       start_day -= timedelta(PAST)
-#       start_week -= timedelta(PAST)
-#       start_month -= timedelta(PAST)
 
         time_ranges =  [(start_day, "day"), (start_week, "week"), (start_month, "month")]
 
@@ -66,13 +45,14 @@ class Command(NoArgsCommand):
                 data = Event.objects.filter(analysisType=atype,
                                             created__range=[start_time, now],
                                             gpstime__gt=0)
-                data = [e.reportingLatency() for e in data]
                 note['count'] = data.count()
-                data = [d for d in data if d <= MAX_X]
+                data = [e.reportingLatency() for e in data]
+                data = [d for d in data if d <= MAX_X and d > 0]
                 note['npoints'] = len(data)
                 note['over'] = note['count'] - note['npoints']
                 if note['npoints'] <= 0:
                     try:
+                        note['fname'] = None
                         os.unlink(fname)
                     except OSError:
                         pass
@@ -80,18 +60,58 @@ class Command(NoArgsCommand):
                     makePlot(data, atype, maxx=MAX_X).savefig(fname)
                 annotations[atype][time_range] = note
 
+        writeIndex(annotations, os.path.join(DEST_DIR, 'index.html'))
+
+
+def writeIndex(notes, fname):
+    template = """<html>
+<head>
+</head>
+<h1>Gracedb Event Reporting Latency</h1>
+Tables generated: %(time)s<br/>
+Maximum charted latency: %(maxx)s seconds
+<body>%(table)s
+</body>
+</html>
+    """
+
+    table = '<table border="1">'
+    table += "<tr><th>&nbsp;</th>"
+    for time_range in ['day', 'week', 'month']:
+        table += "<th>last %s</th>" % time_range
+    table += "</tr>"
+    for atype, atype_name in Event.ANALYSIS_TYPE_CHOICES:
+        table += "<tr>"
+        table += "<td>%s</td>" % atype_name
+        for time_range in ['day', 'week', 'month']:
+            table += "<td>"
+            n = notes[atype][time_range]
+            extra = ""
+            if n['fname'] is not None:
+                table += '<img width="400" height="300" src="%s"/>' % \
+                           os.path.basename(n['fname'])
+            else:
+                extra = "No Applicable Events"
+            if n['over'] != 0:
+                extra = "%d events over maximum latency of %s seconds" % (n['over'], MAX_X)
+            table += "<br/>%s" % extra
+            table += "</td>"
+        table += "</tr>"
+    table += "</table>"
+
+    values = {}
+    values['table'] = table
+    values['time'] = str(datetime.now())
+    values['maxx'] = MAX_X # XXX ugh.
+    f = open(fname, "w")
+    f.write(template % values)
+    f.close()
 
 def makePlot(data, title, maxx=1800, facecolor='green'):
-#   over = 0
-#   for d in data:
-#       if d > maxx:
-#           over += 1
-
-#   data = [d for d in data if d <= maxx]
-
+    # make sure plot is clear!
+    plot.close()
     nbins = maxx / 30
-    if not data:
-        data = [0]
+
     n, bins, patches = plot.hist(data, nbins, facecolor=facecolor)
 
     vmax = max(n)
@@ -100,18 +120,11 @@ def makePlot(data, title, maxx=1800, facecolor='green'):
     elif (vmax%10) == 0:
         vmax += 10
     else:
-        vmax += 10 - ((vmax) % 10)
-
-
-#   if over:
-#       plural = ""
-#       if over > 1:
-#           plural = "s"
-#       title += "\nNOTE: %d event%s > %d seconds" % (over, plural, maxx)
+        vmax += 10 - (vmax % 10)
 
     plot.xlabel('Seconds', fontsize=20)
     plot.ylabel('Number of Events', fontsize=20)
-    plot.title(title)
+    #plot.title(title)
     plot.axis([0, maxx, 0, vmax])
     plot.grid(True)
 
