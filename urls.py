@@ -1,4 +1,6 @@
+
 from django.conf.urls.defaults import *
+from django.conf import settings
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -26,6 +28,10 @@ urlpatterns = patterns('',
     (r'^feeds/(?P<url>.*)/$', 'django.contrib.syndication.views.feed', 
         {'feed_dict': feeds}),
     url (r'^feeds/$', feedview, name="feeds"),
+
+    url (r'^reports/$', 'gracedb.gracedb.reports.histo', name="reports"),
+    (r'^reports/(?P<path>.+)$', 'django.views.static.serve',
+            {'document_root': settings.LATENCY_REPORT_DEST_DIR}),
 
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
     # to INSTALLED_APPS to enable admin documentation:

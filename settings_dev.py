@@ -34,6 +34,12 @@ DATABASE_PASSWORD = 'redrum4x'
 DATABASE_HOST = ''             # Set to empty string for localhost.
 DATABASE_PORT = ''             # Set to empty string for default.
 
+# Latency histograms.  Where they go and max latency to bin.
+LATENCY_REPORT_DEST_DIR = "/home/lars/django/data/latency"
+LATENCY_MAXIMUM_CHARTED = 1800
+LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
+
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.

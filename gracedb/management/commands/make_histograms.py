@@ -16,8 +16,11 @@ from datetime import datetime, timedelta
 from subprocess import Popen, PIPE, STDOUT
 
 
-DEST_DIR = "/var/www/html/histo/2"
-MAX_X = 1800
+DEST_DIR = settings.LATENCY_REPORT_DEST_DIR
+MAX_X = settings.LATENCY_MAXIMUM_CHARTED
+
+WEB_PAGE_FILE_PATH = settings.LATENCY_REPORT_WEB_PAGE_FILE_PATH
+
 
 
 class Command(NoArgsCommand):
@@ -30,6 +33,12 @@ class Command(NoArgsCommand):
         start_day = now - timedelta(1)
         start_week = now - timedelta(7)
         start_month = now - timedelta(30)
+
+        past = timedelta(100)
+        now -= past
+        start_day -= past
+        start_week -= past
+        start_month -= past
 
         time_ranges =  [(start_day, "day"), (start_week, "week"), (start_month, "month")]
 
@@ -60,22 +69,17 @@ class Command(NoArgsCommand):
                     makePlot(data, atype, maxx=MAX_X).savefig(fname)
                 annotations[atype][time_range] = note
 
-        writeIndex(annotations, os.path.join(DEST_DIR, 'index.html'))
+        writeIndex(annotations, WEB_PAGE_FILE_PATH)
 
 
 def writeIndex(notes, fname):
-    template = """<html>
-<head>
-</head>
-<h1>Gracedb Event Reporting Latency</h1>
-Tables generated: %(time)s<br/>
-Maximum charted latency: %(maxx)s seconds
-<body>%(table)s
-</body>
-</html>
-    """
 
-    table = '<table border="1">'
+    createdDate = str(datetime.now())
+    maxx = MAX_X
+
+    table = '<table border="1" bgcolor="white">'
+    table += """<caption>Tables generated: %s<br/>
+                      Maximum charted latency: %s seconds</caption>""" % (createdDate, maxx)
     table += "<tr><th>&nbsp;</th>"
     for time_range in ['day', 'week', 'month']:
         table += "<th>last %s</th>" % time_range
@@ -84,7 +88,7 @@ Maximum charted latency: %(maxx)s seconds
         table += "<tr>"
         table += "<td>%s</td>" % atype_name
         for time_range in ['day', 'week', 'month']:
-            table += "<td>"
+            table += '<td align="center" bgcolor="white">'
             n = notes[atype][time_range]
             extra = ""
             if n['fname'] is not None:
@@ -99,12 +103,8 @@ Maximum charted latency: %(maxx)s seconds
         table += "</tr>"
     table += "</table>"
 
-    values = {}
-    values['table'] = table
-    values['time'] = str(datetime.now())
-    values['maxx'] = MAX_X # XXX ugh.
     f = open(fname, "w")
-    f.write(template % values)
+    f.write(table)
     f.close()
 
 def makePlot(data, title, maxx=1800, facecolor='green'):
