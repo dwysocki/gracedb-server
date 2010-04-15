@@ -57,7 +57,9 @@ def issueAlertForLabel(event, label, doxmpp):
         toaddresses =  []
         bccaddresses = profileRecips
 
-    if toaddresses:
+    if toaddresses or bccaddresses:
+        if not toaddresses:
+            toaddresses = ["(undisclosed recipients)"]
         email = EmailMessage(subject, message, fromaddress, toaddresses, bccaddresses)
         email.send()
 
