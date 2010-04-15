@@ -7,7 +7,10 @@ from django.conf import settings
 
 
 def histo(request):
-    table = open(settings.LATENCY_REPORT_WEB_PAGE_FILE_PATH, "r").read()
+    try:
+        table = open(settings.LATENCY_REPORT_WEB_PAGE_FILE_PATH, "r").read()
+    except IOError:
+        table = "No Data Available"
     return render_to_response(
             'gracedb/histogram.html',
             {'table': table},
