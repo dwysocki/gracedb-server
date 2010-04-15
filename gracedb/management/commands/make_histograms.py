@@ -17,7 +17,7 @@ from subprocess import Popen, PIPE, STDOUT
 
 
 DEST_DIR = "/var/www/html/histo/2"
-MAX_X = 3600
+MAX_X = 1800
 
 
 class Command(NoArgsCommand):
