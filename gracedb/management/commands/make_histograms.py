@@ -34,12 +34,6 @@ class Command(NoArgsCommand):
         start_week = now - timedelta(7)
         start_month = now - timedelta(30)
 
-        past = timedelta(100)
-        now -= past
-        start_day -= past
-        start_week -= past
-        start_month -= past
-
         time_ranges =  [(start_day, "day"), (start_week, "week"), (start_month, "month")]
 
         annotations = {}
