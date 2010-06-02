@@ -25,6 +25,7 @@ XMPP_ALERT_CHANNELS = [
                         'test_omega',
                         'test_mbtaonline',
                         'test_cwb',
+                        'test_lowmass',
                       ]
 
 DATABASE_ENGINE = 'mysql'
