@@ -344,9 +344,16 @@ def ping(request):
     ack = "(%s) " % Site.objects.get_current()
     ack += request.POST.get('ack', None) or request.GET.get('ack','ACK')
 
+    from templatetags.timeutil import utc
     if 'cli_version' in request.POST:
         response = HttpResponse(mimetype='application/json')
-        d = str({'output': ack})
+        d = {'output': ack}
+        if 'extended' in request.POST:
+            latest = Event.objects.order_by("-id")[0]
+            d['latest'] = {}
+            d['latest']['id'] = latest.graceid()
+            d['latest']['created'] = str(utc(latest.created))
+        d =  simplejson.dumps(d)
         response.write(d)
         response['Content-length'] = len(d)
     else:
@@ -371,7 +378,6 @@ def view(request, graceid):
 
 def cli_search(request):
     assert request.ligouser
-    import simplejson
     form = SimpleSearchForm(request.POST)
     if form.is_valid():
         query = form.cleaned_data['query']
@@ -579,7 +585,6 @@ def oldsearch(request):
             context_instance=RequestContext(request))
 
 def timeline(request):
-    import simplejson
     from gracedb.utils import gpsToUtc
     from django.utils import dateformat
 
