@@ -17,6 +17,9 @@ from translator import handle_uploaded_data
 
 import os
 
+# XXX This should be configurable / moddable or something
+MAX_QUERY_RESULTS = 1000
+
 import simplejson
 
 def index(request):
@@ -411,7 +414,7 @@ def search(request, format=""):
     assert request.ligouser
     # XXX DO NOT HARDCODE THIS
     # Also, user should be notified if their result hits this limit.
-    limit = 1000
+    limit = MAX_QUERY_RESULTS
     form2 = None
 
     # This block is crap and for debugging.  Remove it!
@@ -473,8 +476,12 @@ def search(request, format=""):
                 #if objects.count() >= limit:
                 #    request.session['flash_msg'] = \
                 #        "Number of events in results exceeds maximum (%s) allowed." % limit
+                if objects.count() == 1:
+                    title = "Query Results. %s event" % objects.count()
+                else:
+                    title = "Query Results. %s events" % objects.count()
                 context = {
-                    'title':"Query Results", #. %s event(s)" % objects.count(),
+                    'title': title,
                     'form': form,
                     'formAction': reverse(search),
                     'maxCount': limit,
@@ -567,7 +574,11 @@ def oldsearch(request):
             # Need this because events with multiple labels can appear multiple times!
             objects = objects.distinct()
 
-            extra_context = {'title':"Query Results. %s event(s)" % objects.count()}
+            if objects.count() == 1:
+                title = "Query Results. %s event" % objects.count()
+            else:
+                title = "Query Results. %s events" % objects.count()
+            extra_context = {'title': title }
             if not submitter and (not (start or end) or (start and end)):
                 # ugh.  there is no submitter option in text query
                 # Also, text query needs both ends of a graceid search
@@ -576,6 +587,8 @@ def oldsearch(request):
                 extra_context['queryLink'] = reverse(search)+"?query="+escape(textQuery)
                 simple_form = SimpleSearchForm({'query': textQuery})
                 extra_context['form'] = simple_form
+                extra_context['maxCount'] = MAX_QUERY_RESULTS
+                extra_context['rawquery' ] = textQuery
 
             return object_list(request, objects, extra_context=extra_context)
 
