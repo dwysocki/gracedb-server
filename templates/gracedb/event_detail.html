@@ -65,7 +65,7 @@
         <td>{{ log.created|multiTime:"logtime" }}</td>
         <td>{{ log.issuer }}</td>
         <td><a href="{{ log.fileurl }}">{{ log.filename }}</a></td>
-        <td>{{ log.comment }}</td>
+        <td>{{ log.comment|urlize }}</td>
     </tr>  
   {% endfor %}
   </table>
