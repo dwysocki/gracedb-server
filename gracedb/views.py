@@ -143,12 +143,15 @@ def _createEventFromForm(request, form):
         # out of band data from Omega to LUMIN.
         try:
             temp_data_loc = handle_uploaded_data(event, uploadDestination)
-            # Send an alert.
-            issueAlert(event,
-                       os.path.join(event.clusterurl(), "private", f.name),
-                       temp_data_loc)
+            try:
+                # Send an alert.
+                issueAlert(event,
+                           os.path.join(event.clusterurl(), "private", f.name),
+                           temp_data_loc)
+            except Exception, e:
+                warnings += ["Problem issuing an alert (%s)" % e]
         except Exception, e:
-            warnings += ["Problem issuing an alert (%s)" % e]
+            warnings += ["Problem scanning data. No alert issued (%s)" % e]
         #return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
     except Exception, e:
         # something went wrong.

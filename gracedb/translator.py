@@ -51,11 +51,36 @@ def handle_uploaded_data(event, datafilename,
                          log_filename='event.log',
                          coinc_table_filename='coinc.xml'):
 
+    log = EventLog(event=event,
+                   filename=os.path.basename(datafilename),
+                   issuer=event.submitter,
+                   comment="Original Data")
+    log.save()
+
     temp_data_loc = ""
-    if event.analysisType == 'HM':
-        # Wildly speculative
+    if event.analysisType in [ 'HM', 'LM' ]:
+        error = None
+        # Wildly speculative wrt HM
         xmldoc = glue.ligolw.utils.load_filename(datafilename)
-        log_data = "LOG DATA TBD\n"
+
+        # Create Log Data
+        try:
+            log_data = ["Event Type: %s" % event.getTypeLabel(event.analysisType)]
+            origdata = glue.ligolw.table.getTablesByName(
+                                        xmldoc,
+                                        glue.ligolw.lsctables.CoincInspiralTable.tableName)
+
+            log_data.append("MChirp: %0.3f" % origdata[0][0].mchirp)
+            log_data.append("MTot: %s" % origdata[0][0].mass)
+            log_data.append("End Time: %d.%d" % (origdata[0][0].end_time, origdata[0][0].end_time_ns))
+            log_data.append("SNR: %0.3f" % origdata[0][0].snr)
+            log_data.append("IFOs: %s" % origdata[0][0].ifos)
+        except Exception, e:
+            error = "Error: Problem Creating Log File: %s" % str(e)
+            log_data = ""
+
+        log_data = "\n".join(log_data)
+
         output_dir = os.path.dirname(datafilename)
         write_output_files(output_dir, xmldoc, log_data,
                            xml_fname=coinc_table_filename,
@@ -76,14 +101,8 @@ def handle_uploaded_data(event, datafilename,
                        comment="Coinc Table Created")
         log.save()
 
-        log = EventLog(event=event,
-                       filename=os.path.basename(datafilename),
-                       issuer=event.submitter,
-                       comment="Original Data")
-        log.save()
 
-
-        # Extract relevant data from xmldoc.
+        # Extract relevant data from xmldoc to put into event record.
         coinc_table = glue.ligolw.table.getTablesByName(
                             xmldoc,
                             glue.ligolw.lsctables.CoincInspiralTable.tableName)
@@ -102,6 +121,9 @@ def handle_uploaded_data(event, datafilename,
         event.coincEvent_id = insert_ligolw_tables(xml_filename)
 
         event.save()
+
+        if error:
+            raise Exception(error)
 
     elif event.analysisType == 'MBTA':
         #here's how it works for inspirals
@@ -131,12 +153,6 @@ def handle_uploaded_data(event, datafilename,
                        filename=coinc_table_filename,
                        issuer=event.submitter,
                        comment="Coinc Table Created")
-        log.save()
-
-        log = EventLog(event=event,
-                       filename=os.path.basename(datafilename),
-                       issuer=event.submitter,
-                       comment="Original Data")
         log.save()
 
         # Extract relevant data from xmldoc.
@@ -183,12 +199,6 @@ def handle_uploaded_data(event, datafilename,
                        comment="Coinc Table Created")
         log.save()
 
-        log = EventLog(event=event,
-                       filename=os.path.basename(datafilename),
-                       issuer=event.submitter,
-                       comment="Original Data")
-        log.save()
-
         # Extract relevant data from xmldoc.
         coinc_table = glue.ligolw.table.getTablesByName(
                             xmldoc,
@@ -220,11 +230,6 @@ def handle_uploaded_data(event, datafilename,
             f.close()
         except:
             pass
-        log = EventLog(event=event,
-                       filename=os.path.basename(datafilename),
-                       issuer=event.submitter,
-                       comment="Original Data")
-        log.save()
     elif event.analysisType == 'HWINJ':
         try:
             f = open(datafilename, "r")
@@ -237,16 +242,8 @@ def handle_uploaded_data(event, datafilename,
             f.close()
         except:
             pass
-        log = EventLog(event=event,
-                       filename=os.path.basename(datafilename),
-                       issuer=event.submitter,
-                       comment="Original Data")
-        log.save()
     else:
-        log = EventLog(event=event,
-                       filename=os.path.basename(datafilename),
-                       issuer=event.submitter,
-                       comment="Original Data")
-        log.save()
+        # XXX should we do something here?
+        pass
 
     return temp_data_loc
