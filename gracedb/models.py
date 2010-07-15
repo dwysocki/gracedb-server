@@ -114,6 +114,18 @@ class Event(models.Model):
             gps_time = int(posixToGpsTime(posix_time))
             return gps_time - self.gpstime
 
+    def neighbors(self, delta=5):
+        if not self.gpstime:
+            return []
+        if self.group.name == 'Test':
+            nearby = Event.objects.filter(group='Test')
+        else:
+            nearby = Event.objects.exclude(group__name='Test')
+        nearby = nearby.filter(gpstime__range=(self.gpstime-delta, self.gpstime+delta))
+        nearby = nearby.exclude(id=self.id)
+        nearby = nearby.order_by('gpstime')
+        return nearby
+
     @classmethod
     def getTypeLabel(cls, code):
         for key, label in cls.ANALYSIS_TYPE_CHOICES:

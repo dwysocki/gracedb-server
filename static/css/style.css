@@ -47,6 +47,17 @@ a.link, a, a.active {
   color: #369;
 }
 
+li.coinc-5, li.coinc--5 { color: #00F; }
+li.coinc-4, li.coinc--4 { color: #03C; }
+li.coinc-3, li.coinc--3 { color: #069; }
+li.coinc-2, li.coinc--2 { color: #096; }
+li.coinc-1, li.coinc--1 { color: #0C3; }
+li.coinc-0              { color: #0F0; }
+
+span.coinc-0,
+     span.coinc-1, span.coinc-2, span.coinc-3, span.coinc-4, span.coinc-5,
+     span.coinc--1, span.coinc--2, span.coinc--3, span.coinc--4, span.coinc--5
+{ color: black; }
 
 #header {
   color: black;

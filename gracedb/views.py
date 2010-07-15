@@ -377,6 +377,8 @@ def view(request, graceid):
         raise Http404
     context['object'] = a
     context['eventdesc'] = get_logfile(graceid)
+    context['nearby'] = [(event.gpstime - a.gpstime, event)
+                            for event in a.neighbors()]
     return render_to_response(
         'gracedb/event_detail.html',
         context,
@@ -670,10 +672,17 @@ def flexigridResponse(request, objects):
             { 'id' : object.id,
               'cell': [ '<a href="%s">%s</a>' %
                             (reverse(view, args=[object.graceid()]), object.graceid()),
+                         #Labels
                         " ".join(['<span title="%s %s" style="color: %s">%s</span>' %
                                 (label.creator.name, label.created, label.label.defaultColor, label.label.name)
                                 for label in object.labelling_set.all()
                             ]),
+                        # Links to neighbors
+                        ', '.join([
+                            '<a href="%s">%s</a>' %
+                            (reverse(view, args=[n.graceid()]), n.graceid())
+                            for n in object.neighbors()
+                        ]),
                         object.group.name,
                         object.get_analysisType_display(),
 

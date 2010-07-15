@@ -77,6 +77,19 @@
 {% if eventdesc %}
 <h3>Event Log File</h3>
     {{ eventdesc }}
+    <br/>
+{% endif %}
+
+{% if nearby %}
+    <br/>
+    <h3>Nearby Events</h3>
+    <ul>
+    {% for delta, event in nearby %}
+        <li class="coinc-{{delta}}">
+            <span class="coinc-{{delta}}">{{ delta }}s <a href="{% url view event.graceid %}">{{ event.graceid }}</a></span>
+        </li>
+    {% endfor %}
+    </ul>
 {% endif %}
 
 </td></tr></table>
