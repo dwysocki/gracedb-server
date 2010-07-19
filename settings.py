@@ -24,7 +24,6 @@ ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@archie.phys.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
                        "patrick@gravity.phys.uwm.edu",
                        "larry@gravity.phys.uwm.edu",
-                       "bmoe@gravity.phys.uwm.edu",
                       ]
 
 XMPP_ALERT_CHANNELS = [
