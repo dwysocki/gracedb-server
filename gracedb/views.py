@@ -376,7 +376,8 @@ def view(request, graceid):
     except Event.DoesNotExist:
         raise Http404
     context['object'] = a
-    context['eventdesc'] = get_logfile(graceid)
+    context['eventdesc'] = get_file(graceid, "event.log")
+    context['userdesc'] = get_file(graceid, "user.log")
     context['nearby'] = [(event.gpstime - a.gpstime, event)
                             for event in a.neighbors()]
     return render_to_response(
@@ -716,9 +717,9 @@ def flexigridResponse(request, objects):
 
     return response
 
-def get_logfile(graceid):
+def get_file(graceid, filename="event.log"):
     dirPrefix = "/mnt/gracedb-web/data"
-    logfilename = os.path.join(dirPrefix, graceid, "private", "event.log")
+    logfilename = os.path.join(dirPrefix, graceid, "private", filename)
     contents = ""
     try:
         lines = open(logfilename, "r").readlines()
