@@ -57,7 +57,6 @@
                 <th>Labels</th>
                 <th>Group</th>
                 <th>Type</th>
-                <th>&Delta;t</th>
                 <th>
                     {{ "ngps"|timeselect:"gps" }}
                     Event Time
@@ -80,7 +79,6 @@
             </td>
             <td>{{ object.group.name }} </td>
             <td>{{ object.get_analysisType_display }} </td>
-            <td align="right">{{ delta }}</td>
             <td>{% if object.gpstime%}
                     {{ object.gpstime|multiTime:"ngps" }}
                 {% endif %}</td>
