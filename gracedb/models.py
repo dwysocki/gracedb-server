@@ -145,6 +145,9 @@ class Event(models.Model):
             raise cls.DoesNotExist()
         return e
 
+    def __unicode__(self):
+        return self.graceid()
+
 class EventLog(models.Model):
     class Meta:
         ordering = ["-created"]
