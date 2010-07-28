@@ -33,6 +33,7 @@ XMPP_ALERT_CHANNELS = [
                         'test_mbtaonline',
                         'burst_cwb',
                         'test_cwb',
+                        'cbc_lowmass',
                         'test_lowmass',
                       ]
 
