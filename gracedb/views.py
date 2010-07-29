@@ -10,10 +10,12 @@ from django.utils.safestring import mark_safe
 
 from django.views.generic.list_detail import object_detail, object_list
 
-from models import Event, Group, EventLog, Labelling, Label
+from models import Event, Group, EventLog, Labelling, Label, User
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
+
+import urllib
 
 import os
 
@@ -491,7 +493,6 @@ def search(request, format=""):
                     'form': form,
                     'formAction': reverse(search),
                     'maxCount': limit,
-                    'queryLink': reverse(search)+"?query="+escape(rawquery),
                     'rawquery' : rawquery,
                 }
                 return object_list(request, objects, extra_context=context)
@@ -545,6 +546,8 @@ def oldsearch(request):
 
             if start and end:
                 textQuery.append("gid: %s..%s" % (start, end))
+            elif start or end:
+                textQuery.append("gid: %s" % (start or end))
 
             if gpsStart != None or gpsEnd != None :
                 if gpsStart == gpsEnd:
@@ -563,7 +566,12 @@ def oldsearch(request):
                         textQuery.append("gpstime: 0..%s" % gpsEnd)
 
             if submitter:
+                try:
+                    submitter_name = User.objects.get(id=submitter)
+                except User.DoesNotExist:
+                    submitter_name = "Error looking up user"
                 objects = objects.filter(submitter=submitter)
+                textQuery.append('submitter: "%s"' % submitter_name)
             if groupname:
                 group = Group.objects.filter(name=groupname)[0]
                 objects = objects.filter(group=group)
@@ -585,16 +593,12 @@ def oldsearch(request):
             else:
                 title = "Query Results. %s events" % objects.count()
             extra_context = {'title': title }
-            if not submitter and (not (start or end) or (start and end)):
-                # ugh.  there is no submitter option in text query
-                # Also, text query needs both ends of a graceid search
-                # Sooo.... set up a simple search form...
-                textQuery = " ".join(textQuery)
-                extra_context['queryLink'] = reverse(search)+"?query="+escape(textQuery)
-                simple_form = SimpleSearchForm({'query': textQuery})
-                extra_context['form'] = simple_form
-                extra_context['maxCount'] = MAX_QUERY_RESULTS
-                extra_context['rawquery' ] = textQuery
+
+            textQuery = " ".join(textQuery)
+            simple_form = SimpleSearchForm({'query': textQuery})
+            extra_context['form'] = simple_form
+            extra_context['maxCount'] = MAX_QUERY_RESULTS
+            extra_context['rawquery' ] = textQuery
 
             return object_list(request, objects, extra_context=extra_context)
 
@@ -695,6 +699,8 @@ def flexigridResponse(request, objects):
 
                         #created_times['gps'],
                         created_times.get('utc',""),
+
+                        object.submitter.name,
 
                       ]
             }

@@ -20,7 +20,7 @@ import models
 from django.db.models import Q
 
 from pyparsing import \
-    Word, nums, Literal, CaselessLiteral, delimitedList, Suppress, \
+    Word, nums, Literal, CaselessLiteral, delimitedList, Suppress, QuotedString, \
     Keyword, Combine, Or, Optional, OneOrMore, alphas, Regex, \
     opAssoc, operatorPrecedence, oneOf, \
     stringStart, stringEnd, ParseException
@@ -92,6 +92,11 @@ tidRange = tid + Suppress("..") + tid
 tidQ = Optional(Suppress(Keyword("tid:"))) + (tid^tidRange)
 tidQ = tidQ.setParseAction(maybeRange("tid", dbname="id"))
 
+# Submitter
+submitter = QuotedString('"').setParseAction(lambda toks: Q(submitter__name=toks[0]))
+submitterQ = Optional(Suppress(Keyword("submitter:"))) + submitter
+submitterQ = submitterQ.setParseAction(lambda toks: ("submitter", toks[0]))
+
 # Created times
 
 nltimeRange = nltime + Suppress("..") + nltime
@@ -114,7 +119,8 @@ createdQ = createdQ.setParseAction(maybeRange("created"))
 
 
 # Labels
-labelNames = ["DQV", "INJ", "LUMIN_NO", "LUMIN_GO", "SWIFT_NO", "SWIFT_GO"]
+# XXX should we not get these from the DB?
+labelNames = ["DQV", "INJ", "LUMIN_NO", "LUMIN_GO", "SWIFT_NO", "SWIFT_GO", "EM_READY"]
 label = Or([CaselessLiteral(n) for n in labelNames]).\
         setParseAction( lambda toks: Q(labels__name=toks[0]) )
 
@@ -132,7 +138,7 @@ labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
 labelQ.setParseAction(lambda toks: ("label", toks[0]))
 
 
-q = (gidQ | hidQ | tidQ | atypeQ | groupQ | labelQ | gpsQ | createdQ).setName("query term")
+q = (gidQ | hidQ | tidQ | atypeQ | groupQ | labelQ | gpsQ | createdQ | submitterQ).setName("query term")
 
 def parseQuery(s):
     d={}

@@ -45,10 +45,10 @@
             (
             {
             sortable: true,
-            url: '{% url search %}/flex?query={{rawquery}}',
+            url: '{% url search %}/flex?query={{rawquery|urlencode}}',
             datatype: 'json',
             mtype: "GET",
-            colNames : ["UID", "Labels", "Neighbors (+/-5sec)", "Group", "Type", "Event Time", "Links", "Submitted",
+            colNames : ["UID", "Labels", "Neighbors (+/-5sec)", "Group", "Type", "Event Time", "Links", "Submitted", "Submitted By",
                        ],
             colModel : [
                {name : 'id',     index: 'id', width : 50, sortable : true, align: 'left', hidden: false},
@@ -60,6 +60,7 @@
                {name : 'gpstime', index: 'gpstime', width : 90, sortable : true, align: 'right'},
                {name : 'links',   index: 'links', width : 80, sortable : false, align: 'center'},
                {name : 'created', index: 'created', width : 100, sortable : true, align: 'right'},
+               {name : 'submitter', index: 'submitter', width : 100, sortable : true, align: 'right'},
 
                 ],
             pager: '#pager1',
@@ -105,8 +106,8 @@
         <tr><td/>
             <td>
                 <a onClick="toggle_visibility('hints');">Hints on querying</a>
-                {% if queryLink %}
-                    | <a href="{{queryLink}}">Link to current query</a>
+                {% if rawquery %}
+                    | <a href="{% url search %}?query={{rawquery|urlencode}}">Link to current query</a>
                 {% endif %}
             </td>
         </tr>
