@@ -120,7 +120,7 @@ createdQ = createdQ.setParseAction(maybeRange("created"))
 
 # Labels
 # XXX should we not get these from the DB?
-labelNames = ["DQV", "INJ", "LUMIN_NO", "LUMIN_GO", "SWIFT_NO", "SWIFT_GO", "EM_READY"]
+labelNames = ["DQV", "INJ", "LUMIN_NO", "LUMIN_GO", "SWIFT_NO", "SWIFT_GO", "EM_READY", "cWB_r"," cWB_s"]
 label = Or([CaselessLiteral(n) for n in labelNames]).\
         setParseAction( lambda toks: Q(labels__name=toks[0]) )
 
@@ -138,7 +138,7 @@ labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
 labelQ.setParseAction(lambda toks: ("label", toks[0]))
 
 
-q = (gidQ | hidQ | tidQ | atypeQ | groupQ | labelQ | gpsQ | createdQ | submitterQ).setName("query term")
+q = (gidQ | hidQ | tidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ).setName("query term")
 
 def parseQuery(s):
     d={}
