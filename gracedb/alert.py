@@ -37,7 +37,9 @@ def issueAlertForLabel(event, label, doxmpp):
     # Email
     profileRecips = []
     atype = AnalysisType.objects.filter(code=event.analysisType)[0]
+    # Triggers on given label matching analysis type OR with no atype (wildcard type)
     triggers = label.trigger_set.filter(atypes=atype)
+    triggers = triggers | label.trigger_set.filter(atypes=None)
     for trigger in triggers:
         for recip in trigger.contacts.all():
             profileRecips.append(recip.email)
