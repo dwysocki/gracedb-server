@@ -22,7 +22,6 @@ ALERT_EMAIL_BCC = [
 
 ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@archie.phys.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
-                       "patrick@gravity.phys.uwm.edu",
                        "larry@gravity.phys.uwm.edu",
                       ]
 
