@@ -75,6 +75,10 @@ def handle_uploaded_data(event, datafilename,
             log_data.append("End Time: %d.%d" % (origdata[0][0].end_time, origdata[0][0].end_time_ns))
             log_data.append("SNR: %0.3f" % origdata[0][0].snr)
             log_data.append("IFOs: %s" % origdata[0][0].ifos)
+            if origdata[0][0].combined_far is not None:
+                log_data.append("FAR: %0.3f" % origdata[0][0].combined_far)
+            else:
+                log_data.append("FAR: ---")
         except Exception, e:
             error = "Error: Problem Creating Log File: %s" % str(e)
             log_data = ""
