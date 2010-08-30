@@ -40,6 +40,8 @@ LATENCY_REPORT_DEST_DIR = "/home/lars/django/data/latency"
 LATENCY_MAXIMUM_CHARTED = 1800
 LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
 
+# RSS Feed Defaults
+FEED_MAX_RESULTS = 75
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name

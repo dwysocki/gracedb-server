@@ -10,6 +10,9 @@ from django.shortcuts import render_to_response
 from models import Event, Group
 from views import view, search, index
 
+from django.conf import settings
+FEED_MAX_RESULTS = getattr(settings, 'FEED_MAX_RESULTS', 20)
+
 class EventFeed(Feed):
     def get_object(self, bits):
         # [] , ['cbc'], ['cbc','lowmass']
@@ -40,7 +43,7 @@ class EventFeed(Feed):
                 typecode, type = type[0]
                 title = "GraCEDb %s / %s Events" % (group.name, type)
                 objs = objs.filter(analysisType=typecode)
-        return title, objs[:10]
+        return title, objs[:FEED_MAX_RESULTS]
 
     def title(self, obj):
         title, _ = obj
