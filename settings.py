@@ -1,4 +1,5 @@
 # Django settings for gracedb project.
+import os
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -34,6 +35,7 @@ XMPP_ALERT_CHANNELS = [
                         'test_cwb',
                         'cbc_lowmass',
                         'test_lowmass',
+                        'test_grb',
                       ]
 
 DATABASE_ENGINE = 'mysql'
@@ -50,7 +52,7 @@ LATENCY_MAXIMUM_CHARTED = 1800
 LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
 
 # RSS Feed Defaults
-FEED_MAX_RESULTS = 75
+FEED_MAX_RESULTS = 50
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
