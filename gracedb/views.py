@@ -349,7 +349,8 @@ def log(request):
     return response
 
 def ping(request):
-    ack = "(%s) " % Site.objects.get_current()
+    #ack = "(%s) " % Site.objects.get_current()
+    ack = "(%s) " % request.META['SERVER_NAME']
     ack += request.POST.get('ack', None) or request.GET.get('ack','ACK')
 
     from templatetags.timeutil import utc
@@ -736,6 +737,11 @@ def get_file(graceid, filename="event.log"):
     return contents
 
 def createWikiPage(graceid):
+    # Do not create wiki pages these reasons
+    # (1) freaks out the wiki/filesystem to have too many files in one directory.
+    # (2) do not need them if they are empty. They'll be auto-created if ppl go to them and want them.
+    # (3) htdocs (where the wikipage goes) is mounted read-only.
+    return
     twikiroot = "/mnt/htdocs/uwmlsc/secure/twiki/data/Sandbox/"
     plainFile = """
 Initial Entry for %s
