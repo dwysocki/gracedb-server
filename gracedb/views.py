@@ -19,6 +19,8 @@ import urllib
 
 import os
 
+from buildVOEvent import buildVOEvent, submitToSkyalert
+
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
 
@@ -30,6 +32,14 @@ def index(request):
             'gracedb/index.html',
             {},
             context_instance=RequestContext(request))
+
+def voevent(request, graceid):
+    event = Event.getByGraceid(graceid)
+    return HttpResponse(buildVOEvent(event), content_type="application/xml")
+
+def skyalert(request, graceid):
+    event = Event.getByGraceid(graceid)
+    return HttpResponse(submitToSkyalert(event), content_type="text/plain")
 
 def create(request):
     d = _create(request)

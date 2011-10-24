@@ -1,0 +1,114 @@
+# Copyright 2010 Roy D. Williams
+"""
+buildVOEvent: Creates a complex VOEvent with tables
+See the VOEvent specification for details
+http://www.ivoa.net/Documents/latest/VOEvent.html
+"""
+
+from VOEventLib.VOEvent import *
+from VOEventLib.Vutil import *
+import sys, os
+
+from gracedb.utils import gpsToUtc
+
+def buildVOEvent(gevent):
+
+    objid = gevent.graceid()
+
+    ############ VOEvent header ############################
+    v = VOEvent.VOEvent(version="2.0")
+    v.set_ivorn("ivo://ligo.org/gracedb#%s" % objid)
+    v.set_role("test")
+    v.set_Description("LIGO / Virgo trigger")
+
+    ############ Who ############################
+    w = Who()
+    a = Author()
+    a.add_contactName("LIGO Scientific Consortium")
+    a.add_contactEmail("postmaster@ligo.org")
+    w.set_Author(a)
+    v.set_Who(w)
+
+    ############ What ############################
+    w = What()
+
+    # params related to the event. None are in Groups.
+    p = Param(name="gracedbid", ucd="meta.id", value="%s"% objid)
+    p.set_Description(["Identifier assigned by gracedb"])
+    w.add_Param(p)
+
+    p = Param(name="gpstime", ucd="time.epoch", dataType="int",  value=str(gevent.gpstime))
+    p.set_Description(["GPS time of the trigger"])
+    w.add_Param(p)
+
+    p = Param(name="likelihood", ucd="stat.likelihood", dataType="float",  value=str(gevent.likelihood))
+    p.set_Description(["Likelihood"])
+    w.add_Param(p)
+
+    v.set_What(w)
+
+    ############ Wherewhen ############################
+    wwd = {'observatory':     'LIGO',
+           'coord_system':    'UTC-FK5-GEO',
+           # XXX time format
+           'time':            str(gpsToUtc(gevent.gpstime).isoformat())[:-6],   #'1918-11-11T11:11:11',
+           'timeError':       1.0,
+           'longitude':       123.45,
+           'latitude':        67.89,
+           'positionalError': 180.0,
+    }
+
+    ww = makeWhereWhen(wwd)
+    if ww: v.set_WhereWhen(ww)
+
+    ############ Citation ############################
+    #c = Citations()
+    #c.add_EventIVORN(EventIVORN(cite="followup", valueOf_="ivo:silly/billy#89474"))
+    #c.add_EventIVORN(EventIVORN(cite="followup", valueOf_="ivo:silly/billy#89475"))
+    #v.set_Citations(c)
+
+    ############ output the event ############################
+    xml = stringVOEvent(v) 
+        #schemaURL = "http://www.ivoa.net/xml/VOEvent/VOEvent-v2.0.xsd")
+    return xml
+
+def submitToSkyalert(gevent, validate_only=False):
+    ## Python stub code for validating and authoring VOEvents to Skyalert
+    import urllib
+    dict = {}
+
+    # the server that will handle the submit request
+    url = "http://skyalert.org/submit/"
+    url = "https://betelgeuse.ligo.caltech.edu:8000/submit/"
+
+    # choose 'dryrun' for validation and 'author' for authoring
+    dict['checker'] = 'dryrun'
+
+    # for command line, we want plain text output, not HTML
+    dict['plainResponse'] = 'on'
+
+    if not validate_only:
+        # uncomment these for authoring
+        dict['checker'] = 'author'
+
+        # Skyalert username and password
+        dict['username'] = 'brian'
+        dict['password'] = 'man8men.'
+
+        # This is the short name for the stream, must match credentials and event!
+        dict['streamName'] = 'gracedb'
+
+        # Should alerts be run once the event is ingested?
+        dict['doRules'] = 'on'
+
+    # open a file for the XML
+    #dict['xmlText'] = open('sample.xml').read()
+    dict['xmlText'] = buildVOEvent(gevent)
+
+    # Now send it off and print the result
+    params = urllib.urlencode(dict)
+    f = urllib.urlopen(url, params)
+    result = f.read()
+    return result
+
+

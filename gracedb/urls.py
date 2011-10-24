@@ -8,6 +8,9 @@ urlpatterns = patterns('gracedb.gracedb.views',
     url (r'^create/$', 'create', name="create"),
     url (r'^search/(?P<format>(json|flex))?$', 'search', name="search"),
     url (r'^view/(?P<graceid>[\w\d]+)', 'view', name="view"),
+    url (r'^voevent/(?P<graceid>[\w\d]+)', 'voevent', name="voevent"),
+    url (r'^skyalert/(?P<graceid>[\w\d]+)', 'skyalert', name="skyalert"),
+
 
 #   (r'^view/(?P<uid>[\w\d]+)', 'view'),
 #   (r'^edit/(?P<uid>[\w\d]+)', 'edit'),
