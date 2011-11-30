@@ -4,6 +4,8 @@ import os
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
+EMAIL_HOST = 'gravity.phys.uwm.edu'
+
 ADMINS = (
     ('Brian Moe', 'bmoe@gravity.phys.uwm.edu'),
     ('Larry Price', 'larry@gravity.phys.uwm.edu'),
@@ -23,7 +25,7 @@ ALERT_EMAIL_BCC = [
 
 ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@archie.phys.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
-                       "larry@gravity.phys.uwm.edu",
+                       "bmoe@gravity.phys.uwm.edu",
                       ]
 
 XMPP_ALERT_CHANNELS = [
@@ -47,7 +49,7 @@ DATABASE_PORT = ''             # Set to empty string for default.
 
 
 # Latency histograms.  Where they go and max latency to bin.
-LATENCY_REPORT_DEST_DIR = "/home/lars/django/data/latency"
+LATENCY_REPORT_DEST_DIR = "/home/gracedb/data/latency"
 LATENCY_MAXIMUM_CHARTED = 1800
 LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
 
@@ -123,7 +125,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    "/home/lars/django/gracedb/templates",
+    "/home/gracedb/gracedb/templates",
 )
 
 INSTALLED_APPS = (
