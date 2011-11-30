@@ -129,7 +129,7 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
          "--file=-",
          "--node=%s" % nodename,
         ],
-        executable="/opt/lscsoft/glue/bin/lvalert_send",
+        executable="/usr/bin/lvalert_send",
         stdin=PIPE,
         stdout=null,
         stderr=STDOUT,
