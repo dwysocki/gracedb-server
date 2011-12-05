@@ -36,7 +36,7 @@ DATABASE_HOST = ''             # Set to empty string for localhost.
 DATABASE_PORT = ''             # Set to empty string for default.
 
 # Latency histograms.  Where they go and max latency to bin.
-LATENCY_REPORT_DEST_DIR = "/home/lars/django/data/latency"
+LATENCY_REPORT_DEST_DIR = "/home/bmoe/django/data/latency"
 LATENCY_MAXIMUM_CHARTED = 1800
 LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
 
@@ -112,7 +112,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    "/home/lars/django/gracedb/templates",
+    "/home/bmoe/gracedb/templates",
 )
 
 INSTALLED_APPS = (
