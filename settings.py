@@ -8,10 +8,12 @@ EMAIL_HOST = 'gravity.phys.uwm.edu'
 
 ADMINS = (
     ('Brian Moe', 'bmoe@gravity.phys.uwm.edu'),
-    ('Larry Price', 'larry@gravity.phys.uwm.edu'),
+#   ('Larry Price', 'larry@gravity.phys.uwm.edu'),
 )
 
 MANAGERS = ADMINS
+
+SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
 
 ALERT_EMAIL_FROM = "GraCEDb <gracedb@archie.phys.uwm.edu>"
 ALERT_EMAIL_TO = [

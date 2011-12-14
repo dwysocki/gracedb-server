@@ -1,4 +1,7 @@
+
+# Taken from VOEventLib example code, which is:
 # Copyright 2010 Roy D. Williams
+# then modified
 """
 buildVOEvent: Creates a complex VOEvent with tables
 See the VOEvent specification for details
@@ -17,7 +20,7 @@ def buildVOEvent(gevent):
 
     ############ VOEvent header ############################
     v = VOEvent.VOEvent(version="2.0")
-    v.set_ivorn("ivo://ligo.org/gracedb#%s" % objid)
+    v.set_ivorn("ivo://ligo.org/gracedb#%s-dev" % objid)
     v.set_role("test")
     v.set_Description("LIGO / Virgo trigger")
 
@@ -101,11 +104,7 @@ def submitToSkyalert(gevent, validate_only=False):
         # Should alerts be run once the event is ingested?
         dict['doRules'] = 'on'
 
-    # open a file for the XML
-    #dict['xmlText'] = open('sample.xml').read()
     dict['xmlText'] = buildVOEvent(gevent)
-
-    # Now send it off and print the result
     params = urllib.urlencode(dict)
     f = urllib.urlopen(url, params)
     result = f.read()

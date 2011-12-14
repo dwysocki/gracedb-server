@@ -18,6 +18,9 @@ from translator import handle_uploaded_data
 import urllib
 
 import os
+import re
+from django.core.mail import mail_admins
+from django.conf import settings
 
 from buildVOEvent import buildVOEvent, submitToSkyalert
 
@@ -33,13 +36,105 @@ def index(request):
             {},
             context_instance=RequestContext(request))
 
+def skyalert_authorized(request):
+    try:
+        return request.ligouser.name in settings.SKYALERT_SUBMITTERS
+    except:
+        return False
+
 def voevent(request, graceid):
     event = Event.getByGraceid(graceid)
     return HttpResponse(buildVOEvent(event), content_type="application/xml")
 
+
 def skyalert(request, graceid):
     event = Event.getByGraceid(graceid)
-    return HttpResponse(submitToSkyalert(event), content_type="text/plain")
+    createLogEntry = True
+
+    if not event.gpstime:
+        request.session['flash_msg'] = "No GPS time.  Event not suitable for submission to SkyAlert"
+        return HttpResponseRedirect(reverse(view, args=[graceid]))
+
+    if not skyalert_authorized(request):
+        request.session['flash_msg'] = "You are not authorized for SkyAlert submission"
+        return HttpResponseRedirect(reverse(view, args=[graceid]))
+
+    try:
+        skyalert_response = submitToSkyalert(event)
+    except Exception, e:
+        message = "SkyAlert Submission Error"
+        skyalert_response = ""
+        mail_admins("SkyAlert Submission Error",
+                    "Event: %s\nExcption: %s\n" % (graceid, e),
+                    fail_silently=True)
+
+    if skyalert_response.find("Success") >= 0:
+        urlpat = re.compile('https://[^ ]*')
+        match = urlpat.search(skyalert_response)
+        if match:
+            message = "Submitted to Skyalert: %s" % match.group()
+        else:
+            message = "SkyAlert submission problem.  Cannot parse SkyAlert response."
+            mail_admins("SkyAlert response parsing problem",
+                        "Event: %s\nSkyAlert Response: %s\n" % (graceid, skyalert_response),
+                        fail_silently=True)
+    elif skyalert_response.find('already') >= 0:
+            message = "Event already submitted to SkyAlert"
+            createLogEntry = False
+    elif skyalert_response:
+        message = "Skyalert Submission Failed."
+        mail_admins("SkyAlert submission failed",
+                    "Event: %s\nSkyAlert Response: %s\n" % (graceid, skyalert_response),
+                    fail_silently=True)
+
+    request.session['flash_msg'] = message
+
+    if createLogEntry:
+        logentry = EventLog(event=event, issuer=request.ligouser, comment=message)
+        logentry.save()
+
+    return HttpResponseRedirect(reverse(view, args=[graceid]))
+
+
+def badskyalert(request, graceid):
+    event = Event.getByGraceid(graceid)
+
+    if not event.gpstime:
+        request.session['flash_msg'] = "No GPS time.  Event not suitable for submission to SkyAlert"
+        return HttpResponse("Ugh no gpstime")
+        return HttpResponseRedirect(reverse(view, args=[graceid]))
+
+    logentry = EventLog(event=event, issuer=request.ligouser, comment="TRYING TO SUMIT TO SKYALERT")
+    logentry.save()
+
+    skyalert_response = submitToSkyalert(event, validate_only="False")
+
+    if skyalert_response.find("Success") >= 0:
+        urlpat = re.compile('https://[^ ]*')
+        match = urlpat.search(skyalert_response)
+        if match:
+            try:
+                skyalert_url = match.group()
+            except:
+                skyalert_url = "fail match"
+            comment = "Submitted to SkyALert: %s" % skyalert_url
+            logentry = EventLog(event=event, issuer=request.ligouser, comment=comment)
+            logentry.save()
+            request.session['flash_msg'] = comment
+            return HttpResponse("OK " + skyalert_response + skyalert_url + logentry.comment)
+        else:
+            request.session['flash_msg'] = "Problem parsing skyalert response"
+            return HttpResponse('problem ' + skyalert_response)
+    elif skyalert_response.find('already found') >= 0:
+        request.session['flash_msg'] = "Event already submitted to SkyAlert " + skyalert_response
+        return HttpResponse('already done ' + skyalert_response)
+    else:
+        return HttpResponse('problem2 ' + skyalert_response)
+        request.session['flash_msg'] = "Unknown problem submitting to SkyAlert -- %s" % skyalert_response
+
+    #return HttpResponseRedirect(reverse(view, args=[graceid]))
+    return HttpResponse('how did we get here? ' + skyalert_response)
+    return view(request, graceid)
 
 def create(request):
     d = _create(request)
@@ -393,6 +488,7 @@ def view(request, graceid):
     context['userdesc'] = get_file(graceid, "user.log")
     context['nearby'] = [(event.gpstime - a.gpstime, event)
                             for event in a.neighbors()]
+    context['skyalert_authorized'] = skyalert_authorized(request)
     return render_to_response(
         'gracedb/event_detail.html',
         context,

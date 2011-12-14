@@ -9,6 +9,8 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
+
 ALERT_EMAIL_FROM = "Dev Alert <root@moe.phys.uwm.edu>"
 ALERT_EMAIL_TO = [
     "Brian Moe <bmoe@gravity.phys.uwm.edu>",
