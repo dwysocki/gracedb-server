@@ -8,8 +8,8 @@ See the VOEvent specification for details
 http://www.ivoa.net/Documents/latest/VOEvent.html
 """
 
-from VOEventLib.VOEvent import *
-from VOEventLib.Vutil import *
+from gracedb.VOEventLib.VOEvent import *
+from gracedb.VOEventLib.Vutil import *
 import sys, os
 
 from gracedb.utils import gpsToUtc
