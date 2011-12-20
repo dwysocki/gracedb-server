@@ -1,6 +1,16 @@
 # Django settings for gracedb project.
 import os
 
+try:
+    # Workaround for a bug
+    # http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=473584
+    # http://bugs.python.org/setuptools/issue36
+    # import MySQLdb followed by import pkg_resources complains
+    #   /usr/lib/python2.6/dist-packages/pytz/__init__.py:32: UserWarning: Module _mysql was already imported from /usr/lib/pymodules/python2.6/_mysql.so, but /usr/lib/pymodules/python2.6 is being added to sys.path
+    import pkg_resources
+except:
+    pass
+
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
@@ -40,13 +50,14 @@ XMPP_ALERT_CHANNELS = [
                         'test_grb',
                       ]
 
-DATABASE_ENGINE = 'mysql'
-DATABASE_NAME = 'gracedb'
-DATABASE_USER = 'gracedb'
-DATABASE_PASSWORD = 'redrum4x'
-DATABASE_HOST = ''             # Set to empty string for localhost.
-DATABASE_PORT = ''             # Set to empty string for default.
-
+DATABASES = {
+    'default' : {
+        'NAME'     : 'gracedb',
+        'ENGINE'   : 'django.db.backends.mysql',
+        'USER'     : 'gracedb',
+        'PASSWORD' : 'redrum4x',
+    }
+}
 
 # SkyAlert
 
