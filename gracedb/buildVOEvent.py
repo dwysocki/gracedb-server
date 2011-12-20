@@ -13,6 +13,7 @@ from gracedb.VOEventLib.Vutil import *
 import sys, os
 
 from gracedb.utils import gpsToUtc
+from django.conf import settings
 
 def buildVOEvent(gevent):
 
@@ -20,9 +21,9 @@ def buildVOEvent(gevent):
 
     ############ VOEvent header ############################
     v = VOEvent.VOEvent(version="2.0")
-    v.set_ivorn("ivo://ligo.org/gracedb#%s-dev" % objid)
-    v.set_role("test")
-    v.set_Description("LIGO / Virgo trigger")
+    v.set_ivorn(settings.SKYALERT_IVORN_PATTERN % objid)
+    v.set_role(settings.SKYALERT_ROLE)
+    v.set_Description(settings.SKYALERT_DESCRIPTION)
 
     ############ Who ############################
     w = Who()

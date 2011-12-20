@@ -13,8 +13,6 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
-
 ALERT_EMAIL_FROM = "GraCEDb <gracedb@archie.phys.uwm.edu>"
 ALERT_EMAIL_TO = [
                   "gracedb@listserv.ligo.org",
@@ -48,6 +46,14 @@ DATABASE_USER = 'gracedb'
 DATABASE_PASSWORD = 'redrum4x'
 DATABASE_HOST = ''             # Set to empty string for localhost.
 DATABASE_PORT = ''             # Set to empty string for default.
+
+
+# SkyAlert
+
+SKYALERT_IVORN_PATTERN = "ivo://ligo.org/gracedb#%s"
+SKYALERT_ROLE          = "test"
+SKYALERT_DESCRIPTION   = "LIGO / Virgo trigger"
+SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
 
 
 # Latency histograms.  Where they go and max latency to bin.
