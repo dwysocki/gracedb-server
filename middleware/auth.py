@@ -100,6 +100,11 @@ class LigoAuthMiddleware:
 #       return None
 
 class LigoAuthBackend:
+
+    supports_object_permissions = False
+    supports_anonymous_user = False
+    supports_inactive_user = False
+
     def authenticate(self, ssluser):
         return ssluser
 
