@@ -1,7 +1,7 @@
 
-from django.contrib.syndication.feeds import FeedDoesNotExist
+from django.contrib.syndication.views import FeedDoesNotExist
 from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.syndication.feeds import Feed
+from django.contrib.syndication.views import Feed
 
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
@@ -14,8 +14,13 @@ from django.conf import settings
 FEED_MAX_RESULTS = getattr(settings, 'FEED_MAX_RESULTS', 20)
 
 class EventFeed(Feed):
-    def get_object(self, bits):
+    title_template = "feeds/latest_title.html"
+    description_template = "feeds/latest_description.html"
+    def get_object(self, request, url):
+        bits = url.split('/')[1:]
+        # bits will look like
         # [] , ['cbc'], ['cbc','lowmass']
+
         objs = Event.objects.order_by("-id")
         if 'test' not in bits:
             # Filter out test group

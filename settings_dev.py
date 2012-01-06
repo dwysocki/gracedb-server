@@ -56,6 +56,9 @@ SKYALERT_DESCRIPTION   = "LIGO / Virgo trigger"
 SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
 
 
+GRACEDB_DATA_DIR = "/mnt/gracedb-web/data"
+#GRACEDB_DATA_DIR = "/mnt/gracedb-web-temp/data"
+
 # Latency histograms.  Where they go and max latency to bin.
 LATENCY_REPORT_DEST_DIR = "/home/bmoe/django/data/latency"
 LATENCY_MAXIMUM_CHARTED = 1800
@@ -77,7 +80,7 @@ GRACE_DATETIME_FORMAT = 'Y-m-d H:i:s T'
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
 
-SITE_ID = 3
+SITE_ID = 4
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
