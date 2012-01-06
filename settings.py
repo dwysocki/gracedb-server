@@ -35,7 +35,7 @@ ALERT_EMAIL_BCC = [
 
 ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@archie.phys.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
-                       "bmoe@gravity.phys.uwm.edu",
+#                      "bmoe@gravity.phys.uwm.edu",
                       ]
 
 XMPP_ALERT_CHANNELS = [
@@ -66,6 +66,9 @@ SKYALERT_ROLE          = "test"
 SKYALERT_DESCRIPTION   = "LIGO / Virgo trigger"
 SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
 
+
+GRACEDB_DATA_DIR = "/mnt/gracedb-web/data"
+#GRACEDB_DATA_DIR = "/mnt/gracedb-web-temp/data"
 
 # Latency histograms.  Where they go and max latency to bin.
 LATENCY_REPORT_DEST_DIR = "/home/gracedb/data/latency"

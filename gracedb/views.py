@@ -27,6 +27,8 @@ from buildVOEvent import buildVOEvent, submitToSkyalert
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
 
+GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
+
 import simplejson
 
 def index(request):
@@ -228,7 +230,7 @@ def _createEventFromForm(request, form):
         saved = True  # in case we have to undo this.
         # Create data directory/directories
         #    Save uploaded file.
-        dirPrefix = "/mnt/gracedb-web/data"
+        dirPrefix = GRACEDB_DATA_DIR
         eventDir = os.path.join(dirPrefix, event.graceid())
         os.mkdir( eventDir )
         os.mkdir( os.path.join(eventDir,"private") )
@@ -276,7 +278,7 @@ def _createEventFromForm(request, form):
 
 def _saveUploadedFile(event, uploadedFile):
     # XXX Hardcoding.
-    fname = os.path.join("/mnt/gracedb-web/data", event.graceid(), "private", uploadedFile.name)
+    fname = os.path.join(GRACEDB_DATA_DIR, event.graceid(), "private", uploadedFile.name)
     f = open(fname, "w")
     for chunk in uploadedFile.chunks():
         f.write(chunk)
@@ -354,7 +356,7 @@ def upload(request):
             # Badnesses:
             #   Same hardcoded path in multiple places.
             #   What if we're clobbering an existing file?
-            fname = os.path.join("/mnt/gracedb-web/data", event.graceid(), "private", uploadedfile.name)
+            fname = os.path.join(GRACEDB_DATA_DIR, event.graceid(), "private", uploadedfile.name)
             f = open(fname, "w")
             for chunk in uploadedfile.chunks():
                 f.write(chunk)
@@ -831,7 +833,7 @@ def flexigridResponse(request, objects):
     return response
 
 def get_file(graceid, filename="event.log"):
-    dirPrefix = "/mnt/gracedb-web/data"
+    dirPrefix = GRACEDB_DATA_DIR
     logfilename = os.path.join(dirPrefix, graceid, "private", filename)
     contents = ""
     try:
