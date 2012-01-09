@@ -70,11 +70,13 @@ function changeTime(obj, label) {
    </td>
 
    <td align="center">
-    {% if ligouser and ligouser.name == "Chad Hanna" or ligouser.name == "Kipp Cannon" %}
+    {% if ligouser and ligouser.name == "Chad Hanna" %}
         <img width="194" height="37" src="/gracedb-static/images/PI_Logo-anim.gif">
+    {% else %}{% if ligouser and ligouser.name == "Kipp Cannon" %}
+        <img width="194" height="37" src="/gracedb-static/images/CITA_logo-anim.gif">
     {% else %}
         <img width="107" height="37" src="/gracedb-static/images/anim2.gif">
-    {% endif %}
+    {% endif %}{% endif %}
     <!-- 287px 101px -->
    </td>
 
