@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block jscript %}
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+    
+      // Load the Visualization API and the piechart package.
+      google.load('visualization', '1.0', {'packages':['corechart']});
+      
+      // Set a callback to run when the Google Visualization API is loaded.
+      //google.setOnLoadCallback(drawChart);
+      
+      // Callback that creates and populates a data table, 
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawChart() {
+
+      // Create the data table.
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Topping');
+      data.addColumn('number', 'Slices');
+      data.addRows([
+        ['Mushrooms', 3],
+        ['Onions', 1],
+        ['Olives', 1], 
+        ['Zucchini', 1],
+        ['Pepperoni', 2]
+      ]);
+
+      // Set chart options
+      var options = {'title':'How Much Pizza I Ate Last Night',
+                     'width':400,
+                     'height':300};
+
+      // Instantiate and draw our chart, passing in some options.
+      var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+      chart.draw(data, options);
+    }
+    </script>
+
+
+    <script type="text/javascript">
+      google.setOnLoadCallback(initialize);
+        function fakeData() {
+            var data = new google.visualization.DataTable();
+                    data.addColumn('string', 'Year');
+                    data.addColumn('number', 'Sales');
+                    data.addColumn('number', 'Expenses');
+                    data.addRows([
+                      ['2004', 1000, 400],
+                      ['2005', 1170, 460],
+                      ['2006', 660, 1120],
+                      ['2007', 1030, 540]
+                    ]);
+            return data;
+        }
+
+        function initialize() {
+          // Replace the data source URL on next line with your data source URL.
+          // Specify that we want to use the XmlHttpRequest object to make the query.
+          var opts = {sendMethod: 'xhr'};
+          var query = new google.visualization.Query('https://moe.phys.uwm.edu/gracedb/datas/source', opts);
+          
+          // Optional request to return only column C and the sum of column B, grouped by C members.
+          //query.setQuery('select C, sum(B) group by C');
+          
+          // Send the query with a callback function.
+          query.send(handleQueryResponse);
+        }
+        function handleQueryResponse(response) {
+
+          if (response.isError()) {
+            alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+            return;
+          }
+
+
+          var data = response.getDataTable();
+          var chart = new google.visualization.ColumnChart(document.getElementById('chart_div2'));
+          var options = {
+            width: 800,
+            height: 240,
+            //is3D: true,
+            hAxis: { title: "year", strictFirstColumnType: true }
+          };
+          chart.draw(data, options);
+          //chart.draw(fakeData(), options);
+        }
+    </script>
+
+
+{% endblock %}
+
+{% block title %}&iexcl;&iexcl;DATAS!!{% endblock %}
+{% block heading %}&iexcl;&iexcl;DATAS!!{% endblock %}
+{% block pageid  %}datas{% endblock %}
+
+
+{% block content %}
+
+IMA dATAhATE-Ahhhhhhhhhhhh
+{{ thing }}
+<hr/>
+<div id="chart_div">ONEs</div>
+<hr/>
+<div id="chart_div2">Goobs</div>
+
+{% endblock %}
