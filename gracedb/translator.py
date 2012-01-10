@@ -76,7 +76,9 @@ def handle_uploaded_data(event, datafilename,
             log_data.append("SNR: %0.3f" % origdata[0][0].snr)
             log_data.append("IFOs: %s" % origdata[0][0].ifos)
             if origdata[0][0].combined_far is not None:
-                log_data.append("FAR: %0.3e" % origdata[0][0].combined_far)
+                event.far = origdata[0][0].combined_far
+                #log_data.append("FAR: %0.3e" % origdata[0][0].combined_far)
+                log_data.append("FAR: %0.3e" % event.far)
             else:
                 log_data.append("FAR: ---")
         except Exception, e:

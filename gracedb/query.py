@@ -49,6 +49,10 @@ def doDate(toks):
         return "gpstime", Q("gpstime", convertToGps(toks[0]))
     return "gpstime", Q("gpstime__range", map(convertToGps(toks.toList())))
 
+# hasfar flag
+hasfarQ = CaselessLiteral("hasfar")
+hasfarQ.setParseAction(lambda toks: ("hasfar", Q(far__isnull=False)))
+
 # GPS Times
 gpstime = Word(nums).setName("GPS time")
 gpstimeRange = (gpstime + Suppress("..") + gpstime).setName("GPS time range")
@@ -138,7 +142,7 @@ labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
 labelQ.setParseAction(lambda toks: ("label", toks[0]))
 
 
-q = (gidQ | hidQ | tidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ).setName("query term")
+q = (hasfarQ | gidQ | hidQ | tidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ).setName("query term")
 
 def parseQuery(s):
     d={}

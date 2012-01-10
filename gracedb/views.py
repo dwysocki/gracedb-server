@@ -22,6 +22,8 @@ import re
 from django.core.mail import mail_admins
 from django.conf import settings
 
+from templatetags.scientific import scientific
+
 from buildVOEvent import buildVOEvent, submitToSkyalert
 
 # XXX This should be configurable / moddable or something
@@ -802,6 +804,8 @@ def flexigridResponse(request, objects):
 
                         event_times.get('gps',""),
                         #event_times['utc'],
+
+                        scientific(object.far),
 
                         '<a href="%s">Data</a> <a href="%s">Wiki</a>' %
                             (object.weburl(), object.wikiurl()),

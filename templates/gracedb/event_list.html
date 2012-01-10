@@ -48,7 +48,7 @@
             url: '{% url search %}/flex?query={{rawquery|urlencode}}',
             datatype: 'json',
             mtype: "GET",
-            colNames : ["UID", "Labels", "Neighbors (+/-5sec)", "Group", "Type", "Event Time", "Links", "Submitted", "Submitted By",
+            colNames : ["UID", "Labels", "Neighbors (+/-5sec)", "Group", "Type", "Event Time", "FAR", "Links", "Submitted", "Submitted By",
                        ],
             colModel : [
                {name : 'id',     index: 'id', width : 50, sortable : true, align: 'left', hidden: false},
@@ -58,9 +58,10 @@
                {name : 'analysisType', index: 'analysisType', width : 90, sortable : true, align: 'right', hide: false},
 
                {name : 'gpstime', index: 'gpstime', width : 90, sortable : true, align: 'right'},
+               {name : 'far', index: 'far', width : 80, sortable : true, align: 'right', hidden: false},
                {name : 'links',   index: 'links', width : 80, sortable : false, align: 'center'},
                {name : 'created', index: 'created', width : 100, sortable : true, align: 'right'},
-               {name : 'submitter', index: 'submitter', width : 100, sortable : true, align: 'right'},
+               {name : 'submitter', index: 'submitter', width : 80, sortable : true, align: 'right'},
 
                 ],
             pager: '#pager1',

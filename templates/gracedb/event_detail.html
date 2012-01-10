@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load timeutil %}
+{% load scientific %}
 
 {% block title %}View {{ object.graceid }}{% endblock %}
 {% block heading %}{% endblock %}
@@ -26,6 +27,7 @@
                 {{ "gps"|timeselect:"gps" }}
                 Event Time
             </th>
+            <th>FAR</th>
             <th colspan="2">Links</th>
             <th>
                 {{"created"|timeselect:"utc" }}
@@ -47,6 +49,7 @@
                 <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
                 {{ object.gpstime|multiTime:"gps" }}
             {% endif %}</td>
+        <td>{{ object.far|scientific }}</td>
         <td><a href="{{ object.weburl }}">Data</a></td>
         <td><a href="{{ object.wikiurl }}">Wiki</a></td>
         <td>{{ object.created|multiTime:"created" }}</td>

@@ -63,6 +63,7 @@ class Event(models.Model):
     # From ligolw coinc_event table -- none are required.  yet.
     instruments = models.CharField(max_length=20, default="")
     nevents = models.PositiveIntegerField(null=True)
+    far = models.FloatField(null=True)
     likelihood = models.FloatField(null=True)
     coincEvent = models.ForeignKey(CoincEvent, null=True)
 
