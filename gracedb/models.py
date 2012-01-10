@@ -13,6 +13,8 @@ import pytz, time
 
 SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 
+# Let's say we start here on schema versions
+schema_version = "1.0"
 
 class User(models.Model):
     name = models.CharField(max_length=100)
