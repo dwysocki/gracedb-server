@@ -35,6 +35,8 @@ def source(request):
     tqx = request.GET.get('tqx',"")
 
     atypes = ["OM", "LM"]
+    atypes = [shortname for (shortname, _) in Event.ANALYSIS_TYPE_CHOICES]
+
     description = [ ("Year", "string"), ]
 
     buffy = []
@@ -49,7 +51,8 @@ def source(request):
         cursor.execute(q, [t])
         d = {}
         for row in cursor.fetchall():
-            d[str(row[0])] = int(row[1])
+            n = int(row[1])
+            d[str(row[0])] = n
             dates.update([row[0]])
             buffy.append(row)
         things[t] = d
