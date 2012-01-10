@@ -1,0 +1,57 @@
+
+==================================================================
+Branch goocharts
+
+==================================================================
+Branch Master
+Django 1.1 -> 1.3
+Tue Dec 20 14:32:32 CST 2011
+
+Deprecation warnings in apache log.  /var/log/apache2/error.log
+
+    [Tue Dec 20 10:28:11 2011] [error] /home/lars/wsgi-sandbox/lib/python2.6/site-packages/django/db/__init__.py:19: DeprecationWarning: settings.DATABASE_* is deprecated; use settings.DATABASES instead.
+    [Tue Dec 20 10:28:11 2011] [error]   DeprecationWarning
+    [Tue Dec 20 10:28:11 2011] [error] /home/lars/wsgi-sandbox/lib/python2.6/site-packages/django/db/__init__.py:60: DeprecationWarning: Short names for ENGINE in database configurations are deprecated. Prepend default.ENGINE with 'django.db.backends.'
+    [Tue Dec 20 10:28:11 2011] [error]   DeprecationWarning
+
+Changed settings.py to new syntax.
+
+-----------------
+
+    [Tue Dec 20 10:28:12 2011] [error] /usr/lib/python2.6/dist-packages/pytz/__init__.py:32: UserWarning: Module _mysql was already imported from /usr/lib/pymodules/python2.6/_mysql.so, but /usr/lib/pymodules/python2.6 is being added to sys.path
+    [Tue Dec 20 10:28:12 2011] [error]   from pkg_resources import resource_stream
+
+Ugh.  This is a bug in distribute/pkg_resources, apparently.  Did a workaround -- an early import of
+pkg_resources will prevent this, so there is a pointless import at the beginning of settings.py.
+This seemed to rid us of this message.
+
+-----------------
+
+    [Tue Dec 20 10:28:12 2011] [error] /home/lars/wsgi-sandbox/lib/python2.6/site-packages/django/contrib/auth/__init__.py:26: DeprecationWarning: Authentication backends without a `supports_object_permissions` attribute are deprecated. Please define it in gracedb.middleware.auth.LigoAuthBackend.
+    [Tue Dec 20 10:28:12 2011] [error]   DeprecationWarning)
+    [Tue Dec 20 10:28:12 2011] [error] /home/lars/wsgi-sandbox/lib/python2.6/site-packages/django/contrib/auth/__init__.py:31: DeprecationWarning: Authentication backends without a `supports_anonymous_user` attribute are deprecated. Please define it in gracedb.middleware.auth.LigoAuthBackend.
+    [Tue Dec 20 10:28:12 2011] [error]   DeprecationWarning)
+
+Modified gracdeb.middleware.auth.LigoAuthBackend to have supports_object_permissions
+and supports_anonymous_user class attributes.
+
+-----------------
+
+    [Tue Dec 20 10:28:12 2011] [error] /home/lars/wsgi-sandbox/lib/python2.6/site-packages/django/core/context_processors.py:27: DeprecationWarning: The context processor at `django.core.context_processors.auth` is deprecated; use the path `django.contrib.auth.context_processors.auth` instead.
+    [Tue Dec 20 10:28:12 2011] [error]   DeprecationWarning
+
+Replaced in settings.py / settings_dev.py
+
+-----------------
+
+    [Tue Dec 20 10:28:12 2011] [error] /home/lars/wsgi-sandbox/lib/python2.6/site-packages/django/template/loaders/filesystem.py:58: DeprecationWarning: 'django.template.loaders.filesystem.load_template_source' is deprecated; use 'django.template.loaders.filesystem.Loader' instead.
+    [Tue Dec 20 10:28:12 2011] [error]   DeprecationWarning
+
+Replaced in settings.py / settings_dev.py
+
+-----------------
+
+error.log:[Thu Dec 22 14:40:20 2011] [error] /home/lars/wsgi-sandbox/lib/python2.6/site-packages/django/contrib/syndication/views.py:194: DeprecationWarning: The syndication feed() view is deprecated. Please use the new class based view API.
+
+Done.  Fixed in gracedb/feeds.py and urls.py.
+==================================================================

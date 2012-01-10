@@ -1,0 +1,56 @@
+
+Requirements:
+    gnuplot >= v4.2
+    glue   (python-glue in debian)
+    python-pyxmpp
+
+    mysql-server
+    MySQLdb-python  (python-mysqldb in debian)
+    mod_wsgi    (libapache2-mod-wsgi)
+    mod_auth_kerb (libapache2-mod-auth-kerb)
+
+    voevent
+
+==================================================================
+
+
+#   ligo-shibboleth-metadata-3.2.0-1
+    ligo-shibboleth-sp-2.0.0-1
+    shibboleth-2.4.3-2.2
+#   liblog4shib1-1.0.4-2.1
+
+    Apache must (should?) use MPM prefork and NOT worker model.
+        (debian - apache2-mpm-prefork)
+        This is because the Django ORM is (probably? possibly?) not threadsafe,
+        or maybe it probably *is* threadsafe...  hard to tell, but prefork
+        would be safer.
+
+        http://groups.google.com/group/django-developers/browse_thread/thread/905f79e350525c95
+        http://code.djangoproject.com/ticket/1442
+    
+We need glue.ligolw, which requires SOOO many things from pylal
+  it's just easier to install pylal all of LAL.
+
+
+    python-virtualenv
+
+
+    pip install django
+    pip install pytz
+    pip install simplejson
+
+nfs0001
+    certs
+    apache config
+    install services
+    TAKE NOTES FOR CFENGINE -- ANYTHING outside of /home
+
+clients/configs ... remove references to archie / push to repos.
+
+
+CREATE DATABASE gracedb;
+CREATE DATABASE gracedb_test;
+GRANT ALL PRIVILEGES ON gracedb.* TO 'gracedb' IDENTIFIED BY 'redrum4x';
+GRANT ALL PRIVILEGES ON gracedb_test.* TO 'gracedb' IDENTIFIED BY 'redrum4x';
+FLUSH PRIVILEGES;
+
