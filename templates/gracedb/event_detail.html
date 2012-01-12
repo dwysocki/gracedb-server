@@ -70,6 +70,7 @@
                     {{ "ngps"|timeselect:"gps" }}
                     Event Time
                 </th>
+                <th>FAR</th>
                 <th colspan="2">Links</th>
                 <th>
                     {{"ncreated"|timeselect:"utc" }}
@@ -91,6 +92,7 @@
             <td>{% if object.gpstime%}
                     {{ object.gpstime|multiTime:"ngps" }}
                 {% endif %}</td>
+            <td>{{ object.far|scientific }}</td>
             <td><a href="{{ object.weburl }}">Data</a></td>
             <td><a href="{{ object.wikiurl }}">Wiki</a></td>
             <td>{{ object.created|multiTime:"ncreated" }}</td>
