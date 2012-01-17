@@ -47,7 +47,8 @@ class Command(NoArgsCommand):
                 note['fname'] = fname
                 data = Event.objects.filter(analysisType=atype,
                                             created__range=[start_time, now],
-                                            gpstime__gt=0)
+                                            gpstime__gt=0) \
+                                    .exclude(group__name="Test")
                 note['count'] = data.count()
                 data = [e.reportingLatency() for e in data]
                 data = [d for d in data if d <= MAX_X and d > 0]
@@ -88,10 +89,11 @@ def writeIndex(notes, fname):
             if n['fname'] is not None:
                 table += '<img width="400" height="300" src="%s"/>' % \
                            os.path.basename(n['fname'])
+                extra = "%d total events" % n['count']
             else:
                 extra = "No Applicable Events"
             if n['over'] != 0:
-                extra = "%d events over maximum latency of %s seconds" % (n['over'], MAX_X)
+                extra += "<br/>%d events over maximum latency of %s seconds" % (n['over'], MAX_X)
             table += "<br/>%s" % extra
             table += "</td>"
         table += "</tr>"
@@ -192,7 +194,7 @@ def gnuplotHistogramData(atype, start, end):
     hist_data = {}
 
     data = Event.objects.filter(analysisType=atype,
-                                created__range=[start, end])
+                                created__range=[start, end]).exclude(group__name="Test")
 
     for e in data:
         latency =  e.reportingLatency()
