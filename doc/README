@@ -1,4 +1,8 @@
 
+Report generation.
+    ./manage.py make_histograms
+==================================================================
+
 Requirements:
     gnuplot >= v4.2
     glue   (python-glue in debian)
