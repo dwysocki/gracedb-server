@@ -18,7 +18,7 @@ special_floats = [str(pos_inf), str(neg_inf), str(nan)]
 
 @register.filter("scientific")
 def scientific(text):
-    if not text:
+    if text is None:
         return mark_safe("")
     try:
         out = "%0.3e" % text
