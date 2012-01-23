@@ -505,15 +505,16 @@ def cli_search(request):
         query = form.cleaned_data['query']
         objects = Event.objects.filter(query).distinct()
         # Assemble the output... should be able to choose format.
-        outTable = ["#graceid\tlabels\tgroup\ttype\tgpstime\tcreatetime\turl"]
+        outTable = ["#graceid\tlabels\tgroup\ttype\tfar\tgpstime\tcreatetime\turl"]
         outTable += [
-            "%s\t%s\t%s\t%s\t%s\t%s\t%s" % (
+            "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (
                 e.graceid(),
                 ",".join([labelling.label.name for labelling in e.labelling_set.all()]),
                 e.group,
                 e.get_analysisType_display(),
+                e.far or "",
                 e.gpstime or "",
-                e.created,
+                e.created.isoformat(),
                 e.weburl(),
             )
             for e in objects
