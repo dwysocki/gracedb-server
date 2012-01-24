@@ -76,9 +76,7 @@ def handle_uploaded_data(event, datafilename,
             log_data.append("SNR: %0.3f" % origdata[0][0].snr)
             log_data.append("IFOs: %s" % origdata[0][0].ifos)
             if origdata[0][0].combined_far is not None:
-                event.far = origdata[0][0].combined_far
-                #log_data.append("FAR: %0.3e" % origdata[0][0].combined_far)
-                log_data.append("FAR: %0.3e" % event.far)
+                log_data.append("FAR: %0.3e" % origdata[0][0].combined_far)
             else:
                 log_data.append("FAR: ---")
         except Exception, e:
@@ -114,6 +112,7 @@ def handle_uploaded_data(event, datafilename,
                             glue.ligolw.lsctables.CoincInspiralTable.tableName)
         coinc_table = coinc_table[0]
         event.gpstime = coinc_table[0].end_time
+        event.far = coinc_table[0].combined_far
 
         coinc_table = glue.ligolw.table.getTablesByName(
                             xmldoc,
