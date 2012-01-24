@@ -60,6 +60,21 @@ gpstimeRange = (gpstime + Suppress("..") + gpstime).setName("GPS time range")
 gpsQ = Optional(Suppress(Keyword("gpstime:"))) + (gpstime^gpstimeRange)
 gpsQ = gpsQ.setParseAction(maybeRange("gpstime"))
 
+# run ids
+runmap = {
+    "ER1" : (1011100000, 1020000000),
+    "S6"  : (931035296, 971622087),
+    "S6A" : (931035296, 935798487),
+    "S6B" : (937800015, 947260815),
+    "S6C" : (949449543, 961545687),
+    "S6D" : (956707143, 971622087),
+}
+runid = Or(map(CaselessLiteral, runmap.keys())).setName("run id")
+#runidList = OneOrMore(runid).setName("run id list")
+runQ = (Optional(Suppress(Keyword("runid:"))) + runid)
+runQ = runQ.setParseAction(lambda toks: ("gpstime", Q(gpstime__range=runmap[toks[0]])))
+                          #lambda toks: ("gpstime", Q("gpstime__range": runmap[toks[0]])) )
+
 # Analysis Groups
 groupNames = [group.name for group in models.Group.objects.all()]
 group = Or(map(CaselessLiteral, groupNames)).setName("analysis group name")
@@ -142,7 +157,7 @@ labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
 labelQ.setParseAction(lambda toks: ("label", toks[0]))
 
 
-q = (hasfarQ | gidQ | hidQ | tidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ).setName("query term")
+q = (hasfarQ | gidQ | hidQ | tidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ | runQ).setName("query term")
 
 def parseQuery(s):
     d={}
