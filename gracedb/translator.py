@@ -59,29 +59,43 @@ def handle_uploaded_data(event, datafilename,
 
     temp_data_loc = ""
     if event.analysisType in [ 'HM', 'LM' ]:
-        error = None
+        log_comment = "Log File Created"
         # Wildly speculative wrt HM
         xmldoc = glue.ligolw.utils.load_filename(datafilename)
 
         # Create Log Data
+        # XXX This is messy and redundant.  All of this is also below.
         try:
             log_data = ["Event Type: %s" % event.getTypeLabel(event.analysisType)]
             origdata = glue.ligolw.table.getTablesByName(
                                         xmldoc,
                                         glue.ligolw.lsctables.CoincInspiralTable.tableName)
 
-            log_data.append("MChirp: %0.3f" % origdata[0][0].mchirp)
-            log_data.append("MTot: %s" % origdata[0][0].mass)
-            log_data.append("End Time: %d.%d" % (origdata[0][0].end_time, origdata[0][0].end_time_ns))
-            log_data.append("SNR: %0.3f" % origdata[0][0].snr)
-            log_data.append("IFOs: %s" % origdata[0][0].ifos)
-            if origdata[0][0].combined_far is not None:
-                log_data.append("FAR: %0.3e" % origdata[0][0].combined_far)
+            mchirp   = origdata[0][0].mchirp
+            mass     = origdata[0][0].mass
+            end_time = (origdata[0][0].end_time, origdata[0][0].end_time_ns)
+            snr      = origdata[0][0].snr
+            ifos     = origdata[0][0].ifos
+            far      = origdata[0][0].combined_far
+
+            if mchirp is not None:
+                log_data.append("MChirp: %0.3f" % mchirp)
+            else:
+                log_data.append("MChirp: ---")
+            log_data.append("MTot: %s" % mass)
+            log_data.append("End Time: %d.%d" % end_time)
+            if snr is not None:
+                log_data.append("SNR: %0.3f" % snr)
+            else:
+                log_data.append("SNR: ---")
+            log_data.append("IFOs: %s" % ifos)
+            if far is not None:
+                log_data.append("FAR: %0.3e" % far)
             else:
                 log_data.append("FAR: ---")
         except Exception, e:
-            error = "Error: Problem Creating Log File: %s" % str(e)
-            log_data = ""
+            log_comment = "Problem Creating Log File"
+            log_data = ["Cannot create log file", "error was:", str(e)]
 
         log_data = "\n".join(log_data)
 
@@ -96,7 +110,7 @@ def handle_uploaded_data(event, datafilename,
         log = EventLog(event=event,
                        filename=log_filename,
                        issuer=event.submitter,
-                       comment="Log File Created" )
+                       comment=log_comment)
         log.save()
 
         log = EventLog(event=event,
@@ -126,9 +140,6 @@ def handle_uploaded_data(event, datafilename,
         event.coincEvent_id = insert_ligolw_tables(xml_filename)
 
         event.save()
-
-        if error:
-            raise Exception(error)
 
     elif event.analysisType == 'MBTA':
         #here's how it works for inspirals
