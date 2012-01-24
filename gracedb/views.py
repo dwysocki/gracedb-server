@@ -512,7 +512,7 @@ def cli_search(request):
                 ",".join([labelling.label.name for labelling in e.labelling_set.all()]),
                 e.group,
                 e.get_analysisType_display(),
-                e.far or "",
+                e.far,
                 e.gpstime or "",
                 e.created.isoformat(),
                 e.weburl(),
