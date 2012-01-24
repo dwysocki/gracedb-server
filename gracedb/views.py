@@ -806,6 +806,8 @@ def flexigridResponse(request, objects):
                         event_times.get('gps',""),
                         #event_times['utc'],
 
+                        object.instruments,
+
                         scientific(object.far),
 
                         '<a href="%s">Data</a> <a href="%s">Wiki</a>' %
