@@ -60,9 +60,13 @@ GRACEDB_DATA_DIR = "/mnt/gracedb-web/data"
 #GRACEDB_DATA_DIR = "/mnt/gracedb-web-temp/data"
 
 # Latency histograms.  Where they go and max latency to bin.
-LATENCY_REPORT_DEST_DIR = "/home/bmoe/django/data/latency"
+LATENCY_REPORT_DEST_DIR = "/home/bmoe/data/latency"
 LATENCY_MAXIMUM_CHARTED = 1800
 LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
+
+REPORT_CBC_IFAR_QUERY = "LowMass ER1 hasfar"
+REPORT_IFAR_IMAGE = LATENCY_REPORT_DEST_DIR + "/ifar.png"
+REPORT_IFAR_URL = "ifar.png"
 
 # RSS Feed Defaults
 FEED_MAX_RESULTS = 50

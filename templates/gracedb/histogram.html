@@ -1,11 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}Reporting Latency{% endblock %}
-{% block heading %}Reporting Latency{% endblock %}
+{% block title %}Reports{% endblock %}
+{% block heading %}Reports{% endblock %}
 {% block pageid %}reports{% endblock %}
 
 {% block content %}
 
+<h3>Latency</h3>
 {{ table|safe }}
+
+<br/>
+
+<h3>CBC IFAR</h3>
+{% if ifar %}
+    <img src="{{ ifar }}">hai
+{% else %}
+     No IFAR table.
+{% endif %}
 
 {% endblock %}
