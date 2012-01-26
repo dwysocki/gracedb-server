@@ -13,9 +13,11 @@
 
 <h3>CBC IFAR</h3>
 {% if ifar %}
-    <img src="{{ ifar }}">hai
+    {% for chart in ifar %}
+        <img src="{{ chart }}"><br/>
+    {% endfor %}
 {% else %}
-     No IFAR table.
+     No IFAR charts.
 {% endif %}
 
 {% endblock %}

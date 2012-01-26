@@ -64,9 +64,36 @@ LATENCY_REPORT_DEST_DIR = "/home/bmoe/data/latency"
 LATENCY_MAXIMUM_CHARTED = 1800
 LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
 
-REPORT_CBC_IFAR_QUERY = "LowMass ER1 hasfar"
-REPORT_IFAR_IMAGE = LATENCY_REPORT_DEST_DIR + "/ifar.png"
-REPORT_IFAR_URL = "ifar.png"
+
+
+# CBC IFAR Reports
+
+from utils import posixToGpsTime
+from datetime import datetime, timedelta
+import time
+
+now = datetime.now()
+yesterday = now - timedelta(days=1)
+lastweek = now - timedelta(days=7)
+now = posixToGpsTime(time.mktime(now.timetuple()))
+yesterday = posixToGpsTime(time.mktime(yesterday.timetuple()))
+lastweek = posixToGpsTime(time.mktime(lastweek.timetuple()))
+
+REPORT_IFAR_IMAGE_DIR = LATENCY_REPORT_DEST_DIR
+REPORTS_IFAR = [
+    #(query, axis_label, title, fname),
+    ("LowMass %d..%d" % (yesterday, now),
+     "GraceDB CBC LowMass ER1 events",
+     "ER1 FARs from gstlal_ll_inspiral - last day",
+     "ifar_day.png"
+    ),
+    ("LowMass %d..%d" % (lastweek, now),
+     "GraceDB CBC LowMass ER1 events",
+     "ER1 FARs from gstlal_ll_inspiral - last week",
+     "ifar_week.png"
+    ),
+]
+
 
 # RSS Feed Defaults
 FEED_MAX_RESULTS = 50
