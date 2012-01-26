@@ -5,13 +5,13 @@
 {% block pageid %}reports{% endblock %}
 
 {% block content %}
-
-<h3>Latency</h3>
+ 
+<a name="latency"></a><h3>Latency</h3>
 {{ table|safe }}
 
 <br/>
 
-<h3>CBC IFAR</h3>
+<a name="ifar"></a><h3>CBC IFAR</h3>
 {% if ifar %}
     {% for chart in ifar %}
         <img src="{{ chart }}"><br/>
