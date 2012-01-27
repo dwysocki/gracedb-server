@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block bodyattrs %}
+onload="document.search_form.query.focus();"
+{% endblock %}
+
 {% block title %}Search{% endblock %}
 {% block heading %}Search{% endblock %}
 {% block pageid %}search{% endblock %}
@@ -20,7 +24,7 @@
 
 {% block content %}
 
-<form method="POST">
+<form method="POST" name="search_form">
   <table>
     {{ form.as_table }}
     <tr><td/><td><a onClick="toggle_visibility('hints');">Hints on querying</a></td>
