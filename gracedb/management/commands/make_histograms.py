@@ -7,7 +7,8 @@ from django.utils import dateformat
 import datetime
 import matplotlib
 matplotlib.use("Agg")
-import matplotlib.pyplot as plot
+import matplotlib.pyplot as pyplot
+import numpy
 
 from gracedb.gracedb.models import Event
 
@@ -105,10 +106,16 @@ def writeIndex(notes, fname):
 
 def makePlot(data, title, maxx=1800, facecolor='green'):
     # make sure plot is clear!
-    plot.close()
-    nbins = maxx / 30
+    pyplot.close()
+    #nbins = maxx / 30
+    nbins = numpy.logspace(1.3, numpy.log10(maxx), 50)
 
-    n, bins, patches = plot.hist(data, nbins, facecolor=facecolor)
+    pyplot.xlim([20,maxx])
+    fig = pyplot.figure()
+
+    ax = fig.add_axes((.1, .1, .8, .8))
+
+    n, bins, patches = ax.hist(data, nbins, facecolor=facecolor)
 
     vmax = max(n)
     if vmax <= 10:
@@ -118,14 +125,13 @@ def makePlot(data, title, maxx=1800, facecolor='green'):
     else:
         vmax += 10 - (vmax % 10)
 
-    plot.xlabel('Seconds', fontsize=20)
-    plot.ylabel('Number of Events', fontsize=20)
-    #plot.title(title)
-    plot.axis([0, maxx, 0, vmax])
-    plot.grid(True)
+    ax.set_xlabel('Seconds', fontsize=20)
+    ax.set_ylabel('Number of Events', fontsize=20)
+    ax.set_xscale('log')
+    ax.axis([20, maxx, 0, vmax])
+    ax.grid(True)
 
-    return plot
-
+    return pyplot
 
 
 #=================================================================
