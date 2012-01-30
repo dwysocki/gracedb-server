@@ -177,6 +177,7 @@ def handle_uploaded_data(event, datafilename,
                             glue.ligolw.lsctables.CoincInspiralTable.tableName)
         coinc_table = coinc_table[0]
         event.gpstime = coinc_table[0].end_time
+        event.far = coinc_table[0].combined_far
 
         coinc_table = glue.ligolw.table.getTablesByName(
                             xmldoc,
