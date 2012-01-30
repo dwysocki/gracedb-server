@@ -62,7 +62,7 @@ def ifar_chart(events, title, axis_label, filename):
 
 
     fars = scipy.array(sorted(fars))
-    Ns = scipy.arange(len(fars))
+    Ns = scipy.arange(len(fars)) + 1
 
     T = float(max(ts) - min(ts))
 
