@@ -177,7 +177,8 @@ def handle_uploaded_data(event, datafilename,
                             glue.ligolw.lsctables.CoincInspiralTable.tableName)
         coinc_table = coinc_table[0]
         event.gpstime = coinc_table[0].end_time
-        event.far = coinc_table[0].combined_far
+        # Per Patrick 02FEB12.  All MBTA events with null far should have zero far.
+        event.far = coinc_table[0].combined_far or 0
 
         coinc_table = glue.ligolw.table.getTablesByName(
                             xmldoc,
