@@ -122,7 +122,14 @@
     <tr class={% cycle 'odd' 'even' %}>
         <td>{{ log.created|multiTime:"logtime" }}</td>
         <td>{{ log.issuer }}</td>
-        <td><a href="{{ log.fileurl }}">{{ log.filename }}</a></td>
+        <td><a href="{{ log.fileurl }}">
+            {% if log.hasImage %}
+                <br/><img height="200" src="{{ log.fileurl }}">
+            {% else %}
+                {{ log.filename }}
+            {% endif %}
+            </a>
+        </td>
         <td>{{ log.comment|urlize }}</td>
     </tr>  
   {% endfor %}

@@ -166,6 +166,10 @@ class EventLog(models.Model):
         else:
             return None
 
+    def hasImage(self):
+        # XXX hacky
+        return self.filename and self.filename[-3:].lower() in ['png','gif','jpg']
+
 class Labelling(models.Model):
     event = models.ForeignKey(Event)
     label = models.ForeignKey(Label)
