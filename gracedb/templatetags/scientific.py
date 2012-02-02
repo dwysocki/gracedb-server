@@ -20,8 +20,6 @@ special_floats = [str(pos_inf), str(neg_inf), str(nan)]
 def scientific(text):
     if text is None:
         return mark_safe("")
-    if text == 0:
-        return "0"
     try:
         out = "%0.3e" % text
     except:
