@@ -237,17 +237,31 @@ def handle_uploaded_data(event, datafilename,
 
         event.save()
     elif event.analysisType == 'CWB':
-        try:
-            f = open(datafilename, "r")
-            for line in f.readlines():
-                if line.startswith("time:"):
-                    times = line.split()
-                    event.gpstime = int(float(times[1]))
-                    event.save()
-                    break
-            f.close()
-        except:
-            pass
+
+        data = CwbData(datafilename)
+
+        # XXX Refactor
+        # the following should be common if/when the other analyses get a Translator class.
+
+        data.populateEvent(event)
+        event.save()
+
+        outputDataDir = os.path.dirname(datafilename)
+
+        if data.writeCoincFile( os.path.join(outputDataDir, "coinc.xml") ):
+            log = EventLog(event=event,
+                           filename="coinc.xml",
+                           issuer=event.submitter,
+                           comment="Coinc Table Created")
+            log.save()
+
+        if data.writeLogfile( os.path.join(outputDataDir, "event.log") ):
+            log = EventLog(event=event,
+                           filename="event.log",
+                           issuer=event.submitter,
+                           comment="Log File Created" )
+            log.save()
+
     elif event.analysisType == 'HWINJ':
         try:
             f = open(datafilename, "r")
@@ -265,3 +279,122 @@ def handle_uploaded_data(event, datafilename,
         pass
 
     return temp_data_loc
+
+# Let's try to:
+#
+#    - get ligolw stuff out of gracedb client.
+#    - re-factor this stuff to be easier to read/maintain/update
+#
+# We shall start with cWB
+#
+
+def val_or_dashes(val):
+    if val is None:
+        return "---"
+    return val
+
+class Translator(object):
+    pass
+
+class CwbData(Translator):
+    CWB_IFO_MAP = {
+        '1' : 'L1',
+        '2' : 'H1',
+        '3' : 'H2',
+        '4' : 'G1',
+        '5' : 'T1',
+        '6' : 'V1',
+        '7' : 'A1',
+    }
+
+    def __init__(self, datafile):
+        print "Got datafile", datafile
+        self.datafile = datafile
+        self.data = None
+
+    def getData(self):
+        if not self.data:
+            self.data = self._readData(self.datafile)
+        return self.data
+
+    def _readData(self, datafile):
+        if isinstance(datafile, str) or isinstance(datafile, unicode):
+            datafile = open(datafile, "r")
+
+        # cWB data look like
+        #
+        # key0: value value*
+        # ...
+        # keyN: value value*
+        # piles of other data not containing ':'
+        rawdata = {}
+
+        for line in datafile:
+            line = line.split(':',1)
+            if len(line) == 1:
+                break
+            key, val = line
+            rawdata[key] = val.split()
+
+        data = {}
+        data['rawdata'] = rawdata
+        data['gpstime']    = rawdata.get('time',[None])[0]
+        data['likelihood'] = rawdata.get('likelihood',[None])[0]
+        data['far']        = rawdata.get('far',[None])[0]
+
+        ifos = []
+        for ifo in rawdata.get('ifo',[]):
+            ifos.append(self.CWB_IFO_MAP[ifo])
+        ifos.sort()
+        data['instruments'] = ','.join(ifos)
+
+        self._castData(data)
+
+        return data
+
+    def _castData(self, data):
+        # convert ints to ints
+        for key in ['gpstime', 'likelihood']:
+            if data[key]:
+                data[key] = int(float(data[key]))
+
+        # convert floats to floats
+        for key in ['far']:
+            if data[key]:
+                data[key] = float(data[key])
+
+
+    def populateEvent(self, event):
+        data = self.getData()
+
+        event.gpstime = data.get('gpstime')
+        event.likelihood = data.get('likelihood')
+        event.instruments = data.get('instruments')
+        event.far = data.get('far')
+
+        event.save()
+
+    def logData(self):
+        data = self.getData()
+        logdata = []
+        logdata.append("Event Type: cWB")
+        logdata.append("Time: %s" % data.get('gpstime', '---'))
+        logdata.append("Frequency: %s" % data['rawdata'].get('frequency',[None])[0])
+        logdata.append("RA: %s" % data['rawdata'].get('phi',[None,None,None])[2])
+        logdata.append("Dec: %s" % data['rawdata'].get('theta',[None,None,None])[2])
+        logdata.append("Effective SNR: %s" % data['rawdata'].get('rho',[None])[0])
+        logdata.append("IFOs: %s" % val_or_dashes(data.get('instruments')))
+        logdata.append("FAR: %s" % val_or_dashes(data.get('far')))
+        return "\n".join(logdata)
+
+    def writeCoincFile(self, path):
+        pass
+
+    def writeLogfile(self, path):
+        data = self.logData()
+        if data:
+            f = open(path, 'w')
+            f.write(data)
+            f.close()
+        return True
+
