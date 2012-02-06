@@ -5,6 +5,42 @@
 {% block title %}View {{ object.graceid }}{% endblock %}
 {% block heading %}{% endblock %}
 
+{% block jscript %}
+    <script src="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        dojo.require("dojox.image.LightboxNano");
+        dojo.require("dojo.parser");
+        dojo.ready(function(){
+            dojo.parser.parse();
+        });
+    </script>
+    <style>
+        a:hover .dojoxEnlarge {
+            display: block !important;
+        }
+        .dojoxEnlarge {
+            background: url(images/enlarge.png) no-repeat 0 0;
+            top: -5px;
+            left: -5px;
+            margin: 0 !important;
+            width: 16px;
+            height: 16px;
+        }
+        .dojoxLoading {
+            background: #333 url(images/loading-dark.gif) no-repeat center center;
+            border-radius: 5px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            border: 2px solid #000;
+            height: 24px;
+            opacity: 0.8;
+            filter: alpha(opacity=80);
+            padding: 6px;
+            width: 24px;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
 <p>{{ message }}</p>
 
@@ -124,7 +160,7 @@
         <td>{{ log.issuer }}</td>
         {% if log.hasImage %}
           <td align="center">
-            <a href="{{ log.fileurl }}"><img height="130" src="{{ log.fileurl }}"></a>
+            <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="130" src="{{ log.fileurl }}"></a>
           </td>
         {% else %}
           <td><a href="{{ log.fileurl }}">{{ log.filename }}</a></td>
