@@ -21,8 +21,6 @@ def histo(request):
         fname = os.path.join(settings.REPORT_IFAR_IMAGE_DIR, name)
         if os.access(fname, os.R_OK):
             ifar.append(name)
-        else:
-            ifar.append('no ' + name)
 
     return render_to_response(
             'gracedb/histogram.html',
