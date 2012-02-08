@@ -5,7 +5,6 @@ import string
 import os
 
 
-from gracedb.ligolw.models import CoincEvent
 from gracedb.utils import posixToGpsTime
 
 from django.conf import settings
@@ -60,12 +59,12 @@ class Event(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Group)
     analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
-    # From ligolw coinc_event table -- none are required.  yet.
+
+    # from coinc_event
     instruments = models.CharField(max_length=20, default="")
     nevents = models.PositiveIntegerField(null=True)
     far = models.FloatField(null=True)
     likelihood = models.FloatField(null=True)
-    coincEvent = models.ForeignKey(CoincEvent, null=True)
 
     # NOT from coinc_event, but so, so common.
     #   Note that the semantics for this is different depending
@@ -73,20 +72,13 @@ class Event(models.Model):
     #   be considered, umm, wrong?  But it is a starting point.
     gpstime = models.PositiveIntegerField(null=True)
 
-    # XXX Deprecated.  Only useful for old test data.
-    # Remove this when it won't freak people out to lose
-    # old date encoded uids.
-    uid = models.CharField(max_length=20, unique=False, default="")
-
     labels = models.ManyToManyField(Label, through="Labelling")
 
     class Meta:
         ordering = ["-id"]
 
     def graceid(self):
-        if self.uid:
-            return self.uid
-        elif self.group.name == "Test":
+        if self.group.name == "Test":
             return "T%04d" % self.id
         elif self.analysisType == "HWINJ":
             return "H%04d" % self.id
@@ -138,13 +130,12 @@ class Event(models.Model):
 
     @classmethod
     def getByGraceid(cls, id):
-        if id[0] not in "GHT":
-            # Very old, probably useless data.
-            return cls.objects.get(uid=id)
         e = cls.objects.get(id=int(id[1:]))
         if (id[0] == "T") and (e.group.name != "Test"):
             raise cls.DoesNotExist()
         if (id[0] == "H") and (e.analysisType == "HWINJ"):
+            raise cls.DoesNotExist()
+        if (id[0] != "G"):
             raise cls.DoesNotExist()
         return e
 
