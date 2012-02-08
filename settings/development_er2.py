@@ -9,7 +9,7 @@ DATABASES = {
     'default' : {
         'NAME'     : 'er2',
         'ENGINE'   : 'django.db.backends.mysql',
-        'USER'     : 'gracedb',
+        'USER'     : 'er2',
         'PASSWORD' : 'weasel',
     }
 }

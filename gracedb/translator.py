@@ -18,35 +18,6 @@ from glue.gracedb.utils import populate_inspiral_tables, \
                                populate_coinc_tables,    \
                                write_output_files
 
-# Importing this messes with other ligolw table actions.
-#from gracedb.ligolw.insert import insert_ligolw_tables
-import gracedb.ligolw
-
-def insert_ligolw_tables(xml_filename):
-    #insert_ligolw_tables(django.db.connection, xml_filename)
-    prog = os.path.dirname(gracedb.ligolw.__file__)
-    prog = os.path.join(prog, "insert.py")
-    e = dict(os.environ)
-    ppath = e.get("PYTHONPATH") or ""
-    ppath = ppath.split(':')
-    ppath = ppath + sys.path
-    e['PYTHONPATH'] = ':'.join(ppath)
-    p = Popen( (prog,
-                 settings.DATABASE_USER,
-                 settings.DATABASE_PASSWORD,
-                 settings.DATABASE_NAME,
-                 xml_filename),
-               stdout=PIPE, stderr=PIPE, env=e)
-    out = p.stdout.read()
-    err = p.stderr.read()
-    p.wait()
-    out += p.stdout.read()
-    if out.find("OK") != 0:
-        coinc_id = None
-    else:
-        coinc_id = out[2:].strip()
-    return coinc_id
-
 def handle_uploaded_data(event, datafilename,
                          log_filename='event.log',
                          coinc_table_filename='coinc.xml'):
@@ -137,7 +108,6 @@ def handle_uploaded_data(event, datafilename,
         event.likelihood = coinc_table[0].likelihood
 
         xml_filename = os.path.join(output_dir, coinc_table_filename)
-        event.coincEvent_id = insert_ligolw_tables(xml_filename)
 
         event.save()
 
@@ -189,7 +159,6 @@ def handle_uploaded_data(event, datafilename,
         event.likelihood = coinc_table[0].likelihood
 
         xml_filename = os.path.join(output_dir, coinc_table_filename)
-        event.coincEvent_id = insert_ligolw_tables(xml_filename)
 
         event.save()
 
@@ -233,7 +202,6 @@ def handle_uploaded_data(event, datafilename,
         event.likelihood = coinc_table[0].likelihood
 
         xml_filename = os.path.join(output_dir, coinc_table_filename)
-        event.coincEvent_id = insert_ligolw_tables(xml_filename)
 
         event.save()
     elif event.analysisType == 'CWB':
@@ -294,9 +262,60 @@ def val_or_dashes(val):
     return val
 
 class Translator(object):
-    pass
+    event_type = "Undefined"  # override
+
+    def getData(self):
+        # override
+        raise(NotImplemented)
+
+    def castData(self, data):
+        # convert ints to ints
+        for key in ['gpstime', 'likelihood']:
+            if data[key]:
+                data[key] = int(float(data[key]))
+
+        # convert floats to floats
+        for key in ['far']:
+            if data[key]:
+                data[key] = float(data[key])
+
+    def populateEvent(self, event):
+        data = self.getData()
+
+        event.gpstime = data.get('gpstime')
+        event.likelihood = data.get('likelihood')
+        event.instruments = data.get('instruments')
+        event.far = data.get('far')
+
+        event.save()
+
+    def logData(self):
+        data = self.getData()
+        logdata = []
+        logdata.append("Event Type: %s", self.event_type)
+        logdata.append("Time: %s" % data.get('gpstime', '---'))
+        logdata.append("Duration: %s" % data['rawdata'].get('duration',["---"])[0])
+        logdata.append("Frequency: %s" % data['rawdata'].get('frequency',["---"])[0])
+        logdata.append("Bandwidth: %s" % data['rawdata'].get('bandwidth',["---"])[0])
+        logdata.append("RA: %s" % data['rawdata'].get('phi',[None,None,"---"])[2])
+        logdata.append("Dec: %s" % data['rawdata'].get('theta',[None,None,"---"])[2])
+        logdata.append("Effective SNR: %s" % data['rawdata'].get('rho',["---"])[0])
+        logdata.append("IFOs: %s" % val_or_dashes(data.get('instruments')))
+        logdata.append("FAR: %s" % val_or_dashes(data.get('far')))
+        return "\n".join(logdata)
+
+    def writeLogfile(self, path):
+        data = self.logData()
+        if data:
+            f = open(path, 'w')
+            f.write(data)
+            f.close()
+        return True
+
+
 
 class CwbData(Translator):
+    event_type = "cWB"
     CWB_IFO_MAP = {
         '1' : 'L1',
         '2' : 'H1',
@@ -307,19 +326,21 @@ class CwbData(Translator):
         '7' : 'A1',
     }
 
-    def __init__(self, datafile):
-        print "Got datafile", datafile
+    def __init__(self, datafile, *args, **kwargs):
         self.datafile = datafile
         self.data = None
 
     def getData(self):
         if not self.data:
-            self.data = self._readData(self.datafile)
+            data = self.readData(self.datafile)
+            self.castData(data)
         return self.data
 
-    def _readData(self, datafile):
+    def readData(self, datafile):
+        needToClose = False
         if isinstance(datafile, str) or isinstance(datafile, unicode):
             datafile = open(datafile, "r")
+            needToClose = True
 
         # cWB data look like
         #
@@ -348,55 +369,12 @@ class CwbData(Translator):
         ifos.sort()
         data['instruments'] = ','.join(ifos)
 
-        self._castData(data)
+        if needToClose:
+            datafile.close()
 
+        self.data = data
         return data
-
-    def _castData(self, data):
-        # convert ints to ints
-        for key in ['gpstime', 'likelihood']:
-            if data[key]:
-                data[key] = int(float(data[key]))
-
-        # convert floats to floats
-        for key in ['far']:
-            if data[key]:
-                data[key] = float(data[key])
-
-
-    def populateEvent(self, event):
-        data = self.getData()
-
-        event.gpstime = data.get('gpstime')
-        event.likelihood = data.get('likelihood')
-        event.instruments = data.get('instruments')
-        event.far = data.get('far')
-
-        event.save()
-
-    def logData(self):
-        data = self.getData()
-        logdata = []
-        logdata.append("Event Type: cWB")
-        logdata.append("Time: %s" % data.get('gpstime', '---'))
-        logdata.append("Duration: %s" % data['rawdata'].get('duration',["---"])[0])
-        logdata.append("Frequency: %s" % data['rawdata'].get('frequency',["---"])[0])
-        logdata.append("Bandwidth: %s" % data['rawdata'].get('bandwidth',["---"])[0])
-        logdata.append("RA: %s" % data['rawdata'].get('phi',[None,None,"---"])[2])
-        logdata.append("Dec: %s" % data['rawdata'].get('theta',[None,None,"---"])[2])
-        logdata.append("Effective SNR: %s" % data['rawdata'].get('rho',["---"])[0])
-        logdata.append("IFOs: %s" % val_or_dashes(data.get('instruments')))
-        logdata.append("FAR: %s" % val_or_dashes(data.get('far')))
-        return "\n".join(logdata)
 
     def writeCoincFile(self, path):
         pass
-
-    def writeLogfile(self, path):
-        data = self.logData()
-        if data:
-            f = open(path, 'w')
-            f.write(data)
-            f.close()
-        return True
 
