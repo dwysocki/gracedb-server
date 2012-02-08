@@ -1,15 +1,5 @@
-# Django settings for gracedb project.
-import os
 
-try:
-    # Workaround for a bug
-    # http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=473584
-    # http://bugs.python.org/setuptools/issue36
-    # import MySQLdb followed by import pkg_resources complains
-    #   /usr/lib/python2.6/dist-packages/pytz/__init__.py:32: UserWarning: Module _mysql was already imported from /usr/lib/pymodules/python2.6/_mysql.so, but /usr/lib/pymodules/python2.6 is being added to sys.path
-    import pkg_resources
-except:
-    pass
+# Suitable for production
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -18,7 +8,6 @@ EMAIL_HOST = 'gravity.phys.uwm.edu'
 
 ADMINS = (
     ('Brian Moe', 'bmoe@gravity.phys.uwm.edu'),
-#   ('Larry Price', 'larry@gravity.phys.uwm.edu'),
 )
 
 MANAGERS = ADMINS
@@ -28,14 +17,10 @@ ALERT_EMAIL_TO = [
                   "gracedb@listserv.ligo.org",
                  ]
 ALERT_EMAIL_BCC = [
-#                 "Frederique Marion <marionf@lapp.in2p3.fr>",
-#                 "Benoit MOURS <mours@lapp.in2p3.fr>",
-#                 "Jonah Kanner <jkanner@umd.edu>",
                   ]
 
 ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@ligo.org>"
 ALERT_TEST_EMAIL_TO = [
-#                      "bmoe@gravity.phys.uwm.edu",
                       ]
 
 XMPP_ALERT_CHANNELS = [
@@ -76,34 +61,36 @@ LATENCY_MAXIMUM_CHARTED = 1800
 LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
 
 
-# CBC IFAR Reports
 
-from utils import posixToGpsTime
-from datetime import datetime, timedelta
-import time
-
-now = datetime.now()
-yesterday = now - timedelta(days=1)
-lastweek = now - timedelta(days=7)
-now = posixToGpsTime(time.mktime(now.timetuple()))
-yesterday = posixToGpsTime(time.mktime(yesterday.timetuple()))
-lastweek = posixToGpsTime(time.mktime(lastweek.timetuple()))
-
-REPORT_IFAR_IMAGE_DIR = LATENCY_REPORT_DEST_DIR
-REPORTS_IFAR = [
-    #(query, axis_label, title, fname)
-    ("LowMass %d..%d" % (yesterday, now),
-     "GraceDB CBC LowMass ER1 events",
-     "ER1 FARs from gstlal_ll_inspiral - last day",
-     "ifar_day.png"
-    ),
-    ("LowMass %d..%d" % (lastweek, now),
-     "GraceDB CBC LowMass ER1 events",
-     "ER1 FARs from gstlal_ll_inspiral - last week",
-     "ifar_week.png"
-    ),
-]
-
+# Find another way to do this.
+#
+## CBC IFAR Reports
+#
+#from gracedb.utils import posixToGpsTime
+#from datetime import datetime, timedelta
+#import time
+#
+#now = datetime.now()
+#yesterday = now - timedelta(days=1)
+#lastweek = now - timedelta(days=7)
+#now = posixToGpsTime(time.mktime(now.timetuple()))
+#yesterday = posixToGpsTime(time.mktime(yesterday.timetuple()))
+#lastweek = posixToGpsTime(time.mktime(lastweek.timetuple()))
+#
+#REPORT_IFAR_IMAGE_DIR = LATENCY_REPORT_DEST_DIR
+#REPORTS_IFAR = [
+#    #(query, axis_label, title, fname),
+#    ("LowMass %d..%d" % (yesterday, now),
+#     "GraceDB CBC LowMass ER1 events",
+#     "ER1 FARs from gstlal_ll_inspiral - last day",
+#     "ifar_day.png"
+#    ),
+#    ("LowMass %d..%d" % (lastweek, now),
+#     "GraceDB CBC LowMass ER1 events",
+#     "ER1 FARs from gstlal_ll_inspiral - last week",
+#     "ifar_week.png"
+#    ),
+#]
 
 
 # RSS Feed Defaults
@@ -122,11 +109,11 @@ GRACE_DATETIME_FORMAT = 'Y-m-d H:i:s T'
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
 
-SITE_ID = 3
+SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
-USE_I18N = True
+USE_I18N = False
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
@@ -163,18 +150,19 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.media",
     "django.core.context_processors.request",
     "gracedb.middleware.auth.LigoAuthContext",
+    'gracedb.middleware.debug.LigoDebugContext',
 )
 
 AUTHENTICATION_BACKENDS = ('gracedb.middleware.auth.LigoAuthBackend',)
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE_CLASSES = [
     'gracedb.middleware.accept.AcceptMiddleware',
     'gracedb.middleware.auth.LigoAuthMiddleware',
     'gracedb.middleware.cli.CliExceptionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-)
+]
 
 ROOT_URLCONF = 'gracedb.urls'
 

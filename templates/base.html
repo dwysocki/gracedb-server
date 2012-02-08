@@ -38,6 +38,13 @@ function changeTime(obj, label) {
     <li id="nav-userprofile"><a href="{% url userprofile-home %}">Options</a></li>
     {% if ligouser %}<li id="nav-user">Authenticated as: {{ ligouser.name }}</li>{% endif %}
 </ul>
+<center>
+    {% if config_name %}
+      <h1 style="color: red;">
+          {{config_name}}
+      </h1>
+    {% endif %}
+</center>
 {% endblock %}
 
         <p>&nbsp;</p> <!-- bad way to create vertical space -->
