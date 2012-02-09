@@ -1,7 +1,7 @@
 
 from django.db import models
 
-from gracedb.gracedb.models import User, Label, Event
+from gracedb.models import User, Label, Event
 
 
 #class Notification(models.Model):

@@ -150,21 +150,21 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.media",
     "django.core.context_processors.request",
     "gracedb.middleware.auth.LigoAuthContext",
-    'gracedb.middleware.debug.LigoDebugContext',
+    'middleware.debug.LigoDebugContext',
 )
 
 AUTHENTICATION_BACKENDS = ('gracedb.middleware.auth.LigoAuthBackend',)
 
 MIDDLEWARE_CLASSES = [
-    'gracedb.middleware.accept.AcceptMiddleware',
+    'middleware.accept.AcceptMiddleware',
     'gracedb.middleware.auth.LigoAuthMiddleware',
-    'gracedb.middleware.cli.CliExceptionMiddleware',
+    'middleware.cli.CliExceptionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 ]
 
-ROOT_URLCONF = 'gracedb.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -179,6 +179,6 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'gracedb.gracedb',
-    'gracedb.userprofile',
+    'gracedb',
+    'userprofile',
 )

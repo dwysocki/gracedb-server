@@ -17,6 +17,9 @@ ROOT_PATH = os.path.abspath( os.path.join( os.path.dirname(__file__), os.pardir 
 configs = {
     '/home/bmoe/ER2': 'development_er2',
     '/home/bmoe/er2box/lib/python2.6/site-packages/gracedb' : 'development_er2',
+
+    '/home/bmoe/er2box/lib/python2.6/site-packages/ER2' : 'development_er2',
+
     '/home/bmoe/gracedb': 'development',
     '/home/gracedb/gracedb': 'production',
 }

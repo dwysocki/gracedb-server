@@ -1,7 +1,7 @@
 
 from django.contrib.auth import authenticate
 
-from gracedb.gracedb.models import User
+from gracedb.models import User
 from django.contrib.auth.models import User as DjangoUser
 
 import re

@@ -8,11 +8,12 @@ See the VOEvent specification for details
 http://www.ivoa.net/Documents/latest/VOEvent.html
 """
 
-from gracedb.VOEventLib.VOEvent import *
-from gracedb.VOEventLib.Vutil import *
+from VOEventLib.VOEvent import *
+from VOEventLib.Vutil import *
 import sys, os
 
-from gracedb.utils import gpsToUtc
+# XXX ER2.utils.  utils is in project directory.  ugh.
+from utils import gpsToUtc
 from django.conf import settings
 
 def buildVOEvent(gevent):

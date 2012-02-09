@@ -5,7 +5,8 @@ import string
 import os
 
 
-from gracedb.utils import posixToGpsTime
+# XXX ER2.utils.  utils is in project directory.  ugh.
+from utils import posixToGpsTime
 
 from django.conf import settings
 import pytz, time

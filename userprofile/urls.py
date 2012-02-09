@@ -2,7 +2,7 @@
 from django.conf.urls.defaults import *
 
 
-urlpatterns = patterns('gracedb.userprofile.views',
+urlpatterns = patterns('userprofile.views',
     url (r'^$', 'index', name="userprofile-home"),
     url (r'^contact/create$', 'createContact', name="userprofile-create-contact"),
     url (r'^contact/delete/(?P<id>[\d]+)$', 'deleteContact', name="userprofile-delete-contact"),

@@ -720,7 +720,7 @@ def oldsearch(request):
             context_instance=RequestContext(request))
 
 def timeline(request):
-    from gracedb.utils import gpsToUtc
+    from utils import gpsToUtc
     from django.utils import dateformat
 
     response = HttpResponse(mimetype='application/javascript')
