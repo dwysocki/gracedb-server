@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse, get_script_prefix
 
-from gracedb.userprofile.models import Trigger, AnalysisType
+from userprofile.models import Trigger, AnalysisType
 
 import glue.ligolw.utils
 import glue.lvalert.utils

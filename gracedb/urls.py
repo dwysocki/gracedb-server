@@ -3,7 +3,7 @@ from django.conf.urls.defaults import *
 
 #import django.views.generic.list_detail
 
-urlpatterns = patterns('gracedb.gracedb.views',
+urlpatterns = patterns('gracedb.views',
     url (r'^$', 'index', name="home"),
     url (r'^create/$', 'create', name="create"),
     url (r'^search/(?P<format>(json|flex))?$', 'search', name="search"),

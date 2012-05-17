@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
-from gracedb.userprofile.models import Trigger, Contact
+from models import Trigger, Contact
 
 from forms import ContactForm, triggerFormFactory
 

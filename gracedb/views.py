@@ -459,7 +459,7 @@ def log(request):
 
 def ping(request):
     #ack = "(%s) " % Site.objects.get_current()
-    ack = "(%s) " % request.META['SERVER_NAME']
+    ack = "(%s/%s) " % (request.META['SERVER_NAME'], settings.CONFIG_NAME)
     ack += request.POST.get('ack', None) or request.GET.get('ack','ACK')
 
     from templatetags.timeutil import utc
@@ -720,7 +720,7 @@ def oldsearch(request):
             context_instance=RequestContext(request))
 
 def timeline(request):
-    from gracedb.utils import gpsToUtc
+    from utils import gpsToUtc
     from django.utils import dateformat
 
     response = HttpResponse(mimetype='application/javascript')

@@ -1,3 +1,17 @@
+==================================================================
+ER2
+
+    settings refactor
+        More unified settings/config.
+            settings/__init__.py
+                 locates and imports * from settings.default then settings.WHATEVER
+            settings/defaut.py
+                    /production.py
+                    /development.py
+                    /misc.py
+
+        Simple enough and gets rid of settings_dev crap.
+        Keeps prod/dev configs from diverging too much.
 
 ==================================================================
 Branch goocharts
