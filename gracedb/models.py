@@ -132,13 +132,13 @@ class Event(models.Model):
     @classmethod
     def getByGraceid(cls, id):
         e = cls.objects.get(id=int(id[1:]))
-        if (id[0] == "T") and (e.group.name != "Test"):
-            raise cls.DoesNotExist()
+        if (id[0] == "T") and (e.group.name == "Test"):
+            return e
         if (id[0] == "H") and (e.analysisType == "HWINJ"):
-            raise cls.DoesNotExist()
-        if (id[0] != "G"):
-            raise cls.DoesNotExist()
-        return e
+            return e
+        if (id[0] == "G"):
+            return e
+        raise cls.DoesNotExist()
 
     def __unicode__(self):
         return self.graceid()
