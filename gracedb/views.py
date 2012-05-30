@@ -592,12 +592,32 @@ def search(request, format=""):
             elif format == "jqgrid":
                 return jqgridResponse(request, objects)
             elif 'ligolw' in request.POST:
-                response = HttpResponse(mimetype='application/javascript')
-                response = HttpResponse(mimetype='text/plain')
-                msg = 'oh hai'
-                response['Content-length'] = len(msg)
-                response.write(msg)
+
+                if objects.count() > 1000:
+                    # XXX  Make this -- Better.
+                    return HttpResponse("No more than 1000 events currently allowed.")
+
+                from glue.ligolw import ligolw
+                # lsctables MUST be loaded before utils.
+                from glue.ligolw import lsctables
+                from glue.ligolw import utils
+                from glue.ligolw.utils import ligolw_add
+                from settings import GRACEDB_DATA_DIR
+
+                xmldoc = ligolw.Document()
+                for obj in objects:
+                    fname = os.path.join(GRACEDB_DATA_DIR, obj.graceid(), "private", "coinc.xml")
+                    utils.load_filename(fname, xmldoc=xmldoc)
+
+                ligolw_add.reassign_ids(xmldoc)
+                ligolw_add.merge_ligolws(xmldoc)
+                ligolw_add.merge_compatible_tables(xmldoc)
+
+                response = HttpResponse(mimetype='application/xml')
+                response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
+                utils.write_fileobj(xmldoc, response)
                 return response
+
             else:
                 #objects = objects[:limit]
                 #if objects.count() >= limit:
