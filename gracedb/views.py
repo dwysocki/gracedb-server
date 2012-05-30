@@ -591,11 +591,11 @@ def search(request, format=""):
                 return flexigridResponse(request, objects)
             elif format == "jqgrid":
                 return jqgridResponse(request, objects)
-            elif 'ligolw' in request.POST:
+            elif 'ligolw' in request.POST or 'ligolw' in request.GET:
 
                 if objects.count() > 1000:
                     # XXX  Make this -- Better.
-                    return HttpResponse("No more than 1000 events currently allowed.")
+                    return HttpResponse("Sorry -- no more than 1000 events currently allowed.")
 
                 from glue.ligolw import ligolw
                 # lsctables MUST be loaded before utils.

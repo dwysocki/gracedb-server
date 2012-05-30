@@ -110,6 +110,7 @@
                 <a onClick="toggle_visibility('hints');">Hints on querying</a>
                 {% if rawquery %}
                     | <a href="{% url search %}?query={{rawquery|urlencode}}">Link to current query</a>
+                    | <a href="{% url search %}?query={{rawquery|urlencode}}&ligolw">Download LIGOLW File</a>
                 {% endif %}
             </td>
         </tr>
