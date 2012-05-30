@@ -591,6 +591,13 @@ def search(request, format=""):
                 return flexigridResponse(request, objects)
             elif format == "jqgrid":
                 return jqgridResponse(request, objects)
+            elif 'ligolw' in request.POST:
+                response = HttpResponse(mimetype='application/javascript')
+                response = HttpResponse(mimetype='text/plain')
+                msg = 'oh hai'
+                response['Content-length'] = len(msg)
+                response.write(msg)
+                return response
             else:
                 #objects = objects[:limit]
                 #if objects.count() >= limit:
@@ -608,6 +615,7 @@ def search(request, format=""):
                     'rawquery' : rawquery,
                 }
                 return object_list(request, objects, extra_context=context)
+
     return render_to_response('gracedb/query.html',
             { 'form' : form,
               'form2' : form2,
