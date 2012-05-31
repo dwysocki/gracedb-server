@@ -31,6 +31,8 @@ urlpatterns = patterns('',
     (r'^reports/(?P<path>.+)$', 'django.views.static.serve',
             {'document_root': settings.LATENCY_REPORT_DEST_DIR}),
 
+    url (r'^latest', 'gracedb.views.latest', name="latest"),
+
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
     # to INSTALLED_APPS to enable admin documentation:
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),

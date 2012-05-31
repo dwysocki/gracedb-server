@@ -934,3 +934,22 @@ Initial Entry for %s
     os.chmod(pname, 0644)
     os.chmod(rcsname, 0444)
 
+
+def latest(request):
+    context = {}
+
+    if request.method == "GET":
+        form = SimpleSearchForm(request.GET)
+    else:
+        form = SimpleSearchForm(request.POST)
+
+    context['form'] = form
+
+    if form.is_valid():
+        query = form.cleaned_data['query']
+        context['objects'] = Event.objects.filter(query).distinct().order_by("-created")[:10]
+
+    return render_to_response(
+            'gracedb/latest.html',
+            context,
+            context_instance=RequestContext(request))

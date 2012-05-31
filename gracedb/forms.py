@@ -28,7 +28,7 @@ class GraceQueryField(forms.CharField):
             raise forms.ValidationError(str(e))
 
 class SimpleSearchForm(forms.Form):
-    query = GraceQueryField(required=True, widget=forms.TextInput(attrs={'size':60}))
+    query = GraceQueryField(required=False, widget=forms.TextInput(attrs={'size':60}))
 
 
 class CreateEventForm(forms.Form):

@@ -161,6 +161,9 @@ q = (hasfarQ | gidQ | hidQ | tidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ |
 
 def parseQuery(s):
     d={}
+    if not s:
+        # Empty query return everything not in Test group
+        return ~Q(group__name="Test")
     for (tag, qval) in (stringStart + OneOrMore(q) + stringEnd).parseString(s).asList():
         d[tag] = d.get(tag,Q()) | qval
     if s.find("Test") < 0 and "tid" not in d:
