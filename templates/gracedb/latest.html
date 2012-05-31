@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Latest{% endblock %}
+{% block heading %}Latest{% endblock %}
+{% block pageid %}latest{% endblock %}
+
+{% block content %}
+
+<form method="POST">
+    <table>
+        {{ form.as_table }}
+    </table>
+</form>
+
+{% if objects %}
+    <hr/>
+    {% for item in objects %}
+        <div>
+            {{ item.graceid }}
+        </div>
+        <hr/>
+    {% endfor %}
+{% endif %}
+
+{% endblock %}
