@@ -97,16 +97,6 @@
 </form>
 
 {% if objects %}
-    <table class="timeselect">
-        <tr>
-            <td>Show Event Time As:</td>
-            <td>{{ "event"|timeselect:"gps" }}</td>
-        </tr>
-        <tr>
-            <td>Show Record Creation Time As:</td>
-            <td>{{ "created"|timeselect:"utc" }}</td>
-        </tr>
-    </table>
     <hr/>
     {% for item in objects %}
         <div class="summary">
@@ -132,13 +122,13 @@
 
             <table>
                 <tr><th>FAR:</th>
-                    <td> {{ item.far|scientific }} Hz</td></tr>
+                    <td> {{ item.far|scientific }} {% if item.far %}Hz{% endif %}</td></tr>
                 <tr><th>Event Time:</th>
-                    <td> {{ item.gpstime|multiTime:"event" }} </td></tr>
+                    <td> {{ item.gpstime }} </td></tr>
                 <tr><th>Latency:</th>
-                    <td> {{ item.reportingLatency }} seconds</td></tr>
+                    <td> {{ item.reportingLatency }} {% if item.reportingLatency %}seconds{% endif %}</td></tr>
                 <tr><th>Created:</th>
-                    <td> {{ item.created|multiTime:"created" }} </td></tr>
+                    <td> {{ item.created|utc }} </td></tr>
             </table>
 
         </div><!-- class summary -->
