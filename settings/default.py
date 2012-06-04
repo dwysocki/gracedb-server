@@ -64,33 +64,33 @@ LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
 
 # Find another way to do this.
 #
-## CBC IFAR Reports
-#
-#from gracedb.utils import posixToGpsTime
-#from datetime import datetime, timedelta
-#import time
-#
-#now = datetime.now()
-#yesterday = now - timedelta(days=1)
-#lastweek = now - timedelta(days=7)
-#now = posixToGpsTime(time.mktime(now.timetuple()))
-#yesterday = posixToGpsTime(time.mktime(yesterday.timetuple()))
-#lastweek = posixToGpsTime(time.mktime(lastweek.timetuple()))
-#
-#REPORT_IFAR_IMAGE_DIR = LATENCY_REPORT_DEST_DIR
-#REPORTS_IFAR = [
-#    #(query, axis_label, title, fname),
-#    ("LowMass %d..%d" % (yesterday, now),
-#     "GraceDB CBC LowMass ER1 events",
-#     "ER1 FARs from gstlal_ll_inspiral - last day",
-#     "ifar_day.png"
-#    ),
-#    ("LowMass %d..%d" % (lastweek, now),
-#     "GraceDB CBC LowMass ER1 events",
-#     "ER1 FARs from gstlal_ll_inspiral - last week",
-#     "ifar_week.png"
-#    ),
-#]
+# CBC IFAR Reports
+
+from utils import posixToGpsTime
+from datetime import datetime, timedelta
+import time
+
+now = datetime.now()
+yesterday = now - timedelta(days=1)
+lastweek = now - timedelta(days=7)
+now = posixToGpsTime(time.mktime(now.timetuple()))
+yesterday = posixToGpsTime(time.mktime(yesterday.timetuple()))
+lastweek = posixToGpsTime(time.mktime(lastweek.timetuple()))
+
+REPORT_IFAR_IMAGE_DIR = LATENCY_REPORT_DEST_DIR
+REPORTS_IFAR = [
+    #(query, axis_label, title, fname),
+    ("LowMass %d..%d" % (yesterday, now),
+     "GraceDB CBC LowMass ER1 events",
+     "ER1 FARs from gstlal_ll_inspiral - last day",
+     "ifar_day.png"
+    ),
+    ("LowMass %d..%d" % (lastweek, now),
+     "GraceDB CBC LowMass ER1 events",
+     "ER1 FARs from gstlal_ll_inspiral - last week",
+     "ifar_week.png"
+    ),
+]
 
 
 # RSS Feed Defaults
