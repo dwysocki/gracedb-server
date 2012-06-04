@@ -944,10 +944,14 @@ def latest(request):
         form = SimpleSearchForm(request.POST)
 
     context['form'] = form
+    context['rawquery'] = request.GET.get('query') or request.POST.get('query') or ""
 
     if form.is_valid():
         query = form.cleaned_data['query']
         context['objects'] = Event.objects.filter(query).distinct().order_by("-created")[:10]
+        context['error'] = False
+    else:
+        context['error'] = True
 
     return render_to_response(
             'gracedb/latest.html',
