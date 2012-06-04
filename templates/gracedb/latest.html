@@ -80,6 +80,9 @@
     }
     .summary-data {
     }
+    .timeselect form {
+        display: inline;
+    }
     </style>
 
 {% endblock %}
@@ -94,6 +97,16 @@
 </form>
 
 {% if objects %}
+    <table class="timeselect">
+        <tr>
+            <td>Show Event Time As:</td>
+            <td>{{ "event"|timeselect:"gps" }}</td>
+        </tr>
+        <tr>
+            <td>Show Record Creation Time As:</td>
+            <td>{{ "created"|timeselect:"utc" }}</td>
+        </tr>
+    </table>
     <hr/>
     {% for item in objects %}
         <div class="summary">
@@ -120,13 +133,11 @@
             <table>
                 <tr><th>FAR:</th>
                     <td> {{ item.far|scientific }} Hz</td></tr>
-                <tr><th>Event Time:
-                        {{ "event"|timeselect:"gps" }}</th>
+                <tr><th>Event Time:</th>
                     <td> {{ item.gpstime|multiTime:"event" }} </td></tr>
                 <tr><th>Latency:</th>
                     <td> {{ item.reportingLatency }} seconds</td></tr>
-                <tr><th>Created:
-                        {{ "created"|timeselect:"utc" }}</th>
+                <tr><th>Created:</th>
                     <td> {{ item.created|multiTime:"created" }} </td></tr>
             </table>
 

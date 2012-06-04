@@ -59,7 +59,10 @@ def multiTime(t, label, autoescape=None):
         dt = gpsToUtc(t)
         posix_time = time.mktime(dt.timetuple())
     else:
-        raise ValueError("time must be type int, long or datetime, not '%s'" % type(t))
+        return "N/A"
+        return '<time utc="%s" gps="%s" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
+            8*("N/A",)
+        # raise ValueError("time must be type int, long or datetime, not '%s'" % type(t))
 
     # JavaScript -- parsable by Date() object constructor
     # "Jan 2, 1985 00:00:00 UTC"
