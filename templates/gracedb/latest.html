@@ -118,10 +118,16 @@
             </div>
 
             <table>
-                <tr><th>FAR:</th><td> {{ item.far|scientific }} Hz</td></tr>
-                <tr><th>GPS Time:</th><td> {{ item.gpstime }} </td></tr>
-                <tr><th>Latency:</th><td> {{ item.reportingLatency }} seconds</td></tr>
-                <tr><th>Created:</th><td> {{ item.created }} </td></tr>
+                <tr><th>FAR:</th>
+                    <td> {{ item.far|scientific }} Hz</td></tr>
+                <tr><th>Event Time:
+                        {{ "event"|timeselect:"gps" }}</th>
+                    <td> {{ item.gpstime|multiTime:"event" }} </td></tr>
+                <tr><th>Latency:</th>
+                    <td> {{ item.reportingLatency }} seconds</td></tr>
+                <tr><th>Created:
+                        {{ "created"|timeselect:"utc" }}</th>
+                    <td> {{ item.created|multiTime:"created" }} </td></tr>
             </table>
 
         </div><!-- class summary -->
