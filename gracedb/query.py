@@ -156,8 +156,39 @@ labelQ_ = operatorPrecedence(label,
 labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
 labelQ.setParseAction(lambda toks: ("label", toks[0]))
 
+###########################
+# Query on event attributes
 
-q = (hasfarQ | gidQ | hidQ | tidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ | runQ).setName("query term")
+attrExprOperators = { "<" :  "__lt",
+                      "<=":  "__lte",
+                      "=" :  "",
+                      ">" :  "__gt",
+                      ">=":  "__gte",
+                    }
+
+attrExprLhs = Keyword("far") | Keyword("gpstime")
+
+exponent = Combine(Word("Ee") + Optional(Word("+-"))+Word(nums))
+afloat = Combine( Word(nums) + Optional(Combine(Literal(".") + Word(nums))) )
+
+attrExprRhs = Combine( Optional(Word("+-")) + afloat + Optional(exponent) )
+attrExprRhs.setParseAction(lambda toks: float(toks[0]))
+
+attrExprOp = Or(map(Literal, attrExprOperators.keys()))
+attrExprOp.setParseAction(lambda toks: attrExprOperators[toks[0]])
+
+attrExpr = attrExprLhs + attrExprOp + attrExprRhs
+attrExpr.setParseAction(lambda toks: Q(**{toks[0]+toks[1]: toks[2]}))
+
+attributeQ = Optional(Suppress(Keyword('attr:'))) + attrExpr
+attributeQ.setParseAction(lambda toks: ("attr", toks[0]))
+
+
+###########################
+
+q = (hasfarQ | gidQ | hidQ | tidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
+
+andTheseTags = ["attr"]
 
 def parseQuery(s):
     d={}
@@ -165,7 +196,10 @@ def parseQuery(s):
         # Empty query return everything not in Test group
         return ~Q(group__name="Test")
     for (tag, qval) in (stringStart + OneOrMore(q) + stringEnd).parseString(s).asList():
-        d[tag] = d.get(tag,Q()) | qval
+        if tag in andTheseTags:
+            d[tag] = d.get(tag,Q()) & qval
+        else:
+            d[tag] = d.get(tag,Q()) | qval
     if s.find("Test") < 0 and "tid" not in d:
         # If Test group is not mentioned in the query, we exclude it.
         if "group" in d:
