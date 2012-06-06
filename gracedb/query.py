@@ -180,7 +180,14 @@ attrExprOp.setParseAction(lambda toks: attrExprOperators[toks[0]])
 attrExpr = attrExprLhs + attrExprOp + attrExprRhs
 attrExpr.setParseAction(lambda toks: Q(**{toks[0]+toks[1]: toks[2]}))
 
-attributeQ = Optional(Suppress(Keyword('attr:'))) + attrExpr
+attrExprs = operatorPrecedence(attrExpr,
+    [(minusop, 1, opAssoc.RIGHT, lambda a,b,toks: ~toks[0][0]),
+     (orop,    2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__or__, toks[0].asList(), Q())),
+     (andop,   2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__and__, toks[0].asList(), Q())),
+    ]).setParseAction(lambda toks: toks[0])
+
+
+attributeQ = Optional(Suppress(Keyword('attr:'))) + attrExprs.copy()
 attributeQ.setParseAction(lambda toks: ("attr", toks[0]))
 
 
@@ -188,7 +195,8 @@ attributeQ.setParseAction(lambda toks: ("attr", toks[0]))
 
 q = (hasfarQ | gidQ | hidQ | tidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
 
-andTheseTags = ["attr"]
+#andTheseTags = ["attr"]
+andTheseTags = []
 
 def parseQuery(s):
     d={}
