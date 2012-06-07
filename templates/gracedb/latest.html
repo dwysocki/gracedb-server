@@ -127,6 +127,9 @@
                     <td> {{ item.gpstime }} </td></tr>
                 <tr><th>Latency:</th>
                     <td> {{ item.reportingLatency }} {% if item.reportingLatency %}seconds{% endif %}</td></tr>
+                <tr><th>IFOS:</th>
+                    <td> {{ item.instruments }} </td></tr>
+
                 <tr><th>Created:</th>
                     <td> {{ item.created|utc }} </td></tr>
             </table>
