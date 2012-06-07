@@ -159,26 +159,32 @@ labelQ.setParseAction(lambda toks: ("label", toks[0]))
 ###########################
 # Query on event attributes
 
-attrExprOperators = { "<" :  "__lt",
-                      "<=":  "__lte",
-                      "=" :  "",
-                      ">" :  "__gt",
-                      ">=":  "__gte",
-                    }
+attrNumExprOperators = { "<" :  "__lt",
+                         "<=":  "__lte",
+                         "=" :  "",
+                         ">" :  "__gt",
+                         ">=":  "__gte",
+                       }
 
-attrExprLhs = Keyword("far") | Keyword("gpstime")
+attrNumExprLhs = Keyword("far") | Keyword("gpstime")
 
 exponent = Combine(Word("Ee") + Optional(Word("+-"))+Word(nums))
 afloat = Combine( Word(nums) + Optional(Combine(Literal(".") + Word(nums))) )
 
-attrExprRhs = Combine( Optional(Word("+-")) + afloat + Optional(exponent) )
-attrExprRhs.setParseAction(lambda toks: float(toks[0]))
+attrNumExprRhs = Combine( Optional(Word("+-")) + afloat + Optional(exponent) )
+attrNumExprRhs.setParseAction(lambda toks: float(toks[0]))
 
-attrExprOp = Or(map(Literal, attrExprOperators.keys()))
-attrExprOp.setParseAction(lambda toks: attrExprOperators[toks[0]])
+attrNumExprOp = Or(map(Literal, attrNumExprOperators.keys()))
+attrNumExprOp.setParseAction(lambda toks: attrNumExprOperators[toks[0]])
 
-attrExpr = attrExprLhs + attrExprOp + attrExprRhs
-attrExpr.setParseAction(lambda toks: Q(**{toks[0]+toks[1]: toks[2]}))
+attrNumExpr = attrNumExprLhs + attrNumExprOp + attrNumExprRhs
+attrNumExpr.setParseAction(lambda toks: Q(**{toks[0]+toks[1]: toks[2]}))
+
+#attrIfoExpr = Keyword("ifos").suppress() + Literal("=").suppress() + Word("LVH12,")
+#attrIfoExpr.setParseAction(lambda toks: Q(instruments=toks[0]))
+
+#attrExpr = attrIfoExpr | attrNumExpr 
+attrExpr = attrNumExpr 
 
 attrExprs = operatorPrecedence(attrExpr,
     [(minusop, 1, opAssoc.RIGHT, lambda a,b,toks: ~toks[0][0]),
@@ -193,10 +199,22 @@ attributeQ.setParseAction(lambda toks: ("attr", toks[0]))
 
 ###########################
 
-q = (hasfarQ | gidQ | hidQ | tidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
+ifoList = Regex(r'(L1|H1|H2|V1)(,(L1|H1|H2|V1))*')
+ifoList.setParseAction(lambda toks: ("ifos", Q(instruments__contains=toks[0])))
+
+ifoListQ = Optional(Suppress(Keyword("ifos:"))) + ifoList
+
+nifoQ = Suppress(Keyword("nevents:")) + Word(nums)
+nifoQ.setParseAction(lambda toks: ("nevents", Q(nevents=toks[0])))
+
+ifoQ = ifoListQ | nifoQ
+
+###########################
+
+q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
 
 #andTheseTags = ["attr"]
-andTheseTags = []
+andTheseTags = ["nevents"]
 
 def parseQuery(s):
     d={}
