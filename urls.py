@@ -16,6 +16,7 @@ urlpatterns = patterns('',
 
     url (r'^$', 'gracedb.views.index', name="home"),
     (r'^events/', include('gracedb.urls')),
+    (r'^api/', include('gracedb.urls_rest')),
     (r'^options/', include('userprofile.urls')),
     (r'^cli/create', 'gracedb.views.create'),
     (r'^cli/ping', 'gracedb.views.ping'),

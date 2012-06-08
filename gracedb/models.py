@@ -95,6 +95,10 @@ class Event(models.Model):
         #return "pcdev1.phys.uwm.edu:/archive/gracedb/data/%s" % self.graceid()
         return "file://pcdev1.phys.uwm.edu/archive/gracedb/data/%s" % self.graceid()
 
+    def datadir(self):
+        # Move to this.  Not the (more) ad hoc crap that's floating around.
+        return os.path.join(settings.GRACEDB_DATA_DIR, self.graceid(), "private")
+
     def ligoApproved(self):
         return self.approval_set.filter(approvingCollaboration='L').count()
 
