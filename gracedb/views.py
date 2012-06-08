@@ -505,20 +505,29 @@ def cli_search(request):
         query = form.cleaned_data['query']
         objects = Event.objects.filter(query).distinct()
         # Assemble the output... should be able to choose format.
-        outTable = ["#graceid\tlabels\tgroup\ttype\tfar\tgpstime\tcreatetime\turl"]
-        outTable += [
-            "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (
-                e.graceid(),
+        accessFun = {
+            "labels" : lambda e: \
                 ",".join([labelling.label.name for labelling in e.labelling_set.all()]),
-                e.group,
-                e.get_analysisType_display(),
-                e.far,
-                e.gpstime or "",
-                e.created.isoformat(),
-                e.weburl(),
-            )
-            for e in objects
-        ]
+            "analysisType" : lambda e: e.get_analysisType_display(),
+            "gpstime" : lambda e: str(e.gpstime) or "",
+            "created" : lambda e: e.created.isoformat(),
+            "dataurl" : lambda e: e.weburl(),
+            "graceid" : lambda e: e.graceid(),
+            "group" : lambda e: e.group.name,
+        }
+        defaultAccess = lambda e, a: str(getattr(e,a,None) or "")
+
+        defaultColumns = "graceid,labels,group,analysisType,far,gpstime,created,dataurl"
+        columns = request.POST.get('columns')
+        if not columns:
+            columns = defaultColumns
+        columns = columns.split(',')
+
+        header = "#" + "\t".join(columns)
+        outTable = [header]
+        for e in objects:
+            row = [ accessFun.get(column, lambda e: defaultAccess(e,column))(e) for column in columns ]
+            outTable.append("\t".join(row))
         d = {'output': "\n".join(outTable)}
     else:
         d = {'error': ""}
