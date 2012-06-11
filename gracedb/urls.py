@@ -3,6 +3,8 @@ from django.conf.urls.defaults import *
 
 #import django.views.generic.list_detail
 
+from gracedb.api import download
+
 urlpatterns = patterns('gracedb.views',
     url (r'^$', 'index', name="home"),
     url (r'^create/$', 'create', name="create"),
@@ -10,6 +12,8 @@ urlpatterns = patterns('gracedb.views',
     url (r'^view/(?P<graceid>[\w\d]+)', 'view', name="view"),
     url (r'^voevent/(?P<graceid>[\w\d]+)', 'voevent', name="voevent"),
     url (r'^skyalert/(?P<graceid>[\w\d]+)', 'skyalert', name="skyalert"),
+    url (r'^(?P<graceid>[\w\d]+)$', 'view', name="view2"),
+    url (r'^(?P<graceid>[\w\d]+)/files/(?P<filename>.+)$', download, name="file"),
 
 
 #   (r'^view/(?P<uid>[\w\d]+)', 'view'),

@@ -1,6 +1,6 @@
 
 from django.http import HttpResponse
-from django.http import HttpResponseRedirect, HttpResponseNotFound, Http404
+from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, Http404
 from django.template import RequestContext
 from django.core.urlresolvers import reverse, get_script_prefix
 from django.shortcuts import render_to_response
@@ -504,7 +504,17 @@ def cli_search(request):
     if form.is_valid():
         query = form.cleaned_data['query']
         objects = Event.objects.filter(query).distinct()
-        # Assemble the output... should be able to choose format.
+
+        if 'ligolw' in request.POST or 'ligolw' in request.GET:
+            from glue.ligolw import utils
+            if objects.count() > 1000:
+                return HttpResponseBadRequest("Too many events.")
+            xmldoc = assembleLigoLw(objects)
+            response = HttpResponse(mimetype='application/xml')
+            response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
+            utils.write_fileobj(xmldoc, response)
+            return response
+
         accessFun = {
             "labels" : lambda e: \
                 ",".join([labelling.label.name for labelling in e.labelling_set.all()]),
@@ -538,6 +548,25 @@ def cli_search(request):
     response['Content-length'] = len(msg)
     response.write(msg)
     return response
+
+
+def assembleLigoLw(objects):
+    from glue.ligolw import ligolw
+    # lsctables MUST be loaded before utils.
+    from glue.ligolw import lsctables
+    from glue.ligolw import utils
+    from glue.ligolw.utils import ligolw_add
+
+    xmldoc = ligolw.Document()
+    for obj in objects:
+        fname = os.path.join(GRACEDB_DATA_DIR, obj.graceid(), "private", "coinc.xml")
+        utils.load_filename(fname, xmldoc=xmldoc)
+
+    ligolw_add.reassign_ids(xmldoc)
+    ligolw_add.merge_ligolws(xmldoc)
+    ligolw_add.merge_compatible_tables(xmldoc)
+    return xmldoc
+
 
 def search(request, format=""):
     assert request.ligouser
@@ -602,25 +631,12 @@ def search(request, format=""):
                 return jqgridResponse(request, objects)
             elif 'ligolw' in request.POST or 'ligolw' in request.GET:
 
+                from glue.ligolw import utils
                 if objects.count() > 1000:
                     # XXX  Make this -- Better.
                     return HttpResponse("Sorry -- no more than 1000 events currently allowed.")
 
-                from glue.ligolw import ligolw
-                # lsctables MUST be loaded before utils.
-                from glue.ligolw import lsctables
-                from glue.ligolw import utils
-                from glue.ligolw.utils import ligolw_add
-                from settings import GRACEDB_DATA_DIR
-
-                xmldoc = ligolw.Document()
-                for obj in objects:
-                    fname = os.path.join(GRACEDB_DATA_DIR, obj.graceid(), "private", "coinc.xml")
-                    utils.load_filename(fname, xmldoc=xmldoc)
-
-                ligolw_add.reassign_ids(xmldoc)
-                ligolw_add.merge_ligolws(xmldoc)
-                ligolw_add.merge_compatible_tables(xmldoc)
+                xmldoc = assembleLigoLw(objects)
 
                 response = HttpResponse(mimetype='application/xml')
                 response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'

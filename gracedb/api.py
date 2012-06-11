@@ -1,26 +1,41 @@
 
 from django.http import HttpResponse, HttpResponseNotFound
+from django.core.urlresolvers import reverse
+
+import simplejson
 
 from gracedb.models import Event
 
 import os
 
-def download(request, graceid, filename=None):
-    #response = HttpResponse(buildVOEvent(event), content_type="application/xml")
-    if not filename:
-        response = HttpResponseNotFound("Not Implemented.")
-        response.status_code = 404
+def download(request, graceid, filename=""):
+    # Do not filename to be None.  That messes up later os.path.join
+    filename = filename or ""
+
     try:
         event = Event.getByGraceid(graceid)
-        filepath = os.path.join(event.datadir(), filename)
-        if not os.path.exists(filepath):
-            response = HttpResponseNotFound("File does not exist")
-        elif not os.access(filepath, os.R_OK):
-            response = HttpResponseNotFound("File not readable")
-        else:
-            response = HttpResponse(open(filepath, "r"), content_type="application/octet-stream")
-            response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(filename)
     except Event.DoesNotExist:
-        response = HttpResponseNotFound("Event does not exist")
+        return HttpResponseNotFound("Event not found")
+
+    filepath = os.path.join(event.datadir(), filename)
+
+    if not os.path.exists(filepath):
+        response = HttpResponseNotFound("File does not exist")
+    elif not os.access(filepath, os.R_OK):
+        response = HttpResponseNotFound("File not readable")
+    elif not filename:
+        # Get list of files w/urls.
+        rv = {}
+        for dirname, dirnames, filenames in os.walk(filepath):
+            dirname = dirname[len(filepath):]  # cut off base event dir path
+            for filename in filenames:
+                # relative path from root of event data dir
+                filename = os.path.join(dirname, filename)
+                rv[filename] = reverse(download, args=[graceid, filename])
+        response = HttpResponse(simplejson.dumps(rv), content_type="application/json")
+    else:
+        # get an actual file.
+        response = HttpResponse(open(filepath, "r"), content_type="application/octet-stream")
+        response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(filename)
 
     return response
