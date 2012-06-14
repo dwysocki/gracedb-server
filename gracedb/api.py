@@ -34,7 +34,7 @@ def download(request, graceid, filename=""):
         response = HttpResponseNotFound("File does not exist")
     elif not os.access(filepath, os.R_OK):
         response = HttpResponseNotFound("File not readable")
-    elif os.path.isfile(filename):
+    elif os.path.isfile(filepath):
         # get an actual file.
         response = HttpResponse(open(filepath, "r"), content_type="application/octet-stream")
         response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(filename)
