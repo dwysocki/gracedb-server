@@ -17,7 +17,18 @@ def download(request, graceid, filename=""):
     except Event.DoesNotExist:
         return HttpResponseNotFound("Event not found")
 
-    filepath = os.path.join(event.datadir(), filename)
+    # The plan to deal with that wretched general/ directory maybe
+    # should be to move it INTO private.  Then externally, things
+    # would look like they do now, but the code here would be MUCH
+    # more sane and much shorter.
+
+    # UGLY hack to deal with /private vs /general dirs
+    general = False
+    if os.path.split(filename)[0] == "general":
+        filename = os.path.join(*os.path.split(filename)[1:])
+        general = True
+        
+    filepath = os.path.join(event.datadir(general), filename)
 
     if not os.path.exists(filepath):
         response = HttpResponseNotFound("File does not exist")
@@ -26,12 +37,24 @@ def download(request, graceid, filename=""):
     elif not filename:
         # Get list of files w/urls.
         rv = {}
+        filepath = event.datadir()
         for dirname, dirnames, filenames in os.walk(filepath):
             dirname = dirname[len(filepath):]  # cut off base event dir path
             for filename in filenames:
                 # relative path from root of event data dir
                 filename = os.path.join(dirname, filename)
                 rv[filename] = reverse(download, args=[graceid, filename])
+
+        # XXX UGH...  that awful general/ dir
+        filepath = event.datadir(general=True)
+        for dirname, dirnames, filenames in os.walk(filepath):
+            # XXX HORRIBLE
+            dirname = dirname[len(filepath)-len("general"):]  # cut off base event dir path
+            for filename in filenames:
+                # relative path from root of event data dir
+                filename = os.path.join(dirname, filename)
+                rv[filename] = reverse(download, args=[graceid, filename])
+
         response = HttpResponse(simplejson.dumps(rv), content_type="application/json")
     else:
         # get an actual file.
