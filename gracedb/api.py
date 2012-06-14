@@ -1,5 +1,5 @@
 
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseForbidden, HttpResponseServerError
 from django.core.urlresolvers import reverse
 
 import simplejson
@@ -24,8 +24,8 @@ def download(request, graceid, filename=""):
 
     # UGLY hack to deal with /private vs /general dirs
     general = False
-    if os.path.split(filename)[0] == "general":
-        filename = os.path.join(*os.path.split(filename)[1:])
+    if filename.startswith("general/"):
+        filename = filename[len("general/"):]
         general = True
         
     filepath = os.path.join(event.datadir(general), filename)
@@ -34,6 +34,10 @@ def download(request, graceid, filename=""):
         response = HttpResponseNotFound("File does not exist")
     elif not os.access(filepath, os.R_OK):
         response = HttpResponseNotFound("File not readable")
+    elif os.path.isfile(filename):
+        # get an actual file.
+        response = HttpResponse(open(filepath, "r"), content_type="application/octet-stream")
+        response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(filename)
     elif not filename:
         # Get list of files w/urls.
         rv = {}
@@ -56,9 +60,9 @@ def download(request, graceid, filename=""):
                 rv[filename] = reverse(download, args=[graceid, filename])
 
         response = HttpResponse(simplejson.dumps(rv), content_type="application/json")
+    elif os.path.isdir(filepath):
+        response = HttpResponseForbidden("%s is a directory" % filename)
     else:
-        # get an actual file.
-        response = HttpResponse(open(filepath, "r"), content_type="application/octet-stream")
-        response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(filename)
+        response = HttpResponseServerError("Should not happen.")
 
     return response
