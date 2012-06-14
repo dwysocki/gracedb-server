@@ -21,6 +21,8 @@ configs = {
     '/home/bmoe/er2box/lib/python2.6/site-packages/ER2' : 'development_er2',
 
     '/home/bmoe/gracedb': 'development',
+    '/home/bmoe/gracedb/gracedb': 'development',
+
     '/home/gracedb/gracedb': 'production',
 }
 
@@ -28,6 +30,7 @@ configs = {
 from default import *
 
 config = configs.get(ROOT_PATH, "NO_CONFIG")
+print "FUCKYOU", ROOT_PATH
 
 settings_module = __import__('%s' % config, globals(), locals(), 'gracedb')
 
