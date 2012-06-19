@@ -2,8 +2,8 @@
 from django.core.management.base import BaseCommand, NoArgsCommand
 
 from django.conf import settings
-from gracedb.gracedb.models import Event
-from gracedb.gracedb.query import parseQuery
+from gracedb.models import Event
+from gracedb.query import parseQuery
 
 import os
 

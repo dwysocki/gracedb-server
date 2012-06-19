@@ -24,13 +24,13 @@ configs = {
     '/home/bmoe/gracedb/gracedb': 'development',
 
     '/home/gracedb/gracedb': 'production',
+    '/home/gracedb/graceproj': 'production',
 }
 
 
 from default import *
 
-config = configs.get(ROOT_PATH, "NO_CONFIG")
-print "FUCKYOU", ROOT_PATH
+config = configs.get(ROOT_PATH, "production")
 
 settings_module = __import__('%s' % config, globals(), locals(), 'gracedb')
 

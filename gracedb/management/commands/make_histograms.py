@@ -10,7 +10,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as pyplot
 import numpy
 
-from gracedb.gracedb.models import Event
+from gracedb.models import Event
 
 import os
 from datetime import datetime, timedelta

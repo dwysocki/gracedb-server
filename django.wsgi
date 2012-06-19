@@ -8,7 +8,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
 sys.path.append('/home/lars/wsgi-sandbox/lib/python2.6')
 sys.path.append('/home/lars/wsgi-sandbox/lib/python2.6/site-packages')
-sys.path.append('/home/gracedb/gracedb')
+sys.path.append('/home/gracedb/graceproj')
 
 import django.core.handlers.wsgi
 application = django.core.handlers.wsgi.WSGIHandler()
