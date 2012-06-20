@@ -2,3 +2,5 @@
 CONFIG_NAME = "PRODUCTION"
 
 SITE_ID = 3
+
+EMAIL_HOST = 'localhost'
