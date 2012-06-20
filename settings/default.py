@@ -60,6 +60,8 @@ LATENCY_REPORT_DEST_DIR = "/home/gracedb/data/latency"
 LATENCY_MAXIMUM_CHARTED = 1800
 LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
 
+# Uptime reporting
+UPTIME_REPORT_DIR = "/home/gracedb/data/uptime"
 
 
 # Find another way to do this.
