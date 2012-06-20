@@ -29,6 +29,11 @@ SKYALERT_IVORN_PATTERN = "ivo://ligo.org/gracedb#%s-dev"
 
 # Latency histograms.  Where they go and max latency to bin.
 LATENCY_REPORT_DEST_DIR = "/home/bmoe/data/latency"
+LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
+
+# Uptime reporting
+UPTIME_REPORT_DIR = "/home/bmoe/data/uptime"
+
 
 SITE_ID = 4
 

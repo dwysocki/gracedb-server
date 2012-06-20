@@ -4,14 +4,39 @@
 {% block heading %}Reports{% endblock %}
 {% block pageid %}reports{% endblock %}
 
+{% block jscript %}
+<script type="text/javascript">
+function toggle(id) {
+    var div = document.getElementById(id);
+    if ( div.style.display == "block" ) {
+        div.style.display = "none";
+    }
+    else {
+        div.style.display = "block";
+    }
+}
+</script>
+{% endblock %}
+
 {% block content %}
+<br/>
  
-<a name="latency"></a><h3>Latency</h3>
-{{ table|safe }}
+<a name="latency" href="javascript:toggle('latency');"><h3>Latency</h3></a>
+
+<div id="latency" style="display:none;">
+{% if table %}
+    {{ table|safe }}
+{% else %}
+     No Latency data.
+{% endif %}
+</div>
 
 <br/>
+<br/>
 
-<a name="ifar"></a><h3>CBC IFAR</h3>
+<a name="ifar" href="javascript:toggle('ifar');"><h3>CBC IFAR</h3></a>
+
+<div id="ifar" style="display:none;">
 {% if ifar %}
     {% for chart in ifar %}
         <img src="{{ chart }}"><br/>
@@ -19,5 +44,21 @@
 {% else %}
      No IFAR charts.
 {% endif %}
+</div>
+
+<br/>
+<br/>
+
+<a name="uptime" href="javascript:toggle('uptime');"><h3>Gracedb Uptime</h3></a>
+
+<div id="uptime" style="display: none;">
+{% if uptime %}
+    {{ uptime|safe }}
+{% else %}
+     No uptime charts.
+{% endif %}
+</div>
+
+
 
 {% endblock %}

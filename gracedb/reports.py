@@ -7,10 +7,12 @@ from django.conf import settings
 import os
 
 def histo(request):
+
+    # Latency table.
     try:
         table = open(settings.LATENCY_REPORT_WEB_PAGE_FILE_PATH, "r").read()
     except IOError:
-        table = "No Data Available"
+        table = None
 
     # IFAR tables.
 
@@ -22,10 +24,18 @@ def histo(request):
         if os.access(fname, os.R_OK):
             ifar.append(name)
 
+    # Uptime table.
+    try:
+        uptime = open(settings.UPTIME_REPORT_DIR + "/ytd.html", "r").read()
+    except IOError:
+        uptime = None
+
+
     return render_to_response(
             'gracedb/histogram.html',
             {'table': table,
              'ifar' : ifar,
+             'uptime' : uptime,
             },
             context_instance=RequestContext(request))
 
