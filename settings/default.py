@@ -12,14 +12,14 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-ALERT_EMAIL_FROM = "GraCEDb <gracedb@ligo.org>"
+ALERT_EMAIL_FROM = "GraCEDb <gracedb@archie.phys.uwm.edu>"
 ALERT_EMAIL_TO = [
                   "gracedb@listserv.ligo.org",
                  ]
 ALERT_EMAIL_BCC = [
                   ]
 
-ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@ligo.org>"
+ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@archie.phys.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
                       ]
 
