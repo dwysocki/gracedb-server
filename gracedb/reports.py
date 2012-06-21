@@ -55,12 +55,15 @@ def rate_data(request):
     window_size = day
 
     types = [
-        ("LM",      Q(analysisType="LM")),
-        ("Omega",   Q(analysisType="Omega")),
-        ("CWB",     Q(analysisType="CWB")),
-        ("MBTA",    Q(analysisType="MBTA")),
         ("total",   Q()),
         ]
+#   types = [
+#       ("LM",      Q(analysisType="LM")),
+#       ("Omega",   Q(analysisType="Omega")),
+#       ("CWB",     Q(analysisType="CWB")),
+#       ("MBTA",    Q(analysisType="MBTA")),
+#       ("total",   Q()),
+#       ]
 
     ts = ts_min
     n = 1

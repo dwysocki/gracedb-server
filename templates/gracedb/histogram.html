@@ -62,11 +62,11 @@ function toggle(id) {
             chart.addAxis("x", {labelFunc:xlabel});
             chart.addAxis("y", { vertical: true });
 
-            chart.addSeries("Total", timeData['total']);
-            chart.addSeries("Low Mass", timeData['LM']);
-            chart.addSeries("Omega", timeData['Omega']);
-            chart.addSeries("MBTA", timeData['MBTA']);
-            chart.addSeries("cWB", timeData['CWB']);
+            chart.addSeries("Total / Day", timeData['total']);
+            // chart.addSeries("Low Mass", timeData['LM']);
+            // chart.addSeries("Omega", timeData['Omega']);
+            // chart.addSeries("MBTA", timeData['MBTA']);
+            // chart.addSeries("cWB", timeData['CWB']);
 
             chart.render();
 
