@@ -16,11 +16,71 @@ function toggle(id) {
     }
 }
 </script>
+
+<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js"
+        data-dojo-config="async: true, isDebug: false, parseOnLoad: true">
+</script>
+
+<script>
+    {% if rate %}
+        timeData = {{ rate|safe }};
+    {% else %}
+        timeData = [
+            { x: 1, y: 1 },
+            { x: 2, y: 3 },
+            { x: 3, y: 2 },
+            { x: 4, y: 4 },
+            { x: 5, y: 5 },
+            { x: 6, y: 6 },
+            { x: 7, y: 7 }
+        ];
+    {% endif %}
+
+    require([
+        "dojo/parser",
+        "dojox/charting/Chart",
+        "dojox/charting/themes/Claro",   // Shrooms, Tom
+        "dojox/charting/plot2d/Lines",
+        "dojox/charting/widget/Legend",
+        "dojox/charting/axis2d/Default",
+        "dojo/domReady!"
+    ], function (parser, Chart, theme, Lines, Legend ) {
+
+            var chart = new Chart("CN");
+
+            function xlabel(n) {
+                console.log("Got: " + n);
+                var dt = new Date();
+                dt.setTime(1000*n);
+                return (dt.getMonth()+1)+"/"+dt.getDate()+"/"+dt.getFullYear();
+            };
+
+            chart.setTheme(theme);
+            chart.addPlot("default", {
+                type: Lines,
+            });
+            chart.addAxis("x", {labelFunc:xlabel});
+            chart.addAxis("y", { vertical: true });
+
+            chart.addSeries("Total", timeData['total']);
+            chart.addSeries("Low Mass", timeData['LM']);
+            chart.addSeries("Omega", timeData['Omega']);
+            chart.addSeries("MBTA", timeData['MBTA']);
+            chart.addSeries("cWB", timeData['CWB']);
+
+            chart.render();
+
+            var legend = new Legend({ chart: chart }, "leg1");
+       }
+    );
+</script>
+
+
 {% endblock %}
 
 {% block content %}
 <br/>
- 
+
 <a name="latency" href="javascript:toggle('latency');"><h3>Latency</h3></a>
 
 <div id="latency" style="display:none;">
@@ -59,6 +119,18 @@ function toggle(id) {
 {% endif %}
 </div>
 
+<br/>
+<br/>
 
+<a name="rate" href="javascript:toggle('rate');"><h3>Submission Rates</h3></a>
+
+<div id="rate" style="display: block;">
+{% if rate %}
+    <div id="CN" style="width: 750px; height: 450px;"></div>
+    <div id="leg1"></div>
+{% else %}
+     No rate charts.
+{% endif %}
+</div>
 
 {% endblock %}
