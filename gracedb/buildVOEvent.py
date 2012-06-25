@@ -15,16 +15,17 @@ import sys, os
 # XXX ER2.utils.  utils is in project directory.  ugh.
 from utils import gpsToUtc
 from django.conf import settings
+from django.core.urlresolvers import reverse
 
-def buildVOEvent(gevent):
+def buildVOEvent(gevent, request=None, description=None, role=None):
 
     objid = gevent.graceid()
 
     ############ VOEvent header ############################
     v = VOEvent.VOEvent(version="2.0")
     v.set_ivorn(settings.SKYALERT_IVORN_PATTERN % objid)
-    v.set_role(settings.SKYALERT_ROLE)
-    v.set_Description(settings.SKYALERT_DESCRIPTION)
+    v.set_role(role or settings.SKYALERT_ROLE)
+    v.set_Description(description or settings.SKYALERT_DESCRIPTION)
 
     ############ Who ############################
     w = Who()
@@ -36,6 +37,21 @@ def buildVOEvent(gevent):
 
     ############ What ############################
     w = What()
+
+    # UCD = Unified Content Descriptors
+    # http://monet.uni-sw.gwdg.de/twiki/bin/view/VOEvent/UnifiedContentDescriptors
+    # OR --   (from VOTable document, [21] below)
+    # http://www.ivoa.net/twiki/bin/view/IVOA/IvoaUCD
+    # http://cds.u-strasbg.fr/doc/UCD.htx
+    #
+    # which somehow gets you to: http://www.ivoa.net/Documents/REC/UCD/UCDlist-20070402.html
+    # where you might find some actual information.
+
+    # Unit / Section 4.3 of [21] which relies on [25]
+    # [21] http://www.ivoa.net/Documents/latest/VOT.html
+    # [25] http://vizier.u-strasbg.fr/doc/catstd-3.2.htx
+    #
+    # basically, a string that makes sense to humans about what units a value is. eg. "m/s"
 
     # params related to the event. None are in Groups.
     p = Param(name="gracedbid", ucd="meta.id", value="%s"% objid)
@@ -49,6 +65,36 @@ def buildVOEvent(gevent):
     p = Param(name="likelihood", ucd="stat.likelihood", dataType="float",  value=str(gevent.likelihood))
     p.set_Description(["Likelihood"])
     w.add_Param(p)
+
+    # For GCN.
+    #
+    # pipeline  dataType="string"   ucd=
+    # FAR       dataType="float"    ucd=arith.rate   unit="Hz"
+    # DQ level  dataType="?"        ucd=
+    # IFO list  dataType="string"   ucd=
+    # URL to skymap   Reference/URL
+
+    p = Param(name="analysistype", dataType="string", value=str(gevent.get_analysisType_display()))
+    p.set_Description(["LIGO analysis which produced this result"])
+    w.add_Param(p)
+
+    p = Param(name="far", dataType="float", ucd="arith.rate", unit="Hz", value=float(gevent.far))
+    p.set_Description(["False Alarm Rate"])
+    w.add_Param(p)
+
+    p = Param(name="ifolist", dataType="string", value=str(gevent.instruments))
+    p.set_Description(["Interferometers"])
+    w.add_Param(p)
+
+    p = Param(name="skymap")
+    p.set_Description(["Sky Map"])
+    skymap_url = reverse("download", args=[gevent.graceid(), "general/skymap.fits"])
+    if request:
+        # XXX should probably be an error if we can't give the full url.
+        skymap_url = request.build_absolute_uri(skymap_url)
+    p.set_Reference([Reference(uri=skymap_url)])
+    w.add_Param(p)
+
 
     v.set_What(w)
 
