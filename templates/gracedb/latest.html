@@ -97,45 +97,66 @@
 </form>
 
 {% if objects %}
-    <hr/>
-    {% for item in objects %}
-        <div class="summary">
-            <div class="graceid">
-                <a href="{% url view item.graceid %}">{{ item.graceid }}</a>
-                |
-                {{item.group}}
-                {{item.get_analysisType_display}}
-            </div>
-            {% for log in item.eventlog_set.iterator %}
+<table class="event">
+    {% if skyalert_authorized  %}
+        <tr><td colspan="4">
+           <a href="{% url skyalert object.graceid %}"><button type="button">Submit to Skyalert</button></a>
+        </td></tr>
+    {% endif %}
+
+    <tr>
+            <th valign="top">UID</th>
+            <th>Labels</th>
+            <th>Group</th>
+            <th>Type</th>
+            <th>Instruments</th>
+            <th>
+                {{ "gps"|timeselect:"gps" }}
+                Event Time
+            </th>
+            <th>FAR (Hz)</th>
+            <th>Latency (sec)</th>
+            <th>
+                {{"created"|timeselect:"utc" }}
+                Created
+            </th>
+            <th></th>
+    </tr>
+
+{% for object in objects %}
+    <tr class={% cycle 'odd' 'even' %}>
+        <td>{{ object.graceid }}</td>
+        <td>
+             {% for labelling in object.labelling_set.all %}
+                <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
+             {% endfor %}
+        </td>
+        <td>{{ object.group.name }} </td>
+        <td>{{ object.get_analysisType_display }} </td>
+        <td>{{ object.instruments }}</td>
+        <td>{% if object.gpstime%}
+                <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
+                {{ object.gpstime|multiTime:"gps" }}
+            {% endif %}</td>
+        <td>{{ object.far|scientific }}</td>
+        <td style="text-align:center">{{ object.reportingLatency }}</td>
+        <td>{{ object.created|multiTime:"created" }}</td>
+        <td>
+            {% for log in object.eventlog_set.iterator %}
                 {% if log.hasImage %}
                     <div class="skymap">
-                        <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="130" src="{{ log.fileurl }}"></a>
+                        <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="50" src="{{ log.fileurl }}"></a>
                     </div>
                 {% endif %}
             {% endfor %}
+        </td>
+    </tr>
 
-            <div class="labels">
-            {% for labelling in item.labelling_set.all %}
-               <span class="label" title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
-            {% endfor %}
-            </div>
+{% endfor %}
+</table>
 
-            <table>
-                <tr><th>FAR:</th>
-                    <td> {{ item.far|scientific }} {% if item.far %}Hz{% endif %}</td></tr>
-                <tr><th>Event Time:</th>
-                    <td> {{ item.gpstime }} </td></tr>
-                <tr><th>Latency:</th>
-                    <td> {{ item.reportingLatency }} {% if item.reportingLatency %}seconds{% endif %}</td></tr>
-                <tr><th>IFOS:</th>
-                    <td> {{ item.instruments }} </td></tr>
-
-                <tr><th>Created:</th>
-                    <td> {{ item.created|utc }} </td></tr>
-            </table>
-
-        </div><!-- class summary -->
-    {% endfor %}
-{% endif %}
+{% else %} <!-- !objects -->
+<h1>No events.</h1>
+{% endif %} <!-- if objects -->
 
 {% endblock %}

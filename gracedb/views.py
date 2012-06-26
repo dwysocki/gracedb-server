@@ -935,7 +935,7 @@ def latest(request):
 
     if form.is_valid():
         query = form.cleaned_data['query']
-        context['objects'] = Event.objects.filter(query).distinct().order_by("-created")[:10]
+        context['objects'] = Event.objects.filter(query).distinct().order_by("-created")[:15]
         context['error'] = False
     else:
         context['error'] = True
