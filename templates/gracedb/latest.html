@@ -4,8 +4,9 @@
 {% load scientific %}
 
 {% block title %}Latest{% endblock %}
-{% block heading %}Latest{% endblock %}
+{% block heading %}Latest &mdash; as of {% now "j F Y H:i T" %}{% endblock %}
 {% block pageid %}latest{% endblock %}
+
 
 {% block jscript %}
 
@@ -95,6 +96,7 @@
         {{ form.as_table }}
     </table>
 </form>
+
 
 {% if objects %}
 <table class="event">
