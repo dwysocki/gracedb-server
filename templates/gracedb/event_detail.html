@@ -17,10 +17,12 @@
     </script>
     <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js" type="text/javascript"></script>
     <script type="text/javascript">
+        var bb = null;
 
         require(["dijit/Editor",
                  "dojox/editor/plugins/Save",
                  "dojox/editor/plugins/Preview",
+                 "dijit/form/Button",
                  "dojox/image/LightboxNano",
                  "dijit/_editor/plugins/TextColor",
                  "dijit/_editor/plugins/LinkDialog",
@@ -28,24 +30,44 @@
                  "dijit/_editor/plugins/NewPage",
                  "dijit/_editor/plugins/FullScreen",
                  "dojo/parser",
-                 "dojo/domReady!"], function (Editor, Save, Preview) {
+                 "dojo/domReady!"], function (Editor, Save, Preview, Button) {
 
             dojo.parser.parse();
 
-            var newlogdiv = dojo.byId("newlogdiv");
+            //var newlogdiv = dojo.byId("newlogdiv");
             var logtitle = dojo.byId("logmessagetitle");
             var logtext = dojo.byId("newlogtext");
-            var form = dojo.byId("newlog");
 
-            dojo.style(newlogdiv, {'display':'none'});
+            var editor_div = dojo.byId("editor");
+            var preview_div = dojo.byId("previewer");
 
-            logtitle.innerHTML = logtitle.innerHTML + " [click to create a new log entry]";
-            var editor_div = dojo.create('div');
-            var preview_div = dojo.create('div');
-            dojo.place(editor_div, newlogdiv, "after");
-            dojo.place(preview_div, editor_div, "before");
             dojo.style(preview_div, { 'display':'none'});
             dojo.style(editor_div, { 'display':'none'});
+
+            var button_element = dojo.create('button');
+            dojo.place(button_element, logtitle, "right");
+            var button = new Button({
+                label: "Add Log Entry",
+                state: "add",
+                onClick: function(){
+                    if (this.state == 'add') {
+                        dojo.style(editor_div, {'display':'block'});
+                        button.set('label', "Cancel Log Entry");
+                        button.set('state', 'cancel');
+                        editor.focus();
+                    }
+                    else {
+                        dojo.style(editor_div, {'display':'none'});
+                        dojo.style(preview_div, {'display':'none'});
+                        button.set('label', "Add Log Entry");
+                        button.set('state', 'add');
+                        editor.set('value','');
+                    }
+                },
+            }, button_element);
+
+
+            //dojo.style(newlogdiv, {'display':'none'});
 
             var savebutton = new Save({
                     url: "{% url logentry object.graceid "" %}",
@@ -57,7 +79,7 @@
                     onError: function (error, ioargs) {
                         //this.inherited(error, ioargs);
                         this.button.set("disabled", false);
-                        alert(error);
+                        alert("o hai " + error);
                     },
                     save: function(postdata) {
                         var postArgs = {
@@ -85,52 +107,10 @@
                     }
             });
 
-
-//          dojo.connect(form, "onsubmit", function(event) {
-//              dojo.stopEvent(event);
-//              var postdata = editor.get('value');
-//              var xhrArgs = {
-//                  url: "{% url logentry object.graceid "" %}",
-//                  content: { comment: postdata},
-//                  handleAs: "json",
-//                  load: function(data) {
-//                      location.reload(true);
-//                  },
-//                  error: function(data) {
-//                      alert("Problem submitting: " + data);
-//                  },
-//              };
-//              var deferred = dojo.xhrPost(xhrArgs);
-//          });
-
-            dojo.connect(logtitle, "click", function(event) {
-                dojo.style(editor_div, {'display':'block'});
-            });
-
-//          var cancelButton = dojo.byId('cancel');
-//          dojo.connect(cancelButton, "onclick", function(event) {
-//              dojo.style(editor_div, {'display':'none'});
-//              dojo.style(logtext, {'display':'block'});
-//          });
-
-//          var previewButton = dojo.byId('preview');
-//          dojo.connect(previewButton, "onclick", function(event) {
-//              var result = dojo.byId("result");
-//              result.innerHTML = editor.get('value');
-//              MathJax.Hub.Queue(["Typeset",MathJax.Hub, result]);
-//          });
-
             var editor = new Editor({
                  extraPlugins : ['foreColor','hiliteColor','|','createLink',
                                  'insertImage','fullscreen','viewsource','newpage', '|', previewbutton, savebutton]
             }, editor_div);
-
-            dojo.connect(logtext, 'click', function(event) {
-                dojo.style(logtext, {'display':'none'});
-                dojo.style(editor_div, {'display':'block'});
-                editor.set('value', logtext.value);
-                editor.focus();
-            });
 
         });
 
@@ -249,8 +229,6 @@
                     Submitted
                 </th>
         </tr>
-
-
         {% for delta, object in nearby %}
         <tr class={% cycle 'odd' 'even' %}>
             <td><a href="{% url view object.graceid %}">{{ object.graceid }}</a></td>
@@ -274,22 +252,22 @@
     </table>
 {% endif %}
 
-
-<div id="newlogdiv">
+<noscript>
     <h3>Create a new log entry</h3>
     <form id="newlog" action="{% url logentry object.graceid "" %}" method="POST">
         <textarea id="newlogtext" name="comment" style="width:300px;display:block"></textarea>
         <input type="submit" value="Submit"/>
-        <input type="button" value="Preview" id="preview" />
-        <input type="button" value="Cancel" id="cancel" />
     </form>
-</div>
+</noscript>
 
-{% if object.eventlog_set.count %}
 
   <p/>
   <h3 id="logmessagetitle">Event Log Messages</h3>
 
+        <div id="previewer"></div>
+        <div id="editor"></div>
+
+{% if object.eventlog_set.count %}
   <table class="event">
         <tr>
             <th>{{ "logtime"|timeselect:"utc" }} Log Entry Created</th>

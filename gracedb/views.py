@@ -427,6 +427,9 @@ def logentry(request, graceid, num=None):
         except Exception, e:
             raise Http404
 
+    if not request.is_ajax():
+        return HttpResponseRedirect(reverse(view, args=[graceid]))
+
     rv = {}
     rv['comment'] = elog.comment
     rv['issuer'] = elog.issuer.name
