@@ -2,16 +2,13 @@
 {% load timeutil %}
 {% load scientific %}
 {% load sanitize_html %}
-{% load markup %}
-{# load wysiwyg #}
 
 {% block title %}View {{ object.graceid }}{% endblock %}
 {% block heading %}{% endblock %}
 {% block bodyattrs %}class="tundra"{% endblock %}
 
 {% block jscript %}
-    {# http/https depending on this pages' protocol #}
-    {# wysiwyg_setup #}
+    {# XXX http/https depending on this pages' protocol #}
     <script type="text/javascript"
       src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
     </script>
