@@ -16,7 +16,6 @@ from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
 
 import urllib
-import markdown
 
 import os
 import re
@@ -437,30 +436,6 @@ def logentry(request, graceid, num=None):
     rv['comment'] = elog.comment
 
     return HttpResponse(json.dumps(rv), content_type="application/json")
-
-def markdownlogentry(request, graceid, num=None):
-    try:
-        event = Event.getByGraceid(graceid)
-    except Event.DoesNotExist:
-        raise Http404
-    if request.method == "POST":
-        # create a log entry
-        # XXX num can be None or 'preview'
-        comment = request.POST.get('comment') or request.GET.get('comment')
-
-        elog = EventLog(event=event, issuer=request.ligouser)
-        elog.comment = comment
-        elog.save()
-        # XXX janky. optimize this.
-        elogIndex =  list(event.eventlog_set.order_by('created').all()).index(elog)
-        return HttpResponse(reverse(logentry, args=[event.graceid(), elogIndex]))
-    else:
-        try:
-            text = event.eventlog_set.order_by('created').all()[int(num)].comment
-            text = markdown.markdown(text)
-            return HttpResponse(text)
-        except Exception, e:
-            raise Http404
 
 def log(request):
     message = request.POST.get('message')
