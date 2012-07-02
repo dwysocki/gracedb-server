@@ -185,5 +185,4 @@ INSTALLED_APPS = (
     'django_wysiwyg',
     'gracedb',
     'userprofile',
-    'slink',
 )
