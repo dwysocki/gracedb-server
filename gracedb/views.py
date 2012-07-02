@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, Http404
 from django.template import RequestContext
 from django.core.urlresolvers import reverse, get_script_prefix
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.sites.models import Site
 from django.utils.html import strip_tags, escape, urlize
 from django.utils.safestring import mark_safe
@@ -16,6 +16,7 @@ from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
 
 import urllib
+import markdown
 
 import os
 import re
@@ -32,6 +33,7 @@ MAX_QUERY_RESULTS = 1000
 GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 
 import simplejson
+import json
 
 def index(request):
 #   assert request.ligouser
@@ -386,6 +388,76 @@ def cli_label(request):
     response['Content-length'] = len(msg)
 
     return response
+
+import html5lib
+def sanitize_html(data):
+    """
+
+    >>> sanitize_html5lib("foobar<p>adf<i></p>abc</i>")
+    u'foobar<p>adf<i></i></p><i>abc</i>'
+    >>> sanitize_html5lib('foobar<p style="color:red; remove:me; background-image: url(http://example.com/test.php?query_string=bad);">adf<script>alert("Uhoh!")</script><i></p>abc</i>')
+    u'foobar<p style="color: red;">adf&lt;script&gt;alert("Uhoh!")&lt;/script&gt;<i></i></p><i>abc</i>'
+    """
+    from html5lib import treebuilders, treewalkers, serializer, sanitizer
+
+    p = html5lib.HTMLParser(tokenizer=sanitizer.HTMLSanitizer, tree=treebuilders.getTreeBuilder("dom"))
+    dom_tree = p.parseFragment(data)
+
+    walker = treewalkers.getTreeWalker("dom")
+
+    stream = walker(dom_tree)
+
+    s = serializer.htmlserializer.HTMLSerializer(omit_optional_tags=False)
+    return "".join(s.serialize(stream))
+
+
+def logentry(request, graceid, num=None):
+    try:
+        event = Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        raise Http404
+    if request.method == "POST":
+        # create a log entry
+        elog = EventLog(event=event, issuer=request.ligouser)
+        elog.comment = request.POST.get('comment') or request.GET.get('comment')
+        elog.save()
+    else:
+        try:
+            elog = event.eventlog_set.order_by('created').all()[int(num)]
+        except Exception, e:
+            raise Http404
+
+    rv = {}
+    rv['comment'] = elog.comment
+    rv['issuer'] = elog.issuer.name
+    rv['created'] = elog.created.isoformat()
+    rv['comment'] = elog.comment
+
+    return HttpResponse(json.dumps(rv), content_type="application/json")
+
+def markdownlogentry(request, graceid, num=None):
+    try:
+        event = Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        raise Http404
+    if request.method == "POST":
+        # create a log entry
+        # XXX num can be None or 'preview'
+        comment = request.POST.get('comment') or request.GET.get('comment')
+
+        elog = EventLog(event=event, issuer=request.ligouser)
+        elog.comment = comment
+        elog.save()
+        # XXX janky. optimize this.
+        elogIndex =  list(event.eventlog_set.order_by('created').all()).index(elog)
+        return HttpResponse(reverse(logentry, args=[event.graceid(), elogIndex]))
+    else:
+        try:
+            text = event.eventlog_set.order_by('created').all()[int(num)].comment
+            text = markdown.markdown(text)
+            return HttpResponse(text)
+        except Exception, e:
+            raise Http404
 
 def log(request):
     message = request.POST.get('message')

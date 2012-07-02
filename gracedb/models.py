@@ -14,7 +14,10 @@ import pytz, time
 SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 
 # Let's say we start here on schema versions
-schema_version = "1.0"
+#
+# 1.0 -> 1.1   changed EventLog.comment from CharField(length=200) -> TextField
+#
+schema_version = "1.1"
 
 class User(models.Model):
     name = models.CharField(max_length=100)
@@ -158,7 +161,7 @@ class EventLog(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     issuer = models.ForeignKey(User)
     filename = models.CharField(max_length=100, default="")
-    comment = models.CharField(max_length=200, null=False, default="")
+    comment = models.TextField(null=False)
 
     def fileurl(self):
         if self.filename:
@@ -176,6 +179,8 @@ class Labelling(models.Model):
     creator = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
 
+# XXX Deprecated?  Is this used *anywhere*?
+# Appears to only be used in models.py.  Here and Event class as approval_set
 class Approval(models.Model):
     COLLABORATION_CHOICES = ( ('L','LIGO'), ('V','Virgo'), )
     approver = models.ForeignKey(User)

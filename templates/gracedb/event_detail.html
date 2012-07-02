@@ -1,67 +1,153 @@
 {% extends "base.html" %}
 {% load timeutil %}
 {% load scientific %}
+{% load sanitize_html %}
 {% load markup %}
-{% load wysiwyg %}
+{# load wysiwyg #}
 
 {% block title %}View {{ object.graceid }}{% endblock %}
 {% block heading %}{% endblock %}
+{% block bodyattrs %}class="tundra"{% endblock %}
 
 {% block jscript %}
     {# http/https depending on this pages' protocol #}
-    {% wysiwyg_setup %}
+    {# wysiwyg_setup #}
     <script type="text/javascript"
-      src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=AM_HTMLorMML-full">
+      src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
     </script>
     <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js" type="text/javascript"></script>
     <script type="text/javascript">
-        dojo.require("dojox.image.LightboxNano");
-        dojo.require("dojo.parser");
-        dojo.ready(function(){
+
+        require(["dijit/Editor",
+                 "dojox/editor/plugins/Save",
+                 "dojox/editor/plugins/Preview",
+                 "dojox/image/LightboxNano",
+                 "dijit/_editor/plugins/TextColor",
+                 "dijit/_editor/plugins/LinkDialog",
+                 "dijit/_editor/plugins/ViewSource",
+                 "dijit/_editor/plugins/NewPage",
+                 "dijit/_editor/plugins/FullScreen",
+                 "dojo/parser",
+                 "dojo/domReady!"], function (Editor, Save, Preview) {
+
             dojo.parser.parse();
-            setupform();
+
+            var newlogdiv = dojo.byId("newlogdiv");
+            var logtitle = dojo.byId("logmessagetitle");
+            var logtext = dojo.byId("newlogtext");
+            var form = dojo.byId("newlog");
+
+            dojo.style(newlogdiv, {'display':'none'});
+
+            logtitle.innerHTML = logtitle.innerHTML + " [click to create a new log entry]";
+            var editor_div = dojo.create('div');
+            var preview_div = dojo.create('div');
+            dojo.place(editor_div, newlogdiv, "after");
+            dojo.place(preview_div, editor_div, "before");
+            dojo.style(preview_div, { 'display':'none'});
+            dojo.style(editor_div, { 'display':'none'});
+
+            var savebutton = new Save({
+                    url: "{% url logentry object.graceid "" %}",
+                    onSuccess: function (resp, ioargs) {
+                        //this.inherited(resp, ioargs);
+                        this.button.set("disabled", false);
+                        location.reload(true);
+                    },
+                    onError: function (error, ioargs) {
+                        //this.inherited(error, ioargs);
+                        this.button.set("disabled", false);
+                        alert(error);
+                    },
+                    save: function(postdata) {
+                        var postArgs = {
+                                url: this.url,
+                                content: { comment: postdata },
+                                handleAs: "json"
+                        };
+                        this.button.set("disabled", true);
+                        var deferred = dojo.xhrPost(postArgs);
+                        deferred.addCallback(dojo.hitch(this, this.onSuccess));
+                        deferred.addErrback(dojo.hitch(this, this.onError));
+                    }
+            });
+
+            var previewbutton = new Preview({
+                _preview: function(){
+                        var content = this.editor.get("value");
+                        preview_div.innerHTML = editor.get('value');
+                        dojo.style(preview_div, {
+                            'display':'block',
+                            'border': ".2em solid #900",
+                            'padding': '10px'
+                        });
+                        MathJax.Hub.Queue(["Typeset",MathJax.Hub, preview_div]);
+                    }
+            });
+
+
+//          dojo.connect(form, "onsubmit", function(event) {
+//              dojo.stopEvent(event);
+//              var postdata = editor.get('value');
+//              var xhrArgs = {
+//                  url: "{% url logentry object.graceid "" %}",
+//                  content: { comment: postdata},
+//                  handleAs: "json",
+//                  load: function(data) {
+//                      location.reload(true);
+//                  },
+//                  error: function(data) {
+//                      alert("Problem submitting: " + data);
+//                  },
+//              };
+//              var deferred = dojo.xhrPost(xhrArgs);
+//          });
+
+            dojo.connect(logtitle, "click", function(event) {
+                dojo.style(editor_div, {'display':'block'});
+            });
+
+//          var cancelButton = dojo.byId('cancel');
+//          dojo.connect(cancelButton, "onclick", function(event) {
+//              dojo.style(editor_div, {'display':'none'});
+//              dojo.style(logtext, {'display':'block'});
+//          });
+
+//          var previewButton = dojo.byId('preview');
+//          dojo.connect(previewButton, "onclick", function(event) {
+//              var result = dojo.byId("result");
+//              result.innerHTML = editor.get('value');
+//              MathJax.Hub.Queue(["Typeset",MathJax.Hub, result]);
+//          });
+
+            var editor = new Editor({
+                 extraPlugins : ['foreColor','hiliteColor','|','createLink',
+                                 'insertImage','fullscreen','viewsource','newpage', '|', previewbutton, savebutton]
+            }, editor_div);
+
+            dojo.connect(logtext, 'click', function(event) {
+                dojo.style(logtext, {'display':'none'});
+                dojo.style(editor_div, {'display':'block'});
+                editor.set('value', logtext.value);
+                editor.focus();
+            });
+
         });
 
-        function handleNewEntry(target, data) {
-            target.innerHTML = data.issuer + " / " + data.created + " / " + data.comment;
-            return;
-            var xhrArgs = {
-                url: data,
-                handleAs: "json",
-                load: function(data) {
-                    target.innerHTML = data;
-                },
-                error: function(error) {
-                    target.innerHTML = "Errorz: " + error;
-                }
-            };
-            dojo.byId("result").innerHTML = "Sending more..."
-            var deferred = dojo.xhrGet(xhrArgs);
-        };
-
-        function setupform() {
-            var form = dojo.byId("newlog");
-            dojo.connect(form, "onsubmit", function(event) {
-                dojo.stopEvent(event);
-                var xhrArgs = {
-                    form: dojo.byId("newlog"),
-                    handleAs: "json",
-                    load: function(data){
-                        //alert("load: " + data);
-                        //dojo.byId("result").innerHTML = data;
-                        handleNewEntry(dojo.byId("result"), data);
-                    },
-                    error: function(error){
-                        //alert("error: " + error);
-                        dojo.byId("result").innerHTML = error;
-                    }
-                };
-                dojo.byId("result").innerHTML = "Sending..."
-                var deferred = dojo.xhrPost(xhrArgs);
-            });
-        };
     </script>
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/editor/plugins/resources/css/PageBreak.css" />
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/editor/plugins/resources/css/ShowBlockNodes.css" />
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/editor/plugins/resources/css/Preview.css" />
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/editor/plugins/resources/css/Save.css" />
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/editor/plugins/resources/css/Breadcrumb.css" />
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/editor/plugins/resources/css/FindReplace.css" />
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/editor/plugins/resources/css/PasteFromWord.css" />
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/editor/plugins/resources/css/InsertAnchor.css" />
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/editor/plugins/resources/css/CollapsibleToolbar.css" />
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/editor/plugins/resources/css/Blockquote.css" />
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojox/editor/plugins/resources/css/Smiley.css" />
     <style>
+        @import "https://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dijit/themes/tundra/tundra.css";
         a:hover .dojoxEnlarge {
             display: block !important;
         }
@@ -188,35 +274,34 @@
     </table>
 {% endif %}
 
+
+<div id="newlogdiv">
+    <h3>Create a new log entry</h3>
+    <form id="newlog" action="{% url logentry object.graceid "" %}" method="POST">
+        <textarea id="newlogtext" name="comment" style="width:300px;display:block"></textarea>
+        <input type="submit" value="Submit"/>
+        <input type="button" value="Preview" id="preview" />
+        <input type="button" value="Cancel" id="cancel" />
+    </form>
+</div>
+
 {% if object.eventlog_set.count %}
 
   <p/>
-  <h3>Event Log Messages</h3>
+  <h3 id="logmessagetitle">Event Log Messages</h3>
 
   <table class="event">
         <tr>
-            <th>{{ "logtime"|timeselect:"utc" }} Created / Creator</th>
+            <th>{{ "logtime"|timeselect:"utc" }} Log Entry Created</th>
+            <th>Submitter</th>
             <th>Comment</th>
             <th>&nbsp;</th>
         </tr>
-        <tr>
-            <td></td>
-            <td><div id="result">empty  `x = (-b +- sqrt(b^2-4ac))/(2a) .` </div></td>
-        </tr>
-        <tr>
-            <td>{{ ligouser }}</td>
-            <td><form id="newlog" action="{% url logentry object.graceid "" %}" method="POST">
-                <input type="submit"/>
-                <textarea id="newlogtext" name="comment"></textarea>
-                {% wysiwyg_editor "newlogtext" %}
-                </form>
-            </td>
-            <td></td>
-        </tr>
   {% for log in object.eventlog_set.iterator %}
         <tr class="{% cycle 'odd' 'even'%}">
-           <td>{{log.created|multiTime:"logtime"}}<br/>{{log.issuer}}</td>
-           <td>{{log.comment|safe}}
+           <td>{{log.created|multiTime:"logtime"}}</td>
+           <td>{{log.issuer}}</td>
+           <td>{{log.comment|sanitize}}
                {% if log.fileurl %}
                 <a href="{{log.fileurl}}">{{log.filename}}</a>
                {% endif %}

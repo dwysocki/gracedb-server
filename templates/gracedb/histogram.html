@@ -17,7 +17,8 @@ function toggle(id) {
 }
 </script>
 
-<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js"
+{# http/https depending on this pages' protocol #}
+<script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js"
         data-dojo-config="async: true, isDebug: false, parseOnLoad: true">
 </script>
 
