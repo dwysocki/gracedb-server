@@ -11,11 +11,7 @@
 {% block jscript %}
 
 {% if not error %}
-    {% if rawquery %}
-        <meta http-equiv="refresh" content="300;url={% url latest %}/?query={{rawquery|urlencode}}">
-    {% else %}
-        <meta http-equiv="refresh" content="300;url={% url latest %}">
-    {% endif %}
+    <meta http-equiv="refresh" content="300;url={% url latest %}/?query={{rawquery|urlencode}}&{{limited}}">
 {% endif %}
 
 

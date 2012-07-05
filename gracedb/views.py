@@ -994,8 +994,10 @@ def latest(request):
 
     if 'limited' in request.GET or 'limited' in request.POST:
         limit = LimitedEvent
+        context['limited'] = 'limited'
     else:
         limit = lambda x: x
+        context['limited'] = 'notlimited'
 
     context['form'] = form
     context['rawquery'] = request.GET.get('query') or request.POST.get('query') or ""
