@@ -972,6 +972,18 @@ Initial Entry for %s
     os.chmod(rcsname, 0444)
 
 
+class LimitedEvent():
+    def __init__(self, event):
+        self._event = event
+    def __getattr__(self, attr):
+        if attr == 'gpstime':
+            return None
+        elif attr == 'created':
+            return self._event.created.replace(second=0)
+        else:
+            return getattr(self._event, attr)
+
+
 def latest(request):
     context = {}
 
@@ -980,12 +992,18 @@ def latest(request):
     else:
         form = SimpleSearchForm(request.POST)
 
+    if 'limited' in request.GET or 'limited' in request.POST:
+        limit = LimitedEvent
+    else:
+        limit = lambda x: x
+
     context['form'] = form
     context['rawquery'] = request.GET.get('query') or request.POST.get('query') or ""
 
     if form.is_valid():
         query = form.cleaned_data['query']
-        context['objects'] = Event.objects.filter(query).distinct().order_by("-created")[:15]
+        objects = Event.objects.filter(query).distinct().order_by("-created")[:15]
+        context['objects'] = map(limit, objects)
         context['error'] = False
     else:
         context['error'] = True
