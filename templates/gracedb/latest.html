@@ -11,9 +11,8 @@
 {% block jscript %}
 
 {% if not error %}
-    <meta http-equiv="refresh" content="300;url={% url latest %}/?query={{rawquery|urlencode}}&{{limited}}">
+    <meta http-equiv="refresh" content="300;url={% url latest %}/?query={{rawquery|urlencode}}">
 {% endif %}
-
 
     {# http/https depending on this pages' protocol #}
     <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js" type="text/javascript"></script>

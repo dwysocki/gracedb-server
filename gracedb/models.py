@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.urlresolvers import reverse
+
 import datetime
 import thread
 import string
@@ -165,7 +167,8 @@ class EventLog(models.Model):
 
     def fileurl(self):
         if self.filename:
-            return os.path.join(self.event.weburl(), 'private', self.filename)
+            return reverse('file', args=[self.event.graceid(), self.filename])
+            #return os.path.join(self.event.weburl(), 'private', self.filename)
         else:
             return None
 

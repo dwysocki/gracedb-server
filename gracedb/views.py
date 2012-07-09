@@ -984,6 +984,9 @@ class LimitedEvent():
             return getattr(self._event, attr)
 
 
+def latest_limited(request):
+    return latest(request)
+
 def latest(request):
     context = {}
 
@@ -992,12 +995,10 @@ def latest(request):
     else:
         form = SimpleSearchForm(request.POST)
 
-    if 'limited' in request.GET or 'limited' in request.POST:
+    if not request.ligouser:
         limit = LimitedEvent
-        context['limited'] = 'limited'
     else:
         limit = lambda x: x
-        context['limited'] = 'notlimited'
 
     context['form'] = form
     context['rawquery'] = request.GET.get('query') or request.POST.get('query') or ""
@@ -1014,3 +1015,4 @@ def latest(request):
             'gracedb/latest.html',
             context,
             context_instance=RequestContext(request))
+
