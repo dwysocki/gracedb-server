@@ -855,10 +855,8 @@ def flexigridResponse(request, objects):
               'cell': [ '<a href="%s">%s</a>' %
                             (reverse(view, args=[object.graceid()]), object.graceid()),
                          #Labels
-                        " ".join(['<span title="%s %s" style="color: %s">%s</span>' %
-                                (label.creator.name, label.created, label.label.defaultColor, label.label.name)
-                                for label in object.labelling_set.all()
-                            ]),
+                        " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();"  style="color: %s"> %s </span>""" % (label.label.name, label.creator.name, label.created, label.label.defaultColor, label.label.name)
+                                for label in object.labelling_set.all()]),
                         # Links to neighbors
                         ', '.join([
                             '<a href="%s">%s</a>' %

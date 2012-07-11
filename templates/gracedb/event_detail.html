@@ -13,6 +13,8 @@
       src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
     </script>
     <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js" type="text/javascript"></script>
+    <script src="{{MEDIA_URL}}js/labeltips.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="{{MEDIA_URL}}css/labeltips.css">
     <script type="text/javascript">
         var bb = null;
 
@@ -187,7 +189,7 @@
         <td>{{ object.graceid }}</td>
         <td>
              {% for labelling in object.labelling_set.all %}
-                <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
+                <span onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.name}}', '{{labelling.created|utc}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
              {% endfor %}
         </td>
         <td>{{ object.group.name }} </td>
@@ -231,7 +233,7 @@
             <td><a href="{% url view object.graceid %}">{{ object.graceid }}</a></td>
             <td>
                  {% for labelling in object.labelling_set.all %}
-                    <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
+                    <span onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.name}}', '{{labelling.created|utc}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
                  {% endfor %}
             </td>
             <td>{{ object.group.name }} </td>
