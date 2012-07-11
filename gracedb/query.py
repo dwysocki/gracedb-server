@@ -62,6 +62,7 @@ gpsQ = gpsQ.setParseAction(maybeRange("gpstime"))
 
 # run ids
 runmap = {
+    "ER2" : (1014590000, 2000000000),
     "ER1" : (1010880015, 1100000000),
     "S6"  : (931035296, 971622087),
     "S6A" : (931035296, 935798487),
