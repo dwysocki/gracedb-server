@@ -64,6 +64,7 @@ class Event(models.Model):
     submitter = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Group)
+    uid = models.CharField(max_length=20, default="")  # XXX deprecated.  should be removed.
     analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
 
     # from coinc_event

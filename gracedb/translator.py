@@ -111,6 +111,55 @@ def handle_uploaded_data(event, datafilename,
 
         event.save()
 
+    elif event.analysisType == "HWINJ":
+        log_comment = "Log File Created"
+        xmldoc = glue.ligolw.utils.load_filename(datafilename)
+
+        # Create Log Data
+        # XXX This is messy and redundant.  All of this is also below.
+        try:
+            log_data = ["Event Type: %s" % event.getTypeLabel(event.analysisType)]
+            origdata = glue.ligolw.table.getTablesByName(
+                                        xmldoc,
+                                        glue.ligolw.lsctables.SimInspiralTable.tableName)
+
+            mchirp   = origdata[0][0].mchirp
+            mass     = (origdata[0][0].mass1, origdata[0][0].mass2)
+            spin1    = (origdata[0][0].spin1x, origdata[0][0].spin1y, origdata[0][0].spin1z)
+            spin2    = (origdata[0][0].spin2x, origdata[0][0].spin2y, origdata[0][0].spin2z)
+            end_time = (origdata[0][0].geocent_end_time, origdata[0][0].geocent_end_time_ns)
+            waveform = origdata[0][0].waveform
+
+            if mchirp is not None:
+                log_data.append("MChirp: %0.3f" % mchirp)
+            else:
+                log_data.append("MChirp: ---")
+            log_data.append("Component Masses: %d %d" % mass)
+            log_data.append("Component 1 Spin: (%f, %f, %f)" % spin1)
+            log_data.append("Component 2 Spin: (%f, %f, %f)" % spin2)
+            log_data.append("Geocentric End Time: %d.%d" % end_time)
+        except Exception, e:
+            log_comment = "Problem Creating Log File"
+            log_data = ["Cannot create log file", "error was:", str(e)]
+
+        log_data = "\n".join(log_data)
+
+        output_dir = os.path.dirname(datafilename)
+        write_output_files(output_dir, xmldoc, log_data,
+                           xml_fname=coinc_table_filename,
+                           log_fname=log_filename)
+
+        # Create EventLog entries about these files.
+        private_data_url = os.path.join(event.weburl(), 'private')
+
+        event.gpstime = end_time[0]
+        event.save()
+
+        log = EventLog(event=event,
+                       filename=log_filename,
+                       issuer=event.submitter,
+                       comment=log_comment)
+        log.save()
     elif event.analysisType == 'MBTA':
         #here's how it works for inspirals
         #populate the tables
