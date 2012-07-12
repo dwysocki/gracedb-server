@@ -78,9 +78,12 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     p.set_Description(["LIGO analysis which produced this result"])
     w.add_Param(p)
 
-    p = Param(name="far", dataType="float", ucd="arith.rate", unit="Hz", value=float(gevent.far))
-    p.set_Description(["False Alarm Rate"])
-    w.add_Param(p)
+    try:
+        p = Param(name="far", dataType="float", ucd="arith.rate", unit="Hz", value=float(gevent.far))
+        p.set_Description(["False Alarm Rate"])
+        w.add_Param(p)
+    except:
+        pass
 
     p = Param(name="ifolist", dataType="string", value=str(gevent.instruments))
     p.set_Description(["Interferometers"])
