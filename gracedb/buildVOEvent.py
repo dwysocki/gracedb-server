@@ -89,13 +89,21 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     p.set_Description(["Interferometers"])
     w.add_Param(p)
 
-    p = Param(name="skymap")
-    p.set_Description(["Sky Map"])
-    skymap_url = reverse("download", args=[gevent.graceid(), "general/skymap.fits"])
+    skymap_url = reverse("download", args=[gevent.graceid(), "general/bayestar/skymap.fits"])
     if request:
         # XXX should probably be an error if we can't give the full url.
         skymap_url = request.build_absolute_uri(skymap_url)
-    p.set_Reference([Reference(uri=skymap_url)])
+    p = Param(name="skymap", value=skymap_url)
+    p.set_Description(["Sky Map"])
+    #p.set_Reference([Reference(uri=skymap_url)])
+    w.add_Param(p)
+
+    skymap_url = reverse("download", args=[gevent.graceid(), "general/bayestar/skymap.png"])
+    if request:
+        # XXX should probably be an error if we can't give the full url.
+        skymap_url = request.build_absolute_uri(skymap_url)
+    p = Param(name="skymap_png", value=skymap_url)
+    p.set_Description(["Sky Map Image"])
     w.add_Param(p)
 
 
