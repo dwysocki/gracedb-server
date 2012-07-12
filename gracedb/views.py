@@ -49,6 +49,12 @@ def skyalert_authorized(request):
 
 def voevent(request, graceid):
     event = Event.getByGraceid(graceid)
+    if not event.far:
+        # can't build VOEvent with a FAR
+        return render_to_response(
+                '404.html',
+                {"message":"Event has no FAR.  Cannot build a VOEvent."},
+                context_instance=RequestContext(request))
     voevent = buildVOEvent(event, request)
     return HttpResponse(voevent, content_type="application/xml")
 
