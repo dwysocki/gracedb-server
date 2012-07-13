@@ -134,7 +134,7 @@ def handle_uploaded_data(event, datafilename,
                 log_data.append("MChirp: %0.3f" % mchirp)
             else:
                 log_data.append("MChirp: ---")
-            log_data.append("Component Masses: %d %d" % mass)
+            log_data.append("Component Masses: %f %f" % mass)
             log_data.append("Component 1 Spin: (%f, %f, %f)" % spin1)
             log_data.append("Component 2 Spin: (%f, %f, %f)" % spin2)
             log_data.append("Geocentric End Time: %d.%d" % end_time)
