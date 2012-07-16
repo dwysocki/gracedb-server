@@ -96,9 +96,14 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     x509_fits_skymap_url = reverse("download", args=[gevent.graceid(), "general/bayestar/skymap.fits"])
     x509_png_skymap_url = reverse("download", args=[gevent.graceid(), "general/bayestar/skymap.png"])
 
-    shib_fits_skymap_url = reverse("file", args=[gevent.graceid(), "general/bayestar/skymap.fits"])
-    shib_png_skymap_url = reverse("file", args=[gevent.graceid(), "general/bayestar/skymap.png"])
+    # XXX gracedb.ligo.org urls.  they are a little problematic.
+    # they do not do mime-types correctly and they do not let go of the connection for some reason.
+    #shib_fits_skymap_url = reverse("file", args=[gevent.graceid(), "general/bayestar/skymap.fits"])
+    #shib_png_skymap_url = reverse("file", args=[gevent.graceid(), "general/bayestar/skymap.png"])
 
+    # Old sad bad ldad-jobs urls
+    shib_fits_skymap_url = gevent.weburl() + "/general/bayestar/skymap.fits"
+    shib_png_skymap_url  = gevent.weburl() + "/general/bayestar/skymap.png"
 
     # Need request to build absolute URL
     # XXX should probably be an error if we can't give the full absolute url.
