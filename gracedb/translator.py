@@ -341,7 +341,7 @@ class Translator(object):
     def logData(self):
         data = self.getData()
         logdata = []
-        logdata.append("Event Type: %s", self.event_type)
+        logdata.append("Event Type: %s" % self.event_type)
         logdata.append("Time: %s" % data.get('gpstime', '---'))
         logdata.append("Duration: %s" % data['rawdata'].get('duration',["---"])[0])
         logdata.append("Frequency: %s" % data['rawdata'].get('frequency',["---"])[0])
