@@ -49,11 +49,16 @@ def skyalert_authorized(request):
 
 def voevent(request, graceid):
     event = Event.getByGraceid(graceid)
-    if not event.far:
-        # can't build VOEvent with a FAR
+    if not event.far or not event.gpstime:
+        # can't build VOEvent without a FAR or GPS time
+        message = "Cannot build a VOEvent."
+        if not event.far:
+            message += " Event has no FAR."
+        if not event.gpstime:
+            message += " Event has no GPS time."
         return render_to_response(
                 '404.html',
-                {"message":"Event has no FAR.  Cannot build a VOEvent."},
+                {"message":message},
                 context_instance=RequestContext(request))
     voevent = buildVOEvent(event, request)
     return HttpResponse(voevent, content_type="application/xml")

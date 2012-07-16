@@ -66,7 +66,7 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     p.set_Description(["Likelihood"])
     w.add_Param(p)
 
-    # For GCN.
+    # For GCN / SkyAlert.
     #
     # pipeline  dataType="string"   ucd=
     # FAR       dataType="float"    ucd=arith.rate   unit="Hz"
@@ -89,22 +89,53 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     p.set_Description(["Interferometers"])
     w.add_Param(p)
 
-    skymap_url = reverse("download", args=[gevent.graceid(), "general/bayestar/skymap.fits"])
-    if request:
-        # XXX should probably be an error if we can't give the full url.
-        skymap_url = request.build_absolute_uri(skymap_url)
-    p = Param(name="skymap", value=skymap_url)
-    p.set_Description(["Sky Map"])
-    #p.set_Reference([Reference(uri=skymap_url)])
-    w.add_Param(p)
+    # Skymaps
+    #  Four of them, per Roy Williams.  (FITS and PNG) x  (x509 auth and Shib auth)
 
-    skymap_url = reverse("download", args=[gevent.graceid(), "general/bayestar/skymap.png"])
+    # relative URLs
+    x509_fits_skymap_url = reverse("download", args=[gevent.graceid(), "general/bayestar/skymap.fits"])
+    x509_png_skymap_url = reverse("download", args=[gevent.graceid(), "general/bayestar/skymap.png"])
+
+    shib_fits_skymap_url = reverse("file", args=[gevent.graceid(), "general/bayestar/skymap.fits"])
+    shib_png_skymap_url = reverse("file", args=[gevent.graceid(), "general/bayestar/skymap.png"])
+
+
+    # Need request to build absolute URL
+    # XXX should probably be an error if we can't give the full absolute url.
     if request:
-        # XXX should probably be an error if we can't give the full url.
-        skymap_url = request.build_absolute_uri(skymap_url)
-    p = Param(name="skymap_png", value=skymap_url)
-    p.set_Description(["Sky Map Image"])
-    w.add_Param(p)
+
+        # Shib URL
+        # https://gracedb.ligo.org/events/G43582/files/skymap_G43582.png
+
+        x509_fits_skymap_url = request.build_absolute_uri(x509_fits_skymap_url)
+        x509_png_skymap_url = request.build_absolute_uri(x509_png_skymap_url)
+
+        shib_fits_skymap_url = request.build_absolute_uri(shib_fits_skymap_url)
+        shib_png_skymap_url = request.build_absolute_uri(shib_png_skymap_url)
+
+        p = Param(name="skymap", ucd="meta.ref.url", value=x509_png_skymap_url)
+        p.set_Description(["Sky Map image X509 protected"])
+        w.add_Param(p)
+
+        p = Param(name="skymap", ucd="meta.ref.url", value=x509_fits_skymap_url)
+        p.set_Description(["Sky Map FITS X509 protected"])
+        w.add_Param(p)
+
+        p = Param(name="skymap", ucd="meta.ref.url", value=shib_png_skymap_url)
+        p.set_Description(["Sky Map image Shibboleth protected"])
+        w.add_Param(p)
+
+        p = Param(name="skymap", ucd="meta.ref.url", value=shib_fits_skymap_url)
+        p.set_Description(["Sky Map FITS Shibboleth protected"])
+        w.add_Param(p)
+
+#   if request:
+#       # XXX should probably be an error if we can't give the full url.
+#       skymap_url = request.build_absolute_uri(skymap_url)
+#   p = Param(name="skymap_png", value=skymap_url)
+#   p.set_Description(["Sky Map Image"])
+#   #p.set_Reference([Reference(uri=skymap_url)])
+#   w.add_Param(p)
 
 
     v.set_What(w)
