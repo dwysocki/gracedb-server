@@ -118,19 +118,19 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
         shib_fits_skymap_url = request.build_absolute_uri(shib_fits_skymap_url)
         shib_png_skymap_url = request.build_absolute_uri(shib_png_skymap_url)
 
-        p = Param(name="skymap", ucd="meta.ref.url", value=x509_png_skymap_url)
+        p = Param(name="skymap_png_x509", ucd="meta.ref.url", value=x509_png_skymap_url)
         p.set_Description(["Sky Map image X509 protected"])
         w.add_Param(p)
 
-        p = Param(name="skymap", ucd="meta.ref.url", value=x509_fits_skymap_url)
+        p = Param(name="skymap_fits_x509", ucd="meta.ref.url", value=x509_fits_skymap_url)
         p.set_Description(["Sky Map FITS X509 protected"])
         w.add_Param(p)
 
-        p = Param(name="skymap", ucd="meta.ref.url", value=shib_png_skymap_url)
+        p = Param(name="skymap_png_shib", ucd="meta.ref.url", value=shib_png_skymap_url)
         p.set_Description(["Sky Map image Shibboleth protected"])
         w.add_Param(p)
 
-        p = Param(name="skymap", ucd="meta.ref.url", value=shib_fits_skymap_url)
+        p = Param(name="skymap_fits_shib", ucd="meta.ref.url", value=shib_fits_skymap_url)
         p.set_Description(["Sky Map FITS Shibboleth protected"])
         w.add_Param(p)
 
