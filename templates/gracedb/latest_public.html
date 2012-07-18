@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% load timeutil %}
+{% load scientific %}
+
+{% block title %}Latest{% endblock %}
+{% block heading %}Latest &mdash; as of {% now "j F Y H:i T" %}{% endblock %}
+{% block pageid %}latest{% endblock %}
+
+
+{% block jscript %}
+
+{% if not error %}
+    <meta http-equiv="refresh" content="300;url={% url latest %}/?query={{rawquery|urlencode}}">
+{% endif %}
+
+    {# http/https depending on this pages' protocol #}
+    <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        dojo.require("dojox.image.LightboxNano");
+        dojo.require("dojo.parser");
+        dojo.ready(function(){
+            dojo.parser.parse();
+        });
+    </script>
+    <style>
+        a:hover .dojoxEnlarge {
+            display: block !important;
+        }
+        .dojoxEnlarge {
+            /* background: url(images/enlarge.png) no-repeat 0 0; */
+            top: -5px;
+            left: -5px;
+            margin: 0 !important;
+            width: 16px;
+            height: 16px;
+        }
+        .dojoxLoading {
+            /* background: #333 url(images/loading-dark.gif) no-repeat center center; */
+            border-radius: 5px;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            border: 2px solid #000;
+            height: 24px;
+            opacity: 0.8;
+            filter: alpha(opacity=80);
+            padding: 6px;
+            width: 24px;
+        }
+    </style>
+
+    <style>
+    .summary .graceid {
+        border-top: 1px solid #CBC9C7;
+        width: 100%;
+        font-size: 150%;
+        font-family: "Century Schoolbook L", "Georgia", serif;
+        font-weight: 700;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .summary .labels {
+        padding-bottom: 5px;
+        padding-left: 5px;
+    }
+    .summary .group {
+        font-weight: 500;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+    .summary {
+        clear: both;
+        padding: 20px;
+    }
+    .summary .skymap {
+        float: right;
+    }
+    .summary-data {
+    }
+    .timeselect form {
+        display: inline;
+    }
+    </style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<form method="POST">
+    <table>
+        {{ form.as_table }}
+    </table>
+</form>
+
+
+{% if objects %}
+<table class="event">
+    <tr>
+            <th>Instruments</th>
+            <th>
+                {{ "gps"|timeselect:"gps" }}
+                Event Time
+            </th>
+            <th>FAR (Hz)</th>
+            <th>Latency (sec)</th>
+            <th>
+                {{"created"|timeselect:"utc" }}
+                Created
+            </th>
+            <th></th>
+    </tr>
+
+{% for object in objects %}
+    <tr class={% cycle 'odd' 'even' %}>
+        <td>{{ object.instruments }}</td>
+        <td>{% if object.gpstime%}
+                <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
+                {{ object.gpstime|multiTime:"gps" }}
+            {% endif %}</td>
+        <td>{{ object.far|scientific }}</td>
+        <td style="text-align:center">{{ object.reportingLatency }}</td>
+        <td>{{ object.created|multiTime:"created" }}</td>
+        <td>
+            {% for log in object.eventlog_set.iterator %}
+                {% if log.hasImage %}
+                    <div class="skymap">
+                        <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="50" src="{{ log.fileurl }}"></a>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </td>
+    </tr>
+
+{% endfor %}
+</table>
+
+{% else %} <!-- !objects -->
+<h1>No events.</h1>
+{% endif %} <!-- if objects -->
+
+{% endblock %}

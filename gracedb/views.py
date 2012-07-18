@@ -1008,8 +1008,10 @@ def latest(request):
     else:
         form = SimpleSearchForm(request.POST)
 
+    template = 'gracedb/latest.html'
     if not request.ligouser:
         limit = LimitedEvent
+        template = 'gracedb/latest_public.html'
     else:
         limit = lambda x: x
 
@@ -1025,7 +1027,7 @@ def latest(request):
         context['error'] = True
 
     return render_to_response(
-            'gracedb/latest.html',
+            template,
             context,
             context_instance=RequestContext(request))
 
