@@ -72,6 +72,10 @@ def skyalert(request, graceid):
         request.session['flash_msg'] = "No GPS time.  Event not suitable for submission to SkyAlert"
         return HttpResponseRedirect(reverse(view, args=[graceid]))
 
+    if not event.far:
+        request.session['flash_msg'] = "No FAR.  Event not suitable for submission to SkyAlert"
+        return HttpResponseRedirect(reverse(view, args=[graceid]))
+
     if not skyalert_authorized(request):
         request.session['flash_msg'] = "You are not authorized for SkyAlert submission"
         return HttpResponseRedirect(reverse(view, args=[graceid]))
