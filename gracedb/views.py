@@ -87,7 +87,7 @@ def skyalert(request, graceid):
         skyalert_response = ""
         # XXX umm.  don't we want to know if this email fails silently?
         mail_admins("SkyAlert Submission Error",
-                    "Event: %s\nExcption: %s\n" % (graceid, e),
+                    "Event: %s\nException: %s\n" % (graceid, e),
                     fail_silently=True)
 
     if skyalert_response.find("Success") >= 0:
