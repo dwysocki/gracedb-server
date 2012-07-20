@@ -90,18 +90,22 @@ def skyalert(request, graceid):
                     "Event: %s\nException: %s\n" % (graceid, e),
                     fail_silently=True)
 
+    flashmessage = None
     if skyalert_response.find("Success") >= 0:
-        urlpat = re.compile('https://[^ ]*')
+        urlpat = re.compile('https?://[^ ]*')
         match = urlpat.search(skyalert_response)
         if match:
             message = "Submitted to Skyalert: %s" % match.group()
+            url = match.group()
+            flashmessage = 'Submitted to Skyalert: %s' % url
+            message = 'Submitted to Skyalert: <a href="%s">%s</a>' % (url,url)
         else:
             message = "SkyAlert submission problem.  Cannot parse SkyAlert response."
             # XXX umm.  don't we want to know if this email fails silently?
             mail_admins("SkyAlert response parsing problem",
                         "Event: %s\nSkyAlert Response: %s\n" % (graceid, skyalert_response),
                         fail_silently=True)
-    elif skyalert_response.find('already') >= 0:
+    elif (skyalert_response.find('already') >= 0) or (skyalert_response.find('Duplicate') >= 0):
             message = "Event already submitted to SkyAlert"
             createLogEntry = False
     elif skyalert_response:
@@ -110,7 +114,7 @@ def skyalert(request, graceid):
                     "Event: %s\nSkyAlert Response: %s\n" % (graceid, skyalert_response),
                     fail_silently=True)
 
-    request.session['flash_msg'] = message
+    request.session['flash_msg'] = flashmessage or message
 
     if createLogEntry:
         logentry = EventLog(event=event, issuer=request.ligouser, comment=message)

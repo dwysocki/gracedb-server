@@ -178,6 +178,7 @@ def submitToSkyalert(gevent, validate_only=False):
     # the server that will handle the submit request
     url = "http://skyalert.org/submit/"
     url = "https://betelgeuse.ligo.caltech.edu:8000/submit/"
+    url = "http://betelgeuse.ligo.caltech.edu/submit/"
 
     # choose 'dryrun' for validation and 'author' for authoring
     dict['checker'] = 'dryrun'
@@ -190,11 +191,11 @@ def submitToSkyalert(gevent, validate_only=False):
         dict['checker'] = 'author'
 
         # Skyalert username and password
-        dict['username'] = 'brian'
-        dict['password'] = 'man8men.'
+        dict['username'] = 'system'
+        dict['password'] = 'OPV537'
 
         # This is the short name for the stream, must match credentials and event!
-        dict['streamName'] = 'gracedb'
+        dict['streamName'] = 'LIGO'
 
         # Should alerts be run once the event is ingested?
         dict['doRules'] = 'on'
