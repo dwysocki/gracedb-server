@@ -32,6 +32,8 @@ XMPP_ALERT_CHANNELS = [
                         'test_cwb',
                         'cbc_lowmass',
                         'test_lowmass',
+                        'cbc_highmass',
+                        'test_highmass',
                         'test_grb',
                       ]
 
