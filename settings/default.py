@@ -14,7 +14,7 @@ MANAGERS = ADMINS
 
 ALERT_EMAIL_FROM = "GraCEDb <gracedb@archie.phys.uwm.edu>"
 ALERT_EMAIL_TO = [
-                  "gracedb@listserv.ligo.org",
+#                 "gracedb@listserv.ligo.org",
                  ]
 ALERT_EMAIL_BCC = [
                   ]
@@ -32,6 +32,8 @@ XMPP_ALERT_CHANNELS = [
                         'test_cwb',
                         'cbc_lowmass',
                         'test_lowmass',
+                        'cbc_highmass',
+                        'test_highmass',
                         'test_grb',
                       ]
 
