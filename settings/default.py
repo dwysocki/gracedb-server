@@ -54,8 +54,9 @@ SKYALERT_DESCRIPTION   = "LIGO / Virgo trigger"
 SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
 
 
-GRACEDB_DATA_DIR = "/mnt/gracedb-web/data"
+#GRACEDB_DATA_DIR = "/mnt/gracedb-web/data"
 #GRACEDB_DATA_DIR = "/mnt/gracedb-web-temp/data"
+GRACEDB_DATA_DIR = "/home/branson/fake_data"
 
 # Latency histograms.  Where they go and max latency to bin.
 LATENCY_REPORT_DEST_DIR = "/home/gracedb/data/latency"
@@ -131,7 +132,8 @@ MEDIA_URL = '/gracedb-static/'
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
+#ADMIN_MEDIA_PREFIX = '/media/'
+STATIC_URL = '/media/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '$$&hl%^_4&s0k7sbdr8ll_^gkz-j8oab0tz$t^^b-%$!83d(av'
@@ -141,7 +143,7 @@ TEMPLATE_LOADERS = (
     #'django.template.loaders.filesystem.load_template_source',
     # replaced by...
     'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.load_template_source',
+#    'django.template.loaders.app_directories.load_template_source',
 #     'django.template.loaders.eggs.load_template_source',
 )
 
