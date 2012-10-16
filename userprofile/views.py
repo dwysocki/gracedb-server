@@ -31,6 +31,7 @@ def create(request):
             labels = form.cleaned_data['labels']
             atypes = form.cleaned_data['atypes']
             contacts = form.cleaned_data['contacts']
+            farThresh = form.cleaned_data['farThresh']
 
             if contacts and (labels or atypes):
                 t.save() # Need an id before relations can be set.
@@ -38,6 +39,7 @@ def create(request):
                     t.labels = labels
                     t.atypes = atypes
                     t.contacts = contacts
+                    t.farThresh = farThresh
                 except:
                     t.delete()
                 t.save()

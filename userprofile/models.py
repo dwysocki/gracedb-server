@@ -46,6 +46,7 @@ class Trigger(models.Model):
     labels = models.ManyToManyField(Label, blank=True)
     atypes = models.ManyToManyField(AnalysisType, blank=True, verbose_name="Analysis Types")
     contacts = models.ManyToManyField(Contact, blank=True)
+    farThresh = models.FloatField(blank=True, null=True)
 
     def __unicode__(self):
         return ("%s: %s") % (

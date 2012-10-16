@@ -82,7 +82,12 @@ def issueEmailAlert(event, location):
         triggers = atype.trigger_set.filter(labels=None)
         for trigger in triggers:
             for recip in trigger.contacts.all():
-                bccaddresses.append(recip.email)
+                if trigger.farThresh == None:
+                    bccaddresses.append(recip.email)
+                else:
+                    if event.far != None and event.far < trigger.farThresh:
+                        bccaddresses.append(recip.email)
+#                bccaddresses.append(recip.email)
 
     subject = "[gracedb] %s event. ID: %s" % (event.get_analysisType_display(), event.graceid())
     message = """
