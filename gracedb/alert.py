@@ -67,7 +67,6 @@ def issueAlertForLabel(event, label, doxmpp):
 
 
 def issueEmailAlert(event, location):
-
     # Gather Recipients
     if event.group.name == 'Test':
         fromaddress = settings.ALERT_TEST_EMAIL_FROM
@@ -77,18 +76,29 @@ def issueEmailAlert(event, location):
         fromaddress = settings.ALERT_EMAIL_FROM
         toaddresses = settings.ALERT_EMAIL_TO
         bccaddresses = settings.ALERT_EMAIL_BCC
+# Branson debugging.
+#        toaddresses = []
+#        bccaddress  = []
 
         atype = AnalysisType.objects.filter(code=event.analysisType)[0]
         triggers = atype.trigger_set.filter(labels=None)
+
+# Branson debugging.
+#        dfile=open("/home/branson/gracedbdev/gracedb/dfile.txt", mode="w");        
         for trigger in triggers:
             for recip in trigger.contacts.all():
-                if trigger.farThresh == None:
+                if not trigger.farThresh:
                     bccaddresses.append(recip.email)
                 else:
-                    if event.far != None and event.far < trigger.farThresh:
+# Branson debugging.
+#                    b2 = event.far < trigger.farThresh
+#                    dfile.write("Second cond = %s\n" % b2);
+                    if event.far and event.far < trigger.farThresh:
+#                        toaddresses = settings.ALERT_EMAIL_TO
+#                        bccaddresses = settings.ALERT_EMAIL_BCC
                         bccaddresses.append(recip.email)
-#                bccaddresses.append(recip.email)
-
+# Branson debugging.
+#        dfile.close()
     subject = "[gracedb] %s event. ID: %s" % (event.get_analysisType_display(), event.graceid())
     message = """
 New Event

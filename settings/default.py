@@ -160,7 +160,10 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'middleware.debug.LigoDebugContext',
 )
 
-AUTHENTICATION_BACKENDS = ('gracedb.middleware.auth.LigoAuthBackend',)
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'gracedb.middleware.auth.LigoAuthBackend',
+)
 
 MIDDLEWARE_CLASSES = [
     'middleware.accept.AcceptMiddleware',
@@ -169,6 +172,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
 ROOT_URLCONF = 'urls'
