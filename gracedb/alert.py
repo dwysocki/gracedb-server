@@ -88,11 +88,12 @@ def issueEmailAlert(event, location):
         for trigger in triggers:
             for recip in trigger.contacts.all():
                 if not trigger.farThresh:
+#                    toaddresses = settings.ALERT_EMAIL_TO
+#                    bccaddresses = settings.ALERT_EMAIL_BCC
                     bccaddresses.append(recip.email)
                 else:
 # Branson debugging.
-#                    b2 = event.far < trigger.farThresh
-#                    dfile.write("Second cond = %s\n" % b2);
+#                    dfile.write("event.far = %f\n" % event.far);
                     if event.far and event.far < trigger.farThresh:
 #                        toaddresses = settings.ALERT_EMAIL_TO
 #                        bccaddresses = settings.ALERT_EMAIL_BCC
