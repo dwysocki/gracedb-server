@@ -15,7 +15,8 @@ import glue.ligolw.utils
 import glue.lvalert.utils
 
 def issueAlert(event, location, temp_data_loc):
-    issueXMPPAlert(event, location, temp_data_loc)
+#   Branson commented out just in case somebody is listening.
+#    issueXMPPAlert(event, location, temp_data_loc)
     issueEmailAlert(event, location)
 
 def indent(nindent, text):
