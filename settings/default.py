@@ -175,7 +175,6 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'ligodjangoauth.LigoShibbolethMiddleware',
     'gracedb.middleware.auth.LigoAuthMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
 ]
 
 ROOT_URLCONF = 'urls'
