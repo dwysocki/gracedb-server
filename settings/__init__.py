@@ -25,6 +25,10 @@ configs = {
 
     '/home/gracedb/gracedb': 'production',
     '/home/gracedb/graceproj': 'production',
+
+    '/home/branson/gracedbdev': 'branson',
+    '/home/branson/gracedbdev/gracedb': 'branson',
+
 }
 
 

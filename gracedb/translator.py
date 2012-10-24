@@ -341,7 +341,7 @@ class Translator(object):
     def logData(self):
         data = self.getData()
         logdata = []
-        logdata.append("Event Type: %s", self.event_type)
+        logdata.append("Event Type: %s" % self.event_type)
         logdata.append("Time: %s" % data.get('gpstime', '---'))
         logdata.append("Duration: %s" % data['rawdata'].get('duration',["---"])[0])
         logdata.append("Frequency: %s" % data['rawdata'].get('frequency',["---"])[0])
@@ -397,14 +397,40 @@ class CwbData(Translator):
         # ...
         # keyN: value value*
         # piles of other data not containing ':'
+        # ...
+        #  more data we don't care about here
+        # ...
+        # #significance based on the last 24*6 processed jobs, 4000-1 time shifts
+        # 318 1.98515e-05 1026099328 1026503796 53644
+        # ...
+        #
+        #   The 2nd number following the "24*6" line is FAR.
+        #
         rawdata = {}
 
+        # Get Key/Value info
         for line in datafile:
             line = line.split(':',1)
             if len(line) == 1:
                 break
             key, val = line
             rawdata[key] = val.split()
+
+        # scan down for FAR
+        next_line_is_far = False
+        for line in datafile:
+            if line.startswith("#significance based on the last 24*6"):
+                next_line_is_far = True
+                break
+        if next_line_is_far:
+            # Can't just do datafile.readline() -- Python objects.
+            for line in datafile:
+                try:
+                    rawdata['far'] = [float(line.split()[1])]
+                except Exception, e:
+                    # whatever.
+                    pass
+                break
 
         data = {}
         data['rawdata'] = rawdata

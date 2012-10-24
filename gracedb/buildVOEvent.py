@@ -118,19 +118,19 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
         shib_fits_skymap_url = request.build_absolute_uri(shib_fits_skymap_url)
         shib_png_skymap_url = request.build_absolute_uri(shib_png_skymap_url)
 
-        p = Param(name="skymap", ucd="meta.ref.url", value=x509_png_skymap_url)
+        p = Param(name="skymap_png_x509", ucd="meta.ref.url", value=x509_png_skymap_url)
         p.set_Description(["Sky Map image X509 protected"])
         w.add_Param(p)
 
-        p = Param(name="skymap", ucd="meta.ref.url", value=x509_fits_skymap_url)
+        p = Param(name="skymap_fits_x509", ucd="meta.ref.url", value=x509_fits_skymap_url)
         p.set_Description(["Sky Map FITS X509 protected"])
         w.add_Param(p)
 
-        p = Param(name="skymap", ucd="meta.ref.url", value=shib_png_skymap_url)
+        p = Param(name="skymap_png_shib", ucd="meta.ref.url", value=shib_png_skymap_url)
         p.set_Description(["Sky Map image Shibboleth protected"])
         w.add_Param(p)
 
-        p = Param(name="skymap", ucd="meta.ref.url", value=shib_fits_skymap_url)
+        p = Param(name="skymap_fits_shib", ucd="meta.ref.url", value=shib_fits_skymap_url)
         p.set_Description(["Sky Map FITS Shibboleth protected"])
         w.add_Param(p)
 
@@ -178,6 +178,7 @@ def submitToSkyalert(gevent, validate_only=False):
     # the server that will handle the submit request
     url = "http://skyalert.org/submit/"
     url = "https://betelgeuse.ligo.caltech.edu:8000/submit/"
+    url = "http://betelgeuse.ligo.caltech.edu/submit/"
 
     # choose 'dryrun' for validation and 'author' for authoring
     dict['checker'] = 'dryrun'
@@ -190,11 +191,11 @@ def submitToSkyalert(gevent, validate_only=False):
         dict['checker'] = 'author'
 
         # Skyalert username and password
-        dict['username'] = 'brian'
-        dict['password'] = 'man8men.'
+        dict['username'] = 'system'
+        dict['password'] = 'OPV537'
 
         # This is the short name for the stream, must match credentials and event!
-        dict['streamName'] = 'gracedb'
+        dict['streamName'] = 'LIGO'
 
         # Should alerts be run once the event is ingested?
         dict['doRules'] = 'on'

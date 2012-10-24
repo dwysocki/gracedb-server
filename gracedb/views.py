@@ -72,6 +72,10 @@ def skyalert(request, graceid):
         request.session['flash_msg'] = "No GPS time.  Event not suitable for submission to SkyAlert"
         return HttpResponseRedirect(reverse(view, args=[graceid]))
 
+    if not event.far:
+        request.session['flash_msg'] = "No FAR.  Event not suitable for submission to SkyAlert"
+        return HttpResponseRedirect(reverse(view, args=[graceid]))
+
     if not skyalert_authorized(request):
         request.session['flash_msg'] = "You are not authorized for SkyAlert submission"
         return HttpResponseRedirect(reverse(view, args=[graceid]))
@@ -83,21 +87,25 @@ def skyalert(request, graceid):
         skyalert_response = ""
         # XXX umm.  don't we want to know if this email fails silently?
         mail_admins("SkyAlert Submission Error",
-                    "Event: %s\nExcption: %s\n" % (graceid, e),
+                    "Event: %s\nException: %s\n" % (graceid, e),
                     fail_silently=True)
 
+    flashmessage = None
     if skyalert_response.find("Success") >= 0:
-        urlpat = re.compile('https://[^ ]*')
+        urlpat = re.compile('https?://[^ ]*')
         match = urlpat.search(skyalert_response)
         if match:
             message = "Submitted to Skyalert: %s" % match.group()
+            url = match.group()
+            flashmessage = 'Submitted to Skyalert: %s' % url
+            message = 'Submitted to Skyalert: <a href="%s">%s</a>' % (url,url)
         else:
             message = "SkyAlert submission problem.  Cannot parse SkyAlert response."
             # XXX umm.  don't we want to know if this email fails silently?
             mail_admins("SkyAlert response parsing problem",
                         "Event: %s\nSkyAlert Response: %s\n" % (graceid, skyalert_response),
                         fail_silently=True)
-    elif skyalert_response.find('already') >= 0:
+    elif (skyalert_response.find('already') >= 0) or (skyalert_response.find('Duplicate') >= 0):
             message = "Event already submitted to SkyAlert"
             createLogEntry = False
     elif skyalert_response:
@@ -106,7 +114,7 @@ def skyalert(request, graceid):
                     "Event: %s\nSkyAlert Response: %s\n" % (graceid, skyalert_response),
                     fail_silently=True)
 
-    request.session['flash_msg'] = message
+    request.session['flash_msg'] = flashmessage or message
 
     if createLogEntry:
         logentry = EventLog(event=event, issuer=request.ligouser, comment=message)
@@ -1004,8 +1012,10 @@ def latest(request):
     else:
         form = SimpleSearchForm(request.POST)
 
+    template = 'gracedb/latest.html'
     if not request.ligouser:
         limit = LimitedEvent
+        template = 'gracedb/latest_public.html'
     else:
         limit = lambda x: x
 
@@ -1021,7 +1031,7 @@ def latest(request):
         context['error'] = True
 
     return render_to_response(
-            'gracedb/latest.html',
+            template,
             context,
             context_instance=RequestContext(request))
 
