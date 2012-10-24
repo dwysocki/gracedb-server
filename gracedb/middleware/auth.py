@@ -111,7 +111,7 @@ class LigoAuthBackend:
     def get_user(self, user_id):
         try:
             return DjangoUser.get(id=user_id)
-        except Djangouser.UserDoesNotExist:
+        except DjangoUser.UserDoesNotExist:
             return None
 
 def LigoAuthContext(request):
