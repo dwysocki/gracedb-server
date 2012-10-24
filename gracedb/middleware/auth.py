@@ -19,38 +19,42 @@ class LigoAuthMiddleware:
         ligouser = None
         user = None
 
-        principal = request.META.get('REMOTE_USER')
-        certdn = request.META.get('SSL_CLIENT_S_DN')
-        issuer = request.META.get('SSL_CLIENT_I_DN')
-
-        if not certdn:
-            try:
-                # mod_python is a little off...
-                # SSL info is in request._req
-                # Need to try/except because _req is
-                # not defined in WSGI request.
-                certdn = request._req.ssl_var_lookup ('SSL_CLIENT_S_DN')
-                issuer = request._req.ssl_var_lookup ('SSL_CLIENT_I_DN')
-                pass
-            except:
-                pass
-
         queryResult = []
-        if principal:
-            # Kerberos.
+        if (request.user):
+            # Scott's middleware has set the user aready using shib.
+            # Let's add some more attributes.
+            principal = request.user.username
+            request.user.name = nameFromPrincipal(principal)
             queryResult = User.objects.filter(principal=principal)
-        elif certdn and certdn.startswith(issuer):
-            # proxy.
-            # Proxies can be signed by proxies.
-            # Each level of "proxification" causes the subject
-            # to have a '/CN=[0-9]+ appended to the signers subject.
-            # These must be removed to discover the original identity's
-            # subject DN.
-            issuer = proxyPattern.match(issuer).group(1)
-            queryResult = User.objects.filter(dn=issuer)
-        elif certdn:
-            # cert in browser.
-            queryResult = User.objects.filter(dn=certdn)
+        else:
+            # authenticate with certs
+            certdn = request.META.get('SSL_CLIENT_S_DN')
+            issuer = request.META.get('SSL_CLIENT_I_DN')
+
+            if not certdn:
+                try:
+                    # mod_python is a little off...
+                    # SSL info is in request._req
+                    # Need to try/except because _req is
+                    # not defined in WSGI request.
+                    certdn = request._req.ssl_var_lookup ('SSL_CLIENT_S_DN')
+                    issuer = request._req.ssl_var_lookup ('SSL_CLIENT_I_DN')
+                    pass
+                except:
+                    pass
+
+            if certdn and certdn.startswith(issuer):
+                # proxy.
+                # Proxies can be signed by proxies.
+                # Each level of "proxification" causes the subject
+                # to have a '/CN=[0-9]+ appended to the signers subject.
+                # These must be removed to discover the original identity's
+                # subject DN.
+                issuer = proxyPattern.match(issuer).group(1)
+                queryResult = User.objects.filter(dn=issuer)
+            elif certdn:
+                # cert in browser.
+                queryResult = User.objects.filter(dn=certdn)
 
         if queryResult:
             ligouser = queryResult[0]

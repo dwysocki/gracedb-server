@@ -161,18 +161,23 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
     'gracedb.middleware.auth.LigoAuthBackend',
+    'ligodjangoauth.LigoShibbolethAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
 )
+
+SHIB_AUTHENTICATION_SESSION_INITIATOR = 'https://moe.phys.uwm.edu/Shibboleth.sso/Login'
 
 MIDDLEWARE_CLASSES = [
     'middleware.accept.AcceptMiddleware',
-    'gracedb.middleware.auth.LigoAuthMiddleware',
     'middleware.cli.CliExceptionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'ligodjangoauth.LigoShibbolethMiddleware',
+    'gracedb.middleware.auth.LigoAuthMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
 ]
 
 ROOT_URLCONF = 'urls'
