@@ -12,7 +12,7 @@ from django.core.urlresolvers import reverse, get_script_prefix
 from userprofile.models import Trigger, AnalysisType
 
 import glue.ligolw.utils
-import glue.lvalert.utils
+import ligo.lvalert.utils
 
 def issueAlert(event, location, temp_data_loc):
     issueXMPPAlert(event, location, temp_data_loc)
@@ -135,7 +135,7 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
         stderr=STDOUT,
         env=env)
 
-    xmldoc = glue.lvalert.utils.make_LVAlertTable(
+    xmldoc = ligo.lvalert.utils.make_LVAlertTable(
                     location,
                     event.graceid(),
                     temp_data_loc,

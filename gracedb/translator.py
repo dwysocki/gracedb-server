@@ -7,13 +7,13 @@ from subprocess import Popen, PIPE
 from django.conf import settings
 
 import glue, glue.ligolw.utils
-from glue.gracedb.utils import InspiralCoincDef
-from glue.gracedb.utils import BurstCoincDef
+from ligo.gracedb.utils import InspiralCoincDef
+from ligo.gracedb.utils import BurstCoincDef
 
-from glue.gracedb.utils import insp_event_id_dict
-from glue.gracedb.utils import coherent_event_id_dict
+from ligo.gracedb.utils import insp_event_id_dict
+from ligo.gracedb.utils import coherent_event_id_dict
 
-from glue.gracedb.utils import populate_inspiral_tables, \
+from ligo.gracedb.utils import populate_inspiral_tables, \
                                populate_omega_tables,    \
                                populate_coinc_tables,    \
                                write_output_files
