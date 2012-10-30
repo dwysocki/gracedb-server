@@ -40,4 +40,8 @@ urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
 
+    # For development only.  And only for old Django versions (like 1.2)
+    (r'^gracedb-static/(?P<path>.*)$', 'django.views.static.serve',
+        {'document_root': settings.MEDIA_ROOT}),
+
 )
