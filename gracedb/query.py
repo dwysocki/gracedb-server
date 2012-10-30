@@ -114,6 +114,12 @@ tidRange = tid + Suppress("..") + tid
 tidQ = Optional(Suppress(Keyword("tid:"))) + (tid^tidRange)
 tidQ = tidQ.setParseAction(maybeRange("tid", dbname="id"))
 
+# External trigger event id
+eid = Suppress("E")+Word("0123456789")
+eidRange = eid + Suppress("..") + eid
+eidQ = Optional(Suppress(Keyword("eid:"))) + (eid^eidRange)
+eidQ = eidQ.setParseAction(maybeRange("eid", dbname="id"))
+
 # Submitter
 submitter = QuotedString('"').setParseAction(lambda toks: Q(submitter__name=toks[0]))
 submitterQ = Optional(Suppress(Keyword("submitter:"))) + submitter
@@ -214,7 +220,7 @@ ifoQ = ifoListQ | nifoQ
 
 ###########################
 
-q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
+q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | eidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
 
 #andTheseTags = ["attr"]
 andTheseTags = ["nevents"]

@@ -18,6 +18,10 @@ from glue.gracedb.utils import populate_inspiral_tables, \
                                populate_coinc_tables,    \
                                write_output_files
 
+from VOEventLib.VOEvent import *
+from VOEventLib.Vutil import *
+from utils import isoToGps
+
 def handle_uploaded_data(event, datafilename,
                          log_filename='event.log',
                          coinc_table_filename='coinc.xml'):
@@ -291,6 +295,13 @@ def handle_uploaded_data(event, datafilename,
             f.close()
         except:
             pass
+    elif event.analysisType == 'GRB':
+        # Get the event time from the VOEvent file
+        try:
+            event.gpstime = getGpsFromVOEvent(datafilename)
+        except:
+            event.gpstime = 0
+        event.save()
     else:
         # XXX should we do something here?
         pass
@@ -453,3 +464,8 @@ class CwbData(Translator):
     def writeCoincFile(self, path):
         pass
 
+def getGpsFromVOEvent(filename):
+    v = parse(filename)
+    wwd = getWhereWhen(v)
+    gpstime = isoToGps(wwd['time'])
+    return gpstime

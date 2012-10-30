@@ -89,6 +89,8 @@ class Event(models.Model):
             return "T%04d" % self.id
         elif self.analysisType == "HWINJ":
             return "H%04d" % self.id
+        elif self.analysisType == "GRB":
+            return "E%04d" % self.id
         return "G%04d" % self.id
 
     def weburl(self):
@@ -149,6 +151,8 @@ class Event(models.Model):
         if (id[0] == "T") and (e.group.name == "Test"):
             return e
         if (id[0] == "H") and (e.analysisType == "HWINJ"):
+            return e
+        if (id[0] == "E") and (e.analysisType == "GRB"):
             return e
         if (id[0] == "G"):
             return e
