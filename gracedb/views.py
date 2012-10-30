@@ -31,7 +31,6 @@ MAX_QUERY_RESULTS = 1000
 
 GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 
-import simplejson
 import json
 
 def index(request):
@@ -502,7 +501,7 @@ def ping(request):
             d['latest'] = {}
             d['latest']['id'] = latest.graceid()
             d['latest']['created'] = str(utc(latest.created))
-        d =  simplejson.dumps(d)
+        d =  json.dumps(d)
         response.write(d)
         response['Content-length'] = len(d)
     else:
@@ -575,7 +574,7 @@ def cli_search(request):
         for key in form.errors:
             d['error'] += "%s: %s\n" % (key, strip_tags(form.errors[key]))
     response = HttpResponse(mimetype='application/javascript')
-    msg = simplejson.dumps(d)
+    msg = json.dumps(d)
     response['Content-length'] = len(msg)
     response.write(msg)
     return response
@@ -626,7 +625,7 @@ def search(request, format=""):
                 'records' : 3,
                 'rows': rows
             }
-        msg = simplejson.dumps(d)
+        msg = json.dumps(d)
         response['Content-length'] = len(msg)
         response.write(msg)
 
@@ -821,7 +820,7 @@ def timeline(request):
                 'durationEvent':False,
               })
     d = {'events': events}
-    msg = simplejson.dumps(d)
+    msg = json.dumps(d)
     response['Content-length'] = len(msg)
     response.write(msg)
     return response
@@ -910,7 +909,7 @@ def flexigridResponse(request, objects):
             'rows': rows,
         }
     try:
-        msg = simplejson.dumps(d)
+        msg = json.dumps(d)
     except Exception, e:
         # XXX Not right not right not right.
         msg = "{}"

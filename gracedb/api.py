@@ -2,7 +2,7 @@
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseForbidden, HttpResponseServerError
 from django.core.urlresolvers import reverse
 
-import simplejson
+import json
 
 from gracedb.models import Event
 
@@ -59,7 +59,7 @@ def download(request, graceid, filename=""):
                 filename = os.path.join(dirname, filename)
                 rv[filename] = reverse(download, args=[graceid, filename])
 
-        response = HttpResponse(simplejson.dumps(rv), content_type="application/json")
+        response = HttpResponse(json.dumps(rv), content_type="application/json")
     elif os.path.isdir(filepath):
         response = HttpResponseForbidden("%s is a directory" % filename)
     else:
