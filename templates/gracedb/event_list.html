@@ -48,7 +48,7 @@
             (
             {
             sortable: true,
-            url: '{% url search %}/flex?query={{rawquery|urlencode}}',
+            url: '{% url search %}flex?query={{rawquery|urlencode}}',
             datatype: 'json',
             mtype: "GET",
             colNames : ["UID", "Labels", "Neighbors (+/-5sec)", "Group", "Type", "Event Time", "Instruments", "FAR (Hz)", "Links", "Submitted", "Submitted By",
