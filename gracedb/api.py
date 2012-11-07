@@ -6,7 +6,13 @@ import simplejson
 
 from gracedb.models import Event
 
+from piston.handler import BaseHandler
+
 import os
+
+class EventHandler(BaseHandler):
+    model = Event
+    allowed_methods = ('GET',)
 
 def download(request, graceid, filename=""):
     # Do not filename to be None.  That messes up later os.path.join
