@@ -20,7 +20,7 @@ class LigoAuthMiddleware:
         user = None
 
         queryResult = []
-        if (request.user):
+        if not request.user.is_anonymous():
             # Scott's middleware has set the user aready using shib.
             # Let's add some more attributes.
             principal = request.user.username
