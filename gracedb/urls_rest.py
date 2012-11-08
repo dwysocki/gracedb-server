@@ -1,13 +1,18 @@
 
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, url
 
-from piston.resource import Resource
-from gracedb.api import EventHandler
-
-eventHandler = Resource(EventHandler)
+# rest_framework
+from gracedb.api import EventList, EventDetail
 
 urlpatterns = patterns('gracedb.api',
-    url (r'^events/[A-Z]?(?P<id>[\w\d]+)$', eventHandler, name="api_event"),
+    url (r'^$', 'api_root'),
+    # Piston
+
+    # rest_framework
+    url (r'^revents/$', EventList.as_view(), name='event-list'),
+    url (r'^revents/[GEHT](?P<pk>\d+)$', EventDetail.as_view(), name='event-detail'),
+
+    # Legacy
     url (r'^events/(?P<graceid>[\w\d]+)/files/(?P<filename>.+)?$', 'download', name="download"),
     url (r'^event/(?P<graceid>[\w\d]+)/files/(?P<filename>.+)?$', 'download', name="download2"),
 )

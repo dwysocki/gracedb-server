@@ -6,14 +6,47 @@ import simplejson
 
 from gracedb.models import Event
 
-from piston.handler import BaseHandler
-
 import os
 
-class EventHandler(BaseHandler):
-    model = Event
-    allowed_methods = ('GET',)
+##################################################################
+# Piston
 
+
+##################################################################
+# rest_framework
+from rest_framework import generics, serializers
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+
+class EventList(generics.ListCreateAPIView):
+    model = Event       
+    serializer_class = EventSerializer
+
+class EventDetail(generics.RetrieveUpdateDestroyAPIView):
+    model = Event   
+    serializer_class = EventSerializer
+
+def api_root(request):
+    """the api root"""
+    return HttpResponse("""
+<html>
+    <head>
+    </head>
+    <body>
+    O Hai.  %s<br/>%s
+    </body>
+</html>
+""" % (
+    reverse('event-list'),
+    reverse('event-detail', args=[12]),
+    ))
+#""" % reverse('download', kwargs={"graceid":"G12", "filename":"FLED_THE_FILER"}))
+#""" % reverse(download, args=["G12", "FRED_THE_FILE"]))
+
+##################################################################
+# Old.  Must support this.
 def download(request, graceid, filename=""):
     # Do not filename to be None.  That messes up later os.path.join
     filename = filename or ""
