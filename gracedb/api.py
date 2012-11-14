@@ -80,7 +80,7 @@ class EventList(APIView):
     ##renderer_classes = (JSONRenderer, JSONPRenderer, YAMLRenderer, XMLRenderer)
     ##permission_classes = (AllowAny,)
     ##authentication_classes = (authentication.SessionAuthentication,)
-    #authentication_classes = (LigoAuthentication,)
+    authentication_classes = (LigoAuthentication,)
     parser_classes = (parsers.MultiPartParser,)
 
     def get(self, request):
@@ -133,6 +133,7 @@ class EventList(APIView):
         return Response(rv, status=status.HTTP_201_CREATED)
 
 class EventDetail(APIView):
+    authentication_classes = (LigoAuthentication,)
     parser_classes = (parsers.MultiPartParser,)
     form = CreateEventForm
 
@@ -164,6 +165,8 @@ def eventLogToDict(log, n=None, request=None):
             }]
 
 class EventLogList(APIView):
+    authentication_classes = (LigoAuthentication,)
+
     def get(self, request, graceid):
         try:
             event = Event.getByGraceid(graceid)
@@ -178,6 +181,9 @@ class EventLogList(APIView):
 
 class EventLogDetail(APIView):
     """docstring for EventLogDetail"""
+
+    authentication_classes = (LigoAuthentication,)
+
     def get(self, request, graceid, n):
         try:
             event = Event.getByGraceid(graceid)
@@ -189,6 +195,7 @@ class EventLogDetail(APIView):
 
 class GracedbRoot(APIView):
     """Root of the Gracedb REST API"""
+    authentication_classes = (LigoAuthentication,)
     parser_classes = ()
     def get(self, request):
         # XXX scummy way to get a URI template.  Is there better?
@@ -295,6 +302,7 @@ def download(request, graceid, filename=""):
 class Files(APIView):
     """Files Resource"""
 
+    authentication_classes = (LigoAuthentication,)
     def get(self, request, graceid, filename=""):
         # Do not filename to be None.  That messes up later os.path.join
         filename = filename or ""
@@ -362,4 +370,5 @@ class Files(APIView):
 
 class FileMeta(APIView):
     """File Metadata Resource"""
+    authentication_classes = (LigoAuthentication,)
     pass
