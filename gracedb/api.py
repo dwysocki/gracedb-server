@@ -1,6 +1,9 @@
 
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseForbidden, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponseForbidden, HttpResponseServerError
 from django.core.urlresolvers import reverse as django_reverse
+
+from django.conf import settings
 
 import simplejson
 
@@ -9,18 +12,21 @@ from gracedb.models import Event
 import os
 import urllib
 
-##################################################################
-# Piston
 
+##################################################################
+
+REST_FRAMEWORK_SETTINGS = getattr(settings, 'REST_FRAMEWORK', {})
+PAGINATE_BY = REST_FRAMEWORK_SETTINGS.get('PAGINATE_BY', 10)
 
 ##################################################################
 # rest_framework
 from rest_framework import serializers, status
 from rest_framework.response import Response
-#from rest_framework.renderers import JSONRenderer, JSONPRenderer, YAMLRenderer, XMLRenderer
+#from rest_framework.renderers import JSONRenderer, JSONPRenderer
+#from rest_framework.renderers import YAMLRenderer, XMLRenderer
 from forms import CreateEventForm
 from views import _createEventFromForm
-from rest_framework import parsers # YAMLParser, MultiPartParser
+from rest_framework import parsers      # YAMLParser, MultiPartParser
 
 #from rest_framework.permissions import IsAuthenticated
 #from rest_framework.permissions import AllowAny
@@ -44,37 +50,77 @@ class EventSerializer(serializers.Serializer):
     group        = serializers.CharField(required=True, max_length=100)
     analysisType = serializers.CharField(required=True, max_length=100)
 
+
 def eventToDict(event, columns=None, request=None):
     """Convert an Event to a dictionary so it can be serialized.  (ugh)"""
+
     # XXX Seems wrong.  Need to understand serializers.
 
     rv = {}
 
+    graceid = event.graceid()
     rv['submitter'] = event.submitter.name
     rv['created'] = event.created
     rv['group'] = event.group.name
-    rv['graceid'] = event.graceid()
+    rv['graceid'] = graceid
     rv['analysisType'] = event.get_analysisType_display()
     rv['instruments'] = event.instruments
     rv['nevents'] = event.nevents
     rv['far'] = event.far
     rv['likelihood'] = event.likelihood
-    rv['labels'] = [labelling.label.name for labelling in event.labelling_set.all()]
-    rv['labels'] = [labelling.label.name for labelling in event.labelling_set.all()]
+    rv['labels'] = [labelling.label.name
+            for labelling in event.labelling_set.all()]
     rv['links'] = {
             "neighbors" : dict(
                 [(e.gpstime, reverse("event-detail", args=[e.graceid()]))
                     for e in event.neighbors()]),
-            "data" : event.weburl(),
-            "log" : reverse("eventlog-list", args=[event.graceid()], request=request),
-            "files" : reverse("files", args=[event.graceid()], request=request),
-            "filemeta" : reverse("filemeta", args=[event.graceid()], request=request),
-            "self" : reverse("event-detail", args=[event.graceid()], request=request),
+            "data"  : event.weburl(),
+            "log"   : reverse("eventlog-list", args=[graceid], request=request),
+            "files" : reverse("files", args=[graceid], request=request),
+            "filemeta" : reverse("filemeta", args=[graceid], request=request),
+            "self"  : reverse("event-detail", args=[graceid], request=request),
             }
     return rv
 
 class EventList(APIView):
-    """Docstring for *EventList* class!"""
+    """
+    This resource represents the candidate events in GraceDB.
+
+    ### GET
+    Retrieve events. You may use the following parameters:
+
+    * `query=Q` : use any query string as one might use on the query page.
+    * `limit=N` : the maximum number of events in a response. (default: 10)
+    * `page=N` : events starting with the (limit*(page-1))th event. (default: 1)
+    * `orderby=O` : how to order events.  (default: -created)
+
+    Example:
+    `curl -X GET --insecure --cert $X509_USER_PROXY https://gracedb.ligo.org/api/events/?query=LowMass%20EM_READY&orderby=-far`
+
+    ### POST
+    To create an event.  Expects `multipart/form-data` mime-type with
+    parameters, `group`, `type` and a file part, `eventFile` containing
+    the analysis data.
+
+    Groups: `Test` `CBC` `Burst` `Stochastic` `Coherent`
+
+    Analysis Types:
+
+    * `LM` :  Low Mass
+    * `HM` :  High Mass
+    * `GRB` : GRB
+    * `RD` :  Ringdown
+    * `OM` :  Omega
+    * `Q` :   Q
+    * `X` :   X
+    * `CWB` : CWB
+    * `MBTA` : MBTA Online
+    * `HWINJ` : Hardware Injection
+
+    Example:
+    `curl -X POST -F "group=Test" -F "type=LM" -F "eventFile=@coinc.xml" --insecure --cert $X509_USER_PROXY https://gracedb.ligo.org/api/events/`
+
+    """
     #model = Event
     #serializer_class = EventSerializer
     ##renderer_classes = (JSONRenderer, JSONPRenderer, YAMLRenderer, XMLRenderer)
@@ -86,14 +132,14 @@ class EventList(APIView):
     def get(self, request):
         """I am the GET docstring for EventList"""
         query = request.QUERY_PARAMS.get("query")
-        limit = request.QUERY_PARAMS.get("limit", 10)
+        limit = request.QUERY_PARAMS.get("limit", PAGINATE_BY)
         page = request.QUERY_PARAMS.get("page", 1)
         orderby = request.QUERY_PARAMS.get("orderby", "-created")
         if query is not None:
             return Response("Query not implemented")
         page = int(page)
         limit = int(limit)
-        first = page*limit
+        first = (page-1)*limit
         events = Event.objects.order_by(orderby)
         count = events.count()
         last = max(0, (count / limit) - 1)
@@ -194,7 +240,9 @@ class EventLogDetail(APIView):
         return Response(eventLogToDict(rv, request=request))
 
 class GracedbRoot(APIView):
-    """Root of the Gracedb REST API"""
+    """
+        Root of the Gracedb REST API
+    """
     authentication_classes = (LigoAuthentication,)
     parser_classes = ()
     def get(self, request):
