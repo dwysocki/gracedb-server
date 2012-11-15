@@ -15,8 +15,7 @@ import glue.ligolw.utils
 import glue.lvalert.utils
 
 def issueAlert(event, location, temp_data_loc):
-#   Branson commented out just in case somebody is listening.
-#    issueXMPPAlert(event, location, temp_data_loc)
+    issueXMPPAlert(event, location, temp_data_loc)
     issueEmailAlert(event, location)
 
 def indent(nindent, text):
@@ -68,6 +67,7 @@ def issueAlertForLabel(event, label, doxmpp):
 
 
 def issueEmailAlert(event, location):
+
     # Gather Recipients
     if event.group.name == 'Test':
         fromaddress = settings.ALERT_TEST_EMAIL_FROM
@@ -77,30 +77,13 @@ def issueEmailAlert(event, location):
         fromaddress = settings.ALERT_EMAIL_FROM
         toaddresses = settings.ALERT_EMAIL_TO
         bccaddresses = settings.ALERT_EMAIL_BCC
-# Branson debugging.
-#        toaddresses = []
-#        bccaddress  = []
 
         atype = AnalysisType.objects.filter(code=event.analysisType)[0]
         triggers = atype.trigger_set.filter(labels=None)
-
-# Branson debugging.
-#        dfile=open("/home/branson/gracedbdev/gracedb/dfile.txt", mode="w");        
         for trigger in triggers:
             for recip in trigger.contacts.all():
-                if not trigger.farThresh:
-#                    toaddresses = settings.ALERT_EMAIL_TO
-#                    bccaddresses = settings.ALERT_EMAIL_BCC
-                    bccaddresses.append(recip.email)
-                else:
-# Branson debugging.
-#                    dfile.write("event.far = %f\n" % event.far);
-                    if event.far and event.far < trigger.farThresh:
-#                        toaddresses = settings.ALERT_EMAIL_TO
-#                        bccaddresses = settings.ALERT_EMAIL_BCC
-                        bccaddresses.append(recip.email)
-# Branson debugging.
-#        dfile.close()
+                bccaddresses.append(recip.email)
+
     subject = "[gracedb] %s event. ID: %s" % (event.get_analysisType_display(), event.graceid())
     message = """
 New Event
