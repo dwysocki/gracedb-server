@@ -1,0 +1,27 @@
+{% extends "rest_framework/base.html" %}
+
+{% block title %}GraceDB REST API{% endblock %}
+
+{% block branding %}
+GraceDB &mdash; REST API
+    {% if config_name %}
+      <span style="color: red;">
+          {{config_name}}
+      </span>
+    {% endif %}
+{% endblock %}
+
+{% block userlinks %}
+    {% if ligouser %}<li>Authenticated as: {{ ligouser.name }}</li>{% endif %}
+{% endblock %}
+
+    {% block breadcrumbs %}
+    <ul class="breadcrumb">
+    	    <li><a href="{% url home %}">Home</a></li><span class="divider">&rsaquo;</span>
+        {% for breadcrumb_name, breadcrumb_url in breadcrumblist %}
+            <li>
+                <a href="{{ breadcrumb_url }}" {% if forloop.last %}class="active"{% endif %}>{{ breadcrumb_name }}</a> {% if not forloop.last %}<span class="divider">&rsaquo;</span>{% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endblock %}
