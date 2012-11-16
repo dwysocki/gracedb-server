@@ -1,5 +1,5 @@
 
-ALTER TABLE gracedb_event
+ALTER TABLE userprofile_trigger
 ADD COLUMN farThresh double AFTER triggerType
 ;
 
