@@ -54,9 +54,8 @@ SKYALERT_DESCRIPTION   = "LIGO / Virgo trigger"
 SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
 
 
-#GRACEDB_DATA_DIR = "/mnt/gracedb-web/data"
+GRACEDB_DATA_DIR = "/mnt/gracedb-web/data"
 #GRACEDB_DATA_DIR = "/mnt/gracedb-web-temp/data"
-GRACEDB_DATA_DIR = "/home/branson/fake_data"
 
 # Latency histograms.  Where they go and max latency to bin.
 LATENCY_REPORT_DEST_DIR = "/home/gracedb/data/latency"
@@ -142,8 +141,7 @@ TEMPLATE_LOADERS = (
     #'django.template.loaders.filesystem.load_template_source',
     # replaced by...
     'django.template.loaders.filesystem.Loader',
-#    'django.template.loaders.app_directories.load_template_source',
-    'django.template.loaders.app_directories.Loader',
+    'django.template.loaders.app_directories.load_template_source',
 #     'django.template.loaders.eggs.load_template_source',
 )
 
@@ -160,23 +158,15 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'middleware.debug.LigoDebugContext',
 )
 
-AUTHENTICATION_BACKENDS = (
-    'gracedb.middleware.auth.LigoAuthBackend',
-    'ligodjangoauth.LigoShibbolethAuthBackend',
-    'django.contrib.auth.backends.ModelBackend',
-)
-
-SHIB_AUTHENTICATION_SESSION_INITIATOR = 'https://moe.phys.uwm.edu/Shibboleth.sso/Login'
+AUTHENTICATION_BACKENDS = ('gracedb.middleware.auth.LigoAuthBackend',)
 
 MIDDLEWARE_CLASSES = [
     'middleware.accept.AcceptMiddleware',
+    'gracedb.middleware.auth.LigoAuthMiddleware',
     'middleware.cli.CliExceptionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'ligodjangoauth.LigoShibbolethMiddleware',
-    'gracedb.middleware.auth.LigoAuthMiddleware',
 ]
 
 ROOT_URLCONF = 'urls'
