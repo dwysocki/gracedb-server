@@ -6,6 +6,7 @@ from django.forms.models import modelformset_factory
 
 def triggerFormFactory(postdata=None, user=None):
     class TF(forms.ModelForm):
+        farThresh = forms.FloatField(label='FAR Threshold')
         class Meta:
             model = Trigger
             exclude = ['user', 'triggerType']
