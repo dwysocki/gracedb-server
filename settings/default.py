@@ -54,9 +54,9 @@ SKYALERT_DESCRIPTION   = "LIGO / Virgo trigger"
 SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
 
 
-GRACEDB_DATA_DIR = "/mnt/gracedb-web/data"
+#GRACEDB_DATA_DIR = "/mnt/gracedb-web/data"
 #GRACEDB_DATA_DIR = "/mnt/gracedb-web-temp/data"
-#GRACEDB_DATA_DIR = "/home/branson/fake_data"
+GRACEDB_DATA_DIR = "/home/branson/fake_data"
 
 # Latency histograms.  Where they go and max latency to bin.
 LATENCY_REPORT_DEST_DIR = "/home/gracedb/data/latency"
@@ -142,7 +142,8 @@ TEMPLATE_LOADERS = (
     #'django.template.loaders.filesystem.load_template_source',
     # replaced by...
     'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.load_template_source',
+#    'django.template.loaders.app_directories.load_template_source',
+    'django.template.loaders.app_directories.Loader',
 #     'django.template.loaders.eggs.load_template_source',
 )
 
