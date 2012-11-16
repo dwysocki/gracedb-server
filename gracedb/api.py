@@ -7,7 +7,7 @@ from django.conf import settings
 
 import simplejson
 
-from gracedb.models import Event
+from gracedb.models import Event, Group
 
 import os
 import urllib
@@ -82,6 +82,7 @@ def eventToDict(event, columns=None, request=None):
             }
     return rv
 
+
 class EventList(APIView):
     """
     This resource represents the candidate events in GraceDB.
@@ -135,8 +136,9 @@ class EventList(APIView):
         limit = request.QUERY_PARAMS.get("limit", PAGINATE_BY)
         page = request.QUERY_PARAMS.get("page", 1)
         orderby = request.QUERY_PARAMS.get("orderby", "-created")
-        if query is not None:
-            return Response("Query not implemented")
+        if query:
+            return Response("Query not implemented",
+                    status=status.HTTP_400_BAD_REQUEST)
         page = int(page)
         limit = int(limit)
         first = (page-1)*limit
@@ -162,7 +164,8 @@ class EventList(APIView):
         rv = {}
         form = CreateEventForm(request.POST, request.FILES)
         # XXX Implement this please.
-        return Response("not yet")
+        return Response("Event creation not implemented yet.",
+                status=status.HTTP_400_BAD_REQUEST)
 
         if form.is_valid():
             rv['valid'] = True
@@ -203,12 +206,12 @@ def eventLogToDict(log, n=None, request=None):
         uri = reverse("eventlog-detail", args=[log.event.graceid(), n], request=request)
     else:
         uri = ""
-    return [{
+    return {
                 "comment" : log.comment,
                 "created" : log.created,
                 "issuer"  : log.issuer.name,
                 "self"    : uri,
-            }]
+           }
 
 class EventLogList(APIView):
     authentication_classes = (LigoAuthentication,)
@@ -266,24 +269,9 @@ class GracedbRoot(APIView):
                 "event-log-template" : log,
                 "files-template" : files,
                 "filemeta-template" : filemeta,
+                "groups" : [group.name for group in Group.objects.all()],
+                "analysis-types" : dict(Event.ANALYSIS_TYPE_CHOICES),
                })
-
-def papi_root(request):
-    """the api root"""
-    return HttpResponse("""
-<html>
-    <head>
-    </head>
-    <body>
-    O Hai.  %s<br/>%s
-    </body>
-</html>
-""" % (
-    django_reverse('event-list'),
-    django_reverse('event-detail', args=["G12"]),
-    ))
-#""" % reverse('download', kwargs={"graceid":"G12", "filename":"FLED_THE_FILER"}))
-#""" % reverse(download, args=["G12", "FRED_THE_FILE"]))
 
 ##################################################################
 # Old.  Must support this.
