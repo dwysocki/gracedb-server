@@ -55,8 +55,12 @@ class Trigger(models.Model):
         )
 
     def userlessDisplay(self):
-        return ("(%s) & (%s) -> %s") % (
+        thresh = ""
+        if self.farThresh:
+            thresh = " & (far < %s)" % self.farThresh
+        return ("(%s) & (%s)%s -> %s") % (
             "|".join([a.display for a in self.atypes.all()]) or "any type",
             "|".join([a.name for a in self.labels.all()]) or "creating",
+            thresh,
             ",".join([x.desc for x in self.contacts.all()])
         )
