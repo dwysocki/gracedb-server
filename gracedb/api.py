@@ -40,6 +40,8 @@ from django.contrib.auth.models import User as DjangoUser
 
 MAX_FAILED_OPEN_ATTEMPTS = 5
 
+from forms import SimpleSearchForm
+
 class LigoAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         try:
@@ -94,8 +96,8 @@ class EventList(APIView):
     Retrieve events. You may use the following parameters:
 
     * `query=Q` : use any query string as one might use on the query page.
-    * `limit=N` : the maximum number of events in a response. (default: 10)
-    * `page=N` : events starting with the (limit*(page-1))th event. (default: 1)
+    * `count=N` : the maximum number of events in a response. (default: 10)
+    * `page=N` : events starting with the (count*(page-1))th event. (default: 1)
     * `orderby=O` : how to order events.  (default: -created)
 
     Example:
@@ -106,20 +108,7 @@ class EventList(APIView):
     parameters, `group`, `type` and a file part, `eventFile` containing
     the analysis data.
 
-    Groups: `Test` `CBC` `Burst` `Stochastic` `Coherent`
-
-    Analysis Types:
-
-    * `LM` :  Low Mass
-    * `HM` :  High Mass
-    * `GRB` : GRB
-    * `RD` :  Ringdown
-    * `OM` :  Omega
-    * `Q` :   Q
-    * `X` :   X
-    * `CWB` : CWB
-    * `MBTA` : MBTA Online
-    * `HWINJ` : Hardware Injection
+    Allowable groups and analysis types are listed in the root resource.
 
     Example:
     `curl -X POST -F "group=Test" -F "type=LM" -F "eventFile=@coinc.xml" --insecure --cert $X509_USER_PROXY https://gracedb.ligo.org/api/events/`
@@ -133,56 +122,87 @@ class EventList(APIView):
     authentication_classes = (LigoAuthentication,)
     parser_classes = (parsers.MultiPartParser,)
 
+# XXX Need a LIGOLW renderer
+#   def cli_search(request):
+#      assert request.ligouser
+#      from views import assembleLigoLw
+#      form = SimpleSearchForm(request.POST)
+#      if form.is_valid():
+#          query = form.cleaned_data['query']
+#          objects = Event.objects.filter(query).distinct()
+
+#          if 'ligolw' in request.POST or 'ligolw' in request.GET:
+#              from glue.ligolw import utils
+#              if objects.count() > 1000:
+#                  return Response("Too many events.",
+#                          status=status.HTTP_400_BAD_REQUEST)
+#              xmldoc = assembleLigoLw(objects)
+#              response = HttpResponse(mimetype='application/xml')
+#              response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
+#              utils.write_fileobj(xmldoc, response)
+#              return response
+
+
     def get(self, request):
         """I am the GET docstring for EventList"""
+
         query = request.QUERY_PARAMS.get("query")
-        limit = request.QUERY_PARAMS.get("limit", PAGINATE_BY)
-        page = request.QUERY_PARAMS.get("page", 1)
-        orderby = request.QUERY_PARAMS.get("orderby", "-created")
+        count = request.QUERY_PARAMS.get("count", PAGINATE_BY)
+        start = request.QUERY_PARAMS.get("start", 0)
+        sort = request.QUERY_PARAMS.get("sort", "-created")
+
+        events = Event.objects
         if query:
-            return Response("Query not implemented",
-                    status=status.HTTP_400_BAD_REQUEST)
-        page = int(page)
-        limit = int(limit)
-        first = (page-1)*limit
-        events = Event.objects.order_by(orderby)
-        count = events.count()
-        last = max(0, (count / limit) - 1)
+            form = SimpleSearchForm(request.GET)
+            if form.is_valid():
+                cooked_query = form.cleaned_data['query']
+                events = events.filter(cooked_query).distinct()
+            else:
+                return Response("Invalid query",
+                        status=status.HTTP_400_BAD_REQUEST)
+        events = events.order_by(sort)
+
+        start = int(start)
+        count = int(count)
+        numRows = events.count()
+        last = max(0, (count / numRows) - 1)
         rv = {}
         rv['events'] = [eventToDict(e, request=request)
-                for e in events[first:first+limit]]
+                for e in events[start:start+count]]
         baseuri = reverse('event-list', request=request)
-        d = { 'limit' : limit, 'page' : 0, "orderby": orderby }
+        d = { 'start' : 0, "count": count, "sort": sort }
+        if query: d['query'] = query
         rv['first'] = baseuri + "?" + urllib.urlencode(d)
-        d['page'] = last
+        d['start'] = last
         rv['last'] = baseuri + "?" + urllib.urlencode(d)
         rv['self'] = request.build_absolute_uri()
-        if page != last:
-            d['page'] = page+1
+        if start != last:
+            d['start'] = start+1
             rv['next'] = baseuri + "?" + urllib.urlencode(d)
-        rv['total'] = count
+        rv['numRows'] = events.count()
         return Response(rv)
 
     def post(self, request, format=None):
-        rv = {}
         form = CreateEventForm(request.POST, request.FILES)
-        # XXX Implement this please.
-        return Response("Event creation not implemented yet.",
-                status=status.HTTP_400_BAD_REQUEST)
-
         if form.is_valid():
-            rv['valid'] = True
-            rv['efile'] = dir(request.FILES['eventFile'])
             event, warnings = _createEventFromForm(request, form)
-            rv['warnings'] = warnings
-            rv['graceid'] = event.graceid()
-        else:
-            rv['valid'] = False
-            rv['error'] = ""
-            for key in form.errors:
-                # as_text() not str() otherwise we get HTML.
-                rv['error'] += "%s: %s\n" % (key, form.errors[key].as_text())
-        return Response(rv, status=status.HTTP_201_CREATED)
+            if event:
+                response = Response(
+                        eventToDict(event, request=request),
+                        status=status.HTTP_201_CREATED)
+                response["Location"] = reverse(
+                        'event-detail',
+                        args=[event.graceid()],
+                        request=request)
+                return response
+            else: # no event created
+                return Response({'warnings':warnings},
+                        status=status.HTTP_400_BAD_REQUEST)
+        else: # form not valid
+            rv = {}
+            rv['errors'] = ["%s: %s" % (key, form.errors[key].as_text())
+                    for key in form.errors]
+            return Response(rv, status=status.HTTP_400_BAD_REQUEST)
 
 class EventDetail(APIView):
     authentication_classes = (LigoAuthentication,)
