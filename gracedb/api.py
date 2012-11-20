@@ -1,7 +1,7 @@
 
 from django.http import HttpResponse, HttpResponseNotFound
 from django.http import HttpResponseForbidden, HttpResponseServerError
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.core.urlresolvers import reverse as django_reverse
 
 from django.conf import settings
@@ -13,6 +13,7 @@ from gracedb.models import Event, Group
 import os
 import urllib
 import errno
+import logging
 
 ##################################################################
 
@@ -436,25 +437,24 @@ class Files(APIView):
             # Make a relative symlink.
             os.symlink(filename,linkpath)
 
-            # redirect somehwere
-            filesUrl = "/api/events/%s/files/" % graceid
-            response = HttpResponseRedirect(filesUrl)
+            rv = {}
+            rv['permalink'] = reverse("files", args=[graceid, filename], request=request)
+            response = Response(rv, status=status.HTTP_201_CREATED)
 
         elif os.path.islink(filepath):
             # Great. The thing is a symlink. We can do our version-y stuff now.
 
             # Read contents of directory.  Establish the number of existing versions.
             # All we need is the bare filename (i.e., not the full path)
-            # Version number starts at 1 because 0 is already taken.
             filedir = event.datadir(general)
-            lastVersion = 1
+            lastVersion = 0
             for dirname, dirnames, filenames in os.walk(filedir):
                 for fname in filenames:
-                    if fname.split(',')[0] == filename:
-                        lastVersion = max(lastVersion,int(fname.split(',')[1]))
-
-            # set the link path to the original file path.
-            linkpath = filepath
+                    if fname.find(',') > 0:
+                        if fname.split(',')[0] == filename:
+                            lastVersion = max(lastVersion,int(fname.split(',')[1]))
+            
+            linkpath = filepath # Set the link path to the original file path.
             notOpenYet = True
             failedAttempts = 0
             while notOpenYet:
@@ -463,7 +463,8 @@ class Files(APIView):
                 # update the file path according to the new filename.
                 filepath = os.path.join(filedir,newFilename)
                 try:
-                    fd = os.open(filepath, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+                    # os.O_EXCL causes the open to fail if the file already exists.
+                    fd = os.open(filepath, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0644)
                     fdest = os.fdopen(fd,"w")
                     notOpenYet = False
                 except OSError as e:
@@ -484,16 +485,17 @@ class Files(APIView):
                 fdest.write(chunk)
             fdest.close()
 
-            # Move the symlink.  No temporal gaps, please.
-            # XXX Not sure what this call does with an *existing* symlink.
-            os.symlink(filename,linkpath)
+            # Move the symlink, using os.rename to avoid race conditions. 
+            tmplink = os.path.join(filedir,'tmplink')
+            os.symlink(newFilename,tmplink)
+            os.rename(tmplink,linkpath)
             
-            # redirect somehwere
-            filesUrl = "/api/events/%s/files/" % graceid
-            response = HttpResponseRedirect(filesUrl)
-        
+            rv = {}
+            rv['permalink'] = reverse("files", args=[graceid, newFilename], request=request)
+            response = Response(rv, status=status.HTTP_201_CREATED)
+
         elif os.path.isfile(filepath):
-            # The thing is a file.  We will not allow a put request to the file
+            # The thing is a file and not a symlink.  We will not allow a put request to the file
             # resource (for now, anyway).
             response = HttpResponseForbidden("%s is a file.  Versioning is not supported with legacy data.  Please change your filename to avoid clobbering." % filename)
         elif not filename:
