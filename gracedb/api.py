@@ -402,10 +402,8 @@ class Files(APIView):
 
         return response
 
-     def put(self, request, graceid, filename=""):
+    def put(self, request, graceid, filename=""):
         """ File uploader.  Implements file versioning. """
-        raise NotImplementedError()
-       
         filename = filename or ""
 
         try:
@@ -433,10 +431,14 @@ class Files(APIView):
             f = request.FILES['upload']
             for chunk in f.chunks(): 
                 fdest.write(chunk)
-             fdest.close()
+            fdest.close()
 
             # Make a relative symlink.
             os.symlink(filename,linkpath)
+
+            # redirect somehwere
+            filesUrl = "/api/events/%s/files/" % graceid
+            response = HttpResponseRedirect(filesUrl)
 
         elif os.path.islink(filepath):
             # Great. The thing is a symlink. We can do our version-y stuff now.
@@ -485,7 +487,11 @@ class Files(APIView):
             # Move the symlink.  No temporal gaps, please.
             # XXX Not sure what this call does with an *existing* symlink.
             os.symlink(filename,linkpath)
-
+            
+            # redirect somehwere
+            filesUrl = "/api/events/%s/files/" % graceid
+            response = HttpResponseRedirect(filesUrl)
+        
         elif os.path.isfile(filepath):
             # The thing is a file.  We will not allow a put request to the file
             # resource (for now, anyway).
