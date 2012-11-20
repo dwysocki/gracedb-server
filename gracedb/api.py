@@ -1,6 +1,7 @@
 
 from django.http import HttpResponse, HttpResponseNotFound
 from django.http import HttpResponseForbidden, HttpResponseServerError
+from django.http import HttpResponseBadRequest
 from django.core.urlresolvers import reverse as django_reverse
 
 from django.conf import settings
@@ -11,7 +12,7 @@ from gracedb.models import Event, Group
 
 import os
 import urllib
-
+import errno
 
 ##################################################################
 
@@ -36,6 +37,7 @@ from rest_framework.reverse import reverse
 
 from django.contrib.auth.models import User as DjangoUser
 
+MAX_FAILED_OPEN_ATTEMPTS = 5
 
 class LigoAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
@@ -334,7 +336,6 @@ def download(request, graceid, filename=""):
 
     return response
 
-
 class Files(APIView):
     """Files Resource"""
 
@@ -401,8 +402,103 @@ class Files(APIView):
 
         return response
 
+     def put(self, request, graceid, filename=""):
+        """ File uploader.  Implements file versioning. """
+        raise NotImplementedError()
+       
+        filename = filename or ""
 
+        try:
+            event = Event.getByGraceid(graceid)
+        except Event.DoesNotExist:
+            return HttpResponseNotFound("Event not found")
 
+        # Construct the file path just as Brian does above.
+        general = False
+        if filename.startswith("general/"):
+            filename = filename[len("general/"):]
+            general = True
+
+        filepath = os.path.join(event.datadir(general), filename)
+
+        if not os.path.exists(filepath):
+            # Awesome.  The thing does not exist.  This is the first time a file
+            # by this name is being uploaded.  
+            # Write the file as "filename,0".
+            linkpath = filepath
+            filepath += ',0'
+            filename += ',0'
+            fdest = open(filepath, 'w')
+            # Check out line 392 in the client.  I think the key name for the file is 'upload'
+            f = request.FILES['upload']
+            for chunk in f.chunks(): 
+                fdest.write(chunk)
+             fdest.close()
+
+            # Make a relative symlink.
+            os.symlink(filename,linkpath)
+
+        elif os.path.islink(filepath):
+            # Great. The thing is a symlink. We can do our version-y stuff now.
+
+            # Read contents of directory.  Establish the number of existing versions.
+            # All we need is the bare filename (i.e., not the full path)
+            # Version number starts at 1 because 0 is already taken.
+            filedir = event.datadir(general)
+            lastVersion = 1
+            for dirname, dirnames, filenames in os.walk(filedir):
+                for fname in filenames:
+                    if fname.split(',')[0] == filename:
+                        lastVersion = max(lastVersion,int(fname.split(',')[1]))
+
+            # set the link path to the original file path.
+            linkpath = filepath
+            notOpenYet = True
+            failedAttempts = 0
+            while notOpenYet:
+                # find the new filename
+                newFilename = filename + ',%d' % (lastVersion+1)
+                # update the file path according to the new filename.
+                filepath = os.path.join(filedir,newFilename)
+                try:
+                    fd = os.open(filepath, os.O_WRONLY | os.O_CREAT | os.O_EXCL)
+                    fdest = os.fdopen(fd,"w")
+                    notOpenYet = False
+                except OSError as e:
+                    if e.errno==errno.EACCES:
+                        return HttpResponseForbidden("No permission to write to event directory.")
+                    else:
+                        # Note: could also check whether e.errno==errno.EEXIST
+                        ++failedAttempts
+                        if failedAttempts >= MAX_FAILED_OPEN_ATTEMPTS:
+                            return HttpResponseServerError("Cannot open file for writing: %s" % e)
+                        # Under race conditions, increment lastVersion.
+                        if e.errno==errno.EACCES:
+                            ++lastVersion 
+            
+            # Still with me? Then write the file.
+            f = request.FILES['upload']
+            for chunk in f.chunks(): 
+                fdest.write(chunk)
+            fdest.close()
+
+            # Move the symlink.  No temporal gaps, please.
+            # XXX Not sure what this call does with an *existing* symlink.
+            os.symlink(filename,linkpath)
+
+        elif os.path.isfile(filepath):
+            # The thing is a file.  We will not allow a put request to the file
+            # resource (for now, anyway).
+            response = HttpResponseForbidden("%s is a file.  Versioning is not supported with legacy data.  Please change your filename to avoid clobbering." % filename)
+        elif not filename:
+            # Not good.  There's nothing we can do without a filename.
+            response = HttpResponseBadRequest("Must have a filename for upload.")
+        elif os.path.isdir(filepath):
+            response = HttpResponseForbidden("%s is a directory" % filename)
+        else:
+            response = HttpResponseServerError("Should not happen.")
+
+        return response
 
 class FileMeta(APIView):
     """File Metadata Resource"""
