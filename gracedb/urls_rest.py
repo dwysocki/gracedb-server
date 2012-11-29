@@ -23,9 +23,9 @@ urlpatterns = patterns('gracedb.api',
     # events/{graceid}/files/[{filename}[/{version}]]
     # XXX change to DjangoRF.  But this works now with the cli.
     #url (r'^events/(?P<graceid>[\w\d]+)/files/(?P<filename>.+)?$', 'download', name="files"),
-    url (r'^events/(?P<graceid>[\w\d]+)/files/(?P<filename>.+)?$', Files.as_view(), name="files"),
+    url (r'^events/(?P<graceid>\w[\d]+)/files/(?P<filename>.+)?$', Files.as_view(), name="files"),
     # events/{graceid}/filemeta/[{filename}]
-    url (r'^events/(?P<graceid>[\w\d]+)/filemeta/(?P<filename>.+)?$', FileMeta.as_view(), name="filemeta"),
+    url (r'^events/(?P<graceid>\w[\d]+)/filemeta/(?P<filename>.+)?$', FileMeta.as_view(), name="filemeta"),
 
     # Event Labels
     # events/{graceid}/labels/[{label}]
@@ -37,5 +37,5 @@ urlpatterns = patterns('gracedb.api',
     # events/{graceid}/neighbors/[?neighborhood=N]
 
     # Legacy
-    url (r'^event/(?P<graceid>[\w\d]+)/files/(?P<filename>.+)?$', 'download', name="download2"),
+    url (r'^event/(?P<graceid>\w[\d]+)/files/(?P<filename>.+)?$', 'download', name="download2"),
 )
