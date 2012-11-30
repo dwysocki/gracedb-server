@@ -123,14 +123,16 @@ class Event(models.Model):
             gps_time = int(posixToGpsTime(posix_time))
             return gps_time - self.gpstime
 
-    def neighbors(self, delta=5):
+    def neighbors(self, delta=5, delta2=None):
         if not self.gpstime:
             return []
         if self.group.name == 'Test':
             nearby = Event.objects.filter(group__name='Test')
         else:
             nearby = Event.objects.exclude(group__name='Test')
-        nearby = nearby.filter(gpstime__range=(self.gpstime-delta, self.gpstime+delta))
+        if delta2 is None:
+            delta2 = delta
+        nearby = nearby.filter(gpstime__range=(self.gpstime-delta, self.gpstime+delta2))
         nearby = nearby.exclude(id=self.id)
         nearby = nearby.order_by('gpstime')
         return nearby
