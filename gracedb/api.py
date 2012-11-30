@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse as django_reverse
 
 from django.conf import settings
 
-import simplejson
+import json
 
 from gracedb.models import Event, Group
 
@@ -326,7 +326,7 @@ def download(request, graceid, filename=""):
                 filename = os.path.join(dirname, filename)
                 rv[filename] = django_reverse(download, args=[graceid, filename])
 
-        response = HttpResponse(simplejson.dumps(rv), content_type="application/json")
+        response = HttpResponse(json.dumps(rv), content_type="application/json")
     elif os.path.isdir(filepath):
         response = HttpResponseForbidden("%s is a directory" % filename)
     else:
