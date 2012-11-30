@@ -18,6 +18,7 @@ class LigoAuthMiddleware:
 
         ligouser = None
         user = None
+        principal = None
 
         queryResult = []
         if not request.user.is_anonymous():
