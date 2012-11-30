@@ -1,5 +1,5 @@
-DEBUG = False
-TEMPLATE_DEBUG = DEBUG
+
+SHIB_AUTHENTICATION_SESSION_INITIATOR = 'https://archie.phys.uwm.edu/Shibboleth.sso/Login'
 
 CONFIG_NAME = "PRODUCTION"
 
