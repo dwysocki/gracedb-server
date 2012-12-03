@@ -25,7 +25,7 @@ PAGINATE_BY = REST_FRAMEWORK_SETTINGS.get('PAGINATE_BY', 10)
 # rest_framework
 from rest_framework import serializers, status
 from rest_framework.response import Response
-from rest_framework.parsers import BaseParser
+#from rest_framework.parsers import BaseParser
 #from rest_framework import generics
 #from rest_framework.renderers import JSONRenderer, JSONPRenderer
 #from rest_framework.renderers import YAMLRenderer, XMLRenderer
@@ -101,7 +101,6 @@ def eventToDict(event, columns=None, request=None):
 #               [(e.gpstime, reverse("event-detail", args=[e.graceid()], request=request))
 #                   for e in event.neighbors()]),
             "neighbors" : reverse("neighbors", args=[graceid], request=request),
-            "data"  : event.weburl(),
             "log"   : reverse("eventlog-list", args=[graceid], request=request),
             "files" : reverse("files", args=[graceid], request=request),
             "filemeta" : reverse("filemeta", args=[graceid], request=request),
@@ -113,18 +112,20 @@ def eventToDict(event, columns=None, request=None):
 
 class EventList(APIView):
     """
-    This resource represents the candidate events in GraceDB.
+    This resource represents the collection of  all candidate events in GraceDB.
 
     ### GET
     Retrieve events. You may use the following parameters:
 
-    * `query=Q` : use any query string as one might use on the query page.
-    * `count=N` : the maximum number of events in a response. (default: 10)
-    * `page=N` : events starting with the (count*(page-1))th event. (default: 1)
-    * `orderby=O` : how to order events.  (default: -created)
+    * `query=Q`    : use any query string as one might use on the query page.
+    * `count=N`    : the maximum number of events in a response. (default: 10)
+    * `start=N`    : events starting with the Nth event. (default: 0)
+    * `sort=Order` : how to order events.  (default: -created)
 
     Example:
     `curl -X GET --insecure --cert $X509_USER_PROXY https://gracedb.ligo.org/api/events/?query=LowMass%20EM_READY&orderby=-far`
+
+    Add header `Accept: application/ligolw` for ligolw formatted response.
 
     ### POST
     To create an event.  Expects `multipart/form-data` mime-type with
@@ -356,9 +357,16 @@ class EventNeighbors(APIView):
             neighbors = event.neighbors(delta=delta, delta2=delta2)
         else:
             neighbors = event.neighbors()
-        return Response(
-                [eventToDict(neighbor, request=request)
-                    for neighbor in neighbors])
+        neighbors = [eventToDict(neighbor, request=request)
+                    for neighbor in neighbors]
+        return Response({
+                'neighbors' : neighbors,
+                'delta' : (5,5), # XXX get from Event, or request.
+                'links' : {
+                    'self': request.build_absolute_uri(),
+                    'event': reverse("event-detail", args=[graceid], request=request),
+                    }
+                })
 
 #==================================================================
 # Labels
