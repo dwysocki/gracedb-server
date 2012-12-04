@@ -341,6 +341,14 @@ class EventDetail(APIView):
 # Neighbors
 
 class EventNeighbors(APIView):
+    """The neighbors of an event.
+    ### GET
+    The `neighborhood` parameter lets you select a GPS time
+    range for what it means to be a neighbor.  Can be of the
+    form `neighborhood=N` or `neighborhood=N,M` to select
+    neighbors in the (inclusive) GPS time range [x-N,x+N] or [x-N, x+M],
+    where x is the GPS time of the event in question.
+    """
     def get(self, request, graceid):
         try:
             event = Event.getByGraceid(graceid)
@@ -348,20 +356,26 @@ class EventNeighbors(APIView):
             # XXX Real error message.
             return Response("Event does not exist.",
                     status=status.HTTP_404_NOT_FOUND)
-        if request.QUERY_PARAMS.has_key('delta'):
-            delta = request.QUERY_PARAMS['delta']
-            if delta.find(',') < 0:
-                delta = delta2 = int(delta)
-            else:
-                delta , delta2 = map(int, delta.split(','))
-            neighbors = event.neighbors(delta=delta, delta2=delta2)
+        if request.QUERY_PARAMS.has_key('neighborhood'):
+            delta = request.QUERY_PARAMS['neighborhood']
+            try:
+                if delta.find(',') < 0:
+                    neighborhood = (int(delta), int(delta))
+                else:
+                    neighborhood = map(int, delta.split(','))
+            except ValueError:
+                pass
         else:
-            neighbors = event.neighbors()
+            neighborhood = event.DEFAULT_EVENT_NEIGHBORHOOD
+
+        neighbors = event.neighbors(neighborhood=neighborhood)
+
         neighbors = [eventToDict(neighbor, request=request)
                     for neighbor in neighbors]
         return Response({
                 'neighbors' : neighbors,
-                'delta' : (5,5), # XXX get from Event, or request.
+                'neighborhood' : neighborhood,
+                'numRows' : len(neighbors),
                 'links' : {
                     'self': request.build_absolute_uri(),
                     'event': reverse("event-detail", args=[graceid], request=request),
