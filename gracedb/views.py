@@ -228,7 +228,6 @@ def _createEventFromForm(request, form):
             fdest.write(chunk)
         fdest.close()
         # Create WIKI page
-        createWikiPage(event.graceid())
 
         # Extract Info from uploaded data
         # Temp (ha!) hack to deal with
@@ -891,8 +890,7 @@ def flexigridResponse(request, objects):
 
                         scientific(object.far),
 
-                        '<a href="%s">Data</a> <a href="%s">Wiki</a>' %
-                            (object.weburl(), object.wikiurl()),
+                        '<a href="%s">Data</a>' % object.weburl(),
 
                         #created_times['gps'],
                         created_times.get('utc',""),
@@ -931,61 +929,6 @@ def get_file(graceid, filename="event.log"):
     except Exception, e:
         contents = None
     return contents
-
-def createWikiPage(graceid):
-    # Do not create wiki pages these reasons
-    # (1) freaks out the wiki/filesystem to have too many files in one directory.
-    # (2) do not need them if they are empty. They'll be auto-created if ppl go to them and want them.
-    # (3) htdocs (where the wikipage goes) is mounted read-only.
-    return
-    twikiroot = "/mnt/htdocs/uwmlsc/secure/twiki/data/Sandbox/"
-    plainFile = """
-Initial Entry for %s
-
-%%TOC{depth="2"}%%
-""" % graceid
-    rcsFile = """head    1.1;
-access; 
-symbols;
-locks
-    apache:1.1; strict;
-comment @# @;
-
-
-1.1
-date    2009.06.13.00.09.15;    author apache;    state Exp;
-branches;
-next    ;
-
-
-desc
-@Initial Revision
-@
-
-
-1.1
-log
-@Initial revision
-@
-text
-@
-Initial Entry for %s
-
-%%TOC{depth="2"}%%
-@
-""" % graceid
-    pname = os.path.join(twikiroot, graceid+".txt")
-    rcsname = os.path.join(twikiroot, graceid+".txt,r")
-    f = open(pname, "w")
-    f.write(plainFile)
-    f.close()
-
-    f = open(rcsname, "w")
-    f.write(rcsFile)
-    f.close()
-
-    os.chmod(pname, 0644)
-    os.chmod(rcsname, 0444)
 
 
 class LimitedEvent():

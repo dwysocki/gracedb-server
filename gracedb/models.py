@@ -96,9 +96,6 @@ class Event(models.Model):
     def weburl(self):
         return "https://ldas-jobs.phys.uwm.edu/gracedb/data/%s" % self.graceid()
 
-    def wikiurl(self):
-        return "https://www.lsc-group.phys.uwm.edu/twiki/bin/view/Sandbox/%s" % self.graceid()
-
     def clusterurl(self):
         #return "pcdev1.phys.uwm.edu:/archive/gracedb/data/%s" % self.graceid()
         return "file://pcdev1.phys.uwm.edu/archive/gracedb/data/%s" % self.graceid()

@@ -94,7 +94,6 @@ New Event
 GRACEID:   %s
 Info:      %s
 Data:      %s
-TWiki:     %s
 Submitter: %s
 Event Summary:
 %s
@@ -104,7 +103,6 @@ Event Summary:
                 event.graceid(),
                 'https://'+Site.objects.get_current().domain+ reverse("view", args=[event.graceid()]),
                 event.weburl(),
-                event.wikiurl(),
                 event.submitter.name,
                 indent(3, prepareSummary(event))
                )

@@ -177,7 +177,7 @@
                 Event Time
             </th>
             <th>FAR (Hz)</th>
-            <th colspan="2">Links</th>
+            <th>Links</th>
             <th>
                 {{"created"|timeselect:"utc" }}
                 Submitted
@@ -201,7 +201,6 @@
             {% endif %}</td>
         <td>{{ object.far|scientific }}</td>
         <td><a href="{{ object.weburl }}">Data</a></td>
-        <td><a href="{{ object.wikiurl }}">Wiki</a></td>
         <td>{{ object.created|multiTime:"created" }}</td>
     </tr>
 
@@ -222,7 +221,7 @@
                     Event Time
                 </th>
                 <th>FAR (Hz)</th>
-                <th colspan="2">Links</th>
+                <th>Links</th>
                 <th>
                     {{"ncreated"|timeselect:"utc" }}
                     Submitted
@@ -244,7 +243,6 @@
                 {% endif %}</td>
             <td>{{ object.far|scientific }}</td>
             <td><a href="{{ object.weburl }}">Data</a></td>
-            <td><a href="{{ object.wikiurl }}">Wiki</a></td>
             <td>{{ object.created|multiTime:"ncreated" }}</td>
         </tr>
         {% endfor %}
