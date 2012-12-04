@@ -245,8 +245,10 @@ def parseQuery(s):
         d["tid"] = d["tid"] & Q(group__name="Test")
     if "hid" in d:
         d["hid"] = d["hid"] & Q(analysisType="HWINJ")
+    if "eid" in d:
+        d["eid"] = d["eid"] & Q(analysisType="GRB")
     if "id" in d:
-        d["id"] = d["id"] & ~Q(analysisType="HWINJ")
+        d["id"] = d["id"] & ~Q(analysisType="HWINJ") & ~Q(analysisType="GRB")
     if "id" in d and "hid" in d:
         d["id"] = d["id"] | d["hid"]
         del d["hid"]
