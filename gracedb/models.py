@@ -61,6 +61,8 @@ class Event(models.Model):
         ("MBTA", "MBTAOnline"),
         ("HWINJ", "HardwareInjection"),
     )
+    DEFAULT_EVENT_NEIGHBORHOOD = (5,5)
+
     submitter = models.ForeignKey(User)
     created = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Group)
@@ -123,15 +125,16 @@ class Event(models.Model):
             gps_time = int(posixToGpsTime(posix_time))
             return gps_time - self.gpstime
 
-    def neighbors(self, delta=5, delta2=None):
+    def neighbors(self, neighborhood=None):
         if not self.gpstime:
             return []
         if self.group.name == 'Test':
             nearby = Event.objects.filter(group__name='Test')
         else:
             nearby = Event.objects.exclude(group__name='Test')
-        if delta2 is None:
-            delta2 = delta
+
+        delta, delta2 = neighborhood or self.DEFAULT_EVENT_NEIGHBORHOOD
+
         nearby = nearby.filter(gpstime__range=(self.gpstime-delta, self.gpstime+delta2))
         nearby = nearby.exclude(id=self.id)
         nearby = nearby.order_by('gpstime')
