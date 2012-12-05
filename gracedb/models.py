@@ -206,7 +206,7 @@ class Approval(models.Model):
 
 ## Analysis Specific Attributes.
 
-class InspiralEvent(Event):
+class CoincInspiralEvent(Event):
     ifos             = models.CharField(max_length=20, default="")
     end_time         = models.PositiveIntegerField(null=True)
     end_time_ns      = models.PositiveIntegerField(null=True)
@@ -218,7 +218,7 @@ class InspiralEvent(Event):
     combined_far     = models.FloatField(null=True)
 
 
-class BurstEvent(Event):
+class MultiBurstEvent(Event):
     ifos             = models.CharField(max_length=20, default="")
     start_time       = models.PositiveIntegerField(null=True)
     start_time_ns    = models.PositiveIntegerField(null=True)
