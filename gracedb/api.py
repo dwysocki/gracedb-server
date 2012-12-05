@@ -341,6 +341,8 @@ class Files(APIView):
     """Files Resource"""
 
     authentication_classes = (LigoAuthentication,)
+    parser_classes = (parsers.MultiPartParser,)
+
     def get(self, request, graceid, filename=""):
         # Do not filename to be None.  That messes up later os.path.join
         filename = filename or ""
