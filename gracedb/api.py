@@ -8,7 +8,7 @@ from django.conf import settings
 
 import json
 
-from gracedb.models import Event, Group, EventLog, Label
+from gracedb.models import Event, Group, EventLog
 from translator import handle_uploaded_data
 
 import os
@@ -33,7 +33,7 @@ from forms import CreateEventForm
 from views import _createEventFromForm
 from rest_framework import parsers      # YAMLParser, MultiPartParser
 
-#from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 #from rest_framework.permissions import AllowAny
 from rest_framework import authentication
 from rest_framework.views import APIView
@@ -47,9 +47,14 @@ from forms import SimpleSearchForm
 
 class LigoAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
+        # LIGOAuth middleware finds you from X509 cert, but
+        # Shib middleware clobbers (?) the Django user in request
+        # and identifies you as anonymous.  Need to recover the
+        # Django user.
         try:
             user = DjangoUser.objects.get(username=request.ligouser.unixid)
         except DjangoUser.DoesNotExist:
+            # XXX Probably need to create a user.
             user = None
         return (user, None)
 
@@ -97,9 +102,6 @@ def eventToDict(event, columns=None, request=None):
                     request=request))
             for labelling in event.labelling_set.all()])
     rv['links'] = {
-#           "neighbors" : dict(
-#               [(e.gpstime, reverse("event-detail", args=[e.graceid()], request=request))
-#                   for e in event.neighbors()]),
             "neighbors" : reverse("neighbors", args=[graceid], request=request),
             "log"   : reverse("eventlog-list", args=[graceid], request=request),
             "files" : reverse("files", args=[graceid], request=request),
@@ -144,6 +146,7 @@ class EventList(APIView):
     ##permission_classes = (AllowAny,)
     ##authentication_classes = (authentication.SessionAuthentication,)
     authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
     parser_classes = (parsers.MultiPartParser,)
 
 # XXX Need a LIGOLW renderer
@@ -271,6 +274,8 @@ class EventDetail(APIView):
     parser_classes = (LigoLwParser,)
     #parser_classes = (parsers.MultiPartParser,)
     serializer_class = EventSerializer
+    permission_classes = (IsAuthenticated,)
+
     form = CreateEventForm
 
     def get(self, request, graceid):
@@ -457,6 +462,7 @@ class EventLogList(APIView):
     POST param 'message'
     """
     authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, graceid):
         try:
@@ -488,6 +494,7 @@ class EventLogList(APIView):
 
 class EventLogDetail(APIView):
     authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, graceid, n):
         try:
@@ -507,9 +514,11 @@ class GracedbRoot(APIView):
         Root of the Gracedb REST API
     """
     authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
     parser_classes = ()
     def get(self, request):
-        # XXX scummy way to get a URI template.  Is there better?
+        # XXX This seems like a scummy way to get a URI template.
+        # Is there better?
         detail = reverse("event-detail", args=["G1200"], request=request)
         detail = detail.replace("G1200", "{graceid}")
         log = reverse("eventlog-list", args=["G1200"], request=request)
@@ -527,21 +536,22 @@ class GracedbRoot(APIView):
         labels = labels.replace("G1200", "{graceid}")
         labels = labels.replace("thelabel", "{label}")
 
-        return Response({
-            "resources" : {
-                "events" : reverse("event-list", request=request),
-            },
-            "resource-templates" : {
-                "event-template" : detail,
+        templates = {
+                "event-detail-template" : detail,
                 "event-log-template" : log,
-                "event-files-template" : files,
-                "event-filemeta-template" : filemeta,
                 "event-label-template" : labels,
-            },
-                "groups" : [group.name for group in Group.objects.all()],
-                "analysis-types" : dict(Event.ANALYSIS_TYPE_CHOICES),
-                "labels" : [label.name for label in Label.objects.all()],
-               })
+                "files-template" : files,
+                "filemeta-template" : filemeta,
+                }
+
+        return Response({
+            "links" : {
+                "events" : reverse("event-list", request=request),
+                },
+            "templates" : templates,
+            "groups" : [group.name for group in Group.objects.all()],
+            "analysis-types" : dict(Event.ANALYSIS_TYPE_CHOICES),
+           })
 
 ##################################################################
 # Old.  Must support this.
@@ -608,10 +618,10 @@ class Files(APIView):
     """Files Resource"""
 
     authentication_classes = (LigoAuthentication,)
-    parser_classes = (parsers.MultiPartParser,)
+    permission_classes = (IsAuthenticated,)
 
-    def get(self, request, graceid, filename=None):
-        # Do not let filename be None.  That messes up later os.path.join
+    def get(self, request, graceid, filename=""):
+        # Do not filename to be None.  That messes up later os.path.join
         filename = filename or ""
 
         try:
@@ -803,4 +813,5 @@ class Files(APIView):
 class FileMeta(APIView):
     """File Metadata Resource"""
     authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
     pass
