@@ -1,25 +1,16 @@
 
-import os, sys
+import os
 
 from models import EventLog
-from subprocess import Popen, PIPE
 
-from django.conf import settings
-
-import glue, glue.ligolw.utils
-from ligo.gracedb.utils import InspiralCoincDef
-from ligo.gracedb.utils import BurstCoincDef
-
-from ligo.gracedb.utils import insp_event_id_dict
-from ligo.gracedb.utils import coherent_event_id_dict
+import glue
+import glue.ligolw.utils
 
 from ligo.gracedb.utils import populate_inspiral_tables, \
                                populate_omega_tables,    \
-                               populate_coinc_tables,    \
                                write_output_files
 
-from VOEventLib.VOEvent import *
-from VOEventLib.Vutil import *
+from VOEventLib.Vutil import parse, getWhereWhen
 from utils import isoToGps
 
 def handle_uploaded_data(event, datafilename,
@@ -80,7 +71,9 @@ def handle_uploaded_data(event, datafilename,
                            log_fname=log_filename)
 
         # Create EventLog entries about these files.
-        private_data_url = os.path.join(event.weburl(), 'private')
+
+        # XXX provate_data_url unused
+        #private_data_url = os.path.join(event.weburl(), 'private')
 
         log = EventLog(event=event,
                        filename=log_filename,
@@ -111,7 +104,8 @@ def handle_uploaded_data(event, datafilename,
         event.nevents = coinc_table[0].nevents
         event.likelihood = coinc_table[0].likelihood
 
-        xml_filename = os.path.join(output_dir, coinc_table_filename)
+        # XXX xml_filename unused
+        #xml_filename = os.path.join(output_dir, coinc_table_filename)
 
         event.save()
 
@@ -132,7 +126,8 @@ def handle_uploaded_data(event, datafilename,
             spin1    = (origdata[0][0].spin1x, origdata[0][0].spin1y, origdata[0][0].spin1z)
             spin2    = (origdata[0][0].spin2x, origdata[0][0].spin2y, origdata[0][0].spin2z)
             end_time = (origdata[0][0].geocent_end_time, origdata[0][0].geocent_end_time_ns)
-            waveform = origdata[0][0].waveform
+            # XXX unused
+            #waveform = origdata[0][0].waveform
 
             if mchirp is not None:
                 log_data.append("MChirp: %0.3f" % mchirp)
@@ -154,7 +149,9 @@ def handle_uploaded_data(event, datafilename,
                            log_fname=log_filename)
 
         # Create EventLog entries about these files.
-        private_data_url = os.path.join(event.weburl(), 'private')
+
+        # XXX private_data_url unused
+        #private_data_url = os.path.join(event.weburl(), 'private')
 
         event.gpstime = end_time[0]
         event.save()
@@ -180,7 +177,9 @@ def handle_uploaded_data(event, datafilename,
                            log_fname=log_filename)
 
         # Create EventLog entries about these files.
-        private_data_url = os.path.join(event.weburl(), 'private')
+
+        # XXX provate_data_url unused
+        #private_data_url = os.path.join(event.weburl(), 'private')
 
         log = EventLog(event=event,
                        filename=log_filename,
@@ -211,7 +210,8 @@ def handle_uploaded_data(event, datafilename,
         event.nevents = coinc_table[0].nevents
         event.likelihood = coinc_table[0].likelihood
 
-        xml_filename = os.path.join(output_dir, coinc_table_filename)
+        # XXX xml_filename unused
+        #xml_filename = os.path.join(output_dir, coinc_table_filename)
 
         event.save()
 
@@ -225,7 +225,9 @@ def handle_uploaded_data(event, datafilename,
         write_output_files(output_dir, xmldoc, log_data)
 
         # Create EventLog entries about these files.
-        private_data_url = os.path.join(event.weburl(), 'private')
+
+        # XXX provate_data_url unused
+        #private_data_url = os.path.join(event.weburl(), 'private')
 
         log = EventLog(event=event,
                        filename=log_filename,
@@ -254,7 +256,8 @@ def handle_uploaded_data(event, datafilename,
         event.nevents = coinc_table[0].nevents
         event.likelihood = coinc_table[0].likelihood
 
-        xml_filename = os.path.join(output_dir, coinc_table_filename)
+        # XXX xml_filename unused.
+        #xml_filename = os.path.join(output_dir, coinc_table_filename)
 
         event.save()
     elif event.analysisType == 'CWB':
@@ -438,7 +441,7 @@ class CwbData(Translator):
             for line in datafile:
                 try:
                     rawdata['far'] = [float(line.split()[1])]
-                except Exception, e:
+                except Exception:
                     # whatever.
                     pass
                 break

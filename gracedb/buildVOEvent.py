@@ -8,9 +8,8 @@ See the VOEvent specification for details
 http://www.ivoa.net/Documents/latest/VOEvent.html
 """
 
-from VOEventLib.VOEvent import *
-from VOEventLib.Vutil import *
-import sys, os
+from VOEventLib.VOEvent import VOEvent, Who, What, Author, Param
+from VOEventLib.Vutil import makeWhereWhen, stringVOEvent
 
 # XXX ER2.utils.  utils is in project directory.  ugh.
 from utils import gpsToUtc
