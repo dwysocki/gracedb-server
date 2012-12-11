@@ -6,7 +6,7 @@ from models import EventLog
 import glue
 import glue.ligolw.utils
 
-from ligo.gracedb.utils import populate_inspiral_tables, \
+from gracedb.serialize.utils import populate_inspiral_tables, \
                                populate_omega_tables,    \
                                write_output_files
 
