@@ -366,9 +366,7 @@ def cli_tag(request):
 
     return response
 
-def cli_label(request):
-    graceid = request.POST.get('graceid')
-    labelName = request.POST.get('label')
+def create_label(graceid, labelName, creator, doAlert=True, doXMPP=True):
 
     d = {}
     event = graceid and Event.getByGraceid(graceid)
@@ -385,18 +383,26 @@ def cli_label(request):
         labelling = Labelling(
                 event = event,
                 label = label,
-                creator = request.ligouser
+                creator = creator
             )
         labelling.save()
         message = "Label: %s" % label.name
-        log = EventLog(event=event, issuer=request.ligouser, comment=message)
+        log = EventLog(event=event, issuer=creator, comment=message)
         log.save()
 
         try:
-            doxmpp = request.POST.get('alert') == "True"
-            issueAlertForLabel(event, label, doxmpp)
+            issueAlertForLabel(event, label, doXMPP)
         except Exception, e:
             d['warning'] = "Problem issuing alert (%s)" % str(e)
+    # XXX Strange return value.  Just warnings.  Can really be ignored, I think.
+    return d
+
+def cli_label(request):
+    graceid = request.POST.get('graceid')
+    labelName = request.POST.get('label')
+
+    doxmpp = request.POST.get('alert') == "True"
+    d = create_label(graceid, labelName, request.ligouser, doXMPP=doxmpp)
 
     msg = str(d)
     response = HttpResponse(mimetype='application/json')
