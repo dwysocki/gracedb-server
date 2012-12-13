@@ -9,12 +9,14 @@ from django.conf import settings
 import json
 
 from gracedb.models import Event, Group, EventLog
+from gracedb.views import create_label
 from translator import handle_uploaded_data
 
 import os
 import urllib
 import errno
 import logging
+import shutil
 
 ##################################################################
 
@@ -32,6 +34,7 @@ from rest_framework.response import Response
 from forms import CreateEventForm
 from views import _createEventFromForm
 from rest_framework import parsers      # YAMLParser, MultiPartParser
+from rest_framework.parsers import DataAndFiles
 
 from rest_framework.permissions import IsAuthenticated
 #from rest_framework.permissions import AllowAny
@@ -239,6 +242,18 @@ class EventList(APIView):
             return Response(rv, status=status.HTTP_400_BAD_REQUEST)
 
 
+class RawdataParser(parsers.BaseParser):
+    media_type = 'application/octet-stream'
+
+    def parse(self, stream, media_type=None, parser_context=None):
+        class FakeFile():
+            def __init__(self, name, read):
+                self.name = name
+                self.read = read
+        files = { 'upload' : FakeFile("initial.data", stream.read) }
+        data = {}
+        return DataAndFiles(data, files)
+
 class LigoLwParser(parsers.MultiPartParser):
     # XXX Revisit this.
     #  Doing it right involves refactoring translator.py
@@ -271,8 +286,8 @@ class LigoLwParser(parsers.MultiPartParser):
 
 class EventDetail(APIView):
     authentication_classes = (LigoAuthentication,)
-    parser_classes = (LigoLwParser,)
-    #parser_classes = (parsers.MultiPartParser,)
+    #parser_classes = (LigoLwParser, RawdataParser)
+    parser_classes = (parsers.MultiPartParser,)
     serializer_class = EventSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -299,7 +314,6 @@ class EventDetail(APIView):
         except Event.DoesNotExist:
             return Response("Event Not Found",
                     status=status.HTTP_404_NOT_FOUND)
-
         try:
             if request.ligouser != event.submitter:
                 msg = "You (%s) Them (%s)" % (request.ligouser, event.submitter)
@@ -329,8 +343,10 @@ class EventDetail(APIView):
         uploadDestination = os.path.join(eventDir, "private", f.name)
         fdest = open(uploadDestination, 'w')
         # Save uploaded file into user private area.
-        for chunk in f.chunks():
-            fdest.write(chunk)
+        #for chunk in f.chunks():
+        #    fdest.write(chunk)
+        #fdest.close()
+        shutil.copyfileobj(f, fdest)
         fdest.close()
 
         # Extract Info from uploaded data
@@ -416,9 +432,8 @@ class EventLabel(APIView):
             theLabel = theLabel[0]
             return Response(labelToDict(theLabel, request=request))
         else:
-            labels = [map(
-                lambda x: labelToDict(x,request=request),
-                event.labelling_set.all())]
+            labels = [ labelToDict(x,request=request)
+                    for x in event.labelling_set.all() ]
             return Response({
                 'links' : [{
                     'self': request.build_absolute_uri(),
@@ -430,7 +445,10 @@ class EventLabel(APIView):
                 })
 
     def put(self, request, graceid, label):
-        return Response("Not Implemented", status=status.HTTP_501_NOT_IMPLEMENTED)
+        #return Response("Not Implemented", status=status.HTTP_501_NOT_IMPLEMENTED)
+        create_label(graceid, label, request.ligouser)
+        return Response("Created", status=status.HTTP_201_CREATED)
+
 
     def delete(self, request, graceid, label):
         return Response("Not Implemented", status=status.HTTP_501_NOT_IMPLEMENTED)
@@ -473,8 +491,20 @@ class EventLogList(APIView):
                     status=status.HTTP_404_NOT_FOUND)
         logset = event.eventlog_set.order_by("created")
         count = logset.count()
-        rv = [ eventLogToDict(log, n, request)
+
+        log = [ eventLogToDict(log, n, request)
                 for (n, log) in zip(range(0,count+2), logset.iterator()) ]
+
+        rv = {
+                'start': 0,
+                'numRows' : count,
+                'links' : {
+                    'self' : request.build_absolute_uri(),
+                    'first' : request.build_absolute_uri(),
+                    'last' : request.build_absolute_uri(),
+                    },
+                'log' : log,
+             }
         return Response(rv)
 
     def post(self, request, graceid):
@@ -619,6 +649,8 @@ class Files(APIView):
 
     authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,)
+    #parser_classes = (RawdataParser,)
+    parser_classes = (parsers.MultiPartParser,)
 
     def get(self, request, graceid, filename=""):
         # Do not filename to be None.  That messes up later os.path.join
@@ -730,7 +762,8 @@ class Files(APIView):
             filepath += ',0'
             filename += ',0'
             fdest = open(filepath, 'w')
-            # Check out line 392 in the client.  I think the key name for the file is 'upload'
+            # Check out line 392 in the client.
+            # I think the key name for the file is 'upload'
             f = request.FILES['upload']
             for chunk in f.chunks(): 
                 fdest.write(chunk)
