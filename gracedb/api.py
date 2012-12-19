@@ -446,7 +446,11 @@ class EventLabel(APIView):
 
     def put(self, request, graceid, label):
         #return Response("Not Implemented", status=status.HTTP_501_NOT_IMPLEMENTED)
-        create_label(graceid, label, request.ligouser)
+        try:
+            create_label(graceid, label, request.ligouser)
+        except ValueError, e:
+            return Response(e.message,
+                        status=status.HTTP_400_BAD_REQUEST)
         return Response("Created", status=status.HTTP_201_CREATED)
 
 
