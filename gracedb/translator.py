@@ -6,12 +6,13 @@ from models import EventLog
 import glue
 import glue.ligolw.utils
 
-from gracedb.serialize.utils import populate_inspiral_tables, \
+from gracedb.serialize import populate_inspiral_tables, \
                                populate_omega_tables,    \
                                write_output_files
 
 from VOEventLib.Vutil import parse, getWhereWhen
 from utils import isoToGps
+from utils.vfile import VersionedFile
 
 def handle_uploaded_data(event, datafilename,
                          log_filename='event.log',
@@ -370,7 +371,7 @@ class Translator(object):
     def writeLogfile(self, path):
         data = self.logData()
         if data:
-            f = open(path, 'w')
+            f = VersionedFile(path, 'w')
             f.write(data)
             f.close()
         return True

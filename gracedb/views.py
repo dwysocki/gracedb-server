@@ -17,6 +17,8 @@ from translator import handle_uploaded_data
 
 import urllib
 
+from utils.vfile import VersionedFile
+
 import os
 import re
 from django.core.mail import mail_admins
@@ -222,7 +224,7 @@ def _createEventFromForm(request, form):
         os.chmod( os.path.join(eventDir,"general"), 041777 )
         f = request.FILES['eventFile']
         uploadDestination = os.path.join(eventDir, "private", f.name)
-        fdest = open(uploadDestination, 'w')
+        fdest = VersionedFile(uploadDestination, 'w')
         # Save uploaded file into user private area.
         for chunk in f.chunks():
             fdest.write(chunk)
@@ -261,7 +263,7 @@ def _createEventFromForm(request, form):
 def _saveUploadedFile(event, uploadedFile):
     # XXX Hardcoding.
     fname = os.path.join(GRACEDB_DATA_DIR, event.graceid(), "private", uploadedFile.name)
-    f = open(fname, "w")
+    f = VersionedFile(fname, "w")
     for chunk in uploadedFile.chunks():
         f.write(chunk)
     f.close()
@@ -324,6 +326,7 @@ def upload(request):
         msg = "ERROR: Event '%s' does not exist" % graceid
     else:
         #event issuer comment
+        # XXX Note:  filename or comment oughta have a version
         log = EventLog(event=event,
                        issuer=request.ligouser,
                        filename=uploadedfile.name,
@@ -337,9 +340,8 @@ def upload(request):
             # XXX
             # Badnesses:
             #   Same hardcoded path in multiple places.
-            #   What if we're clobbering an existing file?
             fname = os.path.join(GRACEDB_DATA_DIR, event.graceid(), "private", uploadedfile.name)
-            f = open(fname, "w")
+            f = VersionedFile(fname, 'w')
             for chunk in uploadedfile.chunks():
                 f.write(chunk)
             f.close()
