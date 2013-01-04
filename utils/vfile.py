@@ -122,8 +122,13 @@ class VersionedFile(file):
     def _repoint_symlink(self):
         # re-point symlink to latest version
         last_version = max(self.known_versions())
-        # XXX Another race condition.  File will not exist for a very brief time.
-        os.unlink(self.fullname)
+        # XXX Maybe ought to check that we are removing a symlink.
+        try:
+            # XXX Another race condition.  File will not exist for a very brief time.
+            os.unlink(self.fullname)
+        except:
+            # Do not care if file does not exist.
+            pass
         os.symlink(self._name_for_version(last_version), self.fullname)
         return
 
