@@ -3,6 +3,7 @@ import os
 import tempfile
 import logging
 import errno
+import shutil
 
 
 class VersionedFile(file):
@@ -80,7 +81,8 @@ class VersionedFile(file):
             if version != 0:
                 raise IOError("VersionedFile symlink inconsistency.")
             # XXX risky.  race condition.
-            os.rename(fullname, self._name_for_version(version))
+            #os.rename(fullname, self._name_for_version(version))
+            shutil.move(fullname, self._name_for_version(version))
             self._repoint_symlink()
             version += 1
 
@@ -125,7 +127,8 @@ class VersionedFile(file):
         tmpname = tmp.name
         tmp.close()
         os.symlink(self._name_for_version(last_version), tmpname)
-        os.rename(tmp.name, self.fullname)
+        #os.rename(tmp.name, self.fullname)
+        shutil.move(tmp.name, self.fullname)
 
     def known_versions(self):
         path = self.absname
