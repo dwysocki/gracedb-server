@@ -122,6 +122,12 @@ class VersionedFile(file):
     def _repoint_symlink(self):
         # re-point symlink to latest version
         last_version = max(self.known_versions())
+        # XXX Another race condition.  File will not exist for a very brief time.
+        os.unlink(self.fullname)
+        os.symlink(self._name_for_version(last_version), self.fullname)
+        return
+
+# XXX   This fails when renaming/mv-ing across devices.
         # XXX assumption: tempfile name will remain unique after closing
         tmp = tempfile.NamedTemporaryFile(delete=True)
         tmpname = tmp.name
