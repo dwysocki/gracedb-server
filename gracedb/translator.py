@@ -287,18 +287,6 @@ def handle_uploaded_data(event, datafilename,
                            comment="Log File Created" )
             log.save()
 
-    elif event.analysisType == 'HWINJ':
-        try:
-            f = open(datafilename, "r")
-            for line in f.readlines():
-                if line.startswith("gpstime:"):
-                    times = line.split()
-                    event.gpstime = int(float(times[1]))
-                    event.save()
-                    break
-            f.close()
-        except:
-            pass
     elif event.analysisType == 'GRB':
         # Get the event time from the VOEvent file
         try:
