@@ -5,6 +5,7 @@ from django.conf.urls.defaults import patterns, url
 from gracedb.api import GracedbRoot
 from gracedb.api import EventList, EventDetail
 from gracedb.api import EventLogList, EventLogDetail
+from gracedb.api import EventSlot
 from gracedb.api import Files, FileMeta
 from gracedb.api import EventNeighbors, EventLabel
 
@@ -40,7 +41,9 @@ urlpatterns = patterns('gracedb.api',
         EventLabel.as_view(), name="labels"),
 
     # Event Slots
-    # events/{graceid}/slots/[{slotid}]
+    # events/{graceid}/slot/[{slotname}]
+    url (r'^events/(?P<graceid>[GEHT]\d+)/slot/(?P<slotname>.+)?$',
+        EventSlot.as_view(), name="slot"),
 
     # Event Neighbors
     # events/{graceid}/neighbors/[?delta=(N|(N,N))]

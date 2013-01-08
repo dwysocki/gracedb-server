@@ -206,7 +206,6 @@ class Approval(models.Model):
     approvedEvent = models.ForeignKey(Event, null=False)
     approvingCollaboration = models.CharField(max_length=1, choices=COLLABORATION_CHOICES)
 
-
 ## Analysis Specific Attributes.
 
 class CoincInspiralEvent(Event):
@@ -239,3 +238,11 @@ class MultiBurstEvent(Event):
     ligo_angle       = models.FloatField(null=True)
     ligo_angle_sig   = models.FloatField(null=True)
 
+## Slots (user-defined event attributes)
+
+class Slot(models.Model):
+    """Slot Model"""
+    # Does the slot need to have a submitter column?
+    event = models.ForeignKey(Event)
+    name  = models.CharField(max_length=100)
+    value = models.CharField(max_length=100)

@@ -8,7 +8,7 @@ from django.conf import settings
 
 import json
 
-from gracedb.models import Event, Group, EventLog
+from gracedb.models import Event, Group, EventLog, Slot
 from gracedb.views import create_label
 from translator import handle_uploaded_data
 
@@ -574,12 +574,17 @@ class GracedbRoot(APIView):
         labels = labels.replace("G1200", "{graceid}")
         labels = labels.replace("thelabel", "{label}")
 
+        slot = reverse("slot", args=["G1200", "slotname"], request=request)
+        slot = slot.replace("G1200", "{graceid}")
+        slot = slot.replace("slotname", "{slotname}")
+
         templates = {
                 "event-detail-template" : detail,
                 "event-log-template" : log,
                 "event-label-template" : labels,
                 "files-template" : files,
                 "filemeta-template" : filemeta,
+                "slot-template" : slot,
                 }
 
         return Response({
@@ -793,3 +798,80 @@ class FileMeta(APIView):
     authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,)
     pass
+
+#==================================================================
+# Slots
+
+class EventSlot(APIView):
+    """A slot associated with an event.  
+    """
+
+    # Get the value of a slot.  This will be a filename. 
+    def get(self, request, graceid, slotname):
+        try:
+            event = Event.getByGraceid(graceid)
+        except Event.DoesNotExist:
+            # XXX Real error message.
+            return Response("Event does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
+        except Slot.DoesNotExist:
+            # Okay, no slot yet.  Probably want an error message.
+            # Try looking for files that contain the slot name.
+            return Response("No slot.  Search based on slotname not implemented yet.",
+                    status=status.HTTP_404_NOT_FOUND)
+        filename = slot.value
+        dirPrefix = settings.GRACEDB_DATA_DIR
+        eventDir = os.path.join(dirPrefix, event.graceid())
+        filename = os.path.join(eventDir, "private", filename)
+        rv = {}
+        rv['filename'] = filename
+        return Response(rv)
+
+    # Create a slot.  The slot's value will be a filename.
+    # This can refer to the name of a file uploaded when the slot
+    # is created, or to the name of an already existing file.  The
+    # latter will be assumed if there is no uploaded file in the 
+    # request object.
+    def put(self, request, graceid, slotname):
+        try:
+            event = Event.getByGraceid(graceid)
+        except Event.DoesNotExist:
+            # XXX Real error message.
+            return Response("Event does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+        dirPrefix = settings.GRACEDB_DATA_DIR
+        eventDir = os.path.join(dirPrefix, event.graceid())
+        # XXX handle duplicate file names.
+
+        try:
+            f = request.FILES['slotFile']
+            filename = f.name
+            uploadDestination = os.path.join(eventDir, "private", filename)
+            fdest = open(uploadDestination, 'w')
+            # Save uploaded file into user private area.
+            shutil.copyfileobj(f, fdest)
+            fdest.close()
+        except:
+            # No file, huh?
+            # Maybe the body contained the name of an already existing file.
+            filename = request.DATA.get('filename')
+            # Interestingly, the None object seems to be converted to a string
+            # when encoded in the HTTP request body.  Hence the 'None' string 
+            # below.  If somebody intentionally named a file 'None', then 
+            # they deserve to get this error message.
+            if filename=='' or filename=='None' or filename=None:
+                return Response("Please submit a filename or upload a file.",
+                        status=status.HTTP_400_BAD_REQUEST)
+            # Check for existence of the file.
+            filePath = os.path.join(eventDir, "private", filename)
+            if not os.path.exists(filePath):
+               return Response("No slot created because file does not exist and no file uploaded",
+                        status=status.HTTP_404_NOT_FOUND)
+        # Create the slot.
+        slot = Slot(event=event,name=slotname,value=filename)
+        slot.save()
+        return Response("Slot created.",status=status.HTTP_201_CREATED)
+
