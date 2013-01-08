@@ -862,7 +862,7 @@ class EventSlot(APIView):
             # when encoded in the HTTP request body.  Hence the 'None' string 
             # below.  If somebody intentionally named a file 'None', then 
             # they deserve to get this error message.
-            if filename=='' or filename=='None' or filename=None:
+            if filename=='' or filename=='None' or filename==None:
                 return Response("Please submit a filename or upload a file.",
                         status=status.HTTP_400_BAD_REQUEST)
             # Check for existence of the file.
