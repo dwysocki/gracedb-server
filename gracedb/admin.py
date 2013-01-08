@@ -1,6 +1,6 @@
 
 from models import Event, EventLog, User, Group
-from models import Label, Labelling
+from models import Label, Labelling, Slot
 from django.contrib import admin
 
 class EventAdmin(admin.ModelAdmin):
@@ -30,10 +30,13 @@ class LabellingAdmin(admin.ModelAdmin):
     list_display = [ 'event', 'label', 'creator' ]
     search_fields = [ 'event__id', 'label__name', 'creator__name' ]
 
+class SlotAdmin(admin.ModelAdmin):
+    list_display = [ 'event', 'name', 'value' ]
+
 admin.site.register(Event, EventAdmin)
 admin.site.register(EventLog, EventLogAdmin)
 admin.site.register(User, UserAdmin)
 admin.site.register(Group)
 admin.site.register(Label, LabelAdmin)
 admin.site.register(Labelling, LabellingAdmin)
-
+admin.site.register(Slot, SlotAdmin)

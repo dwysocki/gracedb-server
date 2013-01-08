@@ -198,3 +198,9 @@ class Approval(models.Model):
     approvedEvent = models.ForeignKey(Event, null=False)
     approvingCollaboration = models.CharField(max_length=1, choices=COLLABORATION_CHOICES)
 
+class Slot(models.Model):
+    """Slot Model"""
+    # Does the slot need to have a submitter column?
+    event = models.ForeignKey(Event)
+    name  = models.CharField(max_length=100)
+    value = models.CharField(max_length=100)
