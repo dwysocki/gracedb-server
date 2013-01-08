@@ -106,7 +106,7 @@ class VersionedFile(file):
                 os.close(fd)
                 break
             except OSError, e:
-                if e.error != errno.EEXIST:
+                if e.errno != errno.EEXIST:
                     raise
             version += 1
             failedAttempts += 1
