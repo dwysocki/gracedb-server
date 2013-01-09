@@ -105,6 +105,16 @@ def handle_uploaded_data(event, datafilename,
         event.nevents = coinc_table[0].nevents
         event.likelihood = coinc_table[0].likelihood
 
+        event.ifos             = ifos
+        event.end_time         = end_time[0]
+        event.end_time_ns      = end_time[1]
+        event.mass             = mass
+        event.mchirp           = mchirp
+        event.minimum_duration = getattr(origdata[0][0], "minimum_duration", None)
+        event.snr              = snr
+        event.false_alarm_rate = getattr(origdata[0][0], "false_alarm_rate", None)
+        event.combined_far     = far
+
         # XXX xml_filename unused
         #xml_filename = os.path.join(output_dir, coinc_table_filename)
 
@@ -339,8 +349,6 @@ class Translator(object):
         event.instruments = data.get('instruments')
         event.far = data.get('far')
 
-        event.save()
-
     def logData(self):
         data = self.getData()
         logdata = []
@@ -387,6 +395,21 @@ class CwbData(Translator):
             data = self.readData(self.datafile)
             self.castData(data)
         return self.data
+
+    def populateEvent(self, event):
+        Translator.populateEvent(self, event)
+
+        # MultiBurst table attributes
+        data = self.getData()
+        event.ifo           = data.get('ifo')
+        event.start_time    = data.get('start_time')
+        event.start_time_ns = data.get('start_time_ns')
+        event.duration      = data.get('duration')
+        event.central_freq  = data.get('central_freq')
+        event.bandwidth     = data.get('bandwidth')
+        event.snr           = data.get('snr')
+        event.ligo_axis_ra  = data.get('ligo_axis_ra')
+        event.ligo_axis_dec = data.get('ligo_axis_dec')
 
     def readData(self, datafile):
         needToClose = False
@@ -446,6 +469,26 @@ class CwbData(Translator):
             ifos.append(self.CWB_IFO_MAP[ifo])
         ifos.sort()
         data['instruments'] = ','.join(ifos)
+
+        # MultiBurst table attributes
+        start =  rawdata.get('start',[None])[0]
+        if start is not None:
+            integer, frac = start.split('.')
+            data['start_time']    = int(integer)
+            data['start_time_ns'] = int(frac+(9-len(frac))*'0')
+        else:
+            data['start_time']    = None
+            data['start_time_ns'] = None
+
+        data['ifo'] = ','.join(ifos)
+        data['duration']      = rawdata.get('duration',[None])[0]
+        data['central_freq']  = rawdata.get('frequency',[None])[0]
+        data['bandwidth']     = rawdata.get('bandwidth',[None])[0]
+        #data['snr']           = rawdata.get('snr',[None])[0]
+        # rho is what log file says is "effective snr"
+        data['snr']           = data['rawdata'].get('rho',[None])[0]
+        data['ligo_axis_ra']     = data['rawdata'].get('phi',[None,None,None])[2]
+        data['ligo_axis_dec']    = data['rawdata'].get('theta',[None,None,None])[2]
 
         if needToClose:
             datafile.close()

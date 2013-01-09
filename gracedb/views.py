@@ -11,6 +11,8 @@ from django.utils.safestring import mark_safe
 from django.views.generic.list_detail import object_detail, object_list
 
 from models import Event, Group, EventLog, Labelling, Label, User
+from models import CoincInspiralEvent
+from models import MultiBurstEvent
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
@@ -201,12 +203,17 @@ def _createEventFromForm(request, form):
     warnings = []
     try:
         group = Group.objects.filter(name=form.cleaned_data['group'])
-        type = form.cleaned_data['type']
+        atype = form.cleaned_data['type']
         # Create Event
-        event = Event()
+        if atype in ['LM', 'HM']:
+            event = CoincInspiralEvent()
+        elif atype == "CWB":
+            event = MultiBurstEvent()
+        else:
+            event = Event()
         event.submitter = request.ligouser
         event.group = group[0]
-        event.analysisType = type
+        event.analysisType = atype
         #  ARGH.  We don't get a graceid until we save,
         #  but we don't know in advance if we can actually
         #  create all the things we need for success!
@@ -531,7 +538,8 @@ def view(request, graceid):
                             for event in a.neighbors()]
     context['skyalert_authorized'] = skyalert_authorized(request)
     return render_to_response(
-        'gracedb/event_detail.html',
+        [ 'gracedb/event_detail_{0}.html'.format(a.analysisType),
+          'gracedb/event_detail.html'],
         context,
         context_instance=RequestContext(request))
 

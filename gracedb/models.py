@@ -154,7 +154,10 @@ class Event(models.Model):
 
     @classmethod
     def getByGraceid(cls, id):
-        e = cls.objects.get(id=int(id[1:]))
+        try:
+            e = cls.objects.filter(id=int(id[1:])).select_subclasses()[0]
+        except IndexError:
+            raise cls.DoesNotExist("Event matching query does not exist")
         if (id[0] == "T") and (e.group.name == "Test"):
             return e
         if (id[0] == "H") and (e.analysisType == "HWINJ"):
@@ -163,7 +166,7 @@ class Event(models.Model):
             return e
         if (id[0] == "G"):
             return e
-        raise cls.DoesNotExist()
+        raise cls.DoesNotExist("Event matching query does not exist")
 
     def __unicode__(self):
         return self.graceid()
