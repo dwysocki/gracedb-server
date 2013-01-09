@@ -13,6 +13,6 @@ def slot(event,slotname):
         slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
         out = slot.value
     except:
-        return mark_safe("Object not found.")
+        return None
     return mark_safe(out)
 
