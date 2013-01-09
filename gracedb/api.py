@@ -817,7 +817,7 @@ class EventSlot(APIView):
 
         try:
             slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
-        except Slot.DoesNotExist:
+        except:
             # Okay, no slot yet.  Probably want an error message.
             # Try looking for files that contain the slot name.
             return Response("No slot.  Search based on slotname not implemented yet.",
@@ -858,4 +858,25 @@ class EventSlot(APIView):
         slot = Slot(event=event,name=slotname,value=filename)
         slot.save()
         return Response("Slot created.",status=status.HTTP_201_CREATED)
+
+    # Delete a slot.
+    def delete(self, request, graceid, slotname):
+        try:
+            event = Event.getByGraceid(graceid)
+        except Event.DoesNotExist:
+            # XXX Real error message.
+            return Response("Event does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+
+        # Gotta find the poor devil before we can delete him.
+        try:
+            slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
+        except:
+            # Okay, no slot yet.  Probably want an error message.
+            # Try looking for files that contain the slot name.
+            return Response("No such slot.",
+                    status=status.HTTP_404_NOT_FOUND)
+
+        slot.delete()
+        return Response("Slot deleted.",status=status.HTTP_200_OK)
 
