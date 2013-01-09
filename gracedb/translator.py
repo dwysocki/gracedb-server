@@ -221,6 +221,21 @@ def handle_uploaded_data(event, datafilename,
         event.nevents = coinc_table[0].nevents
         event.likelihood = coinc_table[0].likelihood
 
+        # extended attributes
+        coinc_inspiral_table = glue.ligolw.table.getTablesByName(
+                            xmldoc,
+                            glue.ligolw.lsctables.CoincInspiralTable.tableName)
+        coinc_inspiral_table = coinc_inspiral_table[0]
+        event.ifos             = coinc_inspiral_table[0].ifos
+        event.end_time         = coinc_inspiral_table[0].end_time
+        event.end_time_ns      = coinc_inspiral_table[0].end_time_ns
+        event.mass             = coinc_inspiral_table[0].mass
+        event.mchirp           = coinc_inspiral_table[0].mchirp
+        #event.minimum_duration = coinc_inspiral_table[0].minimum_duration
+        event.snr              = coinc_inspiral_table[0].snr
+        event.false_alarm_rate = coinc_inspiral_table[0].false_alarm_rate
+        event.combined_far     = coinc_inspiral_table[0].combined_far
+
         # XXX xml_filename unused
         #xml_filename = os.path.join(output_dir, coinc_table_filename)
 

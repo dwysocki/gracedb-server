@@ -205,7 +205,7 @@ def _createEventFromForm(request, form):
         group = Group.objects.filter(name=form.cleaned_data['group'])
         atype = form.cleaned_data['type']
         # Create Event
-        if atype in ['LM', 'HM']:
+        if atype in ['LM', 'HM', 'MBTA']:
             event = CoincInspiralEvent()
         elif atype == "CWB":
             event = MultiBurstEvent()
