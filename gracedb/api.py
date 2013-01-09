@@ -827,14 +827,11 @@ class EventSlot(APIView):
         eventDir = os.path.join(dirPrefix, event.graceid())
         filename = os.path.join(eventDir, "private", filename)
         rv = {}
-        rv['filename'] = filename
+        rv['value'] = filename
         return Response(rv)
 
     # Create a slot.  The slot's value will be a filename.
-    # This can refer to the name of a file uploaded when the slot
-    # is created, or to the name of an already existing file.  The
-    # latter will be assumed if there is no uploaded file in the 
-    # request object.
+    # This file is assumed to have already been uploaded.
     def put(self, request, graceid, slotname):
         try:
             event = Event.getByGraceid(graceid)
@@ -844,32 +841,19 @@ class EventSlot(APIView):
                     status=status.HTTP_404_NOT_FOUND)
         dirPrefix = settings.GRACEDB_DATA_DIR
         eventDir = os.path.join(dirPrefix, event.graceid())
-        # XXX handle duplicate file names.
-
-        try:
-            f = request.FILES['slotFile']
-            filename = f.name
-            uploadDestination = os.path.join(eventDir, "private", filename)
-            fdest = open(uploadDestination, 'w')
-            # Save uploaded file into user private area.
-            shutil.copyfileobj(f, fdest)
-            fdest.close()
-        except:
-            # No file, huh?
-            # Maybe the body contained the name of an already existing file.
-            filename = request.DATA.get('filename')
-            # Interestingly, the None object seems to be converted to a string
-            # when encoded in the HTTP request body.  Hence the 'None' string 
-            # below.  If somebody intentionally named a file 'None', then 
-            # they deserve to get this error message.
-            if filename=='' or filename=='None' or filename==None:
-                return Response("Please submit a filename or upload a file.",
-                        status=status.HTTP_400_BAD_REQUEST)
-            # Check for existence of the file.
-            filePath = os.path.join(eventDir, "private", filename)
-            if not os.path.exists(filePath):
-               return Response("No slot created because file does not exist and no file uploaded",
-                        status=status.HTTP_404_NOT_FOUND)
+        filename = request.DATA.get('filename')
+        # Interestingly, the None object seems to be converted to a string
+        # when encoded in the HTTP request body.  Hence the 'None' string 
+        # below.  If somebody intentionally named a file 'None', then 
+        # they deserve to get this error message.
+        if filename=='' or filename=='None' or filename==None:
+            return Response("Please submit a filename or upload a file.",
+                    status=status.HTTP_400_BAD_REQUEST)
+        # Check for existence of the file.
+        filePath = os.path.join(eventDir, "private", filename)
+        if not os.path.exists(filePath):
+           return Response("No slot created because file does not exist",
+                    status=status.HTTP_404_NOT_FOUND)
         # Create the slot.
         slot = Slot(event=event,name=slotname,value=filename)
         slot.save()
