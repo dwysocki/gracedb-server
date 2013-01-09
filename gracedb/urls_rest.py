@@ -10,7 +10,8 @@ from gracedb.api import Files, FileMeta
 from gracedb.api import EventNeighbors, EventLabel
 
 urlpatterns = patterns('gracedb.api',
-    url (r'^$', GracedbRoot.as_view(), name="api-root"),
+    url (r'^/?$', GracedbRoot.as_view(), name="api-root"),
+
 
     # Event Resources
     # events/[{graceid}[/{version}]]

@@ -9,6 +9,8 @@ from glue.ligolw import ligolw
 from glue.ligolw import table
 from glue.ligolw import lsctables
 
+from utils.vfile import VersionedFile
+
 ##############################################################################
 #
 #          useful variables
@@ -87,11 +89,11 @@ def write_output_files(root_dir, xmldoc, log_content, \
   write the xml-format coinc tables and log file
   """
 
-  f = open(root_dir+'/'+xml_fname,'w')
+  f = VersionedFile(root_dir+'/'+xml_fname,'w')
   xmldoc.write(f)
   f.close()
 
-  f = open(root_dir+'/'+log_fname,'w')
+  f = VersionedFile(root_dir+'/'+log_fname,'w')
   f.write(log_content)
   f.close()
 

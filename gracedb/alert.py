@@ -14,6 +14,10 @@ from userprofile.models import Trigger, AnalysisType
 import glue.ligolw.utils
 import ligo.lvalert.utils
 
+import logging
+
+log = logging.getLogger('gracedb.alert')
+
 def issueAlert(event, location, temp_data_loc):
     issueXMPPAlert(event, location, temp_data_loc)
     issueEmailAlert(event, location)
@@ -116,9 +120,13 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
     nodename = "%s_%s"% (event.group.name, event.get_analysisType_display())
     nodename = nodename.lower()
 
+    log.debug('issueXMPPAlert: %s %s' % (event.graceid(), nodename))
+
     if nodename not in settings.XMPP_ALERT_CHANNELS:
+        log.debug("issueXMPPAlert: did not send alert")
         return
 
+    log.debug("issueXMPPAlert: attempting to send alert")
     env = {}
     env["PYTHONPATH"] = ":".join(sys.path)
 
@@ -146,12 +154,18 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
     glue.ligolw.utils.write_fileobj(xmldoc, buf)
     msg = buf.getvalue()
 
+    log.debug("issueXMPPAlert: writing message %s" % msg)
+
     p.stdin.write(msg)
     p.stdin.close()
+    res = None
     for i in range(1,10):
         res = p.poll()
         if res == None:
             time.sleep(1)
         else:
+            log.debug("issueXMPPAlert: return code %s" % res)
             break
+    if res is None:
+        log.debug("issueXMPPAlert: failed to see child process terminate")
 

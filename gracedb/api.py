@@ -12,11 +12,15 @@ from gracedb.models import Event, Group, EventLog, Slot
 from gracedb.views import create_label
 from translator import handle_uploaded_data
 
+from alert import issueAlertForUpdate
+
 import os
 import urllib
 import errno
 import logging
 import shutil
+
+from utils.vfile import VersionedFile
 
 ##################################################################
 
@@ -341,7 +345,7 @@ class EventDetail(APIView):
         # XXX handle duplicate file names.
         f = request.FILES['eventFile']
         uploadDestination = os.path.join(eventDir, "private", f.name)
-        fdest = open(uploadDestination, 'w')
+        fdest = VersionedFile(uploadDestination, 'w')
         # Save uploaded file into user private area.
         #for chunk in f.chunks():
         #    fdest.write(chunk)
@@ -446,7 +450,11 @@ class EventLabel(APIView):
 
     def put(self, request, graceid, label):
         #return Response("Not Implemented", status=status.HTTP_501_NOT_IMPLEMENTED)
-        create_label(graceid, label, request.ligouser)
+        try:
+            create_label(graceid, label, request.ligouser)
+        except ValueError, e:
+            return Response(e.message,
+                        status=status.HTTP_400_BAD_REQUEST)
         return Response("Created", status=status.HTTP_201_CREATED)
 
 
@@ -751,100 +759,37 @@ class Files(APIView):
         except Event.DoesNotExist:
             return HttpResponseNotFound("Event not found")
 
-        # Construct the file path just as Brian does above.
-        general = False
         if filename.startswith("general/"):
-            filename = filename[len("general/"):]
-            general = True
+            # No writing to general/
+            return HttpResponseForbidden("cannot write to general directory")
 
-        filepath = os.path.join(event.datadir(general), filename)
+        filepath = os.path.join(event.datadir(), filename)
 
-        if not os.path.exists(filepath):
-            # Awesome.  The thing does not exist.  This is the first time a file
-            # by this name is being uploaded.  
-            # Write the file as "filename,0".
-            linkpath = filepath
-            filepath += ',0'
-            filename += ',0'
-            fdest = open(filepath, 'w')
-            # Check out line 392 in the client.
-            # I think the key name for the file is 'upload'
+        try:
+            # Open / Write the file.
+            fdest = VersionedFile(filepath, 'w')
             f = request.FILES['upload']
             for chunk in f.chunks(): 
                 fdest.write(chunk)
             fdest.close()
 
-            # Make a relative symlink.
-            os.symlink(filename,linkpath)
-
             rv = {}
-            rv['permalink'] = reverse("files", args=[graceid, filename], request=request)
+            # XXX this seems wobbly.
+            longname = fdest.name
+            shortname = longname[longname.rfind(filename):]
+            rv['permalink'] = reverse(
+                    "files", args=[graceid, shortname], request=request)
             response = Response(rv, status=status.HTTP_201_CREATED)
+        except Exception, e:
+            # XXX This needs some thought.
+            response = Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
-        elif os.path.islink(filepath):
-            # Great. The thing is a symlink. We can do our version-y stuff now.
-
-            # Read contents of directory.  Establish the number of existing versions.
-            # All we need is the bare filename (i.e., not the full path)
-            filedir = event.datadir(general)
-            lastVersion = 0
-            for dirname, dirnames, filenames in os.walk(filedir):
-                for fname in filenames:
-                    if fname.find(',') > 0:
-                        if fname.split(',')[0] == filename:
-                            lastVersion = max(lastVersion,int(fname.split(',')[1]))
-            
-            linkpath = filepath # Set the link path to the original file path.
-            notOpenYet = True
-            failedAttempts = 0
-            while notOpenYet:
-                # find the new filename
-                newFilename = filename + ',%d' % (lastVersion+1)
-                # update the file path according to the new filename.
-                filepath = os.path.join(filedir,newFilename)
-                try:
-                    # os.O_EXCL causes the open to fail if the file already exists.
-                    fd = os.open(filepath, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0644)
-                    fdest = os.fdopen(fd,"w")
-                    notOpenYet = False
-                except OSError as e:
-                    if e.errno==errno.EACCES:
-                        return HttpResponseForbidden("No permission to write to event directory.")
-                    else:
-                        # Note: could also check whether e.errno==errno.EEXIST
-                        ++failedAttempts
-                        if failedAttempts >= MAX_FAILED_OPEN_ATTEMPTS:
-                            return HttpResponseServerError("Cannot open file for writing: %s" % e)
-                        # Under race conditions, increment lastVersion.
-                        if e.errno==errno.EACCES:
-                            ++lastVersion 
-            
-            # Still with me? Then write the file.
-            f = request.FILES['upload']
-            for chunk in f.chunks(): 
-                fdest.write(chunk)
-            fdest.close()
-
-            # Move the symlink, using os.rename to avoid race conditions. 
-            tmplink = os.path.join(filedir,'tmplink')
-            os.symlink(newFilename,tmplink)
-            os.rename(tmplink,linkpath)
-            
-            rv = {}
-            rv['permalink'] = reverse("files", args=[graceid, newFilename], request=request)
-            response = Response(rv, status=status.HTTP_201_CREATED)
-
-        elif os.path.isfile(filepath):
-            # The thing is a file and not a symlink.  We will not allow a put request to the file
-            # resource (for now, anyway).
-            response = HttpResponseForbidden("%s is a file.  Versioning is not supported with legacy data.  Please change your filename to avoid clobbering." % filename)
-        elif not filename:
-            # Not good.  There's nothing we can do without a filename.
-            response = HttpResponseBadRequest("Must have a filename for upload.")
-        elif os.path.isdir(filepath):
-            response = HttpResponseForbidden("%s is a directory" % filename)
-        else:
-            response = HttpResponseServerError("Should not happen.")
+        try:
+            description = "UPLOAD: {0}".format(filename)
+            issueAlertForUpdate(event, description, doxmpp=True)
+        except:
+            # XXX something should be done here.
+            pass
 
         return response
 
