@@ -2,7 +2,6 @@
 {% load timeutil %}
 {% load scientific %}
 {% load sanitize_html %}
-{% load slot %}
 
 {% block title %}View {{ object.graceid }}{% endblock %}
 {% block heading %}{% endblock %}
@@ -306,13 +305,6 @@
 <h3>User Info</h3>
     {{ userdesc }}
     <br/>
-{% endif %}
-
-<!-- Branson messing around --!>
-<br/><br/>
-{% if object|slot:"skymap" %}
-<h3>The skymap file name is</h3>
-{{ object|slot:"skymap" }}
 {% endif %}
 
 </td></tr></table>
