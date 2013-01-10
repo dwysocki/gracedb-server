@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.urlresolvers import reverse
 
+from model_utils.managers import InheritanceManager
+
 import datetime
 import thread
 import string
@@ -49,6 +51,9 @@ class Label(models.Model):
         return self.name
 
 class Event(models.Model):
+
+    objects = InheritanceManager() # Queries can return subclasses, if available.
+
     ANALYSIS_TYPE_CHOICES = (
         ("LM",  "LowMass"),
         ("HM",  "HighMass"),
@@ -149,7 +154,10 @@ class Event(models.Model):
 
     @classmethod
     def getByGraceid(cls, id):
-        e = cls.objects.get(id=int(id[1:]))
+        try:
+            e = cls.objects.filter(id=int(id[1:])).select_subclasses()[0]
+        except IndexError:
+            raise cls.DoesNotExist("Event matching query does not exist")
         if (id[0] == "T") and (e.group.name == "Test"):
             return e
         if (id[0] == "H") and (e.analysisType == "HWINJ"):
@@ -158,7 +166,7 @@ class Event(models.Model):
             return e
         if (id[0] == "G"):
             return e
-        raise cls.DoesNotExist()
+        raise cls.DoesNotExist("Event matching query does not exist")
 
     def __unicode__(self):
         return self.graceid()
@@ -197,6 +205,40 @@ class Approval(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     approvedEvent = models.ForeignKey(Event, null=False)
     approvingCollaboration = models.CharField(max_length=1, choices=COLLABORATION_CHOICES)
+
+## Analysis Specific Attributes.
+
+class CoincInspiralEvent(Event):
+    ifos             = models.CharField(max_length=20, default="")
+    end_time         = models.PositiveIntegerField(null=True)
+    end_time_ns      = models.PositiveIntegerField(null=True)
+    mass             = models.FloatField(null=True)
+    mchirp           = models.FloatField(null=True)
+    minimum_duration = models.FloatField(null=True)
+    snr              = models.FloatField(null=True)
+    false_alarm_rate = models.FloatField(null=True)
+    combined_far     = models.FloatField(null=True)
+
+
+class MultiBurstEvent(Event):
+    ifos             = models.CharField(max_length=20, default="")
+    start_time       = models.PositiveIntegerField(null=True)
+    start_time_ns    = models.PositiveIntegerField(null=True)
+    duration         = models.FloatField(null=True)
+    peak_time        = models.PositiveIntegerField(null=True)
+    peak_time_ns     = models.PositiveIntegerField(null=True)
+    central_freq     = models.FloatField(null=True)
+    bandwidth        = models.FloatField(null=True)
+    amplitude        = models.FloatField(null=True)
+    snr              = models.FloatField(null=True)
+    confidence       = models.FloatField(null=True)
+    false_alarm_rate = models.FloatField(null=True)
+    ligo_axis_ra     = models.FloatField(null=True)
+    ligo_axis_dec    = models.FloatField(null=True)
+    ligo_angle       = models.FloatField(null=True)
+    ligo_angle_sig   = models.FloatField(null=True)
+
+## Slots (user-defined event attributes)
 
 class Slot(models.Model):
     """Slot Model"""
