@@ -6,13 +6,16 @@ from ..models import Slot, EventLog
 register = template.Library()
 
 @register.filter("slot")
-def slot(event,slotname):
+def slot(event,pattern):
     if event is None:
-        return mark_safe("")
-    try:
-        slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
-        out = slot.value
-    except:
         return None
-    return mark_safe(out)
+    try:
+        # This returns a list of dictionary objects, like 
+        # [{'event': event, 'name': 'skymap', 'value':'skymap.png'}, ... ]
+        # XXX doesn't the template need the full path?  
+        return Slot.objects.filter(event=event).filter(name__regex=pattern).values()
+    except:
+        # Either there is no such slot or something went wrong.
+        # In either case, we want the template to just ignore it.
+        return None
 

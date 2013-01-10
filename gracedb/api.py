@@ -854,10 +854,17 @@ class EventSlot(APIView):
         if not os.path.exists(filePath):
            return Response("No slot created because file does not exist",
                     status=status.HTTP_404_NOT_FOUND)
-        # Create the slot.
-        slot = Slot(event=event,name=slotname,value=filename)
-        slot.save()
-        return Response("Slot created.",status=status.HTTP_201_CREATED)
+        # Check for existence of the slot.  If it exists, simply update the
+        # existing slot.
+        try:
+            slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
+            slot.value = filename
+            slot.save()
+        except:
+            # Create the slot.
+            slot = Slot(event=event,name=slotname,value=filename)
+            slot.save()
+        return Response("Slot created or updated.",status=status.HTTP_201_CREATED)
 
     # Delete a slot.
     def delete(self, request, graceid, slotname):
