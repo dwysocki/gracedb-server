@@ -116,6 +116,11 @@ def eventToDict(event, columns=None, request=None):
             "labels" : reverse("labels", args=[graceid], request=request),
             "self"  : reverse("event-detail", args=[graceid], request=request),
             }
+    # XXX Jam the slots in here? Could just have a list of slot names instead of
+    # all these links.  But the links might be useful??
+    rv['slots'] = {}
+    for slot in Slot.objects.filter(event=event).order_by('name'):
+        rv['slots'][slot.name] = reverse("slot", args=[graceid, slot.name], request=request)
     return rv
 
 
