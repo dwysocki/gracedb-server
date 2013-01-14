@@ -18,11 +18,12 @@
     <link rel="stylesheet" href="{{MEDIA_URL}}css/labeltips.css">
     <script type="text/javascript">
         var bb = null;
-
+        
         require(["dijit/Editor",
                  "dojox/editor/plugins/Save",
                  "dojox/editor/plugins/Preview",
                  "dijit/form/Button",
+                 "dijit/TitlePane",
                  "dojox/image/LightboxNano",
                  "dijit/_editor/plugins/TextColor",
                  "dijit/_editor/plugins/LinkDialog",
@@ -30,13 +31,14 @@
                  "dijit/_editor/plugins/NewPage",
                  "dijit/_editor/plugins/FullScreen",
                  "dojo/parser",
-                 "dojo/domReady!"], function (Editor, Save, Preview, Button) {
+                 "dojo/domReady!"], function (Editor, Save, Preview, Button, TitlePane) {
 
             dojo.parser.parse();
 
             //var newlogdiv = dojo.byId("newlogdiv");
             var logtitle = dojo.byId("logmessagetitle");
             var logtext = dojo.byId("newlogtext");
+            var usertitle = dojo.byId("usermessagetitle");
 
             var editor_div = dojo.byId("editor");
             var preview_div = dojo.byId("previewer");
@@ -44,6 +46,31 @@
             dojo.style(preview_div, { 'display':'none'});
             dojo.style(editor_div, { 'display':'none'});
 
+            // The new Log entry button.
+            // XXX We want to get rid of this eventually.
+            var button_element = dojo.create('button');
+            dojo.place(button_element, logtitle, "right");
+            var button = new Button({
+                label: "Add Log Entry",
+                state: "add",
+                onClick: function(){
+                    if (this.state == 'add') {
+                        dojo.style(editor_div, {'display':'block'});
+                        button.set('label', "Cancel Log Entry");
+                        button.set('state', 'cancel');
+                        editor.focus();
+                    }
+                    else {
+                        dojo.style(editor_div, {'display':'none'});
+                        dojo.style(preview_div, {'display':'none'});
+                        button.set('label', "Add Log Entry");
+                        button.set('state', 'add');
+                        editor.set('value','');
+                    }
+                },
+            }, button_element);
+
+            // The user info button.
             var button_element = dojo.create('button');
             dojo.place(button_element, logtitle, "right");
             var button = new Button({
@@ -112,6 +139,148 @@
                                  'insertImage','fullscreen','viewsource','newpage', '|', previewbutton, savebutton]
             }, editor_div);
 
+            //----------------------------------------
+            // Following section added for TitlePanes.
+            //----------------------------------------
+
+            // Load the divs containing individual sets of info.
+            var pane_holder = dojo.byId("pane_holder");
+            var basic_info = dojo.byId("basic_info");
+            var neighbors  = dojo.byId("neighbors");
+            var sky_loc = dojo.byId("sky_loc");
+            var sngl_inspiral = dojo.byId("sngl_inspiral");
+            var strain_data = dojo.byId("strain_data");
+            var noise_curves = dojo.byId("noise_curves");
+            var tf_plots = dojo.byId("tf_plots");
+            var additional_plots = dojo.byId("additional_plots");
+            var cal_info = dojo.byId("cal_info");
+            var event_log = dojo.byId("event_log");
+
+            // This dictionary object will determine the order in which the 
+            // panes are displayed.
+            var paneDict = {
+                BAS: {
+                    sourceNode: basic_info,
+                    paneTitle:  'Event Basic Info',
+                    openOnLoad: true,
+                    nonEmpty: true
+                },
+//                SNG: {
+//                    sourceNode: sngl_inspiral,
+//                    paneTitle:  'Individual Detector Info',
+//                    openOnLoad: false,
+//                    nonEmpty: false,  
+//                },
+                NEI: {
+                    sourceNode: neighbors,
+                    paneTitle:  'Neighbors',
+                    openOnLoad: false,
+                    {% if nearby %}
+                    nonEmpty: true
+                    {% else %}
+                    nonEmpty: false
+                    {% endif %}
+                },
+                SKY: {
+                    sourceNode: sky_loc,
+                    paneTitle:  'Sky Location',
+                    openOnLoad: false,
+                    {% if object|slot:'^sky' %}
+                    nonEmpty: true
+                    {% else %}
+                    nonEmpty: false
+                    {% endif %} 
+                },
+                STR: {
+                    sourceNode: strain_data,
+                    paneTitle:  'Strain Data',
+                    openOnLoad: true,
+                    {% if object|slot:'^strain_plot' or object|slot:'^strain_data' %}
+                    nonEmpty: true
+                    {% else %}
+                    nonEmpty: false
+                    {% endif %} 
+
+                },
+                NOI: {
+                    sourceNode: noise_curves,
+                    paneTitle:  'Noise Curves',
+                    openOnLoad: false,
+                    {% if object|slot:'^noise_plot' %}
+                    nonEmpty: true
+                    {% else %}
+                    nonEmpty: false
+                    {% endif %} 
+                },
+                TIM: {
+                    sourceNode: tf_plots,
+                    paneTitle:  'Time-Frequency Plots',
+                    openOnLoad: false,
+                    {% if object|slot:'^tfplot' %}
+                    nonEmpty: true
+                    {% else %}
+                    nonEmpty: false
+                    {% endif %} 
+                },
+                ADD: {
+                    sourceNode: additional_plots,
+                    paneTitle:  'Additional Plots',
+                    openOnLoad: false,
+                    {% if object|slot:'^misc_plot' %}
+                    nonEmpty: true
+                    {% else %}
+                    nonEmpty: false
+                    {% endif %} 
+                },
+//                CAL: {
+//                    sourceNode: cal_info,
+//                    paneTitle:  'Calibration Information',
+//                    openOnLoad: false,
+//                    nonEmpty: false                     
+//                },
+                EVE: {
+                    sourceNode: event_log,
+                    paneTitle:  'Event Log Messages',
+                    openOnLoad: false,
+                    // This guy is always non-empty. Besides, we don't have a slot to check.
+                    nonEmpty: true
+                }
+            }
+
+            // Count how many divs actually contain something interesting.
+            // Decide how many (and which) panes to open based on that.
+            var openAllNonEmpty = false;
+            var numNonEmpty = 0;
+            for (var key in paneDict) {
+                var obj = paneDict[key];
+                if (obj.nonEmpty) { ++numNonEmpty; }
+            }
+            if (numNonEmpty < 4) { openAllNonEmpty = true; }
+            console.debug("numNonEmpty = %d", numNonEmpty);
+            console.debug("openAllNonEmpty = %s", openAllNonEmpty);
+        
+            // Loop over dictionary elements.
+            // As you can see, the key names aren't that important
+            // Test variable openAllNonEmpty.
+            for (var key in paneDict) {
+                var obj = paneDict[key];
+
+                var openSwitch = false;
+                if (openAllNonEmpty && obj.nonEmpty) {
+                    openSwitch = true;
+                } else if (obj.nonEmpty) {
+                    openSwitch = obj.openOnLoad;
+                }
+
+                tp = new dijit.TitlePane({title:obj.paneTitle, 
+                                          content:obj.sourceNode.innerHTML, 
+                                          open:openSwitch});
+                console.debug("appending for key=%s", key);
+                pane_holder.appendChild(tp.domNode);
+                // Already extracted the content.  So now we can destroy the node.
+                dojo.destroy(obj.sourceNode);
+            }
+
         });
 
     </script>
@@ -151,6 +320,13 @@
             padding: 6px;
             width: 24px;
         }
+
+        .dijitTitlePaneTitle {
+            font-size: 115%;
+            font-family: "Century Schoolbook L", Georgia, serif;
+            font-weight: bold;
+        }
+
     </style>
 {% endblock %}
 
@@ -158,7 +334,17 @@
 <p>{{ message }}</p>
 
 <table>
+<!-- XXX Branson.  Set width="70%" here -->
 <tr><td valign="top">
+
+<!-- The pane_holder div basically spans the whole left side of the table. -->
+<div id="pane_holder">
+
+<!-- ********************************************************************* -->
+<!-- Basic Event Info                                                      -->
+<!-- ********************************************************************* -->
+<div id="basic_info">
+{% block basic_info %}
 
 <table class="event">
     {% if skyalert_authorized  %}
@@ -207,9 +393,19 @@
 
 </table>
 
+{% endblock %}
+</div> <!-- Here endeth the basic_info div. -->
+
+<!-- ********************************************************************* -->
+<!-- Neighbors                                                             -->
+<!-- ********************************************************************* -->
+<div id="neighbors">
+{% block neighbors %}
+
 {% if nearby %}
-    <p/>
-    <h3>Neighbors</h3>
+
+    <!-- <p/>
+    <h3>Neighbors</h3> -->
     <table class="event">
         <tr>
                 <th valign="top">UID</th>
@@ -250,6 +446,170 @@
     </table>
 {% endif %}
 
+{% endblock %}
+</div> <!-- End of neighbors div. -->
+
+<!-- ********************************************************************* -->
+<!-- Individual detector info ? Does Brian extract any of this?            -->
+<!-- Nope.  He doesn't.  Might be better to leave this as a user           -->
+<!-- Log entry                                                             -->
+<!-- ********************************************************************* -->
+
+<!-- ********************************************************************* -->
+<!-- Skymaps                                                               -->
+<!-- ********************************************************************* -->
+<div id="sky_loc">
+{% block sky_loc %}
+
+{% if object|slot:'^sky' %} <!-- XXX note that this will break if the skymap is a 
+                                 fits or something and not a plot.-->
+    <table>  <!-- XXX need width="70%" on all these? -->
+        <tbody>
+        <tr>
+            {% for slot in object|slot:'^sky' %}
+                <!-- absolute width here==bad idea? -->
+                 <td> <img src="{{ slot.fileurl }}" width="350"> </td> 
+            {% endfor %}
+        </tr>
+        </tbody>
+    </table>
+{% else %} 
+    <!-- No skymaps available. -->
+    <p> None available. </p>
+{% endif %}
+{% endblock %}
+</div> <!-- End of sky_loc div. -->
+
+<!-- ********************************************************************* -->
+<!-- Strain data                                                           -->
+<!-- ********************************************************************* -->
+<div id="strain_data">
+{% block strain_data %}
+
+{% if object|slot:'^strain_plot' %}
+    <table> 
+        <tbody>
+        <tr>
+            <!-- Check for strain plots first -->
+            {% for slot in object|slot:'^strain_plot' %}
+                <td><img src="{{slot.fileurl}}" width="350"></td> 
+            {% endfor %}
+        </tr>
+        {% if objects|slot:'^strain_data' %}
+        <tr>
+            {% for slot in object|slot:'^strain_data' %}
+                <td><a href="{{slot.fileurl}}">{{slot.value}}</a></td>
+            {% endfor %}
+        </tr>
+        {% endif %}
+        </tbody>
+    </table>
+{% else %}
+    <!-- perhaps there are data files even if no plots? -->
+    {% if objects|slot:'^strain_data' %}
+    <tr>
+        {% for slot in object|slot:'^strain_data' %}
+            <td><a href="{{slot.fileurl}}">{{slot.value}}</a></td>
+        {% endfor %}
+    </tr>
+    {% else %}
+        <p> None available. </p>
+    {% endif %}
+
+{% endif %}    
+{% endblock %}
+</div> <!-- End of strain_data div. -->
+
+<!-- ********************************************************************* -->
+<!-- Noise Curves                                                          -->
+<!-- ********************************************************************* -->
+<div id="noise_curves">
+{% block noise_curves %}
+
+{% if object|slot:'^noise_plot' %}
+    <table> 
+        <tbody>
+        <tr>
+            {% for slot in object|slot:'^noise_plot' %}
+                <td><img src="{{slot.fileurl}}" width="350"></td> 
+            {% endfor %}
+        </tr>
+        </tbody>
+    </table>
+{% else %}
+    <p> None available. </p>
+{% endif %}
+
+{% endblock %}
+</div> <!-- End of noise_curves div. -->
+
+<!-- ********************************************************************* -->
+<!-- Time-frequency plots                                                  -->
+<!-- ********************************************************************* -->
+<div id="tf_plots">
+{% block tf_plots %}
+
+{% if object|slot:'^tfplot' %}
+    <table> 
+        <tbody>
+        <tr>
+            {% for slot in object|slot:'^tfplot' %}
+                <td><img src="{{slot.fileurl}}" width="350"></td> 
+            {% endfor %}
+        </tr>
+        </tbody>
+    </table>
+{% else %}
+    <p> None available. </p>
+{% endif %}
+
+{% endblock %}
+</div> <!-- End of tf_plots div. -->
+
+<!-- ********************************************************************* -->
+<!-- Additional plots                                                      -->
+<!-- ********************************************************************* -->
+<div id="additional_plots">
+{% block additional_plots %}
+
+{% if object|slot:'^misc_plot' %}
+    <table> 
+        <tbody>
+        <tr>
+            {% for slot in object|slot:'^misc_plot' %}
+                <td><img src="{{slot.fileurl}}" width="350"></td> 
+            {% endfor %}
+        </tr>
+        </tbody>
+    </table>
+{% else %}
+    <p> None available. </p>
+{% endif %}
+
+{% endblock %}
+</div> <!-- End of additional_plots div. -->
+
+<!-- ********************************************************************* -->
+<!-- Calibration Info                                                      -->
+<!-- ********************************************************************* -->
+<!-- Use Javascript file API to read in the file and parse it somehow?     -->
+<div id="cal_info">
+{% block cal_info %}
+
+{% if object|slot:'^cal_data' %}
+    <p> Calibration table not implemented yet. </p>
+{% endif %}
+
+{% endblock %}
+</div> <!-- End of additional_plots div. -->
+
+<!-- ********************************************************************* -->
+<!-- Event Log Messages                                                    -->
+<!-- ********************************************************************* -->
+
+<div id="event_log">
+{% block event_log %}
+
 <noscript>
     <h3>Create a new log entry</h3>
     <form id="newlog" action="{% url logentry object.graceid "" %}" method="POST">
@@ -258,9 +618,10 @@
     </form>
 </noscript>
 
-
-  <p/>
-  <h3 id="logmessagetitle">Event Log Messages</h3>
+  <!-- <p/>
+  <h3 id="logmessagetitle">Event Log Messages</h3> -->
+  <!-- Empty div here serves as a marker for the button location -->
+  <div id="logmessagetitle"></div>
 
         <div id="previewer"></div>
         <div id="editor"></div>
@@ -292,28 +653,33 @@
   </table>
 {% endif %}
 
+{% endblock %}
+</div> <!--End of log messages div-->
+
+</div> <!--Here ends the pane_holder div-->
+
 </td>
+
+<!-- ********************************************************************* -->
+<!-- ********************************************************************* -->
+<!-- Right hand side of table:  User-submitted info.                       -->
+<!-- ********************************************************************* -->
+<!-- ********************************************************************* -->
 <td rowspan="2" valign="top">
 
-{% if eventdesc %}
+<!-- Subsuming this info into tables.  Now redundant. -->
+<!-- {% if eventdesc %}
 <h3>Event Log File</h3>
     {{ eventdesc }}
     <br/>
-{% endif %}
+{% endif %} -->
 
-{% if userdesc %}
-    <br/>
+{# {% if userdesc %} #}
+<!--    <br/>  -->
 <h3>User Info</h3>
     {{ userdesc }}
     <br/>
-{% endif %}
-
-<!-- Branson messing around --!>
-<br/><br/>
-{% if object|slot:"skymap" %}
-<h3>The skymap file name is</h3>
-{{ object|slot:"skymap" }}
-{% endif %}
+{# {% endif %} #}
 
 </td></tr></table>
 {% endblock %}

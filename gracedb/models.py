@@ -246,3 +246,11 @@ class Slot(models.Model):
     event = models.ForeignKey(Event)
     name  = models.CharField(max_length=100)
     value = models.CharField(max_length=100)
+
+    # In case the slot value is not a filename, this will just return None.
+    def fileurl(self):
+        if self.value:
+            return reverse('file', args=[self.event.graceid(), self.value])
+        else:
+            return None
+
