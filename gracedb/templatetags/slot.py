@@ -10,10 +10,7 @@ def slot(event,pattern):
     if event is None:
         return None
     try:
-        # This returns a list of dictionary objects, like 
-        # [{'event': event, 'name': 'skymap', 'value':'skymap.png'}, ... ]
-        # XXX doesn't the template need the full path?  
-        return Slot.objects.filter(event=event).filter(name__regex=pattern).values()
+        return Slot.objects.filter(event=event).filter(name__regex=pattern)
     except:
         # Either there is no such slot or something went wrong.
         # In either case, we want the template to just ignore it.
