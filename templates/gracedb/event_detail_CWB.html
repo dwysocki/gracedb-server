@@ -1,0 +1,47 @@
+{% extends "gracedb/event_detail.html" %}
+
+{%load scientific %}
+
+{# Analysis-specific attributes for a cWB event#}
+{% block analysis_specific %}
+<p/>
+<h3>Analysis-Specific Attributes</h3>
+
+<table> <tbody>
+    <tr>
+        <td>  <table class="event"> <tbody>
+                    <!-- Note:  commenting out ifos so that we'll have a multiple of three --> 
+                    <!-- attributes. If you want, you can uncomment and re-introduce the   -->
+                    <!-- two funny little padding rows down below.   Or not.               -->
+                    <!-- <tr> <th> ifos </th> <td> {{object.ifos}} </td> </tr> -->
+                    <tr> <th> start_time </th> <td> {{object.start_time}} </td> </tr>
+                    <tr> <th> start_time_ns </th> <td> {{object.start_time_ns}} </td> </tr>
+                    <tr> <th> duration </th> <td> {{object.duration|scientific}} </td> </tr>
+                    <tr> <th> peak_time </th> <td> {{object.peak_time}} </td> </tr>
+                    <tr> <th> peak_time_ns </th> <td> {{object.peak_time_ns}} </td> </tr>
+              </tbody></table>
+        </td>
+
+        <td>  <table class="event"> <tbody>
+                    <tr> <th> central_freq </th> <td> {{object.central_freq|floatformat:"-4"}} </td> </tr>
+                    <tr> <th> bandwidth </th> <td> {{object.bandwidth|floatformat:"-4"}} </td> </tr>
+                    <tr> <th> amplitude </th> <td> {{object.amplitude|scientific}} </td> </tr>
+                    <tr> <th> snr </th> <td> {{object.snr|floatformat:"-4"}} </td> </tr>
+                    <tr> <th> confidence </th> <td> {{object.confidence|scientific}} </td> </tr>
+                    <!-- <tr> <th> <div style="min-height:16px"> </div></th> <td> </td> </tr> -->
+              </tbody></table>
+        </td>
+
+        <td>  <table class="event"> <tbody>
+                    <tr> <th> false_alarm_rate </th> <td> {{object.false_alarm_rate|scientific}} </td> </tr>
+                    <tr> <th> ligo_axis_ra </th> <td> {{object.ligo_axis_ra|floatformat:"-4"}} </td> </tr>
+                    <tr> <th> ligo_axis_dec </th> <td> {{object.ligo_axis_dec|floatformat:"-4"}} </td> </tr>
+                    <tr> <th> ligo_angle </th> <td> {{object.ligo_angle}} </td> </tr>
+                    <tr> <th> ligo_angle_sig </th> <td> {{object.ligo_angle_sig}} </td></tr>
+                    <!-- <tr> <th> <div style="min-height:16px"> </div> </th> <td> </td> </tr> -->
+              </tbody></table>
+        </td>
+    </tr>
+</tbody> </table> 
+
+{% endblock %}
