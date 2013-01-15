@@ -243,6 +243,8 @@ class MultiBurstEvent(Event):
 class Slot(models.Model):
     """Slot Model"""
     # Does the slot need to have a submitter column?
+    class Meta:
+        unique_together = (('event', 'name'))
     event = models.ForeignKey(Event)
     name  = models.CharField(max_length=100)
     value = models.CharField(max_length=100)

@@ -815,6 +815,10 @@ class EventSlot(APIView):
             return Response("Event does not exist.",
                     status=status.HTTP_404_NOT_FOUND)
 
+        if not slotname:
+            return Response(dict([(s.name, s.value)
+                for s in Slot.objects.filter(event=event)]))
+
         try:
             slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
         except:
