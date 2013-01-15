@@ -391,15 +391,6 @@ class Translator(object):
 
 class CwbData(Translator):
     event_type = "cWB"
-    CWB_IFO_MAP = {
-        '1' : 'L1',
-        '2' : 'H1',
-        '3' : 'H2',
-        '4' : 'G1',
-        '5' : 'T1',
-        '6' : 'V1',
-        '7' : 'A1',
-    }
 
     def __init__(self, datafile, *args, **kwargs):
         self.datafile = datafile
@@ -479,9 +470,7 @@ class CwbData(Translator):
         data['likelihood'] = rawdata.get('likelihood',[None])[0]
         data['far']        = rawdata.get('far',[None])[0]
 
-        ifos = []
-        for ifo in rawdata.get('ifo',[]):
-            ifos.append(self.CWB_IFO_MAP[ifo])
+        ifos = rawdata.get('ifo',[])
         ifos.sort()
         data['instruments'] = ','.join(ifos)
 
