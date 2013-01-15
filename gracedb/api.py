@@ -828,9 +828,6 @@ class EventSlot(APIView):
             return Response("No slot.  Search based on slotname not implemented yet.",
                     status=status.HTTP_404_NOT_FOUND)
         filename = slot.value
-        dirPrefix = settings.GRACEDB_DATA_DIR
-        eventDir = os.path.join(dirPrefix, event.graceid())
-        filename = os.path.join(eventDir, "private", filename)
         rv = {}
         rv['value'] = filename
         return Response(rv)
@@ -844,8 +841,6 @@ class EventSlot(APIView):
             # XXX Real error message.
             return Response("Event does not exist.",
                     status=status.HTTP_404_NOT_FOUND)
-        dirPrefix = settings.GRACEDB_DATA_DIR
-        eventDir = os.path.join(dirPrefix, event.graceid())
         filename = request.DATA.get('filename')
         # Interestingly, the None object seems to be converted to a string
         # when encoded in the HTTP request body.  Hence the 'None' string 
@@ -854,9 +849,16 @@ class EventSlot(APIView):
         if filename=='' or filename=='None' or filename==None:
             return Response("Please submit a filename or upload a file.",
                     status=status.HTTP_400_BAD_REQUEST)
+
+        # UGLY hack to deal with /private vs /general dirs
+        general = False
+        if filename.startswith("general/"):
+            tmpFilename = filename[len("general/"):]
+            general = True
+        filepath = os.path.join(event.datadir(general), tmpFilename)
+
         # Check for existence of the file.
-        filePath = os.path.join(eventDir, "private", filename)
-        if not os.path.exists(filePath):
+        if not os.path.exists(filepath):
            return Response("No slot created because file does not exist",
                     status=status.HTTP_404_NOT_FOUND)
         # Check for existence of the slot.  If it exists, simply update the
