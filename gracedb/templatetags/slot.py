@@ -6,13 +6,16 @@ from ..models import Slot, EventLog
 register = template.Library()
 
 @register.filter("slot")
-def slot(event,slotname):
+def slot(event,name=None):
     if event is None:
-        return mark_safe("")
-    try:
-        slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
-        out = slot.value
-    except:
         return None
-    return mark_safe(out)
+    try:
+        if name:
+            return Slot.objects.filter(event=event).filter(name__exact=name)[0]
+        else:
+            return Slot.objects.filter(event=event)
+    except:
+        # Either there is no such slot or something went wrong.
+        # In either case, we want the template to just ignore it.
+        return None
 

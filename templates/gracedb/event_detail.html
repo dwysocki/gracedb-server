@@ -2,6 +2,7 @@
 {% load timeutil %}
 {% load scientific %}
 {% load sanitize_html %}
+{% load slot %}
 
 {% block title %}View {{ object.graceid }}{% endblock %}
 {% block heading %}{% endblock %}
@@ -159,6 +160,8 @@
 <table>
 <tr><td valign="top">
 
+<h3> Basic Info </h3>
+
 <table class="event">
     {% if skyalert_authorized  %}
         <tr><td colspan="4">
@@ -205,6 +208,11 @@
     </tr>
 
 </table>
+
+{# Analysis-specific attributes #}
+{% block analysis_specific %}
+{# This block is empty in the base event_detail template #}
+{% endblock %}
 
 {% if nearby %}
     <p/>
@@ -305,6 +313,16 @@
 <h3>User Info</h3>
     {{ userdesc }}
     <br/>
+{% endif %}
+
+<p/>
+<h3>Available Slots</h3>
+{% if not object|slot %}
+    None.
+{% else %}
+    {% for slot in object|slot %}
+    <a href="{{slot.fileurl}}">{{ slot.name }}</a> <br/>
+    {% endfor %}
 {% endif %}
 
 </td></tr></table>
