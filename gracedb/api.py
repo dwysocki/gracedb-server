@@ -856,6 +856,7 @@ class EventSlot(APIView):
 
         # UGLY hack to deal with /private vs /general dirs
         general = False
+        tmpFilename = filename
         if filename.startswith("general/"):
             tmpFilename = filename[len("general/"):]
             general = True
