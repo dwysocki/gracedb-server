@@ -59,10 +59,12 @@ def isoToGps(t):
     t=t.strip()
     ISOTime = t.split('.')[0]
     ISOTime = datetime.datetime.strptime(ISOTime,"%Y-%m-%dT%H:%M:%S")
+    # Need to set UTC time zone or this is interpreted as local time.
+    ISOTime = ISOTime.replace(tzinfo=pytz.utc)
     sec_substr = t.split('.')[1]
     if sec_substr:
         fracSec = float('0.' + sec_substr)
     else:
         fracSec = 0
-    posixTime = mktime(ISOTime.timetuple()) + fracSec 
+    posixTime = mktime(ISOTime.utctimetuple()) + fracSec 
     return int(round(posixToGpsTime(posixTime)))
