@@ -126,10 +126,12 @@ class VersionedFile(file):
         try:
             # XXX Another race condition.  File will not exist for a very brief time.
             os.unlink(self.fullname)
-        except:
-            # Do not care if file does not exist.
-            pass
-        os.symlink(self._name_for_version(last_version), self.fullname)
+        except OSError, e:
+            # Do not care if file does not exist, otherwise raise exception.
+            if e.errno != errno.ENOENT:
+                raise
+        name = os.path.basename(self._name_for_version(last_version))
+        os.symlink(name, self.fullname)
         return
 
 # XXX   This fails when renaming/mv-ing across devices.
