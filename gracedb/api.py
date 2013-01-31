@@ -698,8 +698,12 @@ class Files(APIView):
             response = HttpResponseNotFound("File not readable")
         elif os.path.isfile(filepath):
             # get an actual file.
-            response = HttpResponse(open(filepath, "r"), content_type="application/octet-stream")
-            response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(filename)
+            content_type, encoding = VersionedFile.guess_mimetype(filepath)
+            content_type = content_type or "application/octet-stream"
+            # XXX encoding should probably not be ignored.
+            response = HttpResponse(open(filepath, "r"), content_type=content_type)
+            if content_type == "application/octet-stream":
+                response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(filename)
         elif not filename:
             # Get list of files w/urls.
             rv = {}

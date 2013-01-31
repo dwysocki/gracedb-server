@@ -4,7 +4,7 @@ import tempfile
 import logging
 import errno
 import shutil
-
+import mimetypes
 
 class VersionedFile(file):
     """Open a versioned file.
@@ -165,3 +165,21 @@ class VersionedFile(file):
         # XXX file does not have a __del__ method.  Should we?
         if not self.closed:
             self.close()
+
+    @staticmethod
+    def guess_mimetype(filename):
+        TEXT_EXTENSIONS = ['.log']
+        filename = VersionedFile.basename(filename)
+        content_type, encoding = mimetypes.guess_type(filename)
+        if content_type is None and '.' in filename:
+            for ext in TEXT_EXTENSIONS:
+                if filename.endswith(ext):
+                    content_type = 'text/plain'
+                    break
+        return content_type, encoding
+
+    @staticmethod
+    def basename(filename):
+        if ',' in filename:
+            filename = filename.split(',')[0]
+        return os.path.basename(filename)
