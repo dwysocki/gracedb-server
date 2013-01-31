@@ -803,7 +803,7 @@ class Files(APIView):
 
         try:
             description = "UPLOAD: {0}".format(filename)
-            issueAlertForUpdate(event, description, doxmpp=True)
+            issueAlertForUpdate(event, description, doxmpp=True, filename=filename)
         except:
             # XXX something should be done here.
             pass
