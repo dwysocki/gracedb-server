@@ -704,6 +704,8 @@ class Files(APIView):
             response = HttpResponse(open(filepath, "r"), content_type=content_type)
             if content_type == "application/octet-stream":
                 response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(filename)
+            if encoding is not None:
+                response['Content-Encoding'] = encoding
         elif not filename:
             # Get list of files w/urls.
             rv = {}
