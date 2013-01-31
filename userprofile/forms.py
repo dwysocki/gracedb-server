@@ -6,7 +6,8 @@ from django.forms.models import modelformset_factory
 
 def triggerFormFactory(postdata=None, user=None):
     class TF(forms.ModelForm):
-        farThresh = forms.FloatField(label='FAR Threshold')
+        farThresh = forms.FloatField(label='FAR Threshold (Hz)', 
+                help_text="Leave blank to recieve all events, regardless of FAR.")
         class Meta:
             model = Trigger
             exclude = ['user', 'triggerType']
