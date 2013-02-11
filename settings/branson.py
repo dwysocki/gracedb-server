@@ -1,4 +1,4 @@
-import logSettings 
+from logSettings import *
 
 CONFIG_NAME = "Branson"
 
