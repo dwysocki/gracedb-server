@@ -166,6 +166,11 @@ AUTHENTICATION_BACKENDS = (
 
 SHIB_AUTHENTICATION_SESSION_INITIATOR = 'https://moe.phys.uwm.edu/Shibboleth.sso/Login'
 
+# If these are left at default, when the Shibboleth middleware
+# creates a new auth_user, they will get admin privs.
+ADMIN_GROUP_HEADER = None
+ADMIN_GROUP = None
+
 MIDDLEWARE_CLASSES = [
     'middleware.accept.AcceptMiddleware',
     'middleware.cli.CliExceptionMiddleware',
