@@ -1,3 +1,5 @@
+# XXX I know import * is ugly, but I want the stuff from logSettings to be
+# in this namespace.
 from logSettings import *
 
 CONFIG_NAME = "Branson"

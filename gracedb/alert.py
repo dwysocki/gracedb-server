@@ -158,6 +158,8 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
 
     p.stdin.write(msg)
     p.stdin.close()
+    # XXX Branson:  I don't think this loop will be necessary if we use a version
+    # of LVAlert_send which is guaranteed to quit after a certain number of attempts.
     res = None
     for i in range(1,10):
         res = p.poll()
