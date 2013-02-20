@@ -62,6 +62,7 @@ gpsQ = gpsQ.setParseAction(maybeRange("gpstime"))
 
 # run ids
 runmap = {
+    "ER3" : (1044136816, 1100000000),  # Feb 5 16:00:00 CST 2013 - ??
    #"ER2" : (1026061216, 1028480416),
    #"ER2" : (1026069984, 1028480416),  # soft start
     "ER2" : (1026666016, 1028480416),  # Jul 18 17:00:00 GMT 2012 - Aug 8 17:00:00 GMT 2012

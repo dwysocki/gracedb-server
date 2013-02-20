@@ -30,9 +30,9 @@ def prepareSummary(event):
     return "GPS Time: %s" % event.gpstime
 
 
-def issueAlertForUpdate(event, description, doxmpp):
+def issueAlertForUpdate(event, description, doxmpp, filename=""):
     if doxmpp:
-        issueXMPPAlert(event, "", "", "update", description)
+        issueXMPPAlert(event, filename, "", "update", description)
     # XXX No emails for this.  Argh.
 
 def issueAlertForLabel(event, label, doxmpp):

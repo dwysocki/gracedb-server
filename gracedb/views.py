@@ -304,7 +304,7 @@ def _createLog(request, graceid, comment, uploadedFile=None):
             description = "LOG: "
             if uploadedFile:
                 description = "UPLOAD: '%s' " % uploadedFile.name
-            issueAlertForUpdate(event, description+comment, doxmpp=True)
+            issueAlertForUpdate(event, description+comment, doxmpp=True, filename=uploadedFile.name)
 
     # XXX should be json
     rval = str(rdict)

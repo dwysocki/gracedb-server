@@ -66,5 +66,5 @@ def isoToGps(t):
         fracSec = float('0.' + sec_substr)
     else:
         fracSec = 0
-    posixTime = mktime(ISOTime.utctimetuple()) + fracSec 
+    posixTime = calendar.timegm(ISOTime.utctimetuple()) + fracSec 
     return int(round(posixToGpsTime(posixTime)))
