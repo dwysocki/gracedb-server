@@ -171,6 +171,25 @@ class Event(models.Model):
     def __unicode__(self):
         return self.graceid()
 
+    # Return a list of distinct tags associated with the log messages of this
+    # event.
+    def getAvailableTags(self):
+        tagset_list = [log.tag_set.all() for log in self.eventlog_set.all()]
+        taglist = []
+        for tagset in tagset_list:
+            for tag in tagset:
+                taglist.append(tag)
+        # Eliminate duplicates
+        return list(set(taglist))
+
+    def getLogsForTag(self,tagname):
+        loglist = []
+        for log in self.eventlog_set.all():
+            for tag in log.tag_set.all():
+                if tag.name==tagname:
+                    loglist.append(log)
+        return loglist
+
 class EventLog(models.Model):
     class Meta:
         ordering = ["-created"]
@@ -190,6 +209,16 @@ class EventLog(models.Model):
     def hasImage(self):
         # XXX hacky
         return self.filename and self.filename[-3:].lower() in ['png','gif','jpg']
+
+    def getN(self):
+        # XXX also hacky?
+        # I think it would still work if some logs were removed from the database.
+        logset = self.event.eventlog_set.order_by("created")
+        # XXX This actually evaluates the queryset.  This may be a problem if 
+        # there are a huge number of log messages for this event and they 
+        # take up a lot of memory
+        logset = list(logset)
+        return logset.index(self)
 
 class Labelling(models.Model):
     event = models.ForeignKey(Event)
@@ -238,8 +267,32 @@ class MultiBurstEvent(Event):
     ligo_angle       = models.FloatField(null=True)
     ligo_angle_sig   = models.FloatField(null=True)
 
-## Slots (user-defined event attributes)
+## Tags (user-defined log message attributes)
+class Tag(models.Model):
+    """Slot Model"""
+    # XXX Does the tag need to have a submitter column?
+    # No, because creating a tag will generate a log message.
+    # For the same reason, a timstamp is not necessary.
+    eventlogs   = models.ManyToManyField(EventLog)
+    name        = models.CharField(max_length=100)
+    displayName = models.CharField(max_length=200,null=True)
 
+    def __unicode__(self):
+        if self.displayName:
+            return self.displayName
+        else:
+            return self.name
+
+    def getEvents(self):
+        # XXX Any way of doing this with filters?
+        # We would need to filter for a non-null intersection of the 
+        # set of log messages in the event with the set of log 
+        # messages in the tag.
+        eventlist = [log.event for log in self.eventlogs.all()]
+        return list(set(eventlist))
+   
+
+## XXX Get rid of the slots.  Probably.
 class Slot(models.Model):
     """Slot Model"""
     # Does the slot need to have a submitter column?
