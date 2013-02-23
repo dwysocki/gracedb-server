@@ -2,7 +2,7 @@
 {% load timeutil %}
 {% load scientific %}
 {% load sanitize_html %}
-{% load slot %}
+{% load logtags %}
 
 {% block title %}View {{ object.graceid }}{% endblock %}
 {% block heading %}{% endblock %}
@@ -23,6 +23,7 @@
                  "dojox/editor/plugins/Save",
                  "dojox/editor/plugins/Preview",
                  "dijit/form/Button",
+                 "dijit/TitlePane",
                  "dojox/image/LightboxNano",
                  "dijit/_editor/plugins/TextColor",
                  "dijit/_editor/plugins/LinkDialog",
@@ -30,7 +31,7 @@
                  "dijit/_editor/plugins/NewPage",
                  "dijit/_editor/plugins/FullScreen",
                  "dojo/parser",
-                 "dojo/domReady!"], function (Editor, Save, Preview, Button) {
+                 "dojo/domReady!"], function (Editor, Save, Preview, Button, TitlePane) {
 
             dojo.parser.parse();
 
@@ -112,6 +113,32 @@
                                  'insertImage','fullscreen','viewsource','newpage', '|', previewbutton, savebutton]
             }, editor_div);
 
+            // Branson:  Working on TitlePanes here.
+{% if object.getAvailableTags %}
+            var pane_holder = dojo.byId("pane_holder");
+            var panes = new Array();
+            var titles = new Array();
+    {% for tag in object.getAvailableTags %}
+            panes.push(dojo.byId("{{tag.name}}"));
+            titles.push("{{tag|tagUnicode}}");
+    {% endfor %}
+    
+            for (var i = 0; i<panes.length; i++) {
+                tp = new dijit.TitlePane({title:titles[i],
+                                         content:panes[i].innerHTML,
+                                         open:true});
+                pane_holder.appendChild(tp.domNode);
+                dojo.destroy(panes[i]);
+            };
+
+            // Handle event log seperately.  It will be closed by default.
+            var event_log = dojo.byId("event_log");
+            tp = new dijit.TitlePane({title:"Full Event Log",
+                                     content:event_log.innerHTML,
+                                     open:false});
+            pane_holder.appendChild(tp.domNode);
+            dojo.destroy(event_log);
+{% endif %}
         });
 
     </script>
@@ -157,9 +184,9 @@
 {% block content %}
 <p>{{ message }}</p>
 
-<table>
-<tr><td valign="top">
+<!-- Branson:  Wrapping everything in a content area div so that I can put some space around it. -->
 
+<div class="content-area">
 <h3> Basic Info </h3>
 
 <table class="event">
@@ -208,14 +235,17 @@
     </tr>
 
 </table>
+</div>
 
+<div class="content-area">
 {# Analysis-specific attributes #}
 {% block analysis_specific %}
 {# This block is empty in the base event_detail template #}
 {% endblock %}
+</div>
 
 {% if nearby %}
-    <p/>
+    <div id="neighbors" class="content-area">
     <h3>Neighbors</h3>
     <table class="event">
         <tr>
@@ -255,6 +285,51 @@
         </tr>
         {% endfor %}
     </table>
+    </div>
+{% endif %}
+
+<div id="pane_holder" class="content-area">
+    {# XXX Hacky #}
+    {# With the title here, people will know that all of the things in the #}
+    {# panes are log messages #}
+{% if object.getAvailableTags %}
+    <h3 id="logmessagetitle">Event Log Messages</h3>
+        <div id="previewer"></div>
+        <div id="editor"></div>
+{% endif %}
+
+<!-- Branson.  Loop over the available tags. -->
+{% if object.getAvailableTags %}
+    {% for tag in object.getAvailableTags %}
+        <div id="{{tag.name}}">
+          <table class="event">
+                <tr>
+                    <th>No.</th>
+                    <th>{{ "logtime"|timeselect:"utc" }} Log Entry Created</th>
+                    <th>Submitter</th>
+                    <th>Comment</th>
+                    <th>&nbsp;</th>
+                </tr>
+          {% for log in object|getLogsForTag:tag.name %}
+                <tr class="{% cycle 'odd' 'even'%}">
+                   <td>{{log.getN}}</td>
+                   <td>{{log.created|multiTime:"logtime"}}</td>
+                   <td>{{log.issuer}}</td>
+                   <td>{{log.comment|sanitize}}
+                       {% if log.fileurl %}
+                        <a href="{{log.fileurl}}">{{log.filename}}</a>
+                       {% endif %}
+                   </td>
+                   <td>
+                       {% if log.hasImage %}
+                           <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="60" src="{{ log.fileurl }}"></a>
+                       {% endif %}
+                   </td>
+                </tr>
+          {% endfor %}
+          </table>
+        </div>
+    {% endfor %}
 {% endif %}
 
 <noscript>
@@ -266,15 +341,18 @@
 </noscript>
 
 
-  <p/>
-  <h3 id="logmessagetitle">Event Log Messages</h3>
-
+  <div id="event_log">
+    {# XXX Hacky.  We don't want the title here if we're doing panes. #}
+{% if not object.getAvailableTags %}
+    <h3 id="logmessagetitle">Event Log Messages</h3>
         <div id="previewer"></div>
         <div id="editor"></div>
+{% endif %}
 
 {% if object.eventlog_set.count %}
   <table class="event">
         <tr>
+            <th>No.</th>
             <th>{{ "logtime"|timeselect:"utc" }} Log Entry Created</th>
             <th>Submitter</th>
             <th>Comment</th>
@@ -282,6 +360,7 @@
         </tr>
   {% for log in object.eventlog_set.iterator %}
         <tr class="{% cycle 'odd' 'even'%}">
+           <td>{{log.getN}}
            <td>{{log.created|multiTime:"logtime"}}</td>
            <td>{{log.issuer}}</td>
            <td>{{log.comment|sanitize}}
@@ -298,32 +377,7 @@
   {% endfor %}
   </table>
 {% endif %}
+  </div>
 
-</td>
-<td rowspan="2" valign="top">
-
-{% if eventdesc %}
-<h3>Event Log File</h3>
-    {{ eventdesc }}
-    <br/>
-{% endif %}
-
-{% if userdesc %}
-    <br/>
-<h3>User Info</h3>
-    {{ userdesc }}
-    <br/>
-{% endif %}
-
-<p/>
-<h3>Available Slots</h3>
-{% if not object|slot %}
-    None.
-{% else %}
-    {% for slot in object|slot %}
-    <a href="{{slot.fileurl}}">{{ slot.name }}</a> <br/>
-    {% endfor %}
-{% endif %}
-
-</td></tr></table>
+</div> <!-- End of pane_holder div -->
 {% endblock %}

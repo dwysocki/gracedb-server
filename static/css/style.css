@@ -9,6 +9,18 @@ html, body {
 
 table.event th {padding:3px;border:none;text-align:center;vertical-align:bottom;}
 table.event {border-bottom:1px solid gray;}
+/* Branson added */
+table.event {width:100%}
+
+table.analysis_specific {width:100%}
+
+.content-area {
+    margin-top: 10px;
+    margin-bottom: 30px;
+    margin-left: 15px;
+    margin-right: 15px;
+}
+/* End Branson */
 
 td, th {padding:3px;border:none;}
 tr th {text-align:left;background-color:#f0f0f0;color:#333;}
