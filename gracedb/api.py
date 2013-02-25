@@ -791,7 +791,7 @@ class EventLogTagDetail(APIView):
             tag.eventlogs.remove(eventlog)
 
             # Is the tag empty now?  If so we can delete it.
-            if not tag.eventlogs:
+            if not tag.eventlogs.all():
                 tag.delete()
 
             # Create a log entry to document the tag creation.

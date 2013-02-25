@@ -1,6 +1,6 @@
 
 from models import Event, EventLog, User, Group
-from models import Label, Labelling, Slot
+from models import Label, Labelling, Slot, Tag
 from django.contrib import admin
 
 class EventAdmin(admin.ModelAdmin):
@@ -33,6 +33,10 @@ class LabellingAdmin(admin.ModelAdmin):
 class SlotAdmin(admin.ModelAdmin):
     list_display = [ 'event', 'name', 'value' ]
 
+class TagAdmin(admin.ModelAdmin):
+    list_display = [ 'name', 'displayName' ]
+    filter_vertical = [ 'eventlogs' ]
+
 admin.site.register(Event, EventAdmin)
 admin.site.register(EventLog, EventLogAdmin)
 admin.site.register(User, UserAdmin)
@@ -40,3 +44,4 @@ admin.site.register(Group)
 admin.site.register(Label, LabelAdmin)
 admin.site.register(Labelling, LabellingAdmin)
 admin.site.register(Slot, SlotAdmin)
+admin.site.register(Tag, TagAdmin)
