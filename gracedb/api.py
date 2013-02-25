@@ -758,7 +758,7 @@ class EventLogTagDetail(APIView):
             try:
                 tag = Tag.objects.filter(name=tagname)[0]
             except:
-                displayName = request.DATA.get('filename')
+                displayName = request.DATA.get('displayName')
                 tag = Tag(name=tagname, displayName=displayName)
                 tag.save()
 
@@ -788,8 +788,11 @@ class EventLogTagDetail(APIView):
                     status=status.HTTP_404_NOT_FOUND)
         try:
             tag = eventlog.tag_set.filter(name=tagname)[0]
-            tag.delete()
-            return Response("Tag deleted.",status=status.HTTP_200_OK)
+            tag.eventlogs.remove(eventlog)
+
+            # Is the tag empty now?  If so we can delete it.
+            if not tag.eventlogs:
+                tag.delete()
 
             # Create a log entry to document the tag creation.
             msg = "Removed tag %s for message %s. " % (tagname, n)
@@ -798,6 +801,7 @@ class EventLogTagDetail(APIView):
                                comment=msg)
             logentry.save()
 
+            return Response("Tag deleted.",status=status.HTTP_200_OK)
         except:
             return Response("Tag not found.",status=status.HTTP_404_NOT_FOUND)
 
