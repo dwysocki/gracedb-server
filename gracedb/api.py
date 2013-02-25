@@ -527,8 +527,10 @@ class EventLogList(APIView):
         return Response(rv)
 
     def post(self, request, graceid):
+        logger = logging.getLogger(__name__)
         event = Event.getByGraceid(graceid)
         message = request.DATA.get('message')
+        tagname = request.DATA.get('tagname')
         logentry = EventLog(
                 event=event,
                 issuer=request.ligouser,
@@ -539,6 +541,16 @@ class EventLogList(APIView):
         rv = eventLogToDict(logentry, n, request=request)
         response = Response(rv, status=status.HTTP_201_CREATED)
         response['Location'] = rv['self']
+
+        if tagname:
+            n = logentry.getN()
+            # XXX This is not what these API views are really meant for, but...
+            newTag = EventLogTagDetail()
+            retval = newTag.put(neltd, request, graceid, n, tagname) 
+            # XXX This seems like a bizarre way of getting an error message out.
+            if retval.status_code != 201:
+                response['tagWarning'] = 'Error creating tag.'
+
         return response
 
 class EventLogDetail(APIView):
