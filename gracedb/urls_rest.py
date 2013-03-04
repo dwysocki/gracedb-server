@@ -5,7 +5,8 @@ from django.conf.urls.defaults import patterns, url
 from gracedb.api import GracedbRoot
 from gracedb.api import EventList, EventDetail
 from gracedb.api import EventLogList, EventLogDetail
-from gracedb.api import TagList, TagDetail
+from gracedb.api import TagList
+# from gracedb.api import TagDetail
 from gracedb.api import EventTagList, EventTagDetail
 from gracedb.api import EventLogTagList, EventLogTagDetail
 from gracedb.api import EventSlot
