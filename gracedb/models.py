@@ -283,13 +283,13 @@ class Tag(models.Model):
         else:
             return self.name
 
-    def getEvents(self):
-        # XXX Any way of doing this with filters?
-        # We would need to filter for a non-null intersection of the 
-        # set of log messages in the event with the set of log 
-        # messages in the tag.
-        eventlist = [log.event for log in self.eventlogs.all()]
-        return list(set(eventlist))
+#     def getEvents(self):
+#         # XXX Any way of doing this with filters?
+#         # We would need to filter for a non-null intersection of the 
+#         # set of log messages in the event with the set of log 
+#         # messages in the tag.
+#         eventlist = [log.event for log in self.eventlogs.all()]
+#         return list(set(eventlist))
    
 
 ## XXX Get rid of the slots.  Probably.

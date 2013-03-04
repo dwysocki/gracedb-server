@@ -601,16 +601,18 @@ def tagToDict(tag, columns=None, request=None, event=None, n=None):
                                              request=request)
                           }
     else:
-        # Links to all events that have this tag.
-        rv['links'] = {
-                        "events" : [reverse("event-detail", 
-                                            args=[event.graceid()], 
-                                            request=request) 
-                                    for event in tag.getEvents()],
-                        "self"   : reverse("tag-detail",
-                                           args=[tag.name],
-                                           request=request)
-                      }
+        # XXX Unclear what the tag detail resource should be at this level.
+        # For now, return an empty list.
+        pass
+#         rv['links'] = {
+#                         "events" : [reverse("event-detail", 
+#                                             args=[event.graceid()], 
+#                                             request=request) 
+#                                     for event in tag.getEvents()],
+#                         "self"   : reverse("tag-detail",
+#                                            args=[tag.name],
+#                                            request=request)
+#                       }
     return rv
 
 class TagList(APIView):
@@ -628,19 +630,20 @@ class TagList(APIView):
              }
         return Response(rv)
 
-class TagDetail(APIView):
-    """Tag Detail Resource
-    """
-    authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request, tagname):
-        try:
-            tag = Tag.objects.filter(name=tagname)[0]
-        except Tag.DoesNotExist:
-            return Response("Tag not found.",
-                    status=status.HTTP_404_NOT_FOUND)
-        return Response(tagToDict(tag,request=request))
+# XXX Unclear what the tag detail resource should be.
+# class TagDetail(APIView):
+#     """Tag Detail Resource
+#     """
+#     authentication_classes = (LigoAuthentication,)
+#     permission_classes = (IsAuthenticated,)
+# 
+#     def get(self, request, tagname):
+#         try:
+#             tag = Tag.objects.filter(name=tagname)[0]
+#         except Tag.DoesNotExist:
+#             return Response("Tag not found.",
+#                     status=status.HTTP_404_NOT_FOUND)
+#         return Response(tagToDict(tag,request=request))
 
 class EventTagList(APIView):
     """Event Tag List Resource

@@ -33,8 +33,9 @@ urlpatterns = patterns('gracedb.api',
     # Tag Resources
     url (r'^tag/$', 
         TagList.as_view(), name='tag-list'),
-    url (r'^tag/(?P<tagname>\w+)$', 
-        TagDetail.as_view(), name='tag-detail'),
+    # XXX unclear what the tag detail resource should be.
+    #url (r'^tag/(?P<tagname>\w+)$', 
+    #    TagDetail.as_view(), name='tag-detail'),
     url (r'events/(?P<graceid>[GEHT]\d+)/tag/$',
         EventTagList.as_view(), name='eventtag-list'),
     url (r'events/(?P<graceid>[GEHT]\d+)/tag/(?P<tagname>\w+)$',
