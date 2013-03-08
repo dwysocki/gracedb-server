@@ -101,6 +101,8 @@ class Event(models.Model):
         return "G%04d" % self.id
 
     def weburl(self):
+        # XXX Not good.  But then, it never was.
+        return "https://gracedb.ligo.org/gracedb-files/%s" % self.graceid()
         return "https://ldas-jobs.phys.uwm.edu/gracedb/data/%s" % self.graceid()
 
     def clusterurl(self):
