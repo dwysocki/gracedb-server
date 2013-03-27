@@ -13,7 +13,7 @@
     <script type="text/javascript"
       src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
     </script>
-    <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js" type="text/javascript"></script>
+    <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.8.1/dojo/dojo.js" type="text/javascript"></script>
     <script src="{{MEDIA_URL}}js/labeltips.js" type="text/javascript"></script>
     <link rel="stylesheet" href="{{MEDIA_URL}}css/labeltips.css">
     <script type="text/javascript">
@@ -24,6 +24,7 @@
                  "dojox/editor/plugins/Preview",
                  "dijit/form/Button",
                  "dijit/TitlePane",
+                 "dojox/layout/ScrollPane",
                  "dojox/image/LightboxNano",
                  "dijit/_editor/plugins/TextColor",
                  "dijit/_editor/plugins/LinkDialog",
@@ -31,7 +32,7 @@
                  "dijit/_editor/plugins/NewPage",
                  "dijit/_editor/plugins/FullScreen",
                  "dojo/parser",
-                 "dojo/domReady!"], function (Editor, Save, Preview, Button, TitlePane) {
+                 "dojo/domReady!"], function (Editor, Save, Preview, Button, TitlePane, ScrollPane) {
 
             dojo.parser.parse();
 
@@ -138,6 +139,22 @@
                                      open:false});
             pane_holder.appendChild(tp.domNode);
             dojo.destroy(event_log);
+
+            // Now, deal with the silly figure containers.
+            var figure_container_ids = new Array();
+    {% for tag in object.getAvailableTags %}
+            if (dojo.byId("{{tag.name}}_figure_container")) {
+                console.log("detected figure container for {{tag.name}}");
+                figure_container_ids.push("{{tag.name}}_figure_container");
+            }
+    {% endfor %}
+            var figure_scrollpanes = new Array();
+            for (var i = 0; i<figure_container_ids.length; i++) {
+                figure_scrollpanes.push(new dojox.layout.ScrollPane({
+                            orientation:"horizontal",
+                            style:"overflow:hidden;"},
+                            figure_container_ids[i]));
+            }
 {% endif %}
         });
 
@@ -298,36 +315,72 @@
         <div id="editor"></div>
 {% endif %}
 
-<!-- Branson.  Loop over the available tags. -->
+{#  Loop over the available tags. #}
 {% if object.getAvailableTags %}
     {% for tag in object.getAvailableTags %}
+        {# Create a div to hold the pane innerHTML for this tag #}
         <div id="{{tag.name}}">
-          <table class="event">
-                <tr>
-                    <th>No.</th>
-                    <th>{{ "logtime"|timeselect:"utc" }} Log Entry Created</th>
-                    <th>Submitter</th>
-                    <th>Comment</th>
-                    <th>&nbsp;</th>
-                </tr>
-          {% for log in object|getLogsForTag:tag.name %}
-                <tr class="{% cycle 'odd' 'even'%}">
-                   <td>{{log.getN}}</td>
-                   <td>{{log.created|multiTime:"logtime"}}</td>
-                   <td>{{log.issuer}}</td>
-                   <td>{{log.comment|sanitize}}
-                       {% if log.fileurl %}
-                        <a href="{{log.fileurl}}">{{log.filename}}</a>
-                       {% endif %}
-                   </td>
-                   <td>
-                       {% if log.hasImage %}
-                           <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="60" src="{{ log.fileurl }}"></a>
-                       {% endif %}
-                   </td>
-                </tr>
-          {% endfor %}
-          </table>
+
+            {# A section for the images #}
+            {% if object|logsForTagHaveImage:tag.name %}        
+            <!-- XXX in case there are a lot of figures, you should put the figure container table inside a scrolling div or something -->
+            <div id="{{tag.name}}_figure_container">
+                <table class="figure_container">
+                    <tr>
+                        {% for log in object|getLogsForTag:tag.name %} 
+                            {% if log.hasImage %}
+                            <td>
+                                <table class="figures">
+                                    <!-- A row for the images themselves -->
+                                    <tr class="figrow">
+                                        <td>  <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="180" src="{{ log.fileurl }}"></a>
+                                        </td>
+                                    </tr>
+                                    <!-- A row for the captions -->
+                                    <tr>
+                                        <td> {{log.comment|sanitize}}
+                                           {% if log.fileurl %}
+                                            <a href="{{log.fileurl}}">{{log.filename}}.</a>
+                                           {% endif %}
+                                            Submitted by {{log.issuer}} on {{log.created}}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>                                
+                            {% endif %}
+                        {% endfor %}
+                     </tr>
+                </table>
+            </div>
+            {% endif %}
+          
+            {# A section for the text-only captions #}
+            {% if object|logsForTagHaveText:tag.name %}
+                {# Set up regular log message table #}
+                <table class="event">
+                    <tr>
+                        <th>No.</th>
+                        <th>{{ "logtime"|timeselect:"utc" }} Log Entry Created</th>
+                        <th>Submitter</th>
+                        <th>Comment</th>
+                    </tr>
+                {% for log in object|getLogsForTag:tag.name %} 
+                    {% if not log.hasImage %}
+                        <tr class="{% cycle 'odd' 'even'%}">
+                           <td>{{log.getN}}</td>
+                           <td>{{log.created|multiTime:"logtime"}}</td>
+                           <td>{{log.issuer}}</td>
+                           <td>{{log.comment|sanitize}}
+                               {% if log.fileurl %}
+                                <a href="{{log.fileurl}}">{{log.filename}}</a>
+                               {% endif %}
+                           </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+                </table>
+            {% endif %}
+
         </div>
     {% endfor %}
 {% endif %}
