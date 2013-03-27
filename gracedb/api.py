@@ -624,9 +624,12 @@ class TagList(APIView):
     def get(self, request):
         # Return a list of links to all tag objects.
         rv = {
-                'tags' : [ reverse("tag-detail", args=[tag.name],
-                                   request=request)
-                           for tag in Tag.objects.all() ]
+#                 'tags' : [ reverse("tag-detail", args=[tag.name],
+#                                    request=request)
+#                            for tag in Tag.objects.all() ]
+#                For now, we just output the tag names, since we don't know what 
+#                tag-detail should look like.
+                 'tags' : [ tag.name for tag in Tag.objects.all() ]
              }
         return Response(rv)
 
