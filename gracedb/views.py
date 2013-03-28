@@ -537,6 +537,7 @@ def view(request, graceid):
     context['nearby'] = [(event.gpstime - a.gpstime, event)
                             for event in a.neighbors()]
     context['skyalert_authorized'] = skyalert_authorized(request)
+    context['blessed_tags'] = settings.BLESSED_TAGS
     return render_to_response(
         [ 'gracedb/event_detail_{0}.html'.format(a.analysisType),
           'gracedb/event_detail.html'],

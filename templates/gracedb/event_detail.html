@@ -120,8 +120,10 @@
             var panes = new Array();
             var titles = new Array();
     {% for tag in object.getAvailableTags %}
+        {% if tag.name in blessed_tags %}
             panes.push(dojo.byId("{{tag.name}}"));
             titles.push("{{tag|tagUnicode}}");
+        {% endif %}
     {% endfor %}
     
             for (var i = 0; i<panes.length; i++) {
@@ -143,10 +145,12 @@
             // Now, deal with the silly figure containers.
             var figure_container_ids = new Array();
     {% for tag in object.getAvailableTags %}
+        {% if tag.name in blessed_tags %}
             if (dojo.byId("{{tag.name}}_figure_container")) {
                 console.log("detected figure container for {{tag.name}}");
                 figure_container_ids.push("{{tag.name}}_figure_container");
             }
+        {% endif %}
     {% endfor %}
             var figure_scrollpanes = new Array();
             for (var i = 0; i<figure_container_ids.length; i++) {
@@ -318,6 +322,7 @@
 {#  Loop over the available tags. #}
 {% if object.getAvailableTags %}
     {% for tag in object.getAvailableTags %}
+    {% if tag.name in blessed_tags %}
         {# Create a div to hold the pane innerHTML for this tag #}
         <div id="{{tag.name}}">
 
@@ -382,6 +387,7 @@
             {% endif %}
 
         </div>
+    {% endif %} {# endif the tag is blessed #}
     {% endfor %}
 {% endif %}
 
