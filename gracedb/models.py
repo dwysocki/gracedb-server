@@ -271,7 +271,7 @@ class MultiBurstEvent(Event):
 
 ## Tags (user-defined log message attributes)
 class Tag(models.Model):
-    """Slot Model"""
+    """Tag Model"""
     # XXX Does the tag need to have a submitter column?
     # No, because creating a tag will generate a log message.
     # For the same reason, a timstamp is not necessary.
@@ -291,23 +291,4 @@ class Tag(models.Model):
 #         # set of log messages in the event with the set of log 
 #         # messages in the tag.
 #         eventlist = [log.event for log in self.eventlogs.all()]
-#         return list(set(eventlist))
-   
-
-## XXX Get rid of the slots.  Probably.
-class Slot(models.Model):
-    """Slot Model"""
-    # Does the slot need to have a submitter column?
-    class Meta:
-        unique_together = (('event', 'name'))
-    event = models.ForeignKey(Event)
-    name  = models.CharField(max_length=100)
-    value = models.CharField(max_length=100)
-
-    # In case the slot value is not a filename, this will just return None.
-    def fileurl(self):
-        if self.value:
-            return reverse('file', args=[self.event.graceid(), self.value])
-        else:
-            return None
 

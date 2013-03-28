@@ -8,7 +8,7 @@ from django.conf import settings
 
 import json
 
-from gracedb.models import Event, Group, EventLog, Slot, Tag
+from gracedb.models import Event, Group, EventLog, Tag
 from gracedb.views import create_label
 from translator import handle_uploaded_data
 
@@ -117,11 +117,6 @@ def eventToDict(event, columns=None, request=None):
             "self"  : reverse("event-detail", args=[graceid], request=request),
             "tags"  : reverse("eventtag-list", args=[graceid], request=request),
             }
-    # XXX Jam the slots in here? Could just have a list of slot names instead of
-    # all these links.  But the links might be useful??
-    rv['slots'] = {}
-    for slot in Slot.objects.filter(event=event).order_by('name'):
-        rv['slots'][slot.name] = reverse("slot", args=[graceid, slot.name], request=request)
     return rv
 
 
@@ -854,10 +849,6 @@ class GracedbRoot(APIView):
         labels = labels.replace("G1200", "{graceid}")
         labels = labels.replace("thelabel", "{label}")
 
-        slot = reverse("slot", args=["G1200", "slotname"], request=request)
-        slot = slot.replace("G1200", "{graceid}")
-        slot = slot.replace("slotname", "{slotname}")
-
         taglist = reverse("eventlogtag-list", args=["G1200", "0"], request=request)
         taglist = taglist.replace("G1200", "{graceid}")
         taglist = taglist.replace("0", "{n}")
@@ -875,7 +866,6 @@ class GracedbRoot(APIView):
                 "event-label-template" : labels,
                 "files-template" : files,
                 "filemeta-template" : filemeta,
-                "slot-template" : slot,
                 "tag-template" : tag,
                 "taglist-template" : taglist,
                 }
@@ -1103,121 +1093,4 @@ class FileMeta(APIView):
     authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,)
     pass
-
-#==================================================================
-# Slots
-
-class EventSlot(APIView):
-    """A slot associated with an event.  
-    """
-
-    # Get the value of a slot.  This will be a filename. 
-    def get(self, request, graceid, slotname):
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
-
-        if not slotname:
-            return Response(dict([(s.name, s.value)
-                for s in Slot.objects.filter(event=event)]))
-
-        try:
-            slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
-        except:
-            # Okay, no slot yet.  Probably want an error message.
-            # Try looking for files that contain the slot name.
-            return Response("No slot.  Search based on slotname not implemented yet.",
-                    status=status.HTTP_404_NOT_FOUND)
-        filename = slot.value
-        rv = {}
-        rv['value'] = filename
-        return Response(rv)
-
-    # Create a slot.  The slot's value will be a filename.
-    # This file is assumed to have already been uploaded.
-    def put(self, request, graceid, slotname):
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
-        filename = request.DATA.get('filename')
-        # Interestingly, the None object seems to be converted to a string
-        # when encoded in the HTTP request body.  Hence the 'None' string 
-        # below.  If somebody intentionally named a file 'None', then 
-        # they deserve to get this error message.
-        if filename=='' or filename=='None' or filename==None:
-            return Response("Please submit a filename or upload a file.",
-                    status=status.HTTP_400_BAD_REQUEST)
-
-        # UGLY hack to deal with /private vs /general dirs
-        general = False
-        tmpFilename = filename
-        if filename.startswith("general/"):
-            tmpFilename = filename[len("general/"):]
-            general = True
-        filepath = os.path.join(event.datadir(general), tmpFilename)
-
-        # Check for existence of the file.
-        if not os.path.exists(filepath):
-           return Response("No slot created because file does not exist",
-                    status=status.HTTP_404_NOT_FOUND)
-        # Check for existence of the slot.  If it exists, simply update the
-        # existing slot.
-        try:
-            slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
-            slot.value = filename
-            slot.save()
-            # Create a log entry to document the slot update.
-            msg = "Updated slot %s with file " % slotname
-            logentry = EventLog(event=event,
-                               issuer=request.ligouser,
-                               filename=tmpFilename,
-                               comment=msg)
-            logentry.save()
-        except:
-            # Create the slot.
-            slot = Slot(event=event,name=slotname,value=filename)
-            slot.save()
-            # Create a log entry to document the slot creation.
-            msg = "Created slot %s with file " % slotname
-            logentry = EventLog(event=event,
-                               issuer=request.ligouser,
-                               filename=tmpFilename,
-                               comment=msg)
-            logentry.save()
-
-        return Response("Slot created or updated.",status=status.HTTP_201_CREATED)
-
-    # Delete a slot.
-    def delete(self, request, graceid, slotname):
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
-
-        # Gotta find the poor devil before we can delete him.
-        try:
-            slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
-        except:
-            # Okay, no slot yet.  Probably want an error message.
-            # Try looking for files that contain the slot name.
-            return Response("No such slot.",
-                    status=status.HTTP_404_NOT_FOUND)
-
-        slot.delete()
-        # Create a log entry to document the slot destruction.
-        msg = "Deleted slot %s " % slotname
-        logentry = EventLog(event=event,
-                           issuer=request.ligouser,
-                           comment=msg)
-        logentry.save()
-
-        return Response("Slot deleted.",status=status.HTTP_200_OK)
 

@@ -9,7 +9,6 @@ from gracedb.api import TagList
 # from gracedb.api import TagDetail
 from gracedb.api import EventTagList, EventTagDetail
 from gracedb.api import EventLogTagList, EventLogTagDetail
-from gracedb.api import EventSlot
 from gracedb.api import Files, FileMeta
 from gracedb.api import EventNeighbors, EventLabel
 
@@ -58,11 +57,6 @@ urlpatterns = patterns('gracedb.api',
     # events/{graceid}/labels/[{label}]
     url (r'^events/(?P<graceid>\w[\d]+)/labels/(?P<label>.+)?$',
         EventLabel.as_view(), name="labels"),
-
-    # Event Slots
-    # events/{graceid}/slot/[{slotname}]
-    url (r'^events/(?P<graceid>[GEHT]\d+)/slot/(?P<slotname>.+)?$',
-        EventSlot.as_view(), name="slot"),
 
     # Event Neighbors
     # events/{graceid}/neighbors/[?delta=(N|(N,N))]
