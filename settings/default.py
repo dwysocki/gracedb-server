@@ -201,6 +201,7 @@ INSTALLED_APPS = (
     'gracedb',
     'userprofile',
     'rest_framework',
+    'south',
 )
 
 REST_FRAMEWORK = {
