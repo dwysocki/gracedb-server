@@ -540,8 +540,8 @@ class EventLogList(APIView):
         if tagname:
             n = logentry.getN()
             # XXX This is not what these API views are really meant for, but...
-            newTag = EventLogTagDetail()
-            retval = newTag.put(neltd, request, graceid, n, tagname) 
+            tmp = EventLogTagDetail()
+            retval = tmp.put(request, graceid, n, tagname) 
             # XXX This seems like a bizarre way of getting an error message out.
             if retval.status_code != 201:
                 response['tagWarning'] = 'Error creating tag.'
