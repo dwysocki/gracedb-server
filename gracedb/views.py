@@ -10,7 +10,7 @@ from django.utils.safestring import mark_safe
 
 from django.views.generic.list_detail import object_detail, object_list
 
-from models import Event, Group, EventLog, Labelling, Label, User
+from models import Event, Group, EventLog, Labelling, Label, User, Tag
 from models import CoincInspiralEvent
 from models import MultiBurstEvent
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
@@ -29,6 +29,7 @@ from django.conf import settings
 from templatetags.scientific import scientific
 
 from buildVOEvent import buildVOEvent, submitToSkyalert
+import logging
 
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
@@ -993,4 +994,69 @@ def latest(request):
             template,
             context,
             context_instance=RequestContext(request))
+
+#-----------------------------------------------------------------------------------
+# For tags.  A new view function.  We need this because the API one would want users
+# to have certs stored in their browser.
+#-----------------------------------------------------------------------------------
+
+def taglogentry(request, graceid, num, tagname):
+    logger = logging.getLogger(__name__)
+    try:
+        event = Event.getByGraceid(graceid)
+        eventlog = event.eventlog_set.order_by("created").all()[int(num)]
+        logger.debug("got event and eventlog")
+    except:
+        # Either the event or the log does not exist.
+        raise Http404
+
+    if request.method == "PUT":
+        logger.debug("using put method")
+        try:
+            # Has this tag-eventlog relationship already been created? 
+            tag = eventlog.tag_set.filter(name=tagname)[0]
+            msg = "Log already has tag %s" % tagname
+            return HttpResponse(msg, content_type="text")
+        except:
+            # Look for the tag.  If it doesn't already exist, create it.
+            logger.debug("before looking for tag")
+            try:
+                tag = Tag.objects.filter(name=tagname)[0]
+                logger.debug("got the tag")
+            except:
+                displayName = request.DATA.get('displayName')
+                tag = Tag(name=tagname, displayName=displayName)
+                tag.save()
+                logger.debug("created tag")
+
+            logger.debug("before adding eventlog")
+
+            # Now add the log message to this tag.
+            tag.eventlogs.add(eventlog)
+
+            logger.debug("after adding eventlog")
+
+            # Create a log entry to document the tag creation.
+            msg = "Tagged message %s: %s " % (num, tagname)
+            logentry = EventLog(event=event,
+                               issuer=request.ligouser,
+                               comment=msg)
+            logentry.save()
+
+            logger.debug("after saving logentry")
+    else:
+        # We will only allow PUT here.  Anything else is a bad request: 400
+        return HttpResponseBadRequest
+
+    logger.debug("before checking for ajax")
+    # Hopefully, this will only ever be called form inside a script.  Just in case...
+    if not request.is_ajax():
+        return HttpResponseRedirect(reverse(view, args=[graceid]))
+
+    logger.debug("after checking for ajax")
+    # no need for a JSON response. 
+    msg = "Successfully applied tag %s to log message %s." % (tagname, num)
+    msg = msg + "  Refresh to see chages (if any) to the presentation."
+    logger.debug("before returning final message")
+    return HttpResponse(msg, content_type="text")
 
