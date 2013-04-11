@@ -17,14 +17,18 @@
     <script src="{{MEDIA_URL}}js/labeltips.js" type="text/javascript"></script>
     <link rel="stylesheet" href="{{MEDIA_URL}}css/labeltips.css">
     <script type="text/javascript">
-        var bb = null;
-
-        require(["dijit/Editor",
+        require(["dojo/dom",
+                 "dojo/on",
+                 "dojo/request",
+                 "dojo/dom-form",
+                 "dijit/Editor",
                  "dojox/editor/plugins/Save",
                  "dojox/editor/plugins/Preview",
                  "dijit/form/Button",
                  "dijit/TitlePane",
                  "dojox/layout/ScrollPane",
+                 "dojo/store/Memory",
+                 "dijit/form/ComboBox",
                  "dojox/image/LightboxNano",
                  "dijit/_editor/plugins/TextColor",
                  "dijit/_editor/plugins/LinkDialog",
@@ -32,16 +36,17 @@
                  "dijit/_editor/plugins/NewPage",
                  "dijit/_editor/plugins/FullScreen",
                  "dojo/parser",
-                 "dojo/domReady!"], function (Editor, Save, Preview, Button, TitlePane, ScrollPane) {
+                 "dojo/domReady!"], function (dom, on, request, domForm, Editor, Save, Preview, 
+                                              Button, TitlePane, ScrollPane, Memory, ComboBox) {
 
             dojo.parser.parse();
 
-            //var newlogdiv = dojo.byId("newlogdiv");
-            var logtitle = dojo.byId("logmessagetitle");
-            var logtext = dojo.byId("newlogtext");
+            //var newlogdiv = dom.byId("newlogdiv");
+            var logtitle = dom.byId("logmessagetitle");
+            var logtext = dom.byId("newlogtext");
 
-            var editor_div = dojo.byId("editor");
-            var preview_div = dojo.byId("previewer");
+            var editor_div = dom.byId("editor");
+            var preview_div = dom.byId("previewer");
 
             dojo.style(preview_div, { 'display':'none'});
             dojo.style(editor_div, { 'display':'none'});
@@ -67,9 +72,6 @@
                     }
                 },
             }, button_element);
-
-
-            //dojo.style(newlogdiv, {'display':'none'});
 
             var savebutton = new Save({
                     url: "{% url logentry object.graceid "" %}",
@@ -116,12 +118,12 @@
 
             // Branson:  Working on TitlePanes here.
 {% if object.getAvailableTags %}
-            var pane_holder = dojo.byId("pane_holder");
+            var pane_holder = dom.byId("pane_holder");
             var panes = new Array();
             var titles = new Array();
     {% for tag in object.getAvailableTags %}
         {% if tag.name in blessed_tags %}
-            panes.push(dojo.byId("{{tag.name}}"));
+            panes.push(dom.byId("{{tag.name}}"));
             titles.push("{{tag|tagUnicode}}");
         {% endif %}
     {% endfor %}
@@ -135,7 +137,7 @@
             };
 
             // Handle event log seperately.  It will be closed by default.
-            var event_log = dojo.byId("event_log");
+            var event_log = dom.byId("event_log");
             tp = new dijit.TitlePane({title:"Full Event Log",
                                      content:event_log.innerHTML,
                                      open:false});
@@ -146,7 +148,7 @@
             var figure_container_ids = new Array();
     {% for tag in object.getAvailableTags %}
         {% if tag.name in blessed_tags %}
-            if (dojo.byId("{{tag.name}}_figure_container")) {
+            if (dom.byId("{{tag.name}}_figure_container")) {
                 console.log("detected figure container for {{tag.name}}");
                 figure_container_ids.push("{{tag.name}}_figure_container");
             }
@@ -159,6 +161,50 @@
                             style:"overflow:hidden;"},
                             figure_container_ids[i]));
             }
+{% endif %}
+
+
+            // Branson: set up infrastructure for tagging log messages.
+{% if blessed_tags %}
+            var blessedTagStore = new Memory({
+                data: [
+    {% for bt in blessed_tags %}
+                        {name:"{{bt}}"},
+    {% endfor %}
+                ]
+            });
+
+            var cb = new ComboBox({
+                id: "tagSelect",
+                name: "tagSelect",
+                value: "None",
+                store: blessedTagStore,
+                searchAttr: "name"
+            }, "tagSelect");
+
+            var form = dom.byId('tagForm');
+            on(form, "submit", function(evt){
+                evt.stopPropagation();
+                evt.preventDefault();
+                var n = domForm.fieldToObject("n");
+                var tagName = domForm.fieldToObject("tagSelect");
+
+                var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}"
+                tagUrl = tagUrl.replace("000",n);
+                tagUrl = tagUrl.replace("temp",tagName);
+
+                // The put request does not need any data in the body.
+                // XXX Unless we want to give a display name.
+                request.put(tagUrl).then(
+                    function(text){
+                        alert(text);
+                        // You may want to force the page to reload.
+                        //location.reload(true);
+                    },
+                    function(error){alert(error);}
+                );
+            });
+        
 {% endif %}
         });
 
@@ -204,8 +250,6 @@
 
 {% block content %}
 <p>{{ message }}</p>
-
-<!-- Branson:  Wrapping everything in a content area div so that I can put some space around it. -->
 
 <div class="content-area">
 <h3> Basic Info </h3>
@@ -409,6 +453,16 @@
 {% endif %}
 
 {% if object.eventlog_set.count %}
+  <!-- Branson.  Here's where you should put the new form. -->
+  {% if blessed_tags %}
+    <p>Apply a new tag:
+    <form id="tagForm">
+        Log No. <input id="n" name="n" type="text" size="4" />
+        &nbsp;&nbsp; Tag name <input id="tagSelect" name="tagSelect" />
+        <input type="submit" name="submit" value="Submit" /> </p>
+    </form>  
+  {% endif %}
+
   <table class="event">
         <tr>
             <th>No.</th>
