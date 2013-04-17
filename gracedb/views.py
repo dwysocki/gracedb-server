@@ -444,6 +444,7 @@ def sanitize_html(data):
 
 
 def logentry(request, graceid, num=None):
+    logger = logging.getLogger(__name__)
     try:
         event = Event.getByGraceid(graceid)
     except Event.DoesNotExist:
@@ -453,6 +454,28 @@ def logentry(request, graceid, num=None):
         elog = EventLog(event=event, issuer=request.ligouser)
         elog.comment = request.POST.get('comment') or request.GET.get('comment')
         elog.save()
+        logger.debug("just saved log entry")
+        tagname = request.POST.get('tagname')
+        logger.debug("tagname = %s" % tagname)
+        if tagname:
+            # Look for the tag.  If it doesn't already exist, create it.
+            try:
+                tag = Tag.objects.filter(name=tagname)[0]
+            except:
+                displayName = request.POST.get('displayName')
+                logger.debug("disp name = %s" % displayName)
+                tag = Tag(name=tagname, displayName=displayName)
+                tag.save()
+                logger.debug("just saved tag")
+
+            tag.eventlogs.add(elog)
+            # Create a log entry to document the tag creation.
+            num = elog.getN()
+            msg = "Tagged message %s: %s " % (num, tagname)
+            tlog = EventLog(event=event,
+                               issuer=request.ligouser,
+                               comment=msg)
+            tlog.save()
     else:
         try:
             elog = event.eventlog_set.order_by('created').all()[int(num)]
@@ -467,6 +490,8 @@ def logentry(request, graceid, num=None):
     rv['issuer'] = elog.issuer.name
     rv['created'] = elog.created.isoformat()
     rv['comment'] = elog.comment
+    if tagname:
+        rv['tagname'] = tagname
 
     return HttpResponse(json.dumps(rv), content_type="application/json")
 
@@ -1001,17 +1026,14 @@ def latest(request):
 #-----------------------------------------------------------------------------------
 
 def taglogentry(request, graceid, num, tagname):
-    logger = logging.getLogger(__name__)
     try:
         event = Event.getByGraceid(graceid)
         eventlog = event.eventlog_set.order_by("created").all()[int(num)]
-        logger.debug("got event and eventlog")
     except:
         # Either the event or the log does not exist.
         raise Http404
 
-    if request.method == "PUT":
-        logger.debug("using put method")
+    if request.method == "POST":
         try:
             # Has this tag-eventlog relationship already been created? 
             tag = eventlog.tag_set.filter(name=tagname)[0]
@@ -1019,22 +1041,15 @@ def taglogentry(request, graceid, num, tagname):
             return HttpResponse(msg, content_type="text")
         except:
             # Look for the tag.  If it doesn't already exist, create it.
-            logger.debug("before looking for tag")
             try:
                 tag = Tag.objects.filter(name=tagname)[0]
-                logger.debug("got the tag")
             except:
-                displayName = request.DATA.get('displayName')
+                displayName = request.POST['displayName']
                 tag = Tag(name=tagname, displayName=displayName)
                 tag.save()
-                logger.debug("created tag")
-
-            logger.debug("before adding eventlog")
 
             # Now add the log message to this tag.
             tag.eventlogs.add(eventlog)
-
-            logger.debug("after adding eventlog")
 
             # Create a log entry to document the tag creation.
             msg = "Tagged message %s: %s " % (num, tagname)
@@ -1042,21 +1057,16 @@ def taglogentry(request, graceid, num, tagname):
                                issuer=request.ligouser,
                                comment=msg)
             logentry.save()
-
-            logger.debug("after saving logentry")
     else:
         # We will only allow PUT here.  Anything else is a bad request: 400
         return HttpResponseBadRequest
 
-    logger.debug("before checking for ajax")
     # Hopefully, this will only ever be called form inside a script.  Just in case...
     if not request.is_ajax():
         return HttpResponseRedirect(reverse(view, args=[graceid]))
 
-    logger.debug("after checking for ajax")
     # no need for a JSON response. 
     msg = "Successfully applied tag %s to log message %s." % (tagname, num)
     msg = msg + "  Refresh to see chages (if any) to the presentation."
-    logger.debug("before returning final message")
     return HttpResponse(msg, content_type="text")
 

@@ -6,7 +6,7 @@
 
 {% block title %}View {{ object.graceid }}{% endblock %}
 {% block heading %}{% endblock %}
-{% block bodyattrs %}class="tundra"{% endblock %}
+{% block bodyattrs %}class="tundra eventDetail"{% endblock %}
 
 {% block jscript %}
     {# XXX http/https depending on this pages' protocol #}
@@ -48,8 +48,12 @@
             var editor_div = dom.byId("editor");
             var preview_div = dom.byId("previewer");
 
+            // Branson messing around.
+            var newLogTag_pane_holder = dom.byId("newLogTag_pane_holder");
+
             dojo.style(preview_div, { 'display':'none'});
             dojo.style(editor_div, { 'display':'none'});
+            dojo.style(newLogTag_pane_holder, { 'display':'none'});
 
             var button_element = dojo.create('button');
             dojo.place(button_element, logtitle, "right");
@@ -59,12 +63,14 @@
                 onClick: function(){
                     if (this.state == 'add') {
                         dojo.style(editor_div, {'display':'block'});
+                        dojo.style(newLogTag_pane_holder, {'display':'block'});
                         button.set('label', "Cancel Log Entry");
                         button.set('state', 'cancel');
                         editor.focus();
                     }
                     else {
                         dojo.style(editor_div, {'display':'none'});
+                        dojo.style(newLogTag_pane_holder, {'display':'none'});
                         dojo.style(preview_div, {'display':'none'});
                         button.set('label', "Add Log Entry");
                         button.set('state', 'add');
@@ -86,15 +92,19 @@
                         alert("o hai " + error);
                     },
                     save: function(postdata) {
-                        var postArgs = {
+                    var newTagName = domForm.fieldToObject("newTagSelect");
+                    var newTagDispName = domForm.fieldToObject("newTagDispName");
+                    var postArgs = {
                                 url: this.url,
-                                content: { comment: postdata },
+                                content: { comment: postdata, tagname: newTagName, displayName: newTagDispName },
                                 handleAs: "json"
                         };
                         this.button.set("disabled", true);
                         var deferred = dojo.xhrPost(postArgs);
                         deferred.addCallback(dojo.hitch(this, this.onSuccess));
                         deferred.addErrback(dojo.hitch(this, this.onError));
+                        // Call whatever function is necessary to attach the tag
+                        // or add to the postdata and handle in the django view?
                     }
             });
 
@@ -110,6 +120,25 @@
                         MathJax.Hub.Queue(["Typeset",MathJax.Hub, preview_div]);
                     }
             });
+
+            // Branson: set up infrastructure for tagging log messages.
+{% if blessed_tags %}
+            var blessedTagStore = new Memory({
+                data: [
+    {% for bt in blessed_tags %}
+                        {name:"{{bt}}"},
+    {% endfor %}
+                ]
+            });
+
+            // Branson messing around.
+            var tagbox = new ComboBox({
+                id: "newTagSelect",
+                name: "newTagSelect",
+                value: "insert tag here",
+                store: blessedTagStore,
+                searchAttr: "name"
+            }, "newTagSelect");
 
             var editor = new Editor({
                  extraPlugins : ['foreColor','hiliteColor','|','createLink',
@@ -149,7 +178,6 @@
     {% for tag in object.getAvailableTags %}
         {% if tag.name in blessed_tags %}
             if (dom.byId("{{tag.name}}_figure_container")) {
-                console.log("detected figure container for {{tag.name}}");
                 figure_container_ids.push("{{tag.name}}_figure_container");
             }
         {% endif %}
@@ -164,38 +192,50 @@
 {% endif %}
 
 
-            // Branson: set up infrastructure for tagging log messages.
-{% if blessed_tags %}
-            var blessedTagStore = new Memory({
-                data: [
-    {% for bt in blessed_tags %}
-                        {name:"{{bt}}"},
-    {% endfor %}
-                ]
-            });
-
+            // Form for tagging log messages.
             var cb = new ComboBox({
-                id: "tagSelect",
-                name: "tagSelect",
+                id: "existingTagSelect",
+                name: "existingTagSelect",
                 value: "None",
                 store: blessedTagStore,
                 searchAttr: "name"
-            }, "tagSelect");
+            }, "existingTagSelect");
+
+
+            // Work on panes for the tagging forms here.
+            var newLogTag                  = dom.byId("newLogTag");
+            //var newLogTag_pane_hoder       = dom.byId("newLogTag_pane_holder");
+            var existingLogTag             = dom.byId("existingLogTag");
+            var existingLogTag_pane_holder = dom.byId("existingLogTag_pane_holder");
+
+            tp_new = new dijit.TitlePane({title:"Tag this message",
+                                     content:newLogTag.innerHTML,
+                                     open:false});
+            newLogTag_pane_holder.appendChild(tp_new.domNode);
+            dojo.destroy(newLogTag);        
+
+            tp_existing = new dijit.TitlePane({title:"Add tag",
+                                     content:existingLogTag.innerHTML,
+                                     open:false});
+            existingLogTag_pane_holder.appendChild(tp_existing.domNode);
+            dojo.destroy(existingLogTag);       
 
             var form = dom.byId('tagForm');
+
             on(form, "submit", function(evt){
                 evt.stopPropagation();
                 evt.preventDefault();
-                var n = domForm.fieldToObject("n");
-                var tagName = domForm.fieldToObject("tagSelect");
 
+                var n = domForm.fieldToObject("n");
+                var tagName = domForm.fieldToObject("existingTagSelect");
+                var tagDispName = domForm.fieldToObject("existingTagDispName");
                 var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}"
                 tagUrl = tagUrl.replace("000",n);
                 tagUrl = tagUrl.replace("temp",tagName);
 
-                // The put request does not need any data in the body.
-                // XXX Unless we want to give a display name.
-                request.put(tagUrl).then(
+                request.post(tagUrl, {
+                    data: {displayName: tagDispName}
+                }).then(
                     function(text){
                         alert(text);
                         // You may want to force the page to reload.
@@ -203,8 +243,10 @@
                     },
                     function(error){alert(error);}
                 );
+
             });
-        
+
+ 
 {% endif %}
         });
 
@@ -359,6 +401,16 @@
     {# panes are log messages #}
 {% if object.getAvailableTags %}
     <h3 id="logmessagetitle">Event Log Messages</h3>
+        <div id="newLogTag">
+                <p> Use this form to apply a tag to your new log entry. Choose a tag
+                name from the dropdown menu or enter a new one.  If you are 
+                creating a new tag, please also provide a display name. </p>
+            <form>
+                &nbsp; Tag name <input id="newTagSelect" name="newTagSelect" /> 
+                &nbsp; Display name <input type="text" id="newTagDispName" name="newTagDispName" />
+            </form>  
+        </div>
+        <div id="newLogTag_pane_holder" class="pmTitlePaneClass"></div>
         <div id="previewer"></div>
         <div id="editor"></div>
 {% endif %}
@@ -455,12 +507,18 @@
 {% if object.eventlog_set.count %}
   <!-- Branson.  Here's where you should put the new form. -->
   {% if blessed_tags %}
-    <p>Apply a new tag:
+    <div id="existingLogTag">
+        <p>  Use this form to tag an existing log message. Choose a tag name from the
+             dropdown menu or enter a new one.  If you are creating a new tag, please
+             also provide a display name.
     <form id="tagForm">
         Log No. <input id="n" name="n" type="text" size="4" />
-        &nbsp;&nbsp; Tag name <input id="tagSelect" name="tagSelect" />
+        &nbsp;&nbsp; Tag name <input id="existingTagSelect" name="existingTagSelect" />
+        &nbsp;&nbsp; Display name <input type="text" id="existingTagDispName" name="existingTagDispName"/> 
         <input type="submit" name="submit" value="Submit" /> </p>
     </form>  
+    </div>
+    <div id="existingLogTag_pane_holder" class="pmTitlePaneClass"></div>
   {% endif %}
 
   <table class="event">
