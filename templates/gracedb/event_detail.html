@@ -3,7 +3,6 @@
 {% load scientific %}
 {% load sanitize_html %}
 {% load logtags %}
-
 {% block title %}View {{ object.graceid }}{% endblock %}
 {% block heading %}{% endblock %}
 {% block bodyattrs %}class="tundra eventDetail"{% endblock %}
@@ -48,7 +47,9 @@
             var editor_div = dom.byId("editor");
             var preview_div = dom.byId("previewer");
 
-            // Branson messing around.
+            // A pane holder for the form that will tag new log messages.
+            // I need it up here because we're going to integrate it with the
+            // editor components.
             var newLogTag_pane_holder = dom.byId("newLogTag_pane_holder");
 
             dojo.style(preview_div, { 'display':'none'});
@@ -121,32 +122,15 @@
                     }
             });
 
-            // Branson: set up infrastructure for tagging log messages.
-{% if blessed_tags %}
-            var blessedTagStore = new Memory({
-                data: [
-    {% for bt in blessed_tags %}
-                        {name:"{{bt}}"},
-    {% endfor %}
-                ]
-            });
-
-            // Branson messing around.
-            var tagbox = new ComboBox({
-                id: "newTagSelect",
-                name: "newTagSelect",
-                value: "insert tag here",
-                store: blessedTagStore,
-                searchAttr: "name"
-            }, "newTagSelect");
 
             var editor = new Editor({
                  extraPlugins : ['foreColor','hiliteColor','|','createLink',
                                  'insertImage','fullscreen','viewsource','newpage', '|', previewbutton, savebutton]
             }, editor_div);
 
-            // Branson:  Working on TitlePanes here.
-{% if object.getAvailableTags %}
+            // If we have blessed tags *and* some log messages have been tagged,
+            // we will want some TitlePanes.
+{% if blessed_tags and object.getAvailableTags %}
             var pane_holder = dom.byId("pane_holder");
             var panes = new Array();
             var titles = new Array();
@@ -189,22 +173,21 @@
                             style:"overflow:hidden;"},
                             figure_container_ids[i]));
             }
+{% endif %} {# Endif for getAvailableTags and blessed_tags #}
+
+            // Set up infrastructure for tagging log messages.
+{% if blessed_tags %}
+            var blessedTagStore = new Memory({
+                data: [
+    {% for bt in blessed_tags %}
+                        {name:"{{bt}}"},
+    {% endfor %}
+                ]
+            });
 {% endif %}
 
-
-            // Form for tagging log messages.
-            var cb = new ComboBox({
-                id: "existingTagSelect",
-                name: "existingTagSelect",
-                value: "None",
-                store: blessedTagStore,
-                searchAttr: "name"
-            }, "existingTagSelect");
-
-
-            // Work on panes for the tagging forms here.
+            // Panes for the tagging forms.
             var newLogTag                  = dom.byId("newLogTag");
-            //var newLogTag_pane_hoder       = dom.byId("newLogTag_pane_holder");
             var existingLogTag             = dom.byId("existingLogTag");
             var existingLogTag_pane_holder = dom.byId("existingLogTag_pane_holder");
 
@@ -220,8 +203,29 @@
             existingLogTag_pane_holder.appendChild(tp_existing.domNode);
             dojo.destroy(existingLogTag);       
 
-            var form = dom.byId('tagForm');
+            // Form for tagging new log messages.
+            var cb1 = new ComboBox({
+                id: "newTagSelect",
+                name: "newTagSelect",
+                value: "insert tag here",
+{% if blessed_tags %}                
+                store: blessedTagStore,
+                searchAttr: "name"
+{% endif %}
+            }, "newTagSelect");
 
+            // Form for tagging existing log messages.
+            var cb2 = new ComboBox({
+                id: "existingTagSelect",
+                name: "existingTagSelect",
+                value: "None",
+{% if blessed_tags %}                
+                store: blessedTagStore,
+                searchAttr: "name"
+{% endif %}
+            }, "existingTagSelect");
+
+            var form = dom.byId('existingTagForm');
             on(form, "submit", function(evt){
                 evt.stopPropagation();
                 evt.preventDefault();
@@ -243,11 +247,8 @@
                     },
                     function(error){alert(error);}
                 );
-
             });
 
- 
-{% endif %}
         });
 
     </script>
@@ -424,7 +425,7 @@
 
             {# A section for the images #}
             {% if object|logsForTagHaveImage:tag.name %}        
-            <!-- XXX in case there are a lot of figures, you should put the figure container table inside a scrolling div or something -->
+            <!-- figure container table is inside a scrolling div -->
             <div id="{{tag.name}}_figure_container">
                 <table class="figure_container">
                     <tr>
@@ -498,20 +499,30 @@
 
   <div id="event_log">
     {# XXX Hacky.  We don't want the title here if we're doing panes. #}
+    {# And we only do panes if there are available tags. #}
 {% if not object.getAvailableTags %}
     <h3 id="logmessagetitle">Event Log Messages</h3>
+        <div id="newLogTag">
+                <p> Use this form to apply a tag to your new log entry. Choose a tag
+                name from the dropdown menu or enter a new one.  If you are 
+                creating a new tag, please also provide a display name. </p>
+            <form>
+                &nbsp; Tag name <input id="newTagSelect" name="newTagSelect" /> 
+                &nbsp; Display name <input type="text" id="newTagDispName" name="newTagDispName" />
+            </form>  
+        </div>
+        <div id="newLogTag_pane_holder" class="pmTitlePaneClass"></div>
         <div id="previewer"></div>
         <div id="editor"></div>
 {% endif %}
 
 {% if object.eventlog_set.count %}
-  <!-- Branson.  Here's where you should put the new form. -->
   {% if blessed_tags %}
     <div id="existingLogTag">
         <p>  Use this form to tag an existing log message. Choose a tag name from the
              dropdown menu or enter a new one.  If you are creating a new tag, please
              also provide a display name.
-    <form id="tagForm">
+    <form id="existingTagForm">
         Log No. <input id="n" name="n" type="text" size="4" />
         &nbsp;&nbsp; Tag name <input id="existingTagSelect" name="existingTagSelect" />
         &nbsp;&nbsp; Display name <input type="text" id="existingTagDispName" name="existingTagDispName"/> 
