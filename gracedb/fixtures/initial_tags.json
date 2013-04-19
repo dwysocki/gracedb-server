@@ -1,0 +1,44 @@
+[
+ {"pk": 1,
+  "model": "gracedb.tag",
+  "fields": {
+  	"eventlogs": [],
+	"displayName": " Noise Curves",
+	"name": "psd"}
+ },
+ {"pk": 2,
+  "model": "gracedb.tag",
+  "fields": {
+  	"eventlogs": [],
+	"displayName": "Sky Localization",
+	"name": "sky_loc"}
+ },
+ {"pk": 3,
+  "model": "gracedb.tag",
+  "fields": {
+  	"eventlogs": [],
+	"displayName": "Strain Data",
+	"name": "strain"}
+ },
+ {"pk": 4,
+  "model": "gracedb.tag",
+  "fields": {
+  	"eventlogs": [],
+	"displayName": "Time-Frequency Info",
+	"name": "tfplots"}
+ },
+ {"pk": 5,
+  "model": "gracedb.tag",
+  "fields": {
+  	"eventlogs": [],
+	"displayName": "Significance Info",
+	"name": "sig_info"}
+ },
+ {"pk": 6,
+  "model": "gracedb.tag",
+  "fields": {
+  	"eventlogs": [],
+	"displayName": "Sound Files",
+	"name": "audio"}
+ }
+]

@@ -207,7 +207,7 @@
             var cb1 = new ComboBox({
                 id: "newTagSelect",
                 name: "newTagSelect",
-                value: "insert tag here",
+                value: "",
 {% if blessed_tags %}                
                 store: blessedTagStore,
                 searchAttr: "name"
@@ -218,7 +218,7 @@
             var cb2 = new ComboBox({
                 id: "existingTagSelect",
                 name: "existingTagSelect",
-                value: "None",
+                value: "",
 {% if blessed_tags %}                
                 store: blessedTagStore,
                 searchAttr: "name"
