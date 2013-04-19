@@ -29,7 +29,6 @@ from django.conf import settings
 from templatetags.scientific import scientific
 
 from buildVOEvent import buildVOEvent, submitToSkyalert
-import logging
 
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
@@ -444,7 +443,6 @@ def sanitize_html(data):
 
 
 def logentry(request, graceid, num=None):
-    logger = logging.getLogger(__name__)
     try:
         event = Event.getByGraceid(graceid)
     except Event.DoesNotExist:
@@ -454,19 +452,15 @@ def logentry(request, graceid, num=None):
         elog = EventLog(event=event, issuer=request.ligouser)
         elog.comment = request.POST.get('comment') or request.GET.get('comment')
         elog.save()
-        logger.debug("just saved log entry")
         tagname = request.POST.get('tagname')
-        logger.debug("tagname = %s" % tagname)
         if tagname:
             # Look for the tag.  If it doesn't already exist, create it.
             try:
                 tag = Tag.objects.filter(name=tagname)[0]
             except:
                 displayName = request.POST.get('displayName')
-                logger.debug("disp name = %s" % displayName)
                 tag = Tag(name=tagname, displayName=displayName)
                 tag.save()
-                logger.debug("just saved tag")
 
             tag.eventlogs.add(elog)
             # Create a log entry to document the tag creation.

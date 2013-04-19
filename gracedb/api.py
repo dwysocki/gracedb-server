@@ -17,7 +17,6 @@ from alert import issueAlertForUpdate
 import os
 import urllib
 import errno
-import logging
 import shutil
 
 from utils.vfile import VersionedFile
@@ -522,7 +521,6 @@ class EventLogList(APIView):
         return Response(rv)
 
     def post(self, request, graceid):
-        logger = logging.getLogger(__name__)
         event = Event.getByGraceid(graceid)
         message = request.DATA.get('message')
         tagname = request.DATA.get('tagname')
@@ -744,7 +742,6 @@ class EventLogTagDetail(APIView):
             return Response("Tag not found.",status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, graceid, n, tagname):
-        logger = logging.getLogger(__name__)
         try:
             event = Event.getByGraceid(graceid)
             eventlog = event.eventlog_set.order_by("created").all()[int(n)]
