@@ -37,6 +37,15 @@ XMPP_ALERT_CHANNELS = [
                         'test_grb',
                       ]
 
+BLESSED_TAGS = [
+                 'psd',
+                 'sky_loc',
+                 'strain',
+                 'tfplots',
+                 'sig_info',
+                 'audio',
+               ]
+
 DATABASES = {
     'default' : {
         'NAME'     : 'gracedb',

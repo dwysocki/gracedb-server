@@ -2,27 +2,32 @@
 {% load timeutil %}
 {% load scientific %}
 {% load sanitize_html %}
-{% load slot %}
-
+{% load logtags %}
 {% block title %}View {{ object.graceid }}{% endblock %}
 {% block heading %}{% endblock %}
-{% block bodyattrs %}class="tundra"{% endblock %}
+{% block bodyattrs %}class="tundra eventDetail"{% endblock %}
 
 {% block jscript %}
     {# XXX http/https depending on this pages' protocol #}
     <script type="text/javascript"
       src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
     </script>
-    <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js" type="text/javascript"></script>
+    <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.8.1/dojo/dojo.js" type="text/javascript"></script>
     <script src="{{MEDIA_URL}}js/labeltips.js" type="text/javascript"></script>
     <link rel="stylesheet" href="{{MEDIA_URL}}css/labeltips.css">
     <script type="text/javascript">
-        var bb = null;
-
-        require(["dijit/Editor",
+        require(["dojo/dom",
+                 "dojo/on",
+                 "dojo/request",
+                 "dojo/dom-form",
+                 "dijit/Editor",
                  "dojox/editor/plugins/Save",
                  "dojox/editor/plugins/Preview",
                  "dijit/form/Button",
+                 "dijit/TitlePane",
+                 "dojox/layout/ScrollPane",
+                 "dojo/store/Memory",
+                 "dijit/form/ComboBox",
                  "dojox/image/LightboxNano",
                  "dijit/_editor/plugins/TextColor",
                  "dijit/_editor/plugins/LinkDialog",
@@ -30,19 +35,26 @@
                  "dijit/_editor/plugins/NewPage",
                  "dijit/_editor/plugins/FullScreen",
                  "dojo/parser",
-                 "dojo/domReady!"], function (Editor, Save, Preview, Button) {
+                 "dojo/domReady!"], function (dom, on, request, domForm, Editor, Save, Preview, 
+                                              Button, TitlePane, ScrollPane, Memory, ComboBox) {
 
             dojo.parser.parse();
 
-            //var newlogdiv = dojo.byId("newlogdiv");
-            var logtitle = dojo.byId("logmessagetitle");
-            var logtext = dojo.byId("newlogtext");
+            //var newlogdiv = dom.byId("newlogdiv");
+            var logtitle = dom.byId("logmessagetitle");
+            var logtext = dom.byId("newlogtext");
 
-            var editor_div = dojo.byId("editor");
-            var preview_div = dojo.byId("previewer");
+            var editor_div = dom.byId("editor");
+            var preview_div = dom.byId("previewer");
+
+            // A pane holder for the form that will tag new log messages.
+            // I need it up here because we're going to integrate it with the
+            // editor components.
+            var newLogTag_pane_holder = dom.byId("newLogTag_pane_holder");
 
             dojo.style(preview_div, { 'display':'none'});
             dojo.style(editor_div, { 'display':'none'});
+            dojo.style(newLogTag_pane_holder, { 'display':'none'});
 
             var button_element = dojo.create('button');
             dojo.place(button_element, logtitle, "right");
@@ -52,12 +64,14 @@
                 onClick: function(){
                     if (this.state == 'add') {
                         dojo.style(editor_div, {'display':'block'});
+                        dojo.style(newLogTag_pane_holder, {'display':'block'});
                         button.set('label', "Cancel Log Entry");
                         button.set('state', 'cancel');
                         editor.focus();
                     }
                     else {
                         dojo.style(editor_div, {'display':'none'});
+                        dojo.style(newLogTag_pane_holder, {'display':'none'});
                         dojo.style(preview_div, {'display':'none'});
                         button.set('label', "Add Log Entry");
                         button.set('state', 'add');
@@ -65,9 +79,6 @@
                     }
                 },
             }, button_element);
-
-
-            //dojo.style(newlogdiv, {'display':'none'});
 
             var savebutton = new Save({
                     url: "{% url logentry object.graceid "" %}",
@@ -82,15 +93,19 @@
                         alert("o hai " + error);
                     },
                     save: function(postdata) {
-                        var postArgs = {
+                    var newTagName = domForm.fieldToObject("newTagSelect");
+                    var newTagDispName = domForm.fieldToObject("newTagDispName");
+                    var postArgs = {
                                 url: this.url,
-                                content: { comment: postdata },
+                                content: { comment: postdata, tagname: newTagName, displayName: newTagDispName },
                                 handleAs: "json"
                         };
                         this.button.set("disabled", true);
                         var deferred = dojo.xhrPost(postArgs);
                         deferred.addCallback(dojo.hitch(this, this.onSuccess));
                         deferred.addErrback(dojo.hitch(this, this.onError));
+                        // Call whatever function is necessary to attach the tag
+                        // or add to the postdata and handle in the django view?
                     }
             });
 
@@ -107,10 +122,132 @@
                     }
             });
 
+
             var editor = new Editor({
                  extraPlugins : ['foreColor','hiliteColor','|','createLink',
                                  'insertImage','fullscreen','viewsource','newpage', '|', previewbutton, savebutton]
             }, editor_div);
+
+            // If we have blessed tags *and* some log messages have been tagged,
+            // we will want some TitlePanes.
+{% if blessed_tags and object.getAvailableTags %}
+            var pane_holder = dom.byId("pane_holder");
+            var panes = new Array();
+            var titles = new Array();
+    {% for tag in object.getAvailableTags %}
+        {% if tag.name in blessed_tags %}
+            panes.push(dom.byId("{{tag.name}}"));
+            titles.push("{{tag|tagUnicode}}");
+        {% endif %}
+    {% endfor %}
+    
+            for (var i = 0; i<panes.length; i++) {
+                tp = new dijit.TitlePane({title:titles[i],
+                                         content:panes[i].innerHTML,
+                                         open:true});
+                pane_holder.appendChild(tp.domNode);
+                dojo.destroy(panes[i]);
+            };
+
+            // Handle event log seperately.  It will be closed by default.
+            var event_log = dom.byId("event_log");
+            tp = new dijit.TitlePane({title:"Full Event Log",
+                                     content:event_log.innerHTML,
+                                     open:false});
+            pane_holder.appendChild(tp.domNode);
+            dojo.destroy(event_log);
+
+            // Now, deal with the silly figure containers.
+            var figure_container_ids = new Array();
+    {% for tag in object.getAvailableTags %}
+        {% if tag.name in blessed_tags %}
+            if (dom.byId("{{tag.name}}_figure_container")) {
+                figure_container_ids.push("{{tag.name}}_figure_container");
+            }
+        {% endif %}
+    {% endfor %}
+            var figure_scrollpanes = new Array();
+            for (var i = 0; i<figure_container_ids.length; i++) {
+                figure_scrollpanes.push(new dojox.layout.ScrollPane({
+                            orientation:"horizontal",
+                            style:"overflow:hidden;"},
+                            figure_container_ids[i]));
+            }
+{% endif %} {# Endif for getAvailableTags and blessed_tags #}
+
+            // Set up infrastructure for tagging log messages.
+{% if blessed_tags %}
+            var blessedTagStore = new Memory({
+                data: [
+    {% for bt in blessed_tags %}
+                        {name:"{{bt}}"},
+    {% endfor %}
+                ]
+            });
+{% endif %}
+
+            // Panes for the tagging forms.
+            var newLogTag                  = dom.byId("newLogTag");
+            var existingLogTag             = dom.byId("existingLogTag");
+            var existingLogTag_pane_holder = dom.byId("existingLogTag_pane_holder");
+
+            tp_new = new dijit.TitlePane({title:"Tag this message",
+                                     content:newLogTag.innerHTML,
+                                     open:false});
+            newLogTag_pane_holder.appendChild(tp_new.domNode);
+            dojo.destroy(newLogTag);        
+
+            tp_existing = new dijit.TitlePane({title:"Add tag",
+                                     content:existingLogTag.innerHTML,
+                                     open:false});
+            existingLogTag_pane_holder.appendChild(tp_existing.domNode);
+            dojo.destroy(existingLogTag);       
+
+            // Form for tagging new log messages.
+            var cb1 = new ComboBox({
+                id: "newTagSelect",
+                name: "newTagSelect",
+                value: "insert tag here",
+{% if blessed_tags %}                
+                store: blessedTagStore,
+                searchAttr: "name"
+{% endif %}
+            }, "newTagSelect");
+
+            // Form for tagging existing log messages.
+            var cb2 = new ComboBox({
+                id: "existingTagSelect",
+                name: "existingTagSelect",
+                value: "None",
+{% if blessed_tags %}                
+                store: blessedTagStore,
+                searchAttr: "name"
+{% endif %}
+            }, "existingTagSelect");
+
+            var form = dom.byId('existingTagForm');
+            on(form, "submit", function(evt){
+                evt.stopPropagation();
+                evt.preventDefault();
+
+                var n = domForm.fieldToObject("n");
+                var tagName = domForm.fieldToObject("existingTagSelect");
+                var tagDispName = domForm.fieldToObject("existingTagDispName");
+                var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}"
+                tagUrl = tagUrl.replace("000",n);
+                tagUrl = tagUrl.replace("temp",tagName);
+
+                request.post(tagUrl, {
+                    data: {displayName: tagDispName}
+                }).then(
+                    function(text){
+                        alert(text);
+                        // You may want to force the page to reload.
+                        //location.reload(true);
+                    },
+                    function(error){alert(error);}
+                );
+            });
 
         });
 
@@ -157,9 +294,7 @@
 {% block content %}
 <p>{{ message }}</p>
 
-<table>
-<tr><td valign="top">
-
+<div class="content-area">
 <h3> Basic Info </h3>
 
 <table class="event">
@@ -208,14 +343,17 @@
     </tr>
 
 </table>
+</div>
 
+<div class="content-area">
 {# Analysis-specific attributes #}
 {% block analysis_specific %}
 {# This block is empty in the base event_detail template #}
 {% endblock %}
+</div>
 
 {% if nearby %}
-    <p/>
+    <div id="neighbors" class="content-area">
     <h3>Neighbors</h3>
     <table class="event">
         <tr>
@@ -255,6 +393,99 @@
         </tr>
         {% endfor %}
     </table>
+    </div>
+{% endif %}
+
+<div id="pane_holder" class="content-area">
+    {# XXX Hacky #}
+    {# With the title here, people will know that all of the things in the #}
+    {# panes are log messages #}
+{% if object.getAvailableTags %}
+    <h3 id="logmessagetitle">Event Log Messages</h3>
+        <div id="newLogTag">
+                <p> Use this form to apply a tag to your new log entry. Choose a tag
+                name from the dropdown menu or enter a new one.  If you are 
+                creating a new tag, please also provide a display name. </p>
+            <form>
+                &nbsp; Tag name <input id="newTagSelect" name="newTagSelect" /> 
+                &nbsp; Display name <input type="text" id="newTagDispName" name="newTagDispName" />
+            </form>  
+        </div>
+        <div id="newLogTag_pane_holder" class="pmTitlePaneClass"></div>
+        <div id="previewer"></div>
+        <div id="editor"></div>
+{% endif %}
+
+{#  Loop over the available tags. #}
+{% if object.getAvailableTags %}
+    {% for tag in object.getAvailableTags %}
+    {% if tag.name in blessed_tags %}
+        {# Create a div to hold the pane innerHTML for this tag #}
+        <div id="{{tag.name}}">
+
+            {# A section for the images #}
+            {% if object|logsForTagHaveImage:tag.name %}        
+            <!-- figure container table is inside a scrolling div -->
+            <div id="{{tag.name}}_figure_container">
+                <table class="figure_container">
+                    <tr>
+                        {% for log in object|getLogsForTag:tag.name %} 
+                            {% if log.hasImage %}
+                            <td>
+                                <table class="figures">
+                                    <!-- A row for the images themselves -->
+                                    <tr class="figrow">
+                                        <td>  <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="180" src="{{ log.fileurl }}"></a>
+                                        </td>
+                                    </tr>
+                                    <!-- A row for the captions -->
+                                    <tr>
+                                        <td> {{log.comment|sanitize}}
+                                           {% if log.fileurl %}
+                                            <a href="{{log.fileurl}}">{{log.filename}}.</a>
+                                           {% endif %}
+                                            Submitted by {{log.issuer}} on {{log.created}}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>                                
+                            {% endif %}
+                        {% endfor %}
+                     </tr>
+                </table>
+            </div>
+            {% endif %}
+          
+            {# A section for the text-only captions #}
+            {% if object|logsForTagHaveText:tag.name %}
+                {# Set up regular log message table #}
+                <table class="event">
+                    <tr>
+                        <th>No.</th>
+                        <th>{{ "logtime"|timeselect:"utc" }} Log Entry Created</th>
+                        <th>Submitter</th>
+                        <th>Comment</th>
+                    </tr>
+                {% for log in object|getLogsForTag:tag.name %} 
+                    {% if not log.hasImage %}
+                        <tr class="{% cycle 'odd' 'even'%}">
+                           <td>{{log.getN}}</td>
+                           <td>{{log.created|multiTime:"logtime"}}</td>
+                           <td>{{log.issuer}}</td>
+                           <td>{{log.comment|sanitize}}
+                               {% if log.fileurl %}
+                                <a href="{{log.fileurl}}">{{log.filename}}</a>
+                               {% endif %}
+                           </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+                </table>
+            {% endif %}
+
+        </div>
+    {% endif %} {# endif the tag is blessed #}
+    {% endfor %}
 {% endif %}
 
 <noscript>
@@ -266,15 +497,44 @@
 </noscript>
 
 
-  <p/>
-  <h3 id="logmessagetitle">Event Log Messages</h3>
-
+  <div id="event_log">
+    {# XXX Hacky.  We don't want the title here if we're doing panes. #}
+    {# And we only do panes if there are available tags. #}
+{% if not object.getAvailableTags %}
+    <h3 id="logmessagetitle">Event Log Messages</h3>
+        <div id="newLogTag">
+                <p> Use this form to apply a tag to your new log entry. Choose a tag
+                name from the dropdown menu or enter a new one.  If you are 
+                creating a new tag, please also provide a display name. </p>
+            <form>
+                &nbsp; Tag name <input id="newTagSelect" name="newTagSelect" /> 
+                &nbsp; Display name <input type="text" id="newTagDispName" name="newTagDispName" />
+            </form>  
+        </div>
+        <div id="newLogTag_pane_holder" class="pmTitlePaneClass"></div>
         <div id="previewer"></div>
         <div id="editor"></div>
+{% endif %}
 
 {% if object.eventlog_set.count %}
+  {% if blessed_tags %}
+    <div id="existingLogTag">
+        <p>  Use this form to tag an existing log message. Choose a tag name from the
+             dropdown menu or enter a new one.  If you are creating a new tag, please
+             also provide a display name.
+    <form id="existingTagForm">
+        Log No. <input id="n" name="n" type="text" size="4" />
+        &nbsp;&nbsp; Tag name <input id="existingTagSelect" name="existingTagSelect" />
+        &nbsp;&nbsp; Display name <input type="text" id="existingTagDispName" name="existingTagDispName"/> 
+        <input type="submit" name="submit" value="Submit" /> </p>
+    </form>  
+    </div>
+    <div id="existingLogTag_pane_holder" class="pmTitlePaneClass"></div>
+  {% endif %}
+
   <table class="event">
         <tr>
+            <th>No.</th>
             <th>{{ "logtime"|timeselect:"utc" }} Log Entry Created</th>
             <th>Submitter</th>
             <th>Comment</th>
@@ -282,6 +542,7 @@
         </tr>
   {% for log in object.eventlog_set.iterator %}
         <tr class="{% cycle 'odd' 'even'%}">
+           <td>{{log.getN}}
            <td>{{log.created|multiTime:"logtime"}}</td>
            <td>{{log.issuer}}</td>
            <td>{{log.comment|sanitize}}
@@ -298,32 +559,7 @@
   {% endfor %}
   </table>
 {% endif %}
+  </div>
 
-</td>
-<td rowspan="2" valign="top">
-
-{% if eventdesc %}
-<h3>Event Log File</h3>
-    {{ eventdesc }}
-    <br/>
-{% endif %}
-
-{% if userdesc %}
-    <br/>
-<h3>User Info</h3>
-    {{ userdesc }}
-    <br/>
-{% endif %}
-
-<p/>
-<h3>Available Slots</h3>
-{% if not object|slot %}
-    None.
-{% else %}
-    {% for slot in object|slot %}
-    <a href="{{slot.fileurl}}">{{ slot.name }}</a> <br/>
-    {% endfor %}
-{% endif %}
-
-</td></tr></table>
+</div> <!-- End of pane_holder div -->
 {% endblock %}

@@ -15,6 +15,7 @@ urlpatterns = patterns('gracedb.views',
     url (r'^(?P<graceid>[GEHT]\d+)$', 'view', name="view2"),
     url (r'^(?P<graceid>[GEHT]\d+)/files/(?P<filename>.*)$', download, name="file"),
     url (r'^(?P<graceid>[GEHT]\d+)/log/(?P<num>([\d]*|preview))$', 'logentry', name="logentry"),
+    url (r'^(?P<graceid>[GEHT]\d+)/log/(?P<num>\d+)/tag/(?P<tagname>\w+)$', 'taglogentry', name="taglogentry"),
 
 
 #   (r'^view/(?P<uid>[\w\d]+)', 'view'),

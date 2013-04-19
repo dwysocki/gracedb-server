@@ -8,7 +8,7 @@ from django.conf import settings
 
 import json
 
-from gracedb.models import Event, Group, EventLog, Slot
+from gracedb.models import Event, Group, EventLog, Tag
 from gracedb.views import create_label
 from translator import handle_uploaded_data
 
@@ -115,12 +115,8 @@ def eventToDict(event, columns=None, request=None):
             "filemeta" : reverse("filemeta", args=[graceid], request=request),
             "labels" : reverse("labels", args=[graceid], request=request),
             "self"  : reverse("event-detail", args=[graceid], request=request),
+            "tags"  : reverse("eventtag-list", args=[graceid], request=request),
             }
-    # XXX Jam the slots in here? Could just have a list of slot names instead of
-    # all these links.  But the links might be useful??
-    rv['slots'] = {}
-    for slot in Slot.objects.filter(event=event).order_by('name'):
-        rv['slots'][slot.name] = reverse("slot", args=[graceid, slot.name], request=request)
     return rv
 
 
@@ -472,10 +468,14 @@ class EventLabel(APIView):
 # Janky serialization
 def eventLogToDict(log, n=None, request=None):
     # XXX Messy.  n should not be here but in the model.
+    taglist_uri = None
     if (n is None) and request:
         uri = request.build_absolute_uri()
     elif n is not None and request:
         uri = reverse("eventlog-detail",
+                args=[log.event.graceid(), n],
+                request=request)
+        taglist_uri = reverse("eventlogtag-list",
                 args=[log.event.graceid(), n],
                 request=request)
     else:
@@ -485,6 +485,7 @@ def eventLogToDict(log, n=None, request=None):
                 "created" : log.created,
                 "issuer"  : log.issuer.name,
                 "self"    : uri,
+                "tags"    : taglist_uri,
            }
 
 class EventLogList(APIView):
@@ -521,8 +522,10 @@ class EventLogList(APIView):
         return Response(rv)
 
     def post(self, request, graceid):
+        logger = logging.getLogger(__name__)
         event = Event.getByGraceid(graceid)
         message = request.DATA.get('message')
+        tagname = request.DATA.get('tagname')
         logentry = EventLog(
                 event=event,
                 issuer=request.ligouser,
@@ -533,6 +536,16 @@ class EventLogList(APIView):
         rv = eventLogToDict(logentry, n, request=request)
         response = Response(rv, status=status.HTTP_201_CREATED)
         response['Location'] = rv['self']
+
+        if tagname:
+            n = logentry.getN()
+            # XXX This is not what these API views are really meant for, but...
+            tmp = EventLogTagDetail()
+            retval = tmp.put(request, graceid, n, tagname) 
+            # XXX This seems like a bizarre way of getting an error message out.
+            if retval.status_code != 201:
+                response['tagWarning'] = 'Error creating tag.'
+
         return response
 
 class EventLogDetail(APIView):
@@ -547,7 +560,264 @@ class EventLogDetail(APIView):
             return Response("Log Entry Not Found",
                     status=status.HTTP_404_NOT_FOUND)
         rv = event.eventlog_set.order_by("created").all()[int(n)]
-        return Response(eventLogToDict(rv, request=request))
+        # XXX I (Branson) put the n argument here.  Why not?  
+        # We might as well since we have it, right?
+        return Response(eventLogToDict(rv, n, request=request))
+
+#==================================================================
+# Tags
+
+
+def tagToDict(tag, columns=None, request=None, event=None, n=None):
+    """Convert a tag to a dictionary.
+       Output depends on the level of specificity.
+    """
+
+    rv = {}
+    rv['name'] = tag.name
+    rv['displayName'] = tag.displayName
+    if event:
+        if n:
+            # We want a link to the self only.  End of the line.
+            rv['links'] = {
+                            "self" : reverse("eventlogtag-detail",
+                                             args=[event.graceid(),n,tag.name],
+                                             request=request)
+                          }
+        else:
+            # Links to all log messages of the event with this tag.
+            rv['links'] = {
+                            "logs" : [reverse("eventlog-detail", 
+                                              args=[event.graceid(),log.getN()], 
+                                              request=request) 
+                                      for log in event.getLogsForTag(tag.name)],
+                            "self" : reverse("eventtag-detail",
+                                             args=[event.graceid(),tag.name],
+                                             request=request)
+                          }
+    else:
+        # XXX Unclear what the tag detail resource should be at this level.
+        # For now, return an empty list.
+        pass
+#         rv['links'] = {
+#                         "events" : [reverse("event-detail", 
+#                                             args=[event.graceid()], 
+#                                             request=request) 
+#                                     for event in tag.getEvents()],
+#                         "self"   : reverse("tag-detail",
+#                                            args=[tag.name],
+#                                            request=request)
+#                       }
+    return rv
+
+class TagList(APIView):
+    """Tag List Resource
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        # Return a list of links to all tag objects.
+        rv = {
+#                 'tags' : [ reverse("tag-detail", args=[tag.name],
+#                                    request=request)
+#                            for tag in Tag.objects.all() ]
+#                For now, we just output the tag names, since we don't know what 
+#                tag-detail should look like.
+                 'tags' : [ tag.name for tag in Tag.objects.all() ]
+             }
+        return Response(rv)
+
+# XXX Unclear what the tag detail resource should be.
+# class TagDetail(APIView):
+#     """Tag Detail Resource
+#     """
+#     authentication_classes = (LigoAuthentication,)
+#     permission_classes = (IsAuthenticated,)
+# 
+#     def get(self, request, tagname):
+#         try:
+#             tag = Tag.objects.filter(name=tagname)[0]
+#         except Tag.DoesNotExist:
+#             return Response("Tag not found.",
+#                     status=status.HTTP_404_NOT_FOUND)
+#         return Response(tagToDict(tag,request=request))
+
+class EventTagList(APIView):
+    """Event Tag List Resource
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, graceid):
+        # Return a list of links to all tags for this event.
+        try:
+            event = Event.getByGraceid(graceid)
+        except Event.DoesNotExist:
+            # XXX Real error message.
+            return Response("Event does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+
+        rv = {
+                'tags' : [ reverse("eventtag-detail",args=[graceid,
+                                   tag.name],
+                                   request=request)
+                           for tag in event.getAvailableTags()]
+             }
+
+        return Response(rv)
+
+class EventTagDetail(APIView):
+    """Event Tag List Resource
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, graceid, tagname):
+        try:
+            event = Event.getByGraceid(graceid)
+        except Event.DoesNotExist:
+            # XXX Real error message.
+            return Response("Event does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+        try:
+            tag = Tag.objects.filter(name=tagname)[0]
+            rv = tagToDict(tag,event=event,request=request)
+            return Response(rv)
+        except Tag.DoesNotExist:
+            return Response("No such tag for event.",
+                    status=status.HTTP_404_NOT_FOUND)
+
+class EventLogTagList(APIView):
+    """Event Log Tag List Resource
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, graceid, n):
+        # Return a list of links to tags associated with a given log message
+        try:
+            event = Event.getByGraceid(graceid)
+            eventlog = event.eventlog_set.order_by("created").all()[int(n)]
+        except Event.DoesNotExist:
+            # XXX Real error message.
+            return Response("Event does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+        except:
+            # XXX Real error message.
+            return Response("Log does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+
+        rv = {
+                'tags' : [ reverse("eventlogtag-detail",
+                                    args=[graceid, 
+                                    n, tag.name],
+                                    request=request)
+                           for tag in eventlog.tag_set.all()]
+             }
+
+        return Response(rv)
+
+class EventLogTagDetail(APIView):
+    """Event Log Tag Detail Resource
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, graceid, n, tagname):
+        try:
+            event = Event.getByGraceid(graceid)
+            eventlog = event.eventlog_set.order_by("created").all()[int(n)]
+        except Event.DoesNotExist:
+            # XXX Real error message.
+            return Response("Event does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+        except:
+            # XXX Real error message.
+            return Response("Log does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+        try:
+            tag = eventlog.tag_set.filter(name=tagname)[0]
+            # Serialize
+            return Response(tagToDict(tag,event=event,n=n,request=request))
+        except:
+            return Response("Tag not found.",status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, graceid, n, tagname):
+        logger = logging.getLogger(__name__)
+        try:
+            event = Event.getByGraceid(graceid)
+            eventlog = event.eventlog_set.order_by("created").all()[int(n)]
+        except Event.DoesNotExist:
+            # XXX Real error message.
+            return Response("Event does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+        except:
+            # XXX Real error message.
+            return Response("Log does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+        try:
+            # Has this tag-eventlog relationship already been created? If so, kick out.
+            # Actually, adding the eventlog to the tag would not hurt anything--no
+            # duplicate entry would be made in the database.  However, we don't want
+            # an extra log entry, or a deceptive HTTP response (i.e., one telling the 
+            # client that the creation was sucessful when, in fact, the database
+            # was unchanged.
+            tag = eventlog.tag_set.filter(name=tagname)[0]
+            msg = "Log already has tag %s" % unicode(tag)
+            return Response(msg,status=status.HTTP_409_CONFLICT)
+        except:
+            # Look for the tag.  If it doesn't already exist, create it.
+            try:
+                tag = Tag.objects.filter(name=tagname)[0]
+            except:
+                displayName = request.DATA.get('displayName')
+                tag = Tag(name=tagname, displayName=displayName)
+                tag.save()
+
+            # Now add the log message to this tag.
+            tag.eventlogs.add(eventlog)
+
+            # Create a log entry to document the tag creation.
+            msg = "Tagged message %s: %s " % (n, tagname)
+            logentry = EventLog(event=event,
+                               issuer=request.ligouser,
+                               comment=msg)
+            logentry.save()
+
+            return Response("Tag created.",status=status.HTTP_201_CREATED)
+
+    def delete(self, request, graceid, n, tagname):
+        try:
+            event = Event.getByGraceid(graceid)
+            eventlog = event.eventlog_set.order_by("created").all()[int(n)]
+        except Event.DoesNotExist:
+            # XXX Real error message.
+            return Response("Event does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+        except:
+            # XXX Real error message.
+            return Response("Log does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+        try:
+            tag = eventlog.tag_set.filter(name=tagname)[0]
+            tag.eventlogs.remove(eventlog)
+
+            # Is the tag empty now?  If so we can delete it.
+            if not tag.eventlogs.all():
+                tag.delete()
+
+            # Create a log entry to document the tag creation.
+            msg = "Removed tag %s for message %s. " % (tagname, n)
+            logentry = EventLog(event=event,
+                               issuer=request.ligouser,
+                               comment=msg)
+            logentry.save()
+
+            return Response("Tag deleted.",status=status.HTTP_200_OK)
+        except:
+            return Response("Tag not found.",status=status.HTTP_404_NOT_FOUND)
+
 
 #==================================================================
 # Root Resource
@@ -579,9 +849,16 @@ class GracedbRoot(APIView):
         labels = labels.replace("G1200", "{graceid}")
         labels = labels.replace("thelabel", "{label}")
 
-        slot = reverse("slot", args=["G1200", "slotname"], request=request)
-        slot = slot.replace("G1200", "{graceid}")
-        slot = slot.replace("slotname", "{slotname}")
+        taglist = reverse("eventlogtag-list", args=["G1200", "0"], request=request)
+        taglist = taglist.replace("G1200", "{graceid}")
+        taglist = taglist.replace("0", "{n}")
+
+        tag = reverse("eventlogtag-detail", args=["G1200", "0", "tagname"], request=request)
+        tag = tag.replace("G1200", "{graceid}")
+        tag = tag.replace("0", "{n}")
+        tag = tag.replace("tagname", "{tagname}")
+
+        # XXX Need a template for the tag list?
 
         templates = {
                 "event-detail-template" : detail,
@@ -589,7 +866,8 @@ class GracedbRoot(APIView):
                 "event-label-template" : labels,
                 "files-template" : files,
                 "filemeta-template" : filemeta,
-                "slot-template" : slot,
+                "tag-template" : tag,
+                "taglist-template" : taglist,
                 }
 
         return Response({
@@ -815,99 +1093,4 @@ class FileMeta(APIView):
     authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,)
     pass
-
-#==================================================================
-# Slots
-
-class EventSlot(APIView):
-    """A slot associated with an event.  
-    """
-
-    # Get the value of a slot.  This will be a filename. 
-    def get(self, request, graceid, slotname):
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
-
-        if not slotname:
-            return Response(dict([(s.name, s.value)
-                for s in Slot.objects.filter(event=event)]))
-
-        try:
-            slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
-        except:
-            # Okay, no slot yet.  Probably want an error message.
-            # Try looking for files that contain the slot name.
-            return Response("No slot.  Search based on slotname not implemented yet.",
-                    status=status.HTTP_404_NOT_FOUND)
-        filename = slot.value
-        rv = {}
-        rv['value'] = filename
-        return Response(rv)
-
-    # Create a slot.  The slot's value will be a filename.
-    # This file is assumed to have already been uploaded.
-    def put(self, request, graceid, slotname):
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
-        filename = request.DATA.get('filename')
-        # Interestingly, the None object seems to be converted to a string
-        # when encoded in the HTTP request body.  Hence the 'None' string 
-        # below.  If somebody intentionally named a file 'None', then 
-        # they deserve to get this error message.
-        if filename=='' or filename=='None' or filename==None:
-            return Response("Please submit a filename or upload a file.",
-                    status=status.HTTP_400_BAD_REQUEST)
-
-        # UGLY hack to deal with /private vs /general dirs
-        general = False
-        tmpFilename = filename
-        if filename.startswith("general/"):
-            tmpFilename = filename[len("general/"):]
-            general = True
-        filepath = os.path.join(event.datadir(general), tmpFilename)
-
-        # Check for existence of the file.
-        if not os.path.exists(filepath):
-           return Response("No slot created because file does not exist",
-                    status=status.HTTP_404_NOT_FOUND)
-        # Check for existence of the slot.  If it exists, simply update the
-        # existing slot.
-        try:
-            slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
-            slot.value = filename
-            slot.save()
-        except:
-            # Create the slot.
-            slot = Slot(event=event,name=slotname,value=filename)
-            slot.save()
-        return Response("Slot created or updated.",status=status.HTTP_201_CREATED)
-
-    # Delete a slot.
-    def delete(self, request, graceid, slotname):
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
-
-        # Gotta find the poor devil before we can delete him.
-        try:
-            slot = Slot.objects.filter(event=event).filter(name=slotname)[0]
-        except:
-            # Okay, no slot yet.  Probably want an error message.
-            # Try looking for files that contain the slot name.
-            return Response("No such slot.",
-                    status=status.HTTP_404_NOT_FOUND)
-
-        slot.delete()
-        return Response("Slot deleted.",status=status.HTTP_200_OK)
 

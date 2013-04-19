@@ -10,7 +10,7 @@ from django.utils.safestring import mark_safe
 
 from django.views.generic.list_detail import object_detail, object_list
 
-from models import Event, Group, EventLog, Labelling, Label, User
+from models import Event, Group, EventLog, Labelling, Label, User, Tag
 from models import CoincInspiralEvent
 from models import MultiBurstEvent
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
@@ -29,6 +29,7 @@ from django.conf import settings
 from templatetags.scientific import scientific
 
 from buildVOEvent import buildVOEvent, submitToSkyalert
+import logging
 
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
@@ -443,6 +444,7 @@ def sanitize_html(data):
 
 
 def logentry(request, graceid, num=None):
+    logger = logging.getLogger(__name__)
     try:
         event = Event.getByGraceid(graceid)
     except Event.DoesNotExist:
@@ -452,6 +454,28 @@ def logentry(request, graceid, num=None):
         elog = EventLog(event=event, issuer=request.ligouser)
         elog.comment = request.POST.get('comment') or request.GET.get('comment')
         elog.save()
+        logger.debug("just saved log entry")
+        tagname = request.POST.get('tagname')
+        logger.debug("tagname = %s" % tagname)
+        if tagname:
+            # Look for the tag.  If it doesn't already exist, create it.
+            try:
+                tag = Tag.objects.filter(name=tagname)[0]
+            except:
+                displayName = request.POST.get('displayName')
+                logger.debug("disp name = %s" % displayName)
+                tag = Tag(name=tagname, displayName=displayName)
+                tag.save()
+                logger.debug("just saved tag")
+
+            tag.eventlogs.add(elog)
+            # Create a log entry to document the tag creation.
+            num = elog.getN()
+            msg = "Tagged message %s: %s " % (num, tagname)
+            tlog = EventLog(event=event,
+                               issuer=request.ligouser,
+                               comment=msg)
+            tlog.save()
     else:
         try:
             elog = event.eventlog_set.order_by('created').all()[int(num)]
@@ -466,6 +490,8 @@ def logentry(request, graceid, num=None):
     rv['issuer'] = elog.issuer.name
     rv['created'] = elog.created.isoformat()
     rv['comment'] = elog.comment
+    if tagname:
+        rv['tagname'] = tagname
 
     return HttpResponse(json.dumps(rv), content_type="application/json")
 
@@ -537,6 +563,7 @@ def view(request, graceid):
     context['nearby'] = [(event.gpstime - a.gpstime, event)
                             for event in a.neighbors()]
     context['skyalert_authorized'] = skyalert_authorized(request)
+    context['blessed_tags'] = settings.BLESSED_TAGS
     return render_to_response(
         [ 'gracedb/event_detail_{0}.html'.format(a.analysisType),
           'gracedb/event_detail.html'],
@@ -992,4 +1019,54 @@ def latest(request):
             template,
             context,
             context_instance=RequestContext(request))
+
+#-----------------------------------------------------------------------------------
+# For tags.  A new view function.  We need this because the API one would want users
+# to have certs stored in their browser.
+#-----------------------------------------------------------------------------------
+
+def taglogentry(request, graceid, num, tagname):
+    try:
+        event = Event.getByGraceid(graceid)
+        eventlog = event.eventlog_set.order_by("created").all()[int(num)]
+    except:
+        # Either the event or the log does not exist.
+        raise Http404
+
+    if request.method == "POST":
+        try:
+            # Has this tag-eventlog relationship already been created? 
+            tag = eventlog.tag_set.filter(name=tagname)[0]
+            msg = "Log already has tag %s" % tagname
+            return HttpResponse(msg, content_type="text")
+        except:
+            # Look for the tag.  If it doesn't already exist, create it.
+            try:
+                tag = Tag.objects.filter(name=tagname)[0]
+            except:
+                displayName = request.POST['displayName']
+                tag = Tag(name=tagname, displayName=displayName)
+                tag.save()
+
+            # Now add the log message to this tag.
+            tag.eventlogs.add(eventlog)
+
+            # Create a log entry to document the tag creation.
+            msg = "Tagged message %s: %s " % (num, tagname)
+            logentry = EventLog(event=event,
+                               issuer=request.ligouser,
+                               comment=msg)
+            logentry.save()
+    else:
+        # We will only allow PUT here.  Anything else is a bad request: 400
+        return HttpResponseBadRequest
+
+    # Hopefully, this will only ever be called form inside a script.  Just in case...
+    if not request.is_ajax():
+        return HttpResponseRedirect(reverse(view, args=[graceid]))
+
+    # no need for a JSON response. 
+    msg = "Successfully applied tag %s to log message %s." % (tagname, num)
+    msg = msg + "  Refresh to see chages (if any) to the presentation."
+    return HttpResponse(msg, content_type="text")
 
