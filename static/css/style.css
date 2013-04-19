@@ -37,12 +37,12 @@ table.figures {width:300px;height:270px;border:1px solid gray;}
 }
 
 .tundra.eventDetail .pmTitlePaneClass .dijitClosed .dijitArrowNode {
-    background-image: url('/branson-static/images/plusButton.gif');
+    background-image: url('/gracedb-static/images/plusButton.gif');
     background-position: 0px 0px;
 }
 
 .tundra.eventDetail .pmTitlePaneClass .dijitOpen .dijitArrowNode {
-    background-image: url('/branson-static/images/minusButton.gif');
+    background-image: url('/gracedb-static/images/minusButton.gif');
     background-position: 0px 0px;
 }
 
