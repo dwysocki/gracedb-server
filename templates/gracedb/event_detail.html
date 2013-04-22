@@ -20,6 +20,7 @@
                  "dojo/on",
                  "dojo/request",
                  "dojo/dom-form",
+                 "dojo/dom-construct",
                  "dijit/Editor",
                  "dojox/editor/plugins/Save",
                  "dojox/editor/plugins/Preview",
@@ -36,7 +37,7 @@
                  "dijit/_editor/plugins/NewPage",
                  "dijit/_editor/plugins/FullScreen",
                  "dojo/parser",
-                 "dojo/domReady!"], function (dom, on, request, domForm, Editor, Save, Preview, 
+                 "dojo/domReady!"], function (dom, on, request, domForm, domConstruct, Editor, Save, Preview, 
                                               Button, TitlePane, ScrollPane, Memory, ComboBox, Dialog) {
 
             dojo.parser.parse();
@@ -226,14 +227,19 @@
 {% endif %}
             }, "existingTagSelect");
 
-            var tagResultDialog = new Dialog();
+            // Construct a dialog to show results of tagging an existing log message.
+            var tagResultDialog = new Dialog({ style: "width: 300px" });
+            var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" });
+            var tbnode = domConstruct.create("div", {
+                    style: "margin: 0px auto 0px auto; text-align: center;"
+            }, actionBar);
+            var tagButton = new Button({
+                    label: "Ok",
+                    onClick: function(){
+                    tagResultDialog.hide();
+                    }}).placeAt(tbnode);
 
-            var actionBar = dom.create("div", {
-                    "class": "dijitDialogPaneContentArea",
-                    "innerHTML": "my testy"
-                    }, tagResultDialog.containerNode);
-
-
+            // The form for tagging existing log messages.
             var form = dom.byId('existingTagForm');
             on(form, "submit", function(evt){
                 evt.stopPropagation();
@@ -251,17 +257,17 @@
                 }).then(
                     function(text){
                         tagResultDialog.set("content", text);
+                        domConstruct.place(actionBar, tagResultDialog.containerNode);
                         tagResultDialog.show();
                         //location.reload(true);
                     },
                     function(error){
-                        tagResultDialog.set("content", error);
+                        tagResultDialog.set("content", "Error: " + error);
+                        domConstruct.place(actionBar, tagResultDialog.containerNode);
                         tagResultDialog.show(); 
                     }
                 );
             });
-
-            // Messing around with the dialog.
 
         });
 
