@@ -28,6 +28,7 @@
                  "dojox/layout/ScrollPane",
                  "dojo/store/Memory",
                  "dijit/form/ComboBox",
+                 "dijit/Dialog",
                  "dojox/image/LightboxNano",
                  "dijit/_editor/plugins/TextColor",
                  "dijit/_editor/plugins/LinkDialog",
@@ -36,7 +37,7 @@
                  "dijit/_editor/plugins/FullScreen",
                  "dojo/parser",
                  "dojo/domReady!"], function (dom, on, request, domForm, Editor, Save, Preview, 
-                                              Button, TitlePane, ScrollPane, Memory, ComboBox) {
+                                              Button, TitlePane, ScrollPane, Memory, ComboBox, Dialog) {
 
             dojo.parser.parse();
 
@@ -225,6 +226,14 @@
 {% endif %}
             }, "existingTagSelect");
 
+            var tagResultDialog = new Dialog();
+
+            var actionBar = dom.create("div", {
+                    "class": "dijitDialogPaneContentArea",
+                    "innerHTML": "my testy"
+                    }, tagResultDialog.containerNode);
+
+
             var form = dom.byId('existingTagForm');
             on(form, "submit", function(evt){
                 evt.stopPropagation();
@@ -241,13 +250,18 @@
                     data: {displayName: tagDispName}
                 }).then(
                     function(text){
-                        alert(text);
-                        // You may want to force the page to reload.
+                        tagResultDialog.set("content", text);
+                        tagResultDialog.show();
                         //location.reload(true);
                     },
-                    function(error){alert(error);}
+                    function(error){
+                        tagResultDialog.set("content", error);
+                        tagResultDialog.show(); 
+                    }
                 );
             });
+
+            // Messing around with the dialog.
 
         });
 
@@ -537,6 +551,9 @@
             <th>No.</th>
             <th>{{ "logtime"|timeselect:"utc" }} Log Entry Created</th>
             <th>Submitter</th>
+  {% if object.getAvailableTags %}
+              <th>Tags</th>
+  {% endif %}
             <th>Comment</th>
             <th>&nbsp;</th>
         </tr>
@@ -545,6 +562,15 @@
            <td>{{log.getN}}
            <td>{{log.created|multiTime:"logtime"}}</td>
            <td>{{log.issuer}}</td>
+  {% if object.getAvailableTags %}
+           <td> 
+              <table> 
+                  {%for tag in log.tag_set.all %} 
+                  <tr> <td> {{tag.name}} </td> </tr> 
+                  {% endfor %} 
+              </table> 
+           </td>
+  {% endif %}
            <td>{{log.comment|sanitize}}
                {% if log.fileurl %}
                 <a href="{{log.fileurl}}">{{log.filename}}</a>
