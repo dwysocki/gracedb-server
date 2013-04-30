@@ -43,13 +43,76 @@ from rest_framework.permissions import IsAuthenticated
 #from rest_framework.permissions import AllowAny
 from rest_framework import authentication
 from rest_framework.views import APIView
-from rest_framework.reverse import reverse
 
 from django.contrib.auth.models import User as DjangoUser
 
 MAX_FAILED_OPEN_ATTEMPTS = 5
 
 from forms import SimpleSearchForm
+
+
+from rest_framework.reverse import reverse as rest_framework_reverse
+from django.core.urlresolvers import resolve, get_script_prefix
+
+# Note about reverse() in this file -- there are THREE versions of it here.
+#
+# SOURCE                               LOCAL NAME
+# django.core.urlresolvers.reverse ==> django_reverse
+# rest_framework.reverse.reverse   ==> rest_framework_reverse
+# reverse defined below            ==> reverse
+#
+# The Django reverse returns relative paths.
+#
+# The rest framework reverse is basically the same as the Django version
+# but will return full paths if the request is passed in using the request kw arg.
+#
+# The reverse defined below is basically the rest framework reverse, but
+# will attempt to deal with multiply-include()-ed url.py-type files with
+# different namespaces.  (see the comments in the function)
+
+def reverse(name, *args, **kw):
+    """Find a URL.  Respect where that URL was defined in urls.py
+
+    Allow for a set of URLs to have been include()-ed on multiple URL paths.
+
+    eg  urlpatterns = (
+        (r'^api1/', include('someapp.urls', app_name="api", namespace="x509")),
+        (r'^api2/', include('someapp.urls', app_name="api", namespace="shib")),
+        ...)
+
+    then reverse("api:root", request=self.request) will give the obviously
+    correct full URL for the URL named "root" in someapp/urls.py.  Django's
+    reverse will pick one URL path and use it no matter what path the
+    URL resolver flows through and it will do so whether you specify an app_name
+    or not.
+
+    This function solves that issue.  app_name and namespace are required.
+    The request must be the value at kw['request']
+
+    Assembled with hints from http://stackoverflow.com/a/13249060
+    """
+    # XXX rashly assuming app is "api:"  brutal.
+    if type(name) == str and not name.startswith("api:"):
+        name = "api:"+name
+
+    # Idea is to put 'current_app' into the kw args of reverse
+    # where current_app is the namespace of the urlpattern we got here from.
+    # Given that, reverse will find the right patterns in your urlpatterns.
+    # I do know know why Django does not do this by default.
+
+    # This probably only works if you give app_names which are the same
+    # and namespaces that are different.
+
+    if 'request' in kw and 'current_app' not in kw:
+        request = kw['request']
+        # For some reason, resolve() does not seem to like the script_prefix.
+        # So, remove it.
+        prefix = get_script_prefix()
+        path = request.path.replace(prefix, '/')
+        current_app = resolve(path).namespace
+        kw['current_app'] = current_app
+
+    return rest_framework_reverse(name, *args, **kw)
 
 class LigoAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
