@@ -35,6 +35,7 @@ XMPP_ALERT_CHANNELS = [
                         'cbc_highmass',
                         'test_highmass',
                         'test_grb',
+                        'external_grb',
                       ]
 
 BLESSED_TAGS = [
