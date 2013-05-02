@@ -37,12 +37,12 @@ table.figures {width:300px;height:270px;border:1px solid gray;}
 }
 
 .tundra.eventDetail .pmTitlePaneClass .dijitClosed .dijitArrowNode {
-    background-image: url('/gracedb-static/images/plusButton.gif');
+    background-image: url('../images/plusButton.gif');
     background-position: 0px 0px;
 }
 
 .tundra.eventDetail .pmTitlePaneClass .dijitOpen .dijitArrowNode {
-    background-image: url('/gracedb-static/images/minusButton.gif');
+    background-image: url('../images/minusButton.gif');
     background-position: 0px 0px;
 }
 
@@ -315,6 +315,6 @@ span.code {
 thead th a:link, thead th a:visited { color:#666; display:block; }
 table thead th.sorted { background-position:bottom left !important; }
 table thead th.sorted a { padding-right:13px; }
-table thead th.ascending a { background:url(/gracedb-static/images/arrow-down.gif) right .4em no-repeat; }
-table thead th.descending a { background:url(/gracedb-static/images/arrow-up.gif) right .4em no-repeat; }
+table thead th.ascending a { background:url('../images/arrow-down.gif') right .4em no-repeat; }
+table thead th.descending a { background:url('../images/arrow-up.gif') right .4em no-repeat; }
 

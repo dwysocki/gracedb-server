@@ -16,6 +16,8 @@ DATABASES = {
     }
 }
 
+MEDIA_URL = "/branson-static/"
+
 GRACEDB_DATA_DIR = "/home/branson/fake_data"
 
 ALERT_EMAIL_FROM = "Dev Alert <root@moe.phys.uwm.edu>"
