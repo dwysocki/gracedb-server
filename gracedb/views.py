@@ -121,7 +121,12 @@ def skyalert(request, graceid):
 
     if createLogEntry:
         logentry = EventLog(event=event, issuer=request.ligouser, comment=message)
-        logentry.save()
+        try:
+            logentry.save()
+        except:
+            # XXX Failed to create log entry for skyalert submission.
+            # Error message?
+            pass
 
     return HttpResponseRedirect(reverse(view, args=[graceid]))
 
@@ -298,13 +303,16 @@ def _createLog(request, graceid, comment, uploadedFile=None):
                 logEntry.filename = uploadedFile.name
             except Exception, e:
                 rdict['error'] = "Problem saving file: %s" % str(e)
-        logEntry.save()
+        try:
+            logEntry.save()
 
-        if request.POST.get('alert') == "True":
-            description = "LOG: "
-            if uploadedFile:
-                description = "UPLOAD: '%s' " % uploadedFile.name
-            issueAlertForUpdate(event, description+comment, doxmpp=True, filename=uploadedFile.name)
+            if request.POST.get('alert') == "True":
+                description = "LOG: "
+                if uploadedFile:
+                    description = "UPLOAD: '%s' " % uploadedFile.name
+                issueAlertForUpdate(event, description+comment, doxmpp=True, filename=uploadedFile.name)
+        except Exception, e:
+            rdict['error'] = "Failed to save log message: %s" % str(e) 
 
     # XXX should be json
     rval = str(rdict)
@@ -397,7 +405,11 @@ def create_label(graceid, labelName, creator, doAlert=True, doXMPP=True):
         labelling.save()
         message = "Label: %s" % label.name
         log = EventLog(event=event, issuer=creator, comment=message)
-        log.save()
+        try:       
+            log.save()
+        except Exception as e:
+            # XXX This looks a bit odd to me.
+            d['error'] = str(e)
 
         try:
             issueAlertForLabel(event, label, doXMPP)
@@ -451,7 +463,12 @@ def logentry(request, graceid, num=None):
         # create a log entry
         elog = EventLog(event=event, issuer=request.ligouser)
         elog.comment = request.POST.get('comment') or request.GET.get('comment')
-        elog.save()
+        try:
+            elog.save()
+        except Exception as e:
+            # XXX I feel like this should be a 500 error.  
+            return HttpResponse("ERROR: %s" % str(e))
+
         tagname = request.POST.get('tagname')
         if tagname:
             # Look for the tag.  If it doesn't already exist, create it.
@@ -469,7 +486,16 @@ def logentry(request, graceid, num=None):
             tlog = EventLog(event=event,
                                issuer=request.ligouser,
                                comment=msg)
-            tlog.save()
+            try:
+                tlog.save()
+            except Exception as e:
+                # XXX Maybe this isn't a big deal.  It's more of a 
+                # warning than an error.
+                msg = "Failed to save log entry to document tag:  "
+                msg = msg + str(e)
+                msg = msg + "\n However, the log message itself was saved."
+                return HttpResponse(msg)
+
     else:
         try:
             elog = event.eventlog_set.order_by('created').all()[int(num)]
@@ -1050,7 +1076,13 @@ def taglogentry(request, graceid, num, tagname):
             logentry = EventLog(event=event,
                                issuer=request.ligouser,
                                comment=msg)
-            logentry.save()
+            try:
+                logentry.save()
+            except Exception as e:
+                msg = "Failed to save log entry documenting tag:  "
+                msg = msg + str(e) + '\n'
+                msg = "The tag itself, however, is saved."
+                return HttpResponse(msg, content_type="text")
     else:
         # We will only allow PUT here.  Anything else is a bad request: 400
         return HttpResponseBadRequest

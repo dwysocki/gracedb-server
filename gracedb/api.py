@@ -421,6 +421,12 @@ class EventDetail(APIView):
             handle_uploaded_data(event, uploadDestination)
             event.submitter = request.ligouser
         except:
+            # XXX Bad news.  If the log file fails to save because of
+            # race conditions, then this will also be the the message
+            # returned.  Somehow, I think there are other things that
+            # could go wrong inside handle_uploaded_data besides just
+            # bad data.  We should probably check for different types
+            # of exceptions here.
             return Response("Bad Data",
                     status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_202_ACCEPTED)
@@ -593,7 +599,12 @@ class EventLogList(APIView):
                 comment=message)
         logset = event.eventlog_set.order_by("created")
         n = len(logset)
-        logentry.save()
+        try:
+            logentry.save()
+        except Exception as e:
+            # Since this is likely due to race conditions, we will return 503
+            return Response("Failed to save log entry: %s" % str(e),
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE)
         rv = eventLogToDict(logentry, n, request=request)
         response = Response(rv, status=status.HTTP_201_CREATED)
         response['Location'] = rv['self']
@@ -843,7 +854,12 @@ class EventLogTagDetail(APIView):
             logentry = EventLog(event=event,
                                issuer=request.ligouser,
                                comment=msg)
-            logentry.save()
+            try:    
+                logentry.save()
+            except Exception as e:
+                # Since the tag creation was successful, we'll return 201.
+                return Response("Tag succesful, but failed to create log entry: %s" % str(e),
+                     status=status.HTTP_201_CREATED)
 
             return Response("Tag created.",status=status.HTTP_201_CREATED)
 
@@ -872,7 +888,12 @@ class EventLogTagDetail(APIView):
             logentry = EventLog(event=event,
                                issuer=request.ligouser,
                                comment=msg)
-            logentry.save()
+            try:    
+                logentry.save()
+            except Exception as e:
+                # Since the tag creation was successful, we'll return 200.
+                return Response("Tag removed, but failed to create log entry: %s" % str(e),
+                     status=status.HTTP_200_OK)
 
             return Response("Tag deleted.",status=status.HTTP_200_OK)
         except:

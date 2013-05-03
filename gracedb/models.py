@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, IntegrityError
 from django.core.urlresolvers import reverse
 
 from model_utils.managers import InheritanceManager
@@ -220,12 +220,27 @@ class EventLog(models.Model):
         return logset.index(self)
 
     def save(self, *args, **kwargs):
-        if self.event.eventlog_set.count():
-            self.N = event.eventlog_set.order_by('-N')[0].N + 1
-        else:
-            self.N = 1
-        # XXX This call to save should be inside a try/except.  Loop or something.
-        super(EventLog, self).save(*args, **kwargs)
+        success = False
+        attempts = 0
+        while (not success and attempts < 5):
+            attempts = attempts + 1
+            if self.event.eventlog_set.count():
+                self.N = event.eventlog_set.order_by('-N')[0].N + 1
+            else:
+                self.N = 1
+            try:
+                super(EventLog, self).save(*args, **kwargs)
+                success = True
+            except IntegrityError:
+                # IntegrityError means an attempt to insert a duplicate
+                # key or to violate a foreignkey constraint.
+                # We are under race conditions.  Let's try again.
+                pass
+
+        if not success:
+            # XXX Should this be a custom exception?  That way we could catch it
+            # in the views that use it and give an informative error message.
+            raise Exception("Too many attempts to save log message. Something is wrong.")
 
 class Labelling(models.Model):
     event = models.ForeignKey(Event)
