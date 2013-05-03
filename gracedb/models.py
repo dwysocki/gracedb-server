@@ -195,11 +195,13 @@ class Event(models.Model):
 class EventLog(models.Model):
     class Meta:
         ordering = ["-created"]
+        unique_together = ("event","N")
     event = models.ForeignKey(Event, null=False)
     created = models.DateTimeField(auto_now_add=True)
     issuer = models.ForeignKey(User)
     filename = models.CharField(max_length=100, default="")
     comment = models.TextField(null=False)
+    N = models.IntegerField(null=False)
 
     def fileurl(self):
         if self.filename:
@@ -212,15 +214,19 @@ class EventLog(models.Model):
         # XXX hacky
         return self.filename and self.filename[-3:].lower() in ['png','gif','jpg']
 
+    # XXX get rid of this.
     def getN(self):
-        # XXX also hacky?
-        # I think it would still work if some logs were removed from the database.
-        logset = self.event.eventlog_set.order_by("created")
-        # XXX This actually evaluates the queryset.  This may be a problem if 
-        # there are a huge number of log messages for this event and they 
-        # take up a lot of memory
+        logset = self.event.eventlog_set.order_by("id")
         logset = list(logset)
         return logset.index(self)
+
+    def save(self, *args, **kwargs):
+        if self.event.eventlog_set.count():
+            self.N = event.eventlog_set.order_by('-N')[0].N + 1
+        else:
+            self.N = 1
+        # XXX This call to save should be inside a try/except.  Loop or something.
+        super(EventLog, self).save(*args, **kwargs)
 
 class Labelling(models.Model):
     event = models.ForeignKey(Event)
