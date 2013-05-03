@@ -213,12 +213,6 @@ class EventLog(models.Model):
         # XXX hacky
         return self.filename and self.filename[-3:].lower() in ['png','gif','jpg']
 
-    # XXX get rid of this.
-    def getN(self):
-        logset = self.event.eventlog_set.order_by("id")
-        logset = list(logset)
-        return logset.index(self)
-
     def save(self, *args, **kwargs):
         success = False
         attempts = 0

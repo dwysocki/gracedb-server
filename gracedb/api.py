@@ -610,7 +610,7 @@ class EventLogList(APIView):
         response['Location'] = rv['self']
 
         if tagname:
-            n = logentry.getN()
+            n = logentry.N
             # XXX This is not what these API views are really meant for, but...
             tmp = EventLogTagDetail()
             retval = tmp.put(request, graceid, n, tagname) 
@@ -660,7 +660,7 @@ def tagToDict(tag, columns=None, request=None, event=None, n=None):
             # Links to all log messages of the event with this tag.
             rv['links'] = {
                             "logs" : [reverse("eventlog-detail", 
-                                              args=[event.graceid(),log.getN()], 
+                                              args=[event.graceid(),log.N], 
                                               request=request) 
                                       for log in event.getLogsForTag(tag.name)],
                             "self" : reverse("eventtag-detail",

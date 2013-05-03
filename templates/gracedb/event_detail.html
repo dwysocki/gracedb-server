@@ -489,7 +489,7 @@
                 {% for log in object|getLogsForTag:tag.name %} 
                     {% if not log.hasImage %}
                         <tr class="{% cycle 'odd' 'even'%}">
-                           <td>{{log.getN}}</td>
+                           <td>{{log.N}}</td>
                            <td>{{log.created|multiTime:"logtime"}}</td>
                            <td>{{log.issuer}}</td>
                            <td>{{log.comment|sanitize}}
@@ -565,7 +565,7 @@
         </tr>
   {% for log in object.eventlog_set.iterator %}
         <tr class="{% cycle 'odd' 'even'%}">
-           <td>{{log.getN}}
+           <td>{{log.N}}
            <td>{{log.created|multiTime:"logtime"}}</td>
            <td>{{log.issuer}}</td>
   {% if object.getAvailableTags %}

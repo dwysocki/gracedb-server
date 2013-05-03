@@ -481,7 +481,7 @@ def logentry(request, graceid, num=None):
 
             tag.eventlogs.add(elog)
             # Create a log entry to document the tag creation.
-            num = elog.getN()
+            num = elog.N
             msg = "Tagged message %s: %s " % (num, tagname)
             tlog = EventLog(event=event,
                                issuer=request.ligouser,
