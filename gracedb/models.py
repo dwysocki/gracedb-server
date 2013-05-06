@@ -7,7 +7,7 @@ import datetime
 import thread
 import string
 import os
-
+import logging
 
 # XXX ER2.utils.  utils is in project directory.  ugh.
 from utils import posixToGpsTime
@@ -200,6 +200,7 @@ class EventLog(models.Model):
     issuer = models.ForeignKey(User)
     filename = models.CharField(max_length=100, default="")
     comment = models.TextField(null=False)
+    #XXX Does this need to be indexed for better performance?
     N = models.IntegerField(null=False)
 
     def fileurl(self):
@@ -219,7 +220,7 @@ class EventLog(models.Model):
         while (not success and attempts < 5):
             attempts = attempts + 1
             if self.event.eventlog_set.count():
-                self.N = event.eventlog_set.order_by('-N')[0].N + 1
+                self.N = int(self.event.eventlog_set.aggregate(models.Max('N'))['N__max']) + 1
             else:
                 self.N = 1
             try:
