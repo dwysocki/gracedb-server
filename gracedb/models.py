@@ -194,6 +194,7 @@ class Event(models.Model):
 
 class EventLog(models.Model):
     class Meta:
+        ordering = ['-created','-N']
         unique_together = ("event","N")
     event = models.ForeignKey(Event, null=False)
     created = models.DateTimeField(auto_now_add=True)

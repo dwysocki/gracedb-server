@@ -498,7 +498,7 @@ def logentry(request, graceid, num=None):
 
     else:
         try:
-            elog = event.eventlog_set.order_by('created').all()[int(num)]
+            elog = event.eventlog_set.filter(N=num)[0]
         except Exception, e:
             raise Http404
 
@@ -1048,7 +1048,7 @@ def latest(request):
 def taglogentry(request, graceid, num, tagname):
     try:
         event = Event.getByGraceid(graceid)
-        eventlog = event.eventlog_set.order_by("created").all()[int(num)]
+        eventlog = event.eventlog_set.filter(N=num)[0]
     except:
         # Either the event or the log does not exist.
         raise Http404

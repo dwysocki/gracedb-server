@@ -534,17 +534,14 @@ class EventLabel(APIView):
 # EventLog
 
 # Janky serialization
-def eventLogToDict(log, n=None, request=None):
-    # XXX Messy.  n should not be here but in the model.
+def eventLogToDict(log, request=None):
     taglist_uri = None
-    if (n is None) and request:
-        uri = request.build_absolute_uri()
-    elif n is not None and request:
+    if request:
         uri = reverse("eventlog-detail",
-                args=[log.event.graceid(), n],
+                args=[log.event.graceid(), log.N],
                 request=request)
         taglist_uri = reverse("eventlogtag-list",
-                args=[log.event.graceid(), n],
+                args=[log.event.graceid(), log.N],
                 request=request)
     else:
         uri = None
@@ -571,11 +568,11 @@ class EventLogList(APIView):
             # XXX Real error message.
             return Response("Event does not exist.",
                     status=status.HTTP_404_NOT_FOUND)
-        logset = event.eventlog_set.order_by("created")
+        logset = event.eventlog_set.order_by("created","N")
         count = logset.count()
 
-        log = [ eventLogToDict(log, n, request)
-                for (n, log) in zip(range(0,count+2), logset.iterator()) ]
+        log = [ eventLogToDict(log, request)
+                for log in logset.iterator() ]
 
         rv = {
                 'start': 0,
@@ -597,15 +594,14 @@ class EventLogList(APIView):
                 event=event,
                 issuer=request.ligouser,
                 comment=message)
-        logset = event.eventlog_set.order_by("created")
-        n = len(logset)
+        logset = event.eventlog_set.order_by("created","N")
         try:
             logentry.save()
         except Exception as e:
             # Since this is likely due to race conditions, we will return 503
             return Response("Failed to save log entry: %s" % str(e),
                     status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        rv = eventLogToDict(logentry, n, request=request)
+        rv = eventLogToDict(logentry, request=request)
         response = Response(rv, status=status.HTTP_201_CREATED)
         response['Location'] = rv['self']
 
@@ -628,13 +624,15 @@ class EventLogDetail(APIView):
         try:
             event = Event.getByGraceid(graceid)
         except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Log Entry Not Found",
+            return Response("Event Not Found",
                     status=status.HTTP_404_NOT_FOUND)
-        rv = event.eventlog_set.order_by("created").all()[int(n)]
-        # XXX I (Branson) put the n argument here.  Why not?  
-        # We might as well since we have it, right?
-        return Response(eventLogToDict(rv, n, request=request))
+        try:
+            rv = event.eventlog_set.filter(N=n)[0]
+        except:
+            return Response("Log Message Not Found",
+                    status=status.HTTP_404_NOT_FOUND)
+
+        return Response(eventLogToDict(rv, request=request))
 
 #==================================================================
 # Tags
@@ -770,13 +768,11 @@ class EventLogTagList(APIView):
         # Return a list of links to tags associated with a given log message
         try:
             event = Event.getByGraceid(graceid)
-            eventlog = event.eventlog_set.order_by("created").all()[int(n)]
+            eventlog = event.eventlog_set.filter(N=n)[0]
         except Event.DoesNotExist:
-            # XXX Real error message.
             return Response("Event does not exist.",
                     status=status.HTTP_404_NOT_FOUND)
         except:
-            # XXX Real error message.
             return Response("Log does not exist.",
                     status=status.HTTP_404_NOT_FOUND)
 
@@ -799,13 +795,11 @@ class EventLogTagDetail(APIView):
     def get(self, request, graceid, n, tagname):
         try:
             event = Event.getByGraceid(graceid)
-            eventlog = event.eventlog_set.order_by("created").all()[int(n)]
+            eventlog = event.eventlog_set.filter(N=n)[0]
         except Event.DoesNotExist:
-            # XXX Real error message.
             return Response("Event does not exist.",
                     status=status.HTTP_404_NOT_FOUND)
         except:
-            # XXX Real error message.
             return Response("Log does not exist.",
                     status=status.HTTP_404_NOT_FOUND)
         try:
@@ -818,13 +812,11 @@ class EventLogTagDetail(APIView):
     def put(self, request, graceid, n, tagname):
         try:
             event = Event.getByGraceid(graceid)
-            eventlog = event.eventlog_set.order_by("created").all()[int(n)]
+            eventlog = event.eventlog_set.filter(N=n)[0]
         except Event.DoesNotExist:
-            # XXX Real error message.
             return Response("Event does not exist.",
                     status=status.HTTP_404_NOT_FOUND)
         except:
-            # XXX Real error message.
             return Response("Log does not exist.",
                     status=status.HTTP_404_NOT_FOUND)
         try:
@@ -866,7 +858,7 @@ class EventLogTagDetail(APIView):
     def delete(self, request, graceid, n, tagname):
         try:
             event = Event.getByGraceid(graceid)
-            eventlog = event.eventlog_set.order_by("created").all()[int(n)]
+            eventlog = event.eventlog_set.filter(N=n)[0]
         except Event.DoesNotExist:
             # XXX Real error message.
             return Response("Event does not exist.",
