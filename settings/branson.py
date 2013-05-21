@@ -58,3 +58,33 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
     "/home/branson/gracedbdev/templates",
 )
+
+MIDDLEWARE_CLASSES = [
+    'middleware.accept.AcceptMiddleware',
+    'middleware.cli.CliExceptionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'ligodjangoauth.LigoShibbolethMiddleware',
+    'gracedb.middleware.auth.LigoAuthMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
+
+INSTALLED_APPS = (
+    'django.contrib.auth',
+    'django.contrib.admin',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.staticfiles',
+    'gracedb',
+    'userprofile',
+    'rest_framework',
+    'south',
+    'debug_toolbar',
+)
+
+INTERNAL_IPS = (
+    '129.89.61.55',
+)
