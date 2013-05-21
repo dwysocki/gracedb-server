@@ -518,9 +518,13 @@ class EventLabel(APIView):
                 })
 
     def put(self, request, graceid, label):
-        #return Response("Not Implemented", status=status.HTTP_501_NOT_IMPLEMENTED)
         try:
-            rv = create_label(graceid, label, request.ligouser)
+            # Look for the alert option, which may or may not be in the body.
+            try:
+                alert = request.DATA.get('alert')
+            except:
+                alert = True
+            rv = create_label(graceid, label, request.ligouser, alert)
         except Event.DoesNotExist:
             msg = "No such Event '%s'" % graceid
             return Response(msg,status=status.HTTP_404_NOT_FOUND)
