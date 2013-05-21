@@ -520,12 +520,14 @@ class EventLabel(APIView):
     def put(self, request, graceid, label):
         #return Response("Not Implemented", status=status.HTTP_501_NOT_IMPLEMENTED)
         try:
-            create_label(graceid, label, request.ligouser)
+            rv = create_label(graceid, label, request.ligouser)
+        except Event.DoesNotExist:
+            msg = "No such Event '%s'" % graceid
+            return Response(msg,status=status.HTTP_404_NOT_FOUND)
         except ValueError, e:
             return Response(e.message,
                         status=status.HTTP_400_BAD_REQUEST)
-        return Response("Created", status=status.HTTP_201_CREATED)
-
+        return Response(rv, status=status.HTTP_201_CREATED)
 
     def delete(self, request, graceid, label):
         return Response("Not Implemented", status=status.HTTP_501_NOT_IMPLEMENTED)

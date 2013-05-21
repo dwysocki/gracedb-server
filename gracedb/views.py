@@ -416,7 +416,7 @@ def create_label(graceid, labelName, creator, doAlert=True, doXMPP=True):
         except Exception, e:
             d['warning'] = "Problem issuing alert (%s)" % str(e)
     # XXX Strange return value.  Just warnings.  Can really be ignored, I think.
-    return d
+    return json.dumps(d)
 
 def cli_label(request):
     graceid = request.POST.get('graceid')
