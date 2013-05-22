@@ -952,6 +952,7 @@ class GracedbRoot(APIView):
         return Response({
             "links" : {
                 "events" : reverse("event-list", request=request),
+                "self"   : reverse("api-root", request=request),
                 },
             "templates" : templates,
             "groups" : [group.name for group in Group.objects.all()],
