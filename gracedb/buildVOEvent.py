@@ -21,7 +21,7 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     objid = gevent.graceid()
 
     ############ VOEvent header ############################
-    v = VOEvent.VOEvent(version="2.0")
+    v = VOEvent(version="2.0")
     v.set_ivorn(settings.SKYALERT_IVORN_PATTERN % objid)
     v.set_role(role or settings.SKYALERT_ROLE)
     v.set_Description(description or settings.SKYALERT_DESCRIPTION)
@@ -92,8 +92,8 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     #  Four of them, per Roy Williams.  (FITS and PNG) x  (x509 auth and Shib auth)
 
     # relative URLs
-    x509_fits_skymap_url = reverse("download", args=[gevent.graceid(), "general/bayestar/skymap.fits"])
-    x509_png_skymap_url = reverse("download", args=[gevent.graceid(), "general/bayestar/skymap.png"])
+    x509_fits_skymap_url = reverse("file", args=[gevent.graceid(), "general/bayestar/skymap.fits"])
+    x509_png_skymap_url = reverse("file", args=[gevent.graceid(), "general/bayestar/skymap.png"])
 
     # XXX gracedb.ligo.org urls.  they are a little problematic.
     # they do not do mime-types correctly and they do not let go of the connection for some reason.
