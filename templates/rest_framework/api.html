@@ -12,7 +12,7 @@ GraceDB &mdash; REST API
 {% endblock %}
 
 {% block userlinks %}
-    {% if ligouser %}<li>Authenticated as: {{ ligouser.name }}</li>{% endif %}
+   {% if user %}<li>Authenticated as: {{ user.first_name }} {{ user.last_name }}</li>{% endif %}
 {% endblock %}
 
     {% block breadcrumbs %}

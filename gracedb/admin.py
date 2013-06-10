@@ -1,5 +1,5 @@
 
-from models import Event, EventLog, User, Group
+from models import Event, EventLog, Group
 from models import Label, Labelling, Tag
 from django.contrib import admin
 
@@ -14,10 +14,6 @@ class EventAdmin(admin.ModelAdmin):
 
     list_display = [ graceid, 'group', analysis_type, 'submitter'  ]
     search_fields = [ 'group__name', 'submitter__name' ]
-
-class UserAdmin(admin.ModelAdmin):
-    list_display = [ 'name', 'dn' ]
-    search_fields = [ 'name' ]
 
 class LabelAdmin(admin.ModelAdmin):
     list_display = [ 'name', 'defaultColor' ]
@@ -36,7 +32,6 @@ class TagAdmin(admin.ModelAdmin):
 
 admin.site.register(Event, EventAdmin)
 admin.site.register(EventLog, EventLogAdmin)
-admin.site.register(User, UserAdmin)
 admin.site.register(Group)
 admin.site.register(Label, LabelAdmin)
 admin.site.register(Labelling, LabellingAdmin)

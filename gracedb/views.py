@@ -1,6 +1,7 @@
 
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, Http404
+from django.http import HttpResponseForbidden
 from django.template import RequestContext
 from django.core.urlresolvers import reverse, get_script_prefix
 from django.shortcuts import render_to_response, get_object_or_404
@@ -9,13 +10,16 @@ from django.utils.html import strip_tags, escape, urlize
 from django.utils.safestring import mark_safe
 
 from django.views.generic.list_detail import object_detail, object_list
+from django.contrib.auth.decorators import login_required
 
-from models import Event, Group, EventLog, Labelling, Label, User, Tag
+from models import Event, Group, EventLog, Labelling, Label, Tag
 from models import CoincInspiralEvent
 from models import MultiBurstEvent
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
+
+from django.contrib.auth.models import User
 
 import urllib
 
@@ -38,7 +42,7 @@ GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 import json
 
 def index(request):
-#   assert request.ligouser
+#   assert request.user
     return render_to_response(
             'gracedb/index.html',
             {},
@@ -46,7 +50,7 @@ def index(request):
 
 def skyalert_authorized(request):
     try:
-        return request.ligouser.name in settings.SKYALERT_SUBMITTERS
+        return u"{0} {1}".format(request.user.first_name, request.user.last_name) in settings.SKYALERT_SUBMITTERS
     except:
         return False
 
@@ -120,7 +124,7 @@ def skyalert(request, graceid):
     request.session['flash_msg'] = flashmessage or message
 
     if createLogEntry:
-        logentry = EventLog(event=event, issuer=request.ligouser, comment=message)
+        logentry = EventLog(event=event, issuer=request.user, comment=message)
         logentry.save()
 
     return HttpResponseRedirect(reverse(view, args=[graceid]))
@@ -156,7 +160,7 @@ def create(request):
                     context_instance=RequestContext(request))
 
 def _create(request):
-    assert request.ligouser
+    assert request.user
 
     rv = {}
 
@@ -211,7 +215,7 @@ def _createEventFromForm(request, form):
             event = MultiBurstEvent()
         else:
             event = Event()
-        event.submitter = request.ligouser
+        event.submitter = request.user
         event.group = group[0]
         event.analysisType = atype
         #  ARGH.  We don't get a graceid until we save,
@@ -290,7 +294,7 @@ def _createLog(request, graceid, comment, uploadedFile=None):
         rdict['error'] = "Missing argument(s)"
     else:
         logEntry = EventLog(event=event,
-                            issuer=request.ligouser,
+                            issuer=request.user,
                             comment=comment)
         if uploadedFile:
             try:
@@ -335,7 +339,7 @@ def upload(request):
         #event issuer comment
         # XXX Note:  filename or comment oughta have a version
         log = EventLog(event=event,
-                       issuer=request.ligouser,
+                       issuer=request.user,
                        filename=uploadedfile.name,
                        comment=comment)
         try:
@@ -411,7 +415,7 @@ def cli_label(request):
     labelName = request.POST.get('label')
 
     doxmpp = request.POST.get('alert') == "True"
-    d = create_label(graceid, labelName, request.ligouser, doXMPP=doxmpp)
+    d = create_label(graceid, labelName, request.user, doXMPP=doxmpp)
 
     msg = str(d)
     response = HttpResponse(mimetype='application/json')
@@ -449,7 +453,7 @@ def logentry(request, graceid, num=None):
         raise Http404
     if request.method == "POST":
         # create a log entry
-        elog = EventLog(event=event, issuer=request.ligouser)
+        elog = EventLog(event=event, issuer=request.user)
         elog.comment = request.POST.get('comment') or request.GET.get('comment')
         elog.save()
         tagname = request.POST.get('tagname')
@@ -467,7 +471,7 @@ def logentry(request, graceid, num=None):
             num = elog.getN()
             msg = "Tagged message %s: %s " % (num, tagname)
             tlog = EventLog(event=event,
-                               issuer=request.ligouser,
+                               issuer=request.user,
                                comment=msg)
             tlog.save()
     else:
@@ -481,7 +485,7 @@ def logentry(request, graceid, num=None):
 
     rv = {}
     rv['comment'] = elog.comment
-    rv['issuer'] = elog.issuer.name
+    rv['issuer'] = elog.issuer.username
     rv['created'] = elog.created.isoformat()
     rv['comment'] = elog.comment
     if tagname:
@@ -509,7 +513,7 @@ def log(request):
         msg = "ERROR: Event '%s' does not exist" % graceid
     else:
         #event issuer comment
-        log = EventLog(event=event, issuer=request.ligouser, comment=message)
+        log = EventLog(event=event, issuer=request.user, comment=message)
         try:
             log.save()
             msg = "OK"
@@ -565,7 +569,7 @@ def view(request, graceid):
         context_instance=RequestContext(request))
 
 def cli_search(request):
-    assert request.ligouser
+    assert request.user
     form = SimpleSearchForm(request.POST)
     if form.is_valid():
         query = form.cleaned_data['query']
@@ -635,7 +639,8 @@ def assembleLigoLw(objects):
 
 
 def search(request, format=""):
-    assert request.ligouser
+    if not request.user or not request.user.is_authenticated():
+        return HttpResponseForbidden("Forbidden")
     # XXX DO NOT HARDCODE THIS
     # Also, user should be notified if their result hits this limit.
     limit = MAX_QUERY_RESULTS
@@ -734,7 +739,7 @@ def search(request, format=""):
             context_instance=RequestContext(request))
 
 def oldsearch(request):
-    assert request.ligouser
+    assert request.user
     if request.method == 'GET':
         form = EventSearchForm()
     else:
@@ -909,7 +914,7 @@ def flexigridResponse(request, objects):
               'cell': [ '<a href="%s">%s</a>' %
                             (reverse(view, args=[object.graceid()]), object.graceid()),
                          #Labels
-                        " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();"  style="color: %s"> %s </span>""" % (label.label.name, label.creator.name, label.created, label.label.defaultColor, label.label.name)
+                        " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();"  style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name)
                                 for label in object.labelling_set.all()]),
                         # Links to neighbors
                         ', '.join([
@@ -932,7 +937,7 @@ def flexigridResponse(request, objects):
                         #created_times['gps'],
                         created_times.get('utc',""),
 
-                        object.submitter.name,
+                        "{0} {1}".format(object.submitter.first_name, object.submitter.last_name)
 
                       ]
             }
@@ -992,7 +997,7 @@ def latest(request):
         form = SimpleSearchForm(request.POST)
 
     template = 'gracedb/latest.html'
-    if not request.ligouser:
+    if not request.user or not request.user.is_authenticated():
         limit = LimitedEvent
         template = 'gracedb/latest_public.html'
     else:
@@ -1048,7 +1053,7 @@ def taglogentry(request, graceid, num, tagname):
             # Create a log entry to document the tag creation.
             msg = "Tagged message %s: %s " % (num, tagname)
             logentry = EventLog(event=event,
-                               issuer=request.ligouser,
+                               issuer=request.user,
                                comment=msg)
             logentry.save()
     else:

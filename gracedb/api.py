@@ -154,7 +154,7 @@ def eventToDict(event, columns=None, request=None):
     rv = {}
 
     graceid = event.graceid()
-    rv['submitter'] = event.submitter.name
+    rv['submitter'] = event.submitter.username
     rv['created'] = event.created
     rv['group'] = event.group.name
     rv['graceid'] = graceid
@@ -478,7 +478,7 @@ class EventNeighbors(APIView):
 def labelToDict(label, request=None):
     return { 
             "name" : label.label.name,
-            "creator" : label.creator.name,
+            "creator" : label.creator.username,
             "created" : label.created,
             "self" : reverse("labels",
                 args=[label.event.graceid(), label.label.name],
@@ -545,7 +545,7 @@ def eventLogToDict(log, n=None, request=None):
     return {
                 "comment" : log.comment,
                 "created" : log.created,
-                "issuer"  : log.issuer.name,
+                "issuer"  : log.issuer.username,
                 "self"    : uri,
                 "tags"    : taglist_uri,
            }

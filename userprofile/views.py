@@ -13,8 +13,8 @@ from models import Trigger, Contact
 from forms import ContactForm, triggerFormFactory
 
 def index(request):
-    triggers = Trigger.objects.filter(user=request.ligouser)
-    contacts = Contact.objects.filter(user=request.ligouser)
+    triggers = Trigger.objects.filter(user=request.user)
+    contacts = Contact.objects.filter(user=request.user)
     d = { 'triggers' : triggers, 'contacts': contacts }
     return render_to_response('profile/notifications.html',
                               d,
@@ -24,10 +24,10 @@ def create(request):
     explanation = ""
     message = ""
     if request.method == "POST":
-        form = triggerFormFactory(request.POST, user=request.ligouser)
+        form = triggerFormFactory(request.POST, user=request.user)
         if form.is_valid():
             # Create the Trigger
-            t = Trigger(user=request.ligouser)
+            t = Trigger(user=request.user)
             labels = form.cleaned_data['labels']
             atypes = form.cleaned_data['atypes']
             contacts = form.cleaned_data['contacts']
@@ -56,7 +56,7 @@ def create(request):
             # hopefully, there are error messages in the form.
             pass
     else:
-        form = triggerFormFactory(user=request.ligouser)
+        form = triggerFormFactory(user=request.user)
     if message:
         request.session['flash_msg'] = message
     return render_to_response('profile/createNotification.html',
@@ -74,7 +74,7 @@ def delete(request, id):
         t = Trigger.objects.get(id=id)
     except Trigger.DoesNotExist:
         raise Http404
-    if request.ligouser != t.user:
+    if request.user != t.user:
         return HttpResponseForbidden("NO!")
     request.session['flash_msg'] = "Notification Deleted: %s" % t.userlessDisplay()
     t.delete()
@@ -90,7 +90,7 @@ def createContact(request):
         if form.is_valid():
             # Create the Contact
             c = Contact(
-                    user=request.ligouser,
+                    user=request.user,
                     desc = form.cleaned_data['desc'],
                     email = form.cleaned_data['email']
                 )
@@ -114,7 +114,7 @@ def deleteContact(request, id):
         c = Contact.objects.get(id=id)
     except Contact.DoesNotExist:
         raise Http404
-    if request.ligouser != c.user:
+    if request.user != c.user:
         return HttpResponseForbidden("NO!")
     request.session['flash_msg'] = "Notification Deleted: %s" % c
     c.delete()

@@ -3,6 +3,9 @@ from django.core.urlresolvers import reverse
 
 from model_utils.managers import InheritanceManager
 
+from django.contrib.auth.models import User as DjangoUser
+
+
 import datetime
 import thread
 import string
@@ -23,23 +26,22 @@ SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 #
 schema_version = "1.1"
 
-class User(models.Model):
-    name = models.CharField(max_length=100)
-    email = models.EmailField()
-    principal = models.CharField(max_length=100)
-    dn = models.CharField(max_length=100)
-    unixid = models.CharField(max_length=25)
+#class User(models.Model):
+    #name = models.CharField(max_length=100)
+    #email = models.EmailField()
+    #principal = models.CharField(max_length=100)
+    #dn = models.CharField(max_length=100)
+    #unixid = models.CharField(max_length=25)
 
-    class Meta:
-        ordering = ["name"]
+    #class Meta:
+        #ordering = ["name"]
 
-    def __unicode__(self):
-        return self.name
+    #def __unicode__(self):
+        #return self.name
 
 
 class Group(models.Model):
     name = models.CharField(max_length=20)
-    managers = models.ManyToManyField(User)
     def __unicode__(self):
         return self.name
 
@@ -68,7 +70,7 @@ class Event(models.Model):
     )
     DEFAULT_EVENT_NEIGHBORHOOD = (5,5)
 
-    submitter = models.ForeignKey(User)
+    submitter = models.ForeignKey(DjangoUser)
     created = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Group)
     uid = models.CharField(max_length=20, default="")  # XXX deprecated.  should be removed.
@@ -197,7 +199,7 @@ class EventLog(models.Model):
         ordering = ["-created"]
     event = models.ForeignKey(Event, null=False)
     created = models.DateTimeField(auto_now_add=True)
-    issuer = models.ForeignKey(User)
+    issuer = models.ForeignKey(DjangoUser)
     filename = models.CharField(max_length=100, default="")
     comment = models.TextField(null=False)
 
@@ -225,14 +227,14 @@ class EventLog(models.Model):
 class Labelling(models.Model):
     event = models.ForeignKey(Event)
     label = models.ForeignKey(Label)
-    creator = models.ForeignKey(User)
+    creator = models.ForeignKey(DjangoUser)
     created = models.DateTimeField(auto_now_add=True)
 
 # XXX Deprecated?  Is this used *anywhere*?
 # Appears to only be used in models.py.  Here and Event class as approval_set
 class Approval(models.Model):
     COLLABORATION_CHOICES = ( ('L','LIGO'), ('V','Virgo'), )
-    approver = models.ForeignKey(User)
+    approver = models.ForeignKey(DjangoUser)
     created = models.DateTimeField(auto_now_add=True)
     approvedEvent = models.ForeignKey(Event, null=False)
     approvingCollaboration = models.CharField(max_length=1, choices=COLLABORATION_CHOICES)

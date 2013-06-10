@@ -1,23 +1,96 @@
 # -*- coding: utf-8 -*-
-import datetime
 from south.db import db
-from south.v2 import DataMigration
-from django.db import models
+from south.v2 import SchemaMigration
 
-class Migration(DataMigration):
+
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        from django.core.management import call_command
-        call_command("loaddata", "initial_tags.json")
+        # Remove old fields
+        db.delete_column('gracedb_event', 'submitter_id')
+        db.delete_column('gracedb_labelling', 'creator_id')
+        db.delete_column('gracedb_approval', 'approver_id')
+        db.delete_column('gracedb_eventlog', 'issuer_id')
 
-    complete_apps = ['gracedb']
-    symmetrical = True
+        #
+        # Move new_* to *  (and make them non-nullable)
+        #
+        db.rename_column('gracedb_event', 'new_submitter_id', 'submitter_id')
+        db.rename_column('gracedb_labelling', 'new_creator_id', 'creator_id')
+        db.rename_column('gracedb_approval', 'new_approver_id', 'approver_id')
+        db.rename_column('gracedb_eventlog', 'new_issuer_id', 'issuer_id')
+
+        db.alter_column('gracedb_event', 'submitter_id',
+            self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'],null=False))
+        db.alter_column('gracedb_labelling', 'creator_id',
+            self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'],null=False))
+        db.alter_column('gracedb_approval', 'approver_id',
+            self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'],null=False))
+        db.alter_column('gracedb_eventlog', 'issuer_id',
+            self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'],null=False))
+
+    def backwards(self, orm):
+        # Move * to new_*
+        db.rename_column('gracedb_event', 'submitter_id', 'new_submitter_id')
+        db.rename_column('gracedb_labelling', 'creator_id', 'new_creator_id')
+        db.rename_column('gracedb_approval', 'approver_id', 'new_approver_id')
+        db.rename_column('gracedb_eventlog', 'issuer_id', 'new_issuer_id')
+
+        # Replace old fields
+        db.add_column('gracedb_event', 'submitter',
+            self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.User'], null=False, default=1),
+            keep_default=False)
+        db.add_column('gracedb_labelling', 'creator',
+            self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.User'], null=False, default=1),
+            keep_default=False)
+        db.add_column('gracedb_approval', 'approver',
+            self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.User'], null=False, default=1),
+            keep_default=False)
+        db.add_column('gracedb_eventlog', 'issuer',
+            self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.User'], null=False, default=1),
+            keep_default=False)
 
     models = {
+        'auth.group': {
+            'Meta': {'object_name': 'Group'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '80'}),
+            'permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
+        },
+        'auth.permission': {
+            'Meta': {'ordering': "('content_type__app_label', 'content_type__model', 'codename')", 'unique_together': "(('content_type', 'codename'),)", 'object_name': 'Permission'},
+            'codename': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
+        },
+        'auth.user': {
+            'Meta': {'object_name': 'User'},
+            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
+            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
+            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
+            'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
+            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
+            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
+        },
+        'contenttypes.contenttype': {
+            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
+            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
+        },
         'gracedb.approval': {
             'Meta': {'object_name': 'Approval'},
             'approvedEvent': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.Event']"}),
-            'approver': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.User']"}),
+            'approver': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
             'approvingCollaboration': ('django.db.models.fields.CharField', [], {'max_length': '1'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
@@ -47,7 +120,7 @@ class Migration(DataMigration):
             'labels': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['gracedb.Label']", 'through': "orm['gracedb.Labelling']", 'symmetrical': 'False'}),
             'likelihood': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
             'nevents': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'}),
-            'submitter': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.User']"}),
+            'submitter': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
             'uid': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '20'})
         },
         'gracedb.eventlog': {
@@ -57,12 +130,11 @@ class Migration(DataMigration):
             'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.Event']"}),
             'filename': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '100'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'issuer': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.User']"})
+            'issuer': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
         },
         'gracedb.group': {
             'Meta': {'object_name': 'Group'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'managers': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['gracedb.User']", 'symmetrical': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '20'})
         },
         'gracedb.label': {
@@ -74,7 +146,7 @@ class Migration(DataMigration):
         'gracedb.labelling': {
             'Meta': {'object_name': 'Labelling'},
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'creator': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.User']"}),
+            'creator': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
             'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.Event']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'label': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.Label']"})

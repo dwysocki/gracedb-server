@@ -169,9 +169,12 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 AUTHENTICATION_BACKENDS = (
-    'gracedb.middleware.auth.LigoAuthBackend',
-    'ligodjangoauth.LigoShibbolethAuthBackend',
-    'django.contrib.auth.backends.ModelBackend',
+#   'gracedb.middleware.auth.LigoAuthBackend',
+    'ligoauth.middleware.auth.LigoX509Backend',
+    'ligoauth.middleware.auth.LigoShibBackend',
+#   'ligoauth.middleware.auth.RemoteUserBackend',
+#   'ligodjangoauth.LigoShibbolethAuthBackend',
+#   'django.contrib.auth.backends.ModelBackend',
 )
 
 SHIB_AUTHENTICATION_SESSION_INITIATOR = 'https://moe.phys.uwm.edu/Shibboleth.sso/Login'
@@ -187,9 +190,10 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'ligodjangoauth.LigoShibbolethMiddleware',
-    'gracedb.middleware.auth.LigoAuthMiddleware',
+#   'django.contrib.auth.middleware.AuthenticationMiddleware',
+#   'ligodjangoauth.LigoShibbolethMiddleware',
+    'ligoauth.middleware.auth.LigoAuthMiddleware',
+#   'django.contrib.auth.middleware.RemoteUserMiddleware',
 ]
 
 ROOT_URLCONF = 'urls'
@@ -210,6 +214,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'gracedb',
     'userprofile',
+    'ligoauth',
     'rest_framework',
     'south',
 )
