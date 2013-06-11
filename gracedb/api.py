@@ -18,6 +18,7 @@ import os
 import urllib
 import errno
 import shutil
+import logging
 
 from utils.vfile import VersionedFile
 
@@ -127,14 +128,46 @@ class LigoAuthentication(authentication.BaseAuthentication):
             user = None
         return (user, None)
 
-
-class EventSerializer(serializers.ModelSerializer):
-    #group        = serializers.CharField(required=True, max_length=100)
-    #analysisType = serializers.CharField(required=True, max_length=100)
-    group = serializers.CharField(source="group.name")
-    class Meta:
-        model = Event
-        fields = ('far', 'instruments', 'group')
+#class EventSerializer(serializers.ModelSerializer):
+#    # Overloaded fields.
+#    group = serializers.CharField(source="group.name")
+#    submitter = serializers.CharField(source="submitter.name")
+#    graceid = serializers.Field(source="graceid")
+#    analysisType = serializers.Field(source="get_analysisType_display")
+#
+#    # New fields.
+#    labels = serializers.SerializerMethodField('get_labels') 
+#    links = serializers.SerializerMethodField('get_links')
+#
+#    class Meta:
+#        model = Event
+#        fields = ('submitter', 'created', 'group', 'graceid',
+#                  'analysisType', 'gpstime', 'instruments',
+#                  'nevents', 'far', 'likelihood', 'labels',
+#                  'links',)
+#
+#    def get_labels(self,obj):
+#        request = self.context['request']
+#        graceid = obj.graceid()
+#        return dict([
+#            (labelling.label.name,
+#                reverse("labels",
+#                    args=[graceid, labelling.label.name],
+#                    request=request))
+#            for labelling in obj.labelling_set.all()])
+#
+#    def get_links(self,obj):
+#        request = self.context['request']
+#        graceid = obj.graceid()
+#        return {
+#            "neighbors" : reverse("neighbors", args=[graceid], request=request),
+#            "log"   : reverse("eventlog-list", args=[graceid], request=request),
+#            "files" : reverse("files", args=[graceid], request=request),
+#            "filemeta" : reverse("filemeta", args=[graceid], request=request),
+#            "labels" : reverse("labels", args=[graceid], request=request),
+#            "self"  : reverse("event-detail", args=[graceid], request=request),
+#            "tags"  : reverse("eventtag-list", args=[graceid], request=request),
+#            }
 
 class EventLogSerializer(serializers.ModelSerializer):
     """docstring for EventLogSerializer"""
@@ -218,6 +251,8 @@ class EventList(APIView):
     authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,)
     parser_classes = (parsers.MultiPartParser,)
+    # Branson messing.
+    #renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LIGOLWRenderer, PlainTextRenderer,)
 
 # XXX Need a LIGOLW renderer
 #   def cli_search(request):
@@ -355,7 +390,7 @@ class EventDetail(APIView):
     authentication_classes = (LigoAuthentication,)
     #parser_classes = (LigoLwParser, RawdataParser)
     parser_classes = (parsers.MultiPartParser,)
-    serializer_class = EventSerializer
+    #serializer_class = EventSerializer
     permission_classes = (IsAuthenticated,)
 
     form = CreateEventForm
@@ -368,7 +403,7 @@ class EventDetail(APIView):
             return Response("Event Not Found",
                     status=status.HTTP_404_NOT_FOUND)
 
-        #response = Response(self.serializer_class(event).data)
+        #response = Response(self.serializer_class(event, context={'request': request}).data)
         response = Response(eventToDict(event, request=request))
 
         response["Cache-Control"] = "no-cache"
@@ -495,6 +530,8 @@ class EventLabel(APIView):
     """Event Label"""
     authentication_classes = (LigoAuthentication,)
 
+    logger = logging.getLogger(__name__)
+
     def get(self, request, graceid, label):
         event = Event.getByGraceid(graceid)
         if label is not None:
@@ -519,18 +556,14 @@ class EventLabel(APIView):
 
     def put(self, request, graceid, label):
         try:
-            # Look for the alert option, which may or may not be in the body.
-            try:
-                alert = request.DATA.get('alert')
-            except:
-                alert = True
-            rv = create_label(graceid, label, request.ligouser, alert)
+            rv = create_label(graceid, label, request.ligouser)
         except Event.DoesNotExist:
             msg = "No such Event '%s'" % graceid
             return Response(msg,status=status.HTTP_404_NOT_FOUND)
         except ValueError, e:
             return Response(e.message,
                         status=status.HTTP_400_BAD_REQUEST)
+
         return Response(rv, status=status.HTTP_201_CREATED)
 
     def delete(self, request, graceid, label):
@@ -619,6 +652,15 @@ class EventLogList(APIView):
             # XXX This seems like a bizarre way of getting an error message out.
             if retval.status_code != 201:
                 response['tagWarning'] = 'Error creating tag.'
+
+        # XXX Alter to allow file upload.  If there is an uploaded
+        uploadedFile = None
+
+        # Issue alert.
+        description = "LOG: "
+        if uploadedFile:
+            description = "UPLOAD: '%s' " % uploadedFile.name
+        issueAlertForUpdate(event, description+message, doxmpp=True, filename=uploadedFile.name)
 
         return response
 
@@ -1158,6 +1200,8 @@ class Files(APIView):
         except Exception, e:
             # XXX This needs some thought.
             response = Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+        # XXX Branson: need to create log entry here.
 
         try:
             description = "UPLOAD: {0}".format(filename)
