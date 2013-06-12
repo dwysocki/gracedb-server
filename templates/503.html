@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}503 &ndash; Service Unavailable{{ object.graceid }}{% endblock %}
+{% block heading %}Not Found {{ object.graceid }}{% endblock %}
+
+{% block content %}
+    <p>GraceDb is temporarily unavailable.  Please check back later.</p>
+    {{ message|safe }}
+{% endblock %}

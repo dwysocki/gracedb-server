@@ -3,6 +3,7 @@
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
+MAINTENANCE_MODE= False
 
 EMAIL_HOST = 'gravity.phys.uwm.edu'
 
@@ -194,6 +195,7 @@ MIDDLEWARE_CLASSES = [
 #   'ligodjangoauth.LigoShibbolethMiddleware',
     'ligoauth.middleware.auth.LigoAuthMiddleware',
 #   'django.contrib.auth.middleware.RemoteUserMiddleware',
+    'maintenancemode.middleware.MaintenanceModeMiddleware',
 ]
 
 ROOT_URLCONF = 'urls'

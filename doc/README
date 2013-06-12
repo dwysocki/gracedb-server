@@ -42,6 +42,7 @@ We need glue.ligolw, which requires SOOO many things from pylal
     pip install django
     pip install pytz
     pip install simplejson
+    pip install django-maintenancemode
 
 nfs0001
     certs
