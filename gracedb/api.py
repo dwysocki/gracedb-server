@@ -18,6 +18,7 @@ import os
 import urllib
 import errno
 import shutil
+import exceptions
 
 from utils.vfile import VersionedFile
 
@@ -116,19 +117,9 @@ def reverse(name, *args, **kw):
 
 class LigoAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
-        # XXX This might be gibberish.  Esp given new LIGO.ORG auth features.
-        #
-        # LIGOAuth middleware finds you from X509 cert, but
-        # Shib middleware clobbers (?) the Django user in request
-        # and identifies you as anonymous.  Need to recover the
-        # Django user.
-        user = None
-        try:
-            if request.user.is_active:
-                user = request.user
-        except:
-            pass
-        return (user, None)
+        # XXX This makes little sense. https://bugs.ligo.org/redmine/issues/920
+
+        raise exceptions.AuthenticationFailed("Bad user")
 
 
 class EventSerializer(serializers.ModelSerializer):
