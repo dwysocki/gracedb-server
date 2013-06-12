@@ -116,15 +116,18 @@ def reverse(name, *args, **kw):
 
 class LigoAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
+        # XXX This might be gibberish.  Esp given new LIGO.ORG auth features.
+        #
         # LIGOAuth middleware finds you from X509 cert, but
         # Shib middleware clobbers (?) the Django user in request
         # and identifies you as anonymous.  Need to recover the
         # Django user.
+        user = None
         try:
-            user = DjangoUser.objects.get(username=request.ligouser.unixid)
-        except DjangoUser.DoesNotExist:
-            # XXX Probably need to create a user.
-            user = None
+            if request.user.is_active:
+                user = request.user
+        except:
+            pass
         return (user, None)
 
 
@@ -382,8 +385,8 @@ class EventDetail(APIView):
             return Response("Event Not Found",
                     status=status.HTTP_404_NOT_FOUND)
         try:
-            if request.ligouser != event.submitter:
-                msg = "You (%s) Them (%s)" % (request.ligouser, event.submitter)
+            if request.user != event.submitter:
+                msg = "You (%s) Them (%s)" % (request.user, event.submitter)
                 return HttpResponseForbidden("You did not create this event. %s" %msg)
         except Exception, e:
             return Response(str(e))
@@ -419,7 +422,7 @@ class EventDetail(APIView):
         # Extract Info from uploaded data
         try:
             handle_uploaded_data(event, uploadDestination)
-            event.submitter = request.ligouser
+            event.submitter = request.user
         except:
             return Response("Bad Data",
                     status=status.HTTP_400_BAD_REQUEST)
@@ -514,7 +517,7 @@ class EventLabel(APIView):
     def put(self, request, graceid, label):
         #return Response("Not Implemented", status=status.HTTP_501_NOT_IMPLEMENTED)
         try:
-            create_label(graceid, label, request.ligouser)
+            create_label(graceid, label, request.user)
         except ValueError, e:
             return Response(e.message,
                         status=status.HTTP_400_BAD_REQUEST)
@@ -589,7 +592,7 @@ class EventLogList(APIView):
         tagname = request.DATA.get('tagname')
         logentry = EventLog(
                 event=event,
-                issuer=request.ligouser,
+                issuer=request.user,
                 comment=message)
         logset = event.eventlog_set.order_by("created")
         n = len(logset)
@@ -841,7 +844,7 @@ class EventLogTagDetail(APIView):
             # Create a log entry to document the tag creation.
             msg = "Tagged message %s: %s " % (n, tagname)
             logentry = EventLog(event=event,
-                               issuer=request.ligouser,
+                               issuer=request.user,
                                comment=msg)
             logentry.save()
 
@@ -870,7 +873,7 @@ class EventLogTagDetail(APIView):
             # Create a log entry to document the tag creation.
             msg = "Removed tag %s for message %s. " % (tagname, n)
             logentry = EventLog(event=event,
-                               issuer=request.ligouser,
+                               issuer=request.user,
                                comment=msg)
             logentry.save()
 
