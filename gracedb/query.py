@@ -122,7 +122,7 @@ eidQ = Optional(Suppress(Keyword("eid:"))) + (eid^eidRange)
 eidQ = eidQ.setParseAction(maybeRange("eid", dbname="id"))
 
 # Submitter
-submitter = QuotedString('"').setParseAction(lambda toks: Q(submitter__name=toks[0]))
+submitter = QuotedString('"').setParseAction(lambda toks: Q(submitter__username=toks[0]))
 submitterQ = Optional(Suppress(Keyword("submitter:"))) + submitter
 submitterQ = submitterQ.setParseAction(lambda toks: ("submitter", toks[0]))
 
