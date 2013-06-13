@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 from south.db import db
 from south.v2 import DataMigration
@@ -7,11 +6,27 @@ from django.db import models
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        from django.core.management import call_command
-        call_command("loaddata", "initial_tags.json")
+        "Write your forwards methods here."
+        # Note: Remember to use orm['appname.ModelName'] rather than "from appname.models..."
 
-    complete_apps = ['gracedb']
-    symmetrical = True
+        for event in orm.Event.objects.all():
+            # We order by primary key, since that is guaranteed to be monotonic.
+            print "processing event %d" % event.id
+            logs = event.eventlog_set.order_by('id')
+            N = 0
+            for log in logs:
+                log.N = N
+                N = N + 1
+                log.save()
+
+    def backwards(self, orm):
+        "Write your backwards methods here."
+        # So, when the forward schema migration occurred, all of the log message numbers were
+        # initialized to zero.  So let's set them back to zero.  This is probably not necessary,
+        # but we might as well reverse things rigorously.
+        for log in orm.EventLog.objects.all():
+            log.N = 0
+
 
     models = {
         'gracedb.approval': {
@@ -52,6 +67,7 @@ class Migration(DataMigration):
         },
         'gracedb.eventlog': {
             'Meta': {'ordering': "['-created']", 'object_name': 'EventLog'},
+            'N': ('django.db.models.fields.IntegerField', [], {}),
             'comment': ('django.db.models.fields.TextField', [], {}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.Event']"}),
@@ -118,3 +134,4 @@ class Migration(DataMigration):
     }
 
     complete_apps = ['gracedb']
+    symmetrical = True

@@ -66,7 +66,8 @@ runmap = {
    #"ER2" : (1026061216, 1028480416),
    #"ER2" : (1026069984, 1028480416),  # soft start
     "ER2" : (1026666016, 1028480416),  # Jul 18 17:00:00 GMT 2012 - Aug 8 17:00:00 GMT 2012
-    "ER1" : (1010880015, 1100000000),  # End time is very wrong.
+    "ER1":  (1011601640, 1013299215),
+    "ER1test": (1010944815, 1011601640),  # Pre ER1
     "S6"  : (931035296, 971622087),
     "S6A" : (931035296, 935798487),
     "S6B" : (937800015, 947260815),
@@ -122,7 +123,7 @@ eidQ = Optional(Suppress(Keyword("eid:"))) + (eid^eidRange)
 eidQ = eidQ.setParseAction(maybeRange("eid", dbname="id"))
 
 # Submitter
-submitter = QuotedString('"').setParseAction(lambda toks: Q(submitter__name=toks[0]))
+submitter = QuotedString('"').setParseAction(lambda toks: Q(submitter__username=toks[0]))
 submitterQ = Optional(Suppress(Keyword("submitter:"))) + submitter
 submitterQ = submitterQ.setParseAction(lambda toks: ("submitter", toks[0]))
 

@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
 import datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
 
-class Migration(DataMigration):
+
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        from django.core.management import call_command
-        call_command("loaddata", "initial_tags.json")
+        # Adding unique constraint on 'EventLog', fields ['event', 'N']
+        db.create_unique('gracedb_eventlog', ['event_id', 'N'])
 
-    complete_apps = ['gracedb']
-    symmetrical = True
+
+    def backwards(self, orm):
+        # Removing unique constraint on 'EventLog', fields ['event', 'N']
+        db.delete_unique('gracedb_eventlog', ['event_id', 'N'])
+
 
     models = {
         'gracedb.approval': {
@@ -51,7 +55,8 @@ class Migration(DataMigration):
             'uid': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '20'})
         },
         'gracedb.eventlog': {
-            'Meta': {'ordering': "['-created']", 'object_name': 'EventLog'},
+            'Meta': {'ordering': "['-created']", 'unique_together': "(('event', 'N'),)", 'object_name': 'EventLog'},
+            'N': ('django.db.models.fields.IntegerField', [], {}),
             'comment': ('django.db.models.fields.TextField', [], {}),
             'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.Event']"}),

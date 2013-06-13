@@ -37,7 +37,7 @@ function changeTime(obj, label) {
     <li id="nav-feeds"><a href="{% url feeds %}">RSS</a></li>
     <li id="nav-latest"><a href="{% url latest %}">Latest</a></li>
     <li id="nav-userprofile"><a href="{% url userprofile-home %}">Options</a></li>
-    {% if ligouser %}<li id="nav-user">Authenticated as: {{ ligouser.name }}</li>{% endif %}
+    {% if user %}<li id="nav-user">Authenticated as: {{ user.first_name }} {{user.last_name }}</li>{% endif %}
 </ul>
 <center>
     {% if config_name %}
@@ -78,9 +78,9 @@ function changeTime(obj, label) {
    </td>
 
    <td align="center">
-    {% if ligouser and ligouser.name == "Chad Hanna" %}
+    {% if user and user.username == "chad.hanna@LIGO.ORG" %}
         <img width="194" height="37" src="{{MEDIA_URL}}images/PI_Logo-anim.gif">
-    {% else %}{% if ligouser and ligouser.name == "Kipp Cannon" %}
+    {% else %}{% if user and user.username == "kipp.cannon@LIGO.ORG" %}
         <img width="194" height="37" src="{{MEDIA_URL}}images/CITA_logo-anim.gif">
     {% else %}
         <img width="107" height="37" src="{{MEDIA_URL}}images/anim2.gif">

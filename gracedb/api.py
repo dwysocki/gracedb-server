@@ -18,7 +18,7 @@ import os
 import urllib
 import errno
 import shutil
-import logging
+import exceptions
 
 from utils.vfile import VersionedFile
 
@@ -117,16 +117,9 @@ def reverse(name, *args, **kw):
 
 class LigoAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
-        # LIGOAuth middleware finds you from X509 cert, but
-        # Shib middleware clobbers (?) the Django user in request
-        # and identifies you as anonymous.  Need to recover the
-        # Django user.
-        try:
-            user = DjangoUser.objects.get(username=request.ligouser.unixid)
-        except DjangoUser.DoesNotExist:
-            # XXX Probably need to create a user.
-            user = None
-        return (user, None)
+        # XXX This makes little sense. https://bugs.ligo.org/redmine/issues/920
+
+        raise exceptions.AuthenticationFailed("Bad user")
 
 #class EventSerializer(serializers.ModelSerializer):
 #    # Overloaded fields.
@@ -187,7 +180,7 @@ def eventToDict(event, columns=None, request=None):
     rv = {}
 
     graceid = event.graceid()
-    rv['submitter'] = event.submitter.name
+    rv['submitter'] = event.submitter.username
     rv['created'] = event.created
     rv['group'] = event.group.name
     rv['graceid'] = graceid
@@ -417,8 +410,8 @@ class EventDetail(APIView):
             return Response("Event Not Found",
                     status=status.HTTP_404_NOT_FOUND)
         try:
-            if request.ligouser != event.submitter:
-                msg = "You (%s) Them (%s)" % (request.ligouser, event.submitter)
+            if request.user != event.submitter:
+                msg = "You (%s) Them (%s)" % (request.user, event.submitter)
                 return HttpResponseForbidden("You did not create this event. %s" %msg)
         except Exception, e:
             return Response(str(e))
@@ -454,7 +447,7 @@ class EventDetail(APIView):
         # Extract Info from uploaded data
         try:
             handle_uploaded_data(event, uploadDestination)
-            event.submitter = request.ligouser
+            event.submitter = request.user
         except:
             # XXX Bad news.  If the log file fails to save because of
             # race conditions, then this will also be the the message
@@ -519,7 +512,7 @@ class EventNeighbors(APIView):
 def labelToDict(label, request=None):
     return { 
             "name" : label.label.name,
-            "creator" : label.creator.name,
+            "creator" : label.creator.username,
             "created" : label.created,
             "self" : reverse("labels",
                 args=[label.event.graceid(), label.label.name],
@@ -587,7 +580,7 @@ def eventLogToDict(log, request=None):
     return {
                 "comment" : log.comment,
                 "created" : log.created,
-                "issuer"  : log.issuer.name,
+                "issuer"  : log.issuer.username,
                 "self"    : uri,
                 "tags"    : taglist_uri,
            }
@@ -631,7 +624,7 @@ class EventLogList(APIView):
         tagname = request.DATA.get('tagname')
         logentry = EventLog(
                 event=event,
-                issuer=request.ligouser,
+                issuer=request.user,
                 comment=message)
         logset = event.eventlog_set.order_by("created","N")
         try:
@@ -892,7 +885,7 @@ class EventLogTagDetail(APIView):
             # Create a log entry to document the tag creation.
             msg = "Tagged message %s: %s " % (n, tagname)
             logentry = EventLog(event=event,
-                               issuer=request.ligouser,
+                               issuer=request.user,
                                comment=msg)
             try:    
                 logentry.save()
@@ -926,7 +919,7 @@ class EventLogTagDetail(APIView):
             # Create a log entry to document the tag creation.
             msg = "Removed tag %s for message %s. " % (tagname, n)
             logentry = EventLog(event=event,
-                               issuer=request.ligouser,
+                               issuer=request.user,
                                comment=msg)
             try:    
                 logentry.save()

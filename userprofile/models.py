@@ -1,7 +1,9 @@
 
 from django.db import models
 
-from gracedb.models import User, Label, Event
+from gracedb.models import Label, Event
+
+from django.contrib.auth.models import User
 
 
 #class Notification(models.Model):
@@ -33,6 +35,7 @@ def populateAnalysisType():
 
 class Contact(models.Model):
     user = models.ForeignKey(User, null=False)
+    #new_user = models.ForeignKey(DjangoUser, null=True)
     desc = models.CharField(max_length=20)
     email = models.EmailField()
 
@@ -42,6 +45,7 @@ class Contact(models.Model):
 class Trigger(models.Model):
     TYPES = ( ("create", "create"), ("change","change"), ("label","label") )
     user = models.ForeignKey(User, null=False)
+    #new_user = models.ForeignKey(DjangoUser, null=True)
     triggerType = models.CharField(max_length=20, choices=TYPES, blank=True)
     labels = models.ManyToManyField(Label, blank=True)
     atypes = models.ManyToManyField(AnalysisType, blank=True, verbose_name="Analysis Types")

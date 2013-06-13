@@ -2,7 +2,8 @@
 from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
-from models import Event, User, Group, Label
+from models import Event, Group, Label
+from django.contrib.auth.models import User
 
 from query import parseQuery, ParseException
 
@@ -46,8 +47,9 @@ class EventSearchForm(forms.Form):
     typeChoices= [("","")]+list(Event.ANALYSIS_TYPE_CHOICES)
 
     submitterIds = Event.objects.values_list('submitter',flat=True).distinct()
-    submitterList = User.objects.filter(id__in=submitterIds).order_by('name')
-    submitterChoices = [("","")]+ [ (u.id, u.name) for u in submitterList]
+    submitterList = User.objects.filter(id__in=submitterIds).order_by('last_name', 'first_name')
+    submitterChoices = [("","")]+ \
+            [ (u.id, u"{0} {1}".format(u.first_name, u.last_name)) for u in submitterList]
 
     labelChoices = [ ("hi%d"%n,"bye%d"%n) for n in [1,2,3]]
     labelChoices = [ (label.id, label.name) for label in Label.objects.all() ]

@@ -107,7 +107,7 @@ Event Summary:
                 event.graceid(),
                 'https://'+Site.objects.get_current().domain+ reverse("view", args=[event.graceid()]),
                 event.weburl(),
-                event.submitter.name,
+                "%s %s" % (event.submitter.first_name, event.submitter.last_name),
                 indent(3, prepareSummary(event))
                )
 

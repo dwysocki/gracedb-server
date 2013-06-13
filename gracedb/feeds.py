@@ -62,7 +62,7 @@ class EventFeed(Feed):
         return reverse(view, args=[obj.graceid()])
 
     def item_author_name(self, obj):
-        return obj.submitter.name
+        return u"{0} {1}".format(obj.submitter.first_name, obj.submitter.last_name)
 
     def item_pubdate(self, obj):
         return obj.created

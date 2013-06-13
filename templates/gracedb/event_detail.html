@@ -491,7 +491,7 @@
                         <tr class="{% cycle 'odd' 'even'%}">
                            <td>{{log.N}}</td>
                            <td>{{log.created|multiTime:"logtime"}}</td>
-                           <td>{{log.issuer}}</td>
+			   <td>{{log.issuer.first_name}} {{log.issuer.last_name}}</td>
                            <td>{{log.comment|sanitize}}
                                {% if log.fileurl %}
                                 <a href="{{log.fileurl}}">{{log.filename}}</a>
@@ -567,7 +567,7 @@
         <tr class="{% cycle 'odd' 'even'%}">
            <td>{{log.N}}
            <td>{{log.created|multiTime:"logtime"}}</td>
-           <td>{{log.issuer}}</td>
+           <td>{{log.issuer.first_name}} {{ log.issuer.last_name}}</td>
   {% if object.getAvailableTags %}
            <td> 
               <table> 

@@ -1,0 +1,11 @@
+
+
+{% extends "base.html" %}
+
+{% block title %}403 &ndash; Forbidden{{ object.graceid }}{% endblock %}
+{% block heading %}Forbidden{{ object.graceid }}{% endblock %}
+
+{% block content %}
+    <p>The item you requested is not for you.</p> {{ message|safe }}
+{% endblock %}
+
