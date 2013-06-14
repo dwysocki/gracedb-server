@@ -20,6 +20,8 @@ import errno
 import shutil
 import exceptions
 
+import logging
+
 from utils.vfile import VersionedFile
 
 ##################################################################
@@ -35,7 +37,8 @@ from rest_framework.response import Response
 #from rest_framework import generics
 #from rest_framework.renderers import JSONRenderer, JSONPRenderer
 #from rest_framework.renderers import YAMLRenderer, XMLRenderer
-from rest_framework.renderers import BaseRenderer
+from rest_framework.renderers import BaseRenderer, JSONRenderer
+from rest_framework.renderers import BrowsableAPIRenderer
 from forms import CreateEventForm
 from views import _createEventFromForm
 from rest_framework import parsers      # YAMLParser, MultiPartParser
@@ -172,28 +175,17 @@ class EventLogSerializer(serializers.ModelSerializer):
 #==================================================================
 # Custom renderers
         
-class TSVRenderer(renderers.BaseRenderer):
+class TSVRenderer(BaseRenderer):
     media_type = 'text/tab-separated-values'
     format = '.tsv'
-    
+
     def render(self, data, media_type=None, renderer_context=None):
-        # What keys should be in 'data'?  Uh....
-        # 'links' -> 'self', 'first', 'last', 'next'
-        # 'events'
-        # 'numRows'
-        # Within each event, the keys are
-        # submitter, created, group, graceid
-        # analysisType, gpstime, instruments,
-        # nevents, far, likelihood, 
-        # labels -> {labelName, link}
-        # links -> neighbors, log, files, filemeta, labels, self, tags
-        
         accessFun = {
             "labels" : lambda e: \
                 ",".join(e['labels'].keys()),
             "analysisType" : lambda e: e['analysisType'],
             "gpstime" : lambda e: str(e['gpstime']),
-            "created" : lambda e: e['created'],
+            "created" : lambda e: e['created'].isoformat(),
             "dataurl" : lambda e: e['links']['files'],
             "graceid" : lambda e: e['graceid'],
             "group" : lambda e: e['group'],
@@ -201,9 +193,7 @@ class TSVRenderer(renderers.BaseRenderer):
         defaultAccess = lambda e, a: str(e.get(a,""))
 
         defaultColumns = "graceid,labels,group,analysisType,far,gpstime,created,dataurl"
-        # XXX How to get columns into the renderer_context?  It's an attribute of the
-        # response
-        columns = renderer_context.get('columns', None)
+        columns = renderer_context.get('kwargs', None).get('columns', None)
         if not columns:
             columns = defaultColumns
         columns = columns.split(',')
@@ -315,16 +305,21 @@ class EventList(APIView):
 #              response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
 #              utils.write_fileobj(xmldoc, response)
 #              return response
-
+    def __init__(self, **kwargs):
+        # Try to define the logger in here.
+        self.logger = logging.getLogger(__name__)
+        super(EventList, self).__init__(**kwargs)
 
     def get(self, request):
-        """I am the GET docstring for EventList"""
 
+        """I am the GET docstring for EventList"""
         query = request.QUERY_PARAMS.get("query")
         count = request.QUERY_PARAMS.get("count", PAGINATE_BY)
         start = request.QUERY_PARAMS.get("start", 0)
         sort = request.QUERY_PARAMS.get("sort", "-created")
         columns = request.QUERY_PARAMS.get("columns", "")
+
+        self.logger.debug("accepts = %s" % request.META['HTTP_ACCEPT'])
 
         events = Event.objects
         if query:
@@ -362,9 +357,10 @@ class EventList(APIView):
             links['next'] = baseuri + "?" + urllib.urlencode(d)
         rv['numRows'] = events.count()
         d['links'] = links
-        # XXX Crap, I don't think it works to just pass it in this way.
-        # I think I'm going to have to overload some method of the APIView.
-        return Response(rv, renderer_context = { 'columns': columns } )
+        # XXX One way of getting the columns into renderer_context.  Bizarre?
+        setattr(self, 'kwargs', {'columns': columns})
+        self.logger.debug("accepted_renderer = %s" % request.accepted_renderer)
+        return Response(rv)
 
     def post(self, request, format=None):
         form = CreateEventForm(request.POST, request.FILES)
@@ -574,8 +570,6 @@ def labelToDict(label, request=None):
 class EventLabel(APIView):
     """Event Label"""
     authentication_classes = (LigoAuthentication,)
-
-    logger = logging.getLogger(__name__)
 
     def get(self, request, graceid, label):
         event = Event.getByGraceid(graceid)
