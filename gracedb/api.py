@@ -174,7 +174,37 @@ class EventLogSerializer(serializers.ModelSerializer):
         fields = ('comment', 'issuer', 'created')
 #==================================================================
 # Custom renderers
-        
+
+def assembleLigoLw(eventDict):
+    from glue.ligolw import ligolw
+    # lsctables MUST be loaded before utils.
+    from glue.ligolw import lsctables
+    from glue.ligolw import utils
+    from glue.ligolw.utils import ligolw_add
+
+    xmldoc = ligolw.Document()
+    for e in eventDict:
+        fname = os.path.join(settings.GRACEDB_DATA_DIR, e['graceid'], "private", "coinc.xml")
+        utils.load_filename(fname, xmldoc=xmldoc)
+
+    ligolw_add.reassign_ids(xmldoc)
+    ligolw_add.merge_ligolws(xmldoc)
+    ligolw_add.merge_compatible_tables(xmldoc)
+    return xmldoc
+
+class LigoLwRenderer(BaseRenderer):
+    media_type = 'application/xml'
+    format = '.xml'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        import StringIO
+        xmldoc = assembleLigoLw(data['events'])
+        # XXX Aaargh! Just give me the contents of the xml doc.
+        # I don't want to write it to a file.  Please don't make me.
+        output = StringIO.StringIO()
+        xmldoc.write(output)
+        return output.getvalue()
+
 class TSVRenderer(BaseRenderer):
     media_type = 'text/tab-separated-values'
     format = '.tsv'
@@ -193,6 +223,7 @@ class TSVRenderer(BaseRenderer):
         defaultAccess = lambda e, a: str(e.get(a,""))
 
         defaultColumns = "graceid,labels,group,analysisType,far,gpstime,created,dataurl"
+        # XXX Que monstroso!
         columns = renderer_context.get('kwargs', None).get('columns', None)
         if not columns:
             columns = defaultColumns
@@ -276,35 +307,11 @@ class EventList(APIView):
     """
     #model = Event
     #serializer_class = EventSerializer
-    ##renderer_classes = (JSONRenderer, JSONPRenderer, YAMLRenderer, XMLRenderer)
-    ##permission_classes = (AllowAny,)
-    ##authentication_classes = (authentication.SessionAuthentication,)
     authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,)
     parser_classes = (parsers.MultiPartParser,)
-    # Branson messing.
-    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, TSVRenderer,)
-    #renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LIGOLWRenderer, TSVRenderer,)
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LigoLwRenderer, TSVRenderer,)
 
-# XXX Need a LIGOLW renderer
-#   def cli_search(request):
-#      assert request.ligouser
-#      from views import assembleLigoLw
-#      form = SimpleSearchForm(request.POST)
-#      if form.is_valid():
-#          query = form.cleaned_data['query']
-#          objects = Event.objects.filter(query).distinct()
-
-#          if 'ligolw' in request.POST or 'ligolw' in request.GET:
-#              from glue.ligolw import utils
-#              if objects.count() > 1000:
-#                  return Response("Too many events.",
-#                          status=status.HTTP_400_BAD_REQUEST)
-#              xmldoc = assembleLigoLw(objects)
-#              response = HttpResponse(mimetype='application/xml')
-#              response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
-#              utils.write_fileobj(xmldoc, response)
-#              return response
     def __init__(self, **kwargs):
         # Try to define the logger in here.
         self.logger = logging.getLogger(__name__)
@@ -360,7 +367,13 @@ class EventList(APIView):
         # XXX One way of getting the columns into renderer_context.  Bizarre?
         setattr(self, 'kwargs', {'columns': columns})
         self.logger.debug("accepted_renderer = %s" % request.accepted_renderer)
-        return Response(rv)
+        try:
+            # If the rendering process fails, this will throw an exception.
+            resp = Response(rv)
+        except Exception, e:
+            # XXX Do something here.
+            pass
+        return resp
 
     def post(self, request, format=None):
         form = CreateEventForm(request.POST, request.FILES)
