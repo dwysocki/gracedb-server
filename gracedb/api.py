@@ -35,6 +35,7 @@ from rest_framework.response import Response
 #from rest_framework import generics
 #from rest_framework.renderers import JSONRenderer, JSONPRenderer
 #from rest_framework.renderers import YAMLRenderer, XMLRenderer
+from rest_framework.renderers import BaseRenderer
 from forms import CreateEventForm
 from views import _createEventFromForm
 from rest_framework import parsers      # YAMLParser, MultiPartParser
@@ -168,6 +169,53 @@ class EventLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = EventLog
         fields = ('comment', 'issuer', 'created')
+#==================================================================
+# Custom renderers
+        
+class TSVRenderer(renderers.BaseRenderer):
+    media_type = 'text/tab-separated-values'
+    format = '.tsv'
+    
+    def render(self, data, media_type=None, renderer_context=None):
+        # What keys should be in 'data'?  Uh....
+        # 'links' -> 'self', 'first', 'last', 'next'
+        # 'events'
+        # 'numRows'
+        # Within each event, the keys are
+        # submitter, created, group, graceid
+        # analysisType, gpstime, instruments,
+        # nevents, far, likelihood, 
+        # labels -> {labelName, link}
+        # links -> neighbors, log, files, filemeta, labels, self, tags
+        
+        accessFun = {
+            "labels" : lambda e: \
+                ",".join(e['labels'].keys()),
+            "analysisType" : lambda e: e['analysisType'],
+            "gpstime" : lambda e: str(e['gpstime']),
+            "created" : lambda e: e['created'],
+            "dataurl" : lambda e: e['links']['files'],
+            "graceid" : lambda e: e['graceid'],
+            "group" : lambda e: e['group'],
+        }
+        defaultAccess = lambda e, a: str(e.get(a,""))
+
+        defaultColumns = "graceid,labels,group,analysisType,far,gpstime,created,dataurl"
+        # XXX How to get columns into the renderer_context?  It's an attribute of the
+        # response
+        columns = renderer_context.get('columns', None)
+        if not columns:
+            columns = defaultColumns
+        columns = columns.split(',')
+
+        header = "#" + "\t".join(columns)
+        outTable = [header]
+        for e in data['events']:
+            row = [ accessFun.get(column, lambda e: defaultAccess(e,column))(e) for column in columns ]
+            outTable.append("\t".join(row))
+        outTable = "\n".join(outTable)
+       
+        return outTable
 
 #==================================================================
 # Events
@@ -245,7 +293,8 @@ class EventList(APIView):
     permission_classes = (IsAuthenticated,)
     parser_classes = (parsers.MultiPartParser,)
     # Branson messing.
-    #renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LIGOLWRenderer, PlainTextRenderer,)
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, TSVRenderer,)
+    #renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LIGOLWRenderer, TSVRenderer,)
 
 # XXX Need a LIGOLW renderer
 #   def cli_search(request):
@@ -275,6 +324,7 @@ class EventList(APIView):
         count = request.QUERY_PARAMS.get("count", PAGINATE_BY)
         start = request.QUERY_PARAMS.get("start", 0)
         sort = request.QUERY_PARAMS.get("sort", "-created")
+        columns = request.QUERY_PARAMS.get("columns", "")
 
         events = Event.objects
         if query:
@@ -312,7 +362,9 @@ class EventList(APIView):
             links['next'] = baseuri + "?" + urllib.urlencode(d)
         rv['numRows'] = events.count()
         d['links'] = links
-        return Response(rv)
+        # XXX Crap, I don't think it works to just pass it in this way.
+        # I think I'm going to have to overload some method of the APIView.
+        return Response(rv, renderer_context = { 'columns': columns } )
 
     def post(self, request, format=None):
         form = CreateEventForm(request.POST, request.FILES)
