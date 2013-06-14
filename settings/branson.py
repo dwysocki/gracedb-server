@@ -65,9 +65,10 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'ligodjangoauth.LigoShibbolethMiddleware',
-    'gracedb.middleware.auth.LigoAuthMiddleware',
+#    'django.contrib.auth.middleware.AuthenticationMiddleware',
+#    'ligodjangoauth.LigoShibbolethMiddleware',
+    'ligoauth.middleware.auth.LigoAuthMiddleware',
+    'maintenancemode.middleware.MaintenanceModeMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
