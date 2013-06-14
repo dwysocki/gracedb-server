@@ -201,6 +201,8 @@ class LigoLwRenderer(BaseRenderer):
         xmldoc = assembleLigoLw(data['events'])
         # XXX Aaargh! Just give me the contents of the xml doc.
         # I don't want to write it to a file.  Please don't make me.
+        # Would it be better to do this with xmldoc.write_fileobj()?
+        # utils.write_fileobj(xmldoc, output)
         output = StringIO.StringIO()
         xmldoc.write(output)
         return output.getvalue()
@@ -342,6 +344,14 @@ class EventList(APIView):
         start = int(start)
         count = int(count)
         numRows = events.count()
+
+        # XXX Let's check.  If the output format is ligolw, and 
+        # there are more than 1000 events, we error out.  
+        if request.accepted_renderer.format == '.xml' and numRows > 1000:
+            # XXX Here again, I don't think this is going to render correctly.
+            d = {'error': 'Too many events.' }
+            return Response(d)
+
         last = max(0, (numRows / count)) * count
         rv = {}
         links = {}
@@ -363,16 +373,22 @@ class EventList(APIView):
             d['start'] = start+count
             links['next'] = baseuri + "?" + urllib.urlencode(d)
         rv['numRows'] = events.count()
-        d['links'] = links
-        # XXX One way of getting the columns into renderer_context.  Bizarre?
+        # XXX Branson: I believe the following line is unnecessary.
+        # d['links'] = links
+        # XXX Get the columns into renderer_context. Bizarre? Why, yes.
         setattr(self, 'kwargs', {'columns': columns})
         self.logger.debug("accepted_renderer = %s" % request.accepted_renderer)
         try:
             # If the rendering process fails, this will throw an exception.
             resp = Response(rv)
+            # XXX Not sure if this will actually work.
+            if request.accepted_renderer.format == '.xml':
+                resp['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
         except Exception, e:
-            # XXX Do something here.
-            pass
+            d = {'error': str(e) }
+            # XXX Okay, we probably want this to return JSON.  Even if if the
+            # Accept header said something else.  Maybe?
+            return Response(d)
         return resp
 
     def post(self, request, format=None):
