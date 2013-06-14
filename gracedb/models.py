@@ -10,7 +10,16 @@ import datetime
 import thread
 import string
 import os
+import logging
 
+import glue
+import glue.ligolw
+import glue.ligolw.utils
+import glue.ligolw.table
+import glue.ligolw.lsctables
+from glue.lal import LIGOTimeGPS
+
+log = logging.getLogger('gracedb.models')
 
 # XXX ER2.utils.  utils is in project directory.  ugh.
 from utils import posixToGpsTime
@@ -270,6 +279,129 @@ class MultiBurstEvent(Event):
     ligo_axis_dec    = models.FloatField(null=True)
     ligo_angle       = models.FloatField(null=True)
     ligo_angle_sig   = models.FloatField(null=True)
+
+class SingleInspiral(models.Model):
+    event             = models.ForeignKey(Event, null=False)
+    ifo               = models.CharField(max_length=20, null=True)
+    search            = models.CharField(max_length=20, null=True)
+    channel           = models.CharField(max_length=20)
+    end_time          = models.IntegerField(null=True)
+    end_time_ns       = models.IntegerField(null=True)
+    end_time_gmst     = models.FloatField(null=True)
+    impulse_time      = models.IntegerField(null=True)
+    impulse_time_ns   = models.IntegerField(null=True)
+    template_duration = models.FloatField(null=True)
+    event_duration    = models.FloatField(null=True)
+    amplitude         = models.FloatField(null=True)
+    eff_distance      = models.FloatField(null=True)
+    coa_phase         = models.FloatField(null=True)
+    mass1             = models.FloatField(null=True)
+    mass2             = models.FloatField(null=True)
+    mchirp            = models.FloatField(null=True)
+    mtotal            = models.FloatField(null=True)
+    eta               = models.FloatField(null=True)
+    kappa             = models.FloatField(null=True)
+    chi               = models.FloatField(null=True)
+    tau0              = models.FloatField(null=True)
+    tau2              = models.FloatField(null=True)
+    tau3              = models.FloatField(null=True)
+    tau4              = models.FloatField(null=True)
+    tau5              = models.FloatField(null=True)
+    ttotal            = models.FloatField(null=True)
+    psi0              = models.FloatField(null=True)
+    psi3              = models.FloatField(null=True)
+    alpha             = models.FloatField(null=True)
+    alpha1            = models.FloatField(null=True)
+    alpha2            = models.FloatField(null=True)
+    alpha3            = models.FloatField(null=True)
+    alpha4            = models.FloatField(null=True)
+    alpha5            = models.FloatField(null=True)
+    alpha6            = models.FloatField(null=True)
+    beta              = models.FloatField(null=True)
+    f_final           = models.FloatField(null=True)
+    snr               = models.FloatField(null=True)
+    chisq             = models.FloatField(null=True)
+    chisq_dof         = models.IntegerField(null=True)
+    bank_chisq        = models.FloatField(null=True)
+    bank_chisq_dof    = models.IntegerField(null=True)
+    cont_chisq        = models.FloatField(null=True)
+    cont_chisq_dof    = models.IntegerField(null=True)
+    sigmasq           = models.FloatField(null=True)
+    rsqveto_duration  = models.FloatField(null=True)
+    Gamma0            = models.FloatField(null=True)
+    Gamma1            = models.FloatField(null=True)
+    Gamma2            = models.FloatField(null=True)
+    Gamma3            = models.FloatField(null=True)
+    Gamma4            = models.FloatField(null=True)
+    Gamma5            = models.FloatField(null=True)
+    Gamma6            = models.FloatField(null=True)
+    Gamma7            = models.FloatField(null=True)
+    Gamma8            = models.FloatField(null=True)
+    Gamma9            = models.FloatField(null=True)
+
+    def end_time_full(self):
+        return LIGOTimeGPS(self.end_time, self.end_time_ns)
+
+    def impulse_time_full(self):
+        return LIGOTimeGPS(self.impulse_time, self.impulse_time_ns)
+
+    @classmethod
+    def create_events_from_ligolw_table(cls, table, event):
+        """For an Event, given a table (loaded by ligolw.utils.load_filename or similar) create SingleEvent tables for the event"""
+
+        field_names = cls.field_names()
+        created_events = []
+
+        log.debug("Single/create from table/fields: " + str(field_names))
+
+        for row in table:
+            e = cls(event=event)
+            log.debug("Single/creating event")
+            for column in field_names:
+                value = getattr(row, column)
+                log.debug("Setting column '%s' with value '%s'" % (column, value))
+                setattr(e, column, value)
+            e.save()
+            created_events.append(e)
+
+        return created_events
+
+    @classmethod
+    def update_event(cls, event, datafile=None):
+        """Given an Event (and optional location of coinc.xml) update SingleInspiral data"""
+        # XXX Need a better way to find original data.
+        if datafile is None:
+            datafile = os.path.join(event.datadir(), 'coinc.xml')
+
+        try:
+            xmldoc = glue.ligolw.utils.load_filename(datafile)
+        except IOError:
+            return None
+
+        # Extract Single Inspiral Information
+        s_inspiral_tables = glue.ligolw.table.getTablesByName(
+                xmldoc,
+                glue.ligolw.lsctables.SnglInspiralTable.tableName)
+
+        # Concatentate the tables' rows into a single table
+        table = sum(s_inspiral_tables, [])
+
+        event.singleinspiral_set.all().delete()
+
+        return cls.create_events_from_ligolw_table(table, event)
+
+    @classmethod
+    def field_names(cls):
+        try:
+            return cls._field_names
+        except AttributeError: pass
+        model_field_names = set([ x.name for x in cls._meta.fields ])
+        ligolw_field_names = set(
+                glue.ligolw.lsctables.SnglInspiralTable.validcolumns.keys())
+
+        cls._field_names = model_field_names.intersection(ligolw_field_names)
+        return cls._field_names
+
 
 ## Tags (user-defined log message attributes)
 class Tag(models.Model):

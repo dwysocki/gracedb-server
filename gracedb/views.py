@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 from models import Event, Group, EventLog, Labelling, Label, Tag
 from models import CoincInspiralEvent
 from models import MultiBurstEvent
+from models import SingleInspiral
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
@@ -562,6 +563,7 @@ def view(request, graceid):
                             for event in a.neighbors()]
     context['skyalert_authorized'] = skyalert_authorized(request)
     context['blessed_tags'] = settings.BLESSED_TAGS
+    context['single_inspiral_events'] = list(a.singleinspiral_set.all())
     return render_to_response(
         [ 'gracedb/event_detail_{0}.html'.format(a.analysisType),
           'gracedb/event_detail.html'],

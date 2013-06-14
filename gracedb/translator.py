@@ -1,10 +1,12 @@
 
 import os
 
-from models import EventLog
+from .models import EventLog
+from .models import SingleInspiral
 
 import glue
 import glue.ligolw.utils
+import glue.ligolw.lsctables
 
 from gracedb.serialize import populate_inspiral_tables, \
                                populate_omega_tables,    \
@@ -119,6 +121,15 @@ def handle_uploaded_data(event, datafilename,
         #xml_filename = os.path.join(output_dir, coinc_table_filename)
 
         event.save()
+
+        # Extract Single Inspiral Information
+        s_inspiral_tables = glue.ligolw.table.getTablesByName(
+                xmldoc,
+                glue.ligolw.lsctables.SnglInspiralTable.tableName)
+
+        # Concatentate the tables' rows into a single table
+        table = sum(s_inspiral_tables, [])
+        SingleInspiral.create_events_from_ligolw_table(table, event)
 
     elif event.analysisType == "HWINJ":
         log_comment = "Log File Created"
