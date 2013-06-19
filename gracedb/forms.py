@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from models import Event, Group, Label
 from django.contrib.auth.models import User
+from django.core.exceptions import FieldError
 
 from query import parseQuery, ParseException
 
@@ -20,9 +21,13 @@ class GraceQueryField(forms.CharField):
         from django.db.models import Q
         queryString = forms.CharField.clean(self, queryString)
         try:
-            return parseQuery(queryString)
+            return Event.objects.filter(parseQuery(queryString)).distinct()
         except ParseException, e:
             err = "Error: " + escape(e.pstr[:e.loc]) + errorMarker + escape(e.pstr[e.loc:])
+            raise forms.ValidationError(mark_safe(err))
+        except FieldError, e:
+            # XXX error message can be more polished than this
+            err = "Error: " + str(e)
             raise forms.ValidationError(mark_safe(err))
         except Exception, e:
             # What could this be and how can we handle it better? XXX

@@ -574,8 +574,7 @@ def cli_search(request):
     assert request.user
     form = SimpleSearchForm(request.POST)
     if form.is_valid():
-        query = form.cleaned_data['query']
-        objects = Event.objects.filter(query).distinct()
+        objects = form.cleaned_data['query']
 
         if 'ligolw' in request.POST or 'ligolw' in request.GET:
             from glue.ligolw import utils
@@ -691,9 +690,7 @@ def search(request, format=""):
             form = SimpleSearchForm(request.POST)
             rawquery = request.POST['query']
         if form.is_valid():
-            query = form.cleaned_data['query']
-
-            objects = Event.objects.filter(query).distinct()
+            objects = form.cleaned_data['query']
 
             if format == "json":
                 return HttpResponse("Not Implemented")
@@ -1009,8 +1006,7 @@ def latest(request):
     context['rawquery'] = request.GET.get('query') or request.POST.get('query') or ""
 
     if form.is_valid():
-        query = form.cleaned_data['query']
-        objects = Event.objects.filter(query).distinct().order_by("-created")[:15]
+        objects = form.cleaned_data['query']
         context['objects'] = map(limit, objects)
         context['error'] = False
     else:
