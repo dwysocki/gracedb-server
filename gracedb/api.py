@@ -59,6 +59,15 @@ from forms import SimpleSearchForm
 from rest_framework.reverse import reverse as rest_framework_reverse
 from django.core.urlresolvers import resolve, get_script_prefix
 
+##################################################################
+# Stuff for the LigoLwRenderer
+from glue.ligolw import ligolw
+# lsctables MUST be loaded before utils.
+from glue.ligolw import lsctables
+from glue.ligolw import utils
+from glue.ligolw.utils import ligolw_add
+import StringIO
+
 # Note about reverse() in this file -- there are THREE versions of it here.
 #
 # SOURCE                               LOCAL NAME
@@ -176,12 +185,6 @@ class EventLogSerializer(serializers.ModelSerializer):
 # Custom renderers
 
 def assembleLigoLw(eventDict):
-    from glue.ligolw import ligolw
-    # lsctables MUST be loaded before utils.
-    from glue.ligolw import lsctables
-    from glue.ligolw import utils
-    from glue.ligolw.utils import ligolw_add
-
     xmldoc = ligolw.Document()
     for e in eventDict:
         fname = os.path.join(settings.GRACEDB_DATA_DIR, e['graceid'], "private", "coinc.xml")
@@ -197,12 +200,13 @@ class LigoLwRenderer(BaseRenderer):
     format = '.xml'
 
     def render(self, data, media_type=None, renderer_context=None):
-        import StringIO
+        # XXX If there was an error, we will return the error message
+        # in plain text. Somewhat irregular?
+        if 'error' in data.keys():
+            return data['error']
+        
         xmldoc = assembleLigoLw(data['events'])
         # XXX Aaargh! Just give me the contents of the xml doc.
-        # I don't want to write it to a file.  Please don't make me.
-        # Would it be better to do this with xmldoc.write_fileobj()?
-        # utils.write_fileobj(xmldoc, output)
         output = StringIO.StringIO()
         xmldoc.write(output)
         return output.getvalue()
@@ -212,6 +216,11 @@ class TSVRenderer(BaseRenderer):
     format = '.tsv'
 
     def render(self, data, media_type=None, renderer_context=None):
+        # XXX If there was an error, we will return the error message
+        # in plain text.
+        if 'error' in data.keys():
+            return data['error']
+
         accessFun = {
             "labels" : lambda e: \
                 ",".join(e['labels'].keys()),
@@ -337,8 +346,9 @@ class EventList(APIView):
                 cooked_query = form.cleaned_data['query']
                 events = events.filter(cooked_query).distinct()
             else:
-                return Response("Invalid query",
-                        status=status.HTTP_400_BAD_REQUEST)
+                d = {'error': 'Invalid query' }
+                return Response(d,status=status.HTTP_400_BAD_REQUEST)
+
         events = events.order_by(sort)
 
         start = int(start)
@@ -350,7 +360,7 @@ class EventList(APIView):
         if request.accepted_renderer.format == '.xml' and numRows > 1000:
             # XXX Here again, I don't think this is going to render correctly.
             d = {'error': 'Too many events.' }
-            return Response(d)
+            return Response(d, status=status.HTTP_400_BAD_REQUEST)
 
         last = max(0, (numRows / count)) * count
         rv = {}
@@ -388,7 +398,7 @@ class EventList(APIView):
             d = {'error': str(e) }
             # XXX Okay, we probably want this to return JSON.  Even if if the
             # Accept header said something else.  Maybe?
-            return Response(d)
+            return Response(d, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return resp
 
     def post(self, request, format=None):
