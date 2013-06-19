@@ -6,7 +6,8 @@ from models import Event, Group, Label
 from django.contrib.auth.models import User
 from django.core.exceptions import FieldError
 
-from query import parseQuery, ParseException
+from query import parseQuery
+from pyparsing import ParseException
 
 htmlEntityStar = "&#9733;"
 htmlEntityRightPointingHand = "&#9758;"
@@ -31,7 +32,7 @@ class GraceQueryField(forms.CharField):
             raise forms.ValidationError(mark_safe(err))
         except Exception, e:
             # What could this be and how can we handle it better? XXX
-            raise forms.ValidationError(str(e))
+            raise forms.ValidationError(str(e)+str(type(e)))
 
 class SimpleSearchForm(forms.Form):
     query = GraceQueryField(required=False, widget=forms.TextInput(attrs={'size':60}))

@@ -1,5 +1,15 @@
 
 <div id="hints" style="display: none;">
+ <h4>By Event Attributes</h4>
+ Relational and range queries can be made on event attributes.
+ <ul>
+    <li><code>instruments = "H1,L1,V1" &amp; far &lt; 1e-7</code></li>
+    <li><code>singleinspiral.mchirp &gt;= 1.6 &amp; eff_distance in 40.5,55 </code></li>
+    <li><code>(si.channel = "DMT-STRAIN" | si.channel = "DMT-PAIN") &amp; si.snr &lt; 5</code></li>
+    <li><code>mb.snr in 1,3 &amp; mb.central_freq &gt; 1000</code></li>
+ </ul>
+ Attributes in the common event object (eg gpstime, far, instruments) do not need qualifiers.  Attributes specific to inspiral or burst events, for example, require qualification.  Abbreviations are available: <code>si</code> for singleinspiral, <code>ci</code> for coincinspiral and <code>mb</code> for multiburst.
+
  <h4>By GPS Time</h4>
   Specifiy an exact GPS time, or a range.
   Integers will be assumed to be GPS times, making the <code>gpstime:</code>
