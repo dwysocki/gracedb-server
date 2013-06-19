@@ -252,6 +252,15 @@ def handle_uploaded_data(event, datafilename,
 
         event.save()
 
+        # Extract Single Inspiral Information
+        s_inspiral_tables = glue.ligolw.table.getTablesByName(
+                xmldoc,
+                glue.ligolw.lsctables.SnglInspiralTable.tableName)
+
+        # Concatentate the tables' rows into a single table
+        table = sum(s_inspiral_tables, [])
+        SingleInspiral.create_events_from_ligolw_table(table, event)
+
     elif event.analysisType == 'OM': # Omega
         #here's how it works for bursts
         #xmldoc, log_data, temp_data_loc = populate_burst_tables("initial.data")
