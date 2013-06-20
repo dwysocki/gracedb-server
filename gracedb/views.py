@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 from models import Event, Group, EventLog, Labelling, Label, Tag
 from models import CoincInspiralEvent
 from models import MultiBurstEvent
+from models import SingleInspiral
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
@@ -588,6 +589,7 @@ def view(request, graceid):
                             for event in a.neighbors()]
     context['skyalert_authorized'] = skyalert_authorized(request)
     context['blessed_tags'] = settings.BLESSED_TAGS
+    context['single_inspiral_events'] = list(a.singleinspiral_set.all())
     return render_to_response(
         [ 'gracedb/event_detail_{0}.html'.format(a.analysisType),
           'gracedb/event_detail.html'],
@@ -598,8 +600,7 @@ def cli_search(request):
     assert request.user
     form = SimpleSearchForm(request.POST)
     if form.is_valid():
-        query = form.cleaned_data['query']
-        objects = Event.objects.filter(query).distinct()
+        objects = form.cleaned_data['query']
 
         if 'ligolw' in request.POST or 'ligolw' in request.GET:
             from glue.ligolw import utils
@@ -715,9 +716,7 @@ def search(request, format=""):
             form = SimpleSearchForm(request.POST)
             rawquery = request.POST['query']
         if form.is_valid():
-            query = form.cleaned_data['query']
-
-            objects = Event.objects.filter(query).distinct()
+            objects = form.cleaned_data['query']
 
             if format == "json":
                 return HttpResponse("Not Implemented")
@@ -1033,8 +1032,7 @@ def latest(request):
     context['rawquery'] = request.GET.get('query') or request.POST.get('query') or ""
 
     if form.is_valid():
-        query = form.cleaned_data['query']
-        objects = Event.objects.filter(query).distinct().order_by("-created")[:15]
+        objects = form.cleaned_data['query']
         context['objects'] = map(limit, objects)
         context['error'] = False
     else:

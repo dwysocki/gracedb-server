@@ -369,8 +369,7 @@ class EventList(APIView):
         if query:
             form = SimpleSearchForm(request.GET)
             if form.is_valid():
-                cooked_query = form.cleaned_data['query']
-                events = events.filter(cooked_query).distinct()
+                events = form.cleaned_data['query']
             else:
                 d = {'error': 'Invalid query' }
                 return Response(d,status=status.HTTP_400_BAD_REQUEST)

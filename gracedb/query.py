@@ -23,7 +23,7 @@ from pyparsing import \
     Word, nums, Literal, CaselessLiteral, delimitedList, Suppress, QuotedString, \
     Keyword, Combine, Or, Optional, OneOrMore, alphas, Regex, \
     opAssoc, operatorPrecedence, oneOf, \
-    stringStart, stringEnd, ParseException
+    stringStart, stringEnd
 
 def maybeRange(name, dbname=None):
     dbname = dbname or name
@@ -170,41 +170,59 @@ labelQ.setParseAction(lambda toks: ("label", toks[0]))
 ###########################
 # Query on event attributes
 
-attrNumExprOperators = { "<" :  "__lt",
-                         "<=":  "__lte",
-                         "=" :  "",
-                         ">" :  "__gt",
-                         ">=":  "__gte",
-                       }
+lparen = Suppress('(')
+rparen = Suppress(')')
 
-attrNumExprLhs = Keyword("far") | Keyword("gpstime")
+exprOperators = { "<" :  "__lt",
+                  "<=":  "__lte",
+                  "=" :  "",
+                  ">" :  "__gt",
+                  ">=":  "__gte",
+                }
+
+tableTranslations = {
+        'si': 'singleinspiral',
+        'ci': 'coincinspiralevent',
+        'mb': 'multiburstevent',
+        'coincinspiral': 'coincinspiralevent',
+        'multiburst': 'multiburstevent',
+        }
+
+def buildDjangoQueryField(toks):
+    toks = [name.lower() for name in toks]
+    return "__".join([tableTranslations.get(name, name) for name in toks])
 
 exponent = Combine(Word("Ee") + Optional(Word("+-"))+Word(nums))
-afloat = Combine( Word(nums) + Optional(Combine(Literal(".") + Word(nums))) )
 
-attrNumExprRhs = Combine( Optional(Word("+-")) + afloat + Optional(exponent) )
-attrNumExprRhs.setParseAction(lambda toks: float(toks[0]))
+afloat = Combine( Word(nums) + \
+         Optional(Combine(Literal(".") + Word(nums))) ) + \
+         Optional(exponent)
+afloat.setParseAction(lambda toks: float(toks[0]))
 
-attrNumExprOp = Or(map(Literal, attrNumExprOperators.keys()))
-attrNumExprOp.setParseAction(lambda toks: attrNumExprOperators[toks[0]])
+lhs = delimitedList(Word(alphas+'_'), '.')
+lhs.setParseAction(buildDjangoQueryField)
 
-attrNumExpr = attrNumExprLhs + attrNumExprOp + attrNumExprRhs
-attrNumExpr.setParseAction(lambda toks: Q(**{toks[0]+toks[1]: toks[2]}))
+rhs = afloat | QuotedString('"')
 
-#attrIfoExpr = Keyword("ifos").suppress() + Literal("=").suppress() + Word("LVH12,")
-#attrIfoExpr.setParseAction(lambda toks: Q(instruments=toks[0]))
+op = Or(map(Literal, exprOperators.keys()))
+op.setParseAction(lambda toks: exprOperators[toks[0]])
 
-#attrExpr = attrIfoExpr | attrNumExpr 
-attrExpr = attrNumExpr 
+simpleTerm = lhs + op + rhs
+simpleTerm.setParseAction(lambda toks: Q(**{toks[0]+toks[1]: toks[2]}))
 
-attrExprs = operatorPrecedence(attrExpr,
+rangeTerm = lhs + Suppress('in') + rhs + Suppress(",") + rhs
+rangeTerm.setParseAction(lambda toks: Q(**{toks[0]+"__range": toks[1:]}))
+
+term = simpleTerm | rangeTerm
+
+attrExpressions = operatorPrecedence(term,
     [(minusop, 1, opAssoc.RIGHT, lambda a,b,toks: ~toks[0][0]),
      (orop,    2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__or__, toks[0].asList(), Q())),
      (andop,   2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__and__, toks[0].asList(), Q())),
     ]).setParseAction(lambda toks: toks[0])
 
-
-attributeQ = Optional(Suppress(Keyword('attr:'))) + attrExprs.copy()
+#attributeQ = lparen + attrExpressions + rparen
+attributeQ = attrExpressions.copy()
 attributeQ.setParseAction(lambda toks: ("attr", toks[0]))
 
 

@@ -11,6 +11,7 @@ class Migration(DataMigration):
         db.execute("ALTER TABLE ligoauth_ligoldapuser CONVERT TO CHARACTER SET UTF8")
         db.execute("ALTER TABLE auth_user DEFAULT CHARACTER SET UTF8")
         db.execute("ALTER TABLE auth_user CONVERT TO CHARACTER SET UTF8")
+        db.execute("ALTER TABLE auth_user MODIFY username VARCHAR(100)")
 
     def backwards(self, orm):
         # We can't go back!
