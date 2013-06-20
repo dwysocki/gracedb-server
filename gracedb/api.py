@@ -705,7 +705,7 @@ class EventLabel(APIView):
 
     def put(self, request, graceid, label):
         try:
-            rv = create_label(graceid, label, request.ligouser)
+            rv = create_label(graceid, label, request.user)
         except Event.DoesNotExist:
             msg = "No such Event '%s'" % graceid
             return Response(msg,status=status.HTTP_404_NOT_FOUND)
