@@ -626,6 +626,9 @@ class EventNeighbors(APIView):
     neighbors in the (inclusive) GPS time range [x-N,x+N] or [x-N, x+M],
     where x is the GPS time of the event in question.
     """
+
+    # XXX Since this returns an event list, we could add the LigoLW
+    # and TSV renderers.
     def get(self, request, graceid):
         try:
             event = Event.getByGraceid(graceid)
@@ -806,7 +809,7 @@ class EventLogList(APIView):
         description = "LOG: "
         if uploadedFile:
             description = "UPLOAD: '%s' " % uploadedFile.name
-        issueAlertForUpdate(event, description+message, doxmpp=True, filename=uploadedFile.name)
+            issueAlertForUpdate(event, description+message, doxmpp=True, filename=uploadedFile.name)
 
         return response
 
