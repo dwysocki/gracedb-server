@@ -1,5 +1,5 @@
 
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.http import HttpResponseForbidden, HttpResponseServerError
 from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.core.urlresolvers import reverse as django_reverse
@@ -58,6 +58,8 @@ from forms import SimpleSearchForm
 
 from rest_framework.reverse import reverse as rest_framework_reverse
 from django.core.urlresolvers import resolve, get_script_prefix
+
+from rest_framework.exceptions import APIException, PermissionDenied
 
 ##################################################################
 # Stuff for the LigoLwRenderer
@@ -182,14 +184,38 @@ class EventLogSerializer(serializers.ModelSerializer):
         model = EventLog
         fields = ('comment', 'issuer', 'created')
 #==================================================================
-# Custom renderers
+# Custom renderers and various accoutrements
 
-def assembleLigoLw(eventDict):
+class MissingCoinc(Exception):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = "Event list contained event(s) for which no coinc exists."  
+    def __init__(self, detail=None):
+        self.detail = detail or self.default_detail 
+    def __str__(self):
+        return repr(self.detail)
+
+class CoincAccess(Exception):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    default_detail = "Problem reading coinc file."
+    def __init__(self, detail=None):
+        self.detail = detail or self.default_detail 
+    def __str__(self):
+        return repr(self.detail)
+
+def assembleLigoLw(data):
+    if 'events' in data.keys():
+        eventDictList = data['events']
+    else:
+        # There is only one event.
+        eventDictList = [data,]
     xmldoc = ligolw.Document()
-    for e in eventDict:
+    for e in eventDictList:
         fname = os.path.join(settings.GRACEDB_DATA_DIR, e['graceid'], "private", "coinc.xml")
+        if not os.path.exists(fname):
+            raise MissingCoinc
+        elif not os.access(fname, os.R_OK):
+            raise CoincAccess
         utils.load_filename(fname, xmldoc=xmldoc)
-
     ligolw_add.reassign_ids(xmldoc)
     ligolw_add.merge_ligolws(xmldoc)
     ligolw_add.merge_compatible_tables(xmldoc)
@@ -197,27 +223,26 @@ def assembleLigoLw(eventDict):
 
 class LigoLwRenderer(BaseRenderer):
     media_type = 'application/xml'
-    format = '.xml'
+    format = 'xml'
 
     def render(self, data, media_type=None, renderer_context=None):
         # XXX If there was an error, we will return the error message
-        # in plain text. Somewhat irregular?
+        # in plain text, effectively ignoring the accepts header. 
+        # Somewhat irregular?
         if 'error' in data.keys():
             return data['error']
         
-        xmldoc = assembleLigoLw(data['events'])
-        # XXX Aaargh! Just give me the contents of the xml doc.
+        xmldoc = assembleLigoLw(data)
+        # XXX Aaargh! Just give me the contents of the xml doc. Annoying.
         output = StringIO.StringIO()
         xmldoc.write(output)
         return output.getvalue()
 
 class TSVRenderer(BaseRenderer):
     media_type = 'text/tab-separated-values'
-    format = '.tsv'
+    format = 'tsv'
 
     def render(self, data, media_type=None, renderer_context=None):
-        # XXX If there was an error, we will return the error message
-        # in plain text.
         if 'error' in data.keys():
             return data['error']
 
@@ -323,12 +348,13 @@ class EventList(APIView):
     parser_classes = (parsers.MultiPartParser,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LigoLwRenderer, TSVRenderer,)
 
+    # XXX Branson, remember to get rid of this.
     def __init__(self, **kwargs):
         # Try to define the logger in here.
         self.logger = logging.getLogger(__name__)
         super(EventList, self).__init__(**kwargs)
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
 
         """I am the GET docstring for EventList"""
         query = request.QUERY_PARAMS.get("query")
@@ -357,7 +383,7 @@ class EventList(APIView):
 
         # XXX Let's check.  If the output format is ligolw, and 
         # there are more than 1000 events, we error out.  
-        if request.accepted_renderer.format == '.xml' and numRows > 1000:
+        if request.accepted_renderer.format == 'xml' and numRows > 1000:
             # XXX Here again, I don't think this is going to render correctly.
             d = {'error': 'Too many events.' }
             return Response(d, status=status.HTTP_400_BAD_REQUEST)
@@ -383,23 +409,36 @@ class EventList(APIView):
             d['start'] = start+count
             links['next'] = baseuri + "?" + urllib.urlencode(d)
         rv['numRows'] = events.count()
-        # XXX Branson: I believe the following line is unnecessary.
-        # d['links'] = links
-        # XXX Get the columns into renderer_context. Bizarre? Why, yes.
-        setattr(self, 'kwargs', {'columns': columns})
-        self.logger.debug("accepted_renderer = %s" % request.accepted_renderer)
+
+        response = Response(rv)
+
+        # XXX Next, we try finalizing and rendering the response. According to
+        # the django rest framework docs (see .render() in
+        # http://django-rest-framework.org/api-guide/responses.html), this is
+        # unusual. But we want to handle the exceptions raised during rendering 
+        # ourselves.  And that is not easy to do if the exceptions are raised 
+        # somewhere deep inside the entrails of django.
+        # NOTE: This will not result in two calls to render().  Django will check
+        # the _is_rendered property of the response before attempteding to render.
+        # I have tested this by putting logging commands inside the custom renderers.
         try:
-            # If the rendering process fails, this will throw an exception.
-            resp = Response(rv)
-            # XXX Not sure if this will actually work.
-            if request.accepted_renderer.format == '.xml':
-                resp['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
+            if request.accepted_renderer.format == 'xml':
+                response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
+            # XXX Get the columns into renderer_context. Bizarre? Why, yes.
+            setattr(self, 'kwargs', {'columns': columns})
+            # NOTE When finalize_response is calld in its natural habitat, the 
+            # args and kwargs are the same as those passed to the 'handler', i.e., 
+            # the function we are presently inside.
+            response = self.finalize_response(request, response, *args, **kwargs)
+            response.render()
         except Exception, e:
-            d = {'error': str(e) }
-            # XXX Okay, we probably want this to return JSON.  Even if if the
-            # Accept header said something else.  Maybe?
-            return Response(d, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return resp
+            try:
+                status_code = e.status_code
+            except:
+                status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            return Response({'error': str(e)}, status=status_code)
+
+        return response
 
     def post(self, request, format=None):
         form = CreateEventForm(request.POST, request.FILES)
@@ -472,6 +511,7 @@ class EventDetail(APIView):
     parser_classes = (parsers.MultiPartParser,)
     #serializer_class = EventSerializer
     permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LigoLwRenderer,)
 
     form = CreateEventForm
 
@@ -487,6 +527,35 @@ class EventDetail(APIView):
         response = Response(eventToDict(event, request=request))
 
         response["Cache-Control"] = "no-cache"
+
+        # XXX Next, we try finalizing and rendering the response. According to
+        # the django rest framework docs (see .render() in
+        # http://django-rest-framework.org/api-guide/responses.html), this is
+        # unusual. But we want to handle the exceptions raised during rendering 
+        # ourselves.  And that is not easy to do if the exceptions are raised 
+        # somewhere deep inside the entrails of django.
+        # NOTE: This will not result in two calls to render().  Django will check
+        # the _is_rendered property of the response before attempteding to render.
+        # I have tested this by putting logging commands inside the custom renderers.
+        try:
+            if request.accepted_renderer.format == 'xml':
+                response['Content-Disposition'] = 'attachment; filename=gracedb-event.xml'
+            # NOTE When finalize_response is calld in its natural habitat, the 
+            # args and kwargs are the same as those passed to the 'handler', i.e., 
+            # the function we are presently inside.
+            response = self.finalize_response(request, response)
+            response.render()
+        except Exception, e:
+            try:
+                status_code = e.status_code
+            except:
+                status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            return Response({'error': str(e)}, status=status_code)
+
+        return response
+
+
+
         return response
 
     def put(self, request, graceid):
