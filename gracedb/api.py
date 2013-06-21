@@ -363,8 +363,6 @@ class EventList(APIView):
         sort = request.QUERY_PARAMS.get("sort", "-created")
         columns = request.QUERY_PARAMS.get("columns", "")
 
-        self.logger.debug("accepts = %s" % request.META['HTTP_ACCEPT'])
-
         events = Event.objects
         if query:
             form = SimpleSearchForm(request.GET)
@@ -723,7 +721,9 @@ class EventLabel(APIView):
 
 # Janky serialization
 def eventLogToDict(log, request=None):
+    uri = None
     taglist_uri = None
+    file_uri = None
     if request:
         uri = reverse("eventlog-detail",
                 args=[log.event.graceid(), log.N],
@@ -731,14 +731,18 @@ def eventLogToDict(log, request=None):
         taglist_uri = reverse("eventlogtag-list",
                 args=[log.event.graceid(), log.N],
                 request=request)
-    else:
-        uri = None
+        if log.filename:
+            file_uri = reverse("files",
+                args=[log.event.graceid(), log.filename],
+                request=request)
+
     return {
                 "comment" : log.comment,
                 "created" : log.created,
                 "issuer"  : log.issuer.username,
                 "self"    : uri,
                 "tags"    : taglist_uri,
+                "file"    : file_uri,
            }
 
 class EventLogList(APIView):
