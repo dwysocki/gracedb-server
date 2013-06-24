@@ -782,10 +782,36 @@ class EventLogList(APIView):
         event = Event.getByGraceid(graceid)
         message = request.DATA.get('message')
         tagname = request.DATA.get('tagname')
+
+        try:
+            uploadedFile = request.FILES['upload'] 
+        except:
+            uploadedFile = None
+
+        filename = None
+        if uploadedFile:
+            filename = uploadedFile.name 
+            if filename.startswith("general/"):
+                # No writing to general/
+                return HttpResponseForbidden("cannot write to general directory")
+
+            filepath = os.path.join(event.datadir(), filename)
+
+            try:
+                # Open / Write the file.
+                fdest = VersionedFile(filepath, 'w')
+                for chunk in uploadedFile.chunks(): 
+                    fdest.write(chunk)
+                fdest.close()
+            except Exception, e:
+                # XXX This needs some thought.
+                response = Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
         logentry = EventLog(
                 event=event,
                 issuer=request.user,
-                comment=message)
+                comment=message,
+                filename=filename)
         logset = event.eventlog_set.order_by("created","N")
         try:
             logentry.save()
@@ -805,9 +831,6 @@ class EventLogList(APIView):
             # XXX This seems like a bizarre way of getting an error message out.
             if retval.status_code != 201:
                 response['tagWarning'] = 'Error creating tag.'
-
-        # XXX Alter to allow file upload.  If there is an uploaded
-        uploadedFile = None
 
         # Issue alert.
         description = "LOG: "
