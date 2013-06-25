@@ -372,10 +372,8 @@ class EventList(APIView):
         count = int(count)
         numRows = events.count()
 
-        # XXX Let's check.  If the output format is ligolw, and 
-        # there are more than 1000 events, we error out.  
+        # Fail if the output format is ligolw, and there are more than 1000 events
         if request.accepted_renderer.format == 'xml' and numRows > 1000:
-            # XXX Here again, I don't think this is going to render correctly.
             d = {'error': 'Too many events.' }
             return Response(d, status=status.HTTP_400_BAD_REQUEST)
 
@@ -542,10 +540,6 @@ class EventDetail(APIView):
             except:
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             return Response({'error': str(e)}, status=status_code)
-
-        return response
-
-
 
         return response
 
@@ -819,7 +813,6 @@ class EventLogList(APIView):
 
         if tagname:
             n = logentry.N
-            # XXX This is not what these API views are really meant for, but...
             tmp = EventLogTagDetail()
             retval = tmp.put(request, graceid, n, tagname) 
             # XXX This seems like a bizarre way of getting an error message out.
