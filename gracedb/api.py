@@ -348,12 +348,6 @@ class EventList(APIView):
     parser_classes = (parsers.MultiPartParser,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LigoLwRenderer, TSVRenderer,)
 
-    # XXX Branson, remember to get rid of this.
-    def __init__(self, **kwargs):
-        # Try to define the logger in here.
-        self.logger = logging.getLogger(__name__)
-        super(EventList, self).__init__(**kwargs)
-
     def get(self, request, *args, **kwargs):
 
         """I am the GET docstring for EventList"""
@@ -1377,7 +1371,16 @@ class Files(APIView):
             # XXX This needs some thought.
             response = Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
-        # XXX Branson: need to create log entry here.
+        # Create a log entry to document the file upload. 
+        logentry = EventLog(event=event,
+                           issuer=request.user,
+                           comment='',
+                           filename=filename)
+        try:
+            logentry.save()
+        except:
+            # XXX something should be done here.
+            pass
 
         try:
             description = "UPLOAD: {0}".format(filename)
