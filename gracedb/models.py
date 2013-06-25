@@ -228,6 +228,9 @@ class EventLog(models.Model):
 
     def save(self, *args, **kwargs):
         success = False
+        # XXX filename must not be 'None' because null=False for the filename
+        # field above.
+        self.filename = self.filename or ""
         attempts = 0
         while (not success and attempts < 5):
             attempts = attempts + 1
@@ -238,7 +241,7 @@ class EventLog(models.Model):
             try:
                 super(EventLog, self).save(*args, **kwargs)
                 success = True
-            except IntegrityError:
+            except IntegrityError as e:
                 # IntegrityError means an attempt to insert a duplicate
                 # key or to violate a foreignkey constraint.
                 # We are under race conditions.  Let's try again.
