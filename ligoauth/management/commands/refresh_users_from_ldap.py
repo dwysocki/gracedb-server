@@ -34,7 +34,7 @@ class Command(NoArgsCommand):
                         last_name = unicode(ldap_result['sn'][0], 'utf-8')
                         email = ldap_result['mail'][0]
                         new_dns = set(ldap_result.get('gridX509subject',[]))
-                        is_active = "Communities:LVC:LVCGroupMembers" \
+                        is_active = "Communities:LSCVirgoLIGOGroupMembers" \
                                     in ldap_result.get('isMemberOf',[])
                         principal = ldap_result['krbPrincipalName'][0]
 
