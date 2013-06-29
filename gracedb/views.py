@@ -1032,7 +1032,7 @@ def latest(request):
     context['rawquery'] = request.GET.get('query') or request.POST.get('query') or ""
 
     if form.is_valid():
-        objects = form.cleaned_data['query']
+        objects = form.cleaned_data['query'][0:50]
         context['objects'] = map(limit, objects)
         context['error'] = False
     else:
