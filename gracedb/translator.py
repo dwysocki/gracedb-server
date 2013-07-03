@@ -30,7 +30,13 @@ def handle_uploaded_data(event, datafilename,
     if event.analysisType in [ 'HM', 'LM' ]:
         log_comment = "Log File Created"
         # Wildly speculative wrt HM
-        xmldoc = glue.ligolw.utils.load_filename(datafilename)
+
+        try:
+            xmldoc = glue.ligolw.utils.load_filename(datafilename)
+        except Exception, e:
+            message = "Could not read data (%s)" % str(e)
+            EventLog(event=event, issuer=event.submitter, comment=message).save()
+            return
 
         # Create Log Data
         # XXX This is messy and redundant.  All of this is also below.
