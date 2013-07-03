@@ -372,49 +372,36 @@
 {% endblock %}
 </div>
 
-{% if nearby %}
-    <div id="neighbors" class="content-area">
-    <h3>Neighbors</h3>
-    <table class="event">
-        <tr>
-                <th valign="top">UID</th>
-                <th>Labels</th>
-                <th>Group</th>
-                <th>Type</th>
-                <th>Instruments</th>
-                <th>
-                    {{ "ngps"|timeselect:"gps" }}
-                    Event Time
-                </th>
-                <th>FAR (Hz)</th>
-                <th>Links</th>
-                <th>
-                    {{"ncreated"|timeselect:"utc" }}
-                    Submitted
-                </th>
-        </tr>
-        {% for delta, object in nearby %}
-        <tr class={% cycle 'odd' 'even' %}>
-            <td><a href="{% url view object.graceid %}">{{ object.graceid }}</a></td>
-            <td>
-                 {% for labelling in object.labelling_set.all %}
-                    <span onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.name}}', '{{labelling.created|utc}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
-                 {% endfor %}
-            </td>
-            <td>{{ object.group.name }} </td>
-            <td>{{ object.get_analysisType_display }} </td>
-            <td>{{ object.instruments }}</td>
-            <td>{% if object.gpstime%}
-                    {{ object.gpstime|multiTime:"ngps" }}
-                {% endif %}</td>
-            <td>{{ object.far|scientific }}</td>
-            <td><a href="{{ object.weburl }}">Data</a></td>
-            <td>{{ object.created|multiTime:"ncreated" }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-    </div>
-{% endif %}
+<!-- Neighbors Support refresh_neighbors() function -->
+<script type="text/javascript">
+    var refresh_neighbors= function() { alert("NOT SET YET"); };
+    require(["dojo/dom", "dojo/html", "dojo/request", "dojo/domReady!"],
+        function (dom, html, request) {
+            refresh_neighbors = function(delta) {
+                delta = delta.replace(/[ [\]]/g, "");
+                if (delta.match(/^-?\d+$/) == null & delta.match(/^[-+]?\d+,[-+]?\d+$/) == null) {
+                    alert("Bad neighborhood specified.")
+                    return;
+                }
+                var neighborUrlPattern = "{% url neighbors object.graceid "000" %}"
+                var neighbor_div = dom.byId("neighbors");
+                neighborUrl = neighborUrlPattern.replace("000", delta);
+                request(neighborUrl).then(
+                    function(text){
+                        html.set(neighbor_div, text, {parseContent:true} );
+                    },
+                    function(error){
+                        inbox = '<input value="" size="6" onchange="refresh_neighbors(this.value)">'
+                        html.set(neighbor_div, inbox+"<br>Failed to find neighbors.<br>"+error);
+                    });
+            };
+        // refresh_neighbors("5");
+    });
+    require(["dijit/InlineEditBox", "dijit/form/NumberSpinner", "dijit/form/TextBox"]);
+
+</script>
+
+{% include "gracedb/neighbors_frag.html" %}
 
 <div id="pane_holder" class="content-area">
     {# XXX Hacky #}
@@ -491,7 +478,7 @@
                         <tr class="{% cycle 'odd' 'even'%}">
                            <td>{{log.N}}</td>
                            <td>{{log.created|multiTime:"logtime"}}</td>
-			   <td>{{log.issuer.first_name}} {{log.issuer.last_name}}</td>
+                           <td>{{log.issuer.first_name}} {{log.issuer.last_name}}</td>
                            <td>{{log.comment|sanitize}}
                                {% if log.fileurl %}
                                 <a href="{{log.fileurl}}">{{log.filename}}</a>

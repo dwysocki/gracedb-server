@@ -576,6 +576,32 @@ def ping(request):
         response['Content-length'] = len(ack)
     return response
 
+def neighbors(request, graceid, delta1, delta2=None):
+    context = {}
+    try:
+        delta1 = long(delta1)
+
+        if delta2 is None:
+            delta2 = delta1
+            delta1 = -delta1
+        else:
+            delta2 = long(delta2)
+
+    except ValueError: pass
+    except: pass
+
+    try:
+        event = Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        raise Http404
+    context['nearby'] = [(e.gpstime - event.gpstime, e)
+                            for e in event.neighbors((delta1,delta2))]
+    context['neighbor_delta'] = "[%+d,%+d]" % (delta1, delta2)
+    return render_to_response(
+        'gracedb/neighbors_frag.html',
+        context,
+        context_instance=RequestContext(request))
+
 def view(request, graceid):
     context = {}
     try:
@@ -590,6 +616,7 @@ def view(request, graceid):
     context['skyalert_authorized'] = skyalert_authorized(request)
     context['blessed_tags'] = settings.BLESSED_TAGS
     context['single_inspiral_events'] = list(a.singleinspiral_set.all())
+    context['neighbor_delta'] = "[%+d,%+d]" % (-5,5)
     return render_to_response(
         [ 'gracedb/event_detail_{0}.html'.format(a.analysisType),
           'gracedb/event_detail.html'],

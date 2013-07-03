@@ -1,0 +1,55 @@
+{% load timeutil %}
+{% load scientific %}
+<div id="neighbors" class="content-area">
+<h3>Neighbors &nbsp;
+    <span data-dojo-type="dijit/InlineEditBox"
+        data-dojo-props="editor:'dijit/form/TextBox', editorParams:{constraints:{places:0} }" width="100px" 
+        title="window"
+        onchange="refresh_neighbors(this.value)">{{neighbor_delta}}</span></h3>
+
+{% if nearby %}
+
+<table class="event">
+    <tr>
+            <th valign="top">UID</th>
+            <th>Labels</th>
+            <th>Group</th>
+            <th>Type</th>
+            <th>Instruments</th>
+            <th>
+                {{ "ngps"|timeselect:"gps" }}
+                Event Time
+            </th>
+            <th>&Delta;gpstime</th>
+            <th>FAR (Hz)</th>
+            <th>Links</th>
+            <th>
+                {{"ncreated"|timeselect:"utc" }}
+                Submitted
+            </th>
+    </tr>
+    {% for delta, object in nearby %}
+    <tr class={% cycle 'odd' 'even' %}>
+        <td><a href="{% url view object.graceid %}">{{ object.graceid }}</a></td>
+        <td>
+             {% for labelling in object.labelling_set.all %}
+                <span onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.name}}', '{{labelling.created|utc}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
+             {% endfor %}
+        </td>
+        <td>{{ object.group.name }} </td>
+        <td>{{ object.get_analysisType_display }} </td>
+        <td>{{ object.instruments }}</td>
+        <td>{% if object.gpstime%}
+                {{ object.gpstime|multiTime:"ngps" }}
+            {% endif %}</td>
+        <td>{{ delta }}</td>
+        <td>{{ object.far|scientific }}</td>
+        <td><a href="{{ object.weburl }}">Data</a></td>
+        <td>{{ object.created|multiTime:"ncreated" }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<h4>No neighbors in range.</h4>
+{% endif %}
+</div>

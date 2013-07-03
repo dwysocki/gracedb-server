@@ -77,7 +77,7 @@ class Event(models.Model):
         ("MBTA", "MBTAOnline"),
         ("HWINJ", "HardwareInjection"),
     )
-    DEFAULT_EVENT_NEIGHBORHOOD = (5,5)
+    DEFAULT_EVENT_NEIGHBORHOOD = (-5,5)
 
     submitter = models.ForeignKey(DjangoUser)
     created = models.DateTimeField(auto_now_add=True)
@@ -151,10 +151,11 @@ class Event(models.Model):
         else:
             nearby = Event.objects.exclude(group__name='Test')
 
-        delta, delta2 = neighborhood or self.DEFAULT_EVENT_NEIGHBORHOOD
+        delta1, delta2 = neighborhood or self.DEFAULT_EVENT_NEIGHBORHOOD
 
-        nearby = nearby.filter(gpstime__range=(self.gpstime-delta, self.gpstime+delta2))
+        nearby = nearby.filter(gpstime__range=(self.gpstime+delta1, self.gpstime+delta2))
         nearby = nearby.exclude(id=self.id)
+        nearby = nearby.distinct()
         nearby = nearby.order_by('gpstime')
         return nearby
 
