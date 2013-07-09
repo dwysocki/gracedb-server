@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 from models import Event, Group, EventLog, Labelling, Label, Tag
 from models import CoincInspiralEvent
 from models import MultiBurstEvent
+from models import GrbEvent
 from models import SingleInspiral
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
@@ -217,6 +218,8 @@ def _createEventFromForm(request, form):
         # Create Event
         if atype in ['LM', 'HM', 'MBTA']:
             event = CoincInspiralEvent()
+        elif atype == "GRB":
+            event = GrbEvent()
         elif atype == "CWB":
             event = MultiBurstEvent()
         else:

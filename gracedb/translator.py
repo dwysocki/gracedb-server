@@ -340,11 +340,18 @@ def handle_uploaded_data(event, datafilename,
 
     elif event.analysisType == 'GRB':
         # Get the event time from the VOEvent file
+        error = None
         try:
-            event.gpstime = getGpsFromVOEvent(datafilename)
-        except:
-            event.gpstime = 0
+            #event.gpstime = getGpsFromVOEvent(datafilename)
+            populateGrbEventFromVOEventFile(datafilename, event)
+        except Exception, e:
+            error = "Problem parsing VOEvent: %s" % e.__repr__()
         event.save()
+        if error is not None:
+            log = EventLog(event=event,
+                           issuer=event.submitter,
+                           comment=error)
+            log.save()
     else:
         # XXX should we do something here?
         pass
@@ -534,3 +541,23 @@ def getGpsFromVOEvent(filename):
     wwd = getWhereWhen(v)
     gpstime = isoToGps(wwd['time'])
     return gpstime
+
+def populateGrbEventFromVOEventFile(filename, event):
+    v = parse(filename)
+    wherewhen = getWhereWhen(v)
+
+    event.gpstime = isoToGps(wherewhen['time'])
+    event.ivorn = v.ivorn
+
+    event.author_shortname = v.get_Who().Author.shortName[0]
+    event.author_ivorn = v.get_Who().AuthorIVORN
+
+    event.observatory_location_id = wherewhen['observatory']
+    event.coord_system = wherewhen['coord_system']
+    event.ra = wherewhen['longitude']
+    event.dec = wherewhen['latitude']
+    event.error_radius = wherewhen['positionalError']
+
+    event.how_description = v.get_How().get_Description()[0]  
+    event.how_reference_url = v.get_How().get_Reference()[0].uri
+

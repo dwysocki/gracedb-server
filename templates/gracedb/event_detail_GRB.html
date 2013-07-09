@@ -1,0 +1,36 @@
+{% extends "gracedb/event_detail.html" %}
+
+{% block analysis_specific %}
+
+<table class="analysis_specific">
+       	<tbody>
+		<tr><th>IVORN</th><td colspan="2">{{object.ivorn}}</td></tr>
+		<tr><th>Author</th><td colspan="2">{{object.author_shortname}}</td></tr>
+		<tr><th>Author IVORN</th><td colspan="2">{{object.author_ivorn}}</td></tr>
+		<tr><th>Observatory</th><td colspan="2">{{object.observatory_location_id}}</td></tr>
+		<tr><th>How</th><td colspan="2">
+{% if object.how_reference_url %}
+				<a href="{{object.how_reference_url}}" target="_new">{{object.how_description}}</a>
+{% else %}
+				{{object.how_description}}
+{% endif %}
+		</td></tr>
+		<tr><th>Location</th><th>Coord System</th><td>{{object.coord_system}}</td></tr>
+		<tr><td></td><th>RA</th><td>{{object.ra}}</td></tr>
+		<tr><td></td><th>Dec</th><td>{{object.dec}}</td></tr>
+		<tr><td></td><th>Err</th><td>{{object.error_radius}}</td></tr>
+	</tbody>
+</table> 
+{% endblock %}
+
+ivorn = models.CharField(max_length=200, null=True)
+author_ivorn = models.CharField(max_length=200, null=True)
+author_shortname = models.CharField(max_length=200, null=True)
+    observatory_location_id = models.CharField(max_length=200, null=True)
+    coord_system = models.CharField(max_length=200, null=True)
+    ra = models.FloatField(null=True)
+    dec = models.FloatField(null=True)
+    error_radius = models.FloatField(null=True)
+    how_description = models.CharField(max_length=200, null=True)
+    how_reference_url = models.URLField(null=True)
+

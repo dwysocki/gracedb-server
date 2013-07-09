@@ -270,6 +270,18 @@ class Approval(models.Model):
 
 ## Analysis Specific Attributes.
 
+class GrbEvent(Event):
+    ivorn = models.CharField(max_length=200, null=True)
+    author_ivorn = models.CharField(max_length=200, null=True)
+    author_shortname = models.CharField(max_length=200, null=True)
+    observatory_location_id = models.CharField(max_length=200, null=True)
+    coord_system = models.CharField(max_length=200, null=True)
+    ra = models.FloatField(null=True)
+    dec = models.FloatField(null=True)
+    error_radius = models.FloatField(null=True)
+    how_description = models.CharField(max_length=200, null=True)
+    how_reference_url = models.URLField(null=True)
+
 class CoincInspiralEvent(Event):
     ifos             = models.CharField(max_length=20, default="")
     end_time         = models.PositiveIntegerField(null=True)
