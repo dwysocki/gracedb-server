@@ -1,6 +1,7 @@
 {% extends "gracedb/event_detail.html" %}
 
 {% block analysis_specific %}
+{% if object.grbevent %}
 
 <table class="analysis_specific">
        	<tbody>
@@ -21,16 +22,7 @@
 		<tr><td></td><th>Err</th><td>{{object.error_radius}}</td></tr>
 	</tbody>
 </table> 
-{% endblock %}
 
-ivorn = models.CharField(max_length=200, null=True)
-author_ivorn = models.CharField(max_length=200, null=True)
-author_shortname = models.CharField(max_length=200, null=True)
-    observatory_location_id = models.CharField(max_length=200, null=True)
-    coord_system = models.CharField(max_length=200, null=True)
-    ra = models.FloatField(null=True)
-    dec = models.FloatField(null=True)
-    error_radius = models.FloatField(null=True)
-    how_description = models.CharField(max_length=200, null=True)
-    how_reference_url = models.URLField(null=True)
+{% endif %}
+{% endblock %}
 
