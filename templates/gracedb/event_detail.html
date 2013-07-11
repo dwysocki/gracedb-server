@@ -16,7 +16,159 @@
     <script src="{{MEDIA_URL}}js/labeltips.js" type="text/javascript"></script>
     <link rel="stylesheet" href="{{MEDIA_URL}}css/labeltips.css">
     <script type="text/javascript">
+        //-----------------------------------
+        // Utilities for constructing the 
+        // innerHTML of the annotations
+        //-----------------------------------
+        function getDigests() {
+            var digests = new Array();
+{% for tag in object.getAvailableTags %}
+    {% if tag.name in blessed_tags %}
+                digest = new Object();
+                digest.title = "{{tag|tagUnicode}}";
+                digest.contents = "";
+                digest.hasfigs = false;
+                digest.figure_container_id = "";
+
+                // A section for the images 
+                var dc = "";
+        {% if object|logsForTagHaveImage:tag.name %}        
+                    digest.hasfigs = true;
+                    digest.figure_container_id = "{{tag.name}}_figure_container";
+                    dc += ' <div id="{{tag.name}}_figure_container"> \n';
+                    dc += '     <table class="figure_container"> \n';
+                    dc += '         <tr> \n';
+            {% for log in object|getLogsForTag:tag.name %} 
+                {% if log.hasImage %}
+                    dc += '         <td> \n';
+                    dc += '             <table class="figures"> \n';
+                    dc += '                 <tr class="figrow"> \n';
+                    dc += '                     <td>  <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="180" src="{{ log.fileurl }}"></a> \n';
+                    dc += '                     </td> \n';
+                    dc += '                 </tr> \n';
+                    dc += '                 <tr> \n';
+                    dc += '                     <td> {{log.comment|sanitize}} \n';
+                    {% if log.fileurl %} 
+                    dc += '                         <a href="{{log.fileurl}}">{{log.filename}}.</a> \n';
+                    {% endif %} 
+                    dc += '                         Submitted by {{log.issuer}} on {{log.created}} \n';
+                    dc += '                     </td> \n';
+                    dc += '                 </tr> \n';
+                    dc += '             </table> \n';
+                    dc += '         </td> \n';
+                {% endif %}
+            {% endfor %}
+                    dc += '         </tr> \n';
+                    dc += '     </table> \n';
+                    dc += ' </div> \n';
+                    digest.contents += dc;
+        {% endif %}
+          
+            // A section for the text-only captions 
+        {% if object|logsForTagHaveText:tag.name %}
+                    var dc = '';
+                    dc += ' <table class="event"> \n';
+                    dc += '     <tr> \n';
+                    dc += '         <th>No.</th> \n';
+                    dc += '         <th>{{ "logtime"|timeselect:"utc"|escapejs }} Log Entry Created</th> \n';
+                    dc += '         <th>Submitter</th> \n';
+                    dc += '         <th>Comment</th> \n';
+                    dc += '     </tr> \n';
+            {% for log in object|getLogsForTag:tag.name %} 
+                {% if not log.hasImage %}
+                    dc += '     <tr class="{% cycle 'odd' 'even'%}"> \n';
+                    dc += '         <td>{{log.N}}</td> \n';
+                    dc += '         <td>{{log.created|multiTime:"logtime"}}</td> \n';
+                    dc += '         <td>{{log.issuer.first_name}} {{log.issuer.last_name}}</td> \n';
+                    dc += '         <td>{{log.comment|sanitize}} \n';
+                               {% if log.fileurl %}
+                    dc += '             <a href="{{log.fileurl}}">{{log.filename}}</a> \n';
+                               {% endif %}
+                    dc += '         </td> \n';
+                    dc += '    </tr> \n';
+                {% endif %}
+            {% endfor %}
+                    dc += '</table>';
+                    digest.contents += dc;
+        {% endif %}
+                digests.push(digest);
+    {% endif %} 
+{% endfor %}
+            return digests;
+        }
+
+        function getAuditLogContents() {
+            var ret = "";
+
+{% if blessed_tags %}
+            ret += '    <div id="existingLogTag"> \n';
+            ret += '        <p>  Use this form to tag an existing log message. Choose a tag name from the \n';
+            ret += '        dropdown menu or enter a new one.  If you are creating a new tag, please \n';
+            ret += '        also provide a display name. \n';
+            ret += '        <form id="existingTagForm"> \n';
+            ret += '            Log No. <input id="n" name="n" type="text" size="4" /> \n';
+            ret += '            &nbsp;&nbsp; Tag name <input id="existingTagSelect" name="existingTagSelect" /> \n';
+            ret += '            &nbsp;&nbsp; Display name <input type="text" id="existingTagDispName" name="existingTagDispName"/> \n';
+            ret += '            <input type="submit" name="submit" value="Submit" /> </p> \n';
+            ret += '        </form> \n';
+            ret += '    </div> \n';
+            ret += '    <div id="existingLogTag_pane_holder" class="pmTitlePaneClass"></div> \n'; 
+{% endif %}
+
+            ret += '    <table class="event"> \n';
+            ret += '    <tr> \n';
+            ret += '        <th>No.</th> \n';
+            ret += '        <th>{{ "logtime"|timeselect:"utc"|escapejs }} Log Entry Created</th> \n';
+            ret += '        <th>Submitter</th> \n';
+{% if object.getAvailableTags %}
+            ret += '        <th>Tags</th> \n';
+{% endif %}
+            ret += '        <th>Comment</th> \n';
+            ret += '        <th>&nbsp;</th> \n';
+            ret += '    </tr>\n';
+{% for log in object.eventlog_set.iterator %}
+            // NOTE: The single quotes in the following line will be processed by the django template before js gets it.
+            ret += '    <tr class="{% cycle 'odd' 'even'%}"> \n';
+            ret += '        <td>{{log.N}} \n';
+            ret += '        <td>{{log.created|multiTime:"logtime"}}</td> \n';
+            ret += '        <td>{{log.issuer.first_name}} {{ log.issuer.last_name}}</td> \n';
+    {% if object.getAvailableTags %}
+            ret += '        <td> \n';
+            ret += '        <table> \n';
+        {%for tag in log.tag_set.all %} 
+            ret += '            <tr> <td> \n';
+            ret += '            <button type="button" id="table_button" data-dojo-type="dijit/form/Button"> \n';
+            ret += '                <span>Click me!</span> \n';
+            ret += '                <script type="dojo/on" data-dojo-event="click"> \n';
+            ret += '                      console.log("I was clicked!"); \n';
+            ret += '                <\/script>\n';
+            ret += '            </button> \n';
+            ret += '            </td> </tr> \n';
+        {% endfor %} 
+            ret += '        </table> \n';
+            ret += '        </td> \n';
+    {% endif %}
+            ret += '        <td>{{log.comment|sanitize}} \n';
+    {% if log.fileurl %}
+            ret += '            <a href="{{log.fileurl}}">{{log.filename}}</a> \n';
+    {% endif %}
+            ret += '        </td> \n';
+            ret += '        <td> \n';
+    {% if log.hasImage %}
+            ret += '            <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="60" src="{{ log.fileurl }}"></a> \n';
+    {% endif %}
+            ret += '        </td> \n';
+            ret += '    </tr> \n';
+{% endfor %}
+            ret += '    </table>';
+            return ret;
+        }
+
+        //-----------------------------------
+        // The main Dojo action happens here.
+        //-----------------------------------
         require(["dojo/dom",
+                 "dojo/parser",
                  "dojo/on",
                  "dojo/request",
                  "dojo/dom-form",
@@ -36,11 +188,10 @@
                  "dijit/_editor/plugins/ViewSource",
                  "dijit/_editor/plugins/NewPage",
                  "dijit/_editor/plugins/FullScreen",
-                 "dojo/parser",
-                 "dojo/domReady!"], function (dom, on, request, domForm, domConstruct, Editor, Save, Preview, 
+                 "dojo/domReady!"], function (dom, parser, on, request, domForm, domConstruct, Editor, Save, Preview, 
                                               Button, TitlePane, ScrollPane, Memory, ComboBox, Dialog) {
 
-            dojo.parser.parse();
+            parser.parse();
 
             //var newlogdiv = dom.byId("newlogdiv");
             var logtitle = dom.byId("logmessagetitle");
@@ -133,50 +284,48 @@
             // If we have blessed tags *and* some log messages have been tagged,
             // we will want some TitlePanes.
 {% if blessed_tags and object.getAvailableTags %}
-            var pane_holder = dom.byId("pane_holder");
-            var panes = new Array();
-            var titles = new Array();
-    {% for tag in object.getAvailableTags %}
-        {% if tag.name in blessed_tags %}
-            panes.push(dom.byId("{{tag.name}}"));
-            titles.push("{{tag|tagUnicode}}");
-        {% endif %}
-    {% endfor %}
-    
-            for (var i = 0; i<panes.length; i++) {
-                tp = new dijit.TitlePane({title:titles[i],
-                                         content:panes[i].innerHTML,
-                                         open:true});
-                pane_holder.appendChild(tp.domNode);
-                dojo.destroy(panes[i]);
-            };
+            var doingPanes = true;
+{% else %}
+            var doingPanes = false;
+{% endif %}
+            
+            var auditLogContents = getAuditLogContents();
 
-            // Handle event log seperately.  It will be closed by default.
-            var event_log = dom.byId("event_log");
-            tp = new dijit.TitlePane({title:"Full Event Log",
-                                     content:event_log.innerHTML,
-                                     open:false});
-            pane_holder.appendChild(tp.domNode);
-            dojo.destroy(event_log);
+            var annotationsDiv = dom.byId("annotations");
 
-            // Now, deal with the silly figure containers.
-            var figure_container_ids = new Array();
-    {% for tag in object.getAvailableTags %}
-        {% if tag.name in blessed_tags %}
-            if (dom.byId("{{tag.name}}_figure_container")) {
-                figure_container_ids.push("{{tag.name}}_figure_container");
+            if (doingPanes) {
+                var pane_holder = dom.byId("pane_holder");
+                // Go and get me an array of objects.  
+                var digests = getDigests();
+                for (var i = 0; i<digests.length; i++) {
+                    tp = new dijit.TitlePane({title:digests[i].title,
+                                             content:digests[i].contents,
+                                             open:true});
+                    annotationsDiv.appendChild(tp.domNode);
+                };
+
+                // Handle event log seperately.  It will be closed by default.
+                tp = new dijit.TitlePane({title:"Full Event Log",
+                                         content:auditLogContents,
+                                         open:false});
+                annotationsDiv.appendChild(tp.domNode);
+
+                // Deal with the figure containers.
+                var figure_scrollpanes = new Array();
+                for (var i = 0; i<digests.length; i++) {
+                    if (digests[i].hasfigs) {
+                        figure_scrollpanes.push(new dojox.layout.ScrollPane({
+                                    orientation:"horizontal",
+                                    style:"overflow:hidden;"},
+                                    digests[i].figure_container_id));
+                    }
+                }
+            } else {
+{% if object.eventlog_set.count %}
+                annotationsDiv.innerHTML += auditLogContents;
+{% endif %}
             }
-        {% endif %}
-    {% endfor %}
-            var figure_scrollpanes = new Array();
-            for (var i = 0; i<figure_container_ids.length; i++) {
-                figure_scrollpanes.push(new dojox.layout.ScrollPane({
-                            orientation:"horizontal",
-                            style:"overflow:hidden;"},
-                            figure_container_ids[i]));
-            }
-{% endif %} {# Endif for getAvailableTags and blessed_tags #}
-
+            
             // Set up infrastructure for tagging log messages.
 {% if blessed_tags %}
             var blessedTagStore = new Memory({
@@ -268,7 +417,6 @@
                     }
                 );
             });
-
         });
 
     </script>
@@ -403,182 +551,31 @@
 
 {% include "gracedb/neighbors_frag.html" %}
 
-<div id="pane_holder" class="content-area">
-    {# XXX Hacky #}
-    {# With the title here, people will know that all of the things in the #}
-    {# panes are log messages #}
-{% if object.getAvailableTags %}
-    <h3 id="logmessagetitle">Event Log Messages</h3>
-        <div id="newLogTag">
-                <p> Use this form to apply a tag to your new log entry. Choose a tag
-                name from the dropdown menu or enter a new one.  If you are 
-                creating a new tag, please also provide a display name. </p>
-            <form>
-                &nbsp; Tag name <input id="newTagSelect" name="newTagSelect" /> 
-                &nbsp; Display name <input type="text" id="newTagDispName" name="newTagDispName" />
-            </form>  
-        </div>
-        <div id="newLogTag_pane_holder" class="pmTitlePaneClass"></div>
-        <div id="previewer"></div>
-        <div id="editor"></div>
-{% endif %}
+<div id="annotations" class="content-area">
 
-{#  Loop over the available tags. #}
-{% if object.getAvailableTags %}
-    {% for tag in object.getAvailableTags %}
-    {% if tag.name in blessed_tags %}
-        {# Create a div to hold the pane innerHTML for this tag #}
-        <div id="{{tag.name}}">
-
-            {# A section for the images #}
-            {% if object|logsForTagHaveImage:tag.name %}        
-            <!-- figure container table is inside a scrolling div -->
-            <div id="{{tag.name}}_figure_container">
-                <table class="figure_container">
-                    <tr>
-                        {% for log in object|getLogsForTag:tag.name %} 
-                            {% if log.hasImage %}
-                            <td>
-                                <table class="figures">
-                                    <!-- A row for the images themselves -->
-                                    <tr class="figrow">
-                                        <td>  <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="180" src="{{ log.fileurl }}"></a>
-                                        </td>
-                                    </tr>
-                                    <!-- A row for the captions -->
-                                    <tr>
-                                        <td> {{log.comment|sanitize}}
-                                           {% if log.fileurl %}
-                                            <a href="{{log.fileurl}}">{{log.filename}}.</a>
-                                           {% endif %}
-                                            Submitted by {{log.issuer}} on {{log.created}}
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>                                
-                            {% endif %}
-                        {% endfor %}
-                     </tr>
-                </table>
-            </div>
-            {% endif %}
-          
-            {# A section for the text-only captions #}
-            {% if object|logsForTagHaveText:tag.name %}
-                {# Set up regular log message table #}
-                <table class="event">
-                    <tr>
-                        <th>No.</th>
-                        <th>{{ "logtime"|timeselect:"utc" }} Log Entry Created</th>
-                        <th>Submitter</th>
-                        <th>Comment</th>
-                    </tr>
-                {% for log in object|getLogsForTag:tag.name %} 
-                    {% if not log.hasImage %}
-                        <tr class="{% cycle 'odd' 'even'%}">
-                           <td>{{log.N}}</td>
-                           <td>{{log.created|multiTime:"logtime"}}</td>
-                           <td>{{log.issuer.first_name}} {{log.issuer.last_name}}</td>
-                           <td>{{log.comment|sanitize}}
-                               {% if log.fileurl %}
-                                <a href="{{log.fileurl}}">{{log.filename}}</a>
-                               {% endif %}
-                           </td>
-                        </tr>
-                    {% endif %}
-                {% endfor %}
-                </table>
-            {% endif %}
-
-        </div>
-    {% endif %} {# endif the tag is blessed #}
-    {% endfor %}
-{% endif %}
-
-<noscript>
-    <h3>Create a new log entry</h3>
-    <form id="newlog" action="{% url logentry object.graceid "" %}" method="POST">
-        <textarea id="newlogtext" name="comment" style="width:300px;display:block"></textarea>
-        <input type="submit" value="Submit"/>
-    </form>
-</noscript>
-
-
-  <div id="event_log">
-    {# XXX Hacky.  We don't want the title here if we're doing panes. #}
-    {# And we only do panes if there are available tags. #}
-{% if not object.getAvailableTags %}
-    <h3 id="logmessagetitle">Event Log Messages</h3>
-        <div id="newLogTag">
-                <p> Use this form to apply a tag to your new log entry. Choose a tag
-                name from the dropdown menu or enter a new one.  If you are 
-                creating a new tag, please also provide a display name. </p>
-            <form>
-                &nbsp; Tag name <input id="newTagSelect" name="newTagSelect" /> 
-                &nbsp; Display name <input type="text" id="newTagDispName" name="newTagDispName" />
-            </form>  
-        </div>
-        <div id="newLogTag_pane_holder" class="pmTitlePaneClass"></div>
-        <div id="previewer"></div>
-        <div id="editor"></div>
-{% endif %}
-
-{% if object.eventlog_set.count %}
-  {% if blessed_tags %}
-    <div id="existingLogTag">
-        <p>  Use this form to tag an existing log message. Choose a tag name from the
-             dropdown menu or enter a new one.  If you are creating a new tag, please
-             also provide a display name.
-    <form id="existingTagForm">
-        Log No. <input id="n" name="n" type="text" size="4" />
-        &nbsp;&nbsp; Tag name <input id="existingTagSelect" name="existingTagSelect" />
-        &nbsp;&nbsp; Display name <input type="text" id="existingTagDispName" name="existingTagDispName"/> 
-        <input type="submit" name="submit" value="Submit" /> </p>
-    </form>  
+    <div id="new_log_entry_form">
+    <noscript>
+        <h3>Create a new log entry</h3>
+        <form id="newlog" action="{% url logentry object.graceid "" %}" method="POST">
+            <textarea id="newlogtext" name="comment" style="width:300px;display:block"></textarea>
+            <input type="submit" value="Submit"/>
+        </form>
+    </noscript>
     </div>
-    <div id="existingLogTag_pane_holder" class="pmTitlePaneClass"></div>
-  {% endif %}
 
-  <table class="event">
-        <tr>
-            <th>No.</th>
-            <th>{{ "logtime"|timeselect:"utc" }} Log Entry Created</th>
-            <th>Submitter</th>
-  {% if object.getAvailableTags %}
-              <th>Tags</th>
-  {% endif %}
-            <th>Comment</th>
-            <th>&nbsp;</th>
-        </tr>
-  {% for log in object.eventlog_set.iterator %}
-        <tr class="{% cycle 'odd' 'even'%}">
-           <td>{{log.N}}
-           <td>{{log.created|multiTime:"logtime"}}</td>
-           <td>{{log.issuer.first_name}} {{ log.issuer.last_name}}</td>
-  {% if object.getAvailableTags %}
-           <td> 
-              <table> 
-                  {%for tag in log.tag_set.all %} 
-                  <tr> <td> {{tag.name}} </td> </tr> 
-                  {% endfor %} 
-              </table> 
-           </td>
-  {% endif %}
-           <td>{{log.comment|sanitize}}
-               {% if log.fileurl %}
-                <a href="{{log.fileurl}}">{{log.filename}}</a>
-               {% endif %}
-           </td>
-           <td>
-               {% if log.hasImage %}
-                   <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="60" src="{{ log.fileurl }}"></a>
-               {% endif %}
-           </td>
-        </tr>
-  {% endfor %}
-  </table>
-{% endif %}
-  </div>
+    <h3 id="logmessagetitle">Event Log Messages</h3>
+    <div id="newLogTag">
+            <p> Use this form to apply a tag to your new log entry. Choose a tag
+            name from the dropdown menu or enter a new one.  If you are 
+            creating a new tag, please also provide a display name. </p>
+        <form>
+            &nbsp; Tag name <input id="newTagSelect" name="newTagSelect" /> 
+            &nbsp; Display name <input type="text" id="newTagDispName" name="newTagDispName" />
+        </form>  
+    </div>
+    <div id="newLogTag_pane_holder" class="pmTitlePaneClass"></div>
+    <div id="previewer"></div>
+    <div id="editor"></div>
 
-</div> <!-- End of pane_holder div -->
+</div> 
 {% endblock %}
