@@ -97,7 +97,9 @@
             return digests;
         }
 
+
         function getAuditLogContents() {
+            tags = new Array();
             var ret = "";
 
 {% if blessed_tags %}
@@ -136,46 +138,15 @@
             ret += '        <td> \n';
             ret += '        <table> \n';
         {%for tag in log.tag_set.all %} 
+            tag = new Object();
+            tag.name = "{{tag.name}}";
+            tag.button_id = "del_button_{{log.N}}_{{tag.name}}";
+            tag.n = "{{log.N}}";
+            tags.push(tag);
             ret += '            <tr> <td> \n';
-            ret += '            <button type="button" data-dojo-type="dijit/form/Button"> \n';
+            //ret += ('            <button type="button" data-dojo-type="dijit/form/Button" id="%s"> \n', tag.button_id);
+            ret += '            <button type="button" data-dojo-type="dijit/form/Button" id="del_button_{{log.N}}_{{tag.name}}"> \n';
             ret += '                <span>{{tag.name}}</span> \n';
-            ret += '                <script type="dojo/on" data-dojo-event="click"> \n';
-/*            ret += '                    console.log("I was clicked."); \n'; */
-            ret += '                    require(["dojo/dom", \n';
-            ret += '                            "dojo/request", \n';
-            ret += '                            "dojo/dom-construct", \n';
-            ret += '                            "dijit/Dialog", \n';
-            ret += '                            "dijit/form/Button"], function(dom,request,domConstruct,Dialog,Button) { \n';
-            ret += '                        var n = {{ log.N }} \n';
-            ret += '                        var tagName = "{{ tag.name }}" \n';
-            ret += '                        var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}" \n';
-            ret += '                        tagUrl = tagUrl.replace("000",n); \n';
-            ret += '                        tagUrl = tagUrl.replace("temp",tagName); \n';
-            ret += '                        var tagResultDialog = new Dialog({ style: "width: 300px" }); \n';
-            ret += '                        var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" }); \n';
-            ret += '                        var tbnode = domConstruct.create("div", { \n';
-            ret += '                                style: "margin: 0px auto 0px auto; text-align: center;" \n';
-            ret += '                        }, actionBar); \n';
-            ret += '                        var tagButton = new Button({ \n';
-            ret += '                            label: "Ok", \n';
-            ret += '                            onClick: function(){ \n';
-            ret += '                            tagResultDialog.hide(); \n';
-            ret += '                        }}).placeAt(tbnode); \n';
-            ret += '                        request.del(tagUrl).then( \n';
-            ret += '                            function(text){ \n';
-            ret += '                                tagResultDialog.set("content", text); \n';
-            ret += '                                domConstruct.place(actionBar, tagResultDialog.containerNode); \n';
-            ret += '                                tagResultDialog.show(); \n';
-            ret += '                                //location.reload(true); \n';
-            ret += '                            }, \n';
-            ret += '                            function(error){ \n';
-            ret += '                                tagResultDialog.set("content", "Error: " + error); \n';
-            ret += '                                domConstruct.place(actionBar, tagResultDialog.containerNode); \n';
-            ret += '                                tagResultDialog.show();  \n';
-            ret += '                            } \n';
-            ret += '                       ); \n';
-            ret += '                    }); \n'; 
-            ret += '                <\/script>\n';
             ret += '            </button> \n';
             ret += '            </td> </tr> \n';
         {% endfor %} 
@@ -195,7 +166,7 @@
             ret += '    </tr> \n';
 {% endfor %}
             ret += '    </table>';
-            return ret;
+            return {'logContents':ret, 'tags':tags};
         }
 
         //-----------------------------------
@@ -226,6 +197,39 @@
                                               Button, TitlePane, ScrollPane, Memory, ComboBox, Dialog) {
 
             parser.parse();
+
+
+            // a utility function
+            function getTagDelCallback(n,tagName) {
+                return function() {
+                    var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}" 
+                    tagUrl = tagUrl.replace("000",n); 
+                    tagUrl = tagUrl.replace("temp",tagName); 
+                    var tagResultDialog = new Dialog({ style: "width: 300px" }); 
+                    var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" }); 
+                    var tbnode = domConstruct.create("div", { 
+                            style: "margin: 0px auto 0px auto; text-align: center;" 
+                    }, actionBar); 
+                    var tagButton = new Button({ 
+                        label: "Ok", 
+                        onClick: function(){ 
+                        tagResultDialog.hide(); 
+                    }}).placeAt(tbnode); 
+                    request.del(tagUrl).then( 
+                        function(text){ 
+                            tagResultDialog.set("content", text); 
+                            domConstruct.place(actionBar, tagResultDialog.containerNode); 
+                            tagResultDialog.show(); 
+                            //location.reload(true); 
+                        }, 
+                        function(error){ 
+                            tagResultDialog.set("content", "Error: " + error); 
+                            domConstruct.place(actionBar, tagResultDialog.containerNode); 
+                            tagResultDialog.show();  
+                        });
+                    } 
+                }
+
 
             //var newlogdiv = dom.byId("newlogdiv");
             var logtitle = dom.byId("logmessagetitle");
@@ -323,7 +327,9 @@
             var doingPanes = false;
 {% endif %}
             
-            var auditLogContents = getAuditLogContents();
+            var ret = getAuditLogContents();
+            var auditLogContents = ret.logContents;
+            var tags = ret.tags;
 
             var annotationsDiv = dom.byId("annotations");
 
@@ -358,6 +364,13 @@
 {% if object.eventlog_set.count %}
                 annotationsDiv.innerHTML += auditLogContents;
 {% endif %}
+            }
+
+            // Now that all of the delete buttons have been added to the dom, we can set their actions.
+            for (var i = 0; i<tags.length; i++) {
+                tag = tags[i];
+                tagButton = dom.byId(tag.button_id);
+                on(tagButton, "click", getTagDelCallback(tag.n,tag.name));
             }
             
             // Set up infrastructure for tagging log messages.
