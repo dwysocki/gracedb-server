@@ -1076,6 +1076,7 @@ def latest(request):
 #-----------------------------------------------------------------------------------
 # For tags.  A new view function.  We need this because the API one would want users
 # to have certs stored in their browser.
+# XXX Get rid of this and use apiweb views instead?
 #-----------------------------------------------------------------------------------
 
 def taglogentry(request, graceid, num, tagname):
@@ -1116,8 +1117,29 @@ def taglogentry(request, graceid, num, tagname):
                 msg = msg + str(e) + '\n'
                 msg = "The tag itself, however, is saved."
                 return HttpResponse(msg, content_type="text")
+    elif request.method == "DELETE":
+        try:
+            # Has this tag-eventlog relationship already been created? 
+            tag = eventlog.tag_set.filter(name=tagname)[0]
+            tag.eventlogs.remove(eventlog)
+        except:
+            msg = "Attempted to delete tag that doesn't exist."
+            return HttpResponseBadRequest(msg)
+
+        # Create a log entry to document the tag deletion.
+        msg = "Removed tag %s for message %s. " % (tagname, num)
+        logentry = EventLog(event=event,
+                           issuer=request.user,
+                           comment=msg)
+        try:
+            logentry.save()
+        except Exception as e:
+            # Since the tag creation was successful, we'll return 200.
+            return HttpResponse("Tag removed, but failed to create log entry: %s" % str(e),
+                        content_type="text")
+
+        return HttpResponse(msg, content_type="text")
     else:
-        # We will only allow PUT here.  Anything else is a bad request: 400
         return HttpResponseBadRequest
 
     # Hopefully, this will only ever be called form inside a script.  Just in case...

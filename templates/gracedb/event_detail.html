@@ -47,7 +47,7 @@
                     dc += '                     </td> \n';
                     dc += '                 </tr> \n';
                     dc += '                 <tr> \n';
-                    dc += '                     <td> {{log.comment|sanitize}} \n';
+                    dc += '                     <td> {{log.comment|sanitize|escapejs}} \n';
                     {% if log.fileurl %} 
                     dc += '                         <a href="{{log.fileurl}}">{{log.filename}}.</a> \n';
                     {% endif %} 
@@ -78,9 +78,9 @@
                 {% if not log.hasImage %}
                     dc += '     <tr class="{% cycle 'odd' 'even'%}"> \n';
                     dc += '         <td>{{log.N}}</td> \n';
-                    dc += '         <td>{{log.created|multiTime:"logtime"}}</td> \n';
+                    dc += '         <td>{{log.created|multiTime:"logtime"|escapejs}}</td> \n';
                     dc += '         <td>{{log.issuer.first_name}} {{log.issuer.last_name}}</td> \n';
-                    dc += '         <td>{{log.comment|sanitize}} \n';
+                    dc += '         <td>{{log.comment|sanitize|escapejs}} \n';
                                {% if log.fileurl %}
                     dc += '             <a href="{{log.fileurl}}">{{log.filename}}</a> \n';
                                {% endif %}
@@ -137,10 +137,44 @@
             ret += '        <table> \n';
         {%for tag in log.tag_set.all %} 
             ret += '            <tr> <td> \n';
-            ret += '            <button type="button" id="table_button" data-dojo-type="dijit/form/Button"> \n';
-            ret += '                <span>Click me!</span> \n';
+            ret += '            <button type="button" data-dojo-type="dijit/form/Button"> \n';
+            ret += '                <span>{{tag.name}}</span> \n';
             ret += '                <script type="dojo/on" data-dojo-event="click"> \n';
-            ret += '                      console.log("I was clicked!"); \n';
+/*            ret += '                    console.log("I was clicked."); \n'; */
+            ret += '                    require(["dojo/dom", \n';
+            ret += '                            "dojo/request", \n';
+            ret += '                            "dojo/dom-construct", \n';
+            ret += '                            "dijit/Dialog", \n';
+            ret += '                            "dijit/form/Button"], function(dom,request,domConstruct,Dialog,Button) { \n';
+            ret += '                        var n = {{ log.N }} \n';
+            ret += '                        var tagName = "{{ tag.name }}" \n';
+            ret += '                        var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}" \n';
+            ret += '                        tagUrl = tagUrl.replace("000",n); \n';
+            ret += '                        tagUrl = tagUrl.replace("temp",tagName); \n';
+            ret += '                        var tagResultDialog = new Dialog({ style: "width: 300px" }); \n';
+            ret += '                        var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" }); \n';
+            ret += '                        var tbnode = domConstruct.create("div", { \n';
+            ret += '                                style: "margin: 0px auto 0px auto; text-align: center;" \n';
+            ret += '                        }, actionBar); \n';
+            ret += '                        var tagButton = new Button({ \n';
+            ret += '                            label: "Ok", \n';
+            ret += '                            onClick: function(){ \n';
+            ret += '                            tagResultDialog.hide(); \n';
+            ret += '                        }}).placeAt(tbnode); \n';
+            ret += '                        request.del(tagUrl).then( \n';
+            ret += '                            function(text){ \n';
+            ret += '                                tagResultDialog.set("content", text); \n';
+            ret += '                                domConstruct.place(actionBar, tagResultDialog.containerNode); \n';
+            ret += '                                tagResultDialog.show(); \n';
+            ret += '                                //location.reload(true); \n';
+            ret += '                            }, \n';
+            ret += '                            function(error){ \n';
+            ret += '                                tagResultDialog.set("content", "Error: " + error); \n';
+            ret += '                                domConstruct.place(actionBar, tagResultDialog.containerNode); \n';
+            ret += '                                tagResultDialog.show();  \n';
+            ret += '                            } \n';
+            ret += '                       ); \n';
+            ret += '                    }); \n'; 
             ret += '                <\/script>\n';
             ret += '            </button> \n';
             ret += '            </td> </tr> \n';
@@ -148,7 +182,7 @@
             ret += '        </table> \n';
             ret += '        </td> \n';
     {% endif %}
-            ret += '        <td>{{log.comment|sanitize}} \n';
+            ret += '        <td>{{log.comment|sanitize|escapejs}} \n';
     {% if log.fileurl %}
             ret += '            <a href="{{log.fileurl}}">{{log.filename}}</a> \n';
     {% endif %}
