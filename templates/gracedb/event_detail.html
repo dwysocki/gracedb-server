@@ -198,7 +198,6 @@
 
             parser.parse();
 
-
             // a utility function
             function getTagDelCallback(n,tagName) {
                 return function() {
@@ -230,6 +229,57 @@
                     } 
                 }
 
+
+
+
+            // If we have blessed tags *and* some log messages have been tagged,
+            // we will want some TitlePanes.
+{% if blessed_tags and object.getAvailableTags %}
+            var doingPanes = true;
+{% else %}
+            var doingPanes = false;
+{% endif %}
+            
+            var ret = getAuditLogContents();
+            var auditLogContents = ret.logContents;
+            var tags = ret.tags;
+
+            annotationsDiv = dom.byId("annotations");
+
+
+            if (doingPanes) {
+                // Go and get me an array of objects.  
+                var digests = getDigests();
+                for (var i = 0; i<digests.length; i++) {
+                    tp = new dijit.TitlePane({title:digests[i].title,
+                                             content:digests[i].contents,
+                                             open:true});
+                    annotationsDiv.appendChild(tp.domNode);
+                };
+
+
+                // Handle event log seperately.  It will be closed by default.
+                tp = new dijit.TitlePane({title:"Full Event Log",
+                                         content:auditLogContents,
+                                         open:false});
+                annotationsDiv.appendChild(tp.domNode);
+
+
+                // Deal with the figure containers.
+                var figure_scrollpanes = new Array();
+                for (var i = 0; i<digests.length; i++) {
+                    if (digests[i].hasfigs) {
+                        figure_scrollpanes.push(new dojox.layout.ScrollPane({
+                                    orientation:"horizontal",
+                                    style:"overflow:hidden;"},
+                                    digests[i].figure_container_id));
+                    }
+                }
+            } else {
+{% if object.eventlog_set.count %}
+                annotationsDiv.innerHTML += auditLogContents;
+{% endif %}
+            }
 
             //var newlogdiv = dom.byId("newlogdiv");
             var logtitle = dom.byId("logmessagetitle");
@@ -318,53 +368,6 @@
                  extraPlugins : ['foreColor','hiliteColor','|','createLink',
                                  'insertImage','fullscreen','viewsource','newpage', '|', previewbutton, savebutton]
             }, editor_div);
-
-            // If we have blessed tags *and* some log messages have been tagged,
-            // we will want some TitlePanes.
-{% if blessed_tags and object.getAvailableTags %}
-            var doingPanes = true;
-{% else %}
-            var doingPanes = false;
-{% endif %}
-            
-            var ret = getAuditLogContents();
-            var auditLogContents = ret.logContents;
-            var tags = ret.tags;
-
-            var annotationsDiv = dom.byId("annotations");
-
-            if (doingPanes) {
-                var pane_holder = dom.byId("pane_holder");
-                // Go and get me an array of objects.  
-                var digests = getDigests();
-                for (var i = 0; i<digests.length; i++) {
-                    tp = new dijit.TitlePane({title:digests[i].title,
-                                             content:digests[i].contents,
-                                             open:true});
-                    annotationsDiv.appendChild(tp.domNode);
-                };
-
-                // Handle event log seperately.  It will be closed by default.
-                tp = new dijit.TitlePane({title:"Full Event Log",
-                                         content:auditLogContents,
-                                         open:false});
-                annotationsDiv.appendChild(tp.domNode);
-
-                // Deal with the figure containers.
-                var figure_scrollpanes = new Array();
-                for (var i = 0; i<digests.length; i++) {
-                    if (digests[i].hasfigs) {
-                        figure_scrollpanes.push(new dojox.layout.ScrollPane({
-                                    orientation:"horizontal",
-                                    style:"overflow:hidden;"},
-                                    digests[i].figure_container_id));
-                    }
-                }
-            } else {
-{% if object.eventlog_set.count %}
-                annotationsDiv.innerHTML += auditLogContents;
-{% endif %}
-            }
 
             // Now that all of the delete buttons have been added to the dom, we can set their actions.
             for (var i = 0; i<tags.length; i++) {
@@ -596,7 +599,7 @@
 
 </script>
 
-{% include "gracedb/neighbors_frag.html" %}
+{# {% include "gracedb/neighbors_frag.html" %} #}
 
 <div id="annotations" class="content-area">
 
