@@ -99,6 +99,7 @@
 
 
         function getAuditLogContents() {
+            logs = new Array();
             tags = new Array();
             var ret = "";
 
@@ -134,9 +135,16 @@
             ret += '        <td>{{log.N}} \n';
             ret += '        <td>{{log.created|multiTime:"logtime"}}</td> \n';
             ret += '        <td>{{log.issuer.first_name}} {{ log.issuer.last_name}}</td> \n';
-    {% if object.getAvailableTags %}
             ret += '        <td> \n';
             ret += '        <table> \n';
+            log = new Object();
+            log.n = {{log.N}};
+            log.button_id = "addtag_{{log.N}}";
+            logs.push(log);
+            ret += '            <tr> <td> \n';
+            ret += '            <button type="button" data-dojo-type="dijit/form/Button" id="addtag_{{log.N}}">add</button> \n';
+            ret += '            </td> </tr> \n';
+    {% if object.getAvailableTags %}
         {%for tag in log.tag_set.all %} 
             tag = new Object();
             tag.name = "{{tag.name}}";
@@ -150,9 +158,9 @@
             ret += '            </button> \n';
             ret += '            </td> </tr> \n';
         {% endfor %} 
+    {% endif %}
             ret += '        </table> \n';
             ret += '        </td> \n';
-    {% endif %}
             ret += '        <td>{{log.comment|sanitize|escapejs}} \n';
     {% if log.fileurl %}
             ret += '            <a href="{{log.fileurl}}">{{log.filename}}</a> \n';
@@ -166,7 +174,7 @@
             ret += '    </tr> \n';
 {% endfor %}
             ret += '    </table>';
-            return {'logContents':ret, 'tags':tags};
+            return {'logContents':ret, 'logs':logs, 'tags':tags};
         }
 
         //-----------------------------------
@@ -182,6 +190,7 @@
                  "dojox/editor/plugins/Save",
                  "dojox/editor/plugins/Preview",
                  "dijit/form/Button",
+                 "dijit/form/Form",
                  "dijit/TitlePane",
                  "dojox/layout/ScrollPane",
                  "dojo/store/Memory",
@@ -194,7 +203,7 @@
                  "dijit/_editor/plugins/NewPage",
                  "dijit/_editor/plugins/FullScreen",
                  "dojo/domReady!"], function (dom, parser, on, request, domForm, domConstruct, Editor, Save, Preview, 
-                                              Button, TitlePane, ScrollPane, Memory, ComboBox, Dialog) {
+                                              Button, Form, TitlePane, ScrollPane, Memory, ComboBox, Dialog) {
 
             parser.parse();
 
@@ -244,7 +253,9 @@
             var auditLogContents = ret.logContents;
             var tags = ret.tags;
 
+            console.log("before trying to get annotationsDiv");
             annotationsDiv = dom.byId("annotations");
+            console.log("after getting it, contents = %s", annotationsDiv.innerHTML);
 
 
             if (doingPanes) {
@@ -369,7 +380,44 @@
                                  'insertImage','fullscreen','viewsource','newpage', '|', previewbutton, savebutton]
             }, editor_div);
 
-            // Now that all of the delete buttons have been added to the dom, we can set their actions.
+
+            // Now that all of the add and delete tag buttons have been added to the dom, we can set their actions.
+            for (var i = 0; i<logs.length; i++) {
+                log = logs[i];
+                var n = log.n;
+                tagButton = dom.byId(log.button_id);
+
+                // Each one will have its own dialogue. Craziness.
+                var addTagForm = new Form();
+
+                var tagNameBox = new TextBox({
+                    name: "tagName",
+                    }).placeAt(addTagForm.containerNode);
+
+                var addTagButton = new Button({
+                    type: "submit",
+                    label: "OK",
+                    }).placeAt(addTagForm.containerNode);
+
+                on(addTagForm, "submit", function(evt) {
+                    evt.stopPropagation();
+                    evt.preventDefault();
+                    formData = addTagForm.getValues()
+                    var tagName = formData.tagName;
+                    console.log("tagName = %s", tagName);
+                    addTagDialog.hide();
+                    });
+
+                addTagDialog = new Dialog({
+                    title: "Add Tag",
+                    content: addTagForm,
+                    style: "width: 300px"
+                    });
+
+                on(tagButton, "click", function() {addTagDialog.show();});
+
+            } 
+
             for (var i = 0; i<tags.length; i++) {
                 tag = tags[i];
                 tagButton = dom.byId(tag.button_id);
@@ -599,7 +647,7 @@
 
 </script>
 
-{# {% include "gracedb/neighbors_frag.html" %} #}
+{# {% include "gracedb/neighbors_frag.html" %}  #}
 
 <div id="annotations" class="content-area">
 
