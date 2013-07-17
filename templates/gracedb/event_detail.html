@@ -16,10 +16,11 @@
     <script src="{{MEDIA_URL}}js/labeltips.js" type="text/javascript"></script>
     <link rel="stylesheet" href="{{MEDIA_URL}}css/labeltips.css">
     <script type="text/javascript">
-        //-----------------------------------
-        // Utilities for constructing the 
-        // innerHTML of the annotations
-        //-----------------------------------
+        //------------------------------------------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------------------------------------------
+        // Generate an array, the elements of which contain the inner html for each thematic digest
+        //------------------------------------------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------------------------------------------
         function getDigests() {
             var digests = new Array();
 {% for tag in object.getAvailableTags %}
@@ -97,27 +98,15 @@
             return digests;
         }
 
-
+        //------------------------------------------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------------------------------------------
+        // Generate the html table for the full audit log
+        //------------------------------------------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------------------------------------------
         function getAuditLogContents() {
             logs = new Array();
             tags = new Array();
             var ret = "";
-
-{% if blessed_tags %}
-            ret += '    <div id="existingLogTag"> \n';
-            ret += '        <p>  Use this form to tag an existing log message. Choose a tag name from the \n';
-            ret += '        dropdown menu or enter a new one.  If you are creating a new tag, please \n';
-            ret += '        also provide a display name. \n';
-            ret += '        <form id="existingTagForm"> \n';
-            ret += '            Log No. <input id="n" name="n" type="text" size="4" /> \n';
-            ret += '            &nbsp;&nbsp; Tag name <input id="existingTagSelect" name="existingTagSelect" /> \n';
-            ret += '            &nbsp;&nbsp; Display name <input type="text" id="existingTagDispName" name="existingTagDispName"/> \n';
-            ret += '            <input type="submit" name="submit" value="Submit" /> </p> \n';
-            ret += '        </form> \n';
-            ret += '    </div> \n';
-            ret += '    <div id="existingLogTag_pane_holder" class="pmTitlePaneClass"></div> \n'; 
-{% endif %}
-
             ret += '    <table class="event"> \n';
             ret += '    <tr> \n';
             ret += '        <th>No.</th> \n';
@@ -152,9 +141,8 @@
             tag.n = "{{log.N}}";
             tags.push(tag);
             ret += '            <tr> <td> \n';
-            //ret += ('            <button type="button" data-dojo-type="dijit/form/Button" id="%s"> \n', tag.button_id);
-            ret += '            <button type="button" data-dojo-type="dijit/form/Button" id="del_button_{{log.N}}_{{tag.name}}"> \n';
-            ret += '                <span>{{tag.name}}</span> \n';
+            ret += '            <button type="button" data-dojo-type="dijit/form/Button" id="' + tag.button_id + '"> \n';
+            ret += '                <span>' + tag.name + '</span> \n';
             ret += '            </button> \n';
             ret += '            </td> </tr> \n';
         {% endfor %} 
@@ -177,9 +165,11 @@
             return {'logContents':ret, 'logs':logs, 'tags':tags};
         }
 
-        //-----------------------------------
+        //------------------------------------------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------------------------------------------
         // The main Dojo action happens here.
-        //-----------------------------------
+        //------------------------------------------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------------------------------------------
         require(["dojo/dom",
                  "dojo/parser",
                  "dojo/on",
@@ -190,6 +180,7 @@
                  "dojox/editor/plugins/Save",
                  "dojox/editor/plugins/Preview",
                  "dijit/form/Button",
+                 "dijit/form/TextBox",
                  "dijit/form/Form",
                  "dijit/TitlePane",
                  "dojox/layout/ScrollPane",
@@ -203,16 +194,31 @@
                  "dijit/_editor/plugins/NewPage",
                  "dijit/_editor/plugins/FullScreen",
                  "dojo/domReady!"], function (dom, parser, on, request, domForm, domConstruct, Editor, Save, Preview, 
-                                              Button, Form, TitlePane, ScrollPane, Memory, ComboBox, Dialog) {
+                                              Button, TextBox, Form, TitlePane, ScrollPane, Memory, ComboBox, Dialog) {
 
             parser.parse();
 
-            // a utility function
-            function getTagDelCallback(n,tagName) {
+            //--------------------------------------------------------------------------------------------------------------------
+            // Remember the blessed tags, if we have them.
+            //--------------------------------------------------------------------------------------------------------------------
+{% if blessed_tags %}
+            var blessedTagStore = new Memory({
+                data: [
+    {% for bt in blessed_tags %}
+                        {name:"{{bt}}"},
+    {% endfor %}
+                ]
+            });
+{% endif %}
+
+            //--------------------------------------------------------------------------------------------------------------------
+            // a utility function to get the callbacks for when the tag delete button is clicked.
+            //--------------------------------------------------------------------------------------------------------------------
+            function getTagDelCallback(tag) {
                 return function() {
                     var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}" 
-                    tagUrl = tagUrl.replace("000",n); 
-                    tagUrl = tagUrl.replace("temp",tagName); 
+                    tagUrl = tagUrl.replace("000",tag.n); 
+                    tagUrl = tagUrl.replace("temp",tag.name); 
                     var tagResultDialog = new Dialog({ style: "width: 300px" }); 
                     var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" }); 
                     var tbnode = domConstruct.create("div", { 
@@ -228,7 +234,7 @@
                             tagResultDialog.set("content", text); 
                             domConstruct.place(actionBar, tagResultDialog.containerNode); 
                             tagResultDialog.show(); 
-                            //location.reload(true); 
+                            location.reload(true); 
                         }, 
                         function(error){ 
                             tagResultDialog.set("content", "Error: " + error); 
@@ -238,9 +244,101 @@
                     } 
                 }
 
+            //--------------------------------------------------------------------------------------------------------------------
+            // a utility function to get the callbacks for when the tag add button is clicked.
+            //--------------------------------------------------------------------------------------------------------------------
+            function getTagAddCallback(log) {
+                return function() {
+                    console.log("inside addTag callback for n=%d", log.n);
 
+                    // Create the tag result dialog.
+                    var tagResultDialog = new Dialog({ style: "width: 300px" }); 
+                    var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" }); 
+                    var tbnode = domConstruct.create("div", { 
+                            style: "margin: 0px auto 0px auto; text-align: center;" 
+                    }, actionBar); 
+                    var tagButton = new Button({ 
+                        label: "Ok", 
+                        onClick: function(){ 
+                        tagResultDialog.hide();
+                        }
+                    }).placeAt(tbnode); 
 
+                    // Create the form
+                    addTagForm = new Form();
+                    var msg = "<p> Choose a tag \
+                        name from the dropdown menu or enter a new one.  If you are \
+                        creating a new tag, please also provide a display name. </p>";
+                    domConstruct.create("div", {innerHTML: msg} , addTagForm.containerNode);
 
+                    // Form for tagging existing log messages.
+                    new ComboBox({
+                        name: "existingTagSelect",
+                        value: "",
+    {% if blessed_tags %}                
+                        store: blessedTagStore,
+                        searchAttr: "name"
+    {% endif %}
+                    }).placeAt(addTagForm.containerNode);
+
+                    new TextBox({
+                        name: "tagDispName",
+                    }).placeAt(addTagForm.containerNode);
+
+                    new Button({
+                        type: "submit",
+                        label: "OK",
+                    }).placeAt(addTagForm.containerNode);
+
+                    // Create the dialoge
+                    addTagDialog = new Dialog({
+                        title: "Add Tag",
+                        content: addTagForm,
+                        style: "width: 300px"
+                        });
+
+                    // Define the form on submit handler
+                    on(addTagForm, "submit", function(evt) {
+                        evt.stopPropagation();
+                        evt.preventDefault();
+                        console.log("before get values");
+                        formData = addTagForm.getValues();
+                        console.log("inside the on function, n=%d", log.n);
+                        var tagName = formData.existingTagSelect;
+                        var tagDispName = formData.tagDispName;
+                        console.log("tagName = %s", tagName);
+                        console.log("tagDispName = %s", tagDispName);
+                        var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}"
+                        tagUrl = tagUrl.replace("000",log.n);
+                        tagUrl = tagUrl.replace("temp",tagName);
+
+                        request.post(tagUrl, {
+                            data: {displayName: tagDispName}
+                        }).then(
+                            function(text){
+                                tagResultDialog.set("content", text);
+                                domConstruct.place(actionBar, tagResultDialog.containerNode);
+                                tagResultDialog.show();
+                                location.reload(true);
+                            },
+                            function(error){
+                                tagResultDialog.set("content", "Error: " + error);
+                                domConstruct.place(actionBar, tagResultDialog.containerNode);
+                                tagResultDialog.show(); 
+                            }
+                       );
+                       addTagDialog.hide();
+                    });
+
+                    // show the dialog
+                    addTagDialog.show();
+                }
+            }
+
+            //--------------------------------------------------------------------------------------------------------------------
+            // Main processing begins here
+            //--------------------------------------------------------------------------------------------------------------------
+           
             // If we have blessed tags *and* some log messages have been tagged,
             // we will want some TitlePanes.
 {% if blessed_tags and object.getAvailableTags %}
@@ -253,11 +351,12 @@
             var auditLogContents = ret.logContents;
             var tags = ret.tags;
 
-            console.log("before trying to get annotationsDiv");
             annotationsDiv = dom.byId("annotations");
-            console.log("after getting it, contents = %s", annotationsDiv.innerHTML);
 
-
+            //-------------------------------------------------------------------
+            // Set up the annotations section, depending on whether we're doing 
+            // title panes with annotation digests.
+            //-------------------------------------------------------------------
             if (doingPanes) {
                 // Go and get me an array of objects.  
                 var digests = getDigests();
@@ -292,7 +391,10 @@
 {% endif %}
             }
 
-            //var newlogdiv = dom.byId("newlogdiv");
+            //-------------------------------------------------------------------
+            // Now that the annotations section has been added to the dom, we
+            // can work on its functionality.
+            //-------------------------------------------------------------------
             var logtitle = dom.byId("logmessagetitle");
             var logtext = dom.byId("newlogtext");
 
@@ -374,86 +476,33 @@
                     }
             });
 
-
             var editor = new Editor({
                  extraPlugins : ['foreColor','hiliteColor','|','createLink',
                                  'insertImage','fullscreen','viewsource','newpage', '|', previewbutton, savebutton]
             }, editor_div);
 
-
-            // Now that all of the add and delete tag buttons have been added to the dom, we can set their actions.
+            // Connect up the tag addition buttons.
             for (var i = 0; i<logs.length; i++) {
                 log = logs[i];
-                var n = log.n;
-                tagButton = dom.byId(log.button_id);
+                on(dom.byId(log.button_id), "click", getTagAddCallback(log));
+            }
 
-                // Each one will have its own dialogue. Craziness.
-                var addTagForm = new Form();
-
-                var tagNameBox = new TextBox({
-                    name: "tagName",
-                    }).placeAt(addTagForm.containerNode);
-
-                var addTagButton = new Button({
-                    type: "submit",
-                    label: "OK",
-                    }).placeAt(addTagForm.containerNode);
-
-                on(addTagForm, "submit", function(evt) {
-                    evt.stopPropagation();
-                    evt.preventDefault();
-                    formData = addTagForm.getValues()
-                    var tagName = formData.tagName;
-                    console.log("tagName = %s", tagName);
-                    addTagDialog.hide();
-                    });
-
-                addTagDialog = new Dialog({
-                    title: "Add Tag",
-                    content: addTagForm,
-                    style: "width: 300px"
-                    });
-
-                on(tagButton, "click", function() {addTagDialog.show();});
-
-            } 
-
+            // Connect up the tag deletion buttons.
             for (var i = 0; i<tags.length; i++) {
                 tag = tags[i];
-                tagButton = dom.byId(tag.button_id);
-                on(tagButton, "click", getTagDelCallback(tag.n,tag.name));
+                on(dom.byId(tag.button_id), "click", getTagDelCallback(tag));
             }
-            
-            // Set up infrastructure for tagging log messages.
-{% if blessed_tags %}
-            var blessedTagStore = new Memory({
-                data: [
-    {% for bt in blessed_tags %}
-                        {name:"{{bt}}"},
-    {% endfor %}
-                ]
-            });
-{% endif %}
 
-            // Panes for the tagging forms.
+            // Set up pane for the new message tagging forms.
             var newLogTag                  = dom.byId("newLogTag");
-            var existingLogTag             = dom.byId("existingLogTag");
-            var existingLogTag_pane_holder = dom.byId("existingLogTag_pane_holder");
-
             tp_new = new dijit.TitlePane({title:"Tag this message",
                                      content:newLogTag.innerHTML,
                                      open:false});
             newLogTag_pane_holder.appendChild(tp_new.domNode);
             dojo.destroy(newLogTag);        
 
-            tp_existing = new dijit.TitlePane({title:"Add tag",
-                                     content:existingLogTag.innerHTML,
-                                     open:false});
-            existingLogTag_pane_holder.appendChild(tp_existing.domNode);
-            dojo.destroy(existingLogTag);       
-
             // Form for tagging new log messages.
-            var cb1 = new ComboBox({
+            new ComboBox({
                 id: "newTagSelect",
                 name: "newTagSelect",
                 value: "",
@@ -462,59 +511,6 @@
                 searchAttr: "name"
 {% endif %}
             }, "newTagSelect");
-
-            // Form for tagging existing log messages.
-            var cb2 = new ComboBox({
-                id: "existingTagSelect",
-                name: "existingTagSelect",
-                value: "",
-{% if blessed_tags %}                
-                store: blessedTagStore,
-                searchAttr: "name"
-{% endif %}
-            }, "existingTagSelect");
-
-            // Construct a dialog to show results of tagging an existing log message.
-            var tagResultDialog = new Dialog({ style: "width: 300px" });
-            var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" });
-            var tbnode = domConstruct.create("div", {
-                    style: "margin: 0px auto 0px auto; text-align: center;"
-            }, actionBar);
-            var tagButton = new Button({
-                    label: "Ok",
-                    onClick: function(){
-                    tagResultDialog.hide();
-                    }}).placeAt(tbnode);
-
-            // The form for tagging existing log messages.
-            var form = dom.byId('existingTagForm');
-            on(form, "submit", function(evt){
-                evt.stopPropagation();
-                evt.preventDefault();
-
-                var n = domForm.fieldToObject("n");
-                var tagName = domForm.fieldToObject("existingTagSelect");
-                var tagDispName = domForm.fieldToObject("existingTagDispName");
-                var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}"
-                tagUrl = tagUrl.replace("000",n);
-                tagUrl = tagUrl.replace("temp",tagName);
-
-                request.post(tagUrl, {
-                    data: {displayName: tagDispName}
-                }).then(
-                    function(text){
-                        tagResultDialog.set("content", text);
-                        domConstruct.place(actionBar, tagResultDialog.containerNode);
-                        tagResultDialog.show();
-                        //location.reload(true);
-                    },
-                    function(error){
-                        tagResultDialog.set("content", "Error: " + error);
-                        domConstruct.place(actionBar, tagResultDialog.containerNode);
-                        tagResultDialog.show(); 
-                    }
-                );
-            });
         });
 
     </script>

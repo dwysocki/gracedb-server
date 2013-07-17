@@ -1148,6 +1148,5 @@ def taglogentry(request, graceid, num, tagname):
 
     # no need for a JSON response. 
     msg = "Successfully applied tag %s to log message %s." % (tagname, num)
-    msg = msg + "  Refresh to see chages (if any) to the presentation."
     return HttpResponse(msg, content_type="text")
 
