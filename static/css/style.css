@@ -46,6 +46,38 @@ table.figures {width:300px;height:270px;border:1px solid gray;}
     background-position: 0px 0px;
 }
 
+.tundra.eventDetail .modButtonClass .dijitButtonNode {
+    border: none;
+    border-bottom: none;
+    background-image: none;
+    background-repeat: no-repeat;
+    background-color: rgb(200, 200, 200);
+    cursor: pointer;
+    min-width: 20px;
+}
+
+.tundra.eventDetail .modButtonClass.left.dijitButton {
+    padding: 0px 0px 0px 0px;
+    margin: 2px 0px 2px 2px;
+}
+.tundra.eventDetail .modButtonClass.right.dijitButton {
+    padding: 2px 0px 2px 0px;
+    margin: 2px 2px 2px 0px;
+}
+
+.tundra.eventDetail .dijitDisabled .dijitButtonText {
+    color: #000000;
+}
+
+.tagDelButtonDivClass {
+    white-space: nowrap;
+    overflow: hidden;
+    display: inline;
+}
+
+.tagButtonContainerClass {
+    float: right;
+}
 
 /* End Branson */
 

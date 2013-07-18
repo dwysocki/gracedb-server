@@ -15,6 +15,15 @@
     <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.8.1/dojo/dojo.js" type="text/javascript"></script>
     <script src="{{MEDIA_URL}}js/labeltips.js" type="text/javascript"></script>
     <link rel="stylesheet" href="{{MEDIA_URL}}css/labeltips.css">
+    <style>
+        .emptyIcon{
+            background-image: none;
+            background-position: center center;
+            background-repeat: no-repeat;
+            height: 10px;
+            width: 10px;
+        }
+    </style>
     <script type="text/javascript">
         //------------------------------------------------------------------------------------------------------------------------
         //------------------------------------------------------------------------------------------------------------------------
@@ -112,27 +121,20 @@
             ret += '        <th>No.</th> \n';
             ret += '        <th>{{ "logtime"|timeselect:"utc"|escapejs }} Log Entry Created</th> \n';
             ret += '        <th>Submitter</th> \n';
-{% if object.getAvailableTags %}
-            ret += '        <th>Tags</th> \n';
-{% endif %}
             ret += '        <th>Comment</th> \n';
             ret += '        <th>&nbsp;</th> \n';
             ret += '    </tr>\n';
 {% for log in object.eventlog_set.iterator %}
-            // NOTE: The single quotes in the following line will be processed by the django template before js gets it.
+            log = new Object();
+            log.n = {{log.N}};
+            log.button_id = "addtag_{{log.N}}";
+            logs.push(log);
             ret += '    <tr class="{% cycle 'odd' 'even'%}"> \n';
             ret += '        <td>{{log.N}} \n';
             ret += '        <td>{{log.created|multiTime:"logtime"}}</td> \n';
             ret += '        <td>{{log.issuer.first_name}} {{ log.issuer.last_name}}</td> \n';
             ret += '        <td> \n';
-            ret += '        <table> \n';
-            log = new Object();
-            log.n = {{log.N}};
-            log.button_id = "addtag_{{log.N}}";
-            logs.push(log);
-            ret += '            <tr> <td> \n';
-            ret += '            <button type="button" data-dojo-type="dijit/form/Button" id="addtag_{{log.N}}">add</button> \n';
-            ret += '            </td> </tr> \n';
+            ret += '        <div class="tagButtonContainerClass"> \n'
     {% if object.getAvailableTags %}
         {%for tag in log.tag_set.all %} 
             tag = new Object();
@@ -140,16 +142,19 @@
             tag.button_id = "del_button_{{log.N}}_{{tag.name}}";
             tag.n = "{{log.N}}";
             tags.push(tag);
-            ret += '            <tr> <td> \n';
-            ret += '            <button type="button" data-dojo-type="dijit/form/Button" id="' + tag.button_id + '"> \n';
-            ret += '                <span>' + tag.name + '</span> \n';
+            ret += '            <div class="tagDelButtonDivClass"> \n';
+            ret += '            <button type="button" data-dojo-type="dijit/form/Button" id="' + tag.button_id + '" class="modButtonClass left"> \n';
+            ret += '                &times; \n';
+            ret += '            </button><button type="button" data-dojo-type="dijit/form/Button" class="modButtonClass right" disabled> \n';
+            ret += '                ' + tag.name + ' \n';
             ret += '            </button> \n';
-            ret += '            </td> </tr> \n';
+            ret += '            </div> \n';
         {% endfor %} 
     {% endif %}
-            ret += '        </table> \n';
-            ret += '        </td> \n';
-            ret += '        <td>{{log.comment|sanitize|escapejs}} \n';
+            ret += '        <button type="button" data-dojo-type="dijit/form/Button" id="addtag_{{log.N}}" class="modButtonClass">&#43;</button> \n';
+            ret += '        </div> \n';
+
+            ret += '        {{log.comment|sanitize|escapejs}} \n';
     {% if log.fileurl %}
             ret += '            <a href="{{log.fileurl}}">{{log.filename}}</a> \n';
     {% endif %}
@@ -171,8 +176,10 @@
         //------------------------------------------------------------------------------------------------------------------------
         //------------------------------------------------------------------------------------------------------------------------
         require(["dojo/dom",
+                 "dojo/dom-style",
                  "dojo/parser",
                  "dojo/on",
+                 "dojo/mouse",
                  "dojo/request",
                  "dojo/dom-form",
                  "dojo/dom-construct",
@@ -193,7 +200,7 @@
                  "dijit/_editor/plugins/ViewSource",
                  "dijit/_editor/plugins/NewPage",
                  "dijit/_editor/plugins/FullScreen",
-                 "dojo/domReady!"], function (dom, parser, on, request, domForm, domConstruct, Editor, Save, Preview, 
+                 "dojo/domReady!"], function (dom, domStyle, parser, on, mouse, request, domForm, domConstruct, Editor, Save, Preview, 
                                               Button, TextBox, Form, TitlePane, ScrollPane, Memory, ComboBox, Dialog) {
 
             parser.parse();
@@ -249,8 +256,6 @@
             //--------------------------------------------------------------------------------------------------------------------
             function getTagAddCallback(log) {
                 return function() {
-                    console.log("inside addTag callback for n=%d", log.n);
-
                     // Create the tag result dialog.
                     var tagResultDialog = new Dialog({ style: "width: 300px" }); 
                     var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" }); 
@@ -301,13 +306,9 @@
                     on(addTagForm, "submit", function(evt) {
                         evt.stopPropagation();
                         evt.preventDefault();
-                        console.log("before get values");
                         formData = addTagForm.getValues();
-                        console.log("inside the on function, n=%d", log.n);
                         var tagName = formData.existingTagSelect;
                         var tagDispName = formData.tagDispName;
-                        console.log("tagName = %s", tagName);
-                        console.log("tagDispName = %s", tagDispName);
                         var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}"
                         tagUrl = tagUrl.replace("000",log.n);
                         tagUrl = tagUrl.replace("temp",tagName);
