@@ -194,7 +194,23 @@ class Event(models.Model):
             for tag in tagset:
                 taglist.append(tag)
         # Eliminate duplicates
-        return list(set(taglist))
+        taglist = list(set(taglist))
+        # Ordering should match the ordering of blessed tags list.
+        # XXX Possibly, there are smarter ways of doing this.
+        if settings.BLESSED_TAGS:
+            availableTags = []
+            for blessed_tag in settings.BLESSED_TAGS:
+                for tag in taglist:
+                    if tag.name == blessed_tag:
+                        taglist.remove(tag)
+                        availableTags.append(tag)
+            # Append any remaining tags at the end of the list
+            if len(taglist)>0:
+                for tag in taglist:
+                    availableTags.append(tag)
+        else:
+            availableTags = taglist
+        return availableTags
 
     def getLogsForTag(self,tagname):
         loglist = []

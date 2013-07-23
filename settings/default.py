@@ -40,13 +40,13 @@ XMPP_ALERT_CHANNELS = [
                       ]
 
 BLESSED_TAGS = [
+                 'analyst_comments',
                  'psd',
                  'sky_loc',
                  'strain',
                  'tfplots',
                  'sig_info',
                  'audio',
-                 'analyst_comments',
                ]
 
 DATABASES = {
