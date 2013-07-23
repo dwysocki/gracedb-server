@@ -190,6 +190,7 @@
                  "dijit/form/TextBox",
                  "dijit/form/Form",
                  "dijit/TitlePane",
+                 "dijit/Tooltip",
                  "dojox/layout/ScrollPane",
                  "dojo/store/Memory",
                  "dijit/form/ComboBox",
@@ -201,7 +202,7 @@
                  "dijit/_editor/plugins/NewPage",
                  "dijit/_editor/plugins/FullScreen",
                  "dojo/domReady!"], function (dom, domStyle, parser, on, mouse, request, domForm, domConstruct, Editor, Save, Preview, 
-                                              Button, TextBox, Form, TitlePane, ScrollPane, Memory, ComboBox, Dialog) {
+                                              Button, TextBox, Form, TitlePane, Tooltip, ScrollPane, Memory, ComboBox, Dialog) {
 
             parser.parse();
 
@@ -476,16 +477,18 @@
                                  'insertImage','fullscreen','viewsource','newpage', '|', previewbutton, savebutton]
             }, editor_div);
 
-            // Connect up the tag addition buttons.
+            // Connect up the tag addition buttons and add helptext.
             for (var i = 0; i<logs.length; i++) {
                 log = logs[i];
                 on(dom.byId(log.button_id), "click", getTagAddCallback(log));
+                new Tooltip({ connectId: log.button_id, label: "tag this log message"});
             }
 
-            // Connect up the tag deletion buttons.
+            // Connect up the tag deletion buttons and add helptext.
             for (var i = 0; i<tags.length; i++) {
                 tag = tags[i];
                 on(dom.byId(tag.button_id), "click", getTagDelCallback(tag));
+                new Tooltip({ connectId: tag.button_id, label: "delete this tag"});
             }
 
         });
