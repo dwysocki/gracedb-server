@@ -46,7 +46,7 @@ BLESSED_TAGS = [
                  'tfplots',
                  'sig_info',
                  'audio',
-                 'ana_comm',
+                 'analyst_comments',
                ]
 
 DATABASES = {
