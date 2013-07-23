@@ -405,11 +405,8 @@
             // A pane holder for the form that will tag new log messages.
             // I need it up here because we're going to integrate it with the
             // editor components.
-            var newLogTag_pane_holder = dom.byId("newLogTag_pane_holder");
-
             dojo.style(preview_div, { 'display':'none'});
             dojo.style(editor_div, { 'display':'none'});
-            dojo.style(newLogTag_pane_holder, { 'display':'none'});
 
             var button_element = dojo.create('button');
             dojo.place(button_element, logtitle, "right");
@@ -419,14 +416,12 @@
                 onClick: function(){
                     if (this.state == 'add') {
                         dojo.style(editor_div, {'display':'block'});
-                        dojo.style(newLogTag_pane_holder, {'display':'block'});
                         button.set('label', "Cancel Log Entry");
                         button.set('state', 'cancel');
                         editor.focus();
                     }
                     else {
                         dojo.style(editor_div, {'display':'none'});
-                        dojo.style(newLogTag_pane_holder, {'display':'none'});
                         dojo.style(preview_div, {'display':'none'});
                         button.set('label', "Add Log Entry");
                         button.set('state', 'add');
@@ -448,11 +443,10 @@
                         alert("o hai " + error);
                     },
                     save: function(postdata) {
-                    var newTagName = domForm.fieldToObject("newTagSelect");
-                    var newTagDispName = domForm.fieldToObject("newTagDispName");
+                    var newTagName = "analyst_comments";
                     var postArgs = {
                                 url: this.url,
-                                content: { comment: postdata, tagname: newTagName, displayName: newTagDispName },
+                                content: { comment: postdata, tagname: newTagName },
                                 handleAs: "json"
                         };
                         this.button.set("disabled", true);
@@ -494,24 +488,6 @@
                 on(dom.byId(tag.button_id), "click", getTagDelCallback(tag));
             }
 
-            // Set up pane for the new message tagging forms.
-            var newLogTag                  = dom.byId("newLogTag");
-            tp_new = new dijit.TitlePane({title:"Tag this message",
-                                     content:newLogTag.innerHTML,
-                                     open:false});
-            newLogTag_pane_holder.appendChild(tp_new.domNode);
-            dojo.destroy(newLogTag);        
-
-            // Form for tagging new log messages.
-            new ComboBox({
-                id: "newTagSelect",
-                name: "newTagSelect",
-                value: "",
-{% if blessed_tags %}                
-                store: blessedTagStore,
-                searchAttr: "name"
-{% endif %}
-            }, "newTagSelect");
         });
 
     </script>
@@ -659,16 +635,6 @@
     </div>
 
     <h3 id="logmessagetitle">Event Log Messages</h3>
-    <div id="newLogTag">
-            <p> Use this form to apply a tag to your new log entry. Choose a tag
-            name from the dropdown menu or enter a new one.  If you are 
-            creating a new tag, please also provide a display name. </p>
-        <form>
-            &nbsp; Tag name <input id="newTagSelect" name="newTagSelect" /> 
-            &nbsp; Display name <input type="text" id="newTagDispName" name="newTagDispName" />
-        </form>  
-    </div>
-    <div id="newLogTag_pane_holder" class="pmTitlePaneClass"></div>
     <div id="previewer"></div>
     <div id="editor"></div>
 
