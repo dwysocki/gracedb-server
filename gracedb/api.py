@@ -5,6 +5,7 @@ from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.core.urlresolvers import reverse as django_reverse
 
 from django.conf import settings
+from django.utils.http import urlquote
 
 import json
 
@@ -775,8 +776,9 @@ def eventLogToDict(log, request=None):
                 args=[log.event.graceid(), log.N],
                 request=request)
         if log.filename:
+            filename = urlquote(log.filename)
             file_uri = reverse("files",
-                args=[log.event.graceid(), log.filename],
+                args=[log.event.graceid(), filename],
                 request=request)
 
     return {
