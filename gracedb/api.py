@@ -422,7 +422,7 @@ class EventList(APIView):
                 d = {'error': 'Invalid query' }
                 return Response(d,status=status.HTTP_400_BAD_REQUEST)
 
-        events = events.order_by(sort)
+        events = events.order_by(sort).select_subclasses()
 
         start = int(start)
         count = int(count)
