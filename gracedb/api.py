@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse as django_reverse
 
 from django.conf import settings
 from django.utils.http import urlquote
+from django.utils import dateformat
 
 import json
 
@@ -20,6 +21,7 @@ import urllib
 import errno
 import shutil
 import exceptions
+import pytz
 
 import logging
 
@@ -278,6 +280,12 @@ class TSVRenderer(BaseRenderer):
 #==================================================================
 # Events
 
+SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
+def timeToUTC(dt):
+    if not dt.tzinfo:
+        dt = SERVER_TZ.localize(dt)
+    return dateformat.format(dt.astimezone(pytz.utc), settings.GRACE_DATETIME_FORMAT)
+
 def eventToDict(event, columns=None, request=None):
     """Convert an Event to a dictionary so it can be serialized.  (ugh)"""
 
@@ -287,7 +295,7 @@ def eventToDict(event, columns=None, request=None):
 
     graceid = event.graceid()
     rv['submitter'] = event.submitter.username
-    rv['created'] = event.created
+    rv['created'] = timeToUTC(event.created)
     rv['group'] = event.group.name
     rv['graceid'] = graceid
     rv['analysisType'] = event.get_analysisType_display()
