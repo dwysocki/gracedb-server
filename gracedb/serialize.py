@@ -229,10 +229,11 @@ def populate_inspiral_tables(MBTA_frame, set_keys = MBTA_set_keys, \
   row.set_ifos(detectors)
   cid = lsctables.CoincTable.get_next_id()
   row.coinc_event_id = cid
-  row.end_time = end_time['H1'].seconds
-  row.end_time_ns = end_time['H1'].nanoseconds
-  row.mass = (sum(mass1.values()) + sum(mass2.values()))/3
-  row.mchirp = sum(mchirp.values())/3
+  representative_detector = detectors[0]
+  row.end_time = end_time[representative_detector].seconds
+  row.end_time_ns = end_time[representative_detector].nanoseconds
+  row.mass = (sum(mass1.values()) + sum(mass2.values()))/len(detectors)
+  row.mchirp = sum(mchirp.values())/len(detectors)
   #the snr here is really the snr NOT effective snr
   row.snr = pow(sum([x*x for x in snr.values()]),0.5)
   if far is not None:
