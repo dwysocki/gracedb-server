@@ -301,6 +301,61 @@ def eventToDict(event, columns=None, request=None):
                     args=[graceid, labelling.label.name],
                     request=request))
             for labelling in event.labelling_set.all()])
+    # XXX Try to produce a dictionary of analysis specific attributes.  Duck typing.
+    rv['extra_attributes'] = {}
+    try:
+        # GrbEvent
+        rv['extra_attributes']['GRB'] = {
+                "ivorn" : event.ivorn,
+                "author_ivorn" : event.author_ivorn,
+                "author_shortname" : event.author_shortname,
+                "observatory_location_id" : event.observatory_location_id,
+                "coord_system" : event.coord_system,
+                "ra" : event.ra,
+                "dec" : event.dec,
+                "error_radius" : event.error_radius,
+                "how_description" : event.how_description,
+                "how_reference_url" : event.how_reference_url,
+                }
+    except:
+        pass
+    try:
+        # CoincInspiralEvent
+        rv['extra_attributes']['CoincInspiral'] = {
+                "ifos" : event.ifos,
+                "end_time" : event.end_time,
+                "end_time_ns" : event.end_time_ns,
+                "mass" : event.mass,
+                "mchirp" : event.mchirp,
+                "minimum_duration" : event.minimum_duration,
+                "snr" : event.snr,
+                "false_alarm_rate" : event.false_alarm_rate,
+                "combined_far" : event.combined_far,
+                }
+    except:
+        pass
+    try:
+        # MultiBurstEvent
+        rv['extra_attributes']['MultiBurst'] = {
+                "ifos" : event.ifos,
+                "start_time" : event.start_time,
+                "start_time_ns" : event.start_time_ns,
+                "duration" : event.duration,
+                "peak_time" : event.peak_time,
+                "peak_time_ns" : event.peak_time_ns,
+                "central_freq" : event.central_freq,
+                "bandwidth" : event.bandwidth,  
+                "amplitude" : event.amplitude,
+                "snr" : event.snr,
+                "confidence" : event.confidence,
+                "false_alarm_rate" : event.false_alarm_rate,
+                "ligo_axis_ra" : event.ligo_axis_ra,
+                "ligo_axis_dec" : event.ligo_axis_dec, 
+                "ligo_angle" : event.ligo_angle,    
+                "ligo_angle_sig" : event.ligo_angle_sig,
+                }
+    except:
+        pass
     rv['links'] = {
             "neighbors" : reverse("neighbors", args=[graceid], request=request),
             "log"   : reverse("eventlog-list", args=[graceid], request=request),
