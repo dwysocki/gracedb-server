@@ -252,20 +252,25 @@ class TSVRenderer(BaseRenderer):
         accessFun = {
             "labels" : lambda e: \
                 ",".join(e['labels'].keys()),
-            "analysisType" : lambda e: e['analysisType'],
-            "gpstime" : lambda e: str(e['gpstime']),
-            "created" : lambda e: e['created'],
             "dataurl" : lambda e: e['links']['files'],
-            "graceid" : lambda e: e['graceid'],
-            "group" : lambda e: e['group'],
         }
-        defaultAccess = lambda e, a: str(e.get(a,""))
+        def defaultAccess(e,a):
+            if a.find('.') < 0:
+                return str(e.get(a,""))
+            rv = e
+            attrs = a.split('.')
+            while attrs and rv:
+                rv = rv.get(attrs[0],"")
+                attrs = attrs[1:]
+            return str(rv)
 
         defaultColumns = "graceid,labels,group,analysisType,far,gpstime,created,dataurl"
         # XXX Que monstroso!
         columns = renderer_context.get('kwargs', None).get('columns', None)
         if not columns:
             columns = defaultColumns
+        else:
+            columns = columns.replace('DEFAULTS',defaultColumns)
         columns = columns.split(',')
 
         header = "#" + "\t".join(columns)
