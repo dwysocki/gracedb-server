@@ -254,7 +254,7 @@ class TSVRenderer(BaseRenderer):
                 ",".join(e['labels'].keys()),
             "analysisType" : lambda e: e['analysisType'],
             "gpstime" : lambda e: str(e['gpstime']),
-            "created" : lambda e: e['created'].isoformat(),
+            "created" : lambda e: e['created'],
             "dataurl" : lambda e: e['links']['files'],
             "graceid" : lambda e: e['graceid'],
             "group" : lambda e: e['group'],
