@@ -196,10 +196,11 @@ def buildDjangoQueryField(toks):
 
 exponent = Combine(Word("Ee") + Optional(Word("+-"))+Word(nums))
 
-afloat = Combine( Word(nums) + \
-         Optional(Combine(Literal(".") + Word(nums))) ) + \
-         Optional(exponent)
-afloat.setParseAction(lambda toks: float(toks[0]))
+afloat = Combine(
+           Word(nums) +
+           Optional(Combine(Literal(".") + Word(nums)))
+         ) + Optional(exponent)
+afloat.setParseAction(lambda toks: float("".join(toks)))
 
 lhs = delimitedList(Word(alphas+'_'), '.')
 lhs.setParseAction(buildDjangoQueryField)
