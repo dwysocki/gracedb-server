@@ -314,11 +314,10 @@ def _createLog(request, graceid, comment, uploadedFile=None):
         try:
             logEntry.save()
 
-            if request.POST.get('alert') == "True":
-                description = "LOG: "
-                if uploadedFile:
-                    description = "UPLOAD: '%s' " % uploadedFile.name
-                issueAlertForUpdate(event, description+comment, doxmpp=True, filename=uploadedFile.name)
+            description = "LOG: "
+            if uploadedFile:
+                description = "UPLOAD: '%s' " % uploadedFile.name
+            issueAlertForUpdate(event, description+comment, doxmpp=True, filename=uploadedFile.name)
         except Exception, e:
             rdict['error'] = "Failed to save log message: %s" % str(e) 
 
