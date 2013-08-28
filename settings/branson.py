@@ -81,6 +81,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'gracedb',
     'userprofile',
+    'ligoauth',
     'rest_framework',
     'south',
     'debug_toolbar',
