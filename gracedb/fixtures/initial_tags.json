@@ -40,5 +40,19 @@
   	"eventlogs": [],
 	"displayName": "Sound Files",
 	"name": "audio"}
+ },
+ {"pk": 9,
+  "model": "gracedb.tag",
+  "fields": {
+  	"eventlogs": [],
+	"displayName": "Analyst Comments",
+	"name": "analyst_comments"}
+ },
+ {"pk": 11,
+  "model": "gracedb.tag",
+  "fields": {
+  	"eventlogs": [],
+	"displayName": "Data Quality",
+	"name": "data_quality"}
  }
 ]
