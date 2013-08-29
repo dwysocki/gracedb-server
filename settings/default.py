@@ -42,6 +42,7 @@ XMPP_ALERT_CHANNELS = [
 BLESSED_TAGS = [
                  'analyst_comments',
                  'psd',
+                 'data_quality',
                  'sky_loc',
                  'strain',
                  'tfplots',
