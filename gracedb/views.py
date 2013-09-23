@@ -991,7 +991,7 @@ def flexigridResponse(request, objects):
                         #created_times['gps'],
                         created_times.get('utc',""),
 
-                        "{0} {1}".format(object.submitter.first_name, object.submitter.last_name)
+                        "%s %s" % (object.submitter.first_name, object.submitter.last_name)
 
                       ]
             }
