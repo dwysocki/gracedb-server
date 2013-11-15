@@ -3,29 +3,143 @@
 {% block title %}Home{% endblock %}
 {% block heading %}GraceDB <em>Alpha</em> &mdash; Overview{% endblock %}
 {% block pageid %}home{% endblock %}
+{% block bodyattrs %}class="tundra homePage"{% endblock %}
+
+{% block jscript %}
+    <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.8.1/dojo/dojo.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        require(["dojo/dom",
+                 "dojo/dom-construct",
+                 "dojo/dom-style",
+                 "dojo/parser",
+                 "dijit/TitlePane",
+                 "dojo/domReady!"], function (dom, domConstruct, domStyle, parser, TitlePane) {
+            parser.parse();
+
+            // Get the nodes and content
+            var sections = new Array();
+
+            divNode = dom.byId("what_info");
+            var section = new Object();
+            section.title = "What is GraceDB?";
+            section.contents = divNode.innerHTML;
+            sections.push(section);
+            domConstruct.destroy(divNode);
+
+            divNode = dom.byId("how_info");
+            var section = new Object();
+            section.title = "How can I use it?";
+            section.contents = divNode.innerHTML;
+            sections.push(section);
+            domConstruct.destroy(divNode);
+
+            divNode = dom.byId("api_info");
+            var section = new Object();
+            section.title = "Can I have a look around the API?";
+            section.contents = divNode.innerHTML;
+            sections.push(section);
+            domConstruct.destroy(divNode);
+
+            divNode = dom.byId("alert_info");
+            var section = new Object();
+            section.title = "How can I get an alert when an event is created?";
+            section.contents = divNode.innerHTML;
+            sections.push(section);
+            domConstruct.destroy(divNode);
+
+            divNode = dom.byId("semantic_info");
+            var section = new Object();
+            section.title = "What does the information in the database mean?";
+            section.contents = divNode.innerHTML;
+            sections.push(section);
+            domConstruct.destroy(divNode);
+
+            // Create the panes
+            paneDiv  = dom.byId("pane_holder");
+            for (var i = 0; i<sections.length; i++) {
+                tp = new dijit.TitlePane({title:sections[i].title,
+                                          content:sections[i].contents,
+                                          open:false});
+                paneDiv.appendChild(tp.domNode);
+            };
+
+        });
+
+    </script>
+
+    <style>
+        @import "https://ajax.googleapis.com/ajax/libs/dojo/1.8.1/dijit/themes/tundra/tundra.css";
+
+        .tundra.homePage .dijitTitlePaneTitle {
+            background-image: none;
+            background-color: none;
+            border: none;
+            font-size: 140%;
+            font-family: "Century Schoolbook L",Georgia,serif;
+            font-style: bold;
+        }
+
+        .tundra.homePage .dijitTitlePaneContentOuter {
+            border: none;
+            margin-left: 30px;
+            margin-right: 30px;
+            font-size: 14px;
+        }
+
+        .homePage-paneHolder {
+            margin-top: 10px;
+            margin-bottom: 30px;
+            margin-left: 30px;
+            margin-right: 30px;
+        }
+
+    </style>
+            
+{% endblock %}
 
 {% block content %}
 
-<div class="text">
 
-<p>
-The gravitational-wave candidate event database (GraCEDb) is a
+<div id="pane_holder" class="homePage-paneHolder"> </div>
+
+<!-- these divs will get consumed into panes. -->
+
+<div id="what_info">
+The gravitational-wave candidate event database (GraceDB) is a
 prototype system to organize candidate events from gravitational-wave
 searches and to provide an environment to record information about
 follow-ups.
-</p>
+</div>
 
-<p>
+<div id="how_info">
 You can read about using the service on the
 <a href="https://www.lsc-group.phys.uwm.edu/daswg/wiki/HowtoGraceDb">Howto page</a>.  More details are available on the
 <a href="https://www.lsc-group.phys.uwm.edu/daswg/projects/gracedb.html">Project page</a>.
-</p>
-
 </div>
 
-<div class="text">
-To receive email alerts when GraCEDb events are created, sign up
-on the <a target="_blank" href="http://listserv.ligo.org/cgi-bin/mailman/listinfo/gracedb">gracedb mailing list</a> or set up your own alert under the
+<div id="api_info">
+Yes. The browse-able REST API is available <a href="{% url shib:api-root %}">here</a>. This is an especially handy
+reference when coding against the API.
+</div>
+
+<div id="semantic_info">
+<p> Some information has been collected from the CBC and Burst groups about the
+meaning of the data in events from their pipelines. Summaries are available
+for the following search types: </p>
+
+<ul>
+    <li> <a href="https://www.lsc-group.phys.uwm.edu/daswg/wiki/GraceDbER3/Semantic_Info_for_cWB">cWB</a> </li>
+    <li> <a href="https://www.lsc-group.phys.uwm.edu/daswg/wiki/GraceDbER3/Semantic_Info_for_LowMass_and_HighMass">gstal</a> </li>
+    <li> <a href="https://www.lsc-group.phys.uwm.edu/daswg/wiki/GraceDbER3/Semantic_Info_for_MBTA">MBTA</a> </li>
+</ul>
+
+<p> Please note that the gathering of semantic information is an ongoing project, 
+and we cannot guarantee that the information here is accurate or current. </p>
+</div>
+
+<div id="alert_info">
+To receive email or XMPP alerts when GraceDB events are created, 
+set your notification preferences under the
 <a href="{% url userprofile-home %}">Options</a> menu item.
 </div>
 
