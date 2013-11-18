@@ -24,29 +24,27 @@ table.analysis_specific {width:100%}
 table.figures tr.figrow  {text-align:center;} 
 table.figures {width:300px;height:270px;border:1px solid gray;}
 
-/* .tundra.eventDetail .dijitTitlePane .dijitOpen .dijitArrowNode {
+.tundra.eventDetail .pmTitlePaneClass .dijitOpen .dijitArrowNode {
     background-repeat: no-repeat;
     height: 14px;
     width: 14px;
-    border: none;
 }
 
-.tundra.eventDetail .dijitTitlePane .dijitClosed .dijitArrowNode {
+.tundra.eventDetail .pmTitlePaneClass .dijitClosed .dijitArrowNode {
     background-repeat: no-repeat;
     height: 14px;
     width: 14px;
-    border: none;
 }
 
-.tundra.eventDetail .dijitTitlePane .dijitClosed .dijitArrowNode {
+.tundra.eventDetail .pmTitlePaneClass .dijitClosed .dijitArrowNode {
     background-image: url('../images/plusButton.gif');
     background-position: 0px 0px;
 }
 
-.tundra.eventDetail .dijitTitlePane .dijitOpen .dijitArrowNode {
+.tundra.eventDetail .pmTitlePaneClass .dijitOpen .dijitArrowNode {
     background-image: url('../images/minusButton.gif');
     background-position: 0px 0px;
-} */
+}
 
 .tundra.eventDetail .modButtonClass .dijitButtonNode {
     border: none;
