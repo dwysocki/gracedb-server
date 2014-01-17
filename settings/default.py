@@ -62,9 +62,9 @@ DATABASES = {
 
 # SkyAlert
 
-SKYALERT_IVORN_PATTERN = "ivo://ligo.org/gracedb#%s"
+SKYALERT_IVORN_PATTERN = "ivo://gwnet/%s"
 SKYALERT_ROLE          = "test"
-SKYALERT_DESCRIPTION   = "LIGO / Virgo trigger"
+SKYALERT_DESCRIPTION   = "Report of a candidate gravitational wave event"
 SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
 
 
