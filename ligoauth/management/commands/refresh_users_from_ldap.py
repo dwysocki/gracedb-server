@@ -57,7 +57,10 @@ class Command(NoArgsCommand):
                             # revoke staff/superuser if not active.
                             user.is_staff = user.is_staff and is_active
                             user.is_superuser = user.is_superuser and is_active
-                            user.save()
+                            try:
+                                user.save()
+                            except Exception, e:
+                                print "Failed to save user '%s'.  (%s)" % (ldap_dn, first_name+" "+last_name)
 
                         # update X509 certs for user
                         current_dns = set([ cert.subject for cert in user.x509cert_set.all() ])
