@@ -3,7 +3,7 @@ from django.conf.urls.defaults import patterns, url
 
 # rest_framework
 from gracedb.api import GracedbRoot
-from gracedb.api import EventList, EventDetail
+from gracedb.api import EventList, EventDetail, EventVODetail
 from gracedb.api import EventLogList, EventLogDetail
 from gracedb.api import TagList
 # from gracedb.api import TagDetail
@@ -20,6 +20,8 @@ urlpatterns = patterns('gracedb.api',
     # events/[{graceid}[/{version}]]
     url (r'events/$',
         EventList.as_view(), name='event-list'),
+    url (r'events/voevent/(?P<graceid>[GEHT]\d+)$',
+        EventVODetail.as_view(), name='event-vo-detail'),
     url (r'events/(?P<graceid>[GEHT]\d+)$',
         EventDetail.as_view(), name='event-detail'),
 

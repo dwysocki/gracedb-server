@@ -8,7 +8,7 @@ See the VOEvent specification for details
 http://www.ivoa.net/Documents/latest/VOEvent.html
 """
 
-from VOEventLib.VOEvent import VOEvent, Who, What, Author, Param
+from VOEventLib.VOEvent import VOEvent, Who, What, Author, Param, How, Why
 from VOEventLib.Vutil import makeWhereWhen, stringVOEvent
 
 # XXX ER2.utils.  utils is in project directory.  ugh.
@@ -29,10 +29,27 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     ############ Who ############################
     w = Who()
     a = Author()
-    a.add_contactName("LIGO Scientific Consortium")
-    a.add_contactEmail("postmaster@ligo.org")
+    a.add_contactName("LIGO Scientific Collaboration and Virgo Collaboration")
+    #a.add_contactEmail("postmaster@ligo.org")
     w.set_Author(a)
     v.set_Who(w)
+
+    ############ Why ############################
+    y = Why()
+    y.add_Description("Candidate gravitational wave event identified by low-latency analysis")
+    v.set_Why(y)
+
+    ############ How ############################
+
+    h = How()
+    instruments = gevent.instruments.split(',')
+    if 'H1' in instruments:
+        h.add_Description("H1: LIGO Hanford 4 km gravitational wave detector")
+    if 'L1' in instruments:
+        h.add_Description("L1: LIGO Livingston 4 km gravitational wave detector")
+    if 'V1' in instruments:
+        h.add_Description("V1: Virgo 3 km gravitational wave detector")
+    v.set_How(h)
 
     ############ What ############################
     w = What()
@@ -53,16 +70,30 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     # basically, a string that makes sense to humans about what units a value is. eg. "m/s"
 
     # params related to the event. None are in Groups.
-    p = Param(name="gracedbid", ucd="meta.id", value="%s"% objid)
-    p.set_Description(["Identifier assigned by gracedb"])
+    p = Param(name="GraceID", ucd="meta.id", value="%s"% objid)
+    p.set_Description(["Identifier in GraceDB"])
     w.add_Param(p)
 
-    p = Param(name="gpstime", ucd="time.epoch", dataType="int",  value=str(gevent.gpstime))
-    p.set_Description(["GPS time of the trigger"])
-    w.add_Param(p)
+    try:
+        p = Param(name="FAR", dataType="float", ucd="arith.rate;stat.falsealarm", unit="Hz", 
+                value=float(gevent.far))
+        p.set_Description(["False alarm rate for GW candidates with this strength or greater"])
+        w.add_Param(p)
+    except:
+        pass
 
-    p = Param(name="likelihood", ucd="stat.likelihood", dataType="float",  value=str(gevent.likelihood))
-    p.set_Description(["Likelihood"])
+    #p = Param(name="gpstime", ucd="time.epoch", dataType="int",  value=str(gevent.gpstime))
+    #p.set_Description(["GPS time of the trigger"])
+    #w.add_Param(p)
+
+    #p = Param(name="likelihood", ucd="stat.likelihood", dataType="float",  value=str(gevent.likelihood))
+    #p.set_Description(["Likelihood"])
+    #w.add_Param(p)
+
+    shib_event_page_url = reverse("view2", args=[gevent.graceid()])
+    shib_event_page_url = request.build_absolute_uri(shib_event_page_url)
+    p = Param(name="EventPage", ucd="meta.ref.url", value=shib_event_page_url)
+    p.set_Description(["Web page for evolving status of this candidate event"])
     w.add_Param(p)
 
     # For GCN / SkyAlert.
@@ -73,27 +104,21 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     # IFO list  dataType="string"   ucd=
     # URL to skymap   Reference/URL
 
-    p = Param(name="analysistype", dataType="string", value=str(gevent.get_analysisType_display()))
-    p.set_Description(["LIGO analysis which produced this result"])
+    p = Param(name="SearchType", dataType="string", value=str(gevent.get_analysisType_display()))
+    p.set_Description(["Low-latency search type"])
     w.add_Param(p)
 
-    try:
-        p = Param(name="far", dataType="float", ucd="arith.rate", unit="Hz", value=float(gevent.far))
-        p.set_Description(["False Alarm Rate"])
-        w.add_Param(p)
-    except:
-        pass
 
-    p = Param(name="ifolist", dataType="string", value=str(gevent.instruments))
-    p.set_Description(["Interferometers"])
-    w.add_Param(p)
+    #p = Param(name="ifolist", dataType="string", value=str(gevent.instruments))
+    #p.set_Description(["Interferometers"])
+    #w.add_Param(p)
 
     # Skymaps
     #  Four of them, per Roy Williams.  (FITS and PNG) x  (x509 auth and Shib auth)
 
-    # relative URLs
-    x509_fits_skymap_url = reverse("file", args=[gevent.graceid(), "general/bayestar/skymap.fits"])
-    x509_png_skymap_url = reverse("file", args=[gevent.graceid(), "general/bayestar/skymap.png"])
+    # relative URLs (huh? -- Branson)
+    #x509_fits_skymap_url = reverse("file", args=[gevent.graceid(), "skymap.fits"])
+    #x509_png_skymap_url = reverse("file", args=[gevent.graceid(), "skymap.png"])
 
     # XXX gracedb.ligo.org urls.  they are a little problematic.
     # they do not do mime-types correctly and they do not let go of the connection for some reason.
@@ -101,8 +126,15 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     #shib_png_skymap_url = reverse("file", args=[gevent.graceid(), "general/bayestar/skymap.png"])
 
     # Old sad bad ldad-jobs urls
-    shib_fits_skymap_url = gevent.weburl() + "/general/bayestar/skymap.fits"
-    shib_png_skymap_url  = gevent.weburl() + "/general/bayestar/skymap.png"
+    # Confused. These are protected by shib, but so are the others.  And these are ugly.
+    # shib_fits_skymap_url = gevent.weburl() + "/private/skymap.fits"
+    # shib_png_skymap_url  = gevent.weburl() + "/private/skymap.png"
+    shib_fits_skymap_url = reverse("file", args=[gevent.graceid(), "skymap.fits"])
+    shib_png_skymap_url = reverse("file", args=[gevent.graceid(), "skymap.png"])
+
+    # x509 urls. Hafta specify the api namespace.
+    x509_fits_skymap_url = reverse("x509:files", args=[gevent.graceid(), "skymap.fits"])
+    x509_png_skymap_url = reverse("x509:files", args=[gevent.graceid(), "skymap.png"])
 
     # Need request to build absolute URL
     # XXX should probably be an error if we can't give the full absolute url.
@@ -145,13 +177,13 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     v.set_What(w)
 
     ############ Wherewhen ############################
-    wwd = {'observatory':     'LIGO',
+    wwd = {'observatory':     'LIGO Virgo',
            'coord_system':    'UTC-FK5-GEO',
            # XXX time format
            'time':            str(gpsToUtc(gevent.gpstime).isoformat())[:-6],   #'1918-11-11T11:11:11',
-           'timeError':       1.0,
-           'longitude':       123.45,
-           'latitude':        67.89,
+           #'timeError':       1.0,
+           'longitude':       0.0,
+           'latitude':        0.0,
            'positionalError': 180.0,
     }
 

@@ -15,6 +15,7 @@ from gracedb.views import create_label
 from translator import handle_uploaded_data
 
 from alert import issueAlertForUpdate
+from buildVOEvent import buildVOEvent
 
 import os
 import urllib
@@ -281,6 +282,34 @@ class TSVRenderer(BaseRenderer):
         outTable = "\n".join(outTable)
        
         return outTable
+
+# XXX this doesn't work because you don't have the request here. You could
+# try stuffing it into the renderer context, but that's really ugly. 
+#class VOEventRenderer(BaseRenderer):
+#    media_type = 'application/xml'
+#    format = 'xml'
+#
+#    def render(self, data, media_type=None, renderer_context=None):
+#        logger = logging.getLogger(__name__)
+#        logger.debug("inside voevent renderer")
+#        if 'error' in data.keys():
+#            return data['error']
+#
+#        outDoc = ''
+#        for e in data['events']:
+#            graceid = e['graceid']
+#
+#            try:
+#                # XXX If any part of this fails, the VOEvent will be empty.
+#                event = Event.getByGraceid(graceid)
+#                if not event.far or not event.gpstime:
+#                    raise Exception
+#                voevent = buildVOEvent(event, request)
+#            except:
+#                voevent = ''
+#            outDoc += voevent + '\n'
+#       
+#        return outDoc
 
 #==================================================================
 # Events
@@ -668,6 +697,36 @@ class EventDetail(APIView):
             return Response("Bad Data",
                     status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_202_ACCEPTED)
+
+# FIXME or something.
+# This should really be a renderer and not a view. But the problem 
+# is that the renderer needs the request in order to build up URLs.
+# There must be a better way of doing this.
+class EventVODetail(APIView):
+    authentication_classes = (LigoAuthentication,)
+    #parser_classes = (LigoLwParser, RawdataParser)
+    parser_classes = (parsers.MultiPartParser,)
+    #serializer_class = EventSerializer
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, )
+
+    def get(self, request, graceid):
+        try:
+            event = Event.getByGraceid(graceid)
+        except Event.DoesNotExist:
+            # XXX Real error message.
+            return Response("Event Not Found",
+                    status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            voevent = buildVOEvent(event,request)
+        except Exception, e:
+            return Response("Problem building VOEvent: %s" % str(e),
+                    status=HTTP_500_INTERNAL_SERVER_ERROR)
+
+        response = Response(voevent)
+        response["Cache-Control"] = "no-cache"
+        return response
 
 #==================================================================
 # Neighbors
@@ -1188,6 +1247,8 @@ class GracedbRoot(APIView):
         # Is there better?
         detail = reverse("event-detail", args=["G1200"], request=request)
         detail = detail.replace("G1200", "{graceid}")
+        vo_detail = reverse("event-vo-detail", args=["G1200"], request=request)
+        vo_detail = vo_detail.replace("G1200", "{graceid}")
         log = reverse("eventlog-list", args=["G1200"], request=request)
         log = log.replace("G1200", "{graceid}")
 
@@ -1216,6 +1277,7 @@ class GracedbRoot(APIView):
 
         templates = {
                 "event-detail-template" : detail,
+                "event-vo-detail-template" : vo_detail,
                 "event-log-template" : log,
                 "event-label-template" : labels,
                 "files-template" : files,
