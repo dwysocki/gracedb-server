@@ -50,8 +50,12 @@ class VersionedFile(file):
             self.log.debug(
                     "opening file '{0}' with mode '{1}'"
                     .format(actual_name, mode))
+            # XXX I, Branson, want version to be a property of the file object.
+            # It is probably stupid to have the local 'version' too (i.e., the
+            # one scoped inside of this __init__). But I'm reluctant to mess with
+            # Brian's code too much.
+            self.version = version
             file.__init__(self, actual_name, *args, **kwargs)
-            return
 
         # Otherwise...
 
@@ -113,6 +117,9 @@ class VersionedFile(file):
 
         if failedAttempts >= 5:
             raise IOError("Too many attempts to open file")
+        # XXX As above in the writing case. We simply want version to 
+        # be an accessible property of the file object.
+        self.version = version
 
     def _name_for_version(self, version):
         if version is None:
