@@ -231,10 +231,14 @@ class EventLog(models.Model):
     comment = models.TextField(null=False)
     #XXX Does this need to be indexed for better performance?
     N = models.IntegerField(null=False)
+    file_version = models.IntegerField(null=True)
 
     def fileurl(self):
         if self.filename:
-            return reverse('file', args=[self.event.graceid(), self.filename])
+            actual_filename = self.filename
+            if self.file_version:
+                actual_filename += ',%d' % self.file_version
+            return reverse('file', args=[self.event.graceid(), actual_filename])
             #return os.path.join(self.event.weburl(), 'private', self.filename)
         else:
             return None

@@ -287,6 +287,7 @@ def _saveUploadedFile(event, uploadedFile):
     for chunk in uploadedFile.chunks():
         f.write(chunk)
     f.close()
+    return f.version
 
 def _createLog(request, graceid, comment, uploadedFile=None):
     response = HttpResponse(mimetype='application/json')
@@ -306,9 +307,11 @@ def _createLog(request, graceid, comment, uploadedFile=None):
                             issuer=request.user,
                             comment=comment)
         if uploadedFile:
+            file_version = None
             try:
-                _saveUploadedFile(event, uploadedFile)
+                file_version = _saveUploadedFile(event, uploadedFile)
                 logEntry.filename = uploadedFile.name
+                logEntry.file_version = file_version
             except Exception, e:
                 rdict['error'] = "Problem saving file: %s" % str(e)
         try:
@@ -367,6 +370,8 @@ def upload(request):
             for chunk in uploadedfile.chunks():
                 f.write(chunk)
             f.close()
+            log.file_version = f.version
+            log.save()
         except Exception, e:
             msg = "ERROR: could not save file " + fname + " " + str(e)
             log.delete()
