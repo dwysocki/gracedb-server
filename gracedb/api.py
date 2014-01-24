@@ -848,7 +848,10 @@ def eventLogToDict(log, request=None):
                 args=[log.event.graceid(), log.N],
                 request=request)
         if log.filename:
-            filename = urlquote(log.filename)
+            actual_filename = log.filename
+            if log.file_version:
+                actual_filename += ',%d' % log.file_version
+            filename = urlquote(actual_filename)
             file_uri = reverse("files",
                 args=[log.event.graceid(), filename],
                 request=request)
@@ -906,6 +909,7 @@ class EventLogList(APIView):
             uploadedFile = None
 
         filename = None
+        file_version = None
         if uploadedFile:
             filename = uploadedFile.name 
             if filename.startswith("general/"):
@@ -920,6 +924,8 @@ class EventLogList(APIView):
                 for chunk in uploadedFile.chunks(): 
                     fdest.write(chunk)
                 fdest.close()
+                # Ascertain the version assigned to this particular file.
+                file_version = fdest.version
             except Exception, e:
                 # XXX This needs some thought.
                 response = Response(str(e), status=status.HTTP_400_BAD_REQUEST)
@@ -928,7 +934,8 @@ class EventLogList(APIView):
                 event=event,
                 issuer=request.user,
                 comment=message,
-                filename=filename)
+                filename=filename,
+                file_version=file_version)
         logset = event.eventlog_set.order_by("created","N")
         try:
             logentry.save()
@@ -1329,9 +1336,22 @@ def download(request, graceid, filename=""):
         content_type, encoding = VersionedFile.guess_mimetype(filepath)
         content_type = content_type or "application/octet-stream"
         # XXX encoding should probably not be ignored.
+
+        # Get a pretty filename. Just strip off version info.
+        # XXX This will break if you change the file-version naming convention
+        # (by, for instance, using a different delimiter than a comma).
+        try:
+            ind = filename.index(',')
+            pretty_filename = filename[:ind]
+        except ValueError:
+            pretty_filename = filename
+
         response = HttpResponse(open(filepath, "r"), content_type=content_type)
         if content_type == "application/octet-stream":
-            response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(filename)
+            #response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(filename)
+            response['Content-Disposition'] = 'attachment; filename=%s' % pretty_filename
+        else:
+            response['Content-Disposition'] = 'inline; filename=%s' % pretty_filename
         if encoding is not None:
             response['Content-Encoding'] = encoding
     elif not filename:
@@ -1484,6 +1504,7 @@ class Files(APIView):
             for chunk in f.chunks(): 
                 fdest.write(chunk)
             fdest.close()
+            file_version = fdest.version
 
             rv = {}
             # XXX this seems wobbly.
@@ -1500,7 +1521,8 @@ class Files(APIView):
         logentry = EventLog(event=event,
                            issuer=request.user,
                            comment='',
-                           filename=filename)
+                           filename=filename,
+                           file_version=file_version)
         try:
             logentry.save()
         except:
