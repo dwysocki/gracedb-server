@@ -10,10 +10,13 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 #sys.path.append('/home/lars/wsgi-sandbox/lib/python2.6/site-packages')
 #sys.path.append('/home/gracedb/graceproj')
 
-sys.path.append('/home/branson/sandbox/lib/python2.6/site-packages')
-sys.path.append('/home/bmoe/sandbox/lib/python2.6')
-sys.path.append('/home/bmoe/sandbox/lib/python2.6/site-packages')
-sys.path.append('/home/branson/gracedbdev')
+#sys.path.append('/home/branson/sandbox/lib/python2.6/site-packages')
+#sys.path.append('/home/bmoe/sandbox/lib/python2.6')
+#sys.path.append('/home/bmoe/sandbox/lib/python2.6/site-packages')
+#sys.path.append('/home/branson/gracedbdev')
+
+sys.path.insert(1,'/home/branson/gracedbdev')
+sys.path.insert(1,'/home/branson/sandbox/lib/python2.6/site-packages')
 
 # Scott's Shib app uses loggers.
 import logging
