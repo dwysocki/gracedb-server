@@ -16,6 +16,28 @@ from VOEventLib.Vutil import parse, getWhereWhen
 from utils import isoToGps
 from utils.vfile import VersionedFile
 
+# This function checks for 'inf' in a float field, asks the database
+# what's the maximum value it can accept for that field, and returns
+# that value. Since the database query will introduce some overhead,
+# I'm not going to use this to check all fields.
+
+from django.db import connection
+def cleanData(val, field_name, table_name='gracedb_event'):
+    if val is None:
+        return val
+    elif isinstance(val, float):
+        if abs(val)==float('inf'):
+            cursor = connection.cursor()
+            cursor.execute('SELECT MAX(%s) from %s' % (field_name, table_name))
+            maxval = cursor.fetchone()[0]
+            return maxval
+        else:
+            return val
+    elif isinstance(val, basestring):
+        raise ValueError("Unrecognized string in the %s column" % field_name)
+    else:
+        raise ValueError("Unrecognized value in column %s" % field_name)
+
 def handle_uploaded_data(event, datafilename,
                          log_filename='event.log',
                          coinc_table_filename='coinc.xml'):
@@ -111,7 +133,7 @@ def handle_uploaded_data(event, datafilename,
         coinc_table = coinc_table[0]
         event.instruments = coinc_table[0].instruments
         event.nevents = coinc_table[0].nevents
-        event.likelihood = coinc_table[0].likelihood
+        event.likelihood = cleanData(coinc_table[0].likelihood,'likelihood')
 
         event.ifos             = ifos
         event.end_time         = end_time[0]
@@ -236,7 +258,7 @@ def handle_uploaded_data(event, datafilename,
         coinc_table = coinc_table[0]
         event.instruments = coinc_table[0].instruments
         event.nevents = coinc_table[0].nevents
-        event.likelihood = coinc_table[0].likelihood
+        event.likelihood = cleanData(coinc_table[0].likelihood,'likelihood')
 
         # extended attributes
         coinc_inspiral_table = glue.ligolw.table.getTablesByName(
@@ -306,7 +328,7 @@ def handle_uploaded_data(event, datafilename,
         coinc_table = coinc_table[0]
         event.instruments = coinc_table[0].instruments
         event.nevents = coinc_table[0].nevents
-        event.likelihood = coinc_table[0].likelihood
+        event.likelihood = cleanData(coinc_table[0].likelihood, 'likelihood')
 
         # XXX xml_filename unused.
         #xml_filename = os.path.join(output_dir, coinc_table_filename)
