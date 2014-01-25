@@ -236,7 +236,7 @@ class EventLog(models.Model):
     def fileurl(self):
         if self.filename:
             actual_filename = self.filename
-            if self.file_version:
+            if self.file_version >= 0:
                 actual_filename += ',%d' % self.file_version
             return reverse('file', args=[self.event.graceid(), actual_filename])
             #return os.path.join(self.event.weburl(), 'private', self.filename)
