@@ -44,6 +44,7 @@ BLESSED_TAGS = [
                  'psd',
                  'data_quality',
                  'sky_loc',
+                 'background',
                  'ext_coinc',
                  'strain',
                  'tfplots',
