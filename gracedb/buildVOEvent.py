@@ -186,6 +186,17 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
         p = Param(name="Eta", dataType="float", ucd="phys.mass;arith.factor", unit="",
                 value=eta)
         w.add_Param(p)
+
+        # build up MaxDistance. gevent.singleinspiral_set.all()?
+        max_distance = float('inf')
+        for obj in gevent.singleinspiral_set.all():
+            if obj.eff_distance < max_distance:
+                max_distance = obj.eff_distance
+        if max_distance < float('inf'):
+            p = Param(name="MaxDistance", dataType="float", ucd="pos.distance", unit="Mpc",
+                    value=max_distance)
+            w.add_Param(p)
+            
     elif isinstance(gevent,MultiBurstEvent):
         p = Param(name="CentralFreq", dataType="float", ucd="gw.frequency", unit="Hz", 
                 value=float(gevent.central_freq))
