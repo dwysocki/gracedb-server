@@ -722,7 +722,7 @@ class EventVODetail(APIView):
             voevent = buildVOEvent(event,request)
         except Exception, e:
             return Response("Problem building VOEvent: %s" % str(e),
-                    status=HTTP_500_INTERNAL_SERVER_ERROR)
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         response = Response(voevent)
         response["Cache-Control"] = "no-cache"
