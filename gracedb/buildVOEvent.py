@@ -15,9 +15,9 @@ from VOEventLib.Vutil import makeWhereWhen, stringVOEvent
 from utils import gpsToUtc
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from models import CoincInspiralEvent, MultiBurstEvent
 
 def buildVOEvent(gevent, request=None, description=None, role=None):
-
     objid = gevent.graceid()
 
     ############ VOEvent header ############################
@@ -173,6 +173,30 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
 #   #p.set_Reference([Reference(uri=skymap_url)])
 #   w.add_Param(p)
 
+    # Analysis specific attributes
+    if isinstance(gevent,CoincInspiralEvent):
+        # get mchirp and mass
+        mchirp = float(gevent.mchirp)
+        mass = float(gevent.mass)
+        # calculate eta = (mchirp/total_mass)**(5/3)
+        eta = pow((mchirp/mass),5.0/3.0)
+        p = Param(name="ChirpMass", dataType="float", ucd="phys.mass", unit="solar mass",
+                value=mchirp)
+        w.add_Param(p)
+        p = Param(name="Eta", dataType="float", ucd="phys.mass;arith.factor", unit="",
+                value=eta)
+        w.add_Param(p)
+    elif isinstance(gevent,MultiBurstEvent):
+        p = Param(name="CentralFreq", dataType="float", ucd="gw.frequency", unit="Hz", 
+                value=float(gevent.central_freq))
+        p.set_Description(["Central frequency of GW burst signal."])
+        w.add_Param(p)
+        p = Param(name="Duration", dataType="float", ucd="time.duration", unit="s", 
+                value=float(gevent.duration))
+        p.set_Description(["Measured duration of GW burst signal."])
+        w.add_Param(p)
+    else:
+        pass
 
     v.set_What(w)
 
