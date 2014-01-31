@@ -22,6 +22,8 @@ sys.path.insert(1,'/home/branson/sandbox/lib/python2.6/site-packages')
 import logging
 logging.basicConfig()
 
+os.environ['MPLCONFIGDIR']='/home/branson/logs/'
+
 #logging.basicConfig(level=logging.DEBUG,
 #                    format='%(asctime)s %(levelname)s %(message)s',
 #                    filename='/tmp/myapp.log',
