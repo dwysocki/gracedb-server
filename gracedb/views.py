@@ -808,7 +808,7 @@ def search(request, format=""):
             },
             context_instance=RequestContext(request))
 
-# XXX Branson messing around.
+# The following two util routines are for gstlalcbc_report. This is messy.
 def cluster(events):
     # FIXME N^2 clustering, but event list should always be small anyway...
     def quieter(e1, events = events, win = 5):
