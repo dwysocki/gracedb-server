@@ -189,19 +189,12 @@ def gstlalcbc_report(request, format=""):
                     { 'form':form, 'message':errormsg}, 
                     context_instance=RequestContext(request))
 
-        # Zero events will break the min/max thing that comes next.
+        # Zero events will break the min/max over masses below. 
         if objects.count() < 1:
             errormsg = 'Your query returned no events. Please try again.'
             return render_to_response('gracedb/gstlalcbc_report.html', 
                     { 'form':form, 'message':errormsg}, 
                     context_instance=RequestContext(request))
-
-        # Find the min and max on the set of objects.
-        #gpstime_limits = objects.aggregate(Max('gpstime'), Min('gpstime'))
-        mchirp_limits = objects.aggregate(Max('coincinspiralevent__mchirp'), 
-                Min('coincinspiralevent__mchirp'))
-        mass_limits = objects.aggregate(Max('coincinspiralevent__mass'), 
-                Min('coincinspiralevent__mass'))
 
         clustered_events = cluster(objects)
         clustered_events = sorted(clustered_events, None, key=lambda x: x.far)
@@ -243,11 +236,17 @@ def gstlalcbc_report(request, format=""):
                 { 'min_far' : 1.0/lt, 'max_far' : float('inf'), 'color' : 'white', 'desc' : ''}, ]
 
         # Make mass distribution plots
+        # First, find the min and max on the set of objects.
+        mchirp_limits = objects.aggregate(Max('coincinspiralevent__mchirp'), 
+                Min('coincinspiralevent__mchirp'))
+        mass_limits = objects.aggregate(Max('coincinspiralevent__mass'), 
+                Min('coincinspiralevent__mass'))
+
         mchirp = numpy.array([e.mchirp for e in clustered_events])
         plot.figure(figsize=(6,4))
         lower = int(mchirp_limits['coincinspiralevent__mchirp__min'])
         upper = int(mchirp_limits['coincinspiralevent__mchirp__max']) + 1
-        # How to decide the number of bins?
+        # XXX How to decide the number of bins? Hardcoding.
         N_bins = 20
         delta = max(float(upper-lower)/N_bins,0.2)
         plot.hist(mchirp, bins=numpy.arange(lower,upper,delta))
@@ -260,6 +259,7 @@ def gstlalcbc_report(request, format=""):
         plot.figure(figsize=(6,4))
         lower = int(mass_limits['coincinspiralevent__mass__min'])
         upper = int(mass_limits['coincinspiralevent__mass__max']) + 1
+        # XXX Hardcoding number of bins again.
         N_bins = 20
         delta = max(float(upper-lower)/N_bins,0.2)
         plot.hist(mass, bins=numpy.arange(lower,upper,delta))
