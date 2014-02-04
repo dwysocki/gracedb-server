@@ -12,6 +12,7 @@ from utils import posixToGpsTime, gpsToUtc
 import pytz
 import time
 import datetime
+import logging
 
 # DATETIME_SETTINGS is guaranteed to be set.  GRACE_DATETIME_FORMAT is not.
 FORMAT = getattr(settings, 'GRACE_DATETIME_FORMAT', settings.DATETIME_FORMAT)
@@ -157,3 +158,18 @@ def timeSelections(t):
     rv['utc'] = dateformat.format(dt.astimezone(pytz.utc), format)
 
     return rv
+
+# XXX Branson added this. God will punish me.
+@register.filter
+def end_time(event,digits=4):
+    try:
+        #return float(event.end_time) + float(event.end_time_ns)/1.e9
+        # The approach above did not work. For some reason, the value loses precision
+        # in the django template, so that the final digits get truncated and padded 
+        # with zeros. Why? The current gpstime is only 10 digits. So I'm going to have to
+        # make this into a string. Totally sick, I know.
+        decimal_part = float(event.end_time_ns)/1.e9
+        decimal_part = round(decimal_part,digits)
+        return str(event.end_time) + str(decimal_part)[1:]
+    except Exception, e:
+        return None
