@@ -360,6 +360,23 @@ def handle_uploaded_data(event, datafilename,
                            comment="Log File Created" )
             log.save()
 
+        # Log the link to the CED.
+        if data.data['ced_link']:
+            comment = '<a href="%s">Coherent Event Display (CED)</a>' % data.data['ced_link']
+            log = EventLog(event=event,
+                           issuer=event.submitter,
+                           comment=comment)
+            log.save()
+
+
+        # Log the link to the skymap.
+        if data.data['fits_skymap_link']:
+            comment = '<a href="%s">FITS skymap</a>' % data.data['fits_skymap_link']
+            log = EventLog(event=event,
+                           issuer=event.submitter,
+                           comment=comment)
+            log.save()
+
     elif event.analysisType == 'GRB':
         # Get the event time from the VOEvent file
         error = None
@@ -493,6 +510,9 @@ class CwbData(Translator):
         #
         #   The 2nd number following the "24*6" line is FAR.
         #
+        # https://... (link to CED)
+        # https://... (link to fits skymap)
+
         rawdata = {}
 
         # Get Key/Value info
@@ -548,6 +568,19 @@ class CwbData(Translator):
         data['snr']           = data['rawdata'].get('rho',[None])[0]
         data['ligo_axis_ra']     = data['rawdata'].get('phi',[None,None,None])[2]
         data['ligo_axis_dec']    = data['rawdata'].get('theta',[None,None,None])[2]
+
+        # Check for the links at the end.
+        ced_link = None
+        fits_skymap_link = None
+        for line in datafile:
+            if line.startswith("https"):
+                if line.find(".fits") > 0:
+                    fits_skymap_link = line
+                else:
+                    ced_link = line
+
+        data['ced_link'] = ced_link
+        data['fits_skymap_link'] = fits_skymap_link
 
         if needToClose:
             datafile.close()
