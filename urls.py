@@ -30,6 +30,7 @@ urlpatterns = patterns('',
     url (r'^feeds/$', feedview, name="feeds"),
 
     url (r'^reports/$', 'gracedb.reports.histo', name="reports"),
+    url (r'^reports/gstlalcbc_report/(?P<format>(json|flex))?$', 'gracedb.reports.gstlalcbc_report', name="gstlalcbc_report"),
     (r'^reports/(?P<path>.+)$', 'django.views.static.serve',
             {'document_root': settings.LATENCY_REPORT_DEST_DIR}),
 
