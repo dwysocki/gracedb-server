@@ -5,6 +5,9 @@
 {# Analysis-specific attributes for an LM event#}
 {% block analysis_specific %}
 
+{# Test whether the object has the end_time property. Older (non CoincInspiral) events don't. #}
+{% if object.end_time %}
+
 <div id="container" style="display:table;width:100%">
 <div style="display:table-row;width:100%">
 
@@ -363,5 +366,7 @@
 </div> <!-- container -->
 
 {% endif %}
+
+{% endif %} <!-- object has end_time property. -->
 
 {% endblock %}

@@ -83,7 +83,6 @@ onload="document.search_form.query.focus();"
             <th>Rank</th>
             <th>GraceID</th>
             <th>gpstime</th>
-            <th>end_time_ns</th>
             <th>FAR</th>
             <th>IFOs</th>
             <th>Total Mass</th>
@@ -98,8 +97,7 @@ onload="document.search_form.query.focus();"
             {% endfor %}
             <td>{{ forloop.counter }} </td>
             <td><a href="{% url view obj.graceid %}">{{ obj.graceid }}</a></td>
-            <td> {{ obj.gpstime }} </td>
-            <td> {{ obj.end_time_ns }} </td>
+            <td> {{ obj|end_time }} </td>
             <td> {{ obj.far|scientific }} </td>
             <td> {{ obj.instruments }} </td>
             <td> {{ obj.mass|floatformat:4 }} </td>

@@ -168,8 +168,9 @@ def end_time(event,digits=4):
         # in the django template, so that the final digits get truncated and padded 
         # with zeros. Why? The current gpstime is only 10 digits. So I'm going to have to
         # make this into a string. Totally sick, I know.
-        decimal_part = float(event.end_time_ns)/1.e9
-        decimal_part = round(decimal_part,digits)
-        return str(event.end_time) + str(decimal_part)[1:]
+        decimal_part = round(float(event.end_time_ns)/1.e9,digits)
+        # ugh. must pad with zeros to the right.
+        decimal_part = str(decimal_part)[1:].ljust(digits+1,'0')
+        return str(event.end_time) + decimal_part
     except Exception, e:
         return None
