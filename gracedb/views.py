@@ -18,8 +18,10 @@ from models import MultiBurstEvent
 from models import GrbEvent
 from models import SingleInspiral
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
+from forms import SimpleSearchFormWithSubclasses
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
+from query import parseQuery
 
 from django.contrib.auth.models import User
 
@@ -697,7 +699,6 @@ def assembleLigoLw(objects):
     ligolw_add.merge_ligolws(xmldoc)
     ligolw_add.merge_compatible_tables(xmldoc)
     return xmldoc
-
 
 def search(request, format=""):
     if not request.user or not request.user.is_authenticated():

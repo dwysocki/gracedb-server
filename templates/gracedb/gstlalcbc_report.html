@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load scientific %}
+{% load timeutil %}
+
+{% block bodyattrs %}
+onload="document.search_form.query.focus();"
+{% endblock %}
+
+{% block title %}gstlalcbc Report{% endblock %}
+{% block heading %}{% endblock %} #}
+{% block pageid %}gstlalcbc Report{% endblock %}
+
+{% block jscript %}
+    <script type="text/javascript">
+    <!--
+        function toggle_visibility(id) {
+           var e = document.getElementById(id);
+           if(e.style.display == 'block')
+              e.style.display = 'none';
+           else
+              e.style.display = 'block';
+        }
+    //-->
+    </script>
+{% endblock %}
+
+{% block content %}
+
+<div class="content-area">
+
+    {% if message %}
+    <p><font color="red"> {{ message }} </font> </p>
+    {% endif %}
+
+    <form method="POST" name="search_form">
+      <table>
+        {{ form.as_table }}
+        <tr><td/><td><a onClick="toggle_visibility('hints');">Hints on querying</a></td>
+        </tr>
+        <tr><td/><td>{% include "gracedb/query_help_frag.html" %}</td></tr>
+      </table>
+    </form>
+
+    {{ title }}
+</div>
+
+{% if count > 0 %}
+<div class="content-area">
+    <h3> IFAR Plot  </h3>
+    <div>
+        <img src="data:image/png;base64,{{ ifar_plot|safe }}"></img>
+    </div>
+</div>
+
+<div class="content-area">
+    <h3> Mass Distributions </h3>
+    <div>
+        <img src="data:image/png;base64,{{ mchirp_dist|safe }}"></img>
+    </div>
+
+    <div>
+        <img src="data:image/png;base64,{{ mass_dist|safe }}"></img>
+    </div>
+</div>
+
+<div class="content-area">
+    <h3> Loudest event table </h3>
+
+    <!-- legend table -->
+    <br/>
+    <br/>
+    <table style="border-spacing:0px;">
+        {% for d in FAR_color_map %}
+        <tr> <td style="background-color:{{ d.color }}">{{ d.desc }}</td> </tr>
+        {% endfor %}
+    </table>
+    <br/>
+    <br/>
+
+    <table class="gstlalcbc">
+        <!-- need to select background color based on far. Ucky? -->
+        <tr>
+            <th>Rank</th>
+            <th>GraceID</th>
+            <th>gpstime</th>
+            <th>FAR</th>
+            <th>IFOs</th>
+            <th>Total Mass</th>
+            <th>Chirp Mass</th>
+            <th>SNR</th>
+        </tr>
+        {% for obj in clustered_events %}
+            {% for d in FAR_color_map %}
+                {%if obj.far <= d.max_far and obj.far > d.min_far %}
+                <tr style="background-color:{{d.color}}">
+                {% endif %}
+            {% endfor %}
+            <td>{{ forloop.counter }} </td>
+            <td><a href="{% url view obj.graceid %}">{{ obj.graceid }}</a></td>
+            <td> {{ obj|end_time }} </td>
+            <td> {{ obj.far|scientific }} </td>
+            <td> {{ obj.instruments }} </td>
+            <td> {{ obj.mass|floatformat:4 }} </td>
+            <td> {{ obj.mchirp|floatformat:4 }} </td>
+            <td> {{ obj.snr|floatformat:4 }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endif %}
+
+{% endblock %}
+

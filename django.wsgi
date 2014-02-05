@@ -13,6 +13,8 @@ sys.path.append('/home/gracedb/graceproj')
 import logging
 logging.basicConfig()
 
+os.environ['MPLCONFIGDIR']='/tmp/'
+
 #logging.basicConfig(level=logging.DEBUG,
 #                    format='%(asctime)s %(levelname)s %(message)s',
 #                    filename='/tmp/myapp.log',

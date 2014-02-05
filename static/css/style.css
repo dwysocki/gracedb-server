@@ -12,7 +12,13 @@ table.event {border-bottom:1px solid gray;}
 /* Branson added */
 table.event {width:100%}
 
+table.analysis_specific_lm th {padding:3px;border:none;text-align:center;vertical-align:bottom;}
+table.analysis_specific_lm {border-bottom:1px solid gray;}
+
 table.analysis_specific {width:100%}
+
+table.gstlalcbc {border:0;border-spacing:0px;width:100%;}
+table.gstlalcbc th {padding:3px;border:none;vertical-align:bottom;}
 
 .content-area {
     margin-top: 10px;
