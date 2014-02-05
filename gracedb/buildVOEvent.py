@@ -17,6 +17,8 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from models import CoincInspiralEvent, MultiBurstEvent
 
+import os
+
 def buildVOEvent(gevent, request=None, description=None, role=None):
     objid = gevent.graceid()
 
@@ -188,6 +190,10 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
         w.add_Param(p)
 
         # build up MaxDistance. gevent.singleinspiral_set.all()?
+        # Each detector calculates an effective distance assuming the inspiral is 
+        # optimally oriented. It is the maximum distance at which a source of the 
+        # given parameters would've been seen by that particular detector. To get
+        # an effective 'maximum distance', we just find the minumum over detectors
         max_distance = float('inf')
         for obj in gevent.singleinspiral_set.all():
             if obj.eff_distance < max_distance:
@@ -206,6 +212,42 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
                 value=float(gevent.duration))
         p.set_Description(["Measured duration of GW burst signal."])
         w.add_Param(p)
+
+        # XXX Calculate the fluence. Unfortunately, this requires parsing the trigger.txt
+        # file for hrss values.  These should probably be pulled into the database.
+        # But there is no consensus on whether hrss or fluence is meaningful. So I will
+        # put off changing the schema for now.
+        try:
+            # Go find the data file.
+            log = gevent.eventlog_set.filter(comment__startswith="Original Data").all()[0]
+            filename = log.filename
+            filepath = os.path.join(gevent.datadir(),filename)
+            if os.path.isfile(filepath):
+                datafile = open(filepath,"r")
+            else:
+                raise Exception("No file found.")
+            # Now parse the datafile.
+            # The line we want looks like:
+            # hrss: 1.752741e-23 2.101590e-23 6.418900e-23
+            for line in datafile:
+                if line.startswith('hrss:'):
+                    hrss_values = [float(hrss) for hrss in line.split()[1:]]
+            max_hrss = max(hrss_values)
+            # From Min-A Cho: fluence = pi*(c**3)*(freq**2)*(hrss_max**2)*(10**3)/(4*G)
+            # Note that hrss here actually has units of s^(-1/2)
+            pi = 3.14152
+            c = 2.99792E10
+            G = 6.674E-8
+            fluence = pi * pow(c,3) * pow(gevent.central_freq,2) * 1000.0
+            fluence = fluence * pow(max_hrss,2)
+            fluence = fluence / (4.0*G)
+
+            p = Param(name="Fluence", dataType="float", ucd="gw.fluence", unit="erg/cm^2", 
+                    value=fluence)
+            p.set_Description(["Estimated fluence of GW burst signal."])
+            w.add_Param(p)
+        except Exception, e: 
+            pass
     else:
         pass
 
