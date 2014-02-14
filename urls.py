@@ -29,6 +29,7 @@ urlpatterns = patterns('',
     (r'^feeds/(?P<url>.*)/$', EventFeed()),
     url (r'^feeds/$', feedview, name="feeds"),
 
+    url (r'^performance/$', 'gracedb.views.performance', name="performance"),
     url (r'^reports/$', 'gracedb.reports.histo', name="reports"),
     url (r'^reports/gstlalcbc_report/(?P<format>(json|flex))?$', 'gracedb.reports.gstlalcbc_report', name="gstlalcbc_report"),
     (r'^reports/(?P<path>.+)$', 'django.views.static.serve',

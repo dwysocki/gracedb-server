@@ -44,6 +44,7 @@ MAX_QUERY_RESULTS = 1000
 GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 
 import json
+import datetime
 
 def index(request):
 #   assert request.user
@@ -1155,3 +1156,77 @@ def taglogentry(request, graceid, num, tagname):
     msg = "Successfully applied tag %s to log message %s." % (tagname, num)
     return HttpResponse(msg, content_type="text")
 
+# XXX added by Branson. Performance metrics.
+def performance(request):
+    # First, try to find the relevant logfile from settings.
+    try:
+        logfilepath = settings.LOGGING['handlers']['performance_file']['filename']
+        logfile = open(logfilepath, "r")
+    except:
+        return HttpResponse("Failed to locate performance log file. Sorry")
+
+   
+    # Now parse the log file
+    dateformat = '%Y-%m-%dT%H:%M:%S' # ISO format. I think.
+
+    # Lookback time is 3 days.
+    dt_now = datetime.datetime.now()
+    dt_min = dt_now + datetime.timedelta(days=-3)
+
+    creation_status_totals = {}
+    annotation_status_totals = {}
+    total_create_requests = 0
+    total_annotate_requests = 0
+
+    totals_by_status = {}
+    totals_by_method = {}
+
+    for line in logfile:
+        datestring = line[0:len('YYYY-MM-DDTHH:MM:SS')]
+        # Check the date to see whether it's fresh enough
+        dt = datetime.datetime.strptime(datestring, dateformat)
+        if dt > dt_min:
+            # Get rid of the datestring and the final colon.
+            line = line[len(datestring)+1:]
+            # Parse
+            method, status, username = line.split(':')
+            method = method.strip()
+            status = int(status.strip())
+            username = username.strip()
+
+            if method not in totals_by_method.keys():
+                totals_by_method[method] = 1
+                totals_by_status[method] = {status: 1}
+            else:
+                totals_by_method[method] += 1
+                if status not in totals_by_status[method].keys():
+                    totals_by_status[method][status] = 1
+                else:
+                    totals_by_status[method][status] += 1
+
+    # Calculate summary information:
+    summaries = {}
+    for method in totals_by_method.keys():
+        summaries[method] = {'gt_500': 0, 'btw_300_500': 0}
+        for key in totals_by_status[method].keys():
+            if key >= 500:
+                summaries[method]['gt_500'] += totals_by_status[method][key]
+            elif key >= 300:
+                summaries[method]['btw_300_500'] += totals_by_status[method][key]
+        # Normalize
+        if totals_by_method[method] > 0:
+            for key in summaries[method].keys():
+                summaries[method][key] = float(summaries[method][key])/totals_by_method[method]
+
+    context = {
+            'summaries': summaries,
+            'current_time' : str(dt_now),
+            'totals_by_status' : totals_by_status,
+            'totals_by_method' : totals_by_method,
+    }
+
+    return render_to_response(
+            'gracedb/performance.html',
+            context,
+            context_instance=RequestContext(request))
+ 

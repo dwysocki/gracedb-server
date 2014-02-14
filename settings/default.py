@@ -190,6 +190,7 @@ ADMIN_GROUP_HEADER = None
 ADMIN_GROUP = None
 
 MIDDLEWARE_CLASSES = [
+    'middleware.performance.PerformanceMiddleware',
     'middleware.accept.AcceptMiddleware',
     'middleware.cli.CliExceptionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -239,3 +240,52 @@ STATICFILES_FINDERS = (
 )
 
 STATICFILES_DIRS = ()
+
+# XXX The following Log settings are for a performance metric.
+import logging
+LOG_ROOT = '/home/branson/logs'
+LOG_FILE_SIZE = 1024*1024 # 1 MB
+LOG_FILE_BAK_CT = 3
+
+# Filter objects to separate out each level of alert.
+class infoOnlyFilter(logging.Filter):
+    def filter(self,record):
+        if record.levelname=='INFO':
+            return 1
+        return 0
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers' : True,
+    'formatters': {
+        'simple': {
+            'format': '%(asctime)s: %(message)s',
+            'datefmt': '%Y-%m-%dT%H:%M:%S',
+        },
+    },
+    'handlers': {
+        'null': {
+            'level':'DEBUG',
+            'class':'django.utils.log.NullHandler',
+        },
+        'performance_file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'simple',
+            'filename': '%s/gracedb_performance.log' % LOG_ROOT,
+            'maxBytes': LOG_FILE_SIZE,
+            'backupCount': LOG_FILE_BAK_CT,
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['null'],
+            'propagate': True,
+            'level': 'INFO',
+        },
+        'middleware': {
+            'handlers': ['performance_file'],
+            'propagate': True,
+            'level': 'INFO',
+        },
+   },
+}
