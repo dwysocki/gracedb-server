@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load scientific %}
+{% load timeutil %}
+
+{% block title %}Perfomance Statistics{% endblock %}
+{% block heading %}{% endblock %} 
+{% block pageid %}Performance Statistics{% endblock %}
+
+{% block content %}
+
+<h2> GraceDB Three-Day Perfomance Statistics </h2>
+<br/>
+<br/>
+
+<div class="content-area">
+    <h3>Statistics for Event Creation/Replacement</h3>
+
+    <h4>Summary</h4>
+    <table style="border-spacing:0px;"> 
+        <tr><th>Total incoming requests: </th> <td> {{ totals_by_method.create }}</td></tr>
+        <tr><th>Fraction with response status &ge; 500: </th> <td> {{ summaries.create.gt_500 }}</td></tr>
+        <tr><th>Fraction with status in [300, 500): </th> <td> {{ summaries.create.btw_300_500 }}</td></tr>
+    </table>
+
+    <h4>Details</h4>
+    <table style="border-spacing:0px;">
+        <tr> <th>Status</th> <th>Number of responses</th> </tr>
+        {% for key, value in totals_by_status.create.iteritems %}
+        <tr> <td> {{ key }} </td> <td> {{ value }} </td> </tr>
+        {% endfor %}
+    </table>
+
+</div>
+
+<div class="content-area">
+    <h3>Statistics for Event Annotation</h3>
+
+    <h4>Summary</h4>
+    <table style="border-spacing:0px;"> 
+        <tr><th>Total incoming requests: </th> <td> {{ totals_by_method.annotate }}</td></tr>
+        <tr><th>Fraction with response status &ge; 500: </th> <td> {{ summaries.annotate.gt_500 }}</td></tr>
+        <tr><th>Fraction with status in [300, 500): </th> <td> {{ summaries.annotate.btw_300_500 }}</td></tr>
+    </table>
+
+    <h4>Details</h4>
+    <table style="border-spacing:0px;">
+        <tr> <th>Status</th> <th>Number of responses</th> </tr>
+        {% for key, value in totals_by_status.annotate.iteritems %}
+        <tr> <td> {{ key }} </td> <td> {{ value }} </td> </tr>
+        {% endfor %}
+    </table>
+
+</div>
+
+{% endblock %}
+
