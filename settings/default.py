@@ -243,7 +243,7 @@ STATICFILES_DIRS = ()
 
 # XXX The following Log settings are for a performance metric.
 import logging
-LOG_ROOT = '/home/branson/logs'
+LOG_ROOT = '/home/gracedb/logs'
 LOG_FILE_SIZE = 1024*1024 # 1 MB
 LOG_FILE_BAK_CT = 3
 
