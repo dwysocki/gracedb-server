@@ -8,7 +8,7 @@ MAINTENANCE_MODE= False
 EMAIL_HOST = 'gravity.phys.uwm.edu'
 
 ADMINS = (
-    ('Brian Moe', 'bmoe@gravity.phys.uwm.edu'),
+    ('Branson Stephens', 'branson@gravity.phys.uwm.edu'),
 )
 
 MANAGERS = ADMINS
