@@ -244,8 +244,6 @@ STATICFILES_DIRS = ()
 # XXX The following Log settings are for a performance metric.
 import logging
 LOG_ROOT = '/home/gracedb/logs'
-LOG_FILE_SIZE = 1024*1024 # 1 MB
-LOG_FILE_BAK_CT = 3
 
 # Filter objects to separate out each level of alert.
 class infoOnlyFilter(logging.Filter):
@@ -269,11 +267,9 @@ LOGGING = {
             'class':'django.utils.log.NullHandler',
         },
         'performance_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'logging.FileHandler',
             'formatter': 'simple',
             'filename': '%s/gracedb_performance.log' % LOG_ROOT,
-            'maxBytes': LOG_FILE_SIZE,
-            'backupCount': LOG_FILE_BAK_CT,
         },
     },
     'loggers': {
