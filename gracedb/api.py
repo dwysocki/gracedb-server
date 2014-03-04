@@ -11,7 +11,7 @@ from django.utils import dateformat
 import json
 
 from gracedb.models import Event, Group, EventLog, Tag
-from gracedb.views import create_label
+from gracedb.views import create_label, get_performance_info
 from translator import handle_uploaded_data
 
 from alert import issueAlertForUpdate
@@ -1295,8 +1295,9 @@ class GracedbRoot(APIView):
 
         return Response({
             "links" : {
-                "events" : reverse("event-list", request=request),
-                "self"   : reverse("api-root", request=request),
+                "events"      : reverse("event-list", request=request),
+                "self"        : reverse("api-root", request=request),
+                "performance" : reverse("performance-info", request=request),
                 },
             "templates" : templates,
             "groups" : [group.name for group in Group.objects.all()],
@@ -1543,4 +1544,20 @@ class FileMeta(APIView):
     authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,)
     pass
+
+class PerformanceInfo(APIView):
+    """
+    Serialized performance information
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    parser_classes = (parsers.MultiPartParser,)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            performance_info = get_performance_info()
+        except Exception, e:
+            response = Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(performance_info,status=status.HTTP_200_OK)
 

@@ -1,7 +1,7 @@
 
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, Http404
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseServerError
 from django.template import RequestContext
 from django.core.urlresolvers import reverse, get_script_prefix
 from django.shortcuts import render_to_response, get_object_or_404
@@ -1157,14 +1157,11 @@ def taglogentry(request, graceid, num, tagname):
     return HttpResponse(msg, content_type="text")
 
 # XXX added by Branson. Performance metrics.
-def performance(request):
-    # First, try to find the relevant logfile from settings.
-    try:
-        logfilepath = settings.LOGGING['handlers']['performance_file']['filename']
-        logfile = open(logfilepath, "r")
-    except:
-        return HttpResponse("Failed to locate performance log file. Sorry")
 
+def get_performance_info():
+    # First, try to find the relevant logfile from settings.
+    logfilepath = settings.LOGGING['handlers']['performance_file']['filename']
+    logfile = open(logfilepath, "r")
    
     # Now parse the log file
     dateformat = '%Y-%m-%dT%H:%M:%S' # ISO format. I think.
@@ -1224,6 +1221,14 @@ def performance(request):
             'totals_by_status' : totals_by_status,
             'totals_by_method' : totals_by_method,
     }
+    return context
+
+def performance(request):
+
+    try:
+        context = get_performance_info()
+    except Exception, e:
+        return HttpResponseServerError(str(e))
 
     return render_to_response(
             'gracedb/performance.html',

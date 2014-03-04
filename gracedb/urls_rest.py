@@ -11,6 +11,7 @@ from gracedb.api import EventTagList, EventTagDetail
 from gracedb.api import EventLogTagList, EventLogTagDetail
 from gracedb.api import Files, FileMeta
 from gracedb.api import EventNeighbors, EventLabel
+from gracedb.api import PerformanceInfo
 
 urlpatterns = patterns('gracedb.api',
     url (r'^/?$', GracedbRoot.as_view(), name="api-root"),
@@ -64,6 +65,10 @@ urlpatterns = patterns('gracedb.api',
     # events/{graceid}/neighbors/[?delta=(N|(N,N))]
     url (r'^events/(?P<graceid>\w[\d]+)/neighbors/$',
         EventNeighbors.as_view(), name="neighbors"),
+
+    # Performance stats
+    url (r'^performance/$', 
+        PerformanceInfo.as_view(), name='performance-info'),
 
     # Legacy
     #url (r'^events/(?P<graceid>\w[\d]+)/files/(?P<filename>.+)?$', 'download', name="files"),
