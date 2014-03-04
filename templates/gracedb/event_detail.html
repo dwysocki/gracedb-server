@@ -537,6 +537,7 @@
 <p>{{ message }}</p>
 
 <div class="content-area">
+{% block basic_info %}
 <h3> Basic Info </h3>
 
 <table class="event">
@@ -585,6 +586,7 @@
     </tr>
 
 </table>
+{% endblock %}
 </div>
 
 <div class="content-area">
