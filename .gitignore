@@ -3,3 +3,5 @@
 *.pyc
 django-*.wsgi
 static-collected
+static/admin/
+static/rest_framework/
