@@ -261,8 +261,12 @@ def _createEventFromForm(request, form):
             temp_data_loc = handle_uploaded_data(event, uploadDestination)
             try:
                 # Send an alert.
+                # XXX This reverse will give the web-interface URL, not the REST URL.
+                # This could be a problem if anybody ever tries to use it.
+                # NOTE: The clusterurl method should be considered deprecated.
                 issueAlert(event,
-                           os.path.join(event.clusterurl(), "private", f.name),
+                           #os.path.join(event.clusterurl(), "private", f.name),
+                           request.build_absolute_uri(reverse("file", args=[event.graceid(),f.name])),
                            temp_data_loc)
             except Exception, e:
                 warnings += ["Problem issuing an alert (%s)" % e]

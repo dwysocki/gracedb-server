@@ -116,6 +116,7 @@ class Event(models.Model):
         return "https://gracedb.ligo.org/gracedb-files/%s" % self.graceid()
         return "https://ldas-jobs.phys.uwm.edu/gracedb/data/%s" % self.graceid()
 
+    # XXX This should be considered deprecated. (Branson, July 22, 2014.)
     def clusterurl(self):
         #return "pcdev1.phys.uwm.edu:/archive/gracedb/data/%s" % self.graceid()
         return "file://pcdev1.phys.uwm.edu/archive/gracedb/data/%s" % self.graceid()
