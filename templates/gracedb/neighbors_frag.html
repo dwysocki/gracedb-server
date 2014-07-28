@@ -30,7 +30,7 @@
     </tr>
     {% for delta, object in nearby %}
     <tr class={% cycle 'odd' 'even' %}>
-        <td><a href="{% url view object.graceid %}">{{ object.graceid }}</a></td>
+        <td><a href="{% url "view" object.graceid %}">{{ object.graceid }}</a></td>
         <td>
              {% for labelling in object.labelling_set.all %}
                 <span onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.name}}', '{{labelling.created|utc}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>

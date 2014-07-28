@@ -48,7 +48,7 @@
             (
             {
             sortable: true,
-            url: '{% url search %}flex?query={{rawquery|urlencode}}',
+            url: '{% url "search" %}flex?query={{rawquery|urlencode}}',
             datatype: 'json',
             mtype: "GET",
             colNames : ["UID", "Labels", "Neighbors (+/-5sec)", "Group", "Type", "Event Time", "Instruments", "FAR (Hz)", "Links", "Submitted", "Submitted By",
@@ -112,8 +112,8 @@
             <td>
                 <a onClick="toggle_visibility('hints');">Hints on querying</a>
                 {% if rawquery %}
-                    | <a href="{% url search %}?query={{rawquery|urlencode}}">Link to current query</a>
-                    | <a href="{% url search %}?query={{rawquery|urlencode}}&ligolw">Download LIGOLW File</a>
+                    | <a href="{% url "search" %}?query={{rawquery|urlencode}}">Link to current query</a>
+                    | <a href="{% url "search" %}?query={{rawquery|urlencode}}&ligolw">Download LIGOLW File</a>
                 {% endif %}
             </td>
         </tr>
@@ -144,7 +144,7 @@
     <tbody>
 {% for obj in object_list %}
     <tr class={% cycle 'odd' 'even' %}>
-        <td><a href="{% url view obj.graceid %}">{{ obj.graceid }}</a></td>
+        <td><a href="{% url "view" obj.graceid %}">{{ obj.graceid }}</a></td>
         <td>
              {% for labelling in obj.labelling_set.all %}
                 <span onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.name}}', '{{labelling.created|utc}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>

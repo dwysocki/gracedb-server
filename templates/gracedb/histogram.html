@@ -82,7 +82,7 @@ function toggle(id) {
 {% block content %}
 <br/>
 
-<a href="{% url gstlalcbc_report %}"><h3>Dynamic CBC Report</h3></a>
+<a href="{% url "gstlalcbc_report" %}"><h3>Dynamic CBC Report</h3></a>
 <br/>
 <br/>
 
@@ -140,6 +140,6 @@ function toggle(id) {
 <br/>
 <br/>
 
-<a href="{% url performance %}"><h3>GraceDB 3-day performance summary</h3></a>
+<a href="{% url "performance" %}"><h3>GraceDB 3-day performance summary</h3></a>
 
 {% endblock %}

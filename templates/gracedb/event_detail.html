@@ -224,7 +224,7 @@
             //--------------------------------------------------------------------------------------------------------------------
             function getTagDelCallback(tag) {
                 return function() {
-                    var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}" 
+                    var tagUrl = "{% url "taglogentry" object.graceid "000" "temp" %}" 
                     tagUrl = tagUrl.replace("000",tag.n); 
                     tagUrl = tagUrl.replace("temp",tag.name); 
                     var tagResultDialog = new Dialog({ style: "width: 300px" }); 
@@ -310,7 +310,7 @@
                         formData = addTagForm.getValues();
                         var tagName = formData.existingTagSelect;
                         var tagDispName = formData.tagDispName;
-                        var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}"
+                        var tagUrl = "{% url "taglogentry" object.graceid "000" "temp" %}"
                         tagUrl = tagUrl.replace("000",log.n);
                         tagUrl = tagUrl.replace("temp",tagName);
 
@@ -432,7 +432,7 @@
             }, button_element);
 
             var savebutton = new Save({
-                    url: "{% url logentry object.graceid "" %}",
+                    url: "{% url "logentry" object.graceid "" %}",
                     onSuccess: function (resp, ioargs) {
                         //this.inherited(resp, ioargs);
                         this.button.set("disabled", false);
@@ -543,7 +543,7 @@
 <table class="event">
     {% if skyalert_authorized  %}
         <tr><td colspan="4">
-           <a href="{% url skyalert object.graceid %}"><button type="button">Submit to Skyalert</button></a>
+           <a href="{% url "skyalert" object.graceid %}"><button type="button">Submit to Skyalert</button></a>
         </td></tr>
     {% endif %}
 
@@ -607,7 +607,7 @@
                     alert("Bad neighborhood specified.")
                     return;
                 }
-                var neighborUrlPattern = "{% url neighbors object.graceid "000" %}"
+                var neighborUrlPattern = "{% url "neighbors" object.graceid "000" %}"
                 var neighbor_div = dom.byId("neighbors");
                 neighborUrl = neighborUrlPattern.replace("000", delta);
                 request(neighborUrl).then(
@@ -632,7 +632,7 @@
     <div id="new_log_entry_form">
     <noscript>
         <h3>Create a new log entry</h3>
-        <form id="newlog" action="{% url logentry object.graceid "" %}" method="POST">
+        <form id="newlog" action="{% url "logentry" object.graceid "" %}" method="POST">
             <textarea id="newlogtext" name="comment" style="width:300px;display:block"></textarea>
             <input type="submit" value="Submit"/>
         </form>

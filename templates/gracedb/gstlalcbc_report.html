@@ -96,7 +96,7 @@ onload="document.search_form.query.focus();"
                 {% endif %}
             {% endfor %}
             <td>{{ forloop.counter }} </td>
-            <td><a href="{% url view obj.graceid %}">{{ obj.graceid }}</a></td>
+            <td><a href="{% url "view" obj.graceid %}">{{ obj.graceid }}</a></td>
             <td> {{ obj|end_time }} </td>
             <td> {{ obj.far|scientific }} </td>
             <td> {{ obj.instruments }} </td>

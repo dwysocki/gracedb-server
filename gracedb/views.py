@@ -9,7 +9,9 @@ from django.contrib.sites.models import Site
 from django.utils.html import strip_tags, escape, urlize
 from django.utils.safestring import mark_safe
 
-from django.views.generic.list_detail import object_detail, object_list
+# Upgrade to Django 1.5: No more function-based generic views.
+#from django.views.generic.list_detail import object_list
+from django.views.generic.list import ListView
 from django.contrib.auth.decorators import login_required
 
 from models import Event, Group, EventLog, Labelling, Label, Tag
@@ -705,6 +707,33 @@ def assembleLigoLw(objects):
     ligolw_add.merge_compatible_tables(xmldoc)
     return xmldoc
 
+
+# Added for compatibility with Django 1.5. Replaced function-based generic
+# views with class based generic views. There is no more 'extra_context' argument
+# provided.
+
+class EventListView(ListView):
+    def __init__(self, *args, **kwargs):
+        # Load up the values for the extra context.
+        self.extra_title = kwargs.pop('title')
+        self.extra_form = kwargs.pop('form')
+        self.extra_form_action = kwargs.pop('formAction')
+        self.extra_max_count = kwargs.pop('maxCount')
+        self.extra_rawquery = kwargs.pop('rawquery')
+        super(EventListView, self).__init__(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(EventListView, self).get_context_data(**kwargs)
+        # Insert the extra context.
+        context.update({
+            'title'      : self.extra_title,
+            'form'       : self.extra_form,
+            'formAction' : self.extra_form_action,
+            'maxCount'   : self.extra_max_count,
+            'rawquery'   : self.extra_rawquery,
+        })
+        return context
+
 def search(request, format=""):
     if not request.user or not request.user.is_authenticated():
         return HttpResponseForbidden("Forbidden")
@@ -788,14 +817,18 @@ def search(request, format=""):
                     title = "Query Results. %s event" % objects.count()
                 else:
                     title = "Query Results. %s events" % objects.count()
-                context = {
-                    'title': title,
-                    'form': form,
-                    'formAction': reverse(search),
-                    'maxCount': limit,
-                    'rawquery' : rawquery,
-                }
-                return object_list(request, objects, extra_context=context)
+                #context = {
+                #    'title': title,
+                #    'form': form,
+                #    'formAction': reverse(search),
+                #    'maxCount': limit,
+                #    'rawquery' : rawquery,
+                #}
+                #return object_list(request, objects, extra_context=context)
+                return EventListView.as_view(queryset=objects, 
+                        template_name="gracedb/event_list.html",
+                        title=title, form=form, formAction=reverse(search), 
+                        maxCount=limit, rawquery=rawquery).as_view()
 
     return render_to_response('gracedb/query.html',
             { 'form' : form,
@@ -893,15 +926,20 @@ def oldsearch(request):
                 title = "Query Results. %s event" % objects.count()
             else:
                 title = "Query Results. %s events" % objects.count()
-            extra_context = {'title': title }
 
             textQuery = " ".join(textQuery)
             simple_form = SimpleSearchForm({'query': textQuery})
-            extra_context['form'] = simple_form
-            extra_context['maxCount'] = MAX_QUERY_RESULTS
-            extra_context['rawquery' ] = textQuery
 
-            return object_list(request, objects, extra_context=extra_context)
+            #extra_context = {'title': title }
+            #extra_context['form'] = simple_form
+            #extra_context['maxCount'] = MAX_QUERY_RESULTS
+            #extra_context['rawquery' ] = textQuery
+ 
+            #return object_list(request, objects, extra_context=extra_context)
+            return EventListView.as_view(queryset=objects, 
+                    template_name="gracedb/event_list.html",
+                    title=title, form=simple_form, formAction=None, 
+                    maxCount=MAX_QUERY_RESULTS, rawquery=textQuery).as_view()
 
 
     return render_to_response('gracedb/query.html',
