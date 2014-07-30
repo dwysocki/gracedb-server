@@ -1,5 +1,7 @@
 
-from django.conf.urls.defaults import patterns, url
+# Changed for Django 1.6
+from django.conf.urls import patterns, url
+#from django.conf.urls.defaults import patterns, url
 
 # rest_framework
 from gracedb.api import GracedbRoot

@@ -63,7 +63,7 @@ MIDDLEWARE_CLASSES = [
 #    'ligodjangoauth.LigoShibbolethMiddleware',
     'ligoauth.middleware.auth.LigoAuthMiddleware',
     'maintenancemode.middleware.MaintenanceModeMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+#    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 INSTALLED_APPS = (
@@ -78,12 +78,12 @@ INSTALLED_APPS = (
     'ligoauth',
     'rest_framework',
     'south',
-    'debug_toolbar',
+#    'debug_toolbar',
 )
 
-INTERNAL_IPS = (
-    '129.89.61.55',
-)
+#INTERNAL_IPS = (
+#    '129.89.61.55',
+#)
 
 
 # Settings for Logging.

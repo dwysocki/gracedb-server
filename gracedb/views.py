@@ -707,33 +707,6 @@ def assembleLigoLw(objects):
     ligolw_add.merge_compatible_tables(xmldoc)
     return xmldoc
 
-
-# Added for compatibility with Django 1.5. Replaced function-based generic
-# views with class based generic views. There is no more 'extra_context' argument
-# provided.
-
-class EventListView(ListView):
-    def __init__(self, *args, **kwargs):
-        # Load up the values for the extra context.
-        self.extra_title = kwargs.pop('title')
-        self.extra_form = kwargs.pop('form')
-        self.extra_form_action = kwargs.pop('formAction')
-        self.extra_max_count = kwargs.pop('maxCount')
-        self.extra_rawquery = kwargs.pop('rawquery')
-        super(EventListView, self).__init__(*args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super(EventListView, self).get_context_data(**kwargs)
-        # Insert the extra context.
-        context.update({
-            'title'      : self.extra_title,
-            'form'       : self.extra_form,
-            'formAction' : self.extra_form_action,
-            'maxCount'   : self.extra_max_count,
-            'rawquery'   : self.extra_rawquery,
-        })
-        return context
-
 def search(request, format=""):
     if not request.user or not request.user.is_authenticated():
         return HttpResponseForbidden("Forbidden")
@@ -817,18 +790,36 @@ def search(request, format=""):
                     title = "Query Results. %s event" % objects.count()
                 else:
                     title = "Query Results. %s events" % objects.count()
-                #context = {
-                #    'title': title,
-                #    'form': form,
-                #    'formAction': reverse(search),
-                #    'maxCount': limit,
-                #    'rawquery' : rawquery,
-                #}
-                #return object_list(request, objects, extra_context=context)
-                return EventListView.as_view(queryset=objects, 
-                        template_name="gracedb/event_list.html",
-                        title=title, form=form, formAction=reverse(search), 
-                        maxCount=limit, rawquery=rawquery).as_view()
+                # XXX This seems like a hacky misuse of generic views.
+                # In Django 1.3 and earlier, things were simpler:
+                #
+                # return object_list(request, objects, extra_context=context)
+                # 
+                # But with for compatibility, with Django 1.6, this becomes:
+                class EventListView(ListView):
+                    queryset = objects
+                    template_name = "gracedb/event_list.html"
+
+                    def dispatch(self, request, *args, **kwargs):
+                        # NOTE: We have to hack around the handler selector, because
+                        # the actual request might have been a POST.
+                        handler = getattr(self, 'get', self.http_method_not_allowed)
+                        return handler(request, *args, **kwargs)
+
+                    # This is how to get the extra context in, according to the django docs.
+                    def get_context_data(self, **kwargs):
+                        context = super(EventListView, self).get_context_data(**kwargs)
+                        # Insert the extra context.
+                        context.update({
+                            'title'      : title,
+                            'form'       : form,
+                            'formAction' : reverse(search),
+                            'maxCount'   : limit,
+                            'rawquery'   : rawquery,
+                        })
+                        return context
+
+                return EventListView.as_view()(request)
 
     return render_to_response('gracedb/query.html',
             { 'form' : form,
@@ -930,16 +921,35 @@ def oldsearch(request):
             textQuery = " ".join(textQuery)
             simple_form = SimpleSearchForm({'query': textQuery})
 
-            #extra_context = {'title': title }
-            #extra_context['form'] = simple_form
-            #extra_context['maxCount'] = MAX_QUERY_RESULTS
-            #extra_context['rawquery' ] = textQuery
- 
-            #return object_list(request, objects, extra_context=extra_context)
-            return EventListView.as_view(queryset=objects, 
-                    template_name="gracedb/event_list.html",
-                    title=title, form=simple_form, formAction=None, 
-                    maxCount=MAX_QUERY_RESULTS, rawquery=textQuery).as_view()
+            # XXX This seems like a hacky misuse of generic views.
+            # In Django 1.3 and earlier, things were simpler:
+            #
+            # return object_list(request, objects, extra_context=context)
+            # 
+            # But with for compatibility, with Django 1.6, this becomes:
+            class EventListView(ListView):
+                queryset = objects
+                template_name = "gracedb/event_list.html"
+
+                def dispatch(self, request, *args, **kwargs):
+                    # NOTE: We have to hack around the handler selector, because
+                    # the actual request might have been a POST.
+                    handler = getattr(self, 'get', self.http_method_not_allowed)
+                    return handler(request, *args, **kwargs)
+
+                # This is how to get the extra context in, according to the django docs.
+                def get_context_data(self, **kwargs):
+                    context = super(EventListView, self).get_context_data(**kwargs)
+                    # Insert the extra context.
+                    context.update({
+                        'title'      : title,
+                        'form'       : simple_form,
+                        'maxCount'   : MAX_QUERY_RESULTS,
+                        'rawquery'   : textQuery,
+                    })
+                    return context
+
+            return EventListView.as_view()(request)
 
 
     return render_to_response('gracedb/query.html',
