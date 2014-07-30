@@ -29,9 +29,6 @@ configs = {
     '/home/branson/gracedbdev': 'branson',
     '/home/branson/gracedbdev/gracedb': 'branson',
 
-    '/home/branson/djangoupdate': 'update',
-    '/home/branson/djangoupdate/gracedb': 'update',
-
     "/home/gracedb/gracestage" : "stage",
 
 }
