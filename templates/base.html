@@ -30,13 +30,13 @@ function changeTime(obj, label) {
 
 {% block nav %}
 <ul id="nav">
-    <li id="nav-home"><a href="{% url home %}">Home</a></li>
-    <li id="nav-search"><a href="{% url search %}">Search</a></li>
-    <li id="nav-create"><a href="{% url create %}">Create</a></li>
-    <li id="nav-reports"><a href="{% url reports %}">Reports</a></li>
-    <li id="nav-feeds"><a href="{% url feeds %}">RSS</a></li>
-    <li id="nav-latest"><a href="{% url latest %}">Latest</a></li>
-    <li id="nav-userprofile"><a href="{% url userprofile-home %}">Options</a></li>
+    <li id="nav-home"><a href="{% url "home" %}">Home</a></li>
+    <li id="nav-search"><a href="{% url "search" %}">Search</a></li>
+    <li id="nav-create"><a href="{% url "create" %}">Create</a></li>
+    <li id="nav-reports"><a href="{% url "reports" %}">Reports</a></li>
+    <li id="nav-feeds"><a href="{% url "feeds" %}">RSS</a></li>
+    <li id="nav-latest"><a href="{% url "latest" %}">Latest</a></li>
+    <li id="nav-userprofile"><a href="{% url "userprofile-home" %}">Options</a></li>
     {% if user %}<li id="nav-user">Authenticated as: {{ user.first_name }} {{user.last_name }}</li>{% endif %}
 </ul>
 <center>

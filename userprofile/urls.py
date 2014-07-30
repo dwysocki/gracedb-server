@@ -1,5 +1,7 @@
 
-from django.conf.urls.defaults import *
+# Changed for Django 1.6
+#from django.conf.urls.defaults import *
+from django.conf.urls import patterns, url, include
 
 
 urlpatterns = patterns('userprofile.views',
