@@ -1,5 +1,6 @@
 
 # Suitable for production
+ALLOWED_HOSTS = ['*']
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG

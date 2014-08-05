@@ -53,13 +53,13 @@
                     dc += '         <td> \n';
                     dc += '             <table class="figures"> \n';
                     dc += '                 <tr class="figrow"> \n';
-                    dc += '                     <td>  <a href="{{ log.fileurl|urlencode }}" dojoType="dojox.image.LightboxNano"><img height="180" src="{{ log.fileurl|urlencode }}"></a> \n';
+                    dc += '                     <td>  <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="180" src="{{ log.fileurl }}"></a> \n';
                     dc += '                     </td> \n';
                     dc += '                 </tr> \n';
                     dc += '                 <tr> \n';
                     dc += '                     <td> {{log.comment|sanitize|escapejs}} \n';
                     {% if log.fileurl %} 
-                    dc += '                         <a href="{{log.fileurl|urlencode}}">{{log.filename}}.</a> \n';
+                    dc += '                         <a href="{{log.fileurl}}">{{log.filename}}.</a> \n';
                     {% endif %} 
                     dc += '                         Submitted by {{log.issuer}} on {{log.created}} \n';
                     dc += '                     </td> \n';
@@ -92,7 +92,7 @@
                     dc += '         <td>{{log.issuer.first_name}} {{log.issuer.last_name}}</td> \n';
                     dc += '         <td>{{log.comment|sanitize|escapejs}} \n';
                                {% if log.fileurl %}
-                    dc += '             <a href="{{log.fileurl|urlencode}}">{{log.filename}}</a> \n';
+                    dc += '             <a href="{{log.fileurl}}">{{log.filename}}</a> \n';
                                {% endif %}
                     dc += '         </td> \n';
                     dc += '    </tr> \n';
@@ -156,12 +156,12 @@
 
             ret += '        {{log.comment|sanitize|escapejs}} \n';
     {% if log.fileurl %}
-            ret += '            <a href="{{log.fileurl|urlencode}}">{{log.filename}}</a> \n';
+            ret += '            <a href="{{log.fileurl}}">{{log.filename}}</a> \n';
     {% endif %}
             ret += '        </td> \n';
             ret += '        <td> \n';
     {% if log.hasImage %}
-            ret += '            <a href="{{ log.fileurl|urlencode }}" dojoType="dojox.image.LightboxNano"><img height="60" src="{{ log.fileurl|urlencode }}"></a> \n';
+            ret += '            <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="60" src="{{ log.fileurl }}"></a> \n';
     {% endif %}
             ret += '        </td> \n';
             ret += '    </tr> \n';
