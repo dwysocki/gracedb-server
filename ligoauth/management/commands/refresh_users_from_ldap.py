@@ -38,8 +38,21 @@ class Command(NoArgsCommand):
                                     in ldap_result.get('isMemberOf',[])
                         principal = ldap_result['krbPrincipalName'][0]
 
+                        print "Got ldap entry for %s %s" % (first_name.encode('utf-8'), last_name.encode('utf-8'))
+
+			if not principal:
+			   continue
+
                         # Update/Create LigoLdapUser entry
-                        user, created = LigoLdapUser.objects.get_or_create(ldap_dn=ldap_dn)
+                        # This is breaking. XXX Do we need to pass in default values for the underlying User object?
+                        defaults = {
+                            'first_name' : first_name,
+                            'last_name'  : last_name,
+                            'email'      : email,
+                            'username'   : principal,
+                            'is_active'  : is_active
+                        }
+                        user, created = LigoLdapUser.objects.get_or_create(ldap_dn=ldap_dn, defaults=defaults)
 
                         changed = created \
                                 or (user.first_name != first_name) \
@@ -49,6 +62,8 @@ class Command(NoArgsCommand):
                                 or (user.is_active != is_active)
 
                         if changed:
+                            print "old values: %s %s %s %s %s" % (user.first_name, user.last_name, user.email, user.username, user.is_active)
+                            print "new values: %s %s %s %s %s" % (first_name, last_name, email, principal, is_active)
                             user.first_name = first_name
                             user.last_name = last_name
                             user.email = email
@@ -61,6 +76,7 @@ class Command(NoArgsCommand):
                                 user.save()
                             except Exception, e:
                                 print "Failed to save user '%s'.  (%s)" % (ldap_dn, first_name+" "+last_name)
+				print "Reason: %s" % str(e)
 
                         # update X509 certs for user
                         current_dns = set([ cert.subject for cert in user.x509cert_set.all() ])
