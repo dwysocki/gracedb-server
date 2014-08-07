@@ -132,8 +132,7 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
     null = open('/dev/null','w')
     p = Popen(
         ["lvalert_send",
-         "--username=gracedb.dev",
-         "--server=jabber.phys.uwm.edu",
+         "--username=gracedb",
          "--password=w4k3upal1ve",
          "--file=-",
          "--node=%s" % nodename,
