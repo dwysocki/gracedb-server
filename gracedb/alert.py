@@ -148,7 +148,7 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
     lva_data = {
         'file': location,
         'uid': event.graceid(),
-        'temp_data_loc': temp_data_loc,
+        'data_loc': temp_data_loc,
         'alert_type': alert_type,
         # The following string cast is necessary because sometimes 
         # description is a label object!
