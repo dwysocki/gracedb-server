@@ -14,6 +14,8 @@ from userprofile.models import Trigger, AnalysisType
 import glue.ligolw.utils
 import ligo.lvalert.utils
 
+import json
+
 import logging
 
 log = logging.getLogger('gracedb.alert')
@@ -133,7 +135,8 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
     null = open('/dev/null','w')
     p = Popen(
         ["lvalert_send",
-         "--username=gracedb",
+         "--username=gracedb.dev",
+         "--server=jabber.phys.uwm.edu",
          "--password=w4k3upal1ve",
          "--file=-",
          "--node=%s" % nodename,
@@ -144,16 +147,27 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
         stderr=STDOUT,
         env=env)
 
-    xmldoc = ligo.lvalert.utils.make_LVAlertTable(
-                    location,
-                    event.graceid(),
-                    temp_data_loc,
-                    alert_type,
-                    description)
-    buf = StringIO.StringIO()
-    glue.ligolw.utils.write_fileobj(xmldoc, buf)
-    msg = buf.getvalue()
+#    xmldoc = ligo.lvalert.utils.make_LVAlertTable(
+#                    location,
+#                    event.graceid(),
+#                    temp_data_loc,
+#                    alert_type,
+#                    description)
+#    buf = StringIO.StringIO()
+#    glue.ligolw.utils.write_fileobj(xmldoc, buf)
+#    msg = buf.getvalue()
 
+    # XXX Instead let's experiment with json:
+    lva_data = {
+        'file': location,
+        'uid': event.graceid(),
+        'temp_data_loc': temp_data_loc,
+        'alert_type': alert_type,
+        # The following string cast is necessary because sometimes 
+        # description is a label object!
+        'description': str(description),
+    }
+    msg = json.dumps(lva_data)
     log.debug("issueXMPPAlert: writing message %s" % msg)
 
     p.stdin.write(msg)
