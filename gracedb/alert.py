@@ -11,9 +11,6 @@ from django.core.urlresolvers import reverse, get_script_prefix
 
 from userprofile.models import Trigger, AnalysisType
 
-import glue.ligolw.utils
-import ligo.lvalert.utils
-
 import json
 
 import logging
@@ -147,17 +144,7 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
         stderr=STDOUT,
         env=env)
 
-#    xmldoc = ligo.lvalert.utils.make_LVAlertTable(
-#                    location,
-#                    event.graceid(),
-#                    temp_data_loc,
-#                    alert_type,
-#                    description)
-#    buf = StringIO.StringIO()
-#    glue.ligolw.utils.write_fileobj(xmldoc, buf)
-#    msg = buf.getvalue()
-
-    # XXX Instead let's experiment with json:
+    # Create the output dictionary and serialize as JSON.
     lva_data = {
         'file': location,
         'uid': event.graceid(),
