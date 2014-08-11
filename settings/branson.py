@@ -5,7 +5,7 @@ TEMPLATE_DEBUG = DEBUG
 
 DATABASES = {
     'default' : {
-        'NAME'     : 'gracedb',
+        'NAME'     : 'guardian',
         'ENGINE'   : 'django.db.backends.mysql',
         'USER'     : 'branson',
         'PASSWORD' : 'thinglet',
