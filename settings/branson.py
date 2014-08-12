@@ -66,20 +66,20 @@ MIDDLEWARE_CLASSES = [
 #    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
-INSTALLED_APPS = (
-    'django.contrib.auth',
-    'django.contrib.admin',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.sites',
-    'django.contrib.staticfiles',
-    'gracedb',
-    'userprofile',
-    'ligoauth',
-    'rest_framework',
-    'south',
-#    'debug_toolbar',
-)
+#INSTALLED_APPS = (
+#    'django.contrib.auth',
+#    'django.contrib.admin',
+#    'django.contrib.contenttypes',
+#    'django.contrib.sessions',
+#    'django.contrib.sites',
+#    'django.contrib.staticfiles',
+#    'gracedb',
+#    'userprofile',
+#    'ligoauth',
+#    'rest_framework',
+#    'south',
+##    'debug_toolbar',
+#)
 
 #INTERNAL_IPS = (
 #    '129.89.61.55',

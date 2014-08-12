@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}403 &ndash; Forbidden{% endblock %}
+{% block heading %}Forbidden {{ object.graceid }}{% endblock %}
+
+{% block content %}
+    <p>You do not have the required permissions for the requested action.</p>
+    {{ message|safe }}
+{% endblock %}

@@ -183,7 +183,11 @@ AUTHENTICATION_BACKENDS = (
 #   'ligoauth.middleware.auth.RemoteUserBackend',
 #   'ligodjangoauth.LigoShibbolethAuthBackend',
 #   'django.contrib.auth.backends.ModelBackend',
+    'guardian.backends.ObjectPermissionBackend',
 )
+
+ANONYMOUS_USER_ID = -1
+GUARDIAN_RENDER_403 = True
 
 SHIB_AUTHENTICATION_SESSION_INITIATOR = 'https://moe.phys.uwm.edu/Shibboleth.sso/Login'
 
@@ -227,6 +231,7 @@ INSTALLED_APPS = (
     'ligoauth',
     'rest_framework',
     'south',
+    'guardian',
 )
 
 REST_FRAMEWORK = {
@@ -243,6 +248,11 @@ STATICFILES_FINDERS = (
 )
 
 STATICFILES_DIRS = ()
+
+# Added in order to perform data migrations on the auth app
+SOUTH_MIGRATION_MODULES = {
+    'auth' : 'migrations.auth',
+}
 
 # XXX The following Log settings are for a performance metric.
 import logging
