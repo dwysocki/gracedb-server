@@ -58,6 +58,17 @@ class LigoAuthMiddleware:
             if not (user and user.is_authenticated()):
                 # XXX THIS SHOULD NEVER HAPPEN
                 pass
+#            # XXX If we were using group info from Shib, this is where
+#            # we would consume it.
+#            isMemberOf = request.META.get('isMemberOf',None)
+#            if isMemberOf:
+#                group_names = isMemberOf.split()
+#                for group_name in group_names:
+#                    try:
+#                        g = Group.objects.get(name=group_name)
+#                        g.user_set.add(user)
+#                    except:
+#                        pass
 
         if not user and dn:
             user = authenticate(dn=dn)

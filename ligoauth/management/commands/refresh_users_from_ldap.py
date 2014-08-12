@@ -3,6 +3,8 @@ from django.core.management.base import NoArgsCommand
 
 from ligoauth.models import LigoLdapUser, X509Cert
 
+from django.contrib.auth.models import User, Group
+
 import ldap
 
 baseDN = "ou=people,dc=ligo,dc=org"
@@ -34,8 +36,8 @@ class Command(NoArgsCommand):
                         last_name = unicode(ldap_result['sn'][0], 'utf-8')
                         email = ldap_result['mail'][0]
                         new_dns = set(ldap_result.get('gridX509subject',[]))
-                        is_active = "Communities:LSCVirgoLIGOGroupMembers" \
-                                    in ldap_result.get('isMemberOf',[])
+                        memberships = ldap_result.get('isMemberOf',[])
+                        is_active = "Communities:LSCVirgoLIGOGroupMembers" in memberships
                         principal = ldap_result['krbPrincipalName'][0]
 
                         # Update/Create LigoLdapUser entry
@@ -69,7 +71,7 @@ class Command(NoArgsCommand):
                                 user.save()
                             except Exception, e:
                                 print "Failed to save user '%s'.  (%s)" % (ldap_dn, first_name+" "+last_name)
-				print "Reason: %s" % str(e)
+                                print "Reason: %s" % str(e)
 
                         # update X509 certs for user
                         current_dns = set([ cert.subject for cert in user.x509cert_set.all() ])
@@ -82,3 +84,12 @@ class Command(NoArgsCommand):
                                 if created:
                                     cert.save()
                                 cert.users.add(user)
+
+                        # update group information
+                        # We do this only for groups that already exist in the GraceDB database
+                        for g in Group.objects.all():
+                            if g.name in memberships:
+                                # Add the user to the group. First get the User object.
+                                u = User.objects.get(username = user.username)
+                                print "Adding %s to %s" % (user.username,g.name)
+                                g.user_set.add(u)
