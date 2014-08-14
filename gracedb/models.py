@@ -101,6 +101,9 @@ class Event(models.Model):
 
     class Meta:
         ordering = ["-id"]
+        permissions = (
+            ('view_event', 'Can view event'),
+        )
 
     def graceid(self):
         if self.group.name == "Test":

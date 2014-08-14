@@ -252,6 +252,7 @@ STATICFILES_DIRS = ()
 # Added in order to perform data migrations on the auth app
 SOUTH_MIGRATION_MODULES = {
     'auth' : 'migrations.auth',
+    'guardian' : 'migrations.guardian',
 }
 
 # XXX The following Log settings are for a performance metric.

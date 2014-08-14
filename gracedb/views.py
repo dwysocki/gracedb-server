@@ -25,7 +25,8 @@ from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
 from query import parseQuery
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+from guardian.shortcuts import assign_perm
 
 import urllib
 
@@ -214,6 +215,15 @@ def _create(request):
                     rv['error'] += "%s: %s\n" % (key, form.errors[key].as_text())
     return rv
 
+def assign_default_event_perms(event):
+    # Retrieve the group objects
+    executives = Group.objects.get(name='executives')
+    internal   = Group.objects.get(name='Communities:LSCVirgoLIGOGroupMembers')
+    # Assign perms
+    for g in [executives, internal]:
+        assign_perm('view_event', g, event)
+        assign_perm('change_event', g, event)
+
 def _createEventFromForm(request, form):
     saved = False
     warnings = []
@@ -238,6 +248,10 @@ def _createEventFromForm(request, form):
         #  What to do?!
         event.save()
         saved = True  # in case we have to undo this.
+
+        # Create permissions on new event
+        assign_default_event_perms(event)
+
         # Create data directory/directories
         #    Save uploaded file.
         dirPrefix = GRACEDB_DATA_DIR
