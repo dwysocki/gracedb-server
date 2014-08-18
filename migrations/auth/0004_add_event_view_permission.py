@@ -7,13 +7,20 @@ from django.db import models
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        """Create a custom view permission for the Event model."""
+        """Create a custom view permission for the Event model and subclasses."""
         content_type = orm['contenttypes.contenttype'].objects.get(app_label='gracedb', model='Event')
         orm.Permission.objects.create(codename='view_event', name='Can view event', content_type=content_type)
+        content_type = orm['contenttypes.contenttype'].objects.get(app_label='gracedb', model='GrbEvent')
+        orm.Permission.objects.create(codename='view_grbevent', name='Can view grbevent', content_type=content_type)
+        content_type = orm['contenttypes.contenttype'].objects.get(app_label='gracedb', model='CoincInspiralEvent')
+        orm.Permission.objects.create(codename='view_coincinspiralevent', name='Can view coincinspiralevent', content_type=content_type)
+        content_type = orm['contenttypes.contenttype'].objects.get(app_label='gracedb', model='MultiBurstEvent')
+        orm.Permission.objects.create(codename='view_multiburstevent', name='Can view multiburstevent', content_type=content_type)
 
     def backwards(self, orm):
-        """Delete the custom view permission for Events."""
-        orm.Permission.objects.get(codename='view_event').delete()
+        """Delete the custom view permission for the event model and subclasses."""
+        for perm in list(orm.Permission.objects.filter(codename__startswith='view')):
+            perm.delete()
 
     models = {
         u'auth.group': {
