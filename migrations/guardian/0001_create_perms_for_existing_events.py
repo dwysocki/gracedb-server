@@ -9,38 +9,43 @@ class Migration(DataMigration):
     def forwards(self, orm):
         """ Apply default group permissions to existing events. """
 
-        # Get all the things
-        content_type = orm['contenttypes.contenttype'].objects.get(app_label='gracedb', model='Event')
+        # Get all the groups
         executives   = orm['auth.group'].objects.get(name='executives')
         internal     = orm['auth.group'].objects.get(name='Communities:LSCVirgoLIGOGroupMembers')
-        view         = orm['auth.permission'].objects.get(codename='view_event')
-        change       = orm['auth.permission'].objects.get(codename='change_event')
 
-        for e in orm['gracedb.event'].objects.all():
-            for g in [executives, internal]:
-                # Instead, I think you have to give it the content type and the object id.
-                orm.GroupObjectPermission.objects.create(permission=view, group=g, 
-                    object_pk=e.id, content_type=content_type)
-                orm.GroupObjectPermission.objects.create(permission=change, group=g, 
-                    object_pk=e.id, content_type=content_type)
+        # Loop through all events
+        event_models = [
+            'event',
+            'grbevent',
+            'coincinspiralevent',
+            'multiburstevent',
+        ]
+    
+        for model_name in event_models:
+
+            content_type = orm['contenttypes.contenttype'].objects.get(app_label='gracedb', 
+                model=model_name)
+
+            # Retrieve the relevant permissions 
+            view   = orm['auth.permission'].objects.get(codename='view_' + model_name)
+            change = orm['auth.permission'].objects.get(codename='change_' + model_name)
+
+            for e in orm['gracedb.' + model_name].objects.all():
+                # Apply the view and change permissions for the appropriate groups
+                for g in [executives, internal]:
+                    orm.GroupObjectPermission.objects.create(permission=view, group=g, 
+                        object_pk=e.id, content_type=content_type)
+                    orm.GroupObjectPermission.objects.create(permission=change, group=g, 
+                        object_pk=e.id, content_type=content_type)
+
 
     def backwards(self, orm):
         """Remove default group permissions from existing events."""
+        # XXX The problem is, you had to get rid of the rest of the guardian 
+        # migration history. So you can't reverse this one. Have to delete the
+        # records from the database by hand.
+        pass
 
-        content_type = orm['contenttypes.contenttype'].objects.get(app_label='gracedb', model='Event')
-        executives   = orm['auth.group'].objects.get(name='executives')
-        internal     = orm['auth.group'].objects.get(name='Communities:LSCVirgoLIGOGroupMembers')
-        view         = orm['auth.permission'].objects.get(codename='view')
-        change       = orm['auth.permission'].objects.get(codename='change_event')
-
-        for e in orm['gracedb.event'].objects.all():
-            for g in [executives, internal]:
-                p = orm.GroupObjectPermission.objects.get(permission=view, group=g, 
-                        object_pk=e.id, content_type=content_type)
-                p.delete()
-                p = orm.GroupObjectPermission.objects.get(permission=change, group=g, 
-                        object_pk=e.id, content_type=content_type)
-                p.delete()
 
     models = {
         u'auth.group': {
