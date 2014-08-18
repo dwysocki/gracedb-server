@@ -9,6 +9,9 @@ DATABASES = {
         'ENGINE'   : 'django.db.backends.mysql',
         'USER'     : 'branson',
         'PASSWORD' : 'thinglet',
+        'OPTIONS'  : {
+            'init_command' : 'SET storage_engine=MYISAM',
+        },
     }
 }
 
