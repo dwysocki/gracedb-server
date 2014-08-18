@@ -25,8 +25,9 @@ from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
 from query import parseQuery
 
-from django.contrib.auth.models import User, Group
-from guardian.shortcuts import assign_perm
+from django.contrib.auth.models import User
+from django.contrib.auth.models import Group as AuthGroup
+from guardian.shortcuts import assign_perm, get_objects_for_user
 
 import urllib
 
@@ -217,12 +218,19 @@ def _create(request):
 
 def assign_default_event_perms(event):
     # Retrieve the group objects
-    executives = Group.objects.get(name='executives')
-    internal   = Group.objects.get(name='Communities:LSCVirgoLIGOGroupMembers')
-    # Assign perms
+    executives = AuthGroup.objects.get(name='executives')
+    internal   = AuthGroup.objects.get(name='Communities:LSCVirgoLIGOGroupMembers')
+
+    # Need to find the *type* of event. Could be a subclass.
+    model = event.__class__
+    model_name = model.__name__.lower()
+    view_codename = 'view_%s' % model_name
+    change_codename = 'change_%s' % model_name
+
+    # Assign the permissions
     for g in [executives, internal]:
-        assign_perm('view_event', g, event)
-        assign_perm('change_event', g, event)
+        assign_perm(view_codename, g, event)
+        assign_perm(change_codename, g, event)
 
 def _createEventFromForm(request, form):
     saved = False
@@ -251,6 +259,11 @@ def _createEventFromForm(request, form):
 
         # Create permissions on new event
         assign_default_event_perms(event)
+
+        # XXX In case this is a subclass, let's check and assign default
+        # perms on the underlying Event as well.
+        if not type(event) is Event:
+            assign_default_event_perms(Event.objects.get(id=event.id))
 
         # Create data directory/directories
         #    Save uploaded file.
@@ -632,12 +645,21 @@ def neighbors(request, graceid, delta1, delta2=None):
         context,
         context_instance=RequestContext(request))
 
+def user_has_perm(user, shortname, obj):
+    codename = shortname + '_%s' % obj.__class__.__name__.lower()
+    return user.has_perm(codename, obj)
+
 def view(request, graceid):
+
     context = {}
     try:
         a = Event.getByGraceid(graceid)
     except Event.DoesNotExist:
         raise Http404
+
+    if not user_has_perm(request.user, 'view', a):
+        return HttpResponseForbidden("Forbidden")
+
     context['object'] = a
     context['eventdesc'] = get_file(graceid, "event.log")
     context['userdesc'] = get_file(graceid, "user.log")
@@ -773,6 +795,11 @@ def search(request, format=""):
             rawquery = request.POST['query']
         if form.is_valid():
             objects = form.cleaned_data['query']
+
+            # Filter objects according to user permissions.
+            # NOTE: This is bad. Creates a complete list of pks to which the user has 
+            # access for a given content type.  Then filters according to this list.
+            objects = get_objects_for_user(request.user, 'gracedb.view_event', objects)
 
             if format == "json":
                 return HttpResponse("Not Implemented")
