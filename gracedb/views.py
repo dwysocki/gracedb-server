@@ -20,7 +20,6 @@ from models import MultiBurstEvent
 from models import GrbEvent
 from models import SingleInspiral
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
-from forms import SimpleSearchFormWithSubclasses
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
 from query import parseQuery
