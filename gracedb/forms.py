@@ -22,11 +22,7 @@ class GraceQueryField(forms.CharField):
         from django.db.models import Q
         queryString = forms.CharField.clean(self, queryString)
         try:
-            if self.select_subclasses:
-                return Event.objects.filter(parseQuery(queryString)).select_subclasses()
-            else:
-                return Event.objects.filter(parseQuery(queryString)).distinct()
-
+            return Event.objects.filter(parseQuery(queryString)).distinct()
         except ParseException, e:
             err = "Error: " + escape(e.pstr[:e.loc]) + errorMarker + escape(e.pstr[e.loc:])
             raise forms.ValidationError(mark_safe(err))
@@ -38,19 +34,8 @@ class GraceQueryField(forms.CharField):
             # What could this be and how can we handle it better? XXX
             raise forms.ValidationError(str(e)+str(type(e)))
 
-    def __init__(self, *args, **kwargs):
-        self.select_subclasses = False
-        if 'select_subclasses' in kwargs.keys():
-            self.select_subclasses = kwargs.pop('select_subclasses')
-        super(GraceQueryField, self).__init__(*args, **kwargs)
-
 class SimpleSearchForm(forms.Form):
     query = GraceQueryField(required=False, widget=forms.TextInput(attrs={'size':60})) 
-
-# XXX There must be a better way of doing this.
-class SimpleSearchFormWithSubclasses(forms.Form):
-    query = GraceQueryField(required=False, widget=forms.TextInput(attrs={'size':60}),
-            select_subclasses=True) 
 
 class CreateEventForm(forms.Form):
     groupChoices = [("","")]+[(g.name, g.name) for g in Group.objects.all()]
