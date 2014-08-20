@@ -48,6 +48,16 @@ GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 
 import json
 import datetime
+from django.db.models import Q
+
+# This auth filter relies on the storage of perm info on the event itself.
+def filter_events_for_user(events, user, shortname):
+    auth_filter = Q()
+    for group in user.groups.all():
+        perm_string = '%s_can_%s' % (group.name, shortname)
+        auth_filter = auth_filter | Q(perms__contains=perm_string)
+    return events.filter(auth_filter)
+
 
 def index(request):
 #   assert request.user
@@ -256,13 +266,17 @@ def _createEventFromForm(request, form):
         event.save()
         saved = True  # in case we have to undo this.
 
-        # Create permissions on new event
+        # Create permissions objects for the new event
         assign_default_event_perms(event)
 
         # XXX In case this is a subclass, let's check and assign default
         # perms on the underlying Event as well.
         if not type(event) is Event:
-            assign_default_event_perms(Event.objects.get(id=event.id))
+            underlying_event = Event.objects.get(id=event.id)
+            assign_default_event_perms(underlying_event)
+            underlying_event.refresh_perms()
+        else:
+            event.refresh_perms()
 
         # Create data directory/directories
         #    Save uploaded file.
@@ -679,6 +693,7 @@ def cli_search(request):
     form = SimpleSearchForm(request.POST)
     if form.is_valid():
         objects = form.cleaned_data['query']
+        objects = filter_events_for_user(objects, request.user, 'view')
 
         if 'ligolw' in request.POST or 'ligolw' in request.GET:
             from glue.ligolw import utils
@@ -723,7 +738,6 @@ def cli_search(request):
     response['Content-length'] = len(msg)
     response.write(msg)
     return response
-
 
 def assembleLigoLw(objects):
     from glue.ligolw import ligolw
@@ -798,7 +812,10 @@ def search(request, format=""):
             # Filter objects according to user permissions.
             # NOTE: This is bad. Creates a complete list of pks to which the user has 
             # access for a given content type.  Then filters according to this list.
-            objects = get_objects_for_user(request.user, 'gracedb.view_event', objects)
+            #objects = get_objects_for_user(request.user, 'gracedb.view_event', objects)
+
+            # Instead, use the alternative that uses perm info residing on the event itself.
+            objects = filter_events_for_user(objects, request.user, 'view')
 
             if format == "json":
                 return HttpResponse("Not Implemented")
@@ -952,6 +969,9 @@ def oldsearch(request):
 
             # Need this because events with multiple labels can appear multiple times!
             objects = objects.distinct()
+
+            # Filter for user.
+            objects = filter_events_for_user(objects, request.user, 'view')
 
             if objects.count() == 1:
                 title = "Query Results. %s event" % objects.count()
@@ -1160,7 +1180,8 @@ def latest(request):
     context['rawquery'] = request.GET.get('query') or request.POST.get('query') or ""
 
     if form.is_valid():
-        objects = form.cleaned_data['query'][0:50]
+        objects = form.cleaned_data['query']
+        objects = filter_events_for_user(objects, request.user, 'view')[0:50]
         context['objects'] = map(limit, objects)
         context['error'] = False
     else:

@@ -4,6 +4,9 @@ from django.core.urlresolvers import reverse
 from model_utils.managers import InheritanceManager
 
 from django.contrib.auth.models import User as DjangoUser
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
+from guardian.models import GroupObjectPermission
 
 
 import datetime
@@ -18,6 +21,8 @@ import glue.ligolw.utils
 import glue.ligolw.table
 import glue.ligolw.lsctables
 from glue.lal import LIGOTimeGPS
+
+import json
 
 log = logging.getLogger('gracedb.models')
 
@@ -98,6 +103,15 @@ class Event(models.Model):
     gpstime = models.PositiveIntegerField(null=True)
 
     labels = models.ManyToManyField(Label, through="Labelling")
+
+    # This field will store a JSON-serialized list of permissions, of the
+    # form <group name>_can_<permission codename>
+    # This obviously duplicates information that is already in the database
+    # in the form of GroupObjectPermission objects. Such duplication is 
+    # normally a bad thing, as it can lead to divergence. But we're going
+    # to try really hard to avoid that. And it may help speed up the 
+    # searches quite considerably.
+    perms = models.TextField(null=True)
 
     class Meta:
         ordering = ["-id"]
@@ -220,6 +234,24 @@ class Event(models.Model):
                 if tag.name==tagname:
                     loglist.append(log)
         return loglist
+
+    # A method to update the permissions according to the permission objects in 
+    # the database. 
+    def refresh_perms(self):
+        # Content type is 'Event', obvs.
+        content_type = ContentType.objects.get(app_label='gracedb', model='event')
+        # Get all of the GroupObjectPermissions for this object id and content type 
+        group_object_perms = GroupObjectPermission.objects.filter(object_pk=self.id,
+            content_type=content_type)
+        perm_strings = []
+        # Make a list of permission strings
+        for obj in group_object_perms:
+            perm_strings.append('%s_can_%s' % (obj.group.name, obj.permission.codename.split('_')[0]))
+        # Serialize as json.
+        self.perms = json.dumps(perm_strings)
+        # Fool! Save yourself!
+        self.save()
+
 
 class EventLog(models.Model):
     class Meta:

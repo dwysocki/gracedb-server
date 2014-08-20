@@ -6,6 +6,7 @@ from django.shortcuts import render_to_response
 from django.conf import settings
 
 from gracedb.models import Event
+from gracedb.views import filter_events_for_user
 from django.db.models import Q
 
 import os, json
@@ -152,6 +153,8 @@ def gstlalcbc_report(request, format=""):
         rawquery = request.POST['query']
     if form.is_valid():
         objects = form.cleaned_data['query']
+        objects = filter_events_for_user(objects, request.user, 'view')
+
         object_list = list(objects)
 
         # Try upcasting to CoincInspiralEvents
