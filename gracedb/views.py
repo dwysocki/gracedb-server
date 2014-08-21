@@ -25,8 +25,8 @@ from translator import handle_uploaded_data
 from query import parseQuery
 
 from django.contrib.auth.models import User
-from django.contrib.auth.models import Group as AuthGroup
-from guardian.shortcuts import assign_perm, get_objects_for_user
+from permission_utils import filter_events_for_user, user_has_perm
+from permission_utils import assign_default_event_perms
 
 import urllib
 
@@ -48,16 +48,6 @@ GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 
 import json
 import datetime
-from django.db.models import Q
-
-# This auth filter relies on the storage of perm info on the event itself.
-def filter_events_for_user(events, user, shortname):
-    auth_filter = Q()
-    for group in user.groups.all():
-        perm_string = '%s_can_%s' % (group.name, shortname)
-        auth_filter = auth_filter | Q(perms__contains=perm_string)
-    return events.filter(auth_filter)
-
 
 def index(request):
 #   assert request.user
@@ -224,22 +214,6 @@ def _create(request):
                     # as_text() not str() otherwise we get HTML.
                     rv['error'] += "%s: %s\n" % (key, form.errors[key].as_text())
     return rv
-
-def assign_default_event_perms(event):
-    # Retrieve the group objects
-    executives = AuthGroup.objects.get(name='executives')
-    internal   = AuthGroup.objects.get(name='Communities:LSCVirgoLIGOGroupMembers')
-
-    # Need to find the *type* of event. Could be a subclass.
-    model = event.__class__
-    model_name = model.__name__.lower()
-    view_codename = 'view_%s' % model_name
-    change_codename = 'change_%s' % model_name
-
-    # Assign the permissions
-    for g in [executives, internal]:
-        assign_perm(view_codename, g, event)
-        assign_perm(change_codename, g, event)
 
 def _createEventFromForm(request, form):
     saved = False
@@ -658,10 +632,6 @@ def neighbors(request, graceid, delta1, delta2=None):
         context,
         context_instance=RequestContext(request))
 
-def user_has_perm(user, shortname, obj):
-    codename = shortname + '_%s' % obj.__class__.__name__.lower()
-    return user.has_perm(codename, obj)
-
 def view(request, graceid):
 
     context = {}
@@ -812,7 +782,7 @@ def search(request, format=""):
             # Filter objects according to user permissions.
             # NOTE: This is bad. Creates a complete list of pks to which the user has 
             # access for a given content type.  Then filters according to this list.
-            #objects = get_objects_for_user(request.user, 'gracedb.view_event', objects)
+            #objects = guardian.shortcuts.get_objects_for_user(request.user, 'gracedb.view_event', objects)
 
             # Instead, use the alternative that uses perm info residing on the event itself.
             objects = filter_events_for_user(objects, request.user, 'view')
