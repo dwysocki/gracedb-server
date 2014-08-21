@@ -12,6 +12,7 @@ import json
 
 from gracedb.models import Event, Group, EventLog, Tag
 from gracedb.views import create_label, get_performance_info
+from permission_utils import user_has_perm, filter_events_for_user
 from translator import handle_uploaded_data
 
 from alert import issueAlertForUpdate
@@ -48,7 +49,7 @@ from views import _createEventFromForm
 from rest_framework import parsers      # YAMLParser, MultiPartParser
 from rest_framework.parsers import DataAndFiles
 
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
 #from rest_framework.permissions import AllowAny
 from rest_framework import authentication
 from rest_framework.views import APIView
@@ -146,15 +147,26 @@ def reverse(name, *args, **kw):
 class LigoAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         user = None
-        try:
+        try: 
             user = request._request.user
         except:
-            pass
+            pass                    
 
         if isinstance(user, DjangoUser):
             return (user, None)
         else:
             raise exceptions.AuthenticationFailed("Bad user")
+
+# A custom permission class for the EventDetail view. 
+class IsAuthorizedForEvent(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            shortname = 'view'
+        elif request.method is 'PUT':
+            shortname = 'change'
+        else:
+            return False
+        return user_has_perm(request.user, shortname, obj)        
 
 #class EventSerializer(serializers.ModelSerializer):
 #    # Overloaded fields.
@@ -480,6 +492,8 @@ class EventList(APIView):
                 d = {'error': 'Invalid query' }
                 return Response(d,status=status.HTTP_400_BAD_REQUEST)
 
+        events = filter_events_for_user(events, request.user, 'view')
+
         events = events.order_by(sort).select_subclasses()
 
         start = int(start)
@@ -613,7 +627,7 @@ class EventDetail(APIView):
     #parser_classes = (LigoLwParser, RawdataParser)
     parser_classes = (parsers.MultiPartParser,)
     #serializer_class = EventSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LigoLwRenderer,)
 
     form = CreateEventForm
@@ -621,6 +635,7 @@ class EventDetail(APIView):
     def get(self, request, graceid):
         try:
             event = Event.getByGraceid(graceid)
+            self.check_object_permissions(self.request, event)
         except Event.DoesNotExist:
             # XXX Real error message.
             return Response("Event Not Found",
