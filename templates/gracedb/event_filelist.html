@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block heading %}{{ title }}{% endblock %}
+{% block pageid %}event files{% endblock %}
+
+{% block content %}
+<p>{{ message }}</p>
+
+<ul>
+{% for filename in file_list %}
+<li><a href="{% url "file" graceid filename %}">{{ filename }}</a></li>
+{% endfor %}
+</ul>
+
+{% endblock %}

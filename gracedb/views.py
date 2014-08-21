@@ -1285,4 +1285,27 @@ def performance(request):
             'gracedb/performance.html',
             context,
             context_instance=RequestContext(request))
- 
+
+# A view for the list of files associated with an event.
+# We're deliberately leaving out the /general directory.
+# The idea is to get rid of that horrible /gracedb-files/ url.
+def file_list(request, graceid):
+    try:
+        event = Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        return HttpResponseNotFound("Event not found")
+
+    f = []
+    for dirname, dirnames, filenames in os.walk(event.datadir()):
+        f.extend(filenames)
+        break
+
+    context = {}
+    context['file_list'] = f
+    context['title'] = 'Files for %s' % graceid 
+    context['graceid'] = graceid 
+        
+    return render_to_response(
+        'gracedb/event_filelist.html',
+        context,
+        context_instance=RequestContext(request)) 

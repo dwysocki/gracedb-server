@@ -113,8 +113,9 @@ class Event(models.Model):
 
     def weburl(self):
         # XXX Not good.  But then, it never was.
-        return "https://gracedb.ligo.org/gracedb-files/%s" % self.graceid()
-        return "https://ldas-jobs.phys.uwm.edu/gracedb/data/%s" % self.graceid()
+        #return "https://ldas-jobs.phys.uwm.edu/gracedb/data/%s" % self.graceid()
+        #return "https://gracedb.ligo.org/gracedb-files/%s" % self.graceid()
+        return reverse('file_list', args=[self.graceid()])
 
     # XXX This should be considered deprecated. (Branson, July 22, 2014.)
     def clusterurl(self):
