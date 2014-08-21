@@ -25,8 +25,6 @@ import shutil
 import exceptions
 import pytz
 
-import logging
-
 from utils.vfile import VersionedFile
 
 ##################################################################
@@ -318,8 +316,6 @@ class TSVRenderer(BaseRenderer):
 #    format = 'xml'
 #
 #    def render(self, data, media_type=None, renderer_context=None):
-#        logger = logging.getLogger(__name__)
-#        logger.debug("inside voevent renderer")
 #        if 'error' in data.keys():
 #            return data['error']
 #
@@ -1419,7 +1415,7 @@ class Files(APIView):
     """Files Resource"""
 
     authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
     #parser_classes = (RawdataParser,)
     parser_classes = (parsers.MultiPartParser,)
 
@@ -1429,6 +1425,8 @@ class Files(APIView):
 
         try:
             event = Event.getByGraceid(graceid)
+            # This will check whether the user has 'view' permission on the event.
+            self.check_object_permissions(self.request, event)
         except Event.DoesNotExist:
             return HttpResponseNotFound("Event not found")
 
@@ -1520,6 +1518,8 @@ class Files(APIView):
 
         try:
             event = Event.getByGraceid(graceid)
+            # This will check whether the user has 'change' permission on the event.
+            self.check_object_permissions(self.request, event)
         except Event.DoesNotExist:
             return HttpResponseNotFound("Event not found")
 
