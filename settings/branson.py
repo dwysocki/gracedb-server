@@ -15,7 +15,8 @@ DATABASES = {
     }
 }
 
-MEDIA_URL = "/branson-static/"
+#MEDIA_URL = "/branson-static/"
+STATIC_URL = "/branson-static/"
 STATIC_ROOT = "/home/branson/gracedbdev/static/"
 
 GRACEDB_DATA_DIR = "/home/branson/fake_data"
