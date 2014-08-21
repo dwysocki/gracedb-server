@@ -235,6 +235,7 @@ REST_FRAMEWORK = {
 
 
 STATIC_URL = "/gracedb-static/"
+STATIC_ROOT = "/home/gracedb/graceproj/static/"
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
