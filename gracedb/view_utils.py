@@ -5,7 +5,6 @@ from django.utils.html import escape, urlize
 from django.utils.safestring import mark_safe
 
 from utils.vfile import VersionedFile
-from views import view
 
 import os
 from django.conf import settings
@@ -108,14 +107,14 @@ def flexigridResponse(request, objects):
         rows.append(
             { 'id' : object.id,
               'cell': [ '<a href="%s">%s</a>' %
-                            (reverse(view, args=[object.graceid()]), object.graceid()),
+                            (reverse("view", args=[object.graceid()]), object.graceid()),
                          #Labels
                         " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();"  style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name)
                                 for label in object.labelling_set.all()]),
                         # Links to neighbors
                         ', '.join([
                             '<a href="%s">%s</a>' %
-                            (reverse(view, args=[n.graceid()]), n.graceid())
+                            (reverse("view", args=[n.graceid()]), n.graceid())
                             for n in object.neighbors()
                         ]),
                         object.group.name,
