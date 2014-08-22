@@ -21,11 +21,9 @@ from view_utils import assembleLigoLw, get_file
 from view_utils import flexigridResponse, jqgridResponse
 
 import os
-import re
-from django.core.mail import mail_admins
 from django.conf import settings
 
-from buildVOEvent import buildVOEvent, submitToSkyalert
+from buildVOEvent import buildVOEvent
 
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
@@ -41,11 +39,6 @@ def index(request):
             {},
             context_instance=RequestContext(request))
 
-def skyalert_authorized(request):
-    try:
-        return u"{0} {1}".format(request.user.first_name, request.user.last_name) in settings.SKYALERT_SUBMITTERS
-    except:
-        return False
 
 def voevent(request, graceid):
     event = Event.getByGraceid(graceid)
@@ -63,69 +56,6 @@ def voevent(request, graceid):
     voevent = buildVOEvent(event, request)
     return HttpResponse(voevent, content_type="application/xml")
 
-
-def skyalert(request, graceid):
-    event = Event.getByGraceid(graceid)
-    createLogEntry = True
-
-    if not event.gpstime:
-        request.session['flash_msg'] = "No GPS time.  Event not suitable for submission to SkyAlert"
-        return HttpResponseRedirect(reverse(view, args=[graceid]))
-
-    if not event.far:
-        request.session['flash_msg'] = "No FAR.  Event not suitable for submission to SkyAlert"
-        return HttpResponseRedirect(reverse(view, args=[graceid]))
-
-    if not skyalert_authorized(request):
-        request.session['flash_msg'] = "You are not authorized for SkyAlert submission"
-        return HttpResponseRedirect(reverse(view, args=[graceid]))
-
-    try:
-        skyalert_response = submitToSkyalert(event)
-    except Exception, e:
-        message = "SkyAlert Submission Error"
-        skyalert_response = ""
-        # XXX umm.  don't we want to know if this email fails silently?
-        mail_admins("SkyAlert Submission Error",
-                    "Event: %s\nException: %s\n" % (graceid, e),
-                    fail_silently=True)
-
-    flashmessage = None
-    if skyalert_response.find("Success") >= 0:
-        urlpat = re.compile('https?://[^ ]*')
-        match = urlpat.search(skyalert_response)
-        if match:
-            message = "Submitted to Skyalert: %s" % match.group()
-            url = match.group()
-            flashmessage = 'Submitted to Skyalert: %s' % url
-            message = 'Submitted to Skyalert: <a href="%s">%s</a>' % (url,url)
-        else:
-            message = "SkyAlert submission problem.  Cannot parse SkyAlert response."
-            # XXX umm.  don't we want to know if this email fails silently?
-            mail_admins("SkyAlert response parsing problem",
-                        "Event: %s\nSkyAlert Response: %s\n" % (graceid, skyalert_response),
-                        fail_silently=True)
-    elif (skyalert_response.find('already') >= 0) or (skyalert_response.find('Duplicate') >= 0):
-            message = "Event already submitted to SkyAlert"
-            createLogEntry = False
-    elif skyalert_response:
-        message = "Skyalert Submission Failed."
-        mail_admins("SkyAlert submission failed",
-                    "Event: %s\nSkyAlert Response: %s\n" % (graceid, skyalert_response),
-                    fail_silently=True)
-
-    request.session['flash_msg'] = flashmessage or message
-
-    if createLogEntry:
-        logentry = EventLog(event=event, issuer=request.ligouser, comment=message)
-        try:
-            logentry.save()
-        except:
-            # XXX Failed to create log entry for skyalert submission.
-            # Error message?
-            pass
-
-    return HttpResponseRedirect(reverse(view, args=[graceid]))
 
 def create(request):
     d = _create(request)
@@ -298,7 +228,7 @@ def view(request, graceid):
     context['userdesc'] = get_file(graceid, "user.log")
     context['nearby'] = [(event.gpstime - a.gpstime, event)
                             for event in a.neighbors()]
-    context['skyalert_authorized'] = skyalert_authorized(request)
+#    context['skyalert_authorized'] = skyalert_authorized(request)
     context['blessed_tags'] = settings.BLESSED_TAGS
     context['single_inspiral_events'] = list(a.singleinspiral_set.all())
     context['neighbor_delta'] = "[%+d,%+d]" % (-5,5)
@@ -739,3 +669,82 @@ def file_list(request, graceid):
         'gracedb/event_filelist.html',
         context,
         context_instance=RequestContext(request)) 
+
+
+#------------------------------------------------------------------------------------------
+# Old Stuff
+#------------------------------------------------------------------------------------------
+#import re
+#from django.core.mail import mail_admins
+#from buildVOEvent import submitToSkyalert
+#
+#def skyalert_authorized(request):
+#    try:
+#        return u"{0} {1}".format(request.user.first_name, request.user.last_name) in settings.SKYALERT_SUBMITTERS
+#    except:
+#        return False
+#
+#def skyalert(request, graceid):
+#    event = Event.getByGraceid(graceid)
+#    createLogEntry = True
+#
+#    if not event.gpstime:
+#        request.session['flash_msg'] = "No GPS time.  Event not suitable for submission to SkyAlert"
+#        return HttpResponseRedirect(reverse(view, args=[graceid]))
+#
+#    if not event.far:
+#        request.session['flash_msg'] = "No FAR.  Event not suitable for submission to SkyAlert"
+#        return HttpResponseRedirect(reverse(view, args=[graceid]))
+#
+#    if not skyalert_authorized(request):
+#        request.session['flash_msg'] = "You are not authorized for SkyAlert submission"
+#        return HttpResponseRedirect(reverse(view, args=[graceid]))
+#
+#    try:
+#        skyalert_response = submitToSkyalert(event)
+#    except Exception, e:
+#        message = "SkyAlert Submission Error"
+#        skyalert_response = ""
+#        # XXX umm.  don't we want to know if this email fails silently?
+#        mail_admins("SkyAlert Submission Error",
+#                    "Event: %s\nException: %s\n" % (graceid, e),
+#                    fail_silently=True)
+#
+#    flashmessage = None
+#    if skyalert_response.find("Success") >= 0:
+#        urlpat = re.compile('https?://[^ ]*')
+#        match = urlpat.search(skyalert_response)
+#        if match:
+#            message = "Submitted to Skyalert: %s" % match.group()
+#            url = match.group()
+#            flashmessage = 'Submitted to Skyalert: %s' % url
+#            message = 'Submitted to Skyalert: <a href="%s">%s</a>' % (url,url)
+#        else:
+#            message = "SkyAlert submission problem.  Cannot parse SkyAlert response."
+#            # XXX umm.  don't we want to know if this email fails silently?
+#            mail_admins("SkyAlert response parsing problem",
+#                        "Event: %s\nSkyAlert Response: %s\n" % (graceid, skyalert_response),
+#                        fail_silently=True)
+#    elif (skyalert_response.find('already') >= 0) or (skyalert_response.find('Duplicate') >= 0):
+#            message = "Event already submitted to SkyAlert"
+#            createLogEntry = False
+#    elif skyalert_response:
+#        message = "Skyalert Submission Failed."
+#        mail_admins("SkyAlert submission failed",
+#                    "Event: %s\nSkyAlert Response: %s\n" % (graceid, skyalert_response),
+#                    fail_silently=True)
+#
+#    request.session['flash_msg'] = flashmessage or message
+#
+#    if createLogEntry:
+#        logentry = EventLog(event=event, issuer=request.ligouser, comment=message)
+#        try:
+#            logentry.save()
+#        except:
+#            # XXX Failed to create log entry for skyalert submission.
+#            # Error message?
+#            pass
+#
+#    return HttpResponseRedirect(reverse(view, args=[graceid]))
+#
+
