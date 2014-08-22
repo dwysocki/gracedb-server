@@ -3,39 +3,27 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, Http404
 from django.http import HttpResponseForbidden, HttpResponseServerError
 from django.template import RequestContext
-from django.core.urlresolvers import reverse, get_script_prefix
-from django.shortcuts import render_to_response, get_object_or_404
-from django.contrib.sites.models import Site
-from django.utils.html import strip_tags, escape, urlize
-from django.utils.safestring import mark_safe
+from django.core.urlresolvers import reverse
+from django.shortcuts import render_to_response
 
 # Upgrade to Django 1.5: No more function-based generic views.
 #from django.views.generic.list_detail import object_list
 from django.views.generic.list import ListView
-from django.contrib.auth.decorators import login_required
 
-from models import Event, Group, EventLog, Labelling, Label, Tag
-from models import CoincInspiralEvent
-from models import MultiBurstEvent
-from models import GrbEvent
-from models import SingleInspiral
+from models import Event, Group, EventLog, Label, Tag
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
-from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
-from translator import handle_uploaded_data
-from query import parseQuery
 
 from django.contrib.auth.models import User
 
-import urllib
-
-from utils.vfile import VersionedFile
+from view_logic import _createEventFromForm
+from view_logic import get_performance_info
+from view_utils import assembleLigoLw, get_file
+from view_utils import flexigridResponse, jqgridResponse
 
 import os
 import re
 from django.core.mail import mail_admins
 from django.conf import settings
-
-from templatetags.scientific import scientific
 
 from buildVOEvent import buildVOEvent, submitToSkyalert
 
@@ -45,7 +33,6 @@ MAX_QUERY_RESULTS = 1000
 GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 
 import json
-import datetime
 
 def index(request):
 #   assert request.user
@@ -213,267 +200,6 @@ def _create(request):
                     rv['error'] += "%s: %s\n" % (key, form.errors[key].as_text())
     return rv
 
-def _createEventFromForm(request, form):
-    saved = False
-    warnings = []
-    try:
-        group = Group.objects.filter(name=form.cleaned_data['group'])
-        atype = form.cleaned_data['type']
-        # Create Event
-        if atype in ['LM', 'HM', 'MBTA']:
-            event = CoincInspiralEvent()
-        elif atype == "GRB":
-            event = GrbEvent()
-        elif atype == "CWB":
-            event = MultiBurstEvent()
-        else:
-            event = Event()
-        event.submitter = request.user
-        event.group = group[0]
-        event.analysisType = atype
-        #  ARGH.  We don't get a graceid until we save,
-        #  but we don't know in advance if we can actually
-        #  create all the things we need for success!
-        #  What to do?!
-        event.save()
-        saved = True  # in case we have to undo this.
-        # Create data directory/directories
-        #    Save uploaded file.
-        dirPrefix = GRACEDB_DATA_DIR
-        eventDir = os.path.join(dirPrefix, event.graceid())
-        os.mkdir( eventDir )
-        os.mkdir( os.path.join(eventDir,"private") )
-        os.mkdir( os.path.join(eventDir,"general") )
-        #os.chmod( os.path.join(eventDir,"general"), int("041777",8) )
-        os.chmod( os.path.join(eventDir,"general"), 041777 )
-        f = request.FILES['eventFile']
-        uploadDestination = os.path.join(eventDir, "private", f.name)
-        fdest = VersionedFile(uploadDestination, 'w')
-        # Save uploaded file into user private area.
-        for chunk in f.chunks():
-            fdest.write(chunk)
-        fdest.close()
-        # Create WIKI page
-
-        # Extract Info from uploaded data
-        # Temp (ha!) hack to deal with
-        # out of band data from Omega to LUMIN.
-        try:
-            temp_data_loc = handle_uploaded_data(event, uploadDestination)
-            try:
-                # Send an alert.
-                # XXX This reverse will give the web-interface URL, not the REST URL.
-                # This could be a problem if anybody ever tries to use it.
-                # NOTE: The clusterurl method should be considered deprecated.
-                issueAlert(event,
-                           #os.path.join(event.clusterurl(), "private", f.name),
-                           request.build_absolute_uri(reverse("file", args=[event.graceid(),f.name])),
-                           temp_data_loc)
-            except Exception, e:
-                warnings += ["Problem issuing an alert (%s)" % e]
-        except Exception, e:
-            warnings += ["Problem scanning data. No alert issued (%s)" % e]
-        #return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
-    except Exception, e:
-        # something went wrong.
-        # XXX We need to make sure we clean up EVERYTHING.
-        # We don't.  Wiki page and data directories remain.
-        # According to Django docs, EventLog entries cascade on delete.
-        # Also, we probably want to keep track of what's failing
-        # and send out an email (or something)
-        if saved:
-            # undo save.
-            event.delete()
-        warnings += ["Problem creating event (%s)" % e]
-        event = None
-    return event, warnings
-
-def _saveUploadedFile(event, uploadedFile):
-    # XXX Hardcoding.
-    fname = os.path.join(GRACEDB_DATA_DIR, event.graceid(), "private", uploadedFile.name)
-    f = VersionedFile(fname, "w")
-    for chunk in uploadedFile.chunks():
-        f.write(chunk)
-    f.close()
-    return f.version
-
-def _createLog(request, graceid, comment, uploadedFile=None):
-    response = HttpResponse(mimetype='application/json')
-    rdict = {}
-
-    try:
-        event = graceid and Event.getByGraceid(graceid)
-    except Event.DoesNotExist:
-        event = None
-
-    if not event:
-        rdict['error'] = "No such event id: %s" % graceid
-    elif (not comment) and (not uploadedFile):
-        rdict['error'] = "Missing argument(s)"
-    else:
-        logEntry = EventLog(event=event,
-                            issuer=request.user,
-                            comment=comment)
-        if uploadedFile:
-            file_version = None
-            try:
-                file_version = _saveUploadedFile(event, uploadedFile)
-                logEntry.filename = uploadedFile.name
-                logEntry.file_version = file_version
-            except Exception, e:
-                rdict['error'] = "Problem saving file: %s" % str(e)
-        try:
-            logEntry.save()
-
-            description = "LOG: "
-            if uploadedFile:
-                description = "UPLOAD: '%s' " % uploadedFile.name
-            issueAlertForUpdate(event, description+comment, doxmpp=True, filename=uploadedFile.name)
-        except Exception, e:
-            rdict['error'] = "Failed to save log message: %s" % str(e) 
-
-    # XXX should be json
-    rval = str(rdict)
-    response['Content-length'] = len(rval)
-    response.write(rval)
-    return response
-
-def upload(request):
-    graceid = request.POST.get('graceid', None)
-    comment = request.POST.get('comment', None)
-    uploadedfile = request.FILES['upload']
-
-    if 'cli_version' in request.POST:
-        return _createLog(request, graceid, comment, uploadedfile)
-
-    # else: old, old client
-    response = HttpResponse(mimetype='text/plain')
-    try:
-        event = graceid and Event.getByGraceid(graceid)
-    except Event.DoesNotExist:
-        event = None
-    # uploadedFile.{name/chunks()}
-    if not (comment and uploadedfile and graceid):
-        msg = "ERROR: missing arg(s)"
-    elif not event:
-        msg = "ERROR: Event '%s' does not exist" % graceid
-    else:
-        #event issuer comment
-        # XXX Note:  filename or comment oughta have a version
-        log = EventLog(event=event,
-                       issuer=request.user,
-                       filename=uploadedfile.name,
-                       comment=comment)
-        try:
-            log.save()
-            msg = "OK"
-        except:
-            msg = "ERROR: problem creating log entry"
-        try:
-            # XXX
-            # Badnesses:
-            #   Same hardcoded path in multiple places.
-            fname = os.path.join(GRACEDB_DATA_DIR, event.graceid(), "private", uploadedfile.name)
-            f = VersionedFile(fname, 'w')
-            for chunk in uploadedfile.chunks():
-                f.write(chunk)
-            f.close()
-            log.file_version = f.version
-            log.save()
-        except Exception, e:
-            msg = "ERROR: could not save file " + fname + " " + str(e)
-            log.delete()
-    response = HttpResponse(mimetype='text/plain')
-    response.write(msg)
-    response['Content-length'] = len(msg)
-    return response
-
-def cli_tag(request):
-    raise Exception("tag is not implemented.  Maybe you're thinking of 'label'?")
-    graceid = request.POST.get('graceid')
-    tagname = request.POST.get('tag')
-
-    event = graceid and Event.getByGraceid(graceid)
-    event.add_tag(tagname)
-
-    msg = str({})
-    response = HttpResponse(mimetype='application/json')
-    response.write(msg)
-    response['Content-length'] = len(msg)
-
-    return response
-
-def create_label(graceid, labelName, creator, doAlert=True, doXMPP=True):
-
-    d = {}
-    event = graceid and Event.getByGraceid(graceid)
-    
-    try:
-        label = Label.objects.filter(name=labelName)[0]
-    except IndexError:
-        raise ValueError("No such Label '%s'" % labelName)
-
-    # Don't add a label more than once.
-    if label in event.labels.all():
-            d['warning'] = "Event %s already labeled with '%s'" % (event.graceid(), labelName)
-    else:
-        labelling = Labelling(
-                event = event,
-                label = label,
-                creator = creator
-            )
-        labelling.save()
-        message = "Label: %s" % label.name
-        log = EventLog(event=event, issuer=creator, comment=message)
-        try:       
-            log.save()
-        except Exception as e:
-            # XXX This looks a bit odd to me.
-            d['error'] = str(e)
-
-        try:
-            issueAlertForLabel(event, label, doXMPP)
-        except Exception, e:
-            d['warning'] = "Problem issuing alert (%s)" % str(e)
-    # XXX Strange return value.  Just warnings.  Can really be ignored, I think.
-    return json.dumps(d)
-
-def cli_label(request):
-    graceid = request.POST.get('graceid')
-    labelName = request.POST.get('label')
-
-    doxmpp = request.POST.get('alert') == "True"
-    d = create_label(graceid, labelName, request.user, doXMPP=doxmpp)
-
-    msg = str(d)
-    response = HttpResponse(mimetype='application/json')
-    response.write(msg)
-    response['Content-length'] = len(msg)
-
-    return response
-
-import html5lib
-def sanitize_html(data):
-    """
-
-    >>> sanitize_html5lib("foobar<p>adf<i></p>abc</i>")
-    u'foobar<p>adf<i></i></p><i>abc</i>'
-    >>> sanitize_html5lib('foobar<p style="color:red; remove:me; background-image: url(http://example.com/test.php?query_string=bad);">adf<script>alert("Uhoh!")</script><i></p>abc</i>')
-    u'foobar<p style="color: red;">adf&lt;script&gt;alert("Uhoh!")&lt;/script&gt;<i></i></p><i>abc</i>'
-    """
-    from html5lib import treebuilders, treewalkers, serializer, sanitizer
-
-    p = html5lib.HTMLParser(tokenizer=sanitizer.HTMLSanitizer, tree=treebuilders.getTreeBuilder("dom"))
-    dom_tree = p.parseFragment(data)
-
-    walker = treewalkers.getTreeWalker("dom")
-
-    stream = walker(dom_tree)
-
-    s = serializer.htmlserializer.HTMLSerializer(omit_optional_tags=False)
-    return "".join(s.serialize(stream))
-
-
 def logentry(request, graceid, num=None):
     try:
         event = Event.getByGraceid(graceid)
@@ -535,62 +261,6 @@ def logentry(request, graceid, num=None):
 
     return HttpResponse(json.dumps(rv), content_type="application/json")
 
-def log(request):
-    message = request.POST.get('message')
-    graceid = request.POST.get('graceid')
-
-    if 'cli_version' in request.POST:
-        return _createLog(request, graceid, message)
-
-    # old, old client only
-    response = HttpResponse(mimetype='text/plain')
-    try:
-        event = graceid and Event.getByGraceid(graceid)
-    except Event.DoesNotExist:
-        event = None
-
-    if not (message and graceid):
-        msg = "ERROR: missing arg(s)"
-    elif not event:
-        msg = "ERROR: Event '%s' does not exist" % graceid
-    else:
-        #event issuer comment
-        log = EventLog(event=event, issuer=request.user, comment=message)
-        try:
-            log.save()
-            msg = "OK"
-        except:
-            msg = "ERROR: problem creating log entry"
-
-    response = HttpResponse(mimetype='text/plain')
-    response.write(msg)
-    response['Content-length'] = len(msg)
-    return response
-
-def ping(request):
-    #ack = "(%s) " % Site.objects.get_current()
-    ack = "(%s/%s) " % (request.META['SERVER_NAME'], settings.CONFIG_NAME)
-    ack += request.POST.get('ack', None) or request.GET.get('ack','ACK')
-
-    from templatetags.timeutil import utc
-    if 'cli_version' in request.POST:
-        response = HttpResponse(mimetype='application/json')
-        d = {'output': ack}
-        if 'extended' in request.POST:
-            latest = Event.objects.order_by("-id")[0]
-            d['latest'] = {}
-            d['latest']['id'] = latest.graceid()
-            d['latest']['created'] = str(utc(latest.created))
-        d =  json.dumps(d)
-        response.write(d)
-        response['Content-length'] = len(d)
-    else:
-        # Old client
-        response = HttpResponse(mimetype='text/plain')
-        response.write(ack)
-        response['Content-length'] = len(ack)
-    return response
-
 def neighbors(request, graceid, delta1, delta2=None):
     context = {}
     try:
@@ -637,74 +307,6 @@ def view(request, graceid):
           'gracedb/event_detail.html'],
         context,
         context_instance=RequestContext(request))
-
-def cli_search(request):
-    assert request.user
-    form = SimpleSearchForm(request.POST)
-    if form.is_valid():
-        objects = form.cleaned_data['query']
-
-        if 'ligolw' in request.POST or 'ligolw' in request.GET:
-            from glue.ligolw import utils
-            if objects.count() > 1000:
-                return HttpResponseBadRequest("Too many events.")
-            xmldoc = assembleLigoLw(objects)
-            response = HttpResponse(mimetype='application/xml')
-            response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
-            utils.write_fileobj(xmldoc, response)
-            return response
-
-        accessFun = {
-            "labels" : lambda e: \
-                ",".join([labelling.label.name for labelling in e.labelling_set.all()]),
-            "analysisType" : lambda e: e.get_analysisType_display(),
-            "gpstime" : lambda e: str(e.gpstime) or "",
-            "created" : lambda e: e.created.isoformat(),
-            "dataurl" : lambda e: e.weburl(),
-            "graceid" : lambda e: e.graceid(),
-            "group" : lambda e: e.group.name,
-        }
-        defaultAccess = lambda e, a: str(getattr(e,a,None) or "")
-
-        defaultColumns = "graceid,labels,group,analysisType,far,gpstime,created,dataurl"
-        columns = request.POST.get('columns')
-        if not columns:
-            columns = defaultColumns
-        columns = columns.split(',')
-
-        header = "#" + "\t".join(columns)
-        outTable = [header]
-        for e in objects:
-            row = [ accessFun.get(column, lambda e: defaultAccess(e,column))(e) for column in columns ]
-            outTable.append("\t".join(row))
-        d = {'output': "\n".join(outTable)}
-    else:
-        d = {'error': ""}
-        for key in form.errors:
-            d['error'] += "%s: %s\n" % (key, strip_tags(form.errors[key]))
-    response = HttpResponse(mimetype='application/javascript')
-    msg = json.dumps(d)
-    response['Content-length'] = len(msg)
-    response.write(msg)
-    return response
-
-
-def assembleLigoLw(objects):
-    from glue.ligolw import ligolw
-    # lsctables MUST be loaded before utils.
-    from glue.ligolw import lsctables
-    from glue.ligolw import utils
-    from glue.ligolw.utils import ligolw_add
-
-    xmldoc = ligolw.Document()
-    for obj in objects:
-        fname = os.path.join(GRACEDB_DATA_DIR, obj.graceid(), "private", "coinc.xml")
-        utils.load_filename(fname, xmldoc=xmldoc)
-
-    ligolw_add.reassign_ids(xmldoc)
-    ligolw_add.merge_ligolws(xmldoc)
-    ligolw_add.merge_compatible_tables(xmldoc)
-    return xmldoc
 
 def search(request, format=""):
     if not request.user or not request.user.is_authenticated():
@@ -978,113 +580,6 @@ def timeline(request):
     response.write(msg)
     return response
 
-#-----------------------------------------------------------------
-# Things that aren't views and should really be elsewhere.
-#-----------------------------------------------------------------
-
-from templatetags.timeutil import timeSelections
-
-def jqgridResponse(request, objects):
-    # "GET /data?_search=false&nd=1266350238476&rows=10&page=1&sidx=invid&sord=asc HTTP/1.1"
-    pass
-
-def flexigridResponse(request, objects):
-    response = HttpResponse(mimetype='application/json')
-
-    #sortname = request.POST.get('sortname', None)
-    #sortorder = request.POST.get('sortorder', 'desc')
-    #page = int(request.POST.get('page', 1))
-    #rp = int(request.POST.get('rp', 10))
-
-    sortname = request.GET.get('sidx', None)    # get index row - i.e. user click to sort
-    sortorder = request.GET.get('sord', 'desc') # get the direction
-    page = int(request.GET.get('page', 1))      # get the requested page
-    rp = int(request.GET.get('rows', 10))       # get how many rows we want to have into the grid
-
-    if sortname:
-        if sortorder == "desc":
-            sortname = "-" + sortname
-        objects = objects.order_by(sortname)
-
-    start = (page-1) * rp
-    rows = []
-    total = objects.count()
-
-    if total:
-        total_pages = (total / rp) + 1
-    else:
-        total_pages = 0
-
-    if page > total_pages:
-        page = total_pages
-
-    for object in objects[start:start+rp]:
-        event_times = timeSelections(object.gpstime)
-        created_times = timeSelections(object.created)
-        rows.append(
-            { 'id' : object.id,
-              'cell': [ '<a href="%s">%s</a>' %
-                            (reverse(view, args=[object.graceid()]), object.graceid()),
-                         #Labels
-                        " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();"  style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name)
-                                for label in object.labelling_set.all()]),
-                        # Links to neighbors
-                        ', '.join([
-                            '<a href="%s">%s</a>' %
-                            (reverse(view, args=[n.graceid()]), n.graceid())
-                            for n in object.neighbors()
-                        ]),
-                        object.group.name,
-                        object.get_analysisType_display(),
-
-                        event_times.get('gps',""),
-                        #event_times['utc'],
-
-                        object.instruments,
-
-                        scientific(object.far),
-
-                        '<a href="%s">Data</a>' % object.weburl(),
-
-                        #created_times['gps'],
-                        created_times.get('utc',""),
-
-                        "%s %s" % (object.submitter.first_name, object.submitter.last_name)
-
-                      ]
-            }
-        )
-    d = {
-            'page': page,
-            'total': total_pages,
-            'records': total,
-            'rows': rows,
-        }
-    try:
-        msg = json.dumps(d)
-    except Exception, e:
-        # XXX Not right not right not right.
-        msg = "{}"
-    response['Content-length'] = len(msg)
-    response.write(msg)
-
-    #query = request.POST['query']
-
-    return response
-
-def get_file(graceid, filename="event.log"):
-    dirPrefix = GRACEDB_DATA_DIR
-    logfilename = os.path.join(dirPrefix, graceid, "private", filename)
-    contents = ""
-    try:
-        lines = open(logfilename, "r").readlines()
-        contents = "<br/>".join([ escape(line) for line in lines])
-        contents = mark_safe(urlize(contents))
-    except Exception, e:
-        contents = None
-    return contents
-
-
 class LimitedEvent():
     def __init__(self, event):
         self._event = event
@@ -1208,71 +703,6 @@ def taglogentry(request, graceid, num, tagname):
     return HttpResponse(msg, content_type="text")
 
 # XXX added by Branson. Performance metrics.
-
-def get_performance_info():
-    # First, try to find the relevant logfile from settings.
-    logfilepath = settings.LOGGING['handlers']['performance_file']['filename']
-    logfile = open(logfilepath, "r")
-   
-    # Now parse the log file
-    dateformat = '%Y-%m-%dT%H:%M:%S' # ISO format. I think.
-
-    # Lookback time is 3 days.
-    dt_now = datetime.datetime.now()
-    dt_min = dt_now + datetime.timedelta(days=-3)
-
-    creation_status_totals = {}
-    annotation_status_totals = {}
-    total_create_requests = 0
-    total_annotate_requests = 0
-
-    totals_by_status = {}
-    totals_by_method = {}
-
-    for line in logfile:
-        datestring = line[0:len('YYYY-MM-DDTHH:MM:SS')]
-        # Check the date to see whether it's fresh enough
-        dt = datetime.datetime.strptime(datestring, dateformat)
-        if dt > dt_min:
-            # Get rid of the datestring and the final colon.
-            line = line[len(datestring)+1:]
-            # Parse
-            method, status, username = line.split(':')
-            method = method.strip()
-            status = int(status.strip())
-            username = username.strip()
-
-            if method not in totals_by_method.keys():
-                totals_by_method[method] = 1
-                totals_by_status[method] = {status: 1}
-            else:
-                totals_by_method[method] += 1
-                if status not in totals_by_status[method].keys():
-                    totals_by_status[method][status] = 1
-                else:
-                    totals_by_status[method][status] += 1
-
-    # Calculate summary information:
-    summaries = {}
-    for method in totals_by_method.keys():
-        summaries[method] = {'gt_500': 0, 'btw_300_500': 0}
-        for key in totals_by_status[method].keys():
-            if key >= 500:
-                summaries[method]['gt_500'] += totals_by_status[method][key]
-            elif key >= 300:
-                summaries[method]['btw_300_500'] += totals_by_status[method][key]
-        # Normalize
-        if totals_by_method[method] > 0:
-            for key in summaries[method].keys():
-                summaries[method][key] = float(summaries[method][key])/totals_by_method[method]
-
-    context = {
-            'summaries': summaries,
-            'current_time' : str(dt_now),
-            'totals_by_status' : totals_by_status,
-            'totals_by_method' : totals_by_method,
-    }
-    return context
 
 def performance(request):
 

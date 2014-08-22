@@ -1,7 +1,6 @@
 
-from django.http import HttpResponse, HttpResponseNotFound, Http404
+from django.http import HttpResponse, HttpResponseNotFound
 from django.http import HttpResponseForbidden, HttpResponseServerError
-from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.core.urlresolvers import reverse as django_reverse
 
 from django.conf import settings
@@ -11,20 +10,19 @@ from django.utils import dateformat
 import json
 
 from gracedb.models import Event, Group, EventLog, Tag
-from gracedb.views import create_label, get_performance_info
+from view_logic import create_label, get_performance_info
+from view_logic import _createEventFromForm
 from translator import handle_uploaded_data
+from forms import CreateEventForm
 
 from alert import issueAlertForUpdate
 from buildVOEvent import buildVOEvent
 
 import os
 import urllib
-import errno
 import shutil
 import exceptions
 import pytz
-
-import logging
 
 from utils.vfile import VersionedFile
 
@@ -37,23 +35,16 @@ PAGINATE_BY = REST_FRAMEWORK_SETTINGS.get('PAGINATE_BY', 10)
 # rest_framework
 from rest_framework import serializers, status
 from rest_framework.response import Response
-#from rest_framework.parsers import BaseParser
-#from rest_framework import generics
 #from rest_framework.renderers import JSONRenderer, JSONPRenderer
 #from rest_framework.renderers import YAMLRenderer, XMLRenderer
 from rest_framework.renderers import BaseRenderer, JSONRenderer
 from rest_framework.renderers import BrowsableAPIRenderer
-from forms import CreateEventForm
-from views import _createEventFromForm
 from rest_framework import parsers      # YAMLParser, MultiPartParser
 from rest_framework.parsers import DataAndFiles
 
 from rest_framework.permissions import IsAuthenticated
-#from rest_framework.permissions import AllowAny
 from rest_framework import authentication
 from rest_framework.views import APIView
-
-from django.contrib.auth.models import User as DjangoUser
 
 MAX_FAILED_OPEN_ATTEMPTS = 5
 
@@ -62,8 +53,6 @@ from forms import SimpleSearchForm
 
 from rest_framework.reverse import reverse as rest_framework_reverse
 from django.core.urlresolvers import resolve, get_script_prefix
-
-from rest_framework.exceptions import APIException, PermissionDenied
 
 ##################################################################
 # Stuff for the LigoLwRenderer
@@ -1559,7 +1548,7 @@ class PerformanceInfo(APIView):
         try:
             performance_info = get_performance_info()
         except Exception, e:
-            response = Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(performance_info,status=status.HTTP_200_OK)
 

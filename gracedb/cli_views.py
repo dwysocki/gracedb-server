@@ -1,0 +1,207 @@
+
+from django.http import HttpResponse, HttpResponseBadRequest
+#from django.contrib.sites.models import Site
+from django.utils.html import strip_tags
+
+from models import Event, EventLog
+from forms import SimpleSearchForm
+
+from utils.vfile import VersionedFile
+
+from view_logic import create_label, _createLog
+from view_utils import assembleLigoLw
+
+import os
+from django.conf import settings
+
+# XXX This should be configurable / moddable or something
+MAX_QUERY_RESULTS = 1000
+
+GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
+
+import json
+
+def cli_search(request):
+    assert request.user
+    form = SimpleSearchForm(request.POST)
+    if form.is_valid():
+        objects = form.cleaned_data['query']
+
+        if 'ligolw' in request.POST or 'ligolw' in request.GET:
+            from glue.ligolw import utils
+            if objects.count() > 1000:
+                return HttpResponseBadRequest("Too many events.")
+            xmldoc = assembleLigoLw(objects)
+            response = HttpResponse(mimetype='application/xml')
+            response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
+            utils.write_fileobj(xmldoc, response)
+            return response
+
+        accessFun = {
+            "labels" : lambda e: \
+                ",".join([labelling.label.name for labelling in e.labelling_set.all()]),
+            "analysisType" : lambda e: e.get_analysisType_display(),
+            "gpstime" : lambda e: str(e.gpstime) or "",
+            "created" : lambda e: e.created.isoformat(),
+            "dataurl" : lambda e: e.weburl(),
+            "graceid" : lambda e: e.graceid(),
+            "group" : lambda e: e.group.name,
+        }
+        defaultAccess = lambda e, a: str(getattr(e,a,None) or "")
+
+        defaultColumns = "graceid,labels,group,analysisType,far,gpstime,created,dataurl"
+        columns = request.POST.get('columns')
+        if not columns:
+            columns = defaultColumns
+        columns = columns.split(',')
+
+        header = "#" + "\t".join(columns)
+        outTable = [header]
+        for e in objects:
+            row = [ accessFun.get(column, lambda e: defaultAccess(e,column))(e) for column in columns ]
+            outTable.append("\t".join(row))
+        d = {'output': "\n".join(outTable)}
+    else:
+        d = {'error': ""}
+        for key in form.errors:
+            d['error'] += "%s: %s\n" % (key, strip_tags(form.errors[key]))
+    response = HttpResponse(mimetype='application/javascript')
+    msg = json.dumps(d)
+    response['Content-length'] = len(msg)
+    response.write(msg)
+    return response
+
+def cli_label(request):
+    graceid = request.POST.get('graceid')
+    labelName = request.POST.get('label')
+
+    doxmpp = request.POST.get('alert') == "True"
+    d = create_label(graceid, labelName, request.user, doXMPP=doxmpp)
+
+    msg = str(d)
+    response = HttpResponse(mimetype='application/json')
+    response.write(msg)
+    response['Content-length'] = len(msg)
+
+    return response
+
+def cli_tag(request):
+    raise Exception("tag is not implemented.  Maybe you're thinking of 'label'?")
+    graceid = request.POST.get('graceid')
+    tagname = request.POST.get('tag')
+
+    event = graceid and Event.getByGraceid(graceid)
+    event.add_tag(tagname)
+
+    msg = str({})
+    response = HttpResponse(mimetype='application/json')
+    response.write(msg)
+    response['Content-length'] = len(msg)
+
+    return response
+
+def ping(request):
+    #ack = "(%s) " % Site.objects.get_current()
+    ack = "(%s/%s) " % (request.META['SERVER_NAME'], settings.CONFIG_NAME)
+    ack += request.POST.get('ack', None) or request.GET.get('ack','ACK')
+
+    from templatetags.timeutil import utc
+    if 'cli_version' in request.POST:
+        response = HttpResponse(mimetype='application/json')
+        d = {'output': ack}
+        if 'extended' in request.POST:
+            latest = Event.objects.order_by("-id")[0]
+            d['latest'] = {}
+            d['latest']['id'] = latest.graceid()
+            d['latest']['created'] = str(utc(latest.created))
+        d =  json.dumps(d)
+        response.write(d)
+        response['Content-length'] = len(d)
+    else:
+        # Old client
+        response = HttpResponse(mimetype='text/plain')
+        response.write(ack)
+        response['Content-length'] = len(ack)
+    return response
+
+def upload(request):
+    graceid = request.POST.get('graceid', None)
+    comment = request.POST.get('comment', None)
+    uploadedfile = request.FILES['upload']
+
+    if 'cli_version' in request.POST:
+        return _createLog(request, graceid, comment, uploadedfile)
+
+    # else: old, old client
+    response = HttpResponse(mimetype='text/plain')
+    try:
+        event = graceid and Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        event = None
+    # uploadedFile.{name/chunks()}
+    if not (comment and uploadedfile and graceid):
+        msg = "ERROR: missing arg(s)"
+    elif not event:
+        msg = "ERROR: Event '%s' does not exist" % graceid
+    else:
+        #event issuer comment
+        # XXX Note:  filename or comment oughta have a version
+        log = EventLog(event=event,
+                       issuer=request.user,
+                       filename=uploadedfile.name,
+                       comment=comment)
+        try:
+            log.save()
+            msg = "OK"
+        except:
+            msg = "ERROR: problem creating log entry"
+        try:
+            # XXX
+            # Badnesses:
+            #   Same hardcoded path in multiple places.
+            fname = os.path.join(GRACEDB_DATA_DIR, event.graceid(), "private", uploadedfile.name)
+            f = VersionedFile(fname, 'w')
+            for chunk in uploadedfile.chunks():
+                f.write(chunk)
+            f.close()
+            log.file_version = f.version
+            log.save()
+        except Exception, e:
+            msg = "ERROR: could not save file " + fname + " " + str(e)
+            log.delete()
+    response = HttpResponse(mimetype='text/plain')
+    response.write(msg)
+    response['Content-length'] = len(msg)
+    return response
+
+def log(request):
+    message = request.POST.get('message')
+    graceid = request.POST.get('graceid')
+
+    if 'cli_version' in request.POST:
+        return _createLog(request, graceid, message)
+
+    # old, old client only
+    response = HttpResponse(mimetype='text/plain')
+    try:
+        event = graceid and Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        event = None
+
+    if not (message and graceid):
+        msg = "ERROR: missing arg(s)"
+    elif not event:
+        msg = "ERROR: Event '%s' does not exist" % graceid
+    else:
+        #event issuer comment
+        log = EventLog(event=event, issuer=request.user, comment=message)
+        try:
+            log.save()
+            msg = "OK"
+        except:
+            msg = "ERROR: problem creating log entry"
+
+    response = HttpResponse(mimetype='text/plain')
+    response.write(msg)
+    response['Content-length'] = len(msg)
+    return response
