@@ -531,11 +531,15 @@ def logentry(request, graceid, num=None):
                 msg = msg + "\n However, the log message itself was saved."
                 return HttpResponse(msg)
 
-    else:
+    elif request.method == "GET":
+        if not user_has_perm(request.user, 'view', event):
+            return HttpResponseForbidden("Forbidden")
         try:
             elog = event.eventlog_set.filter(N=num)[0]
         except Exception, e:
             raise Http404
+    else:
+        return HttpResponseBadRequest
 
     if not request.is_ajax():
         return HttpResponseRedirect(reverse(view, args=[graceid]))
@@ -1321,12 +1325,30 @@ def performance(request):
 # A view for the list of files associated with an event.
 # We're deliberately leaving out the /general directory.
 # The idea is to get rid of that horrible /gracedb-files/ url.
-def file_list(request, graceid):
-    try:
-        event = Event.getByGraceid(graceid)
-    except Event.DoesNotExist:
-        return HttpResponseNotFound("Event not found")
 
+from django.utils.functional import wraps
+
+def event_required(view):
+    @wraps(view)
+    def inner(request, graceid, *args, **kwargs):
+        try:
+            event = Event.getByGraceid(graceid) 
+        except Event.DoesNotExist:
+            return HttpResponseNotFound("Event not found.")
+        return view(request, event, *args, **kwargs)
+    return inner
+
+def event_viewable(view):
+    @wraps(view)
+    def inner(request, event, *args, **kwargs):
+        if not user_has_perm(request.user, 'view', event):
+            return HttpResponseForbidden("Forbidden")
+        return view(request, event, *args, **kwargs)
+    return inner
+
+@event_required
+@event_viewable
+def file_list(request, event):
     f = []
     for dirname, dirnames, filenames in os.walk(event.datadir()):
         f.extend(filenames)
@@ -1334,8 +1356,8 @@ def file_list(request, graceid):
 
     context = {}
     context['file_list'] = f
-    context['title'] = 'Files for %s' % graceid 
-    context['graceid'] = graceid 
+    context['title'] = 'Files for %s' % event.graceid() 
+    context['graceid'] = event.graceid() 
         
     return render_to_response(
         'gracedb/event_filelist.html',

@@ -160,7 +160,7 @@ class IsAuthorizedForEvent(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             shortname = 'view'
-        elif request.method is 'PUT':
+        elif request.method in ['PUT','POST']:
             shortname = 'change'
         else:
             return False
@@ -898,11 +898,12 @@ class EventLogList(APIView):
     POST param 'message'
     """
     authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     def get(self, request, graceid):
         try:
             event = Event.getByGraceid(graceid)
+            self.check_object_permissions(self.request, event)
         except Event.DoesNotExist:
             # XXX Real error message.
             return Response("Event does not exist.",
@@ -932,6 +933,7 @@ class EventLogList(APIView):
 
         try:
             uploadedFile = request.FILES['upload'] 
+            self.check_object_permissions(self.request, event)
         except:
             uploadedFile = None
 
@@ -992,11 +994,12 @@ class EventLogList(APIView):
 
 class EventLogDetail(APIView):
     authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     def get(self, request, graceid, n):
         try:
             event = Event.getByGraceid(graceid)
+            self.check_object_permissions(self.request, event)
         except Event.DoesNotExist:
             return Response("Event Not Found",
                     status=status.HTTP_404_NOT_FOUND)
@@ -1339,6 +1342,8 @@ def download(request, graceid, filename=""):
 
     try:
         event = Event.getByGraceid(graceid)
+        if not user_has_perm(request.user, 'view', event):
+            return HttpResponseForbidden("Forbidden")
     except Event.DoesNotExist:
         return HttpResponseNotFound("Event not found")
 
@@ -1411,6 +1416,18 @@ def download(request, graceid, filename=""):
 
     return response
 
+from django.utils.functional import wraps
+def event_and_auth_required(view):
+    @wraps(view)
+    def inner(self, request, graceid, *args, **kwargs):
+        try:
+            event = Event.getByGraceid(graceid)
+            self.check_object_permissions(request, event)
+        except Event.DoesNotExist:
+            return HttpResponseNotFound("Event not found.")
+        return view(self, request, event, *args, **kwargs)
+    return inner
+
 class Files(APIView):
     """Files Resource"""
 
@@ -1419,16 +1436,19 @@ class Files(APIView):
     #parser_classes = (RawdataParser,)
     parser_classes = (parsers.MultiPartParser,)
 
-    def get(self, request, graceid, filename=""):
+    @event_and_auth_required
+    def get(self, request, event, filename=""):
         # Do not filename to be None.  That messes up later os.path.join
         filename = filename or ""
 
-        try:
-            event = Event.getByGraceid(graceid)
-            # This will check whether the user has 'view' permission on the event.
-            self.check_object_permissions(self.request, event)
-        except Event.DoesNotExist:
-            return HttpResponseNotFound("Event not found")
+#        try:
+#            event = Event.getByGraceid(graceid)
+#            # This will check whether the user has 'view' permission on the event.
+#        except Event.DoesNotExist:
+#            return HttpResponseNotFound("Event not found")
+
+#        self.check_object_permissions(request, event)
+        graceid = event.graceid()
 
         # The plan to deal with that general/ directory maybe
         # should be to move it INTO private.  Then externally, things
