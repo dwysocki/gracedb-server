@@ -76,7 +76,8 @@ def cli_label(request):
     labelName = request.POST.get('label')
 
     doxmpp = request.POST.get('alert') == "True"
-    d = create_label(graceid, labelName, request.user, doXMPP=doxmpp)
+    event = graceid and Event.getByGraceid(graceid)
+    d = create_label(event, labelName, request.user, doXMPP=doxmpp)
 
     msg = str(d)
     response = HttpResponse(mimetype='application/json')

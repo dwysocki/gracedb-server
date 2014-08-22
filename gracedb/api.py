@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse as django_reverse
 from django.conf import settings
 from django.utils.http import urlquote
 from django.utils import dateformat
+from django.utils.functional import wraps
 
 import json
 
@@ -60,7 +61,6 @@ from django.core.urlresolvers import resolve, get_script_prefix
 # Stuff for the LigoLwRenderer
 from glue.ligolw import ligolw
 # lsctables MUST be loaded before utils.
-from glue.ligolw import lsctables
 from glue.ligolw import utils
 from glue.ligolw.utils import ligolw_add
 import StringIO
@@ -147,16 +147,53 @@ class LigoAuthentication(authentication.BaseAuthentication):
         else:
             raise exceptions.AuthenticationFailed("Bad user")
 
+#
 # A custom permission class for the EventDetail view. 
+#
 class IsAuthorizedForEvent(BasePermission):
     def has_object_permission(self, request, view, obj):
+        # "Safe methods" only require view permission.
         if request.method in SAFE_METHODS:
             shortname = 'view'
-        elif request.method in ['PUT','POST']:
+        # "Unsafe methods" require change permissions on the event.
+        # Note that DELETE is only implemented for event-log-tag 
+        # relationships.
+        elif request.method in ['PUT','POST','DELETE']:
             shortname = 'change'
         else:
             return False
         return user_has_perm(request.user, shortname, obj)        
+
+#
+# A wrapper to get an event by the graceid in the arguments 
+# list and then check permission on it.
+# IsAuthorizedForEvent must be in the permission_classes.
+#
+def event_and_auth_required(view):
+    @wraps(view)
+    def inner(self, request, graceid, *args, **kwargs):
+        try:
+            event = Event.getByGraceid(graceid)
+            self.check_object_permissions(request, event)
+        except Event.DoesNotExist:
+            return HttpResponseNotFound("Event not found.")
+        return view(self, request, event, *args, **kwargs)
+    return inner
+
+#
+# A wrapper to access a particular eventlog message based
+# on the log number N passed in.
+#
+def eventlog_required(view):
+    @wraps(view)
+    def inner(self, request, event, n, *args, **kwargs):
+        try:
+            eventlog = event.eventlog_set.filter(N=n)[0]
+        except:
+            return Response("Log does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+        return view(self, request, event, eventlog, *args, **kwargs)
+    return inner
 
 #class EventSerializer(serializers.ModelSerializer):
 #    # Overloaded fields.
@@ -620,15 +657,8 @@ class EventDetail(APIView):
 
     form = CreateEventForm
 
-    def get(self, request, graceid):
-        try:
-            event = Event.getByGraceid(graceid)
-            self.check_object_permissions(self.request, event)
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event Not Found",
-                    status=status.HTTP_404_NOT_FOUND)
-
+    @event_and_auth_required
+    def get(self, request, event):
         #response = Response(self.serializer_class(event, context={'request': request}).data)
         response = Response(eventToDict(event, request=request))
 
@@ -660,13 +690,11 @@ class EventDetail(APIView):
 
         return response
 
-    def put(self, request, graceid):
+    @event_and_auth_required
+    def put(self, request, event):
         """ I am a doc.  Do I not get put anywhere? """
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            return Response("Event Not Found",
-                    status=status.HTTP_404_NOT_FOUND)
+
+        # An additional authorization check: Are we dealing with the original submitter?
         try:
             if request.user != event.submitter:
                 msg = "You (%s) Them (%s)" % (request.user, event.submitter)
@@ -726,17 +754,11 @@ class EventVODetail(APIView):
     #parser_classes = (LigoLwParser, RawdataParser)
     parser_classes = (parsers.MultiPartParser,)
     #serializer_class = EventSerializer
-    permission_classes = (IsAuthenticated,)
-    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, )
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer,)
 
-    def get(self, request, graceid):
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event Not Found",
-                    status=status.HTTP_404_NOT_FOUND)
-
+    @event_and_auth_required
+    def get(self, request, event):
         try:
             voevent = buildVOEvent(event,request)
         except Exception, e:
@@ -759,16 +781,13 @@ class EventNeighbors(APIView):
     neighbors in the (inclusive) GPS time range [x-N,x+N] or [x-N, x+M],
     where x is the GPS time of the event in question.
     """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     # XXX Since this returns an event list, we could add the LigoLW
     # and TSV renderers.
-    def get(self, request, graceid):
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
+    @event_and_auth_required
+    def get(self, request, event):
         if request.QUERY_PARAMS.has_key('neighborhood'):
             delta = request.QUERY_PARAMS['neighborhood']
             try:
@@ -782,6 +801,7 @@ class EventNeighbors(APIView):
             neighborhood = event.DEFAULT_EVENT_NEIGHBORHOOD
 
         neighbors = event.neighbors(neighborhood=neighborhood)
+        neighbors = filter_events_for_user(neighbors, request.user, 'view')
 
         neighbors = [eventToDict(neighbor, request=request)
                     for neighbor in neighbors]
@@ -791,7 +811,7 @@ class EventNeighbors(APIView):
                 'numRows' : len(neighbors),
                 'links' : {
                     'self': request.build_absolute_uri(),
-                    'event': reverse("event-detail", args=[graceid], request=request),
+                    'event': reverse("event-detail", args=[event.graceid()], request=request),
                     }
                 })
 
@@ -813,9 +833,10 @@ def labelToDict(label, request=None):
 class EventLabel(APIView):
     """Event Label"""
     authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
-    def get(self, request, graceid, label):
-        event = Event.getByGraceid(graceid)
+    @event_and_auth_required
+    def get(self, request, event, label):
         if label is not None:
             theLabel = event.labelling_set.filter(label__name=label).all()
             if len(theLabel) < 1:
@@ -836,12 +857,10 @@ class EventLabel(APIView):
                 'labels': labels
                 })
 
-    def put(self, request, graceid, label):
+    @event_and_auth_required
+    def put(self, request, event, label):
         try:
-            rv = create_label(graceid, label, request.user)
-        except Event.DoesNotExist:
-            msg = "No such Event '%s'" % graceid
-            return Response(msg,status=status.HTTP_404_NOT_FOUND)
+            rv = create_label(event, label, request.user)
         except ValueError, e:
             return Response(e.message,
                         status=status.HTTP_400_BAD_REQUEST)
@@ -892,14 +911,8 @@ class EventLogList(APIView):
     authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
-    def get(self, request, graceid):
-        try:
-            event = Event.getByGraceid(graceid)
-            self.check_object_permissions(self.request, event)
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
+    @event_and_auth_required
+    def get(self, request, event):
         logset = event.eventlog_set.order_by("created","N")
         count = logset.count()
 
@@ -918,8 +931,8 @@ class EventLogList(APIView):
              }
         return Response(rv)
 
-    def post(self, request, graceid):
-        event = Event.getByGraceid(graceid)
+    @event_and_auth_required
+    def post(self, request, event):
         message = request.DATA.get('message')
         tagname = request.DATA.get('tagname')
 
@@ -957,7 +970,7 @@ class EventLogList(APIView):
                 comment=message,
                 filename=filename,
                 file_version=file_version)
-        logset = event.eventlog_set.order_by("created","N")
+        #logset = event.eventlog_set.order_by("created","N")
         try:
             logentry.save()
         except Exception as e:
@@ -971,7 +984,7 @@ class EventLogList(APIView):
         if tagname:
             n = logentry.N
             tmp = EventLogTagDetail()
-            retval = tmp.put(request, graceid, n, tagname) 
+            retval = tmp.put(request, event.graceid(), n, tagname) 
             # XXX This seems like a bizarre way of getting an error message out.
             if retval.status_code != 201:
                 response['tagWarning'] = 'Error creating tag.'
@@ -988,20 +1001,10 @@ class EventLogDetail(APIView):
     authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
-    def get(self, request, graceid, n):
-        try:
-            event = Event.getByGraceid(graceid)
-            self.check_object_permissions(self.request, event)
-        except Event.DoesNotExist:
-            return Response("Event Not Found",
-                    status=status.HTTP_404_NOT_FOUND)
-        try:
-            rv = event.eventlog_set.filter(N=n)[0]
-        except:
-            return Response("Log Message Not Found",
-                    status=status.HTTP_404_NOT_FOUND)
-
-        return Response(eventLogToDict(rv, request=request))
+    @event_and_auth_required
+    @eventlog_required
+    def get(self, request, event, eventlog):
+        return Response(eventLogToDict(eventlog, request=request))
 
 #==================================================================
 # Tags
@@ -1086,19 +1089,13 @@ class EventTagList(APIView):
     """Event Tag List Resource
     """
     authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
-    def get(self, request, graceid):
+    @event_and_auth_required
+    def get(self, request, event):
         # Return a list of links to all tags for this event.
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
-
         rv = {
-                'tags' : [ reverse("eventtag-detail",args=[graceid,
+                'tags' : [ reverse("eventtag-detail",args=[event.graceid(),
                                    tag.name],
                                    request=request)
                            for tag in event.getAvailableTags()]
@@ -1110,15 +1107,10 @@ class EventTagDetail(APIView):
     """Event Tag List Resource
     """
     authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
-    def get(self, request, graceid, tagname):
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
+    @event_and_auth_required
+    def get(self, request, event, tagname):
         try:
             tag = Tag.objects.filter(name=tagname)[0]
             rv = tagToDict(tag,event=event,request=request)
@@ -1131,24 +1123,15 @@ class EventLogTagList(APIView):
     """Event Log Tag List Resource
     """
     authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
-    def get(self, request, graceid, n):
-        # Return a list of links to tags associated with a given log message
-        try:
-            event = Event.getByGraceid(graceid)
-            eventlog = event.eventlog_set.filter(N=n)[0]
-        except Event.DoesNotExist:
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
-        except:
-            return Response("Log does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
-
+    @event_and_auth_required
+    @eventlog_required
+    def get(self, request, event, eventlog):
         rv = {
                 'tags' : [ reverse("eventlogtag-detail",
-                                    args=[graceid, 
-                                    n, tag.name],
+                                    args=[event.graceid(), 
+                                    eventlog.N, tag.name],
                                     request=request)
                            for tag in eventlog.tag_set.all()]
              }
@@ -1159,35 +1142,21 @@ class EventLogTagDetail(APIView):
     """Event Log Tag Detail Resource
     """
     authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
-    def get(self, request, graceid, n, tagname):
-        try:
-            event = Event.getByGraceid(graceid)
-            eventlog = event.eventlog_set.filter(N=n)[0]
-        except Event.DoesNotExist:
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
-        except:
-            return Response("Log does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
+    @event_and_auth_required
+    @eventlog_required
+    def get(self, request, event, eventlog, tagname):
         try:
             tag = eventlog.tag_set.filter(name=tagname)[0]
             # Serialize
-            return Response(tagToDict(tag,event=event,n=n,request=request))
+            return Response(tagToDict(tag,event=event,n=eventlog.N,request=request))
         except:
             return Response("Tag not found.",status=status.HTTP_404_NOT_FOUND)
 
-    def put(self, request, graceid, n, tagname):
-        try:
-            event = Event.getByGraceid(graceid)
-            eventlog = event.eventlog_set.filter(N=n)[0]
-        except Event.DoesNotExist:
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
-        except:
-            return Response("Log does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
+    @event_and_auth_required
+    @eventlog_required
+    def put(self, request, event, eventlog, tagname):
         try:
             # Has this tag-eventlog relationship already been created? If so, kick out.
             # Actually, adding the eventlog to the tag would not hurt anything--no
@@ -1211,7 +1180,7 @@ class EventLogTagDetail(APIView):
             tag.eventlogs.add(eventlog)
 
             # Create a log entry to document the tag creation.
-            msg = "Tagged message %s: %s " % (n, tagname)
+            msg = "Tagged message %s: %s " % (eventlog.N, tagname)
             logentry = EventLog(event=event,
                                issuer=request.user,
                                comment=msg)
@@ -1224,18 +1193,9 @@ class EventLogTagDetail(APIView):
 
             return Response("Tag created.",status=status.HTTP_201_CREATED)
 
-    def delete(self, request, graceid, n, tagname):
-        try:
-            event = Event.getByGraceid(graceid)
-            eventlog = event.eventlog_set.filter(N=n)[0]
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
-        except:
-            # XXX Real error message.
-            return Response("Log does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
+    @event_and_auth_required
+    @eventlog_required
+    def delete(self, request, event, eventlog, tagname):
         try:
             tag = eventlog.tag_set.filter(name=tagname)[0]
             tag.eventlogs.remove(eventlog)
@@ -1245,7 +1205,7 @@ class EventLogTagDetail(APIView):
                 tag.delete()
 
             # Create a log entry to document the tag creation.
-            msg = "Removed tag %s for message %s. " % (tagname, n)
+            msg = "Removed tag %s for message %s. " % (tagname, eventlog.N)
             logentry = EventLog(event=event,
                                issuer=request.user,
                                comment=msg)
@@ -1408,18 +1368,6 @@ def download(request, graceid, filename=""):
 
     return response
 
-from django.utils.functional import wraps
-def event_and_auth_required(view):
-    @wraps(view)
-    def inner(self, request, graceid, *args, **kwargs):
-        try:
-            event = Event.getByGraceid(graceid)
-            self.check_object_permissions(request, event)
-        except Event.DoesNotExist:
-            return HttpResponseNotFound("Event not found.")
-        return view(self, request, event, *args, **kwargs)
-    return inner
-
 class Files(APIView):
     """Files Resource"""
 
@@ -1432,14 +1380,6 @@ class Files(APIView):
     def get(self, request, event, filename=""):
         # Do not filename to be None.  That messes up later os.path.join
         filename = filename or ""
-
-#        try:
-#            event = Event.getByGraceid(graceid)
-#            # This will check whether the user has 'view' permission on the event.
-#        except Event.DoesNotExist:
-#            return HttpResponseNotFound("Event not found")
-
-#        self.check_object_permissions(request, event)
         graceid = event.graceid()
 
         # The plan to deal with that general/ directory maybe
@@ -1524,16 +1464,10 @@ class Files(APIView):
 
         return response
 
-    def put(self, request, graceid, filename=""):
+    @event_and_auth_required
+    def put(self, request, event, filename=""):
         """ File uploader.  Implements file versioning. """
         filename = filename or ""
-
-        try:
-            event = Event.getByGraceid(graceid)
-            # This will check whether the user has 'change' permission on the event.
-            self.check_object_permissions(self.request, event)
-        except Event.DoesNotExist:
-            return HttpResponseNotFound("Event not found")
 
         if filename.startswith("general/"):
             # No writing to general/
@@ -1555,7 +1489,7 @@ class Files(APIView):
             longname = fdest.name
             shortname = longname[longname.rfind(filename):]
             rv['permalink'] = reverse(
-                    "files", args=[graceid, shortname], request=request)
+                    "files", args=[event.graceid(), shortname], request=request)
             response = Response(rv, status=status.HTTP_201_CREATED)
         except Exception, e:
             # XXX This needs some thought.
@@ -1598,6 +1532,7 @@ class PerformanceInfo(APIView):
     permission_classes = (IsAuthenticated,)
     parser_classes = (parsers.MultiPartParser,)
 
+    # XXX This should probably have some auth protection.
     def get(self, request, *args, **kwargs):
         try:
             performance_info = get_performance_info()

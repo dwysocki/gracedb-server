@@ -32,6 +32,33 @@ MAX_QUERY_RESULTS = 1000
 GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 
 import json
+from django.utils.functional import wraps
+
+#
+# A wrapper for retrieving an event and replacing
+# graceid in the arg list with the event itself.
+#
+def event_required(view):
+    @wraps(view)
+    def inner(request, graceid, *args, **kwargs):
+        try:
+            event = Event.getByGraceid(graceid) 
+        except Event.DoesNotExist:
+            return HttpResponseNotFound("Event not found.")
+        return view(request, event, *args, **kwargs)
+    return inner
+
+#
+# A wrapper for checking whether an event is viewable
+# by the user
+#
+def event_viewable(view):
+    @wraps(view)
+    def inner(request, event, *args, **kwargs):
+        if not user_has_perm(request.user, 'view', event):
+            return HttpResponseForbidden("Forbidden")
+        return view(request, event, *args, **kwargs)
+    return inner
 
 def index(request):
 #   assert request.user
@@ -41,8 +68,9 @@ def index(request):
             context_instance=RequestContext(request))
 
 
-def voevent(request, graceid):
-    event = Event.getByGraceid(graceid)
+@event_required
+@event_viewable
+def voevent(request, event):
     if not event.far or not event.gpstime:
         # can't build VOEvent without a FAR or GPS time
         message = "Cannot build a VOEvent."
@@ -131,11 +159,8 @@ def _create(request):
                     rv['error'] += "%s: %s\n" % (key, form.errors[key].as_text())
     return rv
 
-def logentry(request, graceid, num=None):
-    try:
-        event = Event.getByGraceid(graceid)
-    except Event.DoesNotExist:
-        raise Http404
+@event_required
+def logentry(request, event, num=None):
     if request.method == "POST":
         # create a log entry
         elog = EventLog(event=event, issuer=request.user)
@@ -184,7 +209,7 @@ def logentry(request, graceid, num=None):
         return HttpResponseBadRequest
 
     if not request.is_ajax():
-        return HttpResponseRedirect(reverse(view, args=[graceid]))
+        return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
 
     rv = {}
     rv['comment'] = elog.comment
@@ -196,7 +221,9 @@ def logentry(request, graceid, num=None):
 
     return HttpResponse(json.dumps(rv), content_type="application/json")
 
-def neighbors(request, graceid, delta1, delta2=None):
+@event_required
+@event_viewable
+def neighbors(request, event, delta1, delta2=None):
     context = {}
     try:
         delta1 = long(delta1)
@@ -210,40 +237,32 @@ def neighbors(request, graceid, delta1, delta2=None):
     except ValueError: pass
     except: pass
 
-    try:
-        event = Event.getByGraceid(graceid)
-    except Event.DoesNotExist:
-        raise Http404
-    context['nearby'] = [(e.gpstime - event.gpstime, e)
-                            for e in event.neighbors((delta1,delta2))]
+    # Check that all the neighbors in the queryset are viewable.
+    neighbor_qs = filter_events_for_user(event.neighbors((delta1,delta2)),
+                    request.user, 'view')
+
+    context['nearby'] = [(e.gpstime - event.gpstime, e) for e in neighbor_qs]
     context['neighbor_delta'] = "[%+d,%+d]" % (delta1, delta2)
     return render_to_response(
         'gracedb/neighbors_frag.html',
         context,
         context_instance=RequestContext(request))
 
-def view(request, graceid):
-
+@event_required
+@event_viewable
+def view(request, event):
     context = {}
-    try:
-        a = Event.getByGraceid(graceid)
-    except Event.DoesNotExist:
-        raise Http404
-
-    if not user_has_perm(request.user, 'view', a):
-        return HttpResponseForbidden("Forbidden")
-
-    context['object'] = a
-    context['eventdesc'] = get_file(graceid, "event.log")
-    context['userdesc'] = get_file(graceid, "user.log")
-    context['nearby'] = [(event.gpstime - a.gpstime, event)
-                            for event in a.neighbors()]
+    context['object'] = event
+    context['eventdesc'] = get_file(event.graceid(), "event.log")
+    context['userdesc'] = get_file(event.graceid(), "user.log")
+    context['nearby'] = [(e.gpstime - event.gpstime, e)
+                            for e in event.neighbors()]
 #    context['skyalert_authorized'] = skyalert_authorized(request)
     context['blessed_tags'] = settings.BLESSED_TAGS
-    context['single_inspiral_events'] = list(a.singleinspiral_set.all())
+    context['single_inspiral_events'] = list(event.singleinspiral_set.all())
     context['neighbor_delta'] = "[%+d,%+d]" % (-5,5)
     return render_to_response(
-        [ 'gracedb/event_detail_{0}.html'.format(a.analysisType),
+        [ 'gracedb/event_detail_{0}.html'.format(event.analysisType),
           'gracedb/event_detail.html'],
         context,
         context_instance=RequestContext(request))
@@ -282,7 +301,7 @@ def search(request, format=""):
 
         #query = request.POST['query']
         # ???!!!
-        query = "blah"
+        #query = "blah"
 
         return response
 
@@ -508,28 +527,28 @@ def oldsearch(request):
             { 'form' : form },
             context_instance=RequestContext(request))
 
-def timeline(request):
-    from utils import gpsToUtc
-    from django.utils import dateformat
-
-    response = HttpResponse(mimetype='application/javascript')
-    events = []
-    for event in Event.objects.exclude(group__name="Test").all():
-        if event.gpstime:
-            t = dateformat.format(gpsToUtc(event.gpstime), "F j, Y h:i:s")+" UTC"
-
-            events.append({
-                'start': t,
-                'title': event.get_analysisType_display(),
-                'description':
-                    "%s<br/>%s" %(event.get_analysisType_display(),"GPS time:%s"%event.gpstime),
-                'durationEvent':False,
-              })
-    d = {'events': events}
-    msg = json.dumps(d)
-    response['Content-length'] = len(msg)
-    response.write(msg)
-    return response
+#def timeline(request):
+#    from utils import gpsToUtc
+#    from django.utils import dateformat
+#
+#    response = HttpResponse(mimetype='application/javascript')
+#    events = []
+#    for event in Event.objects.exclude(group__name="Test").all():
+#        if event.gpstime:
+#            t = dateformat.format(gpsToUtc(event.gpstime), "F j, Y h:i:s")+" UTC"
+#
+#            events.append({
+#                'start': t,
+#                'title': event.get_analysisType_display(),
+#                'description':
+#                    "%s<br/>%s" %(event.get_analysisType_display(),"GPS time:%s"%event.gpstime),
+#                'durationEvent':False,
+#              })
+#    d = {'events': events}
+#    msg = json.dumps(d)
+#    response['Content-length'] = len(msg)
+#    response.write(msg)
+#    return response
 
 class LimitedEvent():
     def __init__(self, event):
@@ -583,13 +602,9 @@ def latest(request):
 # XXX Get rid of this and use apiweb views instead?
 #-----------------------------------------------------------------------------------
 
-def taglogentry(request, graceid, num, tagname):
-    try:
-        event = Event.getByGraceid(graceid)
-        eventlog = event.eventlog_set.filter(N=num)[0]
-    except:
-        # Either the event or the log does not exist.
-        raise Http404
+@event_required
+def taglogentry(request, event, num, tagname):
+    eventlog = event.eventlog_set.filter(N=num)[0]
 
     if request.method == "POST":
         try:
@@ -648,14 +663,14 @@ def taglogentry(request, graceid, num, tagname):
 
     # Hopefully, this will only ever be called form inside a script.  Just in case...
     if not request.is_ajax():
-        return HttpResponseRedirect(reverse(view, args=[graceid]))
+        return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
 
     # no need for a JSON response. 
     msg = "Successfully applied tag %s to log message %s." % (tagname, num)
     return HttpResponse(msg, content_type="text")
 
-# XXX added by Branson. Performance metrics.
-
+# Performance metrics.
+# XXX Should probably protect this view.
 def performance(request):
 
     try:
@@ -668,30 +683,11 @@ def performance(request):
             context,
             context_instance=RequestContext(request))
 
+#
 # A view for the list of files associated with an event.
 # We're deliberately leaving out the /general directory.
 # The idea is to get rid of that horrible /gracedb-files/ url.
-
-from django.utils.functional import wraps
-
-def event_required(view):
-    @wraps(view)
-    def inner(request, graceid, *args, **kwargs):
-        try:
-            event = Event.getByGraceid(graceid) 
-        except Event.DoesNotExist:
-            return HttpResponseNotFound("Event not found.")
-        return view(request, event, *args, **kwargs)
-    return inner
-
-def event_viewable(view):
-    @wraps(view)
-    def inner(request, event, *args, **kwargs):
-        if not user_has_perm(request.user, 'view', event):
-            return HttpResponseForbidden("Forbidden")
-        return view(request, event, *args, **kwargs)
-    return inner
-
+#
 @event_required
 @event_viewable
 def file_list(request, event):
@@ -722,7 +718,7 @@ def file_list(request, event):
 #    try:
 #        return u"{0} {1}".format(request.user.first_name, request.user.last_name) in settings.SKYALERT_SUBMITTERS
 #    except:
-#        return False
+#        return Fals
 #
 #def skyalert(request, graceid):
 #    event = Event.getByGraceid(graceid)

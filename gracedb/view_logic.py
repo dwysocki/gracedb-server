@@ -108,11 +108,8 @@ def _createEventFromForm(request, form):
         event = None
     return event, warnings
 
-def create_label(graceid, labelName, creator, doAlert=True, doXMPP=True):
-
+def create_label(event, labelName, creator, doAlert=True, doXMPP=True):
     d = {}
-    event = graceid and Event.getByGraceid(graceid)
-    
     try:
         label = Label.objects.filter(name=labelName)[0]
     except IndexError:
