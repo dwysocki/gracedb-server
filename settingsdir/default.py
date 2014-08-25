@@ -243,7 +243,7 @@ STATICFILES_DIRS = ()
 
 # XXX The following Log settings are for a performance metric.
 import logging
-LOG_ROOT = '/home/gracedb/logs'
+LOG_ROOT = '/home/fzhang/gracedb/logs'
 
 # Filter objects to separate out each level of alert.
 class infoOnlyFilter(logging.Filter):

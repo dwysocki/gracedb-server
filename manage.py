@@ -2,7 +2,6 @@
 from django.core.management import execute_manager
 import os
 
-
 try:
     import settings # Assumed to be in the same directory.
 except ImportError:
