@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from django.core.management import execute_manager
+import os
 
 
 try:
@@ -10,4 +11,5 @@ except ImportError:
     sys.exit(1)
 
 if __name__ == "__main__":
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
     execute_manager(settings)

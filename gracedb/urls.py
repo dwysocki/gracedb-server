@@ -14,10 +14,13 @@ urlpatterns = patterns('gracedb.views',
     url (r'^skyalert/(?P<graceid>[GEHT]\d+)', 'skyalert', name="skyalert"),
     url (r'^neighbors/(?P<graceid>[GEHT]\d+)/\(?(?P<delta1>[-+]?\d+)(,(?P<delta2>[-+]?\d+)\)?)?', 'neighbors', name="neighbors"),
     url (r'^(?P<graceid>[GEHT]\d+)$', 'view', name="view2"),
+    url (r'^skymapViewer/(?P<graceid>[GEHT]\d+)$', 'skymap_view', name="skymap_view"),
     url (r'^(?P<graceid>[GEHT]\d+)/files/(?P<filename>.*)$', download, name="file"),
     url (r'^(?P<graceid>[GEHT]\d+)/log/(?P<num>([\d]*|preview))$', 'logentry', name="logentry"),
     url (r'^(?P<graceid>[GEHT]\d+)/log/(?P<num>\d+)/tag/(?P<tagname>\w+)$', 'taglogentry', name="taglogentry"),
 
+# RDW Aug 2014
+#(r'^admin/', include(admin.site.urls)),
 
 #   (r'^view/(?P<uid>[\w\d]+)', 'view'),
 #   (r'^edit/(?P<uid>[\w\d]+)', 'edit'),

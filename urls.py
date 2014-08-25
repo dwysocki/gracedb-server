@@ -3,8 +3,8 @@ from django.conf.urls.defaults import *
 from django.conf import settings
 
 # Uncomment the next two lines to enable the admin:
-from django.contrib import admin
-admin.autodiscover()
+#from django.contrib import admin
+#admin.autodiscover()
 
 from gracedb.feeds import EventFeed, feedview
 
@@ -41,7 +41,7 @@ urlpatterns = patterns('',
     # to INSTALLED_APPS to enable admin documentation:
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
-    url(r'^admin/', include(admin.site.urls)),
+#    url(r'^admin/', include(admin.site.urls)),
 
     # For development only.  And only for old Django versions (like 1.2)
     (r'^gracedb-static/(?P<path>.*)$', 'django.views.static.serve',

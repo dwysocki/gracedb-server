@@ -1235,3 +1235,42 @@ def performance(request):
             context,
             context_instance=RequestContext(request))
  
+def skymap_view(request, graceid):
+    filename=request.GET.get('filename','skymap.json')
+    file_version=request.GET.get('version', None)
+    viewer=request.GET.get('viewer','aladin')
+
+    context = {}
+    try:
+        event = Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        raise Http404
+
+    if viewer not in ['aladin','wwt',]:
+        return HttpResponseBadRequest("Unsupported viewer. Choices are 'aladin' or 'wwt'.")
+
+    # Now look for the JSON skymap contours file.
+    if file_version:
+        filename += ',%s' % file_version
+    filepath = os.path.join(event.datadir(), filename)
+
+    content = None
+    if not os.path.exists(filepath):
+        response = HttpResponseNotFound("File and/or version does not exist")
+    elif not os.access(filepath, os.R_OK):
+        response = HttpResponseNotFound("File not readable")
+    elif os.path.isfile(filepath):
+        f = open(filepath, "r")
+        content = f.read()
+        # XXX Removing the newlines is necessary for some reason.
+        content = content.replace('\n','')
+        f.close()
+
+    context['content'] = content
+    context['graceid'] = graceid
+    # I wonder if there is a nicer way to get it into the context
+    context['SKYMAP_VIEWER_MEDIA_URL'] = settings.SKYMAP_VIEWER_MEDIA_URL;
+    return render_to_response(
+            'gracedb/%s_skymap_viewer.html' % viewer, context,
+            context_instance=RequestContext(request))
+

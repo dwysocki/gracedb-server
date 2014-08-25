@@ -51,12 +51,13 @@ class LigoAuthMiddleware:
         # An authenticated LIGO user will have one of these set.
 
         remote_user = request.META.get('REMOTE_USER')
+        message = remote_user
         dn = cert_dn_from_request(request)
 
         if remote_user:
             user = authenticate(principal=remote_user)
             if not (user and user.is_authenticated()):
-                # XXX THIS SHOULD NEVER HAPPEN
+                message += "THIS SHOULD NEVER HAPPEN"
                 pass
 
         if not user and dn:
@@ -88,7 +89,7 @@ class LigoAuthMiddleware:
                 return HttpResponseForbidden("{ 'error': '%s'  }" % message)
             return render_to_response(
                     'forbidden.html',
-                    {},
+                    {'error': message},
                     context_instance=RequestContext(request))
 
 class RemoteUserBackend(DefaultRemoteUserBackend):
