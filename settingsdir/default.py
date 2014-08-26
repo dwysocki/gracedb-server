@@ -1,5 +1,6 @@
 
 # Suitable for production
+ALLOWED_HOSTS = ['*']
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -136,12 +137,12 @@ USE_I18N = False
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = ''
+#MEDIA_ROOT = ''
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = '/gracedb-static/'
+#MEDIA_URL = '/gracedb-static/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -156,7 +157,9 @@ TEMPLATE_LOADERS = (
     #'django.template.loaders.filesystem.load_template_source',
     # replaced by...
     'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.load_template_source',
+    # Upgrade to 1.4
+    #'django.template.loaders.app_directories.load_template_source',
+    'django.template.loaders.app_directories.Loader',
 #     'django.template.loaders.eggs.load_template_source',
 )
 
@@ -232,6 +235,7 @@ REST_FRAMEWORK = {
 
 
 STATIC_URL = "/gracedb-static/"
+STATIC_ROOT = "/home/gracedb/graceproj/static/"
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',

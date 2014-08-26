@@ -9,26 +9,26 @@
 {% for trigger in triggers %}
    <ul>
      <li> 
-        <!-- <a href="{% url userprofile-edit trigger.id  %}">Edit</a> -->
-        <a href="{% url userprofile-delete trigger.id %}">Delete</a>
+        <!-- <a href="{% url "userprofile-edit" trigger.id  %}">Edit</a> -->
+        <a href="{% url "userprofile-delete" trigger.id %}">Delete</a>
         {{ trigger.userlessDisplay }}
      </li>
    </ul>
 {% endfor %}
 
-<a href="{% url userprofile-create %}">Create New Notification</a>
+<a href="{% url "userprofile-create" %}">Create New Notification</a>
 
 <h2>Contacts</h2>
 {% for contact in contacts %}
     <ul>
         <li>
-            <!-- <a href="{% url userprofile-edit-contact contact.id %}">Edit</a> -->
-            <a href="{% url userprofile-delete-contact contact.id %}">Delete</a>
+            <!-- <a href="{% url "userprofile-edit-contact" contact.id %}">Edit</a> -->
+            <a href="{% url "userprofile-delete-contact" contact.id %}">Delete</a>
             {{ contact.desc }} / {{ contact.email }}
         </li>
     </ul>
 {% endfor %}
 
-<a href="{% url userprofile-create-contact %}">Create New Contact</a>
+<a href="{% url "userprofile-create-contact" %}">Create New Contact</a>
 
 {% endblock %}

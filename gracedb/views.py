@@ -9,7 +9,9 @@ from django.contrib.sites.models import Site
 from django.utils.html import strip_tags, escape, urlize
 from django.utils.safestring import mark_safe
 
-from django.views.generic.list_detail import object_detail, object_list
+# Upgrade to Django 1.5: No more function-based generic views.
+#from django.views.generic.list_detail import object_list
+from django.views.generic.list import ListView
 from django.contrib.auth.decorators import login_required
 
 from models import Event, Group, EventLog, Labelling, Label, Tag
@@ -18,7 +20,6 @@ from models import MultiBurstEvent
 from models import GrbEvent
 from models import SingleInspiral
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
-from forms import SimpleSearchFormWithSubclasses
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
 from query import parseQuery
@@ -261,8 +262,12 @@ def _createEventFromForm(request, form):
             temp_data_loc = handle_uploaded_data(event, uploadDestination)
             try:
                 # Send an alert.
+                # XXX This reverse will give the web-interface URL, not the REST URL.
+                # This could be a problem if anybody ever tries to use it.
+                # NOTE: The clusterurl method should be considered deprecated.
                 issueAlert(event,
-                           os.path.join(event.clusterurl(), "private", f.name),
+                           #os.path.join(event.clusterurl(), "private", f.name),
+                           request.build_absolute_uri(reverse("file", args=[event.graceid(),f.name])),
                            temp_data_loc)
             except Exception, e:
                 warnings += ["Problem issuing an alert (%s)" % e]
@@ -784,14 +789,36 @@ def search(request, format=""):
                     title = "Query Results. %s event" % objects.count()
                 else:
                     title = "Query Results. %s events" % objects.count()
-                context = {
-                    'title': title,
-                    'form': form,
-                    'formAction': reverse(search),
-                    'maxCount': limit,
-                    'rawquery' : rawquery,
-                }
-                return object_list(request, objects, extra_context=context)
+                # XXX This seems like a hacky misuse of generic views.
+                # In Django 1.3 and earlier, things were simpler:
+                #
+                # return object_list(request, objects, extra_context=context)
+                # 
+                # But with for compatibility, with Django 1.6, this becomes:
+                class EventListView(ListView):
+                    queryset = objects
+                    template_name = "gracedb/event_list.html"
+
+                    def dispatch(self, request, *args, **kwargs):
+                        # NOTE: We have to hack around the handler selector, because
+                        # the actual request might have been a POST.
+                        handler = getattr(self, 'get', self.http_method_not_allowed)
+                        return handler(request, *args, **kwargs)
+
+                    # This is how to get the extra context in, according to the django docs.
+                    def get_context_data(self, **kwargs):
+                        context = super(EventListView, self).get_context_data(**kwargs)
+                        # Insert the extra context.
+                        context.update({
+                            'title'      : title,
+                            'form'       : form,
+                            'formAction' : reverse(search),
+                            'maxCount'   : limit,
+                            'rawquery'   : rawquery,
+                        })
+                        return context
+
+                return EventListView.as_view()(request)
 
     return render_to_response('gracedb/query.html',
             { 'form' : form,
@@ -889,15 +916,39 @@ def oldsearch(request):
                 title = "Query Results. %s event" % objects.count()
             else:
                 title = "Query Results. %s events" % objects.count()
-            extra_context = {'title': title }
 
             textQuery = " ".join(textQuery)
             simple_form = SimpleSearchForm({'query': textQuery})
-            extra_context['form'] = simple_form
-            extra_context['maxCount'] = MAX_QUERY_RESULTS
-            extra_context['rawquery' ] = textQuery
 
-            return object_list(request, objects, extra_context=extra_context)
+            # XXX This seems like a hacky misuse of generic views.
+            # In Django 1.3 and earlier, things were simpler:
+            #
+            # return object_list(request, objects, extra_context=context)
+            # 
+            # But with for compatibility, with Django 1.6, this becomes:
+            class EventListView(ListView):
+                queryset = objects
+                template_name = "gracedb/event_list.html"
+
+                def dispatch(self, request, *args, **kwargs):
+                    # NOTE: We have to hack around the handler selector, because
+                    # the actual request might have been a POST.
+                    handler = getattr(self, 'get', self.http_method_not_allowed)
+                    return handler(request, *args, **kwargs)
+
+                # This is how to get the extra context in, according to the django docs.
+                def get_context_data(self, **kwargs):
+                    context = super(EventListView, self).get_context_data(**kwargs)
+                    # Insert the extra context.
+                    context.update({
+                        'title'      : title,
+                        'form'       : simple_form,
+                        'maxCount'   : MAX_QUERY_RESULTS,
+                        'rawquery'   : textQuery,
+                    })
+                    return context
+
+            return EventListView.as_view()(request)
 
 
     return render_to_response('gracedb/query.html',
@@ -1234,43 +1285,27 @@ def performance(request):
             'gracedb/performance.html',
             context,
             context_instance=RequestContext(request))
- 
-def skymap_view(request, graceid):
-    filename=request.GET.get('filename','skymap.json')
-    file_version=request.GET.get('version', None)
-    viewer=request.GET.get('viewer','aladin')
 
-    context = {}
+# A view for the list of files associated with an event.
+# We're deliberately leaving out the /general directory.
+# The idea is to get rid of that horrible /gracedb-files/ url.
+def file_list(request, graceid):
     try:
         event = Event.getByGraceid(graceid)
     except Event.DoesNotExist:
-        raise Http404
+        return HttpResponseNotFound("Event not found")
 
-    if viewer not in ['aladin','wwt',]:
-        return HttpResponseBadRequest("Unsupported viewer. Choices are 'aladin' or 'wwt'.")
+    f = []
+    for dirname, dirnames, filenames in os.walk(event.datadir()):
+        f.extend(filenames)
+        break
 
-    # Now look for the JSON skymap contours file.
-    if file_version:
-        filename += ',%s' % file_version
-    filepath = os.path.join(event.datadir(), filename)
-
-    content = None
-    if not os.path.exists(filepath):
-        response = HttpResponseNotFound("File and/or version does not exist")
-    elif not os.access(filepath, os.R_OK):
-        response = HttpResponseNotFound("File not readable")
-    elif os.path.isfile(filepath):
-        f = open(filepath, "r")
-        content = f.read()
-        # XXX Removing the newlines is necessary for some reason.
-        content = content.replace('\n','')
-        f.close()
-
-    context['content'] = content
-    context['graceid'] = graceid
-    # I wonder if there is a nicer way to get it into the context
-    context['SKYMAP_VIEWER_MEDIA_URL'] = settings.SKYMAP_VIEWER_MEDIA_URL;
+    context = {}
+    context['file_list'] = f
+    context['title'] = 'Files for %s' % graceid 
+    context['graceid'] = graceid 
+        
     return render_to_response(
-            'gracedb/%s_skymap_viewer.html' % viewer, context,
-            context_instance=RequestContext(request))
-
+        'gracedb/event_filelist.html',
+        context,
+        context_instance=RequestContext(request)) 
