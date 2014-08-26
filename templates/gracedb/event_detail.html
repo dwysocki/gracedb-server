@@ -878,7 +878,232 @@
 </div>
 
 
-<p>&nbsp; </p>
+			<!-- Single Inspiral Data -->
+			<div id="bulletin_board" data-dojo-type="dijit/TitlePane"
+				data-dojo-props="title: 'EM Follow-up Bulletin Board', open: false">		
+				<script>
+				 require(["dojo/dom-construct", "dojo/dom", "dojo/on", "dojo/domReady!"],
+				function(domConstruct, dom, on){
+  					on(dom.byId("button2"), "click", function(){
+  					var subm = document.getElementById('submitter').value;
+  					var faci = document.getElementById('facility').value;
+  					var fpid = document.getElementById('fpid').value;
+  					var wvbd = document.getElementById('waveband').value;
+  					var rahh = document.getElementById('ra1').value;
+  					var ramm = document.getElementById('ra2').value;
+  					var rass = document.getElementById('ra3').value;
+  					var decd = document.getElementById('dec1').value;
+  					var decm = document.getElementById('dec2').value;
+  					var decs = document.getElementById('dec3').value;	
+  					var rawd = document.getElementById('rawidth').value;
+  					var dewd = document.getElementById('decwidth').value;
+  					var gpst = document.getElementById('gpstime').value;
+  					var dura = document.getElementById('dr').value;
+  					//var choi = document.getElementById('sc').value;
+  					var comm = document.getElementById('cm').value;
+  					var fmtt = document.getElementById('ft').value;
+  					
+    				var row = domConstruct.toDom("<tr><td>" + "" + 
+    				   							"</td><td>" + subm +  				
+    											"</td><td>" + faci +
+    											"</td><td>" + fpid +
+    											"</td><td>" + wvbd +
+    											"</td><td>" + rahh + "hh" + ramm + "mm" + rass + "ss" +
+    											"</td><td>" + decd + "dr" + decm + "mm" + decs + "ss" +
+    											"</td><td>" + rawd +
+    											"</td><td>" + dewd +
+    											"</td><td>" + gpst +
+    											"</td><td>" + dura +
+    											"</td><td>" + dura +
+    											"</td><td>" + comm +
+    											"</td><td>" + fmtt +
+    											"</td></tr>");
+    				domConstruct.place(row, "bb_log");
+  				});
+				});
+				</script>
+
+				<div data-dojo-type="dijit/form/Form" id="myForm"
+					data-dojo-id="myForm" enctype="multipart/form-data" action=""
+					method="">
+				<script>
+				 require(["dojo/parser", "dijit/form/Form", "dijit/form/Button", "dijit/form/ValidationTextBox", "dijit/form/DateTextBox"]);
+				 </script>
+				 
+				<script type="dojo/on" data-dojo-event="reset">
+        			return confirm('Press OK to reset widget values');
+    			</script>
+
+				<script type="dojo/on" data-dojo-event="submit">
+        		if(this.validate()){
+            		return confirm('Form is valid, press OK to submit');
+        			}else{
+            			alert('Form contains invalid data.  Please correct first');
+            			return false;
+        			}
+       			 return true;
+    			</script>
+
+					Make a Bulletin Board Entry Here
+
+					<table id="subcontent" width="430" border="1">
+						<tr>
+							<td width="150"><label for="submitter">Submitter:</label>
+							</td>
+							<td width="250"><input type="text" id="submitter"
+								name="submitter" size="45"
+								data-dojo-type="dijit/form/ValidationTextBox" /></td>
+						</tr>
+
+						<tr>
+							<td><label for="facility">Facility:</label>
+							</td>
+							<td><input type="text" id="facility" name="facility"
+								size="45" data-dojo-type="dijit/form/ValidationTextBox" />
+							</td>
+						</tr>
+
+						<tr>
+							<td><label for="fpid">Foot Print ID:</label>
+							</td>
+							<td><input type="text" id="fpid" name="fpid" size="45"
+								data-dojo-type="dijit/form/ValidationTextBox" />
+							</td>
+						</tr>
+						
+						<tr>
+							<td><label for="waveband">Wave Band:</label>
+							</td>
+							<td><input type="text" id="waveband" name="waveband" size="45"
+								data-dojo-type="dijit/form/ValidationTextBox" />
+							</td>
+						</tr>
+
+						<tr>
+							<td><label for="ra">RA (J2000):</label>
+							</td>
+							<td><input type="text" id="ra" name="ra" size="45"
+								data-dojo-type="dijit/form/ValidationTextBox" />
+							</td>
+						</tr>
+
+						<tr>
+							<td><label for="ra">DEC (J2000):</label>
+							</td>
+							<td><input type="text" id="dec" name="dec" size="45"
+								data-dojo-type="dijit/form/ValidationTextBox" />
+							</td>
+						</tr>
+						
+						<tr>
+							<td><label for="rawidth">RA Width (Degree):</label>
+							</td>
+							<td><input type="text" id=""rawidth"" name=""rawidth"" size="45"
+								data-dojo-type="dijit/form/ValidationTextBox" />
+							</td>
+						</tr>
+						
+						<tr>
+							<td><label for="decwidth">Dec Width (Degree):</label>
+							</td>
+							<td><input type="text" id=""decwidth"" name=""decwidth"" size="45"
+								data-dojo-type="dijit/form/ValidationTextBox" />
+							</td>
+						</tr>
+
+
+						<tr>
+							<td width="150"><label for="gpstime">GPS Time:</label>
+							</td>
+							<td><input type="datetime" id="gpstime" name="gpstime" size="45"
+								data-dojo-type="dijit/form/ValidationTextBox" />
+							</td>
+						</tr>
+
+						<tr>
+							<td width="150"><label for="dr">Duration:</label>
+							</td>
+							<td><input type="text" id="dr" name="dr" size="45"
+								data-dojo-type="dijit/form/ValidationTextBox" />
+							</td>
+						</tr>
+						
+						<tr>
+							<td width="150"><label for="sc">Status Choice:</label>
+							</td>
+							<td><input type="radio" name="sc" id="ob" checked value="OBSERVATION" /><label for="ob">OBSERVATION</label><br>
+								<input type="radio" name="sc" id="te" /><label for="te">TEST</label><br>
+								<input type="radio" name="sc" id="pr" /><label for="pr">PREDICTION</label>
+							</td>
+						</tr>						
+
+						<tr>
+							<td width="150"><label for="cm">Comments:</label>
+							</td>
+							<td><input type="text" id="cm" name="cm" size="45"
+								data-dojo-type="dijit/form/ValidationTextBox" />
+							</td>
+						</tr>
+
+						<tr>
+							<td width="150"><label for="ft">Formal Text:</label>
+							</td>
+							<td><input type="text" id="ft" name="ft" size="45"
+								data-dojo-type="dijit/form/ValidationTextBox" />
+							</td>
+						</tr>
+
+					</table>
+
+					<!-- <button data-dojo-type="dijit/form/Button" type="button" id="button2">Get Values from form!</button> 
+					why data-dojo-type doesn't work here?-->
+					<button id="button2" type="button">Add a row</button>
+					<button type="submit"
+						name="submitButton" value="Submit" >Submit</button>
+					<button type="reset">Reset</button>
+				</div>
+
+				<!-- Bulletin Board Log -->
+
+				<div data-dojo-type="dijit/TitlePane"
+					data-dojo-props="title: 'Bulletin Board Log', open: false">
+						<table id="bb_2" class="event" border="1">
+						<thead>
+							<tr>
+								<th>id</th>
+								<th>Submitter</th>
+								<th>Facility</th>
+								<th>FootPrintID</th>
+								<th>Waveband</th>
+								<th>Ra</th>
+								<th>Dec</th>
+								<th>RaWidth</th>
+								<th>DecWidth</th>
+								<th>
+									<form>
+										<select onchange="changeTime(this, 'gps')"><option
+												value="gps" selected>GPS Time</option>
+											<option value="llo">LLO Local</option>
+											<option value="lho">LHO Local</option>
+											<option value="virgo">Virgo Local</option>
+											<option value="utc">UTC</option>
+										</select>
+									</form> Time Start</th>
+								<th>Duration</th>
+								<th>Status</th>
+								<th>Comments</th>
+								<th>FormalText</th>
+							</tr>
+						</thead>
+						
+						  <tbody id="bb_log" >
+  						</tbody>
+						
+						</table>
+				</div>
+</div>
+
+
 <div id="annotations" class="content-area">
 
     <div id="new_log_entry_form">
