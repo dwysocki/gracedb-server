@@ -346,6 +346,17 @@ class EMBBEventLog(models.Model):
     A rectangle on the sky, equatorially aligned,
     that has or will be imaged that is related to an event"""
 
+    class Meta:
+        ordering = ['-created', '-N']
+        unique_together = ("event","N")
+
+    # A counter for Eels associated with a given event. This is 
+    # important for addressibility.
+    N = models.IntegerField(null=False)
+    
+    # The time at which this Eel was created. Important for event auditing.
+    created = models.DateTimeField(auto_now_add=True)
+
     # The gracedb event that this Eel relates to
     event = models.ForeignKey(Event)
 
@@ -391,6 +402,30 @@ class EMBBEventLog(models.Model):
     # This field is formal struct by a syntax TBD
     # for example  {"phot.mag.limit": 22.3}
     extra_info_dict = models.TextField(null=True)
+
+    # We overload the 'save' method to avoid race conditions, since the Eels are numbered. 
+    def save(self, *args, **kwargs):
+        success = False
+        attempts = 0
+        while (not success and attempts < 5):
+            attempts = attempts + 1
+            if self.event.eventlog_set.count():
+                self.N = int(self.event.eventlog_set.aggregate(models.Max('N'))['N__max']) + 1
+            else:
+                self.N = 1
+            try:
+                super(EventLog, self).save(*args, **kwargs)
+                success = True
+            except IntegrityError:
+                # IntegrityError means an attempt to insert a duplicate
+                # key or to violate a foreignkey constraint.
+                # We are under race conditions.  Let's try again.
+                pass
+
+        if not success:
+            # XXX Should this be a custom exception?  That way we could catch it
+            # in the views that use it and give an informative error message.
+            raise Exception("Too many attempts to save log message. Something is wrong.")
 
 class Labelling(models.Model):
     event = models.ForeignKey(Event)
