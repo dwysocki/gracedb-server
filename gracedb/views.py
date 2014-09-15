@@ -252,36 +252,6 @@ def search(request, format=""):
     limit = MAX_QUERY_RESULTS
     form2 = None
 
-    # This block is crap and for debugging.  Remove it!
-    if False and format == "flex":
-        response = HttpResponse(mimetype='application/json')
-        rows = [
-                { 'id': 1, 'cell': 
-                    [ "G0966", "", "CBC", "MBTAOnline", 9382382, "Data Wiki", "today!"]
-                    },
-                { 'id': 2, 'cell':
-                    [ "G0967", "", "CBC", "MBTAOnline", 9382382, "Data Wiki", "today!"]
-                    },
-                { 'id': 3, 'cell':
-                    [ "G0968", "", "CBC", "MBTAOnline", 9382382, "Data Wiki", "today!"]
-                    },
-            ]
-        d = {
-                'page': 1, #self.page,
-                'total': 1,
-                'records' : 3,
-                'rows': rows
-            }
-        msg = json.dumps(d)
-        response['Content-length'] = len(msg)
-        response.write(msg)
-
-        #query = request.POST['query']
-        # ???!!!
-        #query = "blah"
-
-        return response
-
     if request.method == "GET" and "query" not in request.GET:
         form = SimpleSearchForm()
         form2 = EventSearchForm()
@@ -493,28 +463,6 @@ def oldsearch(request):
             { 'form' : form },
             context_instance=RequestContext(request))
 
-def timeline(request):
-    from utils import gpsToUtc
-    from django.utils import dateformat
-
-    response = HttpResponse(mimetype='application/javascript')
-    events = []
-    for event in Event.objects.exclude(group__name="Test").all():
-        if event.gpstime:
-            t = dateformat.format(gpsToUtc(event.gpstime), "F j, Y h:i:s")+" UTC"
-
-            events.append({
-                'start': t,
-                'title': event.get_analysisType_display(),
-                'description':
-                    "%s<br/>%s" %(event.get_analysisType_display(),"GPS time:%s"%event.gpstime),
-                'durationEvent':False,
-              })
-    d = {'events': events}
-    msg = json.dumps(d)
-    response['Content-length'] = len(msg)
-    response.write(msg)
-    return response
 
 class LimitedEvent():
     def __init__(self, event):
@@ -680,6 +628,31 @@ def file_list(request, graceid):
 #------------------------------------------------------------------------------------------
 # Old Stuff
 #------------------------------------------------------------------------------------------
+# XXX This looks interesting. Apparently an old attempt by Brian to make a nice 
+# graphical timeline of events, a la SkyAlert. Or something?
+#def timeline(request):
+#    from utils import gpsToUtc
+#    from django.utils import dateformat
+#
+#    response = HttpResponse(mimetype='application/javascript')
+#    events = []
+#    for event in Event.objects.exclude(group__name="Test").all():
+#        if event.gpstime:
+#            t = dateformat.format(gpsToUtc(event.gpstime), "F j, Y h:i:s")+" UTC"
+#
+#            events.append({
+#                'start': t,
+#                'title': event.get_analysisType_display(),
+#                'description':
+#                    "%s<br/>%s" %(event.get_analysisType_display(),"GPS time:%s"%event.gpstime),
+#                'durationEvent':False,
+#              })
+#    d = {'events': events}
+#    msg = json.dumps(d)
+#    response['Content-length'] = len(msg)
+#    response.write(msg)
+#    return response
+#
 #import re
 #from django.core.mail import mail_admins
 #from buildVOEvent import submitToSkyalert
