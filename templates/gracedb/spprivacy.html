@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+{% block heading %}GraceDB &mdash; Service Provider Privacy{% endblock %}
+{% block pageid %}SPPrivacy{% endblock %}
+
+{% block content %}
+
+<div class="text">
+
+<p>
+This service provider receives an identifier for you
+known as an eduPersonPrincipalName (or eppn) from your login provider. 
+Within GraceDB, this eppn functions as your username.  If you are outside the
+LIGO/Virgo community, the eppn is also used to look you up in the 
+<a href="https://gw-astronomy.org">Gravitational Wave Astronomy Community Registry</a> 
+to find your
+group membership information (which determines read and edit permissions).
+
+None of this information about you is shared with any service or tools outside
+of those supporting collaboration across the gravitational wave astronomy
+community.
+
+</p>
+
+</div>
+
+{% endblock %}
