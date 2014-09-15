@@ -12,6 +12,15 @@ from django.http import HttpResponseForbidden
 
 proxyPattern = re.compile(r'^(.*?)(/CN=\d+)*$')
 
+# XXX Hack. This will go away when we get the new perms infrastructure in place.
+PUBLIC_URLS = [
+    '/',
+    '/SPInfo',
+    '/SPInfo/',
+    '/SPPrivacy',
+    '/SPPrivacy/',
+]
+
 def cert_dn_from_request(request):
     """Take a request, rummage through SSL_* headers, return the DN for the user."""
     certdn = request.META.get('SSL_CLIENT_S_DN')
@@ -79,7 +88,9 @@ class LigoAuthMiddleware:
 
         request.user = user
 
-        if user is None:
+        # Check: Is the requested URL allowed for the PUBLIC?
+        #if user is None:
+        if user is None and request.path_info not in PUBLIC_URLS:
             # Forbidden!
             is_cli = request.POST.get('cli_version') or \
                      request.GET.get('cli_version')
