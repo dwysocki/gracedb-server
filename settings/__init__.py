@@ -29,6 +29,9 @@ configs = {
     '/home/branson/gracedbdev': 'branson',
     '/home/branson/gracedbdev/gracedb': 'branson',
 
+    '/home/fzhang/gracedb/gracedb': 'fan',
+    '/home/fzhang/gracedb/gracedb/gracedb': 'fan',
+
     "/home/gracedb/gracestage" : "stage",
 
 }

@@ -39,6 +39,18 @@ def index(request):
             {},
             context_instance=RequestContext(request))
 
+# SP Info and Privacy pages are required for Federation with InCommon. 
+def spinfo(request):
+    return render_to_response('gracedb/spinfo.html', {}, context_instance=RequestContext(request))
+
+def spprivacy(request):
+    return render_to_response('gracedb/spprivacy.html', {}, context_instance=RequestContext(request))
+
+def skyalert_authorized(request):
+    try:
+        return u"{0} {1}".format(request.user.first_name, request.user.last_name) in settings.SKYALERT_SUBMITTERS
+    except:
+        return False
 
 def voevent(request, graceid):
     event = Event.getByGraceid(graceid)
