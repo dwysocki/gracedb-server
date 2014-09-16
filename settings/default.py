@@ -256,6 +256,8 @@ SOUTH_MIGRATION_MODULES = {
     'guardian' : 'migrations.guardian',
 }
 
+SOUTH_TESTS_MIGRATE = False
+
 # XXX The following Log settings are for a performance metric.
 import logging
 LOG_ROOT = '/home/gracedb/logs'
