@@ -35,28 +35,27 @@ import json
 from django.utils.functional import wraps
 
 #
-# A wrapper for retrieving an event and replacing
-# graceid in the arg list with the event itself.
+# A wrapper for retrieving an event and replacing graceid 
+# in the arg list with the event itself.  Also checks 
+# whether the user is authorized for this event.
 #
-def event_required(view):
+def event_and_auth_required(view):
     @wraps(view)
     def inner(request, graceid, *args, **kwargs):
         try:
             event = Event.getByGraceid(graceid) 
         except Event.DoesNotExist:
             return HttpResponseNotFound("Event not found.")
-        return view(request, event, *args, **kwargs)
-    return inner
 
-#
-# A wrapper for checking whether an event is viewable
-# by the user
-#
-def event_viewable(view):
-    @wraps(view)
-    def inner(request, event, *args, **kwargs):
-        if not user_has_perm(request.user, 'view', event):
-            return HttpResponseForbidden("Forbidden")
+        # Check permissions. If the event is specified, 'GET'
+        # maps to 'view', and unsafe methods map to 'CHANGE'
+        if request.method=='GET':
+            if not user_has_perm(request.user, 'view', event):
+                return HttpResponseForbidden("Forbidden")
+        elif request.method in ['POST', 'DELETE']:                
+            if not user_has_perm(request.user, 'change', event):
+                return HttpResponseForbidden("Forbidden")
+
         return view(request, event, *args, **kwargs)
     return inner
 
@@ -74,8 +73,7 @@ def spinfo(request):
 def spprivacy(request):
     return render_to_response('gracedb/spprivacy.html', {}, context_instance=RequestContext(request))
 
-@event_required
-@event_viewable
+@event_and_auth_required
 def voevent(request, event):
     if not event.far or not event.gpstime:
         # can't build VOEvent without a FAR or GPS time
@@ -90,7 +88,6 @@ def voevent(request, event):
                 context_instance=RequestContext(request))
     voevent = buildVOEvent(event, request)
     return HttpResponse(voevent, content_type="application/xml")
-
 
 def create(request):
     d = _create(request)
@@ -165,7 +162,7 @@ def _create(request):
                     rv['error'] += "%s: %s\n" % (key, form.errors[key].as_text())
     return rv
 
-@event_required
+@event_and_auth_required
 def logentry(request, event, num=None):
     if request.method == "POST":
         # create a log entry
@@ -227,8 +224,7 @@ def logentry(request, event, num=None):
 
     return HttpResponse(json.dumps(rv), content_type="application/json")
 
-@event_required
-@event_viewable
+@event_and_auth_required
 def neighbors(request, event, delta1, delta2=None):
     context = {}
     try:
@@ -254,8 +250,7 @@ def neighbors(request, event, delta1, delta2=None):
         context,
         context_instance=RequestContext(request))
 
-@event_required
-@event_viewable
+@event_and_auth_required
 def view(request, event):
     context = {}
     context['object'] = event
@@ -503,21 +498,6 @@ def oldsearch(request):
             { 'form' : form },
             context_instance=RequestContext(request))
 
-class LimitedEvent():
-    def __init__(self, event):
-        self._event = event
-    def __getattr__(self, attr):
-        if attr == 'gpstime':
-            return None
-        elif attr == 'created':
-            return self._event.created.replace(second=0)
-        else:
-            return getattr(self._event, attr)
-
-
-def latest_limited(request):
-    return latest(request)
-
 def latest(request):
     context = {}
 
@@ -527,19 +507,13 @@ def latest(request):
         form = SimpleSearchForm(request.POST)
 
     template = 'gracedb/latest.html'
-    if not request.user or not request.user.is_authenticated():
-        limit = LimitedEvent
-        template = 'gracedb/latest_public.html'
-    else:
-        limit = lambda x: x
-
     context['form'] = form
     context['rawquery'] = request.GET.get('query') or request.POST.get('query') or ""
 
     if form.is_valid():
         objects = form.cleaned_data['query']
         objects = filter_events_for_user(objects, request.user, 'view')[0:50]
-        context['objects'] = map(limit, objects)
+        context['objects'] = objects
         context['error'] = False
     else:
         context['error'] = True
@@ -555,7 +529,7 @@ def latest(request):
 # XXX Get rid of this and use apiweb views instead?
 #-----------------------------------------------------------------------------------
 
-@event_required
+@event_and_auth_required
 def taglogentry(request, event, num, tagname):
     eventlog = event.eventlog_set.filter(N=num)[0]
 
@@ -641,8 +615,7 @@ def performance(request):
 # We're deliberately leaving out the /general directory.
 # The idea is to get rid of that horrible /gracedb-files/ url.
 #
-@event_required
-@event_viewable
+@event_and_auth_required
 def file_list(request, event):
     f = []
     for dirname, dirnames, filenames in os.walk(event.datadir()):
@@ -663,6 +636,59 @@ def file_list(request, event):
 #------------------------------------------------------------------------------------------
 # Old Stuff
 #------------------------------------------------------------------------------------------
+#
+# Here is the old stuff we used for the Latest page.
+# Originally, public users could see a version of this page with some
+# fields stripped out. We may still want to do something like that in the 
+# future, but for now, we're actually limiting *which* events a public user
+# can see. 
+#
+#class LimitedEvent():
+#    def __init__(self, event):
+#        self._event = event
+#    def __getattr__(self, attr):
+#        if attr == 'gpstime':
+#            return None
+#        elif attr == 'created':
+#            return self._event.created.replace(second=0)
+#        else:
+#            return getattr(self._event, attr)
+#
+#def latest_limited(request):
+#    return latest(request)
+#
+#def latest(request):
+#    context = {}
+#
+#    if request.method == "GET":
+#        form = SimpleSearchForm(request.GET)
+#    else:
+#        form = SimpleSearchForm(request.POST)
+#
+#    template = 'gracedb/latest.html'
+#    if not request.user or not request.user.is_authenticated():
+#        limit = LimitedEvent
+#        template = 'gracedb/latest_public.html'
+#    else:
+#        limit = lambda x: x
+#
+#    context['form'] = form
+#    context['rawquery'] = request.GET.get('query') or request.POST.get('query') or ""
+#
+#    if form.is_valid():
+#        objects = form.cleaned_data['query']
+#        objects = filter_events_for_user(objects, request.user, 'view')[0:50]
+#        context['objects'] = map(limit, objects)
+#        context['error'] = False
+#    else:
+#        context['error'] = True
+#
+#    return render_to_response(
+#            template,
+#            context,
+#            context_instance=RequestContext(request))
+#
+#
 # XXX This looks interesting. Apparently an old attempt by Brian to make a nice 
 # graphical timeline of events, a la SkyAlert. Or something?
 #def timeline(request):
