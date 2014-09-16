@@ -17,8 +17,8 @@ feeds = {
 urlpatterns = patterns('',
 
     url (r'^$', 'gracedb.views.index', name="home"),
-    url (r'^SPInfo/', 'gracedb.views.spinfo', name="spinfo"),
-    url (r'^SPPrivacy/', 'gracedb.views.spprivacy', name="spprivacy"),
+    url (r'^SPInfo', 'gracedb.views.spinfo', name="spinfo"),
+    url (r'^SPPrivacy', 'gracedb.views.spprivacy', name="spprivacy"),
     (r'^events/', include('gracedb.urls')),
     (r'^api/',    include('gracedb.urls_rest', app_name="api", namespace="x509")),
     (r'^apiweb/', include('gracedb.urls_rest', app_name="api", namespace="shib")),
