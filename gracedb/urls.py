@@ -8,7 +8,7 @@ from django.conf.urls import patterns, url, include
 from gracedb.api import download
 
 urlpatterns = patterns('gracedb.views',
-    url (r'^$', 'index', name="home"),
+    url (r'^$', 'index', name="home-events"),
     url (r'^create/$', 'create', name="create"),
     url (r'^search/(?P<format>(json|flex))?$', 'search', name="search"),
     url (r'^view/(?P<graceid>[GEHT]\d+)', 'view', name="view"),
