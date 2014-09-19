@@ -1,0 +1,47 @@
+[
+{
+    "pk": 121326, 
+    "model": "gracedb.coincinspiralevent", 
+    "fields": {
+        "false_alarm_rate": 2.07509337486112, 
+        "mchirp": 1.160504, 
+        "minimum_duration": null, 
+        "combined_far": 2.07509337486112, 
+        "mass": 2.8321192, 
+        "end_time": 971609248, 
+        "snr": 7.12179782516499, 
+        "end_time_ns": 861816406, 
+        "ifos": "H1,L1"
+    }
+},
+{
+    "pk": 121325, 
+    "model": "gracedb.coincinspiralevent", 
+    "fields": {
+        "false_alarm_rate": 2.07509337486112, 
+        "mchirp": 1.160504, 
+        "minimum_duration": null, 
+        "combined_far": 2.07509337486112, 
+        "mass": 2.8321192, 
+        "end_time": 971609248, 
+        "snr": 7.12179782516499, 
+        "end_time_ns": 861816406, 
+        "ifos": "H1,L1"
+    }
+},
+{
+    "pk": 121324, 
+    "model": "gracedb.coincinspiralevent", 
+    "fields": {
+        "false_alarm_rate": 2.07509337486112, 
+        "mchirp": 1.160504, 
+        "minimum_duration": null, 
+        "combined_far": 2.07509337486112, 
+        "mass": 2.8321192, 
+        "end_time": 971609248, 
+        "snr": 7.12179782516499, 
+        "end_time_ns": 861816406, 
+        "ifos": "H1,L1"
+    }
+}
+]

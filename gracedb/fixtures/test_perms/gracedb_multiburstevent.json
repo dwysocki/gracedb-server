@@ -1,0 +1,68 @@
+[
+{
+    "pk": 121323, 
+    "model": "gracedb.multiburstevent", 
+    "fields": {
+        "central_freq": 840.598267, 
+        "false_alarm_rate": null, 
+        "confidence": null, 
+        "start_time_ns": 412100000, 
+        "start_time": 1042312876, 
+        "ligo_angle_sig": null, 
+        "bandwidth": 512.0, 
+        "snr": 22.328308, 
+        "ligo_angle": null, 
+        "amplitude": null, 
+        "ligo_axis_ra": 95.472168, 
+        "duration": 0.0625, 
+        "ligo_axis_dec": -30.4, 
+        "ifos": "", 
+        "peak_time": null, 
+        "peak_time_ns": null
+    }
+},
+{
+    "pk": 121320, 
+    "model": "gracedb.multiburstevent", 
+    "fields": {
+        "central_freq": 840.598267, 
+        "false_alarm_rate": null, 
+        "confidence": null, 
+        "start_time_ns": 412100000, 
+        "start_time": 1042312876, 
+        "ligo_angle_sig": null, 
+        "bandwidth": 512.0, 
+        "snr": 22.328308, 
+        "ligo_angle": null, 
+        "amplitude": null, 
+        "ligo_axis_ra": 95.472168, 
+        "duration": 0.0625, 
+        "ligo_axis_dec": -30.4, 
+        "ifos": "", 
+        "peak_time": null, 
+        "peak_time_ns": null
+    }
+},
+{
+    "pk": 121317, 
+    "model": "gracedb.multiburstevent", 
+    "fields": {
+        "central_freq": 840.598267, 
+        "false_alarm_rate": null, 
+        "confidence": null, 
+        "start_time_ns": 412100000, 
+        "start_time": 1042312876, 
+        "ligo_angle_sig": null, 
+        "bandwidth": 512.0, 
+        "snr": 22.328308, 
+        "ligo_angle": null, 
+        "amplitude": null, 
+        "ligo_axis_ra": 95.472168, 
+        "duration": 0.0625, 
+        "ligo_axis_dec": -30.4, 
+        "ifos": "", 
+        "peak_time": null, 
+        "peak_time_ns": null
+    }
+}
+]
