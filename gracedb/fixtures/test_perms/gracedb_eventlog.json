@@ -1,5 +1,1721 @@
 [
 {
+    "pk": 575113, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Original Data", 
+        "created": "2014-03-10T11:55:49", 
+        "file_version": null, 
+        "filename": "HLV-H1L1V1_2_328_Test_LowMass-1078505718-0.xml", 
+        "N": 1, 
+        "event": 100906, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 575114, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Log File Created", 
+        "created": "2014-03-10T11:55:49", 
+        "file_version": null, 
+        "filename": "event.log", 
+        "N": 2, 
+        "event": 100906, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 575115, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Coinc Table Created", 
+        "created": "2014-03-10T11:55:49", 
+        "file_version": null, 
+        "filename": "coinc.xml", 
+        "N": 3, 
+        "event": 100906, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 575119, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "strain spectral densities", 
+        "created": "2014-03-10T11:56:02", 
+        "file_version": 0, 
+        "filename": "psd.xml.gz", 
+        "N": 4, 
+        "event": 100906, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 575121, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 4: psd ", 
+        "created": "2014-03-10T11:56:02", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 5, 
+        "event": 100906, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 575122, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "SNR vs time", 
+        "created": "2014-03-10T11:56:20", 
+        "file_version": 0, 
+        "filename": "T100906_snrtime.png", 
+        "N": 6, 
+        "event": 100906, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 575123, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 6: background ", 
+        "created": "2014-03-10T11:56:20", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 7, 
+        "event": 100906, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 575126, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:by your command...</div>\n", 
+        "created": "2014-03-10T11:56:23", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 8, 
+        "event": 100906, 
+        "issuer": 2794
+    }
+},
+{
+    "pk": 575127, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:warming up Xeon Phi coprocessors</div>\n", 
+        "created": "2014-03-10T11:56:23", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 9, 
+        "event": 100906, 
+        "issuer": 2794
+    }
+},
+{
+    "pk": 575129, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:starting sky localization</div>\n", 
+        "created": "2014-03-10T11:56:28", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 10, 
+        "event": 100906, 
+        "issuer": 2794
+    }
+},
+{
+    "pk": 575130, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "H1 SNR/Chisq", 
+        "created": "2014-03-10T11:56:32", 
+        "file_version": 0, 
+        "filename": "T100906_H1_snrchi.png", 
+        "N": 11, 
+        "event": 100906, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 575131, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 11: background ", 
+        "created": "2014-03-10T11:56:32", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 12, 
+        "event": 100906, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 575132, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:sky localization complete</div>\n", 
+        "created": "2014-03-10T11:56:42", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 13, 
+        "event": 100906, 
+        "issuer": 2794
+    }
+},
+{
+    "pk": 575133, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "INFO:BAYESTAR:uploaded sky map", 
+        "created": "2014-03-10T11:56:42", 
+        "file_version": 0, 
+        "filename": "skymap-mic.fits.gz", 
+        "N": 14, 
+        "event": 100906, 
+        "issuer": 2794
+    }
+},
+{
+    "pk": 575134, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 14: sky_loc ", 
+        "created": "2014-03-10T11:56:42", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 15, 
+        "event": 100906, 
+        "issuer": 2794
+    }
+},
+{
+    "pk": 575135, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "L1 SNR/Chisq", 
+        "created": "2014-03-10T11:56:46", 
+        "file_version": 0, 
+        "filename": "T100906_L1_snrchi.png", 
+        "N": 16, 
+        "event": 100906, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 575136, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 16: background ", 
+        "created": "2014-03-10T11:56:46", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 17, 
+        "event": 100906, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 575137, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:by your command...</div>\n", 
+        "created": "2014-03-10T11:56:49", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 18, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575138, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:starting sky localization</div>\n", 
+        "created": "2014-03-10T11:57:02", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 19, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575139, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No unblind injections in window [-5,+5] seconds", 
+        "created": "2014-03-10T11:57:20", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 20, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575140, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 20: analyst_comments ", 
+        "created": "2014-03-10T11:57:20", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 21, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575141, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "strain spectral densities", 
+        "created": "2014-03-10T11:57:23", 
+        "file_version": 0, 
+        "filename": "psd.png", 
+        "N": 22, 
+        "event": 100906, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 575142, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 22: psd ", 
+        "created": "2014-03-10T11:57:23", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 23, 
+        "event": 100906, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 575143, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "", 
+        "created": "2014-03-10T11:57:27", 
+        "file_version": 0, 
+        "filename": "skymap-mic.png", 
+        "N": 24, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575144, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 24: sky_loc ", 
+        "created": "2014-03-10T11:57:27", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 25, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575145, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Initiating coincidence search", 
+        "created": "2014-03-10T11:58:03", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 26, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575146, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No external triggers in window [-1,+5] seconds", 
+        "created": "2014-03-10T11:58:12", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 27, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575147, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 27: ext_coinc ", 
+        "created": "2014-03-10T11:58:12", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 28, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575148, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No unblind injections in window [-5,+5] seconds", 
+        "created": "2014-03-10T11:58:13", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 29, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575149, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 29: analyst_comments ", 
+        "created": "2014-03-10T11:58:13", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 30, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575150, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No external triggers in window [-60,+120] seconds", 
+        "created": "2014-03-10T11:58:23", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 31, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575151, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 31: ext_coinc ", 
+        "created": "2014-03-10T11:58:23", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 32, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575152, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Coincidence search complete", 
+        "created": "2014-03-10T11:58:27", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 33, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575153, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:sky localization complete</div>\n", 
+        "created": "2014-03-10T12:00:41", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 34, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575154, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "INFO:BAYESTAR:uploaded sky map", 
+        "created": "2014-03-10T12:00:43", 
+        "file_version": 0, 
+        "filename": "skymap.fits.gz", 
+        "N": 35, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575155, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 35: sky_loc ", 
+        "created": "2014-03-10T12:00:43", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 36, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575156, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Label: EM_READY", 
+        "created": "2014-03-10T12:01:03", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 37, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575157, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "", 
+        "created": "2014-03-10T12:01:17", 
+        "file_version": 0, 
+        "filename": "skymap.png", 
+        "N": 38, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575158, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 38: sky_loc ", 
+        "created": "2014-03-10T12:01:17", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 39, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575159, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Initiating coincidence search", 
+        "created": "2014-03-10T12:01:48", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 40, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575160, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No external triggers in window [-1,+5] seconds", 
+        "created": "2014-03-10T12:01:55", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 41, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575161, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 41: ext_coinc ", 
+        "created": "2014-03-10T12:01:55", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 42, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575162, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No unblind injections in window [-5,+5] seconds", 
+        "created": "2014-03-10T12:01:57", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 43, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575163, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 43: analyst_comments ", 
+        "created": "2014-03-10T12:01:57", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 44, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575164, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No external triggers in window [-60,+120] seconds", 
+        "created": "2014-03-10T12:02:02", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 45, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575165, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 45: ext_coinc ", 
+        "created": "2014-03-10T12:02:02", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 46, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 575166, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Coincidence search complete", 
+        "created": "2014-03-10T12:02:04", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 47, 
+        "event": 100906, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579006, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Original Data", 
+        "created": "2014-03-12T10:34:21", 
+        "file_version": null, 
+        "filename": "HLV-H1L1V1_2_2_Test_LowMass-1078673637-0.xml", 
+        "N": 1, 
+        "event": 101383, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579007, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Log File Created", 
+        "created": "2014-03-12T10:34:21", 
+        "file_version": null, 
+        "filename": "event.log", 
+        "N": 2, 
+        "event": 101383, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579008, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Coinc Table Created", 
+        "created": "2014-03-12T10:34:21", 
+        "file_version": null, 
+        "filename": "coinc.xml", 
+        "N": 3, 
+        "event": 101383, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579009, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "strain spectral densities", 
+        "created": "2014-03-12T10:34:30", 
+        "file_version": 0, 
+        "filename": "psd.xml.gz", 
+        "N": 4, 
+        "event": 101383, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579010, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 4: psd ", 
+        "created": "2014-03-12T10:34:30", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 5, 
+        "event": 101383, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579011, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:warming up Xeon Phi coprocessors</div>\n", 
+        "created": "2014-03-12T10:34:41", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 6, 
+        "event": 101383, 
+        "issuer": 2794
+    }
+},
+{
+    "pk": 579012, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:by your command...</div>\n", 
+        "created": "2014-03-12T10:34:42", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 7, 
+        "event": 101383, 
+        "issuer": 2794
+    }
+},
+{
+    "pk": 579013, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "SNR vs time", 
+        "created": "2014-03-12T10:34:43", 
+        "file_version": 0, 
+        "filename": "T101383_snrtime.png", 
+        "N": 8, 
+        "event": 101383, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579014, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 8: background ", 
+        "created": "2014-03-12T10:34:43", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 9, 
+        "event": 101383, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579015, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:starting sky localization</div>\n", 
+        "created": "2014-03-12T10:34:44", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 10, 
+        "event": 101383, 
+        "issuer": 2794
+    }
+},
+{
+    "pk": 579016, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "H1 SNR/Chisq", 
+        "created": "2014-03-12T10:34:52", 
+        "file_version": 0, 
+        "filename": "T101383_H1_snrchi.png", 
+        "N": 11, 
+        "event": 101383, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579017, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 11: background ", 
+        "created": "2014-03-12T10:34:52", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 12, 
+        "event": 101383, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579018, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "INFO:BAYESTAR:uploaded sky map", 
+        "created": "2014-03-12T10:34:57", 
+        "file_version": 0, 
+        "filename": "skymap-mic.fits.gz", 
+        "N": 13, 
+        "event": 101383, 
+        "issuer": 2794
+    }
+},
+{
+    "pk": 579019, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 13: sky_loc ", 
+        "created": "2014-03-12T10:34:58", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 14, 
+        "event": 101383, 
+        "issuer": 2794
+    }
+},
+{
+    "pk": 579020, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:sky localization complete</div>\n", 
+        "created": "2014-03-12T10:34:58", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 15, 
+        "event": 101383, 
+        "issuer": 2794
+    }
+},
+{
+    "pk": 579021, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "V1 SNR/Chisq", 
+        "created": "2014-03-12T10:35:01", 
+        "file_version": 0, 
+        "filename": "T101383_V1_snrchi.png", 
+        "N": 16, 
+        "event": 101383, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579022, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 16: background ", 
+        "created": "2014-03-12T10:35:01", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 17, 
+        "event": 101383, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579023, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:by your command...</div>\n", 
+        "created": "2014-03-12T10:35:06", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 18, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579024, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:starting sky localization</div>\n", 
+        "created": "2014-03-12T10:35:10", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 19, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579025, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Unblind injection <a href='http://gracedb.ligo.org/events/H87481'>H87481</a> within window [-5,+5] seconds", 
+        "created": "2014-03-12T10:35:16", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 20, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579026, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 20: analyst_comments ", 
+        "created": "2014-03-12T10:35:16", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 21, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579027, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Label: INJ", 
+        "created": "2014-03-12T10:35:20", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 22, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579028, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "strain spectral densities", 
+        "created": "2014-03-12T10:35:23", 
+        "file_version": 0, 
+        "filename": "psd.png", 
+        "N": 23, 
+        "event": 101383, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579029, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 23: psd ", 
+        "created": "2014-03-12T10:35:23", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 24, 
+        "event": 101383, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579030, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "", 
+        "created": "2014-03-12T10:35:32", 
+        "file_version": 0, 
+        "filename": "skymap-mic.png", 
+        "N": 25, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579031, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 25: sky_loc ", 
+        "created": "2014-03-12T10:35:32", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 26, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579032, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Initiating coincidence search", 
+        "created": "2014-03-12T10:35:55", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 27, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579036, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No external triggers in window [-1,+5] seconds", 
+        "created": "2014-03-12T10:36:00", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 28, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579037, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 28: ext_coinc ", 
+        "created": "2014-03-12T10:36:00", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 29, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579038, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Unblind injection <a href='http://gracedb.ligo.org/events/H87481'>H87481</a> within window [-5,+5] seconds", 
+        "created": "2014-03-12T10:36:06", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 30, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579039, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 30: analyst_comments ", 
+        "created": "2014-03-12T10:36:06", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 31, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579040, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No external triggers in window [-60,+120] seconds", 
+        "created": "2014-03-12T10:36:07", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 32, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579041, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 32: ext_coinc ", 
+        "created": "2014-03-12T10:36:07", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 33, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579042, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Coincidence search complete", 
+        "created": "2014-03-12T10:36:10", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 34, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579044, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "", 
+        "created": "2014-03-12T10:36:18", 
+        "file_version": 0, 
+        "filename": "skymap-mic_with_unblind_injs.png", 
+        "N": 35, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579045, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 35: sky_loc ", 
+        "created": "2014-03-12T10:36:18", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 36, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579051, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:sky localization complete</div>\n", 
+        "created": "2014-03-12T10:39:22", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 37, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579052, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "INFO:BAYESTAR:uploaded sky map", 
+        "created": "2014-03-12T10:39:24", 
+        "file_version": 0, 
+        "filename": "skymap.fits.gz", 
+        "N": 38, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579053, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 38: sky_loc ", 
+        "created": "2014-03-12T10:39:24", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 39, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579054, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Label: EM_READY", 
+        "created": "2014-03-12T10:39:44", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 40, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579055, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "", 
+        "created": "2014-03-12T10:39:56", 
+        "file_version": 0, 
+        "filename": "skymap.png", 
+        "N": 41, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579056, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 41: sky_loc ", 
+        "created": "2014-03-12T10:39:56", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 42, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579057, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Initiating coincidence search", 
+        "created": "2014-03-12T10:40:24", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 43, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579058, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No external triggers in window [-1,+5] seconds", 
+        "created": "2014-03-12T10:40:29", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 44, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579059, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 44: ext_coinc ", 
+        "created": "2014-03-12T10:40:29", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 45, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579060, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Unblind injection <a href='http://gracedb.ligo.org/events/H87481'>H87481</a> within window [-5,+5] seconds", 
+        "created": "2014-03-12T10:40:34", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 46, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579061, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 46: analyst_comments ", 
+        "created": "2014-03-12T10:40:34", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 47, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579062, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No external triggers in window [-60,+120] seconds", 
+        "created": "2014-03-12T10:40:35", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 48, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579063, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 48: ext_coinc ", 
+        "created": "2014-03-12T10:40:35", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 49, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579064, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Coincidence search complete", 
+        "created": "2014-03-12T10:40:37", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 50, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579065, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "", 
+        "created": "2014-03-12T10:40:45", 
+        "file_version": 0, 
+        "filename": "skymap_with_unblind_injs.png", 
+        "N": 51, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579066, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 51: sky_loc ", 
+        "created": "2014-03-12T10:40:45", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 52, 
+        "event": 101383, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579171, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "JSON contours for skymapViewer", 
+        "created": "2014-03-13T13:15:59", 
+        "file_version": 0, 
+        "filename": "skymap.json", 
+        "N": 53, 
+        "event": 101383, 
+        "issuer": 2404
+    }
+},
+{
+    "pk": 579172, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 53: sky_loc ", 
+        "created": "2014-03-13T13:15:59", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 54, 
+        "event": 101383, 
+        "issuer": 2404
+    }
+},
+{
+    "pk": 579354, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Original Data", 
+        "created": "2014-03-14T18:11:13", 
+        "file_version": null, 
+        "filename": "HLV-H1L1V1_3_538_Test_LowMass-1078873849-0.xml", 
+        "N": 1, 
+        "event": 101399, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579355, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Log File Created", 
+        "created": "2014-03-14T18:11:13", 
+        "file_version": null, 
+        "filename": "event.log", 
+        "N": 2, 
+        "event": 101399, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579356, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Coinc Table Created", 
+        "created": "2014-03-14T18:11:13", 
+        "file_version": null, 
+        "filename": "coinc.xml", 
+        "N": 3, 
+        "event": 101399, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579357, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "strain spectral densities", 
+        "created": "2014-03-14T18:11:22", 
+        "file_version": 0, 
+        "filename": "psd.xml.gz", 
+        "N": 4, 
+        "event": 101399, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579358, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 4: psd ", 
+        "created": "2014-03-14T18:11:22", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 5, 
+        "event": 101399, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579359, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "SNR vs time", 
+        "created": "2014-03-14T18:11:31", 
+        "file_version": 0, 
+        "filename": "T101399_snrtime.png", 
+        "N": 6, 
+        "event": 101399, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579360, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 6: background ", 
+        "created": "2014-03-14T18:11:31", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 7, 
+        "event": 101399, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579361, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "H1 SNR/Chisq", 
+        "created": "2014-03-14T18:11:41", 
+        "file_version": 0, 
+        "filename": "T101399_H1_snrchi.png", 
+        "N": 8, 
+        "event": 101399, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579362, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 8: background ", 
+        "created": "2014-03-14T18:11:41", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 9, 
+        "event": 101399, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579363, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "V1 SNR/Chisq", 
+        "created": "2014-03-14T18:11:52", 
+        "file_version": 0, 
+        "filename": "T101399_V1_snrchi.png", 
+        "N": 10, 
+        "event": 101399, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579364, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 10: background ", 
+        "created": "2014-03-14T18:11:52", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 11, 
+        "event": 101399, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579365, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:by your command...</div>\n", 
+        "created": "2014-03-14T18:11:54", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 12, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579366, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:starting sky localization</div>\n", 
+        "created": "2014-03-14T18:11:58", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 13, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579367, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No unblind injections in window [-5,+5] seconds", 
+        "created": "2014-03-14T18:12:01", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 14, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579368, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 14: analyst_comments ", 
+        "created": "2014-03-14T18:12:01", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 15, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579369, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "strain spectral densities", 
+        "created": "2014-03-14T18:12:17", 
+        "file_version": 0, 
+        "filename": "psd.png", 
+        "N": 16, 
+        "event": 101399, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579370, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 16: psd ", 
+        "created": "2014-03-14T18:12:17", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 17, 
+        "event": 101399, 
+        "issuer": 465
+    }
+},
+{
+    "pk": 579371, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:sky localization complete</div>\n", 
+        "created": "2014-03-14T18:19:46", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 18, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579372, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "INFO:BAYESTAR:uploaded sky map", 
+        "created": "2014-03-14T18:19:47", 
+        "file_version": 0, 
+        "filename": "skymap.fits.gz", 
+        "N": 19, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579373, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 19: sky_loc ", 
+        "created": "2014-03-14T18:19:48", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 20, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579374, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Label: EM_READY", 
+        "created": "2014-03-14T18:20:07", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 21, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579375, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "", 
+        "created": "2014-03-14T18:20:20", 
+        "file_version": 0, 
+        "filename": "skymap.png", 
+        "N": 22, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579376, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 22: sky_loc ", 
+        "created": "2014-03-14T18:20:20", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 23, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579377, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Initiating coincidence search", 
+        "created": "2014-03-14T18:20:48", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 24, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579378, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No external triggers in window [-1,+5] seconds", 
+        "created": "2014-03-14T18:20:53", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 25, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579379, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 25: ext_coinc ", 
+        "created": "2014-03-14T18:20:53", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 26, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579380, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No unblind injections in window [-5,+5] seconds", 
+        "created": "2014-03-14T18:20:55", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 27, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579381, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 27: analyst_comments ", 
+        "created": "2014-03-14T18:20:55", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 28, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579382, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "No external triggers in window [-60,+120] seconds", 
+        "created": "2014-03-14T18:20:59", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 29, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579383, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Tagged message 29: ext_coinc ", 
+        "created": "2014-03-14T18:20:59", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 30, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
+    "pk": 579384, 
+    "model": "gracedb.eventlog", 
+    "fields": {
+        "comment": "Coincidence search complete", 
+        "created": "2014-03-14T18:21:01", 
+        "file_version": null, 
+        "filename": "", 
+        "N": 31, 
+        "event": 101399, 
+        "issuer": 460
+    }
+},
+{
     "pk": 710153, 
     "model": "gracedb.eventlog", 
     "fields": {
@@ -568,162 +2284,6 @@
         "filename": "event.log", 
         "N": 2, 
         "event": 121323, 
-        "issuer": 2404
-    }
-},
-{
-    "pk": 710831, 
-    "model": "gracedb.eventlog", 
-    "fields": {
-        "comment": "Original Data", 
-        "created": "2014-08-20T13:58:35", 
-        "file_version": null, 
-        "filename": "cbc-lm.xml", 
-        "N": 1, 
-        "event": 121324, 
-        "issuer": 2404
-    }
-},
-{
-    "pk": 710832, 
-    "model": "gracedb.eventlog", 
-    "fields": {
-        "comment": "Log File Created", 
-        "created": "2014-08-20T13:58:35", 
-        "file_version": null, 
-        "filename": "event.log", 
-        "N": 2, 
-        "event": 121324, 
-        "issuer": 2404
-    }
-},
-{
-    "pk": 710833, 
-    "model": "gracedb.eventlog", 
-    "fields": {
-        "comment": "Coinc Table Created", 
-        "created": "2014-08-20T13:58:35", 
-        "file_version": null, 
-        "filename": "coinc.xml", 
-        "N": 3, 
-        "event": 121324, 
-        "issuer": 2404
-    }
-},
-{
-    "pk": 710834, 
-    "model": "gracedb.eventlog", 
-    "fields": {
-        "comment": "Original Data", 
-        "created": "2014-08-20T14:08:28", 
-        "file_version": null, 
-        "filename": "cbc-lm.xml", 
-        "N": 1, 
-        "event": 121325, 
-        "issuer": 2404
-    }
-},
-{
-    "pk": 710835, 
-    "model": "gracedb.eventlog", 
-    "fields": {
-        "comment": "Log File Created", 
-        "created": "2014-08-20T14:08:28", 
-        "file_version": null, 
-        "filename": "event.log", 
-        "N": 2, 
-        "event": 121325, 
-        "issuer": 2404
-    }
-},
-{
-    "pk": 710836, 
-    "model": "gracedb.eventlog", 
-    "fields": {
-        "comment": "Coinc Table Created", 
-        "created": "2014-08-20T14:08:28", 
-        "file_version": null, 
-        "filename": "coinc.xml", 
-        "N": 3, 
-        "event": 121325, 
-        "issuer": 2404
-    }
-},
-{
-    "pk": 710837, 
-    "model": "gracedb.eventlog", 
-    "fields": {
-        "comment": "Original Data", 
-        "created": "2014-08-20T14:20:09", 
-        "file_version": null, 
-        "filename": "cbc-lm.xml", 
-        "N": 1, 
-        "event": 121326, 
-        "issuer": 2404
-    }
-},
-{
-    "pk": 710838, 
-    "model": "gracedb.eventlog", 
-    "fields": {
-        "comment": "Log File Created", 
-        "created": "2014-08-20T14:20:09", 
-        "file_version": null, 
-        "filename": "event.log", 
-        "N": 2, 
-        "event": 121326, 
-        "issuer": 2404
-    }
-},
-{
-    "pk": 710839, 
-    "model": "gracedb.eventlog", 
-    "fields": {
-        "comment": "Coinc Table Created", 
-        "created": "2014-08-20T14:20:09", 
-        "file_version": null, 
-        "filename": "coinc.xml", 
-        "N": 3, 
-        "event": 121326, 
-        "issuer": 2404
-    }
-},
-{
-    "pk": 710840, 
-    "model": "gracedb.eventlog", 
-    "fields": {
-        "comment": "", 
-        "created": "2014-08-21T13:21:44", 
-        "file_version": 0, 
-        "filename": "test.txt", 
-        "N": 4, 
-        "event": 121326, 
-        "issuer": 2404
-    }
-},
-{
-    "pk": 710841, 
-    "model": "gracedb.eventlog", 
-    "fields": {
-        "comment": "", 
-        "created": "2014-08-21T13:22:04", 
-        "file_version": 0, 
-        "filename": "test.txt", 
-        "N": 4, 
-        "event": 121325, 
-        "issuer": 2404
-    }
-},
-{
-    "pk": 710842, 
-    "model": "gracedb.eventlog", 
-    "fields": {
-        "comment": "", 
-        "created": "2014-08-21T13:25:42", 
-        "file_version": 1, 
-        "filename": "test.txt", 
-        "N": 5, 
-        "event": 121325, 
         "issuer": 2404
     }
 }

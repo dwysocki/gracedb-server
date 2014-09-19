@@ -1,5 +1,56 @@
 [
 {
+    "pk": 100906, 
+    "model": "gracedb.event", 
+    "fields": {
+        "gpstime": 1078505718, 
+        "group": 5, 
+        "uid": "", 
+        "created": "2014-03-10T11:55:49", 
+        "far": 9.99754187903519e-06, 
+        "instruments": "H1,L1", 
+        "perms": "[\"executives_can_change\", \"executives_can_view\", \"Communities:LSCVirgoLIGOGroupMembers_can_change\", \"Communities:LSCVirgoLIGOGroupMembers_can_view\"]", 
+        "nevents": 2, 
+        "submitter": 465, 
+        "analysisType": "LM", 
+        "likelihood": 34871.9041575029
+    }
+},
+{
+    "pk": 101383, 
+    "model": "gracedb.event", 
+    "fields": {
+        "gpstime": 1078673637, 
+        "group": 5, 
+        "uid": "", 
+        "created": "2014-03-12T10:34:21", 
+        "far": 2.7348245243325e-12, 
+        "instruments": "H1,V1", 
+        "perms": "[\"executives_can_change\", \"executives_can_view\", \"Communities:LSCVirgoLIGOGroupMembers_can_change\", \"Communities:LSCVirgoLIGOGroupMembers_can_view\"]", 
+        "nevents": 2, 
+        "submitter": 465, 
+        "analysisType": "LM", 
+        "likelihood": 6.09169459963097e+26
+    }
+},
+{
+    "pk": 101399, 
+    "model": "gracedb.event", 
+    "fields": {
+        "gpstime": 1078873849, 
+        "group": 5, 
+        "uid": "", 
+        "created": "2014-03-14T18:11:13", 
+        "far": 4.06806937667425e-05, 
+        "instruments": "H1,V1", 
+        "perms": "[\"executives_can_change\", \"executives_can_view\", \"Communities:LSCVirgoLIGOGroupMembers_can_change\", \"Communities:LSCVirgoLIGOGroupMembers_can_view\"]", 
+        "nevents": 2, 
+        "submitter": 465, 
+        "analysisType": "LM", 
+        "likelihood": 2395.53466670113
+    }
+},
+{
     "pk": 121226, 
     "model": "gracedb.event", 
     "fields": {
@@ -99,57 +150,6 @@
         "submitter": 2404, 
         "analysisType": "CWB", 
         "likelihood": 7934.0
-    }
-},
-{
-    "pk": 121324, 
-    "model": "gracedb.event", 
-    "fields": {
-        "gpstime": 971609248, 
-        "group": 5, 
-        "uid": "", 
-        "created": "2014-08-20T13:58:34", 
-        "far": 2.07509337486112, 
-        "instruments": "H1,L1", 
-        "perms": "[\"executives_can_change\", \"executives_can_view\", \"Communities:LSCVirgoLIGOGroupMembers_can_change\", \"Communities:LSCVirgoLIGOGroupMembers_can_view\"]", 
-        "nevents": 3, 
-        "submitter": 2404, 
-        "analysisType": "LM", 
-        "likelihood": null
-    }
-},
-{
-    "pk": 121325, 
-    "model": "gracedb.event", 
-    "fields": {
-        "gpstime": 971609248, 
-        "group": 5, 
-        "uid": "", 
-        "created": "2014-08-20T14:08:28", 
-        "far": 2.07509337486112, 
-        "instruments": "H1,L1", 
-        "perms": "[\"executives_can_change\", \"executives_can_view\", \"Communities:LSCVirgoLIGOGroupMembers_can_change\", \"Communities:LSCVirgoLIGOGroupMembers_can_view\"]", 
-        "nevents": 3, 
-        "submitter": 2404, 
-        "analysisType": "LM", 
-        "likelihood": null
-    }
-},
-{
-    "pk": 121326, 
-    "model": "gracedb.event", 
-    "fields": {
-        "gpstime": 971609248, 
-        "group": 5, 
-        "uid": "", 
-        "created": "2014-08-20T14:20:09", 
-        "far": 2.07509337486112, 
-        "instruments": "H1,L1", 
-        "perms": null, 
-        "nevents": 3, 
-        "submitter": 2404, 
-        "analysisType": "LM", 
-        "likelihood": null
     }
 }
 ]

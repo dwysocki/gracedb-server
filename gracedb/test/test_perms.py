@@ -1,5 +1,7 @@
 from django.test import TestCase
 
+from django.contrib.auth.models import User
+
 class SimpleTest(TestCase): 
     # I wonder if the order of loading the fixtures will matter?
     fixtures = [
@@ -16,6 +18,10 @@ class SimpleTest(TestCase):
         'perm_test/gracedb_tag.json',
     ] 
 
+    def setUp(self):
+        # Let's find some users:
+        self.gracedb_maintainer = User.objects.get(first_name='Gracedb', last_name='Maintainer')
+
     def test_index(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
@@ -26,7 +32,7 @@ class SimpleTest(TestCase):
 
     def test_event_view(self):
         url = '/events/view/T121326'
-        response = self.client.get(url,REMOTE_USER='gra')
+        response = self.client.get(url,REMOTE_USER=self.gracedb_maintainer.username)
         #print "Response content: "
         #print response.content
         self.assertEqual(response.status_code, 200)

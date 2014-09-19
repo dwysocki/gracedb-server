@@ -4,7 +4,8 @@ from StringIO import StringIO
 from datetime import datetime
 
 from gracedb.models import GrbEvent, Tag, Event
-from gracedb.models import MultiBurstEvent, CoincInspiralEvent
+from gracedb.models import MultiBurstEvent 
+#from gracedb.models import CoincInspiralEvent
 from gracedb.models import EventLog, Labelling, SingleInspiral
 
 from django.core.management import call_command
@@ -81,6 +82,20 @@ FAKE_USER_INFO = [
         'is_superuser' : True,
     },
 ]
+
+# Decide on which events to put in the test database. In other words, we will
+# grab these real events from the database, change the permissions on them,
+# and use them for testing. Note that the test database is ephemeral and is
+# inaccessible to the outside world.
+EVENT_PK_DICT = {
+    # Choose most recent 3 GRBs, since they're all pretty much the same to me.
+    'gracedb.GrbEvent'           : [e.id for e in GrbEvent.objects.all()[:3]],
+    # Pick some nice representative LowMass events.
+    #'gracedb.CoincInspiralEvent' : [e.id for e in CoincInspiralEvent.objects.all()[:3]],
+    'gracedb.CoincInspiralEvent' : [101399, 101383, 100906],
+    # Again, pick most recent burst events.
+    'gracedb.MultiBurstEvent'    : [e.id for e in MultiBurstEvent.objects.all()[:3]],
+}
 
 #------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------
@@ -220,12 +235,8 @@ class Command(NoArgsCommand):
 
         # Dump events with a particular set of pks. Will choose the three most recent events in 
         # each category.
-        event_pk_dict = {
-            'gracedb.GrbEvent'           : [e.id for e in GrbEvent.objects.all()[:3]],
-            'gracedb.CoincInspiralEvent' : [e.id for e in CoincInspiralEvent.objects.all()[:3]],
-            'gracedb.MultiBurstEvent'    : [e.id for e in MultiBurstEvent.objects.all()[:3]],
-        }
-
+        event_pk_dict = EVENT_PK_DICT
+         
         print "GRB Event pks: %s" % event_pk_dict['gracedb.GrbEvent']
         print "CoincInspiral Event pks: %s" % event_pk_dict['gracedb.CoincInspiralEvent']
         print "Burst Event pks: %s" % event_pk_dict['gracedb.MultiBurstEvent']

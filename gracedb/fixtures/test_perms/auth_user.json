@@ -21,6 +21,26 @@
     },
     {
         "fields": {
+            "date_joined": "2013-06-12T10:17:36",
+            "email": "chad.r.hanna@gmail.com",
+            "first_name": "",
+            "groups": [
+                2
+            ],
+            "is_active": true,
+            "is_staff": false,
+            "is_superuser": false,
+            "last_login": "2013-06-12T10:17:36",
+            "last_name": "GstLal CBC",
+            "password": "",
+            "user_permissions": [],
+            "username": "gst"
+        },
+        "model": "auth.user",
+        "pk": 465
+    },
+    {
+        "fields": {
             "date_joined": "2013-06-12T10:17:59",
             "email": "branson.stephens@ligo.org",
             "first_name": "Branson",
@@ -42,7 +62,7 @@
     },
     {
         "fields": {
-            "date_joined": "2014-09-19T11:14:10",
+            "date_joined": "2014-09-19T11:54:08",
             "email": "john.q.public@example.com",
             "first_name": "John",
             "groups": [
@@ -51,7 +71,7 @@
             "is_active": true,
             "is_staff": false,
             "is_superuser": false,
-            "last_login": "2014-09-19T11:14:10",
+            "last_login": "2014-09-19T11:54:08",
             "last_name": "Public",
             "password": "X",
             "user_permissions": [],
@@ -62,7 +82,7 @@
     },
     {
         "fields": {
-            "date_joined": "2014-09-19T11:14:10",
+            "date_joined": "2014-09-19T11:54:08",
             "email": "claudius.ptolemy@alexu.edu.eg",
             "first_name": "Claudius",
             "groups": [
@@ -71,7 +91,7 @@
             "is_active": true,
             "is_staff": false,
             "is_superuser": false,
-            "last_login": "2014-09-19T11:14:10",
+            "last_login": "2014-09-19T11:54:08",
             "last_name": "Ptolemy",
             "password": "X",
             "user_permissions": [],
@@ -82,7 +102,7 @@
     },
     {
         "fields": {
-            "date_joined": "2014-09-19T11:14:10",
+            "date_joined": "2014-09-19T11:54:08",
             "email": "albert.einstein@ligo.org",
             "first_name": "Albert",
             "groups": [
@@ -92,7 +112,7 @@
             "is_active": true,
             "is_staff": false,
             "is_superuser": false,
-            "last_login": "2014-09-19T11:14:10",
+            "last_login": "2014-09-19T11:54:08",
             "last_name": "Einstein",
             "password": "X",
             "user_permissions": [],
@@ -103,7 +123,7 @@
     },
     {
         "fields": {
-            "date_joined": "2014-09-19T11:14:10",
+            "date_joined": "2014-09-19T11:54:08",
             "email": "spokesy.mcspokesperson@ligo.org",
             "first_name": "Spokesy",
             "groups": [
@@ -113,7 +133,7 @@
             "is_active": true,
             "is_staff": false,
             "is_superuser": false,
-            "last_login": "2014-09-19T11:14:10",
+            "last_login": "2014-09-19T11:54:08",
             "last_name": "McSpokesperson",
             "password": "X",
             "user_permissions": [],
@@ -124,7 +144,7 @@
     },
     {
         "fields": {
-            "date_joined": "2014-09-19T11:14:10",
+            "date_joined": "2014-09-19T11:54:08",
             "email": "gracedb.maintainer@ligo.org",
             "first_name": "Gracedb",
             "groups": [
@@ -134,7 +154,7 @@
             "is_active": true,
             "is_staff": true,
             "is_superuser": true,
-            "last_login": "2014-09-19T11:14:10",
+            "last_login": "2014-09-19T11:54:08",
             "last_name": "Maintainer",
             "password": "X",
             "user_permissions": [],
