@@ -17,7 +17,7 @@ users = [
         {
             'username' : 'idq-wa',
             'first_name' : '',
-            'last_name' : 'iDQ at HAN',
+            'last_name' : 'iDQ at LHO',
             'email' : 'rvaulin@mit.edu',
             'dns' : [
                 "/DC=org/DC=ligo/O=LIGO/OU=Services/CN=idq/ldas-pcdev1.ligo-wa.caltech.edu",
