@@ -10,8 +10,6 @@ from gracedb.models import EventLog, Labelling, SingleInspiral
 
 from django.core.management import call_command
 from django.core.management.base import NoArgsCommand
-from django.contrib.auth.models import Group, Permission
-from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 
 #------------------------------------------------------------------------------------------------
@@ -23,7 +21,7 @@ from django.conf import settings
 OUTPUT_DIR = os.path.join(settings.ROOT_PATH, 'gracedb/fixtures/test_perms')
 
 DUMP_ALL_ROWS_LIST = [
-    'auth.Permission',
+    'auth.Group',
     'gracedb.Group',
     'gracedb.Label',
 ]
@@ -158,20 +156,6 @@ class ObjectList(object):
         with open(get_dest(self.model), 'w') as f:
             f.write(json.dumps(self.obj_list, indent=4, sort_keys=True, separators=(',', ': ')))
 
-class GroupObjectPermissionList(ObjectList):
-    def add_perm(self, model, object_pk, group_id, content_type_id, permission_id):
-        self.obj_list.append({
-            'pk' : self.counter,
-            'model' : model.lower(),
-            'fields' : {
-                'object_pk' : object_pk,
-                'group'     : group_id,
-                'content_type' : content_type_id,
-                'permission' : permission_id,
-            }
-        })
-        self.counter += 1
-
 class TagList(ObjectList):
     def add_tag(self, eventlog_pks, displayName, name):
         if not name:
@@ -262,47 +246,6 @@ class Command(NoArgsCommand):
         }
         print "Labelling pks = %s" % event_related_pk_dict['gracedb.Labelling']
         dump_for_pks(event_related_pk_dict)
-
-        # Populate group object permissions.    
-
-        # Get the various group ids
-        public_id   = Group.objects.get(name='public_users').id
-        internal_id = Group.objects.get(name='Communities:LSCVirgoLIGOGroupMembers').id
-        lvem_id     = Group.objects.get(name='gw-astronomy:LV-EM').id
-        exec_id     = Group.objects.get(name='executives').id
-
-        gop_list = GroupObjectPermissionList(model='guardian.groupobjectpermission')
-
-        for model,pk_list in event_pk_dict.iteritems():
-            # Find the content type id
-            content_type_id = ContentType.objects.get(model=model.split('.')[1].lower()).id 
-
-            # Get permission ids
-            view_id = Permission.objects.get(content_type_id=content_type_id, codename__startswith='view').id
-            change_id = Permission.objects.get(content_type_id=content_type_id, codename__startswith='change').id
-
-            # Each pk_list has 3 events. How to assign permissions on them?
-            # event 0: public can view, lvem can view/change, plus defaults
-            # event 1: lvem can view, plus defaults
-            # event 2: defaults
-            # defaults: internal, exec can view and change
-            
-            # Add defaults for each event
-            for pk in pk_list:
-                gop_list.add_perm(model, pk, internal_id, content_type_id, view_id)
-                gop_list.add_perm(model, pk, internal_id, content_type_id, change_id)
-                gop_list.add_perm(model, pk, exec_id, content_type_id, view_id)
-                gop_list.add_perm(model, pk, exec_id, content_type_id, change_id)
-
-            # Add additional perms for event 0
-            pk = pk_list[0]
-            gop_list.add_perm(model, pk, lvem_id, content_type_id, view_id)
-            gop_list.add_perm(model, pk, lvem_id, content_type_id, change_id)
-            gop_list.add_perm(model, pk, public_id, content_type_id, view_id)
-
-            # Add additional perms for event 1
-            pk = pk_list[1]
-            gop_list.add_perm(model, pk, lvem_id, content_type_id, view_id)
 
         # Write out a tag fixture depending on the events we got.
         tag_list = TagList(model='gracedb.tag')
