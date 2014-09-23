@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.test.utils import override_settings
 
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission, Group, User
@@ -6,7 +7,11 @@ from guardian.models import GroupObjectPermission
 from gracedb.models import Event, GrbEvent, CoincInspiralEvent
 from gracedb.models import MultiBurstEvent
 
+from django.conf import settings
+
 import json
+import os
+import shutil
 from urllib import urlencode
     
 #-------------------------------------------------------------------------------
@@ -14,6 +19,7 @@ from urllib import urlencode
 # Some utilities
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
+TMP_DATA_DIR = '/tmp/test_perms_data'
 
 def get_user(category):
     if category=='public':
@@ -24,7 +30,11 @@ def get_user(category):
         return User.objects.get(first_name='Albert', last_name='Einstein')
     elif category=='exec':
         return User.objects.get(first_name='Spokesy', last_name='McSpokesperson')         
-
+    elif category=='gstlal_submitter':
+        return User.objects.get(last_name='GstLal CBC')
+    else:
+        return None
+    
 def get_public_coinc_event():
     ctype = ContentType.objects.get(model='CoincInspiralEvent')
     perm  = Permission.objects.get(codename='view_coincinspiralevent')
@@ -59,6 +69,27 @@ def get_internal_coinc_event():
         if set(groups)==set([internal, executives]):
             break
     return e
+
+# Given a Django test client, attempt to create a CBC, gstlal, 
+# LowMass event. 
+EVENT_FILE = os.path.join(settings.ROOT_PATH,'gracedb/fixtures/test_perms/cbc-lm.xml')
+
+def request_event_creation(client, username):
+    event_file = open(EVENT_FILE,'r')
+    url = '/events/create/'
+    input_dict = {
+        'group'      : 'CBC',
+        'pipeline'   : 'gstlal',
+        'search'     : 'LM',
+        'eventFile'  : event_file,
+    }
+    return client.post(url, input_dict, REMOTE_USER=username)
+
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# Test Perms Class
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 class TestPerms(TestCase): 
     # I wonder if the order of loading the fixtures will matter?
@@ -159,6 +190,14 @@ class TestPerms(TestCase):
         for e in Event.objects.all():
             e.refresh_perms()
 
+        # Lastly, let's create a temporary data dir. 
+        if not os.path.isdir(TMP_DATA_DIR):
+            os.mkdir(TMP_DATA_DIR)
+
+    def tearDown(self):
+        # Get rid of that temporary data dir.
+        shutil.rmtree(TMP_DATA_DIR)
+
     #-------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------
     # Tests of view access
@@ -255,12 +294,92 @@ class TestPerms(TestCase):
     # Tests of event annotation
     #-------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------
-    
-    # Test annotation of events by public users
+
+    # What annotation activities need to be tested?
+    # - EventLog creation
+    #   /events/GXXXX/log/
+    #   POST dict keys: comment, tagname  (no files through web interface)
+    # - Tag creation
+    #   /events/GXXXX/log/N/tag/<tagname>
+    #   POST dict keys: displayName
+    #   test DELETE?
+    # - Labelling
+    #   no way to do this through the web interface
+
+    # Test annotation of events user.
+    def test_public_log_creation(self):
+        # Choose any event. The public coinc one will do.
+        event = get_public_coinc_event()
+        url = '/events/%s/log/' % event.graceid()
+        input_dict = {
+            'comment' : 'This is a test.',
+            'tagname' : 'test_tag',
+        }
+        response = self.client.post(url,input_dict,
+            REMOTE_USER=get_user('public').username)
+        self.assertEqual(response.status_code, 403)
+
+    def test_public_log_tagging(self):
+        # Choose any event. The public coinc one will do.
+        event = get_public_coinc_event()
+        # Try to add 'test_tag' to the first log entry.
+        url = '/events/%s/log/1/tag/test_tag' % event.graceid()
+        input_dict = {'displayName' : None,}
+        response = self.client.post(url, input_dict,
+            REMOTE_USER=get_user('public').username)
+        self.assertEqual(response.status_code, 403)
 
     # Test annotation of events by LV-EM users
+    def test_lvem_log_creation(self):
+        # Should be able to annotate the public event, but no others
+        public_coinc_event = get_public_coinc_event()
+        for e in CoincInspiralEvent.objects.all():
+            url = '/events/%s/log/' % e.graceid()
+            input_dict = {
+                'comment' : 'This is a test.',
+                'tagname' : 'test_tag',
+            }
+            response = self.client.post(url,input_dict,
+                REMOTE_USER=get_user('lvem').username)
+            if e.id==public_coinc_event.id:
+                # Not an AJAX call, so redirects to event page if successful. 
+                self.assertEqual(response.status_code, 302)
+            else:
+                self.assertEqual(response.status_code, 403)
+
+    def test_lvem_log_tagging(self):
+        public_coinc_event = get_public_coinc_event()
+        for e in CoincInspiralEvent.objects.all():
+            # Try to add 'test_tag' to the first log entry.
+            url = '/events/%s/log/1/tag/test_tag' % e.graceid()
+            input_dict = {'displayName' : None,}
+            response = self.client.post(url, input_dict,
+                REMOTE_USER=get_user('lvem').username)
+            if e.id==public_coinc_event.id:
+                self.assertEqual(response.status_code, 302)
+            else:
+                self.assertEqual(response.status_code, 403)
 
     # Test annotation of events by LIGO users
+    def test_internal_log_creation(self):
+        for e in CoincInspiralEvent.objects.all():
+            url = '/events/%s/log/' % e.graceid()
+            input_dict = {
+                'comment' : 'This is a test.',
+                'tagname' : 'test_tag',
+            }
+            response = self.client.post(url,input_dict,
+                REMOTE_USER=get_user('internal').username)
+            self.assertEqual(response.status_code, 302)
+
+    def test_internal_log_tagging(self):
+        for e in CoincInspiralEvent.objects.all():
+            # Try to add 'test_tag' to the first log entry.
+            url = '/events/%s/log/1/tag/test_tag' % e.graceid()
+            input_dict = {'displayName' : None,}
+            response = self.client.post(url, input_dict,
+                REMOTE_USER=get_user('internal').username)
+            self.assertEqual(response.status_code, 302)
 
     #-------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------
@@ -268,10 +387,37 @@ class TestPerms(TestCase):
     #-------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------
 
+    @override_settings(GRACEDB_DATA_DIR=TMP_DATA_DIR)
+    def test_event_creation(self):
+        gstlal_submitter = get_user('gstlal_submitter')
+        for user in User.objects.all():
+            response = request_event_creation(self.client, user.username)
+            if user.id==gstlal_submitter.id:
+                self.assertEqual(response.status_code, 200)
+            else:
+                self.assertEqual(response.status_code, 403)
+
+#    # Actually, you can only replace an event that you yourself created.
+#    # Thus, not sure if we really need this.
+#    def test_event_replacement(self):
+#        pass
+
     #-------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------
     # Test changes to permissions
     #-------------------------------------------------------------------------------
     #-------------------------------------------------------------------------------
    
-
+    def test_perm_creation(self):
+        for user in User.objects.all():
+            # choose any event
+            event = CoincInspiralEvent.objects.all()[0]
+            # try POST to permission creation URL
+            url = '/events/%s/perms' % event.graceid() 
+            input_dict = {}
+            response = self.client.post(url, input_dict, REMOTE_USER=user.username)
+            groups = [g.name for g in user.groups.all()]
+            if not 'executives' in groups:
+                self.assertEqual(response.status_code, 403)
+            else:
+                self.assertEqual(response.status_code, 200)
