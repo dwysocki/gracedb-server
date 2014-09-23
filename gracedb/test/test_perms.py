@@ -74,11 +74,12 @@ def get_internal_coinc_event():
 # LowMass event. 
 EVENT_FILE = os.path.join(settings.ROOT_PATH,'gracedb/fixtures/test_perms/cbc-lm.xml')
 
-def request_event_creation(client, username):
+def request_event_creation(client, username, test=False):
     event_file = open(EVENT_FILE,'r')
     url = '/events/create/'
+    group = 'Test' if test else 'CBC'
     input_dict = {
-        'group'      : 'CBC',
+        'group'      : group,
         'pipeline'   : 'gstlal',
         'search'     : 'LM',
         'eventFile'  : event_file,
@@ -388,14 +389,21 @@ class TestPerms(TestCase):
     #-------------------------------------------------------------------------------
 
     @override_settings(GRACEDB_DATA_DIR=TMP_DATA_DIR)
-    def test_event_creation(self):
+    def test_cbc_event_creation(self):
         gstlal_submitter = get_user('gstlal_submitter')
         for user in User.objects.all():
             response = request_event_creation(self.client, user.username)
             if user.id==gstlal_submitter.id:
-                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.status_code, 302)
             else:
                 self.assertEqual(response.status_code, 403)
+
+    @override_settings(GRACEDB_DATA_DIR=TMP_DATA_DIR)
+    # Anybody should be able to create a test event.
+    def test_test_event_creation(self):
+        for user in User.objects.all():
+            response = request_event_creation(self.client, user.username, test=True)
+            self.assertEqual(response.status_code, 302)
 
 #    # Actually, you can only replace an event that you yourself created.
 #    # Thus, not sure if we really need this.
