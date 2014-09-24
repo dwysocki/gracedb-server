@@ -27,6 +27,12 @@
         "fields": {
             "name": "Test"
         }
+    },
+    {
+        "pk": 5, 
+        "model": "gracedb.search", 
+        "fields": {
+            "name": "GRB"
+        }
     }
-
 ]
