@@ -11,7 +11,7 @@ class Migration(SchemaMigration):
         # Adding model 'Search'
         db.create_table(u'gracedb_search', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=20)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True)),
         ))
         db.send_create_signal(u'gracedb', ['Search'])
@@ -19,7 +19,7 @@ class Migration(SchemaMigration):
         # Adding model 'Pipeline'
         db.create_table(u'gracedb_pipeline', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=20)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
         ))
         db.send_create_signal(u'gracedb', ['Pipeline'])
 
@@ -172,13 +172,13 @@ class Migration(SchemaMigration):
         u'gracedb.pipeline': {
             'Meta': {'object_name': 'Pipeline'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '20'})
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
         u'gracedb.search': {
             'Meta': {'object_name': 'Search'},
             'description': ('django.db.models.fields.TextField', [], {'null': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '20'})
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
         u'gracedb.singleinspiral': {
             'Gamma0': ('django.db.models.fields.FloatField', [], {'null': 'True'}),

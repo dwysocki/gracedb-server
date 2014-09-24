@@ -52,13 +52,13 @@ class Group(models.Model):
         return self.name
 
 class Pipeline(models.Model):
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=100)
     # XXX Need any additional fields? Like a librarian email? Or perhaps even fk?
     def __unicode__(self):
         return self.name
 
 class Search(models.Model):
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=100)
     description = models.TextField(null=True)
     # XXX Need any additional fields? Like a PI email? Or perhaps even fk?
     def __unicode__(self):
