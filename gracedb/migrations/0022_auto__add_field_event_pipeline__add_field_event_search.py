@@ -1,18 +1,31 @@
 # -*- coding: utf-8 -*-
 from south.utils import datetime_utils as datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
-from django.core.management import call_command
 
-class Migration(DataMigration):
+
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        call_command("loaddata", "initial_searches.json")
+        # Adding field 'Event.pipeline'
+        db.add_column(u'gracedb_event', 'pipeline',
+                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['gracedb.Pipeline']),
+                      keep_default=False)
+
+        # Adding field 'Event.search'
+        db.add_column(u'gracedb_event', 'search',
+                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.Search'], null=True),
+                      keep_default=False)
+
 
     def backwards(self, orm):
-        for search in orm.Search.objects.all():
-            search.delete()
+        # Deleting field 'Event.pipeline'
+        db.delete_column(u'gracedb_event', 'pipeline_id')
+
+        # Deleting field 'Event.search'
+        db.delete_column(u'gracedb_event', 'search_id')
+
 
     models = {
         u'auth.group': {
@@ -84,6 +97,8 @@ class Migration(DataMigration):
             'labels': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['gracedb.Label']", 'through': u"orm['gracedb.Labelling']", 'symmetrical': 'False'}),
             'likelihood': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
             'nevents': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'}),
+            'pipeline': ('django.db.models.fields.related.ForeignKey', [], {'default': '1', 'to': u"orm['gracedb.Pipeline']"}),
+            'search': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['gracedb.Search']", 'null': 'True'}),
             'submitter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
             'uid': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '20'})
         },
@@ -233,4 +248,3 @@ class Migration(DataMigration):
     }
 
     complete_apps = ['gracedb']
-    symmetrical = True

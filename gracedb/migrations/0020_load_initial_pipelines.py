@@ -154,13 +154,13 @@ class Migration(DataMigration):
         u'gracedb.pipeline': {
             'Meta': {'object_name': 'Pipeline'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '20'})
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
         u'gracedb.search': {
             'Meta': {'object_name': 'Search'},
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True'}),
+            'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '20'})
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
         u'gracedb.singleinspiral': {
             'Gamma0': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
