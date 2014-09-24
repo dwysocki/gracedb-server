@@ -1,0 +1,30 @@
+[
+    {
+        "pk": 1, 
+        "model": "gracedb.pipeline", 
+        "fields": {
+            "name": "MBTAOnline"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "gracedb.pipeline", 
+        "fields": {
+            "name": "CWB2G"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "gracedb.pipeline", 
+        "fields": {
+            "name": "gstlal"
+        }
+    }, 
+    {
+        "pk": 4, 
+        "model": "gracedb.pipeline", 
+        "fields": {
+            "name": "gstlal-spiir"
+        }
+    }
+]
