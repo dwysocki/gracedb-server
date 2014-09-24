@@ -59,7 +59,7 @@ class Pipeline(models.Model):
 
 class Search(models.Model):
     name = models.CharField(max_length=100)
-    description = models.TextField(null=True)
+    description = models.TextField(blank=True)
     # XXX Need any additional fields? Like a PI email? Or perhaps even fk?
     def __unicode__(self):
         return self.name
@@ -94,6 +94,9 @@ class Event(models.Model):
     group = models.ForeignKey(Group)
     uid = models.CharField(max_length=20, default="")  # XXX deprecated.  should be removed.
     analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
+
+    pipeline = models.ForeignKey(Pipeline)
+    search = models.ForeignKey(Search, null=True)
 
     # from coinc_event
     instruments = models.CharField(max_length=20, default="")

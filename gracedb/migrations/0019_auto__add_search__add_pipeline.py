@@ -12,7 +12,7 @@ class Migration(SchemaMigration):
         db.create_table(u'gracedb_search', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True)),
+            ('description', self.gf('django.db.models.fields.TextField')(blank=True)),
         ))
         db.send_create_signal(u'gracedb', ['Search'])
 
@@ -176,7 +176,7 @@ class Migration(SchemaMigration):
         },
         u'gracedb.search': {
             'Meta': {'object_name': 'Search'},
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True'}),
+            'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
