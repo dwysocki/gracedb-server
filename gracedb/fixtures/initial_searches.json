@@ -20,5 +20,13 @@
         "fields": {
             "name": "HighMass"
         }
+    },
+    {
+        "pk": 4, 
+        "model": "gracedb.search", 
+        "fields": {
+            "name": "Test"
+        }
     }
+
 ]
