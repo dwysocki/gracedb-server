@@ -6,9 +6,6 @@ from model_utils.managers import InheritanceManager
 from django.contrib.auth.models import User as DjangoUser
 
 
-import datetime
-import thread
-import string
 import os
 import logging
 
@@ -51,6 +48,19 @@ schema_version = "1.1"
 
 class Group(models.Model):
     name = models.CharField(max_length=20)
+    def __unicode__(self):
+        return self.name
+
+class Pipeline(models.Model):
+    name = models.CharField(max_length=20)
+    # XXX Need any additional fields? Like a librarian email? Or perhaps even fk?
+    def __unicode__(self):
+        return self.name
+
+class Search(models.Model):
+    name = models.CharField(max_length=20)
+    description = models.TextField(null=True)
+    # XXX Need any additional fields? Like a PI email? Or perhaps even fk?
     def __unicode__(self):
         return self.name
 
@@ -264,7 +274,7 @@ class EventLog(models.Model):
             try:
                 super(EventLog, self).save(*args, **kwargs)
                 success = True
-            except IntegrityError as e:
+            except IntegrityError:
                 # IntegrityError means an attempt to insert a duplicate
                 # key or to violate a foreignkey constraint.
                 # We are under race conditions.  Let's try again.
