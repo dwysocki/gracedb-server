@@ -3,6 +3,7 @@ from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from models import Event, Group, Label
+from models import Pipeline, Search
 from django.contrib.auth.models import User
 from django.core.exceptions import FieldError
 
@@ -39,11 +40,15 @@ class SimpleSearchForm(forms.Form):
 
 class CreateEventForm(forms.Form):
     groupChoices = [("","")]+[(g.name, g.name) for g in Group.objects.all()]
-    typeChoices= [("","")]+list(Event.ANALYSIS_TYPE_CHOICES)
-
+    #typeChoices= [("","")]+list(Event.ANALYSIS_TYPE_CHOICES)
+    pipelineChoices = [("","")]+[(p.name, p.name) for p in Pipeline.objects.all()]
+    searchChoices = [("","")]+[(s.name, s.name) for s in Search.objects.all()]
+    
     eventFile  = forms.FileField()
     group = forms.ChoiceField(groupChoices)
-    type = forms.ChoiceField(choices=typeChoices)
+    pipeline = forms.ChoiceField(pipelineChoices)
+    search = forms.ChoiceField(searchChoices)
+    #type = forms.ChoiceField(choices=typeChoices)
 
 
 class EventSearchForm(forms.Form):
