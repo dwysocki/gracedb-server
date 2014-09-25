@@ -49,7 +49,10 @@ def handle_uploaded_data(event, datafilename,
     log.save()
 
     temp_data_loc = ""
-    if event.analysisType in [ 'HM', 'LM' ]:
+
+    pipeline = event.pipeline.name
+
+    if pipeline in [ 'gstlal', 'gstlal-spiir' ]:
         log_comment = "Log File Created"
         # Wildly speculative wrt HM
 
@@ -63,7 +66,9 @@ def handle_uploaded_data(event, datafilename,
         # Create Log Data
         # XXX This is messy and redundant.  All of this is also below.
         try:
-            log_data = ["Event Type: %s" % event.getTypeLabel(event.analysisType)]
+            log_data = ["Pipeline: %s" % pipeline]
+            if event.search:
+                log_data.append("Search: %s" % event.search.name)
             origdata = glue.ligolw.table.getTablesByName(
                                         xmldoc,
                                         glue.ligolw.lsctables.CoincInspiralTable.tableName)
@@ -159,14 +164,14 @@ def handle_uploaded_data(event, datafilename,
         table = sum(s_inspiral_tables, [])
         SingleInspiral.create_events_from_ligolw_table(table, event)
 
-    elif event.analysisType == "HWINJ":
+    elif pipeline == 'HardwareInjection':
         log_comment = "Log File Created"
         xmldoc = glue.ligolw.utils.load_filename(datafilename)
 
         # Create Log Data
         # XXX This is messy and redundant.  All of this is also below.
         try:
-            log_data = ["Event Type: %s" % event.getTypeLabel(event.analysisType)]
+            log_data = ["Pipeline: %s" % pipeline]
             origdata = glue.ligolw.table.getTablesByName(
                                         xmldoc,
                                         glue.ligolw.lsctables.SimInspiralTable.tableName)
@@ -211,7 +216,7 @@ def handle_uploaded_data(event, datafilename,
                        issuer=event.submitter,
                        comment=log_comment)
         log.save()
-    elif event.analysisType == 'MBTA':
+    elif pipeline == 'MBTAOnline':
         #here's how it works for inspirals
         #populate the tables
         #xmldoc, log_data, temp_data_loc = populate_inspiral_tables("MbtaFake-930909680-16.gwf") 
@@ -289,7 +294,7 @@ def handle_uploaded_data(event, datafilename,
         table = sum(s_inspiral_tables, [])
         SingleInspiral.create_events_from_ligolw_table(table, event)
 
-    elif event.analysisType == 'OM': # Omega
+    elif pipeline == 'Omega':
         #here's how it works for bursts
         #xmldoc, log_data, temp_data_loc = populate_burst_tables("initial.data")
         #write_output_files('.', final_xmldoc, log_data)
@@ -334,7 +339,7 @@ def handle_uploaded_data(event, datafilename,
         #xml_filename = os.path.join(output_dir, coinc_table_filename)
 
         event.save()
-    elif event.analysisType == 'CWB':
+    elif pipeline in ['CWB', 'CWB2G']:
 
         data = CwbData(datafilename)
 
@@ -377,7 +382,7 @@ def handle_uploaded_data(event, datafilename,
                            comment=comment)
             log.save()
 
-    elif event.analysisType == 'GRB':
+    elif pipeline in ['Swift', 'Fermi']:
         # Get the event time from the VOEvent file
         error = None
         try:
