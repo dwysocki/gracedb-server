@@ -75,5 +75,13 @@
         "fields": {
             "name": "Swift"
         }
+    },
+    {
+        "pk": 12, 
+        "model": "gracedb.pipeline", 
+        "fields": {
+            "name": "CWB"
+        }
     }
+
 ]
