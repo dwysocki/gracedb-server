@@ -123,11 +123,11 @@ class Event(models.Model):
         ordering = ["-id"]
 
     def graceid(self):
-        if self.group.name == "Test":
+        if self.group.name == "Test" or self.search.name == "Test":
             return "T%04d" % self.id
-        elif self.analysisType == "HWINJ":
+        elif self.pipeline == "HardwareInjection":
             return "H%04d" % self.id
-        elif self.analysisType == "GRB":
+        elif self.group.name == "External":
             return "E%04d" % self.id
         return "G%04d" % self.id
 
@@ -194,11 +194,11 @@ class Event(models.Model):
             e = cls.objects.filter(id=int(id[1:])).select_subclasses()[0]
         except IndexError:
             raise cls.DoesNotExist("Event matching query does not exist")
-        if (id[0] == "T") and (e.group.name == "Test"):
+        if (id[0] == "T") and (e.group.name == "Test" or e.search.name == "Test"):
             return e
-        if (id[0] == "H") and (e.analysisType == "HWINJ"):
+        if (id[0] == "H") and (e.pipeline.name == "HardwareInjection"):
             return e
-        if (id[0] == "E") and (e.analysisType == "GRB"):
+        if (id[0] == "E") and (e.group.name == "External"):
             return e
         if (id[0] == "G"):
             return e
