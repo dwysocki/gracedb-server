@@ -97,7 +97,12 @@ class Event(models.Model):
     uid = models.CharField(max_length=20, default="")  # XXX deprecated.  should be removed.
     #analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
 
-    pipeline = models.ForeignKey(Pipeline, default=DEFAULT_PIPELINE_ID)
+    # Note: a default value is needed only during the schema migration
+    # that creates this column. After that, we can safely remove it.
+    # The presence or absence of the default value has no effect on the DB
+    # tables, so removing it does not necessitate a migration.
+    #pipeline = models.ForeignKey(Pipeline, default=DEFAULT_PIPELINE_ID)
+    pipeline = models.ForeignKey(Pipeline) 
     search = models.ForeignKey(Search, null=True)
 
     # from coinc_event
