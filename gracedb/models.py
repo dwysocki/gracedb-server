@@ -77,25 +77,25 @@ class Event(models.Model):
 
     objects = InheritanceManager() # Queries can return subclasses, if available.
 
-    ANALYSIS_TYPE_CHOICES = (
-        ("LM",  "LowMass"),
-        ("HM",  "HighMass"),
-        ("GRB", "GRB"),
-        ("RD",  "Ringdown"),
-        ("OM",  "Omega"),
-        ("Q",   "Q"),
-        ("X",   "X"),
-        ("CWB", "CWB"),
-        ("MBTA", "MBTAOnline"),
-        ("HWINJ", "HardwareInjection"),
-    )
+#    ANALYSIS_TYPE_CHOICES = (
+#        ("LM",  "LowMass"),
+#        ("HM",  "HighMass"),
+#        ("GRB", "GRB"),
+#        ("RD",  "Ringdown"),
+#        ("OM",  "Omega"),
+#        ("Q",   "Q"),
+#        ("X",   "X"),
+#        ("CWB", "CWB"),
+#        ("MBTA", "MBTAOnline"),
+#        ("HWINJ", "HardwareInjection"),
+#    )
     DEFAULT_EVENT_NEIGHBORHOOD = (-5,5)
 
     submitter = models.ForeignKey(DjangoUser)
     created = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Group)
     uid = models.CharField(max_length=20, default="")  # XXX deprecated.  should be removed.
-    analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
+    #analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
 
     pipeline = models.ForeignKey(Pipeline, default=DEFAULT_PIPELINE_ID)
     search = models.ForeignKey(Search, null=True)
