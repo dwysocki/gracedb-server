@@ -106,7 +106,8 @@
             <th valign="top">UID</th>
             <th>Labels</th>
             <th>Group</th>
-            <th>Type</th>
+            <th>Pipeline</th>
+            <th>Search</th>
             <th>Instruments</th>
             <th>
                 {{ "gps"|timeselect:"gps" }}
@@ -130,7 +131,8 @@
              {% endfor %}
         </td>
         <td>{{ object.group.name }} </td>
-        <td>{{ object.get_analysisType_display }} </td>
+        <td>{{ object.pipeline.name }} </td>
+        <td>{{ object.search.name }} </td>
         <td>{{ object.instruments }}</td>
         <td>{% if object.gpstime%}
                 <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
