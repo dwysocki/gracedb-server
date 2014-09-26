@@ -4,12 +4,10 @@ import time
 from subprocess import Popen, PIPE, STDOUT
 import StringIO
 
-from django.core.mail import send_mail, EmailMessage
+from django.core.mail import EmailMessage
 from django.conf import settings
 from django.contrib.sites.models import Site
-from django.core.urlresolvers import reverse, get_script_prefix
-
-from userprofile.models import Trigger, AnalysisType
+from django.core.urlresolvers import reverse
 
 import glue.ligolw.utils
 import ligo.lvalert.utils
@@ -40,18 +38,18 @@ def issueAlertForLabel(event, label, doxmpp):
         issueXMPPAlert(event, "", "", "label", label)
     # Email
     profileRecips = []
-    atype = AnalysisType.objects.filter(code=event.analysisType)[0]
-    # Triggers on given label matching analysis type OR with no atype (wildcard type)
-    triggers = label.trigger_set.filter(atypes=atype)
-    triggers = triggers | label.trigger_set.filter(atypes=None)
+    pipeline = event.pipeline
+    # Triggers on given label matching pipeline OR with no pipeline (wildcard type)
+    triggers = label.trigger_set.filter(pipelines=pipeline)
+    triggers = triggers | label.trigger_set.filter(pipelines=None)
     for trigger in triggers:
         for recip in trigger.contacts.all():
             profileRecips.append(recip.email)
 
-    subject = "[gracedb] %s / %s / %s" % (label.name, event.get_analysisType_display(), event.graceid())
+    subject = "[gracedb] %s / %s / %s / %s" % (label.name, event.pipeline.name, event.pipeline.search, event.graceid())
 
     message = "A %s event with graceid %s was labelled with %s" % \
-              (event.get_analysisType_display(), event.graceid(), label.name)
+              (event.pipeline.name, event.graceid(), label.name)
 
     if event.group.name == "Test":
         fromaddress = settings.ALERT_TEST_EMAIL_FROM
@@ -82,8 +80,8 @@ def issueEmailAlert(event, location):
         toaddresses = settings.ALERT_EMAIL_TO
         bccaddresses = settings.ALERT_EMAIL_BCC
 
-        atype = AnalysisType.objects.filter(code=event.analysisType)[0]
-        triggers = atype.trigger_set.filter(labels=None)
+        pipeline = event.pipeline
+        triggers = pipeline.trigger_set.filter(labels=None)
         for trigger in triggers:
             for recip in trigger.contacts.all():
                if not trigger.farThresh:
@@ -91,7 +89,7 @@ def issueEmailAlert(event, location):
                else:
                    if event.far and event.far < trigger.farThresh:
                        bccaddresses.append(recip.email)
-    subject = "[gracedb] %s event. ID: %s" % (event.get_analysisType_display(), event.graceid())
+    subject = "[gracedb] %s event. ID: %s" % (event.pipeline.name, event.graceid())
     message = """
 New Event
 %s / %s
@@ -103,7 +101,7 @@ Event Summary:
 %s
 """
     message %= (event.group.name,
-                event.get_analysisType_display(),
+                event.pipeline.name,
                 event.graceid(),
                 'https://'+Site.objects.get_current().domain+ reverse("view", args=[event.graceid()]),
                 event.weburl(),
@@ -117,7 +115,10 @@ Event Summary:
     #send_mail(subject, message, fromaddress, toaddresses)
 
 def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description=""):
-    nodename = "%s_%s"% (event.group.name, event.get_analysisType_display())
+    
+    nodename = "%s_%s" % (event.group.name, event.pipeline.name)
+    if event.search:
+        nodename += "_%s" % event.search.name
     nodename = nodename.lower()
 
     log.debug('issueXMPPAlert: %s %s' % (event.graceid(), nodename))
