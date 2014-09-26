@@ -118,7 +118,8 @@ def flexigridResponse(request, objects):
                             for n in object.neighbors()
                         ]),
                         object.group.name,
-                        object.get_analysisType_display(),
+                        object.pipleine.name,
+                        object.search.name,
 
                         event_times.get('gps',""),
                         #event_times['utc'],
