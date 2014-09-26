@@ -40,7 +40,8 @@ def cli_search(request):
         accessFun = {
             "labels" : lambda e: \
                 ",".join([labelling.label.name for labelling in e.labelling_set.all()]),
-            "analysisType" : lambda e: e.get_analysisType_display(),
+            "pipeline" : lambda e: e.pipeline.name,
+            "search"  : lambda e: e.search.name or "",
             "gpstime" : lambda e: str(e.gpstime) or "",
             "created" : lambda e: e.created.isoformat(),
             "dataurl" : lambda e: e.weburl(),
@@ -49,7 +50,7 @@ def cli_search(request):
         }
         defaultAccess = lambda e, a: str(getattr(e,a,None) or "")
 
-        defaultColumns = "graceid,labels,group,analysisType,far,gpstime,created,dataurl"
+        defaultColumns = "graceid,labels,group,pipeline,search,far,gpstime,created,dataurl"
         columns = request.POST.get('columns')
         if not columns:
             columns = defaultColumns
