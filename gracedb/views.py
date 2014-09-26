@@ -238,11 +238,17 @@ def view(request, graceid):
     context['blessed_tags'] = settings.BLESSED_TAGS
     context['single_inspiral_events'] = list(a.singleinspiral_set.all())
     context['neighbor_delta'] = "[%+d,%+d]" % (-5,5)
-    return render_to_response(
-        [ 'gracedb/event_detail_{0}.html'.format(a.analysisType),
-          'gracedb/event_detail.html'],
-        context,
-        context_instance=RequestContext(request))
+    # We need a new way of picking templates here. This is too gross.
+
+    templates = ['gracedb/event_detail.html',]
+    if a.pipeline.name in settings.COINC_PIPELINES:
+        templates.insert(0, 'gracedb/event_detail_coinc.html')
+    elif a.pipeline.name in settings.GRB_PIPELINES:
+        templates.insert(0, 'gracedb/event_detail_GRB.html')
+    elif a.pipeline.name.startswith('CWB'):
+        templates.insert(0, 'gracedb/event_detail_CWB.html')
+
+    return render_to_response(templates, context, context_instance=RequestContext(request))
 
 def search(request, format=""):
     if not request.user or not request.user.is_authenticated():

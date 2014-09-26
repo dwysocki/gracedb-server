@@ -53,6 +53,17 @@ BLESSED_TAGS = [
                  'audio',
                ]
 
+COINC_PIPELINES = [
+                    'gstlal',
+                    'gstlal-spiir',
+                    'MBTA',
+                   ]
+
+GRB_PIPELINES = [
+                    'Fermi',
+                    'Swift',
+                ]
+
 DATABASES = {
     'default' : {
         'NAME'     : 'gracedb',
