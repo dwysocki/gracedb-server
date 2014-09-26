@@ -254,7 +254,8 @@ class TSVRenderer(BaseRenderer):
                 attrs = attrs[1:]
             return str(rv)
 
-        defaultColumns = "graceid,labels,group,analysisType,far,gpstime,created,dataurl"
+        #defaultColumns = "graceid,labels,group,analysisType,far,gpstime,created,dataurl"
+        defaultColumns = "graceid,labels,group,pipeline,search,far,gpstime,created,dataurl"
         # XXX Que monstroso!
         columns = renderer_context.get('kwargs', None).get('columns', None)
         if not columns:
@@ -321,7 +322,9 @@ def eventToDict(event, columns=None, request=None):
     rv['created'] = timeToUTC(event.created)
     rv['group'] = event.group.name
     rv['graceid'] = graceid
-    rv['analysisType'] = event.get_analysisType_display()
+    rv['pipeline'] = event.pipeline.name
+    rv['search'] = event.search.name
+#    rv['analysisType'] = event.get_analysisType_display()
     rv['gpstime'] = event.gpstime
     rv['instruments'] = event.instruments
     rv['nevents'] = event.nevents
