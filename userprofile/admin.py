@@ -1,10 +1,7 @@
 
-from models import AnalysisType, Contact, Trigger
+from models import Contact, Trigger
 
 from django.contrib import admin
-
-class AnalysisTypeManager(admin.ModelAdmin):
-    list_display = [ 'display' ]
 
 class ContactManager(admin.ModelAdmin):
     pass
@@ -15,7 +12,6 @@ class TriggerManager(admin.ModelAdmin):
 #   exclude = [ 'labels' ]
 #   list_display = [ 'user', ]
 
-admin.site.register(AnalysisType, AnalysisTypeManager)
 admin.site.register(Contact, ContactManager)
 admin.site.register(Trigger, TriggerManager)
 
