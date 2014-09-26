@@ -53,8 +53,10 @@ class CreateEventForm(forms.Form):
 
 class EventSearchForm(forms.Form):
     groupChoices = [("","")]+[(g.name, g.name) for g in Group.objects.all()]
+    pipelineChoices = [("","")]+[(p.name, p.name) for p in Pipeline.objects.all()]
+    searchChoices = [("","")]+[(s.name, s.name) for s in Search.objects.all()]
 
-    typeChoices= [("","")]+list(Event.ANALYSIS_TYPE_CHOICES)
+    #typeChoices= [("","")]+list(Event.ANALYSIS_TYPE_CHOICES)
 
     submitterIds = Event.objects.values_list('submitter',flat=True).distinct()
     submitterList = User.objects.filter(id__in=submitterIds).order_by('last_name', 'first_name')
@@ -67,7 +69,9 @@ class EventSearchForm(forms.Form):
     graceidStart = forms.CharField(required=False)
     graceidEnd = forms.CharField(required=False)
     group = forms.ChoiceField(choices=groupChoices, required=False)
-    type = forms.ChoiceField(choices=typeChoices, required=False)
+    #type = forms.ChoiceField(choices=typeChoices, required=False)
+    pipeline = forms.ChoiceField(choices=pipelineChoices, required=False)
+    search = forms.ChoiceField(choices=searchChoices, required=False)
     gpsStart = forms.IntegerField(min_value=0, required=False, label="GPS Start")
     gpsEnd = forms.IntegerField(min_value=0, required=False, label="GPS End")
     submitter = forms.ChoiceField(choices=submitterChoices, required=False)
