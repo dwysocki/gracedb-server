@@ -1,14 +1,14 @@
 
 from django.contrib.syndication.views import FeedDoesNotExist
-from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.syndication.views import Feed
 
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
-from models import Event, Group
-from views import view, search, index
+from models import Event, Group, Pipeline
+#from views import view, search, index
+from views import view
 
 from django.conf import settings
 FEED_MAX_RESULTS = getattr(settings, 'FEED_MAX_RESULTS', 20)
@@ -19,7 +19,7 @@ class EventFeed(Feed):
     def get_object(self, request, url):
         bits = url.split('/')[1:]
         # bits will look like
-        # [] , ['cbc'], ['cbc','lowmass']
+        # [] , ['cbc'], ['cbc','gstlal']
 
         objs = Event.objects.order_by("-id")
         if 'test' not in bits:
@@ -30,7 +30,7 @@ class EventFeed(Feed):
         if len(bits) not in [0,1,2]:
             raise FeedDoesNotExist
         if not bits:
-            title = "GraCEDb Events"
+            title = "GraceDB Events"
         else:
             group = Group.objects.filter(name__iexact=bits[0])
             if not group.count():
@@ -38,16 +38,14 @@ class EventFeed(Feed):
             group = group[0]
             objs = Event.objects.filter(group=group)
             if len(bits) == 1:
-                title = "GraCEDb %s Events" % group.name
+                title = "GraceDB %s Events" % group.name
             else:
-                requestedtype = bits[1]
-                type = [(c,t) for (c,t) in Event.ANALYSIS_TYPE_CHOICES \
-                        if t.lower() == requestedtype]
-                if not type:
+                pipeline = Pipeline.objects.filter(name__iexact=bits[1])
+                if not pipeline.count(0):
                     raise FeedDoesNotExist
-                typecode, type = type[0]
-                title = "GraCEDb %s / %s Events" % (group.name, type)
-                objs = objs.filter(analysisType=typecode)
+                pipeline = pipeline[0]
+                objs = Event.objects.filter(pipeline=pipeline)
+                title = "GraceDB %s / %s Events" % (group.name, pipeline.name)
         return title, objs[:FEED_MAX_RESULTS]
 
     def title(self, obj):
