@@ -77,6 +77,8 @@ def rate_data(request):
     types = [
         ("total",   Q()),
         ]
+# XXX This obviously won't work anymore. But you could try something
+# but you could try something similar with pipeline.
 #   types = [
 #       ("LM",      Q(analysisType="LM")),
 #       ("Omega",   Q(analysisType="Omega")),
