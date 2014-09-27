@@ -41,7 +41,7 @@ class EventFeed(Feed):
                 title = "GraceDB %s Events" % group.name
             else:
                 pipeline = Pipeline.objects.filter(name__iexact=bits[1])
-                if not pipeline.count(0):
+                if not pipeline.count():
                     raise FeedDoesNotExist
                 pipeline = pipeline[0]
                 objs = Event.objects.filter(pipeline=pipeline)
