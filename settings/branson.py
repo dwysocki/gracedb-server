@@ -9,6 +9,9 @@ DATABASES = {
         'ENGINE'   : 'django.db.backends.mysql',
         'USER'     : 'branson',
         'PASSWORD' : 'thinglet',
+        'OPTIONS'  : {
+            'init_command': 'SET strage_engine=MyISAM',
+        },
     }
 }
 
@@ -219,10 +222,11 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         }, 
-#        'userprofile': {
-#            'handlers': ['debug_file', 'info_file', 'warning_file', 'error_file'],
-#            'propagate': True,
-#            'level': LOG_LEVEL,
-#        },
+        'userprofile': {
+            #'handlers': ['debug_file', 'info_file', 'warning_file', 'error_file'],
+            'handlers': ['debug_file'],
+            'propagate': True,
+            'level': LOG_LEVEL,
+        },
    },
 }
