@@ -1,12 +1,9 @@
 from django import forms
-from django.db import models
 from models import Trigger, Contact
-
-from django.forms.models import modelformset_factory
 
 def triggerFormFactory(postdata=None, user=None):
     class TF(forms.ModelForm):
-        farThresh = forms.FloatField(label='FAR Threshold (Hz)', 
+        farThresh = forms.FloatField(label='FAR Threshold (Hz)', required=False,
                 help_text="Leave blank to recieve all events, regardless of FAR.")
         class Meta:
             model = Trigger
