@@ -71,7 +71,7 @@ DATABASES = {
         'USER'     : 'gracedb',
         'PASSWORD' : 'redrum4x',
         'OPTIONS'  : {
-                         'init_command': 'SET strage_engine=MyISAM',
+                         'init_command': 'SET storage_engine=MyISAM',
                      },
     }
 }
