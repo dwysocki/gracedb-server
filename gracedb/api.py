@@ -9,7 +9,7 @@ from django.utils import dateformat
 
 import json
 
-from gracedb.models import Event, Group, EventLog, Tag
+from gracedb.models import Event, Group, Search, Pipeline, EventLog, Tag
 from view_logic import create_label, get_performance_info
 from view_logic import _createEventFromForm
 from translator import handle_uploaded_data
@@ -1292,8 +1292,9 @@ class GracedbRoot(APIView):
                 "performance" : reverse("performance-info", request=request),
                 },
             "templates" : templates,
-            "groups" : [group.name for group in Group.objects.all()],
-            "analysis-types" : dict(Event.ANALYSIS_TYPE_CHOICES),
+            "groups"    : [group.name for group in Group.objects.all()],
+            "pipelines" : [pipeline.name for pipeline in Pipeline.objects.all()],
+            "searches"  : [search.name for search in Search.objects.all()],
            })
 
 ##################################################################

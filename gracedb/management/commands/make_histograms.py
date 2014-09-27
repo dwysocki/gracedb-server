@@ -82,12 +82,14 @@ def writeIndex(notes, fname):
     for time_range in ['day', 'week', 'month']:
         table += "<th>last %s</th>" % time_range
     table += "</tr>"
-    for atype, atype_name in Event.ANALYSIS_TYPE_CHOICES:
+    for pipeline in Pipeline.objects.all():
+    #for atype, atype_name in Event.ANALYSIS_TYPE_CHOICES:
+        pname = pipeline.name
         table += "<tr>"
-        table += "<td>%s</td>" % atype_name
+        table += "<td>%s</td>" % pname
         for time_range in ['day', 'week', 'month']:
             table += '<td align="center" bgcolor="white">'
-            n = notes[atype][time_range]
+            n = notes[pname][time_range]
             extra = ""
             if n['fname'] is not None:
                 table += '<img width="400" height="300" src="%s"/>' % \

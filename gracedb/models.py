@@ -77,18 +77,18 @@ class Event(models.Model):
 
     objects = InheritanceManager() # Queries can return subclasses, if available.
 
-    ANALYSIS_TYPE_CHOICES = (
-        ("LM",  "LowMass"),
-        ("HM",  "HighMass"),
-        ("GRB", "GRB"),
-        ("RD",  "Ringdown"),
-        ("OM",  "Omega"),
-        ("Q",   "Q"),
-        ("X",   "X"),
-        ("CWB", "CWB"),
-        ("MBTA", "MBTAOnline"),
-        ("HWINJ", "HardwareInjection"),
-    )
+#    ANALYSIS_TYPE_CHOICES = (
+#        ("LM",  "LowMass"),
+#        ("HM",  "HighMass"),
+#        ("GRB", "GRB"),
+#        ("RD",  "Ringdown"),
+#        ("OM",  "Omega"),
+#        ("Q",   "Q"),
+#        ("X",   "X"),
+#        ("CWB", "CWB"),
+#        ("MBTA", "MBTAOnline"),
+#        ("HWINJ", "HardwareInjection"),
+#    )
     DEFAULT_EVENT_NEIGHBORHOOD = (-5,5)
 
     submitter = models.ForeignKey(DjangoUser)

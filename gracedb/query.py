@@ -33,10 +33,10 @@ def maybeRange(name, dbname=None):
         return name, Q(**{dbname+"__range": toks.asList()})
     return f
 
-encodeType = dict(
-    [(x[1],x[0]) for x in models.Event.ANALYSIS_TYPE_CHOICES] +
-    [(x[0],x[0]) for x in models.Event.ANALYSIS_TYPE_CHOICES]
-    )
+#encodeType = dict(
+#    [(x[1],x[0]) for x in models.Event.ANALYSIS_TYPE_CHOICES] +
+#    [(x[0],x[0]) for x in models.Event.ANALYSIS_TYPE_CHOICES]
+#    )
 
 #def doType(toks):
 #    return ("type", Q(analysisType__in=[encodeType[tok] for tok in toks]))
