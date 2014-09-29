@@ -47,7 +47,7 @@ class CreateEventForm(forms.Form):
     eventFile  = forms.FileField()
     group = forms.ChoiceField(groupChoices)
     pipeline = forms.ChoiceField(pipelineChoices)
-    search = forms.ChoiceField(searchChoices)
+    search = forms.ChoiceField(searchChoices, required=False)
     #type = forms.ChoiceField(choices=typeChoices)
 
 
