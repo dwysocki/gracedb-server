@@ -46,7 +46,7 @@ def issueAlertForLabel(event, label, doxmpp):
         for recip in trigger.contacts.all():
             profileRecips.append(recip.email)
 
-    subject = "[gracedb] %s / %s / %s / %s" % (label.name, event.pipeline.name, event.pipeline.search, event.graceid())
+    subject = "[gracedb] %s / %s / %s / %s" % (label.name, event.pipeline.name, event.search.name, event.graceid())
 
     message = "A %s event with graceid %s was labelled with %s" % \
               (event.pipeline.name, event.graceid(), label.name)
