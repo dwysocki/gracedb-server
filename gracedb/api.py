@@ -323,7 +323,8 @@ def eventToDict(event, columns=None, request=None):
     rv['group'] = event.group.name
     rv['graceid'] = graceid
     rv['pipeline'] = event.pipeline.name
-    rv['search'] = event.search.name
+    if event.search:
+        rv['search'] = event.search.name
 #    rv['analysisType'] = event.get_analysisType_display()
     rv['gpstime'] = event.gpstime
     rv['instruments'] = event.instruments
