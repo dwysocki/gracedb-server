@@ -61,7 +61,7 @@ class Migration(DataMigration):
             # to the pipeline, and leave the search blank.
             elif event.analysisType=="CWB":
                 event.pipeline = orm.Pipeline.objects.get(name='CWB')
-                event.searhc = orm.Search.objects.get(name='AllSky')
+                event.search = orm.Search.objects.get(name='AllSky')
             elif event.analysisType in ANALYSIS_TYPE_TO_PIPELINE.keys():
                 pipeline_name = ANALYSIS_TYPE_TO_PIPELINE[event.analysisType]
                 event.pipeline = orm.Pipeline.objects.get(name=pipeline_name)
