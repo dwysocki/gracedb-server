@@ -94,7 +94,7 @@ class Event(models.Model):
     submitter = models.ForeignKey(DjangoUser)
     created = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Group)
-    uid = models.CharField(max_length=20, default="")  # XXX deprecated.  should be removed.
+    #uid = models.CharField(max_length=20, default="")  # XXX deprecated.  should be removed.
     #analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
 
     # Note: a default value is needed only during the schema migration
@@ -123,7 +123,12 @@ class Event(models.Model):
         ordering = ["-id"]
 
     def graceid(self):
-        if self.group.name == "Test" or self.search.name == "Test":
+        # Unlike group and pipeline, 'search' is allowed to be None.
+        if self.search:
+            if self.search.name=="Test":
+                return "T%04d" % self.id
+
+        if self.group.name == "Test":
             return "T%04d" % self.id
         elif self.pipeline == "HardwareInjection":
             return "H%04d" % self.id
