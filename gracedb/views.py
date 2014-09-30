@@ -625,6 +625,8 @@ def view(request, graceid):
     except Event.DoesNotExist:
         raise Http404
     context['object'] = a
+    context['facilities'] = [(ef.shortName, ef.name) 
+                            for ef in EMFacility.objects.all()]
     context['eventdesc'] = get_file(graceid, "event.log")
     context['userdesc'] = get_file(graceid, "user.log")
     context['nearby'] = [(event.gpstime - a.gpstime, event)
@@ -1325,10 +1327,10 @@ def embblogentry(request, graceid, num=None):
         # Assign a facility name
         try:
             facility_name = request.POST.get('facility')
-            facility = EMFacility.objects.get(name=facility_name)
+            facility = EMFacility.objects.get(shortName=facility_name)
             eel.facility = facility
-        except: 
-            return HttpResponseBadRequest('Please specifiy facility.')
+        except Exception, e: 
+            return HttpResponseBadRequest('Please specifiy facility:' + str(e))
 
         # Assign a facility-specific footprint ID (if provided)
         try:

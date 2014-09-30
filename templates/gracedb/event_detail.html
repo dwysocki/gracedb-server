@@ -637,7 +637,7 @@
 
 
 			<div id="bulletin_board" data-dojo-type="dijit/TitlePane"
-				data-dojo-props="title: 'EM Follow-up Bulletin Board, Fan', open: false">
+				data-dojo-props="title: 'EM Follow-up Bulletin Board', open: false">
 
 				<div data-dojo-type="dijit/form/Form" id="myForm"
 					data-dojo-id="myForm" encType="multipart/form-data" action=""
@@ -665,19 +665,73 @@
 <form method="POST" action="{% url "embblogentry" object.graceid "" %}">
 <table>
 <tr><td>Submitter</td>      <td><input type="text" name="submitter"/></td></tr>
-<tr><td>Facility</td>       <td><input type="text" name="facility"/></td></tr>
+
+<tr><td>Facility</td>       <td><select name="facility">
+{% for ef in facilities %}
+<option value="{{ ef.0 }}">{{ ef.1 }}</option>
+{% endfor %} </select> </td> </tr>
+
+
+
 <tr><td>Footprint ID</td>   <td><input type="text" name="footprintID"/></td></tr>
 <tr><td>Waveband</td>       <td><select name="waveband">
-<option value="em.gamma">            Gamma rays part of the spectrum</option>
-<option value="em.gamma.soft">       Soft gamma ray (120 - 500 keV)</option>
-<option value="em.gamma.hard">       Hard gamma ray (&gt;500 keV)</option>
+<option value="em.gamma">Gamma rays part of the spectrum</option>
+<option value="em.gamma.soft">Soft gamma ray (120 - 500 keV)</option>
+<option value="em.gamma.hard">Hard gamma ray (&gt;500 keV)</option>
+<option value="em.X-ray">X-ray part of the spectrum</option>
+<option value="em.X-ray.soft">Soft X-ray (0.12 - 2 keV)</option>
+<option value="em.X-ray.medium">Medium X-ray (2 - 12 keV)</option>
+<option value="em.X-ray.hard">Hard X-ray (12 - 120 keV)</option>
+<option value="em.UV">Ultraviolet part of the spectrum</option>
+<option value="em.UV.10-50nm">Ultraviolet between 10 and 50 nm</option>
+<option value="em.UV.50-100nm">Ultraviolet between 50 and 100 nm</option>
+<option value="em.UV.100-200nm">Ultraviolet between 100 and 200 nm</option>
+<option value="em.UV.200-300nm">Ultraviolet between 200 and 300 nm</option>
+<option value="em.UV.FUV">Far-Infrared, 30-100 microns</option>
+<option value="em.opt">Optical part of the spectrum</option>
+<option value="em.opt.U">Optical band between 300 and 400 nm</option>
+<option value="em.opt.B">Optical band between 400 and 500 nm</option>
+<option value="em.opt.V">Optical band between 500 and 600 nm</option>
+<option value="em.opt.R">Optical band between 600 and 750 nm</option>
+<option value="em.opt.I">Optical band between 750 and 1000 nm</option>
+<option value="em.IR">Infrared part of the spectrum</option>
+<option value="em.IR.NIR">Near-Infrared, 1-5 microns</option>
+<option value="em.IR.J">Infrared between 1.0 and 1.5 micron</option>
+<option value="em.IR.H">Infrared between 1.5 and 2 micron</option>
+<option value="em.IR.K">Infrared between 2 and 3 micron</option>
+<option value="em.IR.MIR">Medium-Infrared, 5-30 microns</option>
+<option value="em.IR.3-4um">Infrared between 3 and 4 micron</option>
+<option value="em.IR.4-8um">Infrared between 4 and 8 micron</option>
+<option value="em.IR.8-15um">Infrared between 8 and 15 micron</option>
+<option value="em.IR.15-30um">Infrared between 15 and 30 micron</option>
+<option value="em.IR.30-60um">Infrared between 30 and 60 micron</option>
+<option value="em.IR.60-100um">Infrared between 60 and 100 micron</option>
+<option value="em.IR.FIR">Far-Infrared, 30-100 microns</option>
+<option value="em.mm">Millimetric part of the spectrum</option>
+<option value="em.mm.1500-3000GHz">Millimetric between 1500 and 3000 GHz</option>
+<option value="em.mm.750-1500GHz">Millimetric between 750 and 1500 GHz</option>
+<option value="em.mm.400-750GHz">Millimetric between 400 and 750 GHz</option>
+<option value="em.mm.200-400GHz">Millimetric between 200 and 400 GHz</option>
+<option value="em.mm.100-200GHz">Millimetric between 100 and 200 GHz</option>
+<option value="em.mm.50-100GHz">Millimetric between 50 and 100 GHz</option>
+<option value="em.mm.30-50GHz">Millimetric between 30 and 50 GHz</option>
+<option value="em.radio">Radio part of the spectrum</option>
+<option value="em.radio.12-30GHz">Radio between 12 and 30 GHz</option>
+<option value="em.radio.6-12GHz">Radio between 6 and 12 GHz</option>
+<option value="em.radio.3-6GHz">Radio between 3 and 6 GHz</option>
+<option value="em.radio.1500-3000MHz">Radio between 1500 and 3000 MHz</option>
+<option value="em.radio.750-1500MHz">Radio between 750 and 1500 MHz</option>
+<option value="em.radio.400-750MHz">Radio between 400 and 750 MHz</option>
+<option value="em.radio.200-400MHz">Radio between 200 and 400 MHz</option>
+<option value="em.radio.100-200MHz">Radio between 100 and 200 MHz</option>
+<option value="em.radio.20-100MHz">Radio between 20 and 100 MHz</option>
                                 </select></td></tr>
-<tr><td>RA</td>             <td><input type="text" name="ra"/></td></tr>
-<tr><td>Dec</td>            <td><input type="text" name="dec"/></td></tr>
-<tr><td>RAwidth</td>        <td><input type="text" name="raWidth"/></td></tr>
-<tr><td>Decwidth</td>       <td><input type="text" name="decWidth"/></td></tr>
-<tr><td>GPStime</td>        <td><input type="text" name="gpstime"/></td></tr>
-<tr><td>Duration</td>       <td><input type="text" name="duration"/></td></tr>
+<tr><td>RA</td>             <td><input type="text" name="ra" value="0.0"/></td></tr>
+<tr><td>Dec</td>            <td><input type="text" name="dec" value="0.0"/></td></tr>
+<tr><td>RAwidth</td>        <td><input type="text" name="raWidth" value="0.0"/></td></tr>
+<tr><td>Decwidth</td>       <td><input type="text" name="decWidth" value="0.0"/></td></tr>
+<tr><td>GPStime</td>        <td><input type="text" name="gpstime" value="1090000000"/></td></tr>
+<tr><td>Duration</td>       <td><input type="text" name="duration" value="10"/></td></tr>
 <tr><td>EEL type</td>       <td><select name="eel_status">
 <option value="FO">FOOTPRINT</option>
 <option value="SO">SOURCE</option>
@@ -705,37 +759,44 @@
 						<table id="bb_2" class="event" border="1">
 						<thead>
 							<tr>
-								<th>id</th>
+								<th>Date</th>
 								<th>Submitter</th>
 								<th>Facility</th>
-								<th>Filter</th>
+								<th>Footprint ID</th>
+								<th>Waveband</th>
 								<th>RA</th>
 								<th>DEC</th>
-								<th>
-									<form>
-										<select onchange="changeTime(this, 'gps')"><option
-												value="gps" selected>GPS Time</option>
-											<option value="llo">LLO Local</option>
-											<option value="lho">LHO Local</option>
-											<option value="virgo">Virgo Local</option>
-											<option value="utc">UTC</option>
-										</select>
-									</form> Time Start</th>
-								<th>
-									<form>
-										<select onchange="changeTime(this, 'created')"><option
-												value="gps">GPS Time</option>
-											<option value="llo">LLO Local</option>
-											<option value="lho">LHO Local</option>
-											<option value="virgo">Virgo Local</option>
-											<option value="utc" selected>UTC</option>
-										</select>
-									</form> Time End</th>
-								<th>Comments</th>
+								<th>RAwidth</th>
+								<th>Decwidth</th>
+								<th>GPS Time</th>
+								<th>Duration</th>
+								<th>EEL Type</th>
+								<th>Obs status</th>
+								<th>Comment</th>
+								<th>JSON Data</th>
 							</tr>
 						</thead>
 						
 						  <tbody id="bb_log" >
+							{% for eel in object.embbeventlog_set.iterator %}
+<tr>
+<td>{{ eel.created }}</td> 
+<td>{{ eel.submitter }}</td> 
+<td>{{ eel.facility }}</td> 
+<td>{{ eel.footprintID }}</td> 
+<td>{{ eel.waveband }}</td> 
+<td>{{ eel.ra }}</td> 
+<td>{{ eel.dec }}</td> 
+<td>{{ eel.raWidth }}</td> 
+<td>{{ eel.decWidth }}</td> 
+<td>{{ eel.gpstime }}</td> 
+<td>{{ eel.duration }}</td> 
+<td>{{ eel.eel_status }}</td> 
+<td>{{ eel.obs_status }}</td> 
+<td>{{ eel.comment }}</td> 
+<td>{{ eel.extra_info_dict }}</td> 
+</tr>
+							{% endfor %}
   						</tbody>
 						
 						</table>

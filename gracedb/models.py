@@ -412,7 +412,7 @@ class EMBBEventLog(models.Model):
             else:
                 self.N = 1
             try:
-                super(EventLog, self).save(*args, **kwargs)
+                super(EMBBEventLog, self).save(*args, **kwargs)
                 success = True
             except IntegrityError:
                 # IntegrityError means an attempt to insert a duplicate
