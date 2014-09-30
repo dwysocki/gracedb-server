@@ -1517,6 +1517,8 @@ class Files(APIView):
         except Exception, e:
             # XXX This needs some thought.
             response = Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+            # XXX Uhm, we don't to try creating a log message for this, right?
+            return response
 
         # Create a log entry to document the file upload. 
         logentry = EventLog(event=event,

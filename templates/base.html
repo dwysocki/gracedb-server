@@ -2,7 +2,7 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-    <link rel="stylesheet" href="{{MEDIA_URL}}css/style.css" />
+    <link rel="stylesheet" href="{{STATIC_URL}}css/style.css" />
     <title>GraceDb | {% block title %}{% endblock %}</title>
 <!-- START TESTING -->
 <script type="text/javascript">
@@ -30,13 +30,13 @@ function changeTime(obj, label) {
 
 {% block nav %}
 <ul id="nav">
-    <li id="nav-home"><a href="{% url home %}">Home</a></li>
-    <li id="nav-search"><a href="{% url search %}">Search</a></li>
-    <li id="nav-create"><a href="{% url create %}">Create</a></li>
-    <li id="nav-reports"><a href="{% url reports %}">Reports</a></li>
-    <li id="nav-feeds"><a href="{% url feeds %}">RSS</a></li>
-    <li id="nav-latest"><a href="{% url latest %}">Latest</a></li>
-    <li id="nav-userprofile"><a href="{% url userprofile-home %}">Options</a></li>
+    <li id="nav-home"><a href="{% url "home" %}">Home</a></li>
+    <li id="nav-search"><a href="{% url "search" %}">Search</a></li>
+    <li id="nav-create"><a href="{% url "create" %}">Create</a></li>
+    <li id="nav-reports"><a href="{% url "reports" %}">Reports</a></li>
+    <li id="nav-feeds"><a href="{% url "feeds" %}">RSS</a></li>
+    <li id="nav-latest"><a href="{% url "latest" %}">Latest</a></li>
+    <li id="nav-userprofile"><a href="{% url "userprofile-home" %}">Options</a></li>
     {% if user %}<li id="nav-user">Authenticated as: {{ user.first_name }} {{user.last_name }}</li>{% endif %}
 </ul>
 <center>
@@ -68,28 +68,28 @@ function changeTime(obj, label) {
  <table align="center" width="90%%">
   <tr>
    <td align="center">
-    <img width="52" height="36" src="{{MEDIA_URL}}images/ligo-blue.gif">
+    <img width="52" height="36" src="{{STATIC_URL}}images/ligo-blue.gif">
     <!-- 673px 487px -->
    </td>
 
    <td align="center">
-    <img width="164" height="30" src="{{MEDIA_URL}}images/Virgo_logo50.png">
+    <img width="164" height="30" src="{{STATIC_URL}}images/Virgo_logo50.png">
     <!-- 4,829px 884px -->
    </td>
 
    <td align="center">
     {% if user and user.username == "chad.hanna@LIGO.ORG" %}
-        <img width="194" height="37" src="{{MEDIA_URL}}images/PI_Logo-anim.gif">
+        <img width="194" height="37" src="{{STATIC_URL}}images/PI_Logo-anim.gif">
     {% else %}{% if user and user.username == "kipp.cannon@LIGO.ORG" %}
-        <img width="194" height="37" src="{{MEDIA_URL}}images/CITA_logo-anim.gif">
+        <img width="194" height="37" src="{{STATIC_URL}}images/CITA_logo-anim.gif">
     {% else %}
-        <img width="107" height="37" src="{{MEDIA_URL}}images/anim2.gif">
+        <img width="107" height="37" src="{{STATIC_URL}}images/anim2.gif">
     {% endif %}{% endif %}
     <!-- 287px 101px -->
    </td>
 
    <td align="center">
-    <img width="87" height="37" src="{{MEDIA_URL}}images/LSC_logo50.png">
+    <img width="87" height="37" src="{{STATIC_URL}}images/LSC_logo50.png">
     <!-- 6,261px 2,652px -->
    </td>
   </tr>

@@ -13,7 +13,7 @@ import os, json
 from django.core.urlresolvers import reverse
 
 from models import CoincInspiralEvent ,SingleInspiral
-from forms import SimpleSearchFormWithSubclasses
+from forms import SimpleSearchForm
 from query import parseQuery
 
 
@@ -129,6 +129,7 @@ def to_png_image(out = sys.stdout):
     return base64.b64encode(f.getvalue())
 
 def gstlalcbc_report(request, format=""):
+
     if not request.user or not request.user.is_authenticated():
         return HttpResponseForbidden("Forbidden")
 
@@ -142,22 +143,25 @@ def gstlalcbc_report(request, format=""):
             t_low = posixToGpsTime(time.mktime(t_low.timetuple()))
             query = 'CBC LowMass %d .. %d' % (t_low, t_high)
             rawquery = query
-            form = SimpleSearchFormWithSubclasses({'query': query})
+            form = SimpleSearchForm({'query': query})
         else:
-            form = SimpleSearchFormWithSubclasses(request.GET)
+            form = SimpleSearchForm(request.GET)
             rawquery = request.GET['query']
     else:
-        form = SimpleSearchFormWithSubclasses(request.POST)
+        form = SimpleSearchForm(request.POST)
         rawquery = request.POST['query']
     if form.is_valid():
         objects = form.cleaned_data['query']
+        object_list = list(objects)
 
-        # Check for foreign objects.
-        for obj in objects:
-            if not isinstance(obj, CoincInspiralEvent):
+        # Try upcasting to CoincInspiralEvents
+        for i in range(len(object_list)):
+            try:
+                object_list[i] = CoincInspiralEvent.objects.get(id=object_list[i].id)
+            except:
                 errormsg = 'Your query returned items that are not CoincInspiral Events. '
                 errormsg += 'Please try again.'
-                form = SimpleSearchFormWithSubclasses()
+                form = SimpleSearchForm()
                 return render_to_response('gracedb/gstlalcbc_report.html', 
                         { 'form':form, 'message':errormsg}, 
                         context_instance=RequestContext(request))
@@ -175,7 +179,7 @@ def gstlalcbc_report(request, format=""):
         if not gpsrange:
             # Bounce back to the user with an error message
             errormsg = 'Your query does not have a gpstime range. Please try again.'
-            form = SimpleSearchFormWithSubclasses()
+            form = SimpleSearchForm()
             return render_to_response('gracedb/gstlalcbc_report.html', 
                     { 'form':form, 'message':errormsg}, 
                     context_instance=RequestContext(request))
@@ -196,7 +200,8 @@ def gstlalcbc_report(request, format=""):
                     { 'form':form, 'message':errormsg}, 
                     context_instance=RequestContext(request))
 
-        clustered_events = cluster(objects)
+        #clustered_events = cluster(objects)
+        clustered_events = cluster(object_list)
         clustered_events = sorted(clustered_events, None, key=lambda x: x.far)
 
         # Make IFAR plot.
@@ -212,7 +217,8 @@ def gstlalcbc_report(request, format=""):
 
         plot.figure(figsize=(6,5))
         plot.loglog(ifars[::-1], N[::-1])
-        plot.fill_between(expected_ifars[::-1], down[::-1], up[::-1], alpha=0.1)
+        #XXX This call to fill_between was causing the entire thread to hang.
+        #plot.fill_between(expected_ifars[::-1], down[::-1], up[::-1], alpha=0.1)
         plot.loglog(expected_ifars[::-1], eN[::-1])
         plot.ylim([0.9, len(ifars)])
         plot.xlabel('IFAR (s)')

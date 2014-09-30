@@ -13,8 +13,8 @@
       src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
     </script>
     <script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.8.1/dojo/dojo.js" type="text/javascript"></script>
-    <script src="{{MEDIA_URL}}js/labeltips.js" type="text/javascript"></script>
-    <link rel="stylesheet" href="{{MEDIA_URL}}css/labeltips.css">
+    <script src="{{STATIC_URL}}js/labeltips.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="{{STATIC_URL}}css/labeltips.css">
     <style>
         .emptyIcon{
             background-image: none;
@@ -57,13 +57,13 @@
                     dc += '         <td> \n';
                     dc += '             <table class="figures"> \n';
                     dc += '                 <tr class="figrow"> \n';
-                    dc += '                     <td>  <a href="{{ log.fileurl|urlencode }}" dojoType="dojox.image.LightboxNano"><img height="180" src="{{ log.fileurl|urlencode }}"></a> \n';
+                    dc += '                     <td>  <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="180" src="{{ log.fileurl }}"></a> \n';
                     dc += '                     </td> \n';
                     dc += '                 </tr> \n';
                     dc += '                 <tr> \n';
                     dc += '                     <td> {{log.comment|sanitize|escapejs}} \n';
                     {% if log.fileurl %} 
-                    dc += '                         <a href="{{log.fileurl|urlencode}}">{{log.filename}}.</a> \n';
+                    dc += '                         <a href="{{log.fileurl}}">{{log.filename}}.</a> \n';
                     {% endif %} 
                     dc += '                         Submitted by {{log.issuer}} on {{log.created}} \n';
                     dc += '                     </td> \n';
@@ -96,7 +96,7 @@
                     dc += '         <td>{{log.issuer.first_name}} {{log.issuer.last_name}}</td> \n';
                     dc += '         <td>{{log.comment|sanitize|escapejs}} \n';
                                {% if log.fileurl %}
-                    dc += '             <a href="{{log.fileurl|urlencode}}">{{log.filename}}</a> \n';
+                    dc += '             <a href="{{log.fileurl}}">{{log.filename}}</a> \n';
                                {% endif %}
                     dc += '         </td> \n';
                     dc += '    </tr> \n';
@@ -160,12 +160,12 @@
 
             ret += '        {{log.comment|sanitize|escapejs}} \n';
     {% if log.fileurl %}
-            ret += '            <a href="{{log.fileurl|urlencode}}">{{log.filename}}</a> \n';
+            ret += '            <a href="{{log.fileurl}}">{{log.filename}}</a> \n';
     {% endif %}
             ret += '        </td> \n';
             ret += '        <td> \n';
     {% if log.hasImage %}
-            ret += '            <a href="{{ log.fileurl|urlencode }}" dojoType="dojox.image.LightboxNano"><img height="60" src="{{ log.fileurl|urlencode }}"></a> \n';
+            ret += '            <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="60" src="{{ log.fileurl }}"></a> \n';
     {% endif %}
             ret += '        </td> \n';
             ret += '    </tr> \n';
@@ -228,7 +228,7 @@
             //--------------------------------------------------------------------------------------------------------------------
             function getTagDelCallback(tag) {
                 return function() {
-                    var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}" 
+                    var tagUrl = "{% url "taglogentry" object.graceid "000" "temp" %}" 
                     tagUrl = tagUrl.replace("000",tag.n); 
                     tagUrl = tagUrl.replace("temp",tag.name); 
                     var tagResultDialog = new Dialog({ style: "width: 300px" }); 
@@ -314,7 +314,7 @@
                         formData = addTagForm.getValues();
                         var tagName = formData.existingTagSelect;
                         var tagDispName = formData.tagDispName;
-                        var tagUrl = "{% url taglogentry object.graceid "000" "temp" %}"
+                        var tagUrl = "{% url "taglogentry" object.graceid "000" "temp" %}"
                         tagUrl = tagUrl.replace("000",log.n);
                         tagUrl = tagUrl.replace("temp",tagName);
 
@@ -436,7 +436,7 @@
             }, button_element);
 
             var savebutton = new Save({
-                    url: "{% url logentry object.graceid "" %}",
+                    url: "{% url "logentry" object.graceid "" %}",
                     onSuccess: function (resp, ioargs) {
                         //this.inherited(resp, ioargs);
                         this.button.set("disabled", false);
@@ -547,7 +547,7 @@
 <table class="event">
     {% if skyalert_authorized  %}
         <tr><td colspan="4">
-           <a href="{% url skyalert object.graceid %}"><button type="button">Submit to Skyalert</button></a>
+           <a href="{% url "skyalert" object.graceid %}"><button type="button">Submit to Skyalert</button></a>
         </td></tr>
     {% endif %}
 
@@ -612,7 +612,7 @@
                     alert("Bad neighborhood specified.")
                     return;
                 }
-                var neighborUrlPattern = "{% url neighbors object.graceid "000" %}"
+                var neighborUrlPattern = "{% url "neighbors" object.graceid "000" %}"
                 var neighbor_div = dom.byId("neighbors");
                 neighborUrl = neighborUrlPattern.replace("000", delta);
                 request(neighborUrl).then(
@@ -646,9 +646,7 @@
   					var subm = document.getElementById('submitter').value;
   					var faci = document.getElementById('facility').value;
   					var filt = document.getElementById('filter').value;
-  					var rahh = document.getElementById('ra1').value;
-  					var ramm = document.getElementById('ra2').value;
-  					var rass = document.getElementById('ra3').value;
+  					var rahh = document.getElementById('ra').value;
   					var decl = document.getElementById('dec').value;
   					var tsta = document.getElementById('ts').value;
   					var tend = document.getElementById('te').value;
@@ -663,7 +661,7 @@
    												"</td><td>" + subm +  				
     											"</td><td>" + faci +
     											"</td><td>" + filt +
-    											"</td><td>" + rahh + "hh" + ramm + "mm" + rass + "ss" +
+    											"</td><td>" + ra +
     											"</td><td>" + decl +
     											"</td><td>" + tsta +
     											"</td><td>" + tend +
@@ -731,26 +729,16 @@
 						</tr>
 
 						<tr>
-							<td><label for="ra">RA (Right Ascention):</label></td>
-							<td><input type="number" id="ra1" name="ra1" value="00" style="width: 3em;" min="0" 
-								max="23" data-dojo-type="dijit/form/ValidationTextBox" required="true"
-								data-dojo-props="regExp:'\\d{2}', invalidMessage:'Two digit number only.'" />
-							<label for="ra1">hh</label>
-							<input type="number" id="ra2" name="ra2" value="00" style="width: 3em;" min="0" 
-								max="59" data-dojo-type="dijit/form/ValidationTextBox" required="true"
-								data-dojo-props="regExp:'\\d{2}', invalidMessage:'Two digit number only.'" />
-							<label for="ra2">mm</label>
-							<input type="number" id="ra3" name="ra3" value="00" style="width: 3em;" min="0" 
-								max="59" data-dojo-type="dijit/form/ValidationTextBox" required="true"
-								data-dojo-props="regExp:'\\d{2}', invalidMessage:'Two digit number only.'" />
-							<label for="ra3">ss</label>
+							<td><label for="ra">RA (Right Ascension):</label></td>
+							<td><input type="number" ID="ra" name="ra" required="true"
+								data-dojo-type="dijit/form/ValidationTextBox" />
 							</td>
 						</tr>
 
 						<tr>
-							<td width="150"><label for="ra">Dec (Declination):</label>
+							<td><label for="ra">Dec (Declination):</label>
 							</td>
-							<td><input type="text" ID="dec" name="dec" size="45" required="true"
+							<td><input type="number" ID="dec" name="dec" required="true"
 								data-dojo-type="dijit/form/ValidationTextBox" />
 							</td>
 						</tr>
@@ -772,14 +760,6 @@
 						</tr>
 
 						<tr>
-							<td width="150"><label for="ra">Limiting Mag:</label>
-							</td>
-							<td><input type="text" ID="lm" name="lm" size="45"
-								data-dojo-type="dijit/form/ValidationTextBox" />
-							</td>
-						</tr>
-
-						<tr>
 							<td width="150"><label for="ra">Comments:</label>
 							</td>
 							<td><input type="text" ID="cm" name="cm" size="45"
@@ -787,37 +767,6 @@
 							</td>
 						</tr>
 
-						<tr>
-							<td width="150"><label for="ra">Target Galactic Lat:</label>
-							</td>
-							<td><input type="text" ID="tgla" name="tgla" size="45"
-								data-dojo-type="dijit/form/ValidationTextBox" />
-							</td>
-						</tr>
-
-						<tr>
-							<td width="150"><label for="ra">Target Galactic Lon:</label>
-							</td>
-							<td><input type="text" ID="tgln" name="tgln" size="45"
-								data-dojo-type="dijit/form/ValidationTextBox" />
-							</td>
-						</tr>
-
-						<tr>
-							<td width="150"><label for="ra">Target Ecliptic Lat:</label>
-							</td>
-							<td><input type="text" ID="tela" name="tela" size="45"
-								data-dojo-type="dijit/form/ValidationTextBox" />
-							</td>
-						</tr>
-
-						<tr>
-							<td width="200"><label for="ra">Target Ecliptic Lon:</label>
-							</td>
-							<td><input type="text" ID="teln" name="teln" size="45"
-								data-dojo-type="dijit/form/ValidationTextBox" />
-							</td>
-						</tr>
 					</table>
 
 					<!-- <button data-dojo-type="dijit/form/Button" type="button" id="button2">Get Values from form!</button> 
@@ -861,12 +810,7 @@
 											<option value="utc" selected>UTC</option>
 										</select>
 									</form> Time End</th>
-								<th>Limiting Mag</th>
 								<th>Comments</th>
-								<th>Target Galactic Lat</th>
-								<th>Target Galactic Lon</th>
-								<th>Target Ecliptic Lat</th>
-								<th>Target Ecliptic Lon</th>
 							</tr>
 						</thead>
 						
@@ -884,7 +828,7 @@
     <div id="new_log_entry_form">
     <noscript>
         <h3>Create a new log entry</h3>
-        <form id="newlog" action="{% url logentry object.graceid "" %}" method="POST">
+        <form id="newlog" action="{% url "logentry" object.graceid "" %}" method="POST">
             <p>
               <textarea id="newlogtext" name="comment" style="width:300px;display:block"></textarea>
               <input type="submit" value="Submit"/>

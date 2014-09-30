@@ -11,7 +11,7 @@
 {% block jscript %}
 
 {% if not error %}
-    <meta http-equiv="refresh" content="300;url={% url latest %}/?query={{rawquery|urlencode}}">
+    <meta http-equiv="refresh" content="300;url={% url "latest" %}/?query={{rawquery|urlencode}}">
 {% endif %}
 
     {# http/https depending on this pages' protocol #}
@@ -98,7 +98,7 @@
 <table class="event">
     {% if skyalert_authorized  %}
         <tr><td colspan="4">
-           <a href="{% url skyalert object.graceid %}"><button type="button">Submit to Skyalert</button></a>
+           <a href="{% url "skyalert" object.graceid %}"><button type="button">Submit to Skyalert</button></a>
         </td></tr>
     {% endif %}
 
@@ -123,7 +123,7 @@
 
 {% for object in objects %}
     <tr class={% cycle 'odd' 'even' %}>
-        <td><a href="{% url view object.graceid %}">{{ object.graceid }}</a></td>
+        <td><a href="{% url "view" object.graceid %}">{{ object.graceid }}</a></td>
         <td>
              {% for labelling in object.labelling_set.all %}
                 <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>

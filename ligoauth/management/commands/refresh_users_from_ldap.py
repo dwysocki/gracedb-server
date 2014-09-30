@@ -39,7 +39,15 @@ class Command(NoArgsCommand):
                         principal = ldap_result['krbPrincipalName'][0]
 
                         # Update/Create LigoLdapUser entry
-                        user, created = LigoLdapUser.objects.get_or_create(ldap_dn=ldap_dn)
+                        # This is breaking. XXX Do we need to pass in default values for the underlying User object?
+                        defaults = {
+                            'first_name' : first_name,
+                            'last_name'  : last_name,
+                            'email'      : email,
+                            'username'   : principal,
+                            'is_active'  : is_active
+                        }
+                        user, created = LigoLdapUser.objects.get_or_create(ldap_dn=ldap_dn, defaults=defaults)
 
                         changed = created \
                                 or (user.first_name != first_name) \
@@ -61,6 +69,7 @@ class Command(NoArgsCommand):
                                 user.save()
                             except Exception, e:
                                 print "Failed to save user '%s'.  (%s)" % (ldap_dn, first_name+" "+last_name)
+				print "Reason: %s" % str(e)
 
                         # update X509 certs for user
                         current_dns = set([ cert.subject for cert in user.x509cert_set.all() ])

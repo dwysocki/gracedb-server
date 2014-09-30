@@ -1,5 +1,7 @@
 
-from django.conf.urls.defaults import *
+# Changed for Django 1.6 upgrade
+#from django.conf.urls.defaults import *
+from django.conf.urls import patterns, url, include
 from django.conf import settings
 
 # Uncomment the next two lines to enable the admin:
