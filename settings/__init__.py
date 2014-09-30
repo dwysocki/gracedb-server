@@ -32,6 +32,9 @@ configs = {
     '/home/fzhang/gracedb/gracedb': 'fan',
     '/home/fzhang/gracedb/gracedb/gracedb': 'fan',
 
+    '/home/roywilliams/gracedbdev': 'roy',
+    '/home/roywilliams/gracedbdev/gracedb': 'roy',
+
     "/home/gracedb/gracestage" : "stage",
 
 }

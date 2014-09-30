@@ -19,6 +19,7 @@ from models import CoincInspiralEvent
 from models import MultiBurstEvent
 from models import GrbEvent
 from models import SingleInspiral
+from models import EMBBEventLog, EMFacility
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
@@ -1285,7 +1286,6 @@ def performance(request):
             'gracedb/performance.html',
             context,
             context_instance=RequestContext(request))
- 
 
 # A view for the list of files associated with an event.
 # We're deliberately leaving out the /general directory.
@@ -1310,3 +1310,77 @@ def file_list(request, graceid):
         'gracedb/event_filelist.html',
         context,
         context_instance=RequestContext(request)) 
+
+# A view to create embb log entries
+def embblogentry(request, graceid, num=None):
+    try:
+        event = Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        raise Http404
+    if request.method == "POST":
+        # create a log entry
+        eel = EMBBEventLog(event=event, issuer=request.user)
+        eel.event = event
+        eel.submitter = request.user
+        # Assign a facility name
+        try:
+            facility_name = request.POST.get('facility')
+            facility = EMFacility.objects.get(name=facility_name)
+            eel.facility = facility
+        except: 
+            return HttpResponseBadRequest('Please specifiy facility.')
+
+        # Assign a facility-specific footprint ID (if provided)
+        try:
+            eel.footprintID = request.POST.get('footprintID')
+        except: 
+            eel.footprintID = None
+
+        # Assign the EM spectrum string
+        try:
+            eel.waveband = request.POST.get('waveband')
+        except:
+            return HttpResponseBadRequest('Please specify a waveband.')
+
+        # Assign RA and Dec, plus widths
+        eel.ra = request.POST.get('ra', None)
+        eel.dec = request.POST.get('dec', None)
+        eel.raWidth = request.POST.get('raWidth', None)
+        eel.decWidth = request.POST.get('decWidth', None)
+    
+        # Assign gpstime and duration.
+        eel.gpstime = request.POST.get('gpstime', None)
+        eel.duration = request.POST.get('duration', None)
+
+        # Assign EEL status and observation status.
+        try:
+            eel.eel_status = request.POST.get('eel_status')
+        except: 
+            return HttpResponseBadRequest('Please specify an EEL status.')
+        try:
+            eel.obs_status = request.POST.get('obs_status')
+        except: 
+            return HttpResponseBadRequest('Please specify an observation status.')
+    
+        eel.extra_info_dict = request.POST.get('extra_info_dict', None) 
+        eel.comment = request.POST.get('comment', None) 
+        try:
+            eel.save()
+        except Exception as e:
+            # XXX I feel like this should be a 500 error.  
+            return HttpResponse("ERROR: %s" % str(e))
+    else:
+        try:
+            eel = event.eventlog_set.filter(N=num)[0]
+        except Exception, e:
+            raise Http404
+
+    if not request.is_ajax():
+        return HttpResponseRedirect(reverse(view, args=[graceid]))
+
+    rv = {}
+    rv['comment'] = eel.comment
+    rv['submitter'] = eel.issuer.username
+    rv['created'] = eel.created.isoformat()
+
+    return HttpResponse(json.dumps(rv), content_type="application/json")

@@ -638,47 +638,6 @@
 
 			<div id="bulletin_board" data-dojo-type="dijit/TitlePane"
 				data-dojo-props="title: 'EM Follow-up Bulletin Board, Fan', open: false">
-				
-				<script>
-				 require(["dojo/dom-construct", "dojo/dom", "dojo/on", "dojo/domReady!"],
-				function(domConstruct, dom, on){
-  					on(dom.byId("button2"), "click", function(){
-  					var subm = document.getElementById('submitter').value;
-  					var faci = document.getElementById('facility').value;
-  					var filt = document.getElementById('filter').value;
-  					var rahh = document.getElementById('ra').value;
-  					var decl = document.getElementById('dec').value;
-  					var tsta = document.getElementById('ts').value;
-  					var tend = document.getElementById('te').value;
-  					var lima = document.getElementById('lm').value;
-  					var comm = document.getElementById('cm').value;
-  					var tgla = document.getElementById('tgla').value;
-  					var tgln = document.getElementById('tgln').value;
-  					var tela = document.getElementById('tela').value;
-  					var teln = document.getElementById('teln').value;
-  					
-    				var row = domConstruct.toDom("<tr><td>" + "" + 
-   												"</td><td>" + subm +  				
-    											"</td><td>" + faci +
-    											"</td><td>" + filt +
-    											"</td><td>" + ra +
-    											"</td><td>" + decl +
-    											"</td><td>" + tsta +
-    											"</td><td>" + tend +
-    											"</td><td>" + lima +
-    											"</td><td>" + comm +
-    											"</td><td>" + tgla +
-    											"</td><td>" + tgln +
-    											"</td><td>" + tela +
-    											"</td><td>" + teln +
-    											"</td></tr>");
-    				domConstruct.place(row, "bb_log");
-  				});
-				});
-				</script>
-
-
-
 
 				<div data-dojo-type="dijit/form/Form" id="myForm"
 					data-dojo-id="myForm" encType="multipart/form-data" action=""
@@ -703,78 +662,40 @@
 
 					Make a Bulletin Board Entry Here
 
-					<table id="subcontent" width="430" BORDER="1">
-						<tr>
-							<td width="150"><label for="submitter">Submitter:</label>
-							</td>
-							<td width="250"><input type="text" id="submitter"
-								name="submitter" size="45"
-								data-dojo-type="dijit/form/ValidationTextBox" /></td>
-						</tr>
+<form method="POST" action="{% url "embblogentry" object.graceid "" %}">
+<table>
+<tr><td>Submitter</td>      <td><input type="text" name="submitter"/></td></tr>
+<tr><td>Facility</td>       <td><input type="text" name="facility"/></td></tr>
+<tr><td>Footprint ID</td>   <td><input type="text" name="footprintID"/></td></tr>
+<tr><td>Waveband</td>       <td><select name="waveband">
+<option value="em.gamma">            Gamma rays part of the spectrum</option>
+<option value="em.gamma.soft">       Soft gamma ray (120 - 500 keV)</option>
+<option value="em.gamma.hard">       Hard gamma ray (&gt;500 keV)</option>
+                                </select></td></tr>
+<tr><td>RA</td>             <td><input type="text" name="ra"/></td></tr>
+<tr><td>Dec</td>            <td><input type="text" name="dec"/></td></tr>
+<tr><td>RAwidth</td>        <td><input type="text" name="raWidth"/></td></tr>
+<tr><td>Decwidth</td>       <td><input type="text" name="decWidth"/></td></tr>
+<tr><td>GPStime</td>        <td><input type="text" name="gpstime"/></td></tr>
+<tr><td>Duration</td>       <td><input type="text" name="duration"/></td></tr>
+<tr><td>EEL type</td>       <td><select name="eel_status">
+<option value="FO">FOOTPRINT</option>
+<option value="SO">SOURCE</option>
+<option value="CO">COMMENT</option>
+<option value="CI">CIRCULAR</option> 
+                                </select></td></tr>
+<tr><td>Observation Status</td>       <td><select name="obs_status">
+<option value="OB">OBSERVATION</option>
+<option value="TE">TEST</option>
+<option value="PR">PREDICTION</option>
+                                </select></td></tr>
+<tr><td>Comment</td>         <td><textarea name="comment"></textarea></td></tr>
+<tr><td>JSON data</td>       <td><textarea name="extra_info_dict">{"phot.mag.limit": 22.3}</textarea></td></tr>
+</table>
+<input type="submit" value="Submit"/>
+</form>
 
-						<tr>
-							<td><label for="facility">Facility:</label>
-							</td>
-							<td><input type="text" id="facility" name="facility"
-								size="45" data-dojo-type="dijit/form/ValidationTextBox" />
-							</td>
-						</tr>
 
-						<tr>
-							<td><label for="filter">Filter Name:</label>
-							</td>
-							<td><input type="text" id="filter" name="filter" size="45"
-								data-dojo-type="dijit/form/ValidationTextBox" />
-							</td>
-						</tr>
-
-						<tr>
-							<td><label for="ra">RA (Right Ascension):</label></td>
-							<td><input type="number" ID="ra" name="ra" required="true"
-								data-dojo-type="dijit/form/ValidationTextBox" />
-							</td>
-						</tr>
-
-						<tr>
-							<td><label for="ra">Dec (Declination):</label>
-							</td>
-							<td><input type="number" ID="dec" name="dec" required="true"
-								data-dojo-type="dijit/form/ValidationTextBox" />
-							</td>
-						</tr>
-
-						<tr>
-							<td width="150"><label for="ra">Time Start:</label>
-							</td>
-							<td><input type="TIME" ID="ts" name="ts" size="45"
-								data-dojo-type="dijit/form/ValidationTextBox" />
-							</td>
-						</tr>
-
-						<tr>
-							<td width="150"><label for="ra">Time End:</label>
-							</td>
-							<td><input type="TIME" ID="te" name="te" size="45"
-								data-dojo-type="dijit/form/ValidationTextBox" />
-							</td>
-						</tr>
-
-						<tr>
-							<td width="150"><label for="ra">Comments:</label>
-							</td>
-							<td><input type="text" ID="cm" name="cm" size="45"
-								data-dojo-type="dijit/form/ValidationTextBox" />
-							</td>
-						</tr>
-
-					</table>
-
-					<!-- <button data-dojo-type="dijit/form/Button" type="button" id="button2">Get Values from form!</button> 
-					why data-dojo-type doesn't work here?-->
-					<button id="button2" type="button">Add a row</button>
-					<button type="submit"
-						name="submitButton" value="Submit" >Submit</button>
-					<button type="reset">Reset</button>
 				</div>
 
 				<!-- Bulletin Board Log -->
