@@ -1319,7 +1319,7 @@ def embblogentry(request, graceid, num=None):
         raise Http404
     if request.method == "POST":
         # create a log entry
-        eel = EMBBEventLog(event=event, issuer=request.user)
+        eel = EMBBEventLog(event=event)
         eel.event = event
         eel.submitter = request.user
         # Assign a facility name
