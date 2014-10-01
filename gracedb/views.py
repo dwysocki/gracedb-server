@@ -1313,6 +1313,55 @@ def file_list(request, graceid):
         context,
         context_instance=RequestContext(request)) 
 
+def create_eel(d, event, user):        
+    # create a log entry
+    eel = EMBBEventLog(event=event)
+    eel.event = event
+    eel.submitter = user
+    # Assign a facility name
+    try:
+        facility_name = d.get('facility')
+        facility = EMFacility.objects.get(shortName=facility_name)
+        eel.facility = facility
+    except:
+        raise ValueError('Please specify a facility')
+
+    # Assign a facility-specific footprint ID (if provided)
+    try:
+        eel.footprintID = d.get('footprintID')
+    except: 
+        eel.footprintID = None
+
+    # Assign the EM spectrum string
+    try:
+        eel.waveband = d.get('waveband')
+    except:
+        raise ValueError('Please specify a waveband')
+
+    # Assign RA and Dec, plus widths
+    eel.ra = d.get('ra', None)
+    eel.dec = d.get('dec', None)
+    eel.raWidth = d.get('raWidth', None)
+    eel.decWidth = d.get('decWidth', None)
+
+    # Assign gpstime and duration.
+    eel.gpstime = d.get('gpstime', None)
+    eel.duration = d.get('duration', None)
+
+    # Assign EEL status and observation status.
+    try:
+        eel.eel_status = d.get('eel_status')
+    except: 
+        raise ValueError('Please specify an EEL status.')
+    try:
+        eel.obs_status = d.get('obs_status')
+    except: 
+        raise ValueError('Please specify an observation status.')
+
+    eel.extra_info_dict = d.get('extra_info_dict', None) 
+    eel.comment = d.get('comment', None) 
+    eel.save()
+
 # A view to create embb log entries
 def embblogentry(request, graceid, num=None):
     try:
@@ -1320,62 +1369,20 @@ def embblogentry(request, graceid, num=None):
     except Event.DoesNotExist:
         raise Http404
     if request.method == "POST":
-        # create a log entry
-        eel = EMBBEventLog(event=event)
-        eel.event = event
-        eel.submitter = request.user
-        # Assign a facility name
         try:
-            facility_name = request.POST.get('facility')
-            facility = EMFacility.objects.get(shortName=facility_name)
-            eel.facility = facility
-        except Exception, e: 
-            return HttpResponseBadRequest('Please specifiy facility:' + str(e))
-
-        # Assign a facility-specific footprint ID (if provided)
-        try:
-            eel.footprintID = request.POST.get('footprintID')
-        except: 
-            eel.footprintID = None
-
-        # Assign the EM spectrum string
-        try:
-            eel.waveband = request.POST.get('waveband')
-        except:
-            return HttpResponseBadRequest('Please specify a waveband.')
-
-        # Assign RA and Dec, plus widths
-        eel.ra = request.POST.get('ra', None)
-        eel.dec = request.POST.get('dec', None)
-        eel.raWidth = request.POST.get('raWidth', None)
-        eel.decWidth = request.POST.get('decWidth', None)
-    
-        # Assign gpstime and duration.
-        eel.gpstime = request.POST.get('gpstime', None)
-        eel.duration = request.POST.get('duration', None)
-
-        # Assign EEL status and observation status.
-        try:
-            eel.eel_status = request.POST.get('eel_status')
-        except: 
-            return HttpResponseBadRequest('Please specify an EEL status.')
-        try:
-            eel.obs_status = request.POST.get('obs_status')
-        except: 
-            return HttpResponseBadRequest('Please specify an observation status.')
-    
-        eel.extra_info_dict = request.POST.get('extra_info_dict', None) 
-        eel.comment = request.POST.get('comment', None) 
-        try:
-            eel.save()
-        except Exception as e:
-            # XXX I feel like this should be a 500 error.  
-            return HttpResponse("ERROR: %s" % str(e))
+            eel = create_eel(request.POST, event, request.user)
+        except ValueError, e:
+            return HttpResponseBadRequest(str(e))
+#        except RaceConditions, e:
+#            return HttpResponseInternalServerError(str(e))
+        except Exception:
+            pass
     else:
         try:
             eel = event.eventlog_set.filter(N=num)[0]
-        except Exception, e:
+        except Exception:
             raise Http404
+
 
     if not request.is_ajax():
         return HttpResponseRedirect(reverse(view, args=[graceid]))

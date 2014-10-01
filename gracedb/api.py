@@ -12,6 +12,7 @@ import json
 
 from gracedb.models import Event, Group, EventLog, Tag
 from gracedb.views import create_label, get_performance_info
+from gracedb.views import create_eel
 from translator import handle_uploaded_data
 
 from alert import issueAlertForUpdate
@@ -980,6 +981,113 @@ class EventLogDetail(APIView):
                     status=status.HTTP_404_NOT_FOUND)
 
         return Response(eventLogToDict(rv, request=request))
+
+
+#==================================================================
+# EMBBEventLog
+# FIXME
+
+# Janky serialization
+def embbEventLogToDict(eel, request=None):
+    uri = None
+    taglist_uri = None
+    file_uri = None
+    if request:
+        uri = reverse("embbeventeel-detail",
+                args=[eel.event.graceid(), eel.N],
+                request=request)
+        if eel.filename:
+            actual_filename = eel.filename
+            if eel.file_version:
+                actual_filename += ',%d' % eel.file_version
+            filename = urlquote(actual_filename)
+            file_uri = reverse("files",
+                args=[eel.event.graceid(), filename],
+                request=request)
+
+    return {
+                "comment" : eel.comment,
+                "created" : eel.created,
+                "issuer"  : eel.issuer.username,
+                "self"    : uri,
+                "file"    : file_uri,
+           }
+
+class EMBBEventLogList(APIView):
+    """EMBB Event Log List Resource
+
+    POST param 'message'
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, graceid):
+        try:
+            event = Event.getByGraceid(graceid)
+        except Event.DoesNotExist:
+            # XXX Real error message.
+            return Response("Event does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+        embblogset = event.embbeventlog_set.order_by("created","N")
+        count = embblogset.count()
+
+        eel = [ embbEventLogToDict(eel, request)
+                for eel in embblogset.iterator() ]
+
+        rv = {
+                'start': 0,
+                'numRows' : count,
+                'links' : {
+                    'self' : request.build_absolute_uri(),
+                    'first' : request.build_absolute_uri(),
+                    'last' : request.build_absolute_uri(),
+                    },
+                'embblog' : eel,
+             }
+        return Response(rv)
+
+
+
+    def post(self, request, graceid):
+        event = Event.getByGraceid(graceid)
+        # message -> comment
+
+        try:
+            eel = create_eel(request.DATA, event, request.user)
+        except Exception, e:
+            pass
+            # Since this is likely due to race conditions, we will return 503
+#            return Response("Failed to save log entry: %s" % str(e),
+#                    status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        rv = embbEventLogToDict(eel, request=request)
+        response = Response(rv, status=status.HTTP_201_CREATED)
+        response['Location'] = rv['self']
+
+        # Issue alert.
+        description = "New EMBB log entry."
+
+        return response
+
+class EMBBEventLogDetail(APIView):
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, graceid, n):
+        try:
+            event = Event.getByGraceid(graceid)
+        except Event.DoesNotExist:
+            return Response("Event Not Found",
+                    status=status.HTTP_404_NOT_FOUND)
+        try:
+            rv = event.embbeventlog_set.filter(N=n)[0]
+        except:
+            return Response("Log Message Not Found",
+                    status=status.HTTP_404_NOT_FOUND)
+
+        return Response(embbEventLogToDict(rv, request=request))
+
+
 
 #==================================================================
 # Tags
