@@ -990,21 +990,11 @@ class EventLogDetail(APIView):
 # Janky serialization
 def embbEventLogToDict(eel, request=None):
     uri = None
-    taglist_uri = None
     file_uri = None
     if request:
-        uri = reverse("embbeventeel-detail",
+        uri = reverse("embbeventlog-detail",
                 args=[eel.event.graceid(), eel.N],
                 request=request)
-        if eel.filename:
-            actual_filename = eel.filename
-            if eel.file_version:
-                actual_filename += ',%d' % eel.file_version
-            filename = urlquote(actual_filename)
-            file_uri = reverse("files",
-                args=[eel.event.graceid(), filename],
-                request=request)
-
     return {
                 "comment" : eel.comment,
                 "created" : eel.created,
@@ -1028,11 +1018,12 @@ class EMBBEventLogList(APIView):
             # XXX Real error message.
             return Response("Event does not exist.",
                     status=status.HTTP_404_NOT_FOUND)
-        embblogset = event.embbeventlog_set.order_by("created","N")
-        count = embblogset.count()
+
+        eel_set = event.embbeventlog_set.order_by("created","N")
+        count = eel_set.count()
 
         eel = [ embbEventLogToDict(eel, request)
-                for eel in embblogset.iterator() ]
+                for eel in eel_set.iterator() ]
 
         rv = {
                 'start': 0,
@@ -1046,17 +1037,21 @@ class EMBBEventLogList(APIView):
              }
         return Response(rv)
 
-
-
     def post(self, request, graceid):
-        event = Event.getByGraceid(graceid)
-        # message -> comment
+        try:
+            event = Event.getByGraceid(graceid)
+        except Event.DoesNotExist:
+            return Response("Event Not Found",
+                    status=status.HTTP_404_NOT_FOUND)
 
+        # Now create the EEL
         try:
             eel = create_eel(request.DATA, event, request.user)
+        # XXX Need to handle multiple exception types here.
         except Exception, e:
-            pass
-            # Since this is likely due to race conditions, we will return 503
+            return Response("Problem creating EEL: %s" % str(e), 
+                status=status.HTTP_400_BAD_REQUEST)
+#            Since this is likely due to race conditions, we will return 503
 #            return Response("Failed to save log entry: %s" % str(e),
 #                    status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -1066,6 +1061,7 @@ class EMBBEventLogList(APIView):
 
         # Issue alert.
         description = "New EMBB log entry."
+        issueAlertForUpdate(event, description, doxmpp=True)
 
         return response
 
@@ -1086,8 +1082,6 @@ class EMBBEventLogDetail(APIView):
                     status=status.HTTP_404_NOT_FOUND)
 
         return Response(embbEventLogToDict(rv, request=request))
-
-
 
 #==================================================================
 # Tags
