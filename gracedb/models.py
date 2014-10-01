@@ -407,8 +407,8 @@ class EMBBEventLog(models.Model):
         attempts = 0
         while (not success and attempts < 5):
             attempts = attempts + 1
-            if self.event.eventlog_set.count():
-                self.N = int(self.event.eventlog_set.aggregate(models.Max('N'))['N__max']) + 1
+            if self.event.embbeventlog_set.count():
+                self.N = int(self.event.embbeventlog_set.aggregate(models.Max('N'))['N__max']) + 1
             else:
                 self.N = 1
             try:
