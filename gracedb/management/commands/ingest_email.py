@@ -19,7 +19,10 @@ class Command(BaseCommand):
         # create a log entry
         eel = EMBBEventLog(event=event)
         eel.event = event
-        eel.submitter = User.objects.get(username='roy.williams@LIGO.org')
+        try:
+            eel.submitter = User.objects.get(username='roy.williams@LIGO.org')
+        except Exception, e:
+            print str(e)
 
         # Assign a facility name
         try:

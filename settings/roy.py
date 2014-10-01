@@ -15,12 +15,15 @@ DATABASES = {
         'ENGINE'   : 'django.db.backends.mysql',
         'USER'     : 'jkanner',
         'PASSWORD' : 'batman',
+	'OPTIONS'  : {
+		'init_command' : 'SET storage_engine=MyISAM',
+		}
     }
 }
 
 ROOT_URLCONF = 'urls'
 
-MEDIA_URL = "/gracedb-static/"
+#MEDIA_URL = "/gracedb-static/"
 
 SKYMAP_VIEWER_MEDIA_URL = "/skymap-viewer/"
 
@@ -91,7 +94,7 @@ MIDDLEWARE_CLASSES = [
 #    'ligodjangoauth.LigoShibbolethMiddleware',
     'ligoauth.middleware.auth.LigoAuthMiddleware',
     'maintenancemode.middleware.MaintenanceModeMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+#    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -130,7 +133,7 @@ INSTALLED_APPS = (
     'ligoauth',
     'rest_framework',
     'south',
-    'debug_toolbar',
+#    'debug_toolbar',
 )
 
 INTERNAL_IPS = (
@@ -138,6 +141,7 @@ INTERNAL_IPS = (
 )
 
 
+LOGGING = {}
 x = """     HACH HACK HACK
 LOG_ROOT = '/home/jkanner/logs'
 LOG_FILE_SIZE = 1024*1024 # 1 MB
