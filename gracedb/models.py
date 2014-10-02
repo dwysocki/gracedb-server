@@ -553,14 +553,14 @@ class SingleInspiral(models.Model):
         field_names = cls.field_names()
         created_events = []
 
-        log.debug("Single/create from table/fields: " + str(field_names))
+        #log.debug("Single/create from table/fields: " + str(field_names))
 
         for row in table:
             e = cls(event=event)
-            log.debug("Single/creating event")
+            #log.debug("Single/creating event")
             for column in field_names:
                 value = getattr(row, column)
-                log.debug("Setting column '%s' with value '%s'" % (column, value))
+                #log.debug("Setting column '%s' with value '%s'" % (column, value))
                 setattr(e, column, value)
             e.save()
             created_events.append(e)
