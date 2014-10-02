@@ -365,7 +365,7 @@ class EMBBEventLog(models.Model):
     facility   = models.ForeignKey(EMFacility)       # from a table of facilities
 
     # Facility-local identifier for this footprint
-    footprintID= models.CharField(max_length=200,null=True)
+    footprintID= models.CharField(max_length=200, blank=True)
     # Now the global ID is a concatenation: facilityName#footprintID
 
     # the EM waveband used for the imaging as below
@@ -391,15 +391,15 @@ class EMBBEventLog(models.Model):
     eel_status     = models.CharField(max_length=2, choices=EEL_STATUS_CHOICES)
 
     # Observation status. If OBSERVATION, then there is a good chance of good image
-    OBS_STATUS_CHOICES = (('OB','OBSERVATION'), ('TE','TEST'), ('PR','PREDICTION'))
+    OBS_STATUS_CHOICES = (('NA', 'NOT APPLICABLE'), ('OB','OBSERVATION'), ('TE','TEST'), ('PR','PREDICTION'))
     obs_status     = models.CharField(max_length=2, choices=OBS_STATUS_CHOICES)
 
     # This field is natural language for human
-    comment = models.TextField(null=True)
+    comment = models.TextField(blank=True)
 
     # This field is formal struct by a syntax TBD
     # for example  {"phot.mag.limit": 22.3}
-    extra_info_dict = models.TextField(null=True)
+    extra_info_dict = models.TextField(blank=True)
 
     # We overload the 'save' method to avoid race conditions, since the Eels are numbered. 
     def save(self, *args, **kwargs):
