@@ -1373,16 +1373,13 @@ def embblogentry(request, graceid, num=None):
             eel = create_eel(request.POST, event, request.user)
         except ValueError, e:
             return HttpResponseBadRequest(str(e))
-#        except RaceConditions, e:
-#            return HttpResponseInternalServerError(str(e))
-        except Exception:
-            pass
+        except Exception, e:
+            return HttpResponseServerError(str(e))
     else:
         try:
             eel = event.eventlog_set.filter(N=num)[0]
         except Exception:
             raise Http404
-
 
     if not request.is_ajax():
         return HttpResponseRedirect(reverse(view, args=[graceid]))

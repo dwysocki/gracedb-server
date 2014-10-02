@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse as django_reverse
 from django.conf import settings
 from django.utils.http import urlquote
 from django.utils import dateformat
+from django.db import IntegrityError
 
 import json
 
@@ -984,23 +985,22 @@ class EventLogDetail(APIView):
 
 
 #==================================================================
-# EMBBEventLog
+# EMBBEventLog (EEL)
 # FIXME
 
-# Janky serialization
+# Eel serializer.
 def embbEventLogToDict(eel, request=None):
     uri = None
-    file_uri = None
     if request:
         uri = reverse("embbeventlog-detail",
                 args=[eel.event.graceid(), eel.N],
                 request=request)
     return {
-                "comment" : eel.comment,
-                "created" : eel.created,
-                "issuer"  : eel.issuer.username,
                 "self"    : uri,
-                "file"    : file_uri,
+                "created" : eel.created,
+                "submitter"  : eel.submitter.username,
+                "facility" : eel.facility.name,
+                "comment" : eel.comment,
            }
 
 class EMBBEventLogList(APIView):
@@ -1047,13 +1047,14 @@ class EMBBEventLogList(APIView):
         # Now create the EEL
         try:
             eel = create_eel(request.DATA, event, request.user)
-        # XXX Need to handle multiple exception types here.
+        except ValueError, e:
+            return Response("str(e)", status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError, e:
+            return Response("Failed to save EMBB entry: %s" % str(e),
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE)
         except Exception, e:
             return Response("Problem creating EEL: %s" % str(e), 
-                status=status.HTTP_400_BAD_REQUEST)
-#            Since this is likely due to race conditions, we will return 503
-#            return Response("Failed to save log entry: %s" % str(e),
-#                    status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         rv = embbEventLogToDict(eel, request=request)
         response = Response(rv, status=status.HTTP_201_CREATED)
