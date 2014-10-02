@@ -1358,6 +1358,7 @@ def create_eel(d, event, user):
     eel.extra_info_dict = d.get('extra_info_dict', '') 
     eel.comment = d.get('comment', '') 
     eel.save()
+    return eel
 
 # A view to create embb log entries
 def embblogentry(request, graceid, num=None):
