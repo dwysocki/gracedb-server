@@ -59,6 +59,9 @@ DATABASES = {
         'ENGINE'   : 'django.db.backends.mysql',
         'USER'     : 'gracedb',
         'PASSWORD' : 'redrum4x',
+        'OPTIONS'  : {
+            'init_command' : 'SET storage_engine=MyISAM',
+        }
     }
 }
 
