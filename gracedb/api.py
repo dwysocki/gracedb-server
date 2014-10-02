@@ -12,6 +12,7 @@ from django.db import IntegrityError
 import json
 
 from gracedb.models import Event, Group, EventLog, Tag
+from gracedb.models import EMFacility, EMBBEventLog, EMSPECTRUM
 from gracedb.views import create_label, get_performance_info
 from gracedb.views import create_eel
 from translator import handle_uploaded_data
@@ -25,8 +26,6 @@ import errno
 import shutil
 import exceptions
 import pytz
-
-import logging
 
 from utils.vfile import VersionedFile
 
@@ -987,9 +986,8 @@ class EventLogDetail(APIView):
 
 #==================================================================
 # EMBBEventLog (EEL)
-# FIXME
 
-# Eel serializer.
+# EEL serializer.
 def embbEventLogToDict(eel, request=None):
     uri = None
     if request:
@@ -1374,7 +1372,7 @@ class GracedbRoot(APIView):
         log = reverse("eventlog-list", args=["G1200"], request=request)
         log = log.replace("G1200", "{graceid}")
         embb = reverse("embbeventlog-list", args=["G1200"], request=request)
-        embb = log.replace("G1200", "{graceid}")
+        embb = embb.replace("G1200", "{graceid}")
 
         files = reverse("files", args=["G1200", "filename"], request=request)
         files = files.replace("G1200", "{graceid}")
@@ -1420,6 +1418,10 @@ class GracedbRoot(APIView):
             "templates" : templates,
             "groups" : [group.name for group in Group.objects.all()],
             "analysis-types" : dict(Event.ANALYSIS_TYPE_CHOICES),
+            "em-facilities"  : [f.shortName for f in EMFacility.objects.all()],
+            "wavebands"      : dict(EMSPECTRUM),
+            "eel-statuses"   : dict(EMBBEventLog.EEL_STATUS_CHOICES),
+            "obs-statuses"   : dict(EMBBEventLog.OBS_STATUS_CHOICES),
            })
 
 ##################################################################

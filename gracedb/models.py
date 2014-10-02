@@ -10,7 +10,6 @@ import datetime
 import thread
 import string
 import os
-import logging
 
 import glue
 import glue.ligolw
@@ -18,8 +17,6 @@ import glue.ligolw.utils
 import glue.ligolw.table
 import glue.ligolw.lsctables
 from glue.lal import LIGOTimeGPS
-
-log = logging.getLogger('gracedb.models')
 
 # XXX ER2.utils.  utils is in project directory.  ugh.
 from utils import posixToGpsTime
@@ -423,7 +420,7 @@ class EMBBEventLog(models.Model):
         if not success:
             # XXX Should this be a custom exception?  That way we could catch it
             # in the views that use it and give an informative error message.
-            raise Exception("Too many attempts to save log message. Something is wrong.")
+            raise Exception("Too many attempts to save EMBB entry. Something is wrong.")
 
 class Labelling(models.Model):
     event = models.ForeignKey(Event)

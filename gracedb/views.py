@@ -1327,10 +1327,7 @@ def create_eel(d, event, user):
         raise ValueError('Please specify a facility')
 
     # Assign a facility-specific footprint ID (if provided)
-    try:
-        eel.footprintID = d.get('footprintID')
-    except: 
-        eel.footprintID = None
+    eel.footprintID = d.get('footprintID', '')
 
     # Assign the EM spectrum string
     try:
@@ -1358,8 +1355,8 @@ def create_eel(d, event, user):
     except: 
         raise ValueError('Please specify an observation status.')
 
-    eel.extra_info_dict = d.get('extra_info_dict', None) 
-    eel.comment = d.get('comment', None) 
+    eel.extra_info_dict = d.get('extra_info_dict', '') 
+    eel.comment = d.get('comment', '') 
     eel.save()
 
 # A view to create embb log entries
