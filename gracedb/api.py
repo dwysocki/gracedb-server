@@ -404,6 +404,7 @@ def eventToDict(event, columns=None, request=None):
     rv['links'] = {
             "neighbors" : reverse("neighbors", args=[graceid], request=request),
             "log"   : reverse("eventlog-list", args=[graceid], request=request),
+            "embb"   : reverse("embbeventlog-list", args=[graceid], request=request),
             "files" : reverse("files", args=[graceid], request=request),
             "filemeta" : reverse("filemeta", args=[graceid], request=request),
             "labels" : reverse("labels", args=[graceid], request=request),
@@ -1372,6 +1373,8 @@ class GracedbRoot(APIView):
         vo_detail = vo_detail.replace("G1200", "{graceid}")
         log = reverse("eventlog-list", args=["G1200"], request=request)
         log = log.replace("G1200", "{graceid}")
+        embb = reverse("embbeventlog-list", args=["G1200"], request=request)
+        embb = log.replace("G1200", "{graceid}")
 
         files = reverse("files", args=["G1200", "filename"], request=request)
         files = files.replace("G1200", "{graceid}")
@@ -1400,6 +1403,7 @@ class GracedbRoot(APIView):
                 "event-detail-template" : detail,
                 "event-vo-detail-template" : vo_detail,
                 "event-log-template" : log,
+                "embb-event-log-template" : embb,
                 "event-label-template" : labels,
                 "files-template" : files,
                 "filemeta-template" : filemeta,
