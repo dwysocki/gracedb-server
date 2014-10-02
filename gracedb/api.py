@@ -1000,7 +1000,18 @@ def embbEventLogToDict(eel, request=None):
                 "created" : eel.created,
                 "submitter"  : eel.submitter.username,
                 "facility" : eel.facility.name,
+                "footprintID" : eel.footprintID,
+                "waveband" : eel.waveband,
+                "ra" : eel.ra,
+                "dec" : eel.dec,
+                "raWidth" : eel.raWidth,
+                "decWidth" : eel.decWidth,
+                "gpstime" : eel.gpstime,
+                "duration" : eel.duration,
+                "eel_status" : eel.get_eel_status_display(),
+                "obs_status" : eel.get_obs_status_display(),
                 "comment" : eel.comment,
+                "extra_info_dict" : eel.extra_info_dict,
            }
 
 class EMBBEventLogList(APIView):
