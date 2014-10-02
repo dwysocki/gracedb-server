@@ -664,8 +664,6 @@
 
 <form method="POST" action="{% url "embblogentry" object.graceid "" %}">
 <table>
-<tr><td>Submitter</td>      <td><input type="text" name="submitter"/></td></tr>
-
 <tr><td>Facility</td>       <td><select name="facility">
 {% for ef in facilities %}
 <option value="{{ ef.0 }}">{{ ef.1 }}</option>
