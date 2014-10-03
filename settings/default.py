@@ -40,6 +40,8 @@ XMPP_ALERT_CHANNELS = [
                         'external_grb',
                       ]
 
+SKYMAP_VIEWER_SERVICE_URL = "https://losc-gracedb.ligo.org/cgi-bin/skymapViewer"
+
 BLESSED_TAGS = [
                  'analyst_comments',
                  'psd',

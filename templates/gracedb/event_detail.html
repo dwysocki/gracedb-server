@@ -93,6 +93,10 @@
                     dc += '         <td>{{log.comment|sanitize|escapejs}} \n';
                                {% if log.fileurl %}
                     dc += '             <a href="{{log.fileurl}}">{{log.filename}}</a> \n';
+                                    // If this is a skymap.json file, we want a button.
+                                    {% if log.filename == "skymap.json" %}
+                    dc += '             <button type="button" data-dojo-type="dijit/form/Button" id="sV_button" class="modButtonClass">View in skymapViewer!</button> \n';                                   
+                                    {% endif %}
                                {% endif %}
                     dc += '         </td> \n';
                     dc += '    </tr> \n';
@@ -491,6 +495,28 @@
                 new Tooltip({ connectId: tag.button_id, label: "delete this tag"});
             }
 
+
+            // Handle the post to skymapViewer button.
+            var sV_button = dom.byId("sV_button");
+            if (sV_button) {
+                on(sV_button, "click", function() {
+                    // construct skymap.json url.
+                    var skymap_json_url = "{% url "file" object.graceid "skymap.json" %}"
+                    // fetch JSON content.
+                    dojo.xhrGet({
+                        url: skymap_json_url,
+                        load: function(result) { 
+                            // Find the form and set its value to the appropriate JSON        
+                            sV_form = dom.byId("sV_form");
+                            // Shove the skymap.json contents into the value for the second form field.
+                            sV_form.elements[1].value = result; 
+                            // Submit the form, which takes the user to the skymapViewer server.
+                            sV_form.submit();
+                        }
+                    });
+                });
+            }
+
         });
 
     </script>
@@ -594,6 +620,18 @@
 {% block analysis_specific %}
 {# This block is empty in the base event_detail template #}
 {% endblock %}
+</div>
+
+{# Enable post to skymap viewer #}
+<div id="sV_form_div" style="display: none">
+
+<!-- <form action="https://losc-gracedb.ligo.org/cgi-bin/skymapViewer" id="sV_form"  method="post"> -->
+<form action="{{ SKYMAP_VIEWER_SERVICE_URL }}" id="sV_form"  method="post">
+    <input type="hidden" name="skymapid" value="{{ object.graceid }}">
+    <!-- <input type="hidden" name="json" value="{{ skymap_json }}"> -->
+    <input type="hidden" name="json" value="blaargh">
+    <input type="submit" value="View in skymapViewer!">
+</form>
 </div>
 
 <!-- Neighbors Support refresh_neighbors() function -->
