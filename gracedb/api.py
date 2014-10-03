@@ -12,7 +12,7 @@ from django.db import IntegrityError
 import json
 
 from gracedb.models import Event, Group, EventLog, Tag
-from gracedb.models import EMFacility, EMBBEventLog, EMSPECTRUM
+from gracedb.models import EMGroup, EMBBEventLog, EMSPECTRUM
 from gracedb.views import create_label, get_performance_info
 from gracedb.views import create_eel
 from translator import handle_uploaded_data
@@ -998,7 +998,8 @@ def embbEventLogToDict(eel, request=None):
                 "self"    : uri,
                 "created" : eel.created,
                 "submitter"  : eel.submitter.username,
-                "facility" : eel.facility.name,
+                "group" : eel.group.name,
+                "instrument" : eel.instrument,
                 "footprintID" : eel.footprintID,
                 "waveband" : eel.waveband,
                 "ra" : eel.ra,
@@ -1418,7 +1419,7 @@ class GracedbRoot(APIView):
             "templates" : templates,
             "groups" : [group.name for group in Group.objects.all()],
             "analysis-types" : dict(Event.ANALYSIS_TYPE_CHOICES),
-            "em-facilities"  : [f.shortName for f in EMFacility.objects.all()],
+            "em-groups"  : [g.name for g in EMGroup.objects.all()],
             "wavebands"      : dict(EMSPECTRUM),
             "eel-statuses"   : dict(EMBBEventLog.EEL_STATUS_CHOICES),
             "obs-statuses"   : dict(EMBBEventLog.OBS_STATUS_CHOICES),

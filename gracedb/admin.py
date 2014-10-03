@@ -1,5 +1,5 @@
 
-from models import Event, EventLog, EMBBEventLog, EMFacility, Group
+from models import Event, EventLog, EMBBEventLog, EMGroup, Group
 from models import Label, Labelling, Tag
 from django.contrib import admin
 
@@ -26,9 +26,6 @@ class EventLogAdmin(admin.ModelAdmin):
 #    list_display = [ 'event' ]
 #    search_fields = [ 'event__id']
 #
-#class EMFacility(admin.ModelAdmin):
-#    list_display = [ 'event' ]
-#    search_fields = [ 'event__id']
 
 class LabellingAdmin(admin.ModelAdmin):
     list_display = [ 'event', 'label', 'creator' ]
@@ -41,7 +38,7 @@ class TagAdmin(admin.ModelAdmin):
 admin.site.register(Event, EventAdmin)
 admin.site.register(EventLog, EventLogAdmin)
 admin.site.register(EMBBEventLog)
-admin.site.register(EMFacility)
+admin.site.register(EMGroup)
 admin.site.register(Group)
 admin.site.register(Label, LabelAdmin)
 admin.site.register(Labelling, LabellingAdmin)

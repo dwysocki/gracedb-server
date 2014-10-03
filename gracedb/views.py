@@ -19,7 +19,7 @@ from models import CoincInspiralEvent
 from models import MultiBurstEvent
 from models import GrbEvent
 from models import SingleInspiral
-from models import EMBBEventLog, EMFacility
+from models import EMBBEventLog, EMGroup
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
@@ -636,8 +636,7 @@ def view(request, graceid):
     except Event.DoesNotExist:
         raise Http404
     context['object'] = a
-    context['facilities'] = [(ef.shortName, ef.name) 
-                            for ef in EMFacility.objects.all()]
+    context['groups'] = [g.name for g in EMGroup.objects.all()]
     context['eventdesc'] = get_file(graceid, "event.log")
     context['userdesc'] = get_file(graceid, "user.log")
     context['nearby'] = [(event.gpstime - a.gpstime, event)
@@ -1331,15 +1330,16 @@ def create_eel(d, event, user):
     eel = EMBBEventLog(event=event)
     eel.event = event
     eel.submitter = user
-    # Assign a facility name
+    # Assign a group name
     try:
-        facility_name = d.get('facility')
-        facility = EMFacility.objects.get(shortName=facility_name)
-        eel.facility = facility
+        eel.group = EMGroup.objects.get(shortName=d.get('group'))
     except:
-        raise ValueError('Please specify a facility')
+        raise ValueError('Please specify an EM followup MOU group')
 
-    # Assign a facility-specific footprint ID (if provided)
+    # Assign an instrument name
+    eel.instrument = d.get('instrument', '')
+
+    # Assign a group-specific footprint ID (if provided)
     eel.footprintID = d.get('footprintID', '')
 
     # Assign the EM spectrum string

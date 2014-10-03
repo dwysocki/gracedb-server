@@ -701,11 +701,12 @@
 
 <form method="POST" action="{% url "embblogentry" object.graceid "" %}">
 <table>
-<tr><td>Facility</td>       <td><select name="facility">
-{% for ef in facilities %}
-<option value="{{ ef.0 }}">{{ ef.1 }}</option>
+<tr><td>MOU Group</td>       <td><select name="group">
+{% for g in groups %}
+<option value="{{ g }}">{{ g }}</option>
 {% endfor %} </select> </td> </tr>
 
+<tr><td>Instrument</td>       <td><input type="text" name="instrument"> </td> </tr>
 
 
 <tr><td>Footprint ID</td>   <td><input type="text" name="footprintID"/></td></tr>
@@ -796,7 +797,8 @@
 							<tr>
 								<th>Date</th>
 								<th>Submitter</th>
-								<th>Facility</th>
+								<th>MOU Group</th>
+								<th>Instrument</th>
 								<th>Footprint ID</th>
 								<th>Waveband</th>
 								<th>RA</th>
@@ -817,7 +819,8 @@
 <tr>
 <td>{{ eel.created }}</td> 
 <td>{{ eel.submitter }}</td> 
-<td>{{ eel.facility }}</td> 
+<td>{{ eel.group }}</td> 
+<td>{{ eel.instrument }}</td>
 <td>{{ eel.footprintID }}</td> 
 <td>{{ eel.waveband }}</td> 
 <td>{{ eel.ra }}</td> 
