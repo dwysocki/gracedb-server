@@ -269,13 +269,15 @@ class EventLog(models.Model):
             # in the views that use it and give an informative error message.
             raise Exception("Too many attempts to save log message. Something is wrong.")
 
-class EMFacility(models.Model):
-    name = models.CharField(max_length=200, unique=True)
-    shortName = models.CharField(max_length=20, unique=True)
+class EMGroup(models.Model):
+    name = models.CharField(max_length=20, unique=True)
 
-    # XXX what else? Possibly the liason. These can be populated 
+    # XXX what else? Possibly the liasons. These can be populated 
     # automatically from the gw-astronomy COManage-provisioned LDAP.
-    liason = models.ForeignKey(DjangoUser)
+    # Let's leave this out for now. The submitter will be stored in 
+    # the EMBB log record, and that should be enough for audit/blame
+    # purposes.
+    #liasons = models.ManyToManyField(DjangoUser)
 
     # XXX Characteristics needed to produce pointings?
 
@@ -358,8 +360,11 @@ class EMBBEventLog(models.Model):
     # The responsible author of this communication
     submitter  = models.ForeignKey(DjangoUser)  # from a table of people
 
+    # The MOU group responsible 
+    group = models.ForeignKey(EMGroup)       # from a table of facilities
+
     # The instrument used or intended for the imaging implied by this footprint
-    facility   = models.ForeignKey(EMFacility)       # from a table of facilities
+    instrument = models.CharField(max_length=200, blank=True)
 
     # Facility-local identifier for this footprint
     footprintID= models.CharField(max_length=200, blank=True)
