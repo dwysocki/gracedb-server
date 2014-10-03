@@ -1332,7 +1332,7 @@ def create_eel(d, event, user):
     eel.submitter = user
     # Assign a group name
     try:
-        eel.group = EMGroup.objects.get(shortName=d.get('group'))
+        eel.group = EMGroup.objects.get(name=d.get('group'))
     except:
         raise ValueError('Please specify an EM followup MOU group')
 
