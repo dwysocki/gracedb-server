@@ -21,7 +21,6 @@ import json
 def assembleLigoLw(objects):
     from glue.ligolw import ligolw
     # lsctables MUST be loaded before utils.
-    from glue.ligolw import lsctables
     from glue.ligolw import utils
     from glue.ligolw.utils import ligolw_add
 
@@ -104,6 +103,11 @@ def flexigridResponse(request, objects):
     for object in objects[start:start+rp]:
         event_times = timeSelections(object.gpstime)
         created_times = timeSelections(object.created)
+        if object.search:
+            search_name = object.search.name
+        else:
+            search_name = ''
+
         rows.append(
             { 'id' : object.id,
               'cell': [ '<a href="%s">%s</a>' %
@@ -119,7 +123,7 @@ def flexigridResponse(request, objects):
                         ]),
                         object.group.name,
                         object.pipeline.name,
-                        object.search.name,
+                        search_name,
 
                         event_times.get('gps',""),
                         #event_times['utc'],
@@ -196,26 +200,17 @@ def fix_old_creation_request(request):
         # Fix apparently invoked by mistake.
         return request
     else:
-        group = request.POST['group']
         atype = request.POST['type']
         username = request.user.username
 
         if atype=="LM":
-            if group=='Test':
-                search = 'Test'
-            else:
-                search = 'LowMass'
-
+            search = 'LowMass'
             if username in GSTLAL_SPIIR_SUBMITTERS:
                 pipeline = 'gstlal-spiir'
             else:
                 pipeline = 'gstlal'
         elif atype=="HM":
-            if group=='Test':
-                search = 'Test'
-            else:
-                search = 'HighMass'
-
+            search = 'HighMass'
             if username in GSTLAL_SPIIR_SUBMITTERS:
                 pipeline = 'gstlal-spiir'
             else:

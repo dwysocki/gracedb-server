@@ -20,26 +20,17 @@ class Migration(DataMigration):
     def forwards(self, orm):
         for event in orm.Event.objects.all():
             print "Event id: %d\r" % event.id
-            # If the event is a LowMass event, first decide whether 
-            # the search should be 'Test' or 'LowMass'. Then decide 
-            # whether it should be attributed to gstlal or gstlal-spiir.
+            # If the event is a LowMass event, set search to 'LowMass'.
+            # Then decide whether it should be attributed to gstlal or gstlal-spiir.
             # Similarly for HighMass
             if event.analysisType=="LM":
-                if event.group==orm.Group.objects.get(name='Test'):
-                    event.search = orm.search.objects.get(name='Test')
-                else:
-                    event.search = orm.Search.objects.get(name='LowMass')
-
+                event.search = orm.Search.objects.get(name='LowMass')
                 if event.submitter.username in GSTLAL_SPIIR_SUBMITTERS:
                     event.pipeline = orm.Pipeline.objects.get(name='gstlal-spiir')
                 else:
                     event.pipeline = orm.Pipeline.objects.get(name='gstlal')
             elif event.analysisType=="HM":
-                if event.group==orm.Group.objects.get(name='Test'):
-                    event.search = orm.search.objects.get(name='Test')
-                else:
-                    event.search = orm.Search.objects.get(name='HighMass')
-
+                event.search = orm.Search.objects.get(name='HighMass')
                 if event.submitter.username in GSTLAL_SPIIR_SUBMITTERS:
                     event.pipeline = orm.Pipeline.objects.get(name='gstlal-spiir')
                 else:
