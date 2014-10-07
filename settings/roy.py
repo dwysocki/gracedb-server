@@ -2,7 +2,7 @@
 # in this namespace.
 # from logSettings import *
 
-CONFIG_NAME = "Roy"
+CONFIG_NAME = "EMBB development"
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
