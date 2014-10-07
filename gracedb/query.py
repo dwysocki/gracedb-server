@@ -272,7 +272,8 @@ def parseQuery(s):
             d[tag] = d.get(tag,Q()) & qval
         else:
             d[tag] = d.get(tag,Q()) | qval
-    if s.find("Test") < 0 and "tid" not in d:
+    #if s.find("Test") < 0 and "tid" not in d:
+    if s.lower().find("test") < 0 and "tid" not in d:
         # If Test group is not mentioned in the query, we exclude it.
         if "group" in d:
             d["group"] &= ~Q(group__name="Test")
