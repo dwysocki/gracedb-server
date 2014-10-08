@@ -123,11 +123,6 @@ class Event(models.Model):
         ordering = ["-id"]
 
     def graceid(self):
-        # Unlike group and pipeline, 'search' is allowed to be None.
-        if self.search:
-            if self.search.name=="Test":
-                return "T%04d" % self.id
-
         if self.group.name == "Test":
             return "T%04d" % self.id
         elif self.pipeline == "HardwareInjection":
@@ -199,7 +194,7 @@ class Event(models.Model):
             e = cls.objects.filter(id=int(id[1:])).select_subclasses()[0]
         except IndexError:
             raise cls.DoesNotExist("Event matching query does not exist")
-        if (id[0] == "T") and (e.group.name == "Test" or e.search.name == "Test"):
+        if (id[0] == "T") and (e.group.name == "Test"):
             return e
         if (id[0] == "H") and (e.pipeline.name == "HardwareInjection"):
             return e
