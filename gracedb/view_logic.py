@@ -2,6 +2,7 @@
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from models import Event, Group, EventLog, Labelling, Label
+from models import Pipeline, Search
 from models import CoincInspiralEvent
 from models import MultiBurstEvent
 from models import GrbEvent
@@ -24,20 +25,27 @@ def _createEventFromForm(request, form):
     saved = False
     warnings = []
     try:
-        group = Group.objects.filter(name=form.cleaned_data['group'])
-        atype = form.cleaned_data['type']
+        group = Group.objects.get(name=form.cleaned_data['group'])
+        pipeline = Pipeline.objects.get(name=form.cleaned_data['pipeline'])
+        search_name = form.cleaned_data['search']
+        if search_name:
+            search = Search.objects.get(name=form.cleaned_data['search'])
+        else:
+            search = None
         # Create Event
-        if atype in ['LM', 'HM', 'MBTA']:
+        if pipeline.name in ['gstlal', 'gstlal-spiir', 'MBTAOnline']:
             event = CoincInspiralEvent()
-        elif atype == "GRB":
+        elif pipeline.name in ['Fermi', 'Swift']:
             event = GrbEvent()
-        elif atype == "CWB":
-            event = MultiBurstEvent()
+        elif pipeline.name in ['CWB', 'CWB2G']:
+            event = MultiBurstEvent() 
         else:
             event = Event()
+
         event.submitter = request.user
-        event.group = group[0]
-        event.analysisType = atype
+        event.group = group
+        event.pipeline = pipeline
+        event.search = search
         #  ARGH.  We don't get a graceid until we save,
         #  but we don't know in advance if we can actually
         #  create all the things we need for success!

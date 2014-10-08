@@ -1,0 +1,31 @@
+[
+    {
+        "pk": 1, 
+        "model": "gracedb.search", 
+        "fields": {
+            "name": "AllSky", 
+            "description": "all-sky burst online"
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "gracedb.search", 
+        "fields": {
+            "name": "LowMass"
+        }
+    }, 
+    {
+        "pk": 3, 
+        "model": "gracedb.search", 
+        "fields": {
+            "name": "HighMass"
+        }
+    },
+    {
+        "pk": 4, 
+        "model": "gracedb.search", 
+        "fields": {
+            "name": "GRB"
+        }
+    }
+]

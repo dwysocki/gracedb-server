@@ -51,14 +51,16 @@
             url: '{% url "search" %}flex?query={{rawquery|urlencode}}',
             datatype: 'json',
             mtype: "GET",
-            colNames : ["UID", "Labels", "Neighbors (+/-5sec)", "Group", "Type", "Event Time", "Instruments", "FAR (Hz)", "Links", "Submitted", "Submitted By",
+            colNames : ["UID", "Labels", "Neighbors (+/-5sec)", "Group", "Pipeline", "Search", "Event Time", "Instruments", "FAR (Hz)", "Links", "Submitted", "Submitted By",
                        ],
             colModel : [
                {name : 'id',     index: 'id', width : 50, sortable : true, align: 'left', hidden: false},
                {name : 'labels', index: 'labels', width : 70, sortable : false, align: 'left'},
                {name : 'neighbors', index: 'neighbors', width : 100, sortable : false, align: 'left'},
                {name : 'group',  index: 'group', width : 50, sortable : false, align: 'left', hidden: true},
-               {name : 'analysisType', index: 'analysisType', width : 70, sortable : true, align: 'right', hide: false},
+               {name : 'pipeline',  index: 'pipeline', width : 50, sortable : false, align: 'left', hidden: true},
+               {name : 'search',  index: 'search', width : 50, sortable : false, align: 'left', hidden: true},
+//               {name : 'analysisType', index: 'analysisType', width : 70, sortable : true, align: 'right', hide: false},
 
                {name : 'gpstime', index: 'gpstime', width : 90, sortable : true, align: 'right'},
                {name : 'instruments', index: 'instruments', width : 50, sortable : true, align: 'right', hidden: false},
@@ -130,7 +132,8 @@
             <th width="100">UID</th>
             <th width="100">Labels</th>
             <th width="100">Group</th>
-            <th width="100">Type</th>
+            <th width="100">Pipeline</th>
+            <th width="100">Search</th>
             <th width="100">
                 Event Time
             </th>
@@ -150,8 +153,9 @@
                 <span onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.name}}', '{{labelling.created|utc}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
              {% endfor %}
         </td>
-        <td>{{ obj.group }} </td>
-        <td>{{ obj.get_analysisType_display }} </td>
+        <td>{{ obj.group.name }} </td>
+        <td>{{ obj.pipeline.name }} </td>
+        <td>{{ obj.search.name }} </td>
         <td>{% if obj.gpstime%}
                 {{ obj.gpstime }}
             {% endif %}

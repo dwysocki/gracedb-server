@@ -53,12 +53,26 @@ BLESSED_TAGS = [
                  'audio',
                ]
 
+COINC_PIPELINES = [
+                    'gstlal',
+                    'gstlal-spiir',
+                    'MBTA',
+                   ]
+
+GRB_PIPELINES = [
+                    'Fermi',
+                    'Swift',
+                ]
+
 DATABASES = {
     'default' : {
         'NAME'     : 'gracedb',
         'ENGINE'   : 'django.db.backends.mysql',
         'USER'     : 'gracedb',
         'PASSWORD' : 'redrum4x',
+        'OPTIONS'  : {
+                         'init_command': 'SET storage_engine=MyISAM',
+                     },
     }
 }
 

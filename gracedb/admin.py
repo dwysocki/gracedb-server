@@ -4,15 +4,11 @@ from models import Label, Labelling, Tag
 from django.contrib import admin
 
 class EventAdmin(admin.ModelAdmin):
-    def analysis_type(obj):
-        return obj.get_analysisType_display()
-    analysis_type.admin_order_field = 'analysisType'
-
     def graceid(obj):
         return obj.graceid()
     graceid.admin_order_field = 'id'
 
-    list_display = [ graceid, 'group', analysis_type, 'submitter'  ]
+    list_display = [ graceid, 'group', 'pipeline', 'search', 'submitter'  ]
     search_fields = [ 'group__name', 'submitter__name' ]
 
 class LabelAdmin(admin.ModelAdmin):

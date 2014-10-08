@@ -1,7 +1,7 @@
 
 from django.db import models
 
-from gracedb.models import Label, Event
+from gracedb.models import Label, Pipeline
 
 from django.contrib.auth.models import User
 
@@ -12,26 +12,6 @@ from django.contrib.auth.models import User
 #    onTypeCreate = models.CharField(max_length=20, choices=TYPES, blank=True)
 #    onTypeChange = models.CharField(max_length=20, choices=TYPES, blank=True)
 #    email = models.EmailField()
-
-class AnalysisType(models.Model):
-    # XXX Event.analysisType should probably point to this.
-    #  The choice list thing is obnoxious for notifications to track
-    code = models.CharField(max_length=20, unique=True)
-    display = models.CharField(max_length=20, unique=True)
-
-    def __unicode__(self):
-        return self.display
-
-def populateAnalysisType():
-    lastError = None
-    for code, display in Event.ANALYSIS_TYPE_CHOICES:
-        try:
-            atype = AnalysisType(code=code, display=display)
-            atype.save()
-        except Exception, e:
-            lastError = e
-    if lastError is not None:
-        raise lastError
 
 class Contact(models.Model):
     user = models.ForeignKey(User, null=False)
@@ -49,7 +29,8 @@ class Trigger(models.Model):
     #new_user = models.ForeignKey(DjangoUser, null=True)
     triggerType = models.CharField(max_length=20, choices=TYPES, blank=True)
     labels = models.ManyToManyField(Label, blank=True)
-    atypes = models.ManyToManyField(AnalysisType, blank=True, verbose_name="Analysis Types")
+    #atypes = models.ManyToManyField(AnalysisType, blank=True, verbose_name="Analysis Types")
+    pipelines = models.ManyToManyField(Pipeline, blank=True)
     contacts = models.ManyToManyField(Contact, blank=True)
     farThresh = models.FloatField(blank=True, null=True)
 
@@ -65,7 +46,7 @@ class Trigger(models.Model):
         if self.farThresh:
             thresh = " & (far < %s)" % self.farThresh
         return ("(%s) & (%s)%s -> %s") % (
-            "|".join([a.display for a in self.atypes.all()]) or "any type",
+            "|".join([a.name for a in self.pipelines.all()]) or "any pipeline",
             "|".join([a.name for a in self.labels.all()]) or "creating",
             thresh,
             ",".join([x.desc for x in self.contacts.all()])

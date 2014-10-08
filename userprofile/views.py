@@ -29,15 +29,15 @@ def create(request):
             # Create the Trigger
             t = Trigger(user=request.user)
             labels = form.cleaned_data['labels']
-            atypes = form.cleaned_data['atypes']
+            pipelines = form.cleaned_data['pipelines']
             contacts = form.cleaned_data['contacts']
             farThresh = form.cleaned_data['farThresh']
 
-            if contacts and (labels or atypes):
+            if contacts and (labels or pipelines):
                 t.save() # Need an id before relations can be set.
                 try:
                     t.labels = labels
-                    t.atypes = atypes
+                    t.pipelines = pipelines
                     t.contacts = contacts
                     t.farThresh = farThresh
                 except:
@@ -49,10 +49,10 @@ def create(request):
         try:
             if not contacts:
                 message += "You must specify at least one contact. "
-            if not (labels or atypes):
-                message += "You need to indicate label(s) and/or analysis type(s)."
+            if not (labels or pipelines):
+                message += "You need to indicate label(s) and/or pipeline(s)."
         except NameError:
-            # form is not valid, so labels, contacts and atypes were not set.
+            # form is not valid, so labels, contacts and pipelines were not set.
             # hopefully, there are error messages in the form.
             pass
     else:

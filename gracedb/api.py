@@ -11,9 +11,10 @@ from django.utils.functional import wraps
 import json
 
 from django.contrib.auth.models import User
-from gracedb.models import Event, Group, EventLog, Tag
+from gracedb.models import Event, Group, Search, Pipeline, EventLog, Tag
 from view_logic import create_label, get_performance_info
 from view_logic import _createEventFromForm
+from view_utils import fix_old_creation_request
 from translator import handle_uploaded_data
 from forms import CreateEventForm
 from permission_utils import user_has_perm, filter_events_for_user
@@ -320,7 +321,8 @@ class TSVRenderer(BaseRenderer):
                 attrs = attrs[1:]
             return str(rv)
 
-        defaultColumns = "graceid,labels,group,analysisType,far,gpstime,created,dataurl"
+        #defaultColumns = "graceid,labels,group,analysisType,far,gpstime,created,dataurl"
+        defaultColumns = "graceid,labels,group,pipeline,search,far,gpstime,created,dataurl"
         # XXX Que monstroso!
         columns = renderer_context.get('kwargs', None).get('columns', None)
         if not columns:
@@ -385,7 +387,10 @@ def eventToDict(event, columns=None, request=None):
     rv['created'] = timeToUTC(event.created)
     rv['group'] = event.group.name
     rv['graceid'] = graceid
-    rv['analysisType'] = event.get_analysisType_display()
+    rv['pipeline'] = event.pipeline.name
+    if event.search:
+        rv['search'] = event.search.name
+#    rv['analysisType'] = event.get_analysisType_display()
     rv['gpstime'] = event.gpstime
     rv['instruments'] = event.instruments
     rv['nevents'] = event.nevents
@@ -583,13 +588,21 @@ class EventList(APIView):
         return response
 
     def post(self, request, format=None):
+
+        # XXX Deal with POSTs coming in from the old client.
+        # Eventually, we will want to get rid of this check and just let it fail.
+        rv = {}
+        if 'type' in request.POST:
+            request = fix_old_creation_request(request)
+            rv['warnings'] = 'It looks like you are using the old GraceDB client (v<=1.14). ' + \
+                             'Please update! This will eventually stop working.'
+
         form = CreateEventForm(request.POST, request.FILES)
         if form.is_valid():
             event, warnings = _createEventFromForm(request, form)
             if event:
-                response = Response(
-                        eventToDict(event, request=request),
-                        status=status.HTTP_201_CREATED)
+                rv.update(eventToDict(event, request=request))
+                response = Response(rv, status=status.HTTP_201_CREATED)
                 response["Location"] = reverse(
                         'event-detail',
                         args=[event.graceid()],
@@ -1282,8 +1295,25 @@ class GracedbRoot(APIView):
                 "performance" : reverse("performance-info", request=request),
                 },
             "templates" : templates,
-            "groups" : [group.name for group in Group.objects.all()],
-            "analysis-types" : dict(Event.ANALYSIS_TYPE_CHOICES),
+            "groups"    : [group.name for group in Group.objects.all()],
+            "pipelines" : [pipeline.name for pipeline in Pipeline.objects.all()],
+            "searches"  : [search.name for search in Search.objects.all()],
+            # XXX Retained for compatibility with old clients (v<=1.14).
+            # Should eventually be removed.
+            "analysis-types" : dict(
+                    (
+                        ("LM",  "LowMass"),
+                        ("HM",  "HighMass"),
+                        ("GRB", "GRB"),
+                        ("RD",  "Ringdown"),
+                        ("OM",  "Omega"),
+                        ("Q",   "Q"),
+                        ("X",   "X"),
+                        ("CWB", "CWB"),
+                        ("MBTA", "MBTAOnline"), 
+                        ("HWINJ", "HardwareInjection"),
+                    ) 
+                ),
            })
 
 ##################################################################

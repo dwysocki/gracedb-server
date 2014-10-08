@@ -21,7 +21,6 @@ import json
 def assembleLigoLw(objects):
     from glue.ligolw import ligolw
     # lsctables MUST be loaded before utils.
-    from glue.ligolw import lsctables
     from glue.ligolw import utils
     from glue.ligolw.utils import ligolw_add
 
@@ -104,6 +103,11 @@ def flexigridResponse(request, objects):
     for object in objects[start:start+rp]:
         event_times = timeSelections(object.gpstime)
         created_times = timeSelections(object.created)
+        if object.search:
+            search_name = object.search.name
+        else:
+            search_name = ''
+
         rows.append(
             { 'id' : object.id,
               'cell': [ '<a href="%s">%s</a>' %
@@ -118,7 +122,8 @@ def flexigridResponse(request, objects):
                             for n in object.neighbors()
                         ]),
                         object.group.name,
-                        object.get_analysisType_display(),
+                        object.pipeline.name,
+                        search_name,
 
                         event_times.get('gps',""),
                         #event_times['utc'],
@@ -166,5 +171,76 @@ def get_file(graceid, filename="event.log"):
     except Exception:
         contents = None
     return contents
+
+#
+# A utility to 'fix' an event creation request coming from the old client.
+# The old client will provide 'analysisType' instead of 'pipeline' and 
+# 'search'. We will need to make an educated guess about the latter values
+# and stuff them into the POST dictionary *before* we try to bind the data
+# to the event creation form. This is modeled after migration 23, which 
+# attempts to set 'pipeline' and 'search' on old events from the 
+# analysisType era.
+#
+
+GSTLAL_SPIIR_SUBMITTERS = ['gstlal-spiir', 'qi.chu@LIGO.ORG', 'shinkee.chung@LIGO.ORG',]
+
+ANALYSIS_TYPE_TO_PIPELINE = {
+    'RD' : 'Ringdown',
+    'OM' : 'Omega',
+    'Q'  : 'Q',
+    'X'  : 'X',
+    'MBTA' : 'MBTAOnline',
+    'HWINJ' : 'HardwareInjection',
+}
+
+from VOEventLib.Vutil import parseString
+
+def fix_old_creation_request(request):
+    if not 'type' in request.POST:
+        # Fix apparently invoked by mistake.
+        return request
+    else:
+        atype = request.POST['type']
+        username = request.user.username
+
+        if atype=="LM":
+            search = 'LowMass'
+            if username in GSTLAL_SPIIR_SUBMITTERS:
+                pipeline = 'gstlal-spiir'
+            else:
+                pipeline = 'gstlal'
+        elif atype=="HM":
+            search = 'HighMass'
+            if username in GSTLAL_SPIIR_SUBMITTERS:
+                pipeline = 'gstlal-spiir'
+            else:
+                pipeline = 'gstlal'
+        # If the event is a GRB, decide whether it came from Fermi or 
+        # Swift. Assign all GRBs to the search 'GRB'.
+        elif atype=="GRB":
+            # Gonna have to crack the file open. Hopefully this won't actually consume it?
+            f = request.FILES['eventFile']
+            v = parseString(f.read())
+            how_description = v.get_How().get_Description()[0]
+            if how_description.startswith('Fermi'):
+                pipeline = 'Fermi'
+            else:
+                pipeline = 'Swift'
+            search = 'GRB'
+        # For all other analysis types, we just map the analysis type
+        # to the pipeline, and leave the search blank.
+        elif atype=="CWB":
+            pipeline = 'CWB'
+            search = 'AllSky'
+        elif atype in ANALYSIS_TYPE_TO_PIPELINE.keys():
+            pipeline = ANALYSIS_TYPE_TO_PIPELINE[atype]
+            search = None
+        else:
+            raise Exception("What kind of event is this anyway? atype=%s" % atype)
+        request.POST['pipeline'] = pipeline
+        request.POST['search'] = search
+        return request
+
+
 
 

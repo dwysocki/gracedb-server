@@ -106,10 +106,19 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     # IFO list  dataType="string"   ucd=
     # URL to skymap   Reference/URL
 
-    p = Param(name="SearchType", dataType="string", value=str(gevent.get_analysisType_display()))
-    p.set_Description(["Low-latency search type"])
+#    p = Param(name="SearchType", dataType="string", value=str(gevent.get_analysisType_display()))
+#    p.set_Description(["Low-latency search type"])
+#    w.add_Param(p)
+
+    p = Param(name="Pipeline", dataType="string", value=gevent.pipeline.name)
+    p.set_Description(["Low-latency data analysis pipeline"])
     w.add_Param(p)
 
+    # XXX Not sure if we should include the specific search in the VOEvent.
+    if gevent.search:
+        p = Param(name="Search", dataType="string", value=gevent.search.name)
+        p.set_Description(["Specific low-latency search"])
+        w.add_Param(p)
 
     #p = Param(name="ifolist", dataType="string", value=str(gevent.instruments))
     #p.set_Description(["Interferometers"])

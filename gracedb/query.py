@@ -33,13 +33,13 @@ def maybeRange(name, dbname=None):
         return name, Q(**{dbname+"__range": toks.asList()})
     return f
 
-encodeType = dict(
-    [(x[1],x[0]) for x in models.Event.ANALYSIS_TYPE_CHOICES] +
-    [(x[0],x[0]) for x in models.Event.ANALYSIS_TYPE_CHOICES]
-    )
+#encodeType = dict(
+#    [(x[1],x[0]) for x in models.Event.ANALYSIS_TYPE_CHOICES] +
+#    [(x[0],x[0]) for x in models.Event.ANALYSIS_TYPE_CHOICES]
+#    )
 
-def doType(toks):
-    return ("type", Q(analysisType__in=[encodeType[tok] for tok in toks]))
+#def doType(toks):
+#    return ("type", Q(analysisType__in=[encodeType[tok] for tok in toks]))
 
 def convertToGps(dateStr):
     return 12
@@ -90,15 +90,28 @@ groupList = OneOrMore(group).setName("analysis group list")
 groupQ = (Optional(Suppress(Keyword("group:"))) + groupList)
 groupQ = groupQ.setParseAction(lambda toks: ("group", Q(group__name__in=toks.asList())))
 
+# Pipeline
+pipelineNames = [pipeline.name for pipeline in models.Pipeline.objects.all()]
+pipeline = Or(map(CaselessLiteral, pipelineNames)).setName("pipeline name")
+pipelineList = OneOrMore(pipeline).setName("pipeline list")
+pipelineQ = (Optional(Suppress(Keyword("pipeline:"))) + pipelineList)
+pipelineQ = pipelineQ.setParseAction(lambda toks: ("pipeline", Q(pipeline__name__in=toks.asList())))
+
+# Search
+searchNames = [search.name for search in models.Search.objects.all()]
+search = Or(map(CaselessLiteral, searchNames)).setName("search name")
+searchList = OneOrMore(search).setName("search list")
+searchQ = (Optional(Suppress(Keyword("search:"))) + searchList)
+searchQ = searchQ.setParseAction(lambda toks: ("search", Q(search__name__in=toks.asList())))
 
 # Analysis Types
-atypeNames = encodeType.keys()
-atype = Or(map(CaselessLiteral, atypeNames))
-atypeList = delimitedList(atype, delim='|').\
-            setName("analylsis type list").\
-            setResultsName("atypes")
-atypeQ = (Optional(Suppress(Keyword("type:"))) + atypeList).\
-            setParseAction(doType)
+#atypeNames = encodeType.keys()
+#atype = Or(map(CaselessLiteral, atypeNames))
+#atypeList = delimitedList(atype, delim='|').\
+#            setName("analylsis type list").\
+#            setResultsName("atypes")
+#atypeQ = (Optional(Suppress(Keyword("type:"))) + atypeList).\
+#            setParseAction(doType)
 
 # Gracedb ID
 gid = Suppress("G")+Word("0123456789")
@@ -243,7 +256,8 @@ ifoQ = ifoListQ | nifoQ
 
 ###########################
 
-q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | eidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
+#q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | eidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
+q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | eidQ | labelQ | searchQ | pipelineQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
 
 #andTheseTags = ["attr"]
 andTheseTags = ["nevents"]
@@ -258,7 +272,8 @@ def parseQuery(s):
             d[tag] = d.get(tag,Q()) & qval
         else:
             d[tag] = d.get(tag,Q()) | qval
-    if s.find("Test") < 0 and "tid" not in d:
+    #if s.find("Test") < 0 and "tid" not in d:
+    if s.lower().find("test") < 0 and "tid" not in d:
         # If Test group is not mentioned in the query, we exclude it.
         if "group" in d:
             d["group"] &= ~Q(group__name="Test")
@@ -267,11 +282,11 @@ def parseQuery(s):
     if "tid" in d:
         d["tid"] = d["tid"] & Q(group__name="Test")
     if "hid" in d:
-        d["hid"] = d["hid"] & Q(analysisType="HWINJ")
+        d["hid"] = d["hid"] & Q(pipeline="HardwareInjection")
     if "eid" in d:
-        d["eid"] = d["eid"] & Q(analysisType="GRB")
+        d["eid"] = d["eid"] & Q(group__name="External")
     if "id" in d:
-        d["id"] = d["id"] & ~Q(analysisType="HWINJ") & ~Q(analysisType="GRB")
+        d["id"] = d["id"] & ~Q(pipeline="HardwareInjection") & ~Q(group__name="External")
     if "id" in d and "hid" in d:
         d["id"] = d["id"] | d["hid"]
         del d["hid"]

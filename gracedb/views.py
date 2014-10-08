@@ -10,7 +10,7 @@ from django.shortcuts import render_to_response
 #from django.views.generic.list_detail import object_list
 from django.views.generic.list import ListView
 
-from models import Event, Group, EventLog, Label, Tag
+from models import Event, Group, EventLog, Label, Tag, Pipeline, Search
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
 
 from django.contrib.auth.models import User
@@ -262,11 +262,17 @@ def view(request, event):
     context['blessed_tags'] = settings.BLESSED_TAGS
     context['single_inspiral_events'] = list(event.singleinspiral_set.all())
     context['neighbor_delta'] = "[%+d,%+d]" % (-5,5)
-    return render_to_response(
-        [ 'gracedb/event_detail_{0}.html'.format(event.analysisType),
-          'gracedb/event_detail.html'],
-        context,
-        context_instance=RequestContext(request))
+
+    # Choose your template according to the event's pipeline.
+    templates = ['gracedb/event_detail.html',]
+    if event.pipeline.name in settings.COINC_PIPELINES:
+        templates.insert(0, 'gracedb/event_detail_coinc.html')
+    elif event.pipeline.name in settings.GRB_PIPELINES:
+        templates.insert(0, 'gracedb/event_detail_GRB.html')
+    elif event.pipeline.name.startswith('CWB'):
+        templates.insert(0, 'gracedb/event_detail_CWB.html')
+
+    return render_to_response(templates, context, context_instance=RequestContext(request))
 
 def search(request, format=""):
     if not request.user or not request.user.is_authenticated():
@@ -377,7 +383,8 @@ def oldsearch(request):
             end = form.cleaned_data['graceidEnd']
             submitter = form.cleaned_data['submitter']
             groupname = form.cleaned_data['group']
-            typename = form.cleaned_data['type']
+            pipelinename = form.cleaned_data['pipeline']
+            searchname = form.cleaned_data['search']
             labels = form.cleaned_data['labels']
             gpsStart =  form.cleaned_data['gpsStart']
             gpsEnd =  form.cleaned_data['gpsEnd']
@@ -440,9 +447,14 @@ def oldsearch(request):
                 group = Group.objects.filter(name=groupname)[0]
                 objects = objects.filter(group=group)
                 textQuery.append("group: %s" % group.name)
-            if typename:
-                objects = objects.filter(analysisType=typename)
-                textQuery.append("type: %s" % Event.getTypeLabel(typename))
+            if pipelinename:
+                pipeline = Pipeline.objects.get(name=pipelinename)
+                objects = objects.filter(pipeline=pipeline)
+                textQuery.append("pipeline: %s" % pipeline.name)
+            if searchname:
+                search = Search.objects.get(name=searchname)
+                objects = objects.filter(search=search)
+                textQuery.append("search: %s" % search.name)
 
             if labels:
                 objects = objects.filter(labels__in=labels)

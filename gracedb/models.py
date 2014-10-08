@@ -9,9 +9,6 @@ from django.contrib.contenttypes.models import ContentType
 from guardian.models import GroupObjectPermission
 
 
-import datetime
-import thread
-import string
 import os
 import logging
 
@@ -59,6 +56,19 @@ class Group(models.Model):
     def __unicode__(self):
         return self.name
 
+class Pipeline(models.Model):
+    name = models.CharField(max_length=100)
+    # XXX Need any additional fields? Like a librarian email? Or perhaps even fk?
+    def __unicode__(self):
+        return self.name
+
+class Search(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    # XXX Need any additional fields? Like a PI email? Or perhaps even fk?
+    def __unicode__(self):
+        return self.name
+
 class Label(models.Model):
     name = models.CharField(max_length=20, unique=True)
     # XXX really, does this belong here? probably not.
@@ -66,29 +76,39 @@ class Label(models.Model):
     def __unicode__(self):
         return self.name
 
+DEFAULT_PIPELINE_ID = 1
+
 class Event(models.Model):
 
     objects = InheritanceManager() # Queries can return subclasses, if available.
 
-    ANALYSIS_TYPE_CHOICES = (
-        ("LM",  "LowMass"),
-        ("HM",  "HighMass"),
-        ("GRB", "GRB"),
-        ("RD",  "Ringdown"),
-        ("OM",  "Omega"),
-        ("Q",   "Q"),
-        ("X",   "X"),
-        ("CWB", "CWB"),
-        ("MBTA", "MBTAOnline"),
-        ("HWINJ", "HardwareInjection"),
-    )
+#    ANALYSIS_TYPE_CHOICES = (
+#        ("LM",  "LowMass"),
+#        ("HM",  "HighMass"),
+#        ("GRB", "GRB"),
+#        ("RD",  "Ringdown"),
+#        ("OM",  "Omega"),
+#        ("Q",   "Q"),
+#        ("X",   "X"),
+#        ("CWB", "CWB"),
+#        ("MBTA", "MBTAOnline"),
+#        ("HWINJ", "HardwareInjection"),
+#    )
     DEFAULT_EVENT_NEIGHBORHOOD = (-5,5)
 
     submitter = models.ForeignKey(DjangoUser)
     created = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Group)
-    uid = models.CharField(max_length=20, default="")  # XXX deprecated.  should be removed.
-    analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
+    #uid = models.CharField(max_length=20, default="")  # XXX deprecated.  should be removed.
+    #analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
+
+    # Note: a default value is needed only during the schema migration
+    # that creates this column. After that, we can safely remove it.
+    # The presence or absence of the default value has no effect on the DB
+    # tables, so removing it does not necessitate a migration.
+    #pipeline = models.ForeignKey(Pipeline, default=DEFAULT_PIPELINE_ID)
+    pipeline = models.ForeignKey(Pipeline) 
+    search = models.ForeignKey(Search, null=True)
 
     # from coinc_event
     instruments = models.CharField(max_length=20, default="")
@@ -119,9 +139,9 @@ class Event(models.Model):
     def graceid(self):
         if self.group.name == "Test":
             return "T%04d" % self.id
-        elif self.analysisType == "HWINJ":
+        elif self.pipeline == "HardwareInjection":
             return "H%04d" % self.id
-        elif self.analysisType == "GRB":
+        elif self.group.name == "External":
             return "E%04d" % self.id
         return "G%04d" % self.id
 
@@ -190,9 +210,9 @@ class Event(models.Model):
             raise cls.DoesNotExist("Event matching query does not exist")
         if (id[0] == "T") and (e.group.name == "Test"):
             return e
-        if (id[0] == "H") and (e.analysisType == "HWINJ"):
+        if (id[0] == "H") and (e.pipeline.name == "HardwareInjection"):
             return e
-        if (id[0] == "E") and (e.analysisType == "GRB"):
+        if (id[0] == "E") and (e.group.name == "External"):
             return e
         if (id[0] == "G"):
             return e
@@ -296,7 +316,7 @@ class EventLog(models.Model):
             try:
                 super(EventLog, self).save(*args, **kwargs)
                 success = True
-            except IntegrityError as e:
+            except IntegrityError:
                 # IntegrityError means an attempt to insert a duplicate
                 # key or to violate a foreignkey constraint.
                 # We are under race conditions.  Let's try again.

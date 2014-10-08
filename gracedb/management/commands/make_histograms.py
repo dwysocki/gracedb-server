@@ -10,7 +10,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as pyplot
 import numpy
 
-from gracedb.models import Event
+from gracedb.models import Event, Pipeline
 
 import os
 from datetime import datetime, timedelta
@@ -40,13 +40,15 @@ class Command(NoArgsCommand):
         annotations = {}
 
         # Make the histograms, save as png's.
-        for atype, atype_name in Event.ANALYSIS_TYPE_CHOICES:
-            annotations[atype] = {}
+        for pipeline in Pipeline.objects.all():
+#        for atype, atype_name in Event.ANALYSIS_TYPE_CHOICES:
+            pname = pipeline.name
+            annotations[pname] = {}
             for start_time, time_range in time_ranges:
                 note = {}
-                fname = os.path.join(DEST_DIR, "%s-%s.png" % (atype, time_range))
+                fname = os.path.join(DEST_DIR, "%s-%s.png" % (pname, time_range))
                 note['fname'] = fname
-                data = Event.objects.filter(analysisType=atype,
+                data = Event.objects.filter(pipeline=pipeline,
                                             created__range=[start_time, now],
                                             gpstime__gt=0) \
                                     .exclude(group__name="Test")
@@ -62,8 +64,8 @@ class Command(NoArgsCommand):
                     except OSError:
                         pass
                 else:
-                    makePlot(data, atype, maxx=MAX_X).savefig(fname)
-                annotations[atype][time_range] = note
+                    makePlot(data, pname, maxx=MAX_X).savefig(fname)
+                annotations[pname][time_range] = note
 
         writeIndex(annotations, WEB_PAGE_FILE_PATH)
 
@@ -80,12 +82,14 @@ def writeIndex(notes, fname):
     for time_range in ['day', 'week', 'month']:
         table += "<th>last %s</th>" % time_range
     table += "</tr>"
-    for atype, atype_name in Event.ANALYSIS_TYPE_CHOICES:
+    for pipeline in Pipeline.objects.all():
+    #for atype, atype_name in Event.ANALYSIS_TYPE_CHOICES:
+        pname = pipeline.name
         table += "<tr>"
-        table += "<td>%s</td>" % atype_name
+        table += "<td>%s</td>" % pname
         for time_range in ['day', 'week', 'month']:
             table += '<td align="center" bgcolor="white">'
-            n = notes[atype][time_range]
+            n = notes[pname][time_range]
             extra = ""
             if n['fname'] is not None:
                 table += '<img width="400" height="300" src="%s"/>' % \
