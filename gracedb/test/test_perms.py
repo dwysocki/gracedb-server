@@ -3,9 +3,9 @@ from django.test.utils import override_settings
 
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission, Group, User
-from guardian.models import GroupObjectPermission
+from guardian.models import GroupObjectPermission, UserObjectPermission
 from gracedb.models import Event, GrbEvent, CoincInspiralEvent
-from gracedb.models import MultiBurstEvent
+from gracedb.models import MultiBurstEvent, Pipeline
 
 from django.conf import settings
 
@@ -81,10 +81,17 @@ def request_event_creation(client, username, test=False):
     input_dict = {
         'group'      : group,
         'pipeline'   : 'gstlal',
-        'search'     : 'LM',
+        'search'     : 'LowMass',
         'eventFile'  : event_file,
     }
     return client.post(url, input_dict, REMOTE_USER=username)
+
+# A map between test users and pipelines.
+PIPELINE_USER_MAP = {
+    'gstlal': ['gst',],
+    'Fermi': ['gdb',],
+    'Swift': ['gdb',],
+}
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -98,6 +105,8 @@ class TestPerms(TestCase):
         'test_perms/auth_user.json',
         'test_perms/auth_group.json',
         'test_perms/gracedb_group.json',
+        'test_perms/gracedb_pipeline.json',
+        'test_perms/gracedb_search.json',
         'test_perms/gracedb_label.json',
         'test_perms/gracedb_event.json',
         'test_perms/gracedb_grbevent.json',
@@ -115,6 +124,10 @@ class TestPerms(TestCase):
             name = 'Can view %s' % model.__name__.lower()
             codename = 'view_%s' % model.__name__.lower()
             Permission.objects.create(codename=codename, name=name, content_type=content_type)
+
+        content_type = ContentType.objects.get(app_label='gracedb', model='pipeline')
+        Permission.objects.create(codename="populate_pipeline", name="Can populate pipeline",
+            content_type=content_type)            
             
         # Find the content type and permissions for the parent Event class.
         Event_ctype = ContentType.objects.get(model='Event')
@@ -190,6 +203,17 @@ class TestPerms(TestCase):
         # test the searches.
         for e in Event.objects.all():
             e.refresh_perms()
+
+        # Create user object permissions for pipeline population
+        content_type = ContentType.objects.get(app_label='gracedb',model='pipeline')
+        populate = Permission.objects.get(codename='populate_pipeline')
+
+        for p in Pipeline.objects.all():
+            if p.name in PIPELINE_USER_MAP.keys():
+                for username in PIPELINE_USER_MAP[p.name]:
+                    user = User.objects.get(username=username)
+                    UserObjectPermission.objects.create(permission=populate, user=user,
+                        object_pk=p.id, content_type=content_type)        
 
         # Lastly, let's create a temporary data dir. 
         if not os.path.isdir(TMP_DATA_DIR):
@@ -393,7 +417,7 @@ class TestPerms(TestCase):
         gstlal_submitter = get_user('gstlal_submitter')
         for user in User.objects.all():
             response = request_event_creation(self.client, user.username)
-            if user.id==gstlal_submitter.id:
+            if user.id==gstlal_submitter.id or user.is_superuser:
                 self.assertEqual(response.status_code, 302)
             else:
                 self.assertEqual(response.status_code, 403)

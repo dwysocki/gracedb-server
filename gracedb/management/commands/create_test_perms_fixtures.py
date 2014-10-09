@@ -4,7 +4,8 @@ from StringIO import StringIO
 from datetime import datetime
 
 from gracedb.models import GrbEvent, Tag, Event
-from gracedb.models import MultiBurstEvent 
+from gracedb.models import MultiBurstEvent
+from django.contrib.auth.models import Group
 #from gracedb.models import CoincInspiralEvent
 from gracedb.models import EventLog, Labelling, SingleInspiral
 
@@ -23,6 +24,8 @@ OUTPUT_DIR = os.path.join(settings.ROOT_PATH, 'gracedb/fixtures/test_perms')
 DUMP_ALL_ROWS_LIST = [
     'auth.Group',
     'gracedb.Group',
+    'gracedb.Pipeline',
+    'gracedb.Search',
     'gracedb.Label',
 ]
 
@@ -136,7 +139,7 @@ def get_user_field_dicts(user_info):
         # Transform the 'groups' field into a list of pks.
         group_pks = [g.id for g in Group.objects.filter(name__in=group_names)]
         user_dict['groups'] = group_pks
-
+        
         user_dict['user_permissions'] = []
         user_dict['password'] = 'X'
         now = datetime.now().isoformat().split('.')[0]
