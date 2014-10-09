@@ -1,5 +1,5 @@
 
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 #from django.contrib.sites.models import Site
 from django.utils.html import strip_tags
 
@@ -10,6 +10,7 @@ from utils.vfile import VersionedFile
 
 from view_logic import create_label, _createLog
 from view_utils import assembleLigoLw
+from permission_utils import filter_events_for_user, user_has_perm
 
 import os
 from django.conf import settings
@@ -26,6 +27,7 @@ def cli_search(request):
     form = SimpleSearchForm(request.POST)
     if form.is_valid():
         objects = form.cleaned_data['query']
+        objects = filter_events_for_user(objects, request.user, 'view') 
 
         if 'ligolw' in request.POST or 'ligolw' in request.GET:
             from glue.ligolw import utils
@@ -78,6 +80,10 @@ def cli_label(request):
 
     doxmpp = request.POST.get('alert') == "True"
     event = graceid and Event.getByGraceid(graceid)
+
+    if not user_has_perm(request.user, 'change', event):
+        return HttpResponseForbidden()
+
     d = create_label(event, labelName, request.user, doXMPP=doxmpp)
 
     msg = str(d)
@@ -93,8 +99,11 @@ def cli_tag(request):
     tagname = request.POST.get('tag')
 
     event = graceid and Event.getByGraceid(graceid)
-    event.add_tag(tagname)
 
+    if not user_has_perm(request.user, 'change', event):
+        return HttpResponseForbidden()
+
+    event.add_tag(tagname)
     msg = str({})
     response = HttpResponse(mimetype='application/json')
     response.write(msg)
@@ -113,9 +122,10 @@ def ping(request):
         d = {'output': ack}
         if 'extended' in request.POST:
             latest = Event.objects.order_by("-id")[0]
-            d['latest'] = {}
-            d['latest']['id'] = latest.graceid()
-            d['latest']['created'] = str(utc(latest.created))
+            if user_has_perm(request.user, 'view', latest):
+                d['latest'] = {}
+                d['latest']['id'] = latest.graceid()
+                d['latest']['created'] = str(utc(latest.created))
         d =  json.dumps(d)
         response.write(d)
         response['Content-length'] = len(d)
@@ -131,16 +141,26 @@ def upload(request):
     comment = request.POST.get('comment', None)
     uploadedfile = request.FILES['upload']
 
+    try:
+        event = graceid and Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        event = None
+
+    if not event:
+        return HttpResponseBadRequest("Event does not exist.")
+    if not user_has_perm(request.user, 'change', event):
+        return HttpResponseForbidden()
+
     if 'cli_version' in request.POST:
         return _createLog(request, graceid, comment, uploadedfile)
 
     # else: old, old client
     response = HttpResponse(mimetype='text/plain')
+    # uploadedFile.{name/chunks()}
     try:
         event = graceid and Event.getByGraceid(graceid)
     except Event.DoesNotExist:
         event = None
-    # uploadedFile.{name/chunks()}
     if not (comment and uploadedfile and graceid):
         msg = "ERROR: missing arg(s)"
     elif not event:
@@ -179,6 +199,16 @@ def upload(request):
 def log(request):
     message = request.POST.get('message')
     graceid = request.POST.get('graceid')
+
+    try:
+        event = graceid and Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        event = None
+
+    if not event:
+        return HttpResponseBadRequest("Event does not exist.")
+    if not user_has_perm(request.user, 'change', event):
+        return HttpResponseForbidden()
 
     if 'cli_version' in request.POST:
         return _createLog(request, graceid, message)
