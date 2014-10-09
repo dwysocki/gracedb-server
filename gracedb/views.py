@@ -127,6 +127,17 @@ def _create(request):
     if request.method == "GET":
         rv['form'] = CreateEventForm()
     else:
+        # Check authorization to create.
+        group_name = request.POST.get('group', None)
+        if not group_name=='Test':
+            try:
+                pipeline = Pipeline.objects.get(name=request.POST['pipeline'])
+            except:
+                return HttpResponseBadRequest("No valid pipeline provided.")
+
+            if not user_has_perm(request.user, "populate", pipeline):
+                return HttpResponseForbidden("You do not have permission to submit events to this pipeline.")
+
         form = CreateEventForm(request.POST, request.FILES)
         if form.is_valid():
             event, warnings = _createEventFromForm(request, form)

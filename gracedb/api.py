@@ -164,6 +164,12 @@ class IsAuthorizedForEvent(BasePermission):
         else:
             return False
         return user_has_perm(request.user, shortname, obj)        
+#
+# A custom permission class for event creation
+#
+class IsAuthorizedForPipeline(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return user_has_perm(request.user, "populate_pipeline", obj)        
 
 #
 # A wrapper to get an event by the graceid in the arguments 
@@ -179,6 +185,20 @@ def event_and_auth_required(view):
         except Event.DoesNotExist:
             return HttpResponseNotFound("Event not found.")
         return view(self, request, event, *args, **kwargs)
+    return inner
+
+def pipeline_auth_required(view):
+    @wraps(view)
+    def inner(self, request, *args, **kwargs):
+        group_name = request.POST.get('group', None)
+        if not group_name=='Test':
+            try:
+                pipeline = Pipeline.objects.get(name=request.POST['pipeline'])
+            except:
+                return Response({'error': "Please provide a valid pipeline."}, 
+                    status = status.HTTP_400_BAD_REQUEST)
+            self.check_object_permission(request, pipeline)
+        return view(self, request, *args, **kwargs)
     return inner
 
 #
@@ -500,7 +520,7 @@ class EventList(APIView):
     #model = Event
     #serializer_class = EventSerializer
     authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForPipeline)
     parser_classes = (parsers.MultiPartParser,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LigoLwRenderer, TSVRenderer,)
 
@@ -587,6 +607,7 @@ class EventList(APIView):
 
         return response
 
+    @pipeline_auth_required
     def post(self, request, format=None):
 
         # XXX Deal with POSTs coming in from the old client.
