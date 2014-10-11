@@ -697,20 +697,46 @@
        			 return true;
     			</script>
 
-					Make a Bulletin Board Entry Here
+					<h2>Make a report here</h2>
 
 <form method="POST" action="{% url "embblogentry" object.graceid "" %}">
 <table>
-<tr><td>MOU Group</td>       <td><select name="group">
+
+<tr><td><a href=# onclick="alert('Define here what subclass of report this is:\n FOOTPRINT: There is or could be image data taken of the sky, with a specific instrument, at a specific time, in a specific waveband, as followup of a specific LVC alert.\n SOURCE: There is a candidate source at the given location, that could be associated with the given LVC alert.\n COMMENT: The primary purpose of this report is a human-written comment concerning the given LVC alert.'); return false;">
+What type of report is this?</a></td>       <td><select name="eel_status">
+<option value="FO">FOOTPRINT</option>
+<option value="SO">SOURCE</option>
+<option value="CO">COMMENT</option>
+</select></td></tr>
+
+<tr><td><a href=# onclick="alert('There is also Observation Status which is:\n OBSERVATION: has been done.\n PREDICTION: this report represents intent or future observation.\n TEST: This EEL is part of a test and has no astrophysical significance.\n NOT APPLICABLE: It is neither observation nor prediction.'); return false;">
+Observation Status</a></td>       <td><select name="obs_status">
+<option value="OB">OBSERVATION</option>
+<option value="PR">PREDICTION</option>
+<option value="TE">TEST</option>
+<option value="NA">NOT APPLICABLE</option>
+</select></td></tr>
+
+<tr><td><a href=# onclick="alert('Group with which the LSC has signed a trust agreement, hereby providing data 
+under its trust (required).'); return false;">
+Which MOU Group provides this report?</a></td>       <td><select name="group">
 {% for g in groups %}
 <option value="{{ g }}">{{ g }}</option>
 {% endfor %} </select> </td> </tr>
 
-<tr><td>Instrument</td>       <td><input type="text" name="instrument"> </td> </tr>
 
 
-<tr><td>Footprint ID</td>   <td><input type="text" name="footprintID"/></td></tr>
-<tr><td>Waveband</td>       <td><select name="waveband">
+<tr><td><a href=# onclick="alert('An ID from the data owner to identify this footprint (optional).');return false;">
+Your reference</a></td>   <td><input type="text" name="footprintID"/></td></tr>
+
+<tr><td><a href=# onclick="alert('A natural language report.');return false;">
+Report as text</a></td>         <td colspan=2><textarea name="comment" rows="8" cols="50"></textarea></td></tr>
+
+<tr><td><a href=# onclick="alert('The name of the photon detector whose observational metadata is being recorded here (optional).');return false;">
+Instrument</a></td>       <td><input type="text" name="instrument"> </td> </tr>
+
+<tr><td><a href=# onclick="alert('Specify waveband of the observation. Vocabulary is taken from the UCD vocabulary, a Virtual Observatory standard. Waveband can be either wide (eg Radio) or narrow (eg Radio 200-400 MHz).');return false;">
+Waveband</a></td>       <td colspan=2><select name="waveband">
 <option value="em.gamma">Gamma rays part of the spectrum</option>
 <option value="em.gamma.soft">Soft gamma ray (120 - 500 keV)</option>
 <option value="em.gamma.hard">Hard gamma ray (&gt;500 keV)</option>
@@ -762,26 +788,35 @@
 <option value="em.radio.100-200MHz">Radio between 100 and 200 MHz</option>
 <option value="em.radio.20-100MHz">Radio between 20 and 100 MHz</option>
                                 </select></td></tr>
-<tr><td>RA</td>             <td><input type="text" name="ra" value="0.0"/></td></tr>
-<tr><td>Dec</td>            <td><input type="text" name="dec" value="0.0"/></td></tr>
-<tr><td>RAwidth</td>        <td><input type="text" name="raWidth" value="0.0"/></td></tr>
-<tr><td>Decwidth</td>       <td><input type="text" name="decWidth" value="0.0"/></td></tr>
-<tr><td>GPStime</td>        <td><input type="text" name="gpstime" value="1090000000"/></td></tr>
-<tr><td>Duration</td>       <td><input type="text" name="duration" value="10"/></td></tr>
-<tr><td>EEL type</td>       <td><select name="eel_status">
-<option value="FO">FOOTPRINT</option>
-<option value="SO">SOURCE</option>
-<option value="CO">COMMENT</option>
-<option value="CI">CIRCULAR</option> 
-                                </select></td></tr>
-<tr><td>Observation Status</td>       <td><select name="obs_status">
-<option value="NA">NOT APPLICABLE</option>
-<option value="OB">OBSERVATION</option>
-<option value="TE">TEST</option>
-<option value="PR">PREDICTION</option>
-                                </select></td></tr>
-<tr><td>Comment</td>         <td><textarea name="comment"></textarea></td></tr>
-<tr><td>JSON data</td>       <td><textarea name="extra_info_dict">{"phot.mag.limit": 22.3}</textarea></td></tr>
+<tr><td><a href=# onclick="alert('RA and Dec specify a center point of a rectangle that is aligned equatorially. They must be in decimal degrees 0<=RA<=360 -90<=Dec<=90, in the J2000 frame.');return false;">
+RA (decimal degrees)</a></td>             <td><input type="text" name="ra" value="0.0"/></td></tr>
+
+<tr><td><a href=# onclick="alert('RA and Dec specify a center point of a rectangle that is aligned equatorially. They must be in decimal degrees 0<=RA<=360 -90<=Dec<=90, in the J2000 frame.');return false;">
+Dec (decimal degrees)</a></td>            <td><input type="text" name="dec" value="0.0"/></td></tr>
+
+<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
+RAwidth (decimal degrees)</a></td>        <td><input type="text" name="raWidth" value="0.0"/></td></tr>
+
+<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
+Decwidth (decimal degrees)</a></td>       <td><input type="text" name="decWidth" value="0.0"/></td></tr>
+
+<script language="javascript" type="text/javascript" src="https://losc.ligo.org/s/js/gpstimeutil.js"></script>
+<script language="javascript" type="text/javascript" src="https://losc.ligo.org/s/js/sexg.js"></script>
+
+
+<tr><td><a href=# onclick="alert('The time at the center of a time interval during which the observation was taken. Change either the GPS time or the UTC time and the other will change to match.');return false;">
+GPStime or UTC</a></td>
+<td><input onKeyUp="return TIMEcopy(2,1);" id="TIMEgps1" name="gpstime" maxlength="12" size="20" value="1000000000"/></td>
+<td><input onKeyUp="return TIMEcopy(1,1);" id="TIMEiso1" name="TIMEiso1" maxlength="25" size="25" value="2011-09-14T01:46:25"/></td>
+<td><span id="TIMEerr1" STYLE="font: 12px Arial; color:red">OK</span><br/></td>
+</tr>
+
+
+<tr><td><a href=# onclick="alert('Duration is the number of seconds in the time interval during which the observation was taken.');return false;">
+Duration (seconds)</a></td>       <td><input type="text" name="duration" value="10"/></td></tr>
+
+<tr><td><a href=# onclick="alert('This section allows for machine-readable data to be included in a flexible way. any key can be any value in a JSON dictionary. There is a useful validator at http://jsonlint.com.');return false;">
+JSON data</a></td>       <td colspan=2><textarea name="extra_info_dict"  cols="50">{"phot.mag.limit": 22.3}</textarea></td></tr>
 </table>
 <input type="submit" value="Submit"/>
 </form>
