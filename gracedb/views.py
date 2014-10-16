@@ -61,6 +61,9 @@ def spinfo(request):
 def spprivacy(request):
     return render_to_response('gracedb/spprivacy.html', {}, context_instance=RequestContext(request))
 
+def discovery(request):
+    return render_to_response('gracedb/discovery.html', {}, context_instance=RequestContext(request))
+
 def skyalert_authorized(request):
     try:
         return u"{0} {1}".format(request.user.first_name, request.user.last_name) in settings.SKYALERT_SUBMITTERS

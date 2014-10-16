@@ -19,6 +19,8 @@ PUBLIC_URLS = [
     '/SPInfo/',
     '/SPPrivacy',
     '/SPPrivacy/',
+    '/DiscoveryService',
+    '/DiscoveryService/',
 ]
 
 def cert_dn_from_request(request):
