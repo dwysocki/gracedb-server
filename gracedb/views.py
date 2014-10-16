@@ -62,7 +62,7 @@ def spprivacy(request):
     return render_to_response('gracedb/spprivacy.html', {}, context_instance=RequestContext(request))
 
 def discovery(request):
-    return render_to_response('gracedb/discovery.html', {}, context_instance=RequestContext(request))
+    return render_to_response('discovery.html', {}, context_instance=RequestContext(request))
 
 def skyalert_authorized(request):
     try:
