@@ -184,6 +184,11 @@ span.coinc-0,
     /* text-shadow: 2px 2px 2px #555; */
 }
 
+#nav #nav-login
+{
+    float: right;
+}
+
 #nav li {
     display:inline;
     padding:0;

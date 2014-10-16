@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+{% block heading %}Please choose how to login {% endblock %}
+{% block pageid %}Discovery Service{% endblock %}
+
+{% block jscript %}
+<link rel="stylesheet" type="text/css" href="/shibboleth-ds/idpselect.css" />
+{% endblock %}
+
+{% block content %}
+
+<div id="idpSelect"> 
+</div> 
+
+<div>
+    <script src="/shibboleth-ds/idpselect_config.js" type="text/javascript" language="javascript"></script>
+    <script src="/shibboleth-ds/idpselect.js" type="text/javascript" language="javascript"></script>
+</div>
+
+{% endblock %}

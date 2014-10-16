@@ -73,6 +73,9 @@ def spinfo(request):
 def spprivacy(request):
     return render_to_response('gracedb/spprivacy.html', {}, context_instance=RequestContext(request))
 
+def discovery(request):
+    return render_to_response('discovery.html', {}, context_instance=RequestContext(request))
+
 @event_and_auth_required
 def voevent(request, event):
     if not event.far or not event.gpstime:

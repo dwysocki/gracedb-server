@@ -188,6 +188,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.request",
     "gracedb.middleware.auth.LigoAuthContext",
     'middleware.debug.LigoDebugContext',
+    'ligoauth.context_processors.shib_login_url',
 )
 
 AUTHENTICATION_BACKENDS = (
@@ -205,6 +206,7 @@ GUARDIAN_RENDER_403 = True
 GUARDIAN_MONKEY_PATCH = False
 
 SHIB_AUTHENTICATION_SESSION_INITIATOR = 'https://moe.phys.uwm.edu/Shibboleth.sso/Login'
+LOGIN_URL = '/Shibboleth.sso/Login'
 
 # If these are left at default, when the Shibboleth middleware
 # creates a new auth_user, they will get admin privs.
