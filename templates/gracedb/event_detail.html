@@ -826,7 +826,11 @@ JSON data</a></td>       <td colspan=2><textarea name="extra_info_dict"  cols="5
 				<!-- Bulletin Board Log -->
 
 				<div data-dojo-type="dijit/TitlePane"
+                {% if object.embbeventlog_set.count > 0 %}
+					data-dojo-props="title: 'Bulletin Board Log', open: true">
+                {% else %} 
 					data-dojo-props="title: 'Bulletin Board Log', open: false">
+                {% endif %}
 						<table id="bb_2" class="event" border="1">
 						<thead>
 							<tr>
