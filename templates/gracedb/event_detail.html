@@ -629,7 +629,6 @@
 {# Enable post to skymap viewer #}
 <div id="sV_form_div" style="display: none">
 
-<!-- <form action="https://losc-gracedb.ligo.org/cgi-bin/skymapViewer" id="sV_form"  method="post"> -->
 <form action="{{ SKYMAP_VIEWER_SERVICE_URL }}" id="sV_form"  method="post">
     <input type="hidden" name="skymapid" value="{{ object.graceid }}">
     <!-- <input type="hidden" name="json" value="{{ skymap_json }}"> -->

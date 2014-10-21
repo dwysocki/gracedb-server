@@ -30,13 +30,13 @@ SKYMAP_VIEWER_MEDIA_URL = "/skymap-viewer/"
 GRACEDB_DATA_DIR = "/home/roywilliams/gracedbData"
 MPLCONFIGDIR = "/home/jkanner/mplconfig"
 
-ALERT_EMAIL_FROM = "Dev Alert <root@losc-gracedb.ligo.org>"
+ALERT_EMAIL_FROM = "Dev Alert <root@embb-dev.ligo.caltech.edu>"
 ALERT_EMAIL_TO = [
     "Roy Williams <roy@caltech.edu>",
     ]
 ALERT_EMAIL_BCC = ["roy@caltech.edu"]
 
-ALERT_TEST_EMAIL_FROM = "Dev Test Alert <root@losc-gracedb.ligo.org>"
+ALERT_TEST_EMAIL_FROM = "Dev Test Alert <root@embb-dev.ligo.caltech.edu>"
 ALERT_TEST_EMAIL_TO = [
     "Roy Williams <roy@caltech.edu>",
     ]

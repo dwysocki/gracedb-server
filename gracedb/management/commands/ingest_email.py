@@ -11,10 +11,10 @@ wierdchars = re.compile(u'[\U00010000-\U0010ffff]')
 def sendResponse(to, subject, message):
     msg = MIMEText(message)
     msg['To'] = to
-    msg['From'] = 'embb@losc-gracedb.ligo.org'
+    msg['From'] = 'embb@embb-dev.ligo.caltech.edu'
     msg['Subject'] = subject
     s = smtplib.SMTP('acrux.ligo.caltech.edu')
-    s.sendmail('embb@losc-gracedb.ligo.org', [to], msg.as_string())
+    s.sendmail('embb@embb-dev.ligo.caltech.edu', [to], msg.as_string())
     s.quit()
     return None
 
@@ -69,8 +69,13 @@ class Command(BaseCommand):
             
         
 # look for the JSON field at the end of the mail
-        j = json.loads(dict['JSON'])
-        self.transcript += 'Found %d keys in JSON\n' % len(j.keys())
+        try:
+            j = json.loads(dict['JSON'])
+            self.transcript += 'Found %d keys in JSON\n' % len(j.keys())
+        except Exception, e:
+            self.transcript += 'Error: Cannot parse JSON: %s\n' % dict['JSON']
+            self.transcript += str(e)
+            return sendResponse(dict['From'], dict['Subject'], self.transcript)
 
         graceid = getpop(j, 'graceid', None)
         try:
