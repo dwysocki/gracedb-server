@@ -14,6 +14,10 @@ from gracedb.api import EventLogTagList, EventLogTagDetail
 from gracedb.api import Files, FileMeta
 from gracedb.api import EventNeighbors, EventLabel
 from gracedb.api import PerformanceInfo
+from gracedb.api import EventPermissionList
+from gracedb.api import GroupEventPermissionList
+from gracedb.api import GroupEventPermissionDetail
+
 
 urlpatterns = patterns('gracedb.api',
     url (r'^/?$', GracedbRoot.as_view(), name="api-root"),
@@ -49,6 +53,14 @@ urlpatterns = patterns('gracedb.api',
         EventLogTagList.as_view(), name='eventlogtag-list'),
     url (r'events/(?P<graceid>[GEHT]\d+)/log/(?P<n>\d+)/tag/(?P<tagname>\w+)$',
         EventLogTagDetail.as_view(), name='eventlogtag-detail'),
+
+    # Permission Resources
+    url (r'events/(?P<graceid>[GEHT]\d+)/perms/$',
+        EventPermissionList.as_view(), name='eventpermission-list'),
+    url (r'events/(?P<graceid>[GEHT]\d+)/perms/(?P<group_name>.+)/$', 
+        GroupEventPermissionList.as_view(), name='groupeventpermission-list'),
+    url (r'events/(?P<graceid>[GEHT]\d+)/perms/(?P<group_name>.+)/(?P<perm_shortname>\w+)$', 
+        GroupEventPermissionDetail.as_view(), name='groupeventpermission-detail'),
 
     # Event File Resources
     # events/{graceid}/files/[{filename}[/{version}]]

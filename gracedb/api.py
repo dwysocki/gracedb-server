@@ -10,7 +10,9 @@ from django.utils.functional import wraps
 
 import json
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import Group as AuthGroup
+from django.contrib.contenttypes.models import ContentType
 from gracedb.models import Event, Group, Search, Pipeline, EventLog, Tag
 from view_logic import create_label, get_performance_info
 from view_logic import _createEventFromForm
@@ -18,6 +20,7 @@ from view_utils import fix_old_creation_request
 from translator import handle_uploaded_data
 from forms import CreateEventForm
 from permission_utils import user_has_perm, filter_events_for_user
+from guardian.models import GroupObjectPermission
 
 from alert import issueAlertForUpdate
 from buildVOEvent import buildVOEvent
@@ -216,6 +219,20 @@ def eventlog_required(view):
         return view(self, request, event, eventlog, *args, **kwargs)
     return inner
 
+#
+# A wrapper to access a particular group based on the group name.
+#
+def group_required(view):
+    @wraps(view)
+    def inner(self, request, event, group_name, *args, **kwargs):
+        try:
+            group = AuthGroup.objects.get(name=str(group_name))
+        except:
+            return Response("Group does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+        return view(self, request, event, group, *args, **kwargs)
+    return inner
+
 #class EventSerializer(serializers.ModelSerializer):
 #    # Overloaded fields.
 #    group = serializers.CharField(source="group.name")
@@ -403,7 +420,11 @@ def eventToDict(event, columns=None, request=None):
     rv = {}
 
     graceid = event.graceid()
-    rv['submitter'] = event.submitter.username
+    try:
+        rv['submitter'] = event.submitter.username
+    except:
+        rv['submitter'] = 'Unknown'
+
     rv['created'] = timeToUTC(event.created)
     rv['group'] = event.group.name
     rv['graceid'] = graceid
@@ -1253,6 +1274,115 @@ class EventLogTagDetail(APIView):
             return Response("Tag deleted.",status=status.HTTP_200_OK)
         except:
             return Response("Tag not found.",status=status.HTTP_404_NOT_FOUND)
+
+#==================================================================
+# Permission Resources
+
+def groupeventpermissionToDict(gop, event, request=None):
+    """Convert a group object permission to a dictionary.
+       Output depends on the level of specificity.
+    """
+
+    rv = {}
+    rv['group'] = gop.group.name
+    rv['graceid'] = event.graceid()
+    perm_shortname = gop.permission.codename.split('_')[0]
+    rv['permission'] = perm_shortname
+    # We want a link to the self only.  End of the line.
+    rv['links'] = {
+                    "self" : reverse("groupeventpermission-detail",
+                                     args=[event.graceid(),gop.group.name,perm_shortname],
+                                     request=request)
+                  }
+    return rv
+
+class EventPermissionList(APIView):
+    """Event Permission List Resource
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
+
+    @event_and_auth_required
+    def get(self, request, event):
+        # Get the content_type 
+        content_type = ContentType.objects.get(app_label='gracedb',
+            model=event.__class__.__name__.lower()) 
+        groups = [gop.group for gop in 
+            GroupObjectPermission.objects.filter(content_type=content_type, object_pk=event.id)]    
+        # Make them unique.
+        groups = set(groups)
+        rv = {}
+        links = {}
+        rv['links'] = links
+        links['self'] = request.build_absolute_uri()
+        gops = {}
+        links['groupeventpermissions'] = gops
+        for group in groups:
+            gops[group.name] = reverse("groupeventpermission-list", 
+                args=[event.graceid(),group.name], request=request) 
+        return Response(rv, status=status.HTTP_200_OK)            
+
+class GroupEventPermissionList(APIView):
+    """Group Event Permission List Resource
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
+
+    @event_and_auth_required
+    @group_required
+    def get(self, request, event, group):
+        content_type = ContentType.objects.get(app_label='gracedb',
+            model=event.__class__.__name__.lower()) 
+        rv = {}
+        rv['groupeventpermissions'] = [groupeventpermissionToDict(p,event,request) for p in 
+            GroupObjectPermission.objects.filter(content_type=content_type, 
+                object_pk=event.id, group=group)]        
+        links = {}
+        rv['links'] = links
+        links['self'] = request.build_absolute_uri()
+        return Response(rv, status=status.HTTP_200_OK)            
+
+class GroupEventPermissionDetail(APIView):
+    """Group Event Permission List Resource
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
+
+    @event_and_auth_required
+    @group_required
+    def get(self, request, event, group, perm_shortname=None):
+        model_name = event.__class__.__name__.lower()
+        content_type = ContentType.objects.get(app_label='gracedb',
+            model=model_name)
+        rv = {}
+        # Find the permission
+        codename = perm_shortname + '_' + model_name
+        permission = Permission.objects.get(codename=codename)
+        try:
+            gop = GroupObjectPermission.objects.get(
+                content_type=content_type, 
+                object_pk=event.id, 
+                group=group,
+                permission=permission)        
+            rv['groupeventpermission'] = groupeventpermissionToDict(gop,event,request)
+        except GroupObjectPermission.DoesNotExist:
+            return Response("GroupObjectPermission not found.", 
+                status=status.HTTP_404_NOT_FOUND)
+        links = {}
+        rv['links'] = links
+        links['self'] = request.build_absolute_uri()
+        return Response(rv, status=status.HTTP_200_OK)            
+
+    @event_and_auth_required
+    @group_required
+    def put(self, request, event, group, perm_shortname=None):
+        pass
+
+    @event_and_auth_required
+    @group_required
+    def delete(self, request, event, group, perm_shortname=None):
+        pass
+
 
 
 #==================================================================
