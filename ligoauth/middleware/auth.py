@@ -1,7 +1,7 @@
 
 import re
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import User, AnonymousUser
+from django.contrib.auth.models import User, AnonymousUser, Group
 from django.contrib.auth.backends import RemoteUserBackend as DefaultRemoteUserBackend
 from ligoauth.models import certdn_to_user
 
@@ -50,6 +50,16 @@ def cert_dn_from_request(request):
 
     return certdn
 
+def create_user_from_request(request):
+    user_dict = {
+        'username': request.META.get('REMOTE_USER'),
+        'email': request.META.get('mail', ''),
+        'first_name': request.META.get('givenName', ''),
+        'last_name': request.META.get('sn', ''),
+        'password': 'X',
+    }
+    return User.objects.create(**user_dict)
+
 class LigoAuthMiddleware:
     """This is the ultimate gatekeeper for GraceDb auth/authz.
     Ideally, Apache will do all authentication and the GraceDb
@@ -64,22 +74,34 @@ class LigoAuthMiddleware:
         remote_user = request.META.get('REMOTE_USER')
         dn = cert_dn_from_request(request)
 
+        # Apache should be configured so that the *only* thing that can
+        # set remote_user is mod_shib. If we have remote user, we can 
+        # also assume that we have a valid shib session. 
         if remote_user:
             user = authenticate(principal=remote_user)
+            if not user:
+                # We have a remote user who was not found in the database, but 
+                # *does* have a valid shib session. So we'll create the user.
+                try:
+                    user = create_user_from_request(request)
+                except Exception, e:
+                    # XXX This error message could use some work.
+                    return HttpResponseForbidden("{ 'error': '%s'  }" % str(e)) 
+
             if not (user and user.is_authenticated()):
                 # XXX THIS SHOULD NEVER HAPPEN
                 pass
-#            # XXX If we were using group info from Shib, this is where
-#            # we would consume it.
-#            isMemberOf = request.META.get('isMemberOf',None)
-#            if isMemberOf:
-#                group_names = isMemberOf.split()
-#                for group_name in group_names:
-#                    try:
-#                        g = Group.objects.get(name=group_name)
-#                        g.user_set.add(user)
-#                    except:
-#                        pass
+            
+            # Add shib user to groups. This operation is idempotent, but may
+            # incur a performance hit. 
+            isMemberOf = request.META.get('isMemberOf',None)
+            if isMemberOf:
+                for group_name in isMemberOf.split(';'):
+                    try:
+                        g = Group.objects.get(name=group_name)
+                        g.user_set.add(user)
+                    except:
+                        pass
 
         if not user and dn:
             user = authenticate(dn=dn)
