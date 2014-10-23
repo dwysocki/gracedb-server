@@ -3,6 +3,7 @@ import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User, AnonymousUser, Group
 from django.contrib.auth.backends import RemoteUserBackend as DefaultRemoteUserBackend
+from django.contrib.auth.backends import ModelBackend as DefaultModelBackend
 from ligoauth.models import certdn_to_user
 
 from django.shortcuts import render_to_response
@@ -172,3 +173,7 @@ class LigoShibBackend:
             return User.objects.get(id=user_id)
         except User.DoesNotExist:
             return None
+
+class ModelBackend(DefaultModelBackend):
+    def authenticate(self, username=None, password=None, **kwargs):
+        return None
