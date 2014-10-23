@@ -233,6 +233,27 @@ def group_required(view):
         return view(self, request, event, group, *args, **kwargs)
     return inner
 
+#
+# A wrapper to access a permission based on the shortname and the event
+#
+def event_perm_object_required(view):
+    @wraps(view)
+    def inner(self, request, event, group, perm_shortname, *args, **kwargs):
+
+        # We have to find the thing before we can delete it.
+        # Get the content type for this event.
+        model_name = event.__class__.__name__.lower()
+
+        # Find the permission
+        codename = perm_shortname + '_' + model_name
+        try:
+            permission = Permission.objects.get(codename=codename)
+        except Permission.DoesNotExist:
+            return Response("Permission not found.", 
+                status=status.HTTP_404_NOT_FOUND)
+        return view(self, request, event, group, permission, *args, **kwargs)
+    return inner
+
 #class EventSerializer(serializers.ModelSerializer):
 #    # Overloaded fields.
 #    group = serializers.CharField(source="group.name")
@@ -1296,6 +1317,10 @@ def groupeventpermissionToDict(gop, event, request=None):
                   }
     return rv
 
+def getContentType(event):
+    model_name = event.__class__.__name__.lower()
+    return ContentType.objects.get(app_label='gracedb', model=model_name)
+
 class EventPermissionList(APIView):
     """Event Permission List Resource
     """
@@ -1304,21 +1329,18 @@ class EventPermissionList(APIView):
 
     @event_and_auth_required
     def get(self, request, event):
-        # Get the content_type 
-        content_type = ContentType.objects.get(app_label='gracedb',
-            model=event.__class__.__name__.lower()) 
-        groups = [gop.group for gop in 
-            GroupObjectPermission.objects.filter(content_type=content_type, object_pk=event.id)]    
-        # Make them unique.
-        groups = set(groups)
+        # Get all the GroupObjectPermission objects for this event
+        gops = GroupObjectPermission.objects.filter(content_type=getContentType(event), object_pk=event.id)
+        # Create a set of distinct groups from them
+        groups = set([gop.group for gop in gops])
         rv = {}
         links = {}
         rv['links'] = links
         links['self'] = request.build_absolute_uri()
-        gops = {}
-        links['groupeventpermissions'] = gops
+        out_dict = {}
+        links['groupeventpermissions'] = out_dict
         for group in groups:
-            gops[group.name] = reverse("groupeventpermission-list", 
+            out_dict[group.name] = reverse("groupeventpermission-list", 
                 args=[event.graceid(),group.name], request=request) 
         return Response(rv, status=status.HTTP_200_OK)            
 
@@ -1331,15 +1353,14 @@ class GroupEventPermissionList(APIView):
     @event_and_auth_required
     @group_required
     def get(self, request, event, group):
-        content_type = ContentType.objects.get(app_label='gracedb',
-            model=event.__class__.__name__.lower()) 
+        # Get all the GroupObjectPermission objects for this event and group
+        gops = GroupObjectPermission.objects.filter(content_type=getContentType(event), 
+            object_pk=event.id, group=group)
         rv = {}
-        rv['groupeventpermissions'] = [groupeventpermissionToDict(p,event,request) for p in 
-            GroupObjectPermission.objects.filter(content_type=content_type, 
-                object_pk=event.id, group=group)]        
         links = {}
         rv['links'] = links
         links['self'] = request.build_absolute_uri()
+        rv['groupeventpermissions'] = [groupeventpermissionToDict(gop,event,request) for gop in gops] 
         return Response(rv, status=status.HTTP_200_OK)            
 
 class GroupEventPermissionDetail(APIView):
@@ -1350,40 +1371,82 @@ class GroupEventPermissionDetail(APIView):
 
     @event_and_auth_required
     @group_required
-    def get(self, request, event, group, perm_shortname=None):
-        model_name = event.__class__.__name__.lower()
-        content_type = ContentType.objects.get(app_label='gracedb',
-            model=model_name)
-        rv = {}
-        # Find the permission
-        codename = perm_shortname + '_' + model_name
-        permission = Permission.objects.get(codename=codename)
+    @event_perm_object_required
+    def get(self, request, event, group, permission):
+        # Get the GroupObjectPermission object
         try:
             gop = GroupObjectPermission.objects.get(
-                content_type=content_type, 
+                content_type=getContentType(event),
                 object_pk=event.id, 
                 group=group,
                 permission=permission)        
-            rv['groupeventpermission'] = groupeventpermissionToDict(gop,event,request)
+            # Add this gop to the return dictionary
         except GroupObjectPermission.DoesNotExist:
             return Response("GroupObjectPermission not found.", 
                 status=status.HTTP_404_NOT_FOUND)
+        rv = {}
         links = {}
         rv['links'] = links
         links['self'] = request.build_absolute_uri()
+        rv['groupeventpermission'] = groupeventpermissionToDict(gop,event,request)
         return Response(rv, status=status.HTTP_200_OK)            
 
+    #
+    # This adds a new permission to the group.  Idempotent
+    # 
     @event_and_auth_required
     @group_required
-    def put(self, request, event, group, perm_shortname=None):
-        pass
+    @event_perm_object_required
+    def put(self, request, event, group, permission):
+        if not request.user.has_perm("guardian.groupobjectpermission_add"):
+            return HttpResponseForbidden("You don't have permission to change permission objects.")
 
+        # Get or create the GroupObjectPermission object
+        try:
+            gop, created = GroupObjectPermission.objects.get_or_create(
+                content_type=getContentType(event),
+                object_pk=event.id, 
+                group=group,
+                permission=permission)        
+            # Add this gop to the return dictionary
+        except Exception, e:
+            # We're gonna blame the user here.
+            return Response("Problem creating permission: %" % str(e), 
+                status=status.HTTP_400_BAD_REQUEST)
+        rv = {}
+        links = {}
+        rv['links'] = links
+        links['self'] = request.build_absolute_uri()
+        rv['groupeventpermission'] = groupeventpermissionToDict(gop,event,request)
+        status_code = status.HTTP_200_OK
+        if created:
+            status_code = status.HTTP_201_CREATED
+        return Response(rv, status=status_code)
+
+    #
+    # This removes an existing permission from the group. Also idempotent.
+    #
     @event_and_auth_required
     @group_required
-    def delete(self, request, event, group, perm_shortname=None):
-        pass
+    @event_perm_object_required
+    def delete(self, request, event, group, permission):
 
+        if not request.user.has_perm("guardian.groupobjectpermission_delete"):
+            return HttpResponseForbidden("You don't have permission to change permission objects.")
 
+        # Get the GroupObjectPermission object
+        try:
+            gop = GroupObjectPermission.objects.get(
+                content_type=getContentType(event),
+                object_pk=event.id, 
+                group=group,
+                permission=permission)        
+        except GroupObjectPermission.DoesNotExist:
+            return Response("GroupObjectPermission not found.", 
+                status=status.HTTP_404_NOT_FOUND)
+        gop.delete()
+        rv = {'message': 'Permission successfully deleted.'}
+        return Response(rv, status=status.HTTP_200_OK)            
 
 #==================================================================
 # Root Resource
