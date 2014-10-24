@@ -85,6 +85,15 @@ table.figures {width:300px;height:270px;border:1px solid gray;}
     float: right;
 }
 
+.tundra.eventDetail .permButtonClass {
+    font: x-small "Lucida Grande", "Lucida Sans Unicode", geneva, verdana, sans-serif;
+    font-size: 150%;
+    background-color : #ff6666;
+    cursor: pointer;
+    border: none;
+    border-bottom: none;
+}
+
 /* End Branson */
 
 td, th {padding:3px;border:none;}

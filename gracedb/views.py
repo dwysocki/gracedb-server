@@ -13,11 +13,15 @@ from django.views.generic.list import ListView
 from models import Event, Group, EventLog, Label, Tag, Pipeline, Search
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import Group as AuthGroup
+from django.contrib.contenttypes.models import ContentType
 from permission_utils import filter_events_for_user, user_has_perm
+from guardian.models import GroupObjectPermission
 
 from view_logic import _createEventFromForm
 from view_logic import get_performance_info
+from view_logic import get_lvem_perm_status
 from view_utils import assembleLigoLw, get_file
 from view_utils import flexigridResponse, jqgridResponse
 
@@ -276,6 +280,20 @@ def view(request, event):
     context['blessed_tags'] = settings.BLESSED_TAGS
     context['single_inspiral_events'] = list(event.singleinspiral_set.all())
     context['neighbor_delta'] = "[%+d,%+d]" % (-5,5)
+
+    # XXX This is something of a hack. In the future, we will want to show the
+    # executive user a list of groups and a two column list of radio buttons, showing
+    # whether the group has access to this event or not, along with a submit button
+    # at the bottom to commit changes. But for ER6, we won't need all that structure.
+    can_expose_to_lvem, can_protect_from_lvem = get_lvem_perm_status(request,event)
+    context['can_expose_to_lvem'] = can_expose_to_lvem
+    context['can_protect_from_lvem'] = can_protect_from_lvem
+    lvem_group_name = ''
+    try:
+        lvem_group_name = AuthGroup.objects.get(name__contains='LV-EM').name
+    except:
+        pass
+    context['lvem_group_name'] = lvem_group_name
 
     # Choose your template according to the event's pipeline.
     templates = ['gracedb/event_detail.html',]
@@ -658,6 +676,92 @@ def file_list(request, event):
         context,
         context_instance=RequestContext(request)) 
 
+#
+# A view to modify the GroupObjectPermissions for an event.
+# This is very non-RESTful. If the action is 'expose', you
+# give the group both view and change permissions on the event.
+# (Change perms allow annotation--like creating EELs or 
+# log messages.) If the action is 'protect', both of these
+# permissions are removed for the group in question.
+#
+import logging
+@event_and_auth_required
+def modify_permissions(request, event):
+    logger = logging.getLogger(__name__)
+    # Get group_name and action from POST
+    if not request.method=='POST':
+        msg = 'Modify_permissions only allows POST.'
+        return HttpResponseBadRequest(msg)
+
+    logger.debug("got inside modify permissions")
+
+    group_name = request.POST.get('group_name', None)
+    action     = request.POST.get('action', None)
+
+    logger.debug("group name=%s" % group_name)
+
+    if not group_name or not action:
+        msg = 'Modify_permissons requires both group_name and action in POST.'
+        return HttpResponseBadRequest(msg)
+
+    # Make sure the user is authorized.
+    if action=='expose':
+        if not request.user.has_perm('guardian.add_groupobjectpermission'):
+            msg = "You aren't authorized to create permission objects."
+            return HttpResponseForbidden(msg)
+    elif action=='protect':
+        if not request.user.has_perm('guardian.delete_groupobjectpermission'):
+            msg = "You aren't authorized to delete permission objects."
+            return HttpResponseForbidden(msg)
+
+    # Get the group
+    try:
+        g = AuthGroup.objects.get(name=group_name)
+    except Group.DoesNotExist:
+        return HttpResponseNotFound('Group not found')
+
+    # Get the content type out
+    model_name = event.__class__.__name__.lower()
+    ctype = ContentType.objects.get(app_label='gracedb', model=model_name)
+
+    # Get the two relevant permissions.
+    view = Permission.objects.get(codename='view_%s' % model_name)
+    change = Permission.objects.get(codename='change_%s' % model_name)
+
+    # Decide what to do
+    if action=='expose':
+        # Create two group object permissions
+        GroupObjectPermission.objects.get_or_create(
+            content_type=ctype, group=g, permission=view,
+            object_pk=event.id)
+        GroupObjectPermission.objects.get_or_create(
+            content_type=ctype, group=g, permission=change,
+            object_pk=event.id)
+    elif action=='protect':
+        # Retrieve both group object permissions
+        # Delete them
+        try:
+            gop = GroupObjectPermission.objects.get(
+                content_type=ctype, group=g, permission=change,
+                object_pk=event.id)
+            gop.delete()
+        except GroupObjectPermission.DoesNotExist:
+            # Couldn't find it. Take no action.
+            pass
+        try:
+            gop = GroupObjectPermission.objects.get(
+                content_type=ctype, group=g, permission=view,
+                object_pk=event.id)
+            gop.delete()
+        except GroupObjectPermission.DoesNotExist:
+            # Couldn't find it. Take no action.
+            pass
+    else:
+        msg = "Unknown action. Choices are 'expose' and 'protect'."
+        return HttpResponseBadRequest(msg)
+
+    # Finished. Redirect back to the event.
+    return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
 
 #------------------------------------------------------------------------------------------
 # Old Stuff

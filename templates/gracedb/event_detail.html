@@ -536,6 +536,25 @@
 {% block content %}
 <p>{{ message }}</p>
 
+<!-- XXX This next bit is super hacky. -->
+{% if can_expose_to_lvem %}
+<div class="content-area">
+<form action="{% url "modify_permissions" object.graceid %}" method="post">
+    <input type="hidden" name="group_name" value="{{ lvem_group_name }}">
+    <input type="hidden" name="action" value="expose">
+    <input type="submit" value="Expose this event to LV-EM" class="permButtonClass">
+</form>
+</div>
+{% elif can_protect_from_lvem %}
+<div class="content-area">
+<form action="{% url "modify_permissions" object.graceid %}" method="post">
+    <input type="hidden" name="group_name" value="{{ lvem_group_name }}">
+    <input type="hidden" name="action" value="protect">
+    <input type="submit" value="Revoke LV-EM permissions for this event" class="permButtonClass">
+</form>
+</div>
+{% endif %}
+
 <div class="content-area">
 {% block basic_info %}
 <h3> Basic Info </h3>

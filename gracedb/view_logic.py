@@ -13,6 +13,11 @@ from utils.vfile import VersionedFile
 from view_utils import _saveUploadedFile
 from permission_utils import assign_default_event_perms
 
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Group as AuthGroup
+from guardian.models import GroupObjectPermission
+
 import os
 from django.conf import settings
 
@@ -250,3 +255,63 @@ def get_performance_info():
     return context
 
 
+# 
+# A utility to be used with the gracedb.views.view to determine whether 
+# there should be a button to control LV-EM access to an event.
+# Normally, this button should only be there for people have 'executive'
+# level privileges.
+# 
+# This function returns a tuple: (can_expose, can_protect)
+# 
+# First, we need to find out whether LV-EM permissions already exist
+# for this event. If so, and if the user has permission to revoke them,
+# we set can_protect to true.
+# 
+# OTOH, if the permissions don't already exist, and if the user has
+# permission to create them, then we return can_expose=True. 
+#
+def get_lvem_perm_status(request, event):
+    # Figure out the perm status of this event. Is it open to the LV-EM
+    # group or not? If so, does the user have permission to revoke permissions?
+    # Or if not, can the user add permissions?
+
+    # Get the group
+    # Returns a tuple: (can_expose, can_protect)
+    try:
+        lv_em_group = AuthGroup.objects.get(name__contains='LV-EM')
+    except:
+        # Something is really wrong.
+        return (None, None)
+
+    # Get the content type
+    model_name = event.__class__.__name__.lower()
+    ctype = ContentType.objects.get(app_label='gracedb', model=model_name)
+    
+    # Get the permission objects
+    try:
+        view   = Permission.objects.get(codename='view_%s'   % model_name)
+        change = Permission.objects.get(codename='change_%s' % model_name)
+    except: 
+        # Something is very wrong
+        return (None, None)
+
+    # Look for the GroupObjectPermissions
+    try:
+        lv_em_view = GroupObjectPermission.objects.get(content_type=ctype, 
+            object_pk=event.id, group=lv_em_group, permission=view)             
+    except:
+        lv_em_view = None
+    try:
+        lv_em_change = GroupObjectPermission.objects.get(content_type=ctype, 
+            object_pk=event.id, group=lv_em_group, permission=change)             
+    except:
+        lv_em_change = None
+
+    if lv_em_view and lv_em_change and \
+        request.user.has_perm('guardian.delete_groupobjectpermission'):
+        return (False, True)
+    elif not lv_em_view and not lv_em_change and \
+        request.user.has_perm('guardian.add_groupobjectpermission'):
+        return (True, False)
+    else:
+        return (False, False)
