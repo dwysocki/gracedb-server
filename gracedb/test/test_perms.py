@@ -215,6 +215,13 @@ class TestPerms(TestCase):
                     UserObjectPermission.objects.create(permission=populate, user=user,
                         object_pk=p.id, content_type=content_type)        
 
+        # Create group permission for exposing/protecting events
+        content_type = ContentType.objects.get(app_label='guardian',model='GroupObjectPermission')
+        add_gop = Permission.objects.get(codename='add_groupobjectpermission')
+        delete_gop = Permission.objects.get(codename='delete_groupobjectpermission')
+        executives.permissions.add(add_gop)
+        executives.permissions.add(delete_gop) 
+
         # Lastly, let's create a temporary data dir. 
         if not os.path.isdir(TMP_DATA_DIR):
             os.mkdir(TMP_DATA_DIR)
@@ -445,11 +452,12 @@ class TestPerms(TestCase):
             # choose any event
             event = CoincInspiralEvent.objects.all()[0]
             # try POST to permission creation URL
-            url = '/events/%s/perms' % event.graceid() 
-            input_dict = {}
+            url = '/events/%s/perms/' % event.graceid() 
+            input_dict = {'action': 'expose', 'group_name': 'gw-astronomy:LV-EM'}
             response = self.client.post(url, input_dict, REMOTE_USER=user.username)
             groups = [g.name for g in user.groups.all()]
-            if not 'executives' in groups:
+            if not 'executives' in groups and not user.is_superuser:
                 self.assertEqual(response.status_code, 403)
             else:
-                self.assertEqual(response.status_code, 200)
+                # 302 because it redirects you back to the event
+                self.assertEqual(response.status_code, 302)
