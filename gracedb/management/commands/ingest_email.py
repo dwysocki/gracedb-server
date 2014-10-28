@@ -1,13 +1,43 @@
 from django.core.management.base import BaseCommand
 from gracedb.models import Event, EMBBEventLog
 from gracedb.models import EMGroup
+from ligoauth.models import AlternateEmail
 from django.conf import settings
 from django.contrib.auth.models import User
 import json
 import re
 import smtplib
 from email.mime.text import MIMEText
+from email import message_from_string
 wierdchars = re.compile(u'[\U00010000-\U0010ffff]')
+
+USER_NOT_FOUND_MESSAGE = """
+
+
+No GraceDB user was found matching email: %s
+
+To proceed, the following actions are recommended:
+
+For LVC users: Please re-send your EEL using your @LIGO.org mail 
+    forwarding address or a LIGO alternate mail address (i.e., an 
+    address from which you can send message to LIGO mailing lists).
+    
+For non-LVC users: If you have not already done so, please log in 
+    to the GraceDB web interface at 
+
+    https://gracedb.ligo.org
+
+    This will have the effect of caching your email address, and
+    then you can try re-sending your EEL message. We apologize for 
+    the inconvenience. 
+
+    Also, please use the email address with which you registered
+    at gw-astronomy.org. If you need to use an alternate email 
+    address, we can add it to the system manually. Just send a 
+    message to uwm-help@ligo.org.
+
+
+"""
 
 def sendResponse(to, subject, message):
     msg = MIMEText(message)
@@ -35,11 +65,45 @@ class Command(BaseCommand):
 
         filename = args[0]
         try:
-            lines = open(filename).readlines()
+            f_obj = open(filename, 'r')
+            lines = f_obj.readlines()
+            f_obj.seek(0)
+            file_contents = f_obj.read()
             self.transcript += 'Got email with %d lines incl headers\n' % len(lines)
         except Exception, e:
             self.transcript += 'Could not fetch email file\n' +  str(e)
             return sendResponse(settings.EMBB_MAIL_ADMINS, 'embb submission', self.transcript)
+
+        # Parse the email and find out who it's from.
+        email_obj = message_from_string(file_contents)
+        from_string = email_obj['from']
+        try:
+            # XXX Hacky way to get the stuff between the '<' and the '>'
+            from_address = from_string.split('<')[1].split('>')[0]
+        except Exception, e:
+            self.transcript += 'Problem parsing out sender address\n' + str(e)
+            return sendResponse(settings.EMBB_MAIL_ADMINS, 'embb submission failure', self.transcript)
+
+        # find the submitter
+        # Look up the sender's address.
+        user = None
+        try:
+            user = User.objects.get(email=from_address)
+        except:
+            pass
+
+        try: 
+            alt_email = AlternateEmail.objects.get(email=from_address)
+            user = alt_email.user
+            self.transcript += 'Found submitter %s\n' % user.username
+        except:
+            pass
+
+        if not user:
+            #self.transcript += 'Error: Cannot find submitter %s\n' % submitter
+            self.transcript += USER_NOT_FOUND_MESSAGE % from_address
+            self.transcript += str(e)
+            return sendResponse(dict['From'], dict['Subject'], self.transcript)
 
         comment = ''
         dict = {}
@@ -123,16 +187,7 @@ class Command(BaseCommand):
         # create a log entry
         eel = EMBBEventLog(event=event)
         eel.event = event
-
-        # find the submitter
-        submitter = getpop(extra_dict, 'submitter', '')
-        try:
-            eel.submitter = User.objects.get(username=submitter)
-            self.transcript += 'Found submitter %s\n' % submitter
-        except Exception, e:
-            self.transcript += 'Error: Cannot find submitter %s\n' % submitter
-            self.transcript += str(e)
-            return sendResponse(dict['From'], dict['Subject'], self.transcript)
+        eel.submitter = user
 
         # Assign a group name
         group_name = getpop(extra_dict, 'group', None)
