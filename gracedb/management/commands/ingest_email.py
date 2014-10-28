@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from gracedb.models import Event, EMBBEventLog
 from gracedb.models import EMGroup
+from django.conf import settings
 from django.contrib.auth.models import User
 import json
 import re
@@ -10,11 +11,19 @@ wierdchars = re.compile(u'[\U00010000-\U0010ffff]')
 
 def sendResponse(to, subject, message):
     msg = MIMEText(message)
-    msg['To'] = to
-    msg['From'] = 'embb@embb-dev.ligo.caltech.edu'
+    # Allow the 'to' argument to contain either a list (for multiple recipients)
+    # or a string (for a single recipient)
+    if isinstance(to, list):
+        msg['To'] = ','.join(to)
+        to_list = to
+    else:
+        msg['To'] = to
+        to_list = [to]
+    from_address = settings.EMBB_MAIL_ADDRESS 
+    msg['From'] = from_address
     msg['Subject'] = subject
-    s = smtplib.SMTP('acrux.ligo.caltech.edu')
-    s.sendmail('embb@embb-dev.ligo.caltech.edu', [to], msg.as_string())
+    s = smtplib.SMTP(settings.EMBB_SMTP_SERVER)
+    s.sendmail(from_address, to_list, msg.as_string())
     s.quit()
     return None
 
@@ -30,7 +39,7 @@ class Command(BaseCommand):
             self.transcript += 'Got email with %d lines incl headers\n' % len(lines)
         except Exception, e:
             self.transcript += 'Could not fetch email file\n' +  str(e)
-            return sendResponse('roy.williams@ligo.org', 'embb submission', self.transcript)
+            return sendResponse(settings.EMBB_MAIL_ADMINS, 'embb submission', self.transcript)
 
         comment = ''
         dict = {}
@@ -160,4 +169,5 @@ class Command(BaseCommand):
             return sendResponse(dict['From'], dict['Subject'], self.transcript)
 
         self.transcript += 'EEL is successfully saved!'
+        tmpfile.write(self.transcript)
         return sendResponse(dict['From'], dict['Subject'], self.transcript)

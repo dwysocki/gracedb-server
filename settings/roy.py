@@ -42,6 +42,10 @@ ALERT_TEST_EMAIL_TO = [
     ]
 
 
+EMBB_MAIL_ADDRESS = 'embb@embb-dev.ligo.caltech.edu'
+EMBB_SMTP_SERVER = 'acrux.ligo.caltech.edu'
+EMBB_MAIL_ADMINS = ['roy.williams@ligo.org',]
+
 BLESSED_TAGS = [
                  'analyst_comments',
                  'psd',
