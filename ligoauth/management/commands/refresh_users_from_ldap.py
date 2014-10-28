@@ -1,7 +1,7 @@
 
 from django.core.management.base import NoArgsCommand
 
-from ligoauth.models import LigoLdapUser, X509Cert
+from ligoauth.models import LigoLdapUser, X509Cert, AlternateEmail
 
 import ldap
 
@@ -13,7 +13,9 @@ retrieveAttributes = ["krbPrincipalName",
                       "givenName",
                       "sn",
                       "mail",
-                      "isMemberOf"]
+                      "isMemberOf", 
+                      "mailAlternateAddress",
+                      "mailForwardingAddress"]
 
 class Command(NoArgsCommand):
     help = "Update ligoauth.models.LigoUser and django.contrib.auth.models.User from LIGO LDAP"
@@ -37,6 +39,12 @@ class Command(NoArgsCommand):
                         is_active = "Communities:LSCVirgoLIGOGroupMembers" \
                                     in ldap_result.get('isMemberOf',[])
                         principal = ldap_result['krbPrincipalName'][0]
+                        #mailForwardingAddress = ldap_result.get('mailForwardingAddress', None)
+                        try:
+                            mailForwardingAddress = unicode(ldap_result['mailForwardingAddress'][0])
+                        except:
+                            mailForwardingAddress = None
+                        mailAlternateAddresses = ldap_result.get('mailAlternateAddress', [])
 
                         # Update/Create LigoLdapUser entry
                         # This is breaking. XXX Do we need to pass in default values for the underlying User object?
@@ -82,3 +90,19 @@ class Command(NoArgsCommand):
                                 if created:
                                     cert.save()
                                 cert.users.add(user)
+
+                        # Finally, deail with alternate emails.
+                        if mailForwardingAddress:
+                            try:
+                                AlternateEmail.objects.get_or_create(user=user, 
+                                    email=mailForwardingAddress)
+                            except:
+                                pass
+
+                        if len(mailAlternateAddresses) > 0:
+                            for email in mailAlternateAddresses:
+                                try:
+                                    AlternateEmail.objects.get_or_create(user=user,
+                                        email=email)
+                                except:
+                                    pass
