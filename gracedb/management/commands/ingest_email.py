@@ -57,6 +57,28 @@ def sendResponse(to, subject, message):
     s.quit()
     return None
 
+# 
+# Given a string and an encoding, return a unicode string with the
+# 6, 9, 66, and 99 characters replaced.
+#
+def get_unicode_and_fix_quotes(s, encoding):
+    rv = u''
+    for char in s:
+        if encoding:
+            uchar = unicode(char, encoding)
+        else:
+            uchar = unicode(char)
+        if ord(uchar) > 127:
+            # Fix 6 and 9
+            if uchar == u'\u2018' or uchar == u'\u2019':
+                uchar = u"'"
+
+            # Fix 66 and 99
+            if uchar == u'\u201c' or uchar == u'\u201d':
+                uchar = u'"'
+        rv += uchar
+    return rv
+
 class Command(BaseCommand):
     help = "I am the email ingester!"
 
@@ -66,16 +88,36 @@ class Command(BaseCommand):
         filename = args[0]
         try:
             f_obj = open(filename, 'r')
-            lines = f_obj.readlines()
-            f_obj.seek(0)
             file_contents = f_obj.read()
-            self.transcript += 'Got email with %d lines incl headers\n' % len(lines)
+            f_obj.close()
+            self.transcript += 'Got email with %d characters incl headers\n' % len(file_contents)
         except Exception, e:
             self.transcript += 'Could not fetch email file\n' +  str(e)
             return sendResponse(settings.EMBB_MAIL_ADMINS, 'embb submission', self.transcript)
 
-        # Parse the email and find out who it's from.
+        # Try to convert to email object.
         email_obj = message_from_string(file_contents)
+
+        # Find the character set
+        encoding = None
+        try:
+            encoding = email_obj.get_content_charset()
+        except:
+            pass
+
+        if not encoding:
+            try:
+                encoding = email_obj.get_charset()
+            except:
+                pass
+
+        # Get a unicode string and fix any quotation marks.
+        file_contents = get_unicode_and_fix_quotes(file_contents, encoding)
+
+        # Turn it back into an email thingy again.
+        email_obj = message_from_string(file_contents)
+
+        # Parse the email and find out who it's from.
         from_string = email_obj['from']
         try:
             # XXX Hacky way to get the stuff between the '<' and the '>'
@@ -103,21 +145,22 @@ class Command(BaseCommand):
             #self.transcript += 'Error: Cannot find submitter %s\n' % submitter
             self.transcript += USER_NOT_FOUND_MESSAGE % from_address
             self.transcript += str(e)
-            return sendResponse(dict['From'], dict['Subject'], self.transcript)
+            return sendResponse(from_address, dict['SUBJECT'], self.transcript)
+
+        # Get the body of the message and convert to lines.
+        lines = email_obj.get_payload().split('\n')
 
         comment = ''
         dict = {}
         p = re.compile('[A-Za-z-]+:')
-        body = 0
         inkey = 0
+        key = ''
     
         for line in lines:
-            if line.strip() == '':    # first blank line is end of headers start of body
-                body = 1
-                continue
-            if inkey and line[0].isspace():   # initial space implies continuation
-                dict[key] += line
-                continue
+            if len(line) > 0:
+                if inkey and line[0].isspace():   # initial space implies continuation
+                    dict[key] += line
+                    continue
             m = p.match(line)
             if m:
                 key = line[m.start():m.end()-1]
@@ -135,7 +178,7 @@ class Command(BaseCommand):
         
 #        if not dict.has_key('JSON'):
 #            self.transcript += 'Error: no JSON key'
-#            return sendResponse(dict['From'], dict['Subject'], self.transcript)
+#            return sendResponse(from_address, dict['SUBJECT'], self.transcript)
         
         def getpop(dict, key, default):
             if dict.has_key(key):
@@ -153,7 +196,7 @@ class Command(BaseCommand):
             except Exception, e:
                 self.transcript += 'Error: Cannot parse JSON: %s\n' % dict['JSON']
                 self.transcript += str(e)
-                return sendResponse(dict['From'], dict['Subject'], self.transcript)
+                return sendResponse(from_address, dict['SUBJECT'], self.transcript)
 
 # look for PARAM fields of the form
 # PARAM:  apple=34.2
@@ -174,7 +217,7 @@ class Command(BaseCommand):
 
         if not graceid:
             self.transcript += 'Cannot locate GraceID in SUBJECT, JSON, or PARAM data'
-            return sendResponse(dict['From'], dict['Subject'], self.transcript)
+            return sendResponse(from_address, dict['SUBJECT'], self.transcript)
 
         try:
             event = Event.getByGraceid(graceid)
@@ -182,7 +225,7 @@ class Command(BaseCommand):
         except Exception, e:
             self.transcript += 'Error: Cannot find Graceid %s\n' % graceid
             self.transcript += str(e)
-            return sendResponse(dict['From'], dict['Subject'], self.transcript)
+            return sendResponse(from_address, dict['SUBJECT'], self.transcript)
 
         # create a log entry
         eel = EMBBEventLog(event=event)
@@ -198,7 +241,7 @@ class Command(BaseCommand):
         except Exception, e:
             self.transcript += 'Error: Cannot find EMGroup =%s=\n' % group_name
             self.transcript += str(e)
-            return sendResponse(dict['From'], dict['Subject'], self.transcript)
+            return sendResponse(from_address, dict['SUBJECT'], self.transcript)
 
         eel.eel_status = getpop(extra_dict, 'eel_status', 'FO')
         eel.obs_status = getpop(extra_dict, 'obs_status', 'TE')
@@ -221,8 +264,7 @@ class Command(BaseCommand):
         except Exception as e:
             self.transcript += 'Error: Could not save EEL\n'
             self.transcript += str(e)
-            return sendResponse(dict['From'], dict['Subject'], self.transcript)
+            return sendResponse(from_address, dict['SUBJECT'], self.transcript)
 
         self.transcript += 'EEL is successfully saved!'
-        tmpfile.write(self.transcript)
-        return sendResponse(dict['From'], dict['Subject'], self.transcript)
+        return sendResponse(from_address, dict['SUBJECT'], self.transcript)
