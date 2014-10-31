@@ -9,6 +9,7 @@ import re
 import smtplib
 from email.mime.text import MIMEText
 from email import message_from_string
+from binascii import a2b_qp, a2b_base64
 wierdchars = re.compile(u'[\U00010000-\U0010ffff]')
 
 USER_NOT_FOUND_MESSAGE = """
@@ -40,6 +41,7 @@ For non-LVC users: If you have not already done so, please log in
 """
 
 def sendResponse(to, subject, message):
+    print message
     msg = MIMEText(message)
     # Allow the 'to' argument to contain either a list (for multiple recipients)
     # or a string (for a single recipient)
@@ -85,46 +87,31 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.transcript = 'Started email ingester\n'
 
+        # The file is understood to contain the raw contents of the email.
         filename = args[0]
         try:
-            f_obj = open(filename, 'r')
-            file_contents = f_obj.read()
-            f_obj.close()
-            self.transcript += 'Got email with %d characters incl headers\n' % len(file_contents)
+            f = open(filename, 'r')
+            data = f.read()
+            f.close()
+            self.transcript += 'Got email with %d characters incl headers\n' % len(data)
         except Exception, e:
             self.transcript += 'Could not fetch email file\n' +  str(e)
             return sendResponse(settings.EMBB_MAIL_ADMINS, 'embb submission', self.transcript)
 
         # Try to convert to email object.
-        email_obj = message_from_string(file_contents)
-
-        # Find the character set
-        encoding = None
-        try:
-            encoding = email_obj.get_content_charset()
-        except:
-            pass
-
-        if not encoding:
-            try:
-                encoding = email_obj.get_charset()
-            except:
-                pass
-
-        # Get a unicode string and fix any quotation marks.
-        file_contents = get_unicode_and_fix_quotes(file_contents, encoding)
-
-        # Turn it back into an email thingy again.
-        email_obj = message_from_string(file_contents)
+        email_obj = message_from_string(data)
 
         # Parse the email and find out who it's from.
         from_string = email_obj['from']
         try:
             # XXX Hacky way to get the stuff between the '<' and the '>'
             from_address = from_string.split('<')[1].split('>')[0]
-        except Exception, e:
-            self.transcript += 'Problem parsing out sender address\n' + str(e)
-            return sendResponse(settings.EMBB_MAIL_ADMINS, 'embb submission failure', self.transcript)
+        except:
+            try:
+                from_address = email_obj._unixfrom.split()[1]
+            except Exception, e:
+                self.transcript += 'Problem parsing out sender address\n' + str(e)
+                return sendResponse(settings.EMBB_MAIL_ADMINS, 'embb submission failure', self.transcript)
 
         # find the submitter
         # Look up the sender's address.
@@ -142,13 +129,55 @@ class Command(BaseCommand):
             pass
 
         if not user:
-            #self.transcript += 'Error: Cannot find submitter %s\n' % submitter
             self.transcript += USER_NOT_FOUND_MESSAGE % from_address
-            self.transcript += str(e)
-            return sendResponse(from_address, dict['SUBJECT'], self.transcript)
+            return sendResponse(from_address, 'gracedb user not found', self.transcript)
+
+        # Get the subject of the email. Use it in the reply
+        subject = email_obj.get('Subject', '')
+        reply_subject = 'Re: ' + subject
+    
+        # Now we want to get the contents of the email.
+        # Get the payload and encoding.
+        encoding = None
+        if email_obj.is_multipart():
+            # Let's look for a plain text part.  If not, throw an error.
+            msg = None
+            for part in email_obj.get_payload():
+                if part.get_content_type() == 'text/plain':
+                    content_transfer_encoding = part.get('Content-Transfer-Encoding', None)
+                    msg = part.get_payload()
+                    try:
+                        encoding = part.get_content_charset()  
+                    except:
+                        pass
+            if not msg:
+                self.transcript += 'We cannot parse your email because it is not plain text.\n'
+                self.transcript += 'Please send plain text emails instead of just HTML.\n'
+                return sendResponse(from_address, reply_subject, self.transcript)
+        else:
+            # not multipart. 
+            msg = email_obj.get_payload()
+            content_transfer_encoding = email_obj.get('Content-Transfer-Encoding', None)
+            try:
+                encoding = email_obj.get_content_charset()
+            except:
+                pass
+
+        if content_transfer_encoding:
+            if content_transfer_encoding == 'quoted-printable':
+                msg = a2b_qp(msg)
+            elif content_transfer_encoding == 'base64':
+                msg = a2b_base64(msg)
+            else:
+                self.transcript += 'Your message uses an unsupported content transfer encoding.\n'
+                self.transcript += 'Please use quoted-printable or base64.\n'
+                return sendResponse(from_address, reply_subject, self.transcript)
+
+        # Get a unicode string and fix any quotation marks.
+        msg = get_unicode_and_fix_quotes(msg, encoding)
 
         # Get the body of the message and convert to lines.
-        lines = email_obj.get_payload().split('\n')
+        lines = msg.split('\n')
 
         comment = ''
         dict = {}
@@ -196,7 +225,7 @@ class Command(BaseCommand):
             except Exception, e:
                 self.transcript += 'Error: Cannot parse JSON: %s\n' % dict['JSON']
                 self.transcript += str(e)
-                return sendResponse(from_address, dict['SUBJECT'], self.transcript)
+                return sendResponse(from_address, reply_subject, self.transcript)
 
 # look for PARAM fields of the form
 # PARAM:  apple=34.2
@@ -217,7 +246,7 @@ class Command(BaseCommand):
 
         if not graceid:
             self.transcript += 'Cannot locate GraceID in SUBJECT, JSON, or PARAM data'
-            return sendResponse(from_address, dict['SUBJECT'], self.transcript)
+            return sendResponse(from_address, reply_subject, self.transcript)
 
         try:
             event = Event.getByGraceid(graceid)
@@ -225,7 +254,7 @@ class Command(BaseCommand):
         except Exception, e:
             self.transcript += 'Error: Cannot find Graceid %s\n' % graceid
             self.transcript += str(e)
-            return sendResponse(from_address, dict['SUBJECT'], self.transcript)
+            return sendResponse(from_address, reply_subject, self.transcript)
 
         # create a log entry
         eel = EMBBEventLog(event=event)
@@ -241,7 +270,7 @@ class Command(BaseCommand):
         except Exception, e:
             self.transcript += 'Error: Cannot find EMGroup =%s=\n' % group_name
             self.transcript += str(e)
-            return sendResponse(from_address, dict['SUBJECT'], self.transcript)
+            return sendResponse(from_address, reply_subject, self.transcript)
 
         eel.eel_status = getpop(extra_dict, 'eel_status', 'FO')
         eel.obs_status = getpop(extra_dict, 'obs_status', 'TE')
@@ -264,7 +293,7 @@ class Command(BaseCommand):
         except Exception as e:
             self.transcript += 'Error: Could not save EEL\n'
             self.transcript += str(e)
-            return sendResponse(from_address, dict['SUBJECT'], self.transcript)
+            return sendResponse(from_address, reply_subject, self.transcript)
 
         self.transcript += 'EEL is successfully saved!'
-        return sendResponse(from_address, dict['SUBJECT'], self.transcript)
+        return sendResponse(from_address, reply_subject, self.transcript)
