@@ -69,8 +69,8 @@ def _createEventFromForm(request, form):
             underlying_event = Event.objects.get(id=event.id)
             assign_default_event_perms(underlying_event)
             underlying_event.refresh_perms()
-        else:
-            event.refresh_perms()
+
+        event.refresh_perms()
 
         dirPrefix = GRACEDB_DATA_DIR
         eventDir = os.path.join(dirPrefix, event.graceid())
