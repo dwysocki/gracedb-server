@@ -51,6 +51,10 @@ def sendResponse(to, subject, message):
     else:
         msg['To'] = to
         to_list = [to]
+    # Remove any addresses to ignore
+    to_list = list(set(to_list) - set(settings.EMBB_IGNORE_ADDRESSES))
+    if not len(to_list):
+        return None
     from_address = settings.EMBB_MAIL_ADDRESS 
     msg['From'] = from_address
     msg['Subject'] = subject

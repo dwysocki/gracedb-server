@@ -33,9 +33,9 @@ ALERT_TEST_EMAIL_TO = [
     ]
 
 EMBB_MAIL_ADDRESS = 'branson@moe.phys.uwm.edu'
-#EMBB_SMTP_SERVER = 'moe.phys.uwm.edu'
 EMBB_SMTP_SERVER = 'localhost'
 EMBB_MAIL_ADMINS = ['branson@gravity.phys.uwm.edu',]
+EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@moe.phys.uwm.edu',]
 
 # Don't sent out non-test XMPP alerts on dev box!
 XMPP_ALERT_CHANNELS = [
