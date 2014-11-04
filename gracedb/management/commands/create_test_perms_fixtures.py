@@ -27,6 +27,7 @@ DUMP_ALL_ROWS_LIST = [
     'gracedb.Pipeline',
     'gracedb.Search',
     'gracedb.Label',
+    'gracedb.EMGroup',
 ]
 
 # Our illustrious test users:

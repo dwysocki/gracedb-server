@@ -1,0 +1,163 @@
+[
+{
+    "pk": 1, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "Apertif-EVN"
+    }
+},
+{
+    "pk": 2, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "ARI LJMU"
+    }
+},
+{
+    "pk": 3, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "ATLAS"
+    }
+},
+{
+    "pk": 4, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "CRTS"
+    }
+},
+{
+    "pk": 5, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "FIGARO"
+    }
+},
+{
+    "pk": 6, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "FRBSG"
+    }
+},
+{
+    "pk": 7, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "GOTO"
+    }
+},
+{
+    "pk": 8, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "GWU LSC Group"
+    }
+},
+{
+    "pk": 9, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "H.E.S.S."
+    }
+},
+{
+    "pk": 10, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "HXMT"
+    }
+},
+{
+    "pk": 11, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "INAF"
+    }
+},
+{
+    "pk": 12, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "IUCAA"
+    }
+},
+{
+    "pk": 13, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "LCOGT"
+    }
+},
+{
+    "pk": 14, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "LV-EM Followup"
+    }
+},
+{
+    "pk": 15, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "MAGIC"
+    }
+},
+{
+    "pk": 16, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "Pan-STARRS"
+    }
+},
+{
+    "pk": 17, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "PIRATE"
+    }
+},
+{
+    "pk": 18, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "RoboPol"
+    }
+},
+{
+    "pk": 19, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "Swift"
+    }
+},
+{
+    "pk": 20, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "TOROS"
+    }
+},
+{
+    "pk": 21, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "VERITAS"
+    }
+},
+{
+    "pk": 22, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "ZTF"
+    }
+},
+{
+    "pk": 23, 
+    "model": "gracedb.emgroup", 
+    "fields": {
+        "name": "Test"
+    }
+}
+]

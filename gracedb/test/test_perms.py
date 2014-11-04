@@ -108,6 +108,7 @@ class TestPerms(TestCase):
         'test_perms/gracedb_pipeline.json',
         'test_perms/gracedb_search.json',
         'test_perms/gracedb_label.json',
+        'test_perms/gracedb_emgroup.json',
         'test_perms/gracedb_event.json',
         'test_perms/gracedb_grbevent.json',
         'test_perms/gracedb_multiburstevent.json',
@@ -336,7 +337,8 @@ class TestPerms(TestCase):
     #   POST dict keys: displayName
     #   test DELETE?
     # - Labelling
-    #   no way to do this through the web interface
+    #   but no way to do this through the web interface
+    # - EEL creation
 
     # Test annotation of events user.
     def test_public_log_creation(self):
@@ -358,6 +360,23 @@ class TestPerms(TestCase):
         url = '/events/%s/log/1/tag/test_tag' % event.graceid()
         input_dict = {'displayName' : None,}
         response = self.client.post(url, input_dict,
+            REMOTE_USER=get_user('public').username)
+        self.assertEqual(response.status_code, 403)
+
+    def test_public_eel_creation(self):
+        # Choose any event. The public coinc one will do.
+        event = get_public_coinc_event()
+        url = '/events/%s/embblog/' % event.graceid()
+        # Test, em.gamma, FO, TE, instrument='Test', comment='Test'
+        input_dict = {
+            'group'      : 'Test',
+            'waveband'   : 'em.gamma',
+            'eel_status' : 'FO',
+            'obs_status' : 'TE',
+            'comment'    : 'Test',
+            'instrument' : 'Test',
+        }
+        response = self.client.post(url,input_dict,
             REMOTE_USER=get_user('public').username)
         self.assertEqual(response.status_code, 403)
 
@@ -392,6 +411,25 @@ class TestPerms(TestCase):
             else:
                 self.assertEqual(response.status_code, 403)
 
+    def test_lvem_eel_creation(self):
+        public_coinc_event = get_public_coinc_event()
+        for e in CoincInspiralEvent.objects.all():
+            url = '/events/%s/embblog/' % e.graceid()
+            input_dict = {
+                'group'      : 'Test',
+                'waveband'   : 'em.gamma',
+                'eel_status' : 'FO',
+                'obs_status' : 'TE',
+                'comment'    : 'Test',
+                'instrument' : 'Test',
+            }
+            response = self.client.post(url,input_dict,
+                REMOTE_USER=get_user('lvem').username)
+            if e.id==public_coinc_event.id:
+                self.assertEqual(response.status_code, 302)
+            else:                    
+                self.assertEqual(response.status_code, 403)
+
     # Test annotation of events by LIGO users
     def test_internal_log_creation(self):
         for e in CoincInspiralEvent.objects.all():
@@ -410,6 +448,21 @@ class TestPerms(TestCase):
             url = '/events/%s/log/1/tag/test_tag' % e.graceid()
             input_dict = {'displayName' : None,}
             response = self.client.post(url, input_dict,
+                REMOTE_USER=get_user('internal').username)
+            self.assertEqual(response.status_code, 302)
+
+    def test_internal_eel_creation(self):
+        for e in CoincInspiralEvent.objects.all():
+            url = '/events/%s/embblog/' % e.graceid()
+            input_dict = {
+                'group'      : 'Test',
+                'waveband'   : 'em.gamma',
+                'eel_status' : 'FO',
+                'obs_status' : 'TE',
+                'comment'    : 'Test',
+                'instrument' : 'Test',
+            }
+            response = self.client.post(url,input_dict,
                 REMOTE_USER=get_user('internal').username)
             self.assertEqual(response.status_code, 302)
 
@@ -435,6 +488,19 @@ class TestPerms(TestCase):
         for user in User.objects.all():
             response = request_event_creation(self.client, user.username, test=True)
             self.assertEqual(response.status_code, 302)
+
+    # We want a test of the availability of a newly created event via search.
+    @override_settings(GRACEDB_DATA_DIR=TMP_DATA_DIR)
+    def test_search_on_new_event(self):
+        gstlal_submitter = get_user('gstlal_submitter')
+        response = request_event_creation(self.client, gstlal_submitter.username)
+        redirect_url = response['Location']
+        graceid = redirect_url.split('/')[-1]
+        url = '/events/search/flex?%s' % urlencode({'query': graceid})
+        response = self.client.get(url, REMOTE_USER=get_user('internal').username)
+        res = json.loads(response.content)
+        # You should get exactly one record.
+        self.assertEqual(res['records'],1)
 
 #    # Actually, you can only replace an event that you yourself created.
 #    # Thus, not sure if we really need this.
