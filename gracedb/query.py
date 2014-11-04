@@ -282,11 +282,11 @@ def parseQuery(s):
     if "tid" in d:
         d["tid"] = d["tid"] & Q(group__name="Test")
     if "hid" in d:
-        d["hid"] = d["hid"] & Q(pipeline="HardwareInjection")
+        d["hid"] = d["hid"] & Q(pipeline__name="HardwareInjection")
     if "eid" in d:
         d["eid"] = d["eid"] & Q(group__name="External")
     if "id" in d:
-        d["id"] = d["id"] & ~Q(pipeline="HardwareInjection") & ~Q(group__name="External")
+        d["id"] = d["id"] & ~Q(pipeline__name="HardwareInjection") & ~Q(group__name="External")
     if "id" in d and "hid" in d:
         d["id"] = d["id"] | d["hid"]
         del d["hid"]
