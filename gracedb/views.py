@@ -688,21 +688,15 @@ def file_list(request, event):
 # log messages.) If the action is 'protect', both of these
 # permissions are removed for the group in question.
 #
-import logging
 @event_and_auth_required
 def modify_permissions(request, event):
-    logger = logging.getLogger(__name__)
     # Get group_name and action from POST
     if not request.method=='POST':
         msg = 'Modify_permissions only allows POST.'
         return HttpResponseBadRequest(msg)
 
-    logger.debug("got inside modify permissions")
-
     group_name = request.POST.get('group_name', None)
     action     = request.POST.get('action', None)
-
-    logger.debug("group name=%s" % group_name)
 
     if not group_name or not action:
         msg = 'Modify_permissons requires both group_name and action in POST.'
@@ -768,11 +762,8 @@ def modify_permissions(request, event):
     return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
 
 # A view to create embb log entries
-def embblogentry(request, graceid, num=None):
-    try:
-        event = Event.getByGraceid(graceid)
-    except Event.DoesNotExist:
-        raise Http404
+@event_and_auth_required
+def embblogentry(request, event, num=None):
     if request.method == "POST":
         try:
             eel = create_eel(request.POST, event, request.user)
@@ -787,7 +778,7 @@ def embblogentry(request, graceid, num=None):
             raise Http404
 
     if not request.is_ajax():
-        return HttpResponseRedirect(reverse(view, args=[graceid]))
+        return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
 
     rv = {}
     rv['comment'] = eel.comment

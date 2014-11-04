@@ -1124,16 +1124,10 @@ class EMBBEventLogList(APIView):
     POST param 'message'
     """
     authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
-    def get(self, request, graceid):
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            # XXX Real error message.
-            return Response("Event does not exist.",
-                    status=status.HTTP_404_NOT_FOUND)
-
+    @event_and_auth_required
+    def get(self, request, event):
         eel_set = event.embbeventlog_set.order_by("created","N")
         count = eel_set.count()
 
@@ -1152,14 +1146,8 @@ class EMBBEventLogList(APIView):
              }
         return Response(rv)
 
-    def post(self, request, graceid):
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            return Response("Event Not Found",
-                    status=status.HTTP_404_NOT_FOUND)
-
-        # Now create the EEL
+    @event_and_auth_required
+    def post(self, request, event):
         try:
             eel = create_eel(request.DATA, event, request.user)
         except ValueError, e:
@@ -1183,14 +1171,10 @@ class EMBBEventLogList(APIView):
 
 class EMBBEventLogDetail(APIView):
     authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
-    def get(self, request, graceid, n):
-        try:
-            event = Event.getByGraceid(graceid)
-        except Event.DoesNotExist:
-            return Response("Event Not Found",
-                    status=status.HTTP_404_NOT_FOUND)
+    @event_and_auth_required
+    def get(self, request, event, n):
         try:
             rv = event.embbeventlog_set.filter(N=n)[0]
         except:
