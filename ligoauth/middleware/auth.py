@@ -73,6 +73,7 @@ class LigoAuthMiddleware:
         # An authenticated LIGO user will have one of these set.
 
         remote_user = request.META.get('REMOTE_USER')
+        message = remote_user
         dn = cert_dn_from_request(request)
 
         # Apache should be configured so that the *only* thing that can
@@ -90,7 +91,7 @@ class LigoAuthMiddleware:
                     return HttpResponseForbidden("{ 'error': '%s'  }" % str(e)) 
 
             if not (user and user.is_authenticated()):
-                # XXX THIS SHOULD NEVER HAPPEN
+                message += "THIS SHOULD NEVER HAPPEN"
                 pass
             
             # Add shib user to groups. This operation is idempotent, but may
@@ -135,7 +136,7 @@ class LigoAuthMiddleware:
                 return HttpResponseForbidden("{ 'error': '%s'  }" % message)
             return render_to_response(
                     'forbidden.html',
-                    {},
+                    {'error': message},
                     context_instance=RequestContext(request))
 
 class RemoteUserBackend(DefaultRemoteUserBackend):

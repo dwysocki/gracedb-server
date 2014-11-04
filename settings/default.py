@@ -25,6 +25,11 @@ ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@archie.phys.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
                       ]
 
+EMBB_MAIL_ADDRESS = 'embb@gracedb.ligo.org'
+EMBB_SMTP_SERVER = 'localhost'
+EMBB_MAIL_ADMINS = ['branson@gravity.phys.uwm.edu','roy.williams@ligo.org',]
+MBB_IGNORE_ADDRESSES = ['Mailer-Daemon@gracedb.phys.uwm.edu',]
+
 XMPP_ALERT_CHANNELS = [
                         'burst_omega',
                         'test_omega',
@@ -39,6 +44,8 @@ XMPP_ALERT_CHANNELS = [
                         'test_grb',
                         'external_grb',
                       ]
+
+SKYMAP_VIEWER_SERVICE_URL = "https://embb-dev.ligo.caltech.edu/cgi-bin/skymapViewer"
 
 BLESSED_TAGS = [
                  'analyst_comments',

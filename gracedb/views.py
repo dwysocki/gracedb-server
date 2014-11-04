@@ -11,6 +11,7 @@ from django.shortcuts import render_to_response
 from django.views.generic.list import ListView
 
 from models import Event, Group, EventLog, Label, Tag, Pipeline, Search
+from models import EMGroup
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
 
 from django.contrib.auth.models import User, Permission
@@ -22,6 +23,7 @@ from guardian.models import GroupObjectPermission
 from view_logic import _createEventFromForm
 from view_logic import get_performance_info
 from view_logic import get_lvem_perm_status
+from view_logic import create_eel
 from view_utils import assembleLigoLw, get_file
 from view_utils import flexigridResponse, jqgridResponse
 
@@ -277,9 +279,11 @@ def view(request, event):
     context['nearby'] = [(e.gpstime - event.gpstime, e)
                             for e in event.neighbors()]
 #    context['skyalert_authorized'] = skyalert_authorized(request)
+    context['groups'] = [g.name for g in EMGroup.objects.all()]
     context['blessed_tags'] = settings.BLESSED_TAGS
     context['single_inspiral_events'] = list(event.singleinspiral_set.all())
     context['neighbor_delta'] = "[%+d,%+d]" % (-5,5)
+    context['SKYMAP_VIEWER_SERVICE_URL'] = settings.SKYMAP_VIEWER_SERVICE_URL
 
     # XXX This is something of a hack. In the future, we will want to show the
     # executive user a list of groups and a two column list of radio buttons, showing
@@ -763,6 +767,35 @@ def modify_permissions(request, event):
     # Finished. Redirect back to the event.
     return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
 
+# A view to create embb log entries
+def embblogentry(request, graceid, num=None):
+    try:
+        event = Event.getByGraceid(graceid)
+    except Event.DoesNotExist:
+        raise Http404
+    if request.method == "POST":
+        try:
+            eel = create_eel(request.POST, event, request.user)
+        except ValueError, e:
+            return HttpResponseBadRequest(str(e))
+        except Exception, e:
+            return HttpResponseServerError(str(e))
+    else:
+        try:
+            eel = event.eventlog_set.filter(N=num)[0]
+        except Exception:
+            raise Http404
+
+    if not request.is_ajax():
+        return HttpResponseRedirect(reverse(view, args=[graceid]))
+
+    rv = {}
+    rv['comment'] = eel.comment
+    rv['submitter'] = eel.issuer.username
+    rv['created'] = eel.created.isoformat()
+
+    return HttpResponse(json.dumps(rv), content_type="application/json")
+
 #------------------------------------------------------------------------------------------
 # Old Stuff
 #------------------------------------------------------------------------------------------
@@ -917,4 +950,5 @@ def modify_permissions(request, event):
 #
 #    return HttpResponseRedirect(reverse(view, args=[graceid]))
 #
+
 

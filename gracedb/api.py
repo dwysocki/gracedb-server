@@ -7,6 +7,7 @@ from django.conf import settings
 from django.utils.http import urlquote
 from django.utils import dateformat
 from django.utils.functional import wraps
+from django.db import IntegrityError
 
 import json
 
@@ -14,9 +15,12 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.contenttypes.models import ContentType
 from gracedb.models import Event, Group, Search, Pipeline, EventLog, Tag
+from gracedb.models import EMGroup, EMBBEventLog, EMSPECTRUM
 from view_logic import create_label, get_performance_info
 from view_logic import _createEventFromForm
+from view_logic import create_eel
 from view_utils import fix_old_creation_request
+
 from translator import handle_uploaded_data
 from forms import CreateEventForm
 from permission_utils import user_has_perm, filter_events_for_user
@@ -522,6 +526,7 @@ def eventToDict(event, columns=None, request=None):
     rv['links'] = {
             "neighbors" : reverse("neighbors", args=[graceid], request=request),
             "log"   : reverse("eventlog-list", args=[graceid], request=request),
+            "embb"   : reverse("embbeventlog-list", args=[graceid], request=request),
             "files" : reverse("files", args=[graceid], request=request),
             "filemeta" : reverse("filemeta", args=[graceid], request=request),
             "labels" : reverse("labels", args=[graceid], request=request),
@@ -1082,6 +1087,118 @@ class EventLogDetail(APIView):
     def get(self, request, event, eventlog):
         return Response(eventLogToDict(eventlog, request=request))
 
+
+#==================================================================
+# EMBBEventLog (EEL)
+
+# EEL serializer.
+def embbEventLogToDict(eel, request=None):
+    uri = None
+    if request:
+        uri = reverse("embbeventlog-detail",
+                args=[eel.event.graceid(), eel.N],
+                request=request)
+    return {
+                "self"    : uri,
+                "created" : eel.created,
+                "submitter"  : eel.submitter.username,
+                "group" : eel.group.name,
+                "instrument" : eel.instrument,
+                "footprintID" : eel.footprintID,
+                "waveband" : eel.waveband,
+                "ra" : eel.ra,
+                "dec" : eel.dec,
+                "raWidth" : eel.raWidth,
+                "decWidth" : eel.decWidth,
+                "gpstime" : eel.gpstime,
+                "duration" : eel.duration,
+                "eel_status" : eel.get_eel_status_display(),
+                "obs_status" : eel.get_obs_status_display(),
+                "comment" : eel.comment,
+                "extra_info_dict" : eel.extra_info_dict,
+           }
+
+class EMBBEventLogList(APIView):
+    """EMBB Event Log List Resource
+
+    POST param 'message'
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, graceid):
+        try:
+            event = Event.getByGraceid(graceid)
+        except Event.DoesNotExist:
+            # XXX Real error message.
+            return Response("Event does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+
+        eel_set = event.embbeventlog_set.order_by("created","N")
+        count = eel_set.count()
+
+        eel = [ embbEventLogToDict(eel, request)
+                for eel in eel_set.iterator() ]
+
+        rv = {
+                'start': 0,
+                'numRows' : count,
+                'links' : {
+                    'self' : request.build_absolute_uri(),
+                    'first' : request.build_absolute_uri(),
+                    'last' : request.build_absolute_uri(),
+                    },
+                'embblog' : eel,
+             }
+        return Response(rv)
+
+    def post(self, request, graceid):
+        try:
+            event = Event.getByGraceid(graceid)
+        except Event.DoesNotExist:
+            return Response("Event Not Found",
+                    status=status.HTTP_404_NOT_FOUND)
+
+        # Now create the EEL
+        try:
+            eel = create_eel(request.DATA, event, request.user)
+        except ValueError, e:
+            return Response("str(e)", status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError, e:
+            return Response("Failed to save EMBB entry: %s" % str(e),
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except Exception, e:
+            return Response("Problem creating EEL: %s" % str(e), 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        rv = embbEventLogToDict(eel, request=request)
+        response = Response(rv, status=status.HTTP_201_CREATED)
+        response['Location'] = rv['self']
+
+        # Issue alert.
+        description = "New EMBB log entry."
+        issueAlertForUpdate(event, description, doxmpp=True)
+
+        return response
+
+class EMBBEventLogDetail(APIView):
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, graceid, n):
+        try:
+            event = Event.getByGraceid(graceid)
+        except Event.DoesNotExist:
+            return Response("Event Not Found",
+                    status=status.HTTP_404_NOT_FOUND)
+        try:
+            rv = event.embbeventlog_set.filter(N=n)[0]
+        except:
+            return Response("Log Message Not Found",
+                    status=status.HTTP_404_NOT_FOUND)
+
+        return Response(embbEventLogToDict(rv, request=request))
+
 #==================================================================
 # Tags
 
@@ -1467,6 +1584,8 @@ class GracedbRoot(APIView):
         vo_detail = vo_detail.replace("G1200", "{graceid}")
         log = reverse("eventlog-list", args=["G1200"], request=request)
         log = log.replace("G1200", "{graceid}")
+        embb = reverse("embbeventlog-list", args=["G1200"], request=request)
+        embb = embb.replace("G1200", "{graceid}")
 
         files = reverse("files", args=["G1200", "filename"], request=request)
         files = files.replace("G1200", "{graceid}")
@@ -1495,6 +1614,7 @@ class GracedbRoot(APIView):
                 "event-detail-template" : detail,
                 "event-vo-detail-template" : vo_detail,
                 "event-log-template" : log,
+                "embb-event-log-template" : embb,
                 "event-label-template" : labels,
                 "files-template" : files,
                 "filemeta-template" : filemeta,
@@ -1528,6 +1648,10 @@ class GracedbRoot(APIView):
                         ("HWINJ", "HardwareInjection"),
                     ) 
                 ),
+            "em-groups"  : [g.name for g in EMGroup.objects.all()],
+            "wavebands"      : dict(EMSPECTRUM),
+            "eel-statuses"   : dict(EMBBEventLog.EEL_STATUS_CHOICES),
+            "obs-statuses"   : dict(EMBBEventLog.OBS_STATUS_CHOICES),
            })
 
 ##################################################################

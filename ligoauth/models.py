@@ -65,6 +65,9 @@ class X509Cert(models.Model):
     subject = models.CharField(max_length=200)
     users = models.ManyToManyField(User)
 
+class AlternateEmail(models.Model):
+    user = models.ForeignKey(User)
+    email = models.EmailField(max_length=254)
 
 def shibid_to_user(shibid):
     try:

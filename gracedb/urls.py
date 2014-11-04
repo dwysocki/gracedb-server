@@ -20,8 +20,11 @@ urlpatterns = patterns('gracedb.views',
     url (r'^(?P<graceid>[GEHT]\d+)/files/$', 'file_list', name="file_list"),
     url (r'^(?P<graceid>[GEHT]\d+)/files/(?P<filename>.*)$', download, name="file"),
     url (r'^(?P<graceid>[GEHT]\d+)/log/(?P<num>([\d]*|preview))$', 'logentry', name="logentry"),
+    url (r'^(?P<graceid>[GEHT]\d+)/embblog/(?P<num>([\d]*|preview))$', 'embblogentry', name="embblogentry"),
     url (r'^(?P<graceid>[GEHT]\d+)/log/(?P<num>\d+)/tag/(?P<tagname>\w+)$', 'taglogentry', name="taglogentry"),
 
+# RDW Aug 2014
+#(r'^admin/', include(admin.site.urls)),
 
 #   (r'^view/(?P<uid>[\w\d]+)', 'view'),
 #   (r'^edit/(?P<uid>[\w\d]+)', 'edit'),

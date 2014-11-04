@@ -6,6 +6,7 @@ from models import Pipeline, Search
 from models import CoincInspiralEvent
 from models import MultiBurstEvent
 from models import GrbEvent
+from models import EMBBEventLog, EMGroup
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
 
@@ -315,3 +316,55 @@ def get_lvem_perm_status(request, event):
         return (True, False)
     else:
         return (False, False)
+
+#
+# Create an EMBB event log message
+#
+def create_eel(d, event, user):    
+    # create a log entry
+    eel = EMBBEventLog(event=event)
+    eel.event = event
+    eel.submitter = user
+    # Assign a group name
+    try:
+        eel.group = EMGroup.objects.get(name=d.get('group'))
+    except:
+        raise ValueError('Please specify an EM followup MOU group')
+
+    # Assign an instrument name
+    eel.instrument = d.get('instrument', '')
+
+    # Assign a group-specific footprint ID (if provided)
+    eel.footprintID = d.get('footprintID', '')
+
+    # Assign the EM spectrum string
+    try:
+        eel.waveband = d.get('waveband')
+    except:
+        raise ValueError('Please specify a waveband')
+
+    # Assign RA and Dec, plus widths
+    eel.ra = d.get('ra', None)
+    eel.dec = d.get('dec', None)
+    eel.raWidth = d.get('raWidth', None)
+    eel.decWidth = d.get('decWidth', None)
+
+    # Assign gpstime and duration.
+    eel.gpstime = d.get('gpstime', None)
+    eel.duration = d.get('duration', None)
+
+    # Assign EEL status and observation status.
+    try:
+        eel.eel_status = d.get('eel_status')
+    except:
+        raise ValueError('Please specify an EEL status.')
+    try:
+        eel.obs_status = d.get('obs_status')
+    except:
+        raise ValueError('Please specify an observation status.')
+
+    eel.extra_info_dict = d.get('extra_info_dict', '')
+    eel.comment = d.get('comment', '')
+    eel.save()
+    return eel
+

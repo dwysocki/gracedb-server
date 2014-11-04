@@ -7,6 +7,7 @@ from django.conf.urls import patterns, url
 from gracedb.api import GracedbRoot
 from gracedb.api import EventList, EventDetail, EventVODetail
 from gracedb.api import EventLogList, EventLogDetail
+from gracedb.api import EMBBEventLogList, EMBBEventLogDetail
 from gracedb.api import TagList
 # from gracedb.api import TagDetail
 from gracedb.api import EventTagList, EventTagDetail
@@ -38,6 +39,13 @@ urlpatterns = patterns('gracedb.api',
         EventLogList.as_view(), name='eventlog-list'),
     url (r'events/(?P<graceid>[GEHT]\d+)/log/(?P<n>\d+)$',
         EventLogDetail.as_view(), name='eventlog-detail'),
+
+    # EMBB Event Log Resources
+    # events/{graceid}/logs/[{logid}]
+    url (r'events/(?P<graceid>[GEHT]\d+)/embb/$',
+        EMBBEventLogList.as_view(), name='embbeventlog-list'),
+    url (r'events/(?P<graceid>[GEHT]\d+)/embb/(?P<n>\d+)$',
+        EMBBEventLogDetail.as_view(), name='embbeventlog-detail'),
 
     # Tag Resources
     url (r'^tag/$', 

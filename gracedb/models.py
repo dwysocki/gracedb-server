@@ -4,13 +4,12 @@ from django.core.urlresolvers import reverse
 from model_utils.managers import InheritanceManager
 
 from django.contrib.auth.models import User as DjangoUser
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from guardian.models import GroupObjectPermission
 
 
 import os
-import logging
 
 import glue
 import glue.ligolw
@@ -20,8 +19,6 @@ import glue.ligolw.lsctables
 from glue.lal import LIGOTimeGPS
 
 import json
-
-log = logging.getLogger('gracedb.models')
 
 # XXX ER2.utils.  utils is in project directory.  ugh.
 from utils import posixToGpsTime
@@ -49,7 +46,6 @@ schema_version = "1.1"
 
     #def __unicode__(self):
         #return self.name
-
 
 class Group(models.Model):
     name = models.CharField(max_length=20)
@@ -147,8 +143,6 @@ class Event(models.Model):
 
     def weburl(self):
         # XXX Not good.  But then, it never was.
-        #return "https://ldas-jobs.phys.uwm.edu/gracedb/data/%s" % self.graceid()
-        #return "https://gracedb.ligo.org/gracedb-files/%s" % self.graceid()
         return reverse('file_list', args=[self.graceid()])
 
     # XXX This should be considered deprecated. (Branson, July 22, 2014.)
@@ -327,6 +321,164 @@ class EventLog(models.Model):
             # in the views that use it and give an informative error message.
             raise Exception("Too many attempts to save log message. Something is wrong.")
 
+class EMGroup(models.Model):
+    name = models.CharField(max_length=20, unique=True)
+
+    # XXX what else? Possibly the liasons. These can be populated 
+    # automatically from the gw-astronomy COManage-provisioned LDAP.
+    # Let's leave this out for now. The submitter will be stored in 
+    # the EMBB log record, and that should be enough for audit/blame
+    # purposes.
+    #liasons = models.ManyToManyField(DjangoUser)
+
+    # XXX Characteristics needed to produce pointings?
+
+    def __unicode__(self):
+        return self.name
+
+EMSPECTRUM = (
+('em.gamma',            'Gamma rays part of the spectrum'),
+('em.gamma.soft',       'Soft gamma ray (120 - 500 keV)'),
+('em.gamma.hard',       'Hard gamma ray (>500 keV)'),
+('em.X-ray',            'X-ray part of the spectrum'),
+('em.X-ray.soft',       'Soft X-ray (0.12 - 2 keV)'),
+('em.X-ray.medium',     'Medium X-ray (2 - 12 keV)'),
+('em.X-ray.hard',       'Hard X-ray (12 - 120 keV)'),
+('em.UV',               'Ultraviolet part of the spectrum'),
+('em.UV.10-50nm',       'Ultraviolet between 10 and 50 nm'),
+('em.UV.50-100nm',      'Ultraviolet between 50 and 100 nm'),
+('em.UV.100-200nm',     'Ultraviolet between 100 and 200 nm'),
+('em.UV.200-300nm',     'Ultraviolet between 200 and 300 nm'),
+('em.UV.FUV',           'Far-Infrared, 30-100 microns'),
+('em.opt',              'Optical part of the spectrum'),
+('em.opt.U',            'Optical band between 300 and 400 nm'),
+('em.opt.B',            'Optical band between 400 and 500 nm'),
+('em.opt.V',            'Optical band between 500 and 600 nm'),
+('em.opt.R',            'Optical band between 600 and 750 nm'),
+('em.opt.I',            'Optical band between 750 and 1000 nm'),
+('em.IR',               'Infrared part of the spectrum'),
+('em.IR.NIR',           'Near-Infrared, 1-5 microns'),
+('em.IR.J',             'Infrared between 1.0 and 1.5 micron'),
+('em.IR.H',             'Infrared between 1.5 and 2 micron'),
+('em.IR.K',             'Infrared between 2 and 3 micron'),
+('em.IR.MIR',           'Medium-Infrared, 5-30 microns'),
+('em.IR.3-4um',         'Infrared between 3 and 4 micron'),
+('em.IR.4-8um',         'Infrared between 4 and 8 micron'),
+('em.IR.8-15um',        'Infrared between 8 and 15 micron'),
+('em.IR.15-30um',       'Infrared between 15 and 30 micron'),
+('em.IR.30-60um',       'Infrared between 30 and 60 micron'),
+('em.IR.60-100um',      'Infrared between 60 and 100 micron'),
+('em.IR.FIR',           'Far-Infrared, 30-100 microns'),
+('em.mm',               'Millimetric part of the spectrum'),
+('em.mm.1500-3000GHz',  'Millimetric between 1500 and 3000 GHz'),
+('em.mm.750-1500GHz',   'Millimetric between 750 and 1500 GHz'),
+('em.mm.400-750GHz',    'Millimetric between 400 and 750 GHz'),
+('em.mm.200-400GHz',    'Millimetric between 200 and 400 GHz'),
+('em.mm.100-200GHz',    'Millimetric between 100 and 200 GHz'),
+('em.mm.50-100GHz',     'Millimetric between 50 and 100 GHz'),
+('em.mm.30-50GHz',      'Millimetric between 30 and 50 GHz'),
+('em.radio',            'Radio part of the spectrum'),
+('em.radio.12-30GHz',   'Radio between 12 and 30 GHz'),
+('em.radio.6-12GHz',    'Radio between 6 and 12 GHz'),
+('em.radio.3-6GHz',     'Radio between 3 and 6 GHz'),
+('em.radio.1500-3000MHz','Radio between 1500 and 3000 MHz'),
+('em.radio.750-1500MHz','Radio between 750 and 1500 MHz'),
+('em.radio.400-750MHz', 'Radio between 400 and 750 MHz'),
+('em.radio.200-400MHz', 'Radio between 200 and 400 MHz'),
+('em.radio.100-200MHz', 'Radio between 100 and 200 MHz'),
+('em.radio.20-100MHz',  'Radio between 20 and 100 MHz'),
+)
+
+class EMBBEventLog(models.Model):
+    """EMBB EventLog:  A multi-purpose annotation for EM followup.
+     
+    A rectangle on the sky, equatorially aligned,
+    that has or will be imaged that is related to an event"""
+
+    class Meta:
+        ordering = ['-created', '-N']
+        unique_together = ("event","N")
+
+    # A counter for Eels associated with a given event. This is 
+    # important for addressibility.
+    N = models.IntegerField(null=False)
+    
+    # The time at which this Eel was created. Important for event auditing.
+    created = models.DateTimeField(auto_now_add=True)
+
+    # The gracedb event that this Eel relates to
+    event = models.ForeignKey(Event)
+
+    # The responsible author of this communication
+    submitter  = models.ForeignKey(DjangoUser)  # from a table of people
+
+    # The MOU group responsible 
+    group = models.ForeignKey(EMGroup)       # from a table of facilities
+
+    # The instrument used or intended for the imaging implied by this footprint
+    instrument = models.CharField(max_length=200, blank=True)
+
+    # Facility-local identifier for this footprint
+    footprintID= models.CharField(max_length=200, blank=True)
+    # Now the global ID is a concatenation: facilityName#footprintID
+
+    # the EM waveband used for the imaging as below
+    waveband   = models.CharField(max_length=25, choices=EMSPECTRUM)
+
+    # The center of the rectangular foorprint, right ascension and declination
+    # in J2000 in decimal degrees
+    ra         = models.FloatField(null=True)
+    dec        = models.FloatField(null=True)
+
+    # The width and height (RA range and Dec range) in decimal degrees
+    raWidth    = models.FloatField(null=True)
+    decWidth   = models.FloatField(null=True)
+
+    # The GPS time of the middle of of the imaging time
+    gpstime    = models.PositiveIntegerField(null=True)
+
+    # The duration of the imaging in seconds
+    duration   = models.PositiveIntegerField(null=True)
+
+    # Event Log status
+    EEL_STATUS_CHOICES = (('FO','FOOTPRINT'), ('SO','SOURCE'), ('CO','COMMENT'), ('CI','CIRCULAR'))
+    eel_status     = models.CharField(max_length=2, choices=EEL_STATUS_CHOICES)
+
+    # Observation status. If OBSERVATION, then there is a good chance of good image
+    OBS_STATUS_CHOICES = (('NA', 'NOT APPLICABLE'), ('OB','OBSERVATION'), ('TE','TEST'), ('PR','PREDICTION'))
+    obs_status     = models.CharField(max_length=2, choices=OBS_STATUS_CHOICES)
+
+    # This field is natural language for human
+    comment = models.TextField(blank=True)
+
+    # This field is formal struct by a syntax TBD
+    # for example  {"phot.mag.limit": 22.3}
+    extra_info_dict = models.TextField(blank=True)
+
+    # We overload the 'save' method to avoid race conditions, since the Eels are numbered. 
+    def save(self, *args, **kwargs):
+        success = False
+        attempts = 0
+        while (not success and attempts < 5):
+            attempts = attempts + 1
+            if self.event.embbeventlog_set.count():
+                self.N = int(self.event.embbeventlog_set.aggregate(models.Max('N'))['N__max']) + 1
+            else:
+                self.N = 1
+            try:
+                super(EMBBEventLog, self).save(*args, **kwargs)
+                success = True
+            except IntegrityError:
+                # IntegrityError means an attempt to insert a duplicate
+                # key or to violate a foreignkey constraint.
+                # We are under race conditions.  Let's try again.
+                pass
+
+        if not success:
+            # XXX Should this be a custom exception?  That way we could catch it
+            # in the views that use it and give an informative error message.
+            raise Exception("Too many attempts to save EMBB entry. Something is wrong.")
+
 class Labelling(models.Model):
     event = models.ForeignKey(Event)
     label = models.ForeignKey(Label)
@@ -458,14 +610,14 @@ class SingleInspiral(models.Model):
         field_names = cls.field_names()
         created_events = []
 
-        log.debug("Single/create from table/fields: " + str(field_names))
+        #log.debug("Single/create from table/fields: " + str(field_names))
 
         for row in table:
             e = cls(event=event)
-            log.debug("Single/creating event")
+            #log.debug("Single/creating event")
             for column in field_names:
                 value = getattr(row, column)
-                log.debug("Setting column '%s' with value '%s'" % (column, value))
+                #log.debug("Setting column '%s' with value '%s'" % (column, value))
                 setattr(e, column, value)
             e.save()
             created_events.append(e)
