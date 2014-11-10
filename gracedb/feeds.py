@@ -10,12 +10,15 @@ from models import Event, Group, Pipeline
 #from views import view, search, index
 from views import view
 
+from gracedb.permission_utils import internal_user_required
+
 from django.conf import settings
 FEED_MAX_RESULTS = getattr(settings, 'FEED_MAX_RESULTS', 20)
 
 class EventFeed(Feed):
     title_template = "feeds/latest_title.html"
     description_template = "feeds/latest_description.html"
+    @internal_user_required
     def get_object(self, request, url):
         bits = url.split('/')[1:]
         # bits will look like
@@ -74,6 +77,7 @@ class EventFeed(Feed):
         _, x = obj
         return x
 
+@internal_user_required
 def feedview(request):
     return render_to_response(
             'feeds/index.html',

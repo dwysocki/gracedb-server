@@ -18,6 +18,7 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.contenttypes.models import ContentType
 from permission_utils import filter_events_for_user, user_has_perm
+from permission_utils import internal_user_required
 from guardian.models import GroupObjectPermission
 
 from view_logic import _createEventFromForm
@@ -645,7 +646,7 @@ def taglogentry(request, event, num, tagname):
     return HttpResponse(msg, content_type="text")
 
 # Performance metrics.
-# XXX Should probably protect this view.
+@internal_user_required
 def performance(request):
 
     try:

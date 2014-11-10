@@ -6,7 +6,8 @@ from django.shortcuts import render_to_response
 from django.conf import settings
 
 from gracedb.models import Event
-from gracedb.views import filter_events_for_user
+from gracedb.permission_utils import filter_events_for_user
+from gracedb.permission_utils import internal_user_required
 from django.db.models import Q
 
 import os, json
@@ -30,6 +31,7 @@ import time
 from datetime import datetime, timedelta
 from utils import posixToGpsTime
 
+@internal_user_required
 def histo(request):
 
     # Latency table.
@@ -131,6 +133,7 @@ def to_png_image(out = sys.stdout):
     plot.savefig(f, format="png")
     return base64.b64encode(f.getvalue())
 
+@internal_user_required
 def gstlalcbc_report(request, format=""):
 
     if not request.user or not request.user.is_authenticated():

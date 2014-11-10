@@ -1,6 +1,8 @@
 from django.db.models import Q
 from guardian.shortcuts import assign_perm
 from django.contrib.auth.models import Group
+from django.utils.functional import wraps
+from django.http import HttpResponseForbidden
 
 #-------------------------------------------------------------------------------
 # A convenient wrapper for permission checks.
@@ -42,3 +44,18 @@ def assign_default_event_perms(event):
     for g in [executives, internal]:
         assign_perm(view_codename, g, event)
         assign_perm(change_codename, g, event)
+
+#-------------------------------------------------------------------------------
+# A wrapper for views that checks whether the user is internal, and if not
+# returns a 403.
+#-------------------------------------------------------------------------------
+def internal_user_required(view):
+    @wraps(view)
+    def inner(request, *args, **kwargs):
+        # XXX Should probably move this list of internal groups into settings.
+        internal_groups = Group.objects.filter(
+            name__in=['Communities:LSCVirgoLIGOGroupMembers', 'executives'])
+        if not set(list(internal_groups)) & set(list(request.user.groups.all())):
+            return HttpResponseForbidden("Forbidden")
+        return view(request, *args, **kwargs)
+    return inner

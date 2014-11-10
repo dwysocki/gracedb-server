@@ -37,8 +37,8 @@ urlpatterns = patterns('',
     url (r'^performance/$', 'gracedb.views.performance', name="performance"),
     url (r'^reports/$', 'gracedb.reports.histo', name="reports"),
     url (r'^reports/gstlalcbc_report/(?P<format>(json|flex))?$', 'gracedb.reports.gstlalcbc_report', name="gstlalcbc_report"),
-    (r'^reports/(?P<path>.+)$', 'django.views.static.serve',
-            {'document_root': settings.LATENCY_REPORT_DEST_DIR}),
+    #(r'^reports/(?P<path>.+)$', 'django.views.static.serve',
+    #        {'document_root': settings.LATENCY_REPORT_DEST_DIR}),
 
     url (r'^latest', 'gracedb.views.latest', name="latest"),
 
