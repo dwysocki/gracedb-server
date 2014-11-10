@@ -12,6 +12,9 @@ from models import Trigger, Contact
 
 from forms import ContactForm, triggerFormFactory
 
+from gracedb.permission_utils import internal_user_required
+
+@internal_user_required
 def index(request):
     triggers = Trigger.objects.filter(user=request.user)
     contacts = Contact.objects.filter(user=request.user)
@@ -20,6 +23,7 @@ def index(request):
                               d,
                               context_instance=RequestContext(request))
 
+@internal_user_required
 def create(request):
     explanation = ""
     message = ""
@@ -66,9 +70,11 @@ def create(request):
                               },
                               context_instance=RequestContext(request))
 
+@internal_user_required
 def edit(request, id):
     raise Http404
 
+@internal_user_required
 def delete(request, id):
     try:
         t = Trigger.objects.get(id=id)
@@ -84,6 +90,7 @@ def delete(request, id):
 #-- Contacts --
 #--------------
 
+@internal_user_required
 def createContact(request):
     if request.method == "POST":
         form = ContactForm(request.POST)
@@ -106,9 +113,11 @@ def createContact(request):
                               context_instance=RequestContext(request))
 
 
+@internal_user_required
 def editContact(request, id):
     raise Http404
 
+@internal_user_required
 def deleteContact(request, id):
     try:
         c = Contact.objects.get(id=id)
