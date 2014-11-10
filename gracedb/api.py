@@ -1884,8 +1884,20 @@ class PerformanceInfo(APIView):
     permission_classes = (IsAuthenticated,)
     parser_classes = (parsers.MultiPartParser,)
 
-    # XXX This should probably have some auth protection.
     def get(self, request, *args, **kwargs):
+        user_groups = set(request.user.groups.all())
+        allowed_groups = set([])
+        try:
+            allowed_groups = set([
+                AuthGroup.objects.get(name='Communities:LSCVirgoLIGOGroupMembers'),
+                AuthGroup.objects.get(name='executives'),
+            ])
+        except:
+            pass
+
+        if not user_groups & allowed_groups:
+            return HttpResponseForbidden("Forbidden")
+
         try:
             performance_info = get_performance_info()
         except Exception, e:
