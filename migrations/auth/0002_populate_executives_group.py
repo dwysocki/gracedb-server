@@ -10,14 +10,20 @@ class Migration(DataMigration):
         """Populate the group of executive users."""
         executives = orm.Group.objects.get(name='executives')
 
-        gaby = orm.User.objects.get(username='gabriela.gonzalez@LIGO.ORG')
+        gaby    = orm.User.objects.get(username='gabriela.gonzalez@LIGO.ORG')
         patrick = orm.User.objects.get(username='patrick.brady@LIGO.ORG')
         branson = orm.User.objects.get(username='branson.stephens@LIGO.ORG')
-
+        peter   = orm.User.objects.get(username='peter.shawhan@LIGO.ORG')
+        larry   = orm.User.objects.get(username='larry.price@LIGO.ORG')
+        marica  = orm.User.objects.get(username='marica.branchesi@LIGO.ORG')
+        
         executives.user_set.add(gaby)
         executives.user_set.add(patrick)
         # XXX I, Branson, am adding myself only for testing purposes.
         executives.user_set.add(branson)
+        executives.user_set.add(peter)
+        executives.user_set.add(larry)
+        executives.user_set.add(marica)
 
     def backwards(self, orm):
         """Empty the group of executive users."""
