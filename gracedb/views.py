@@ -772,6 +772,8 @@ def embblogentry(request, event, num=None):
         except Exception, e:
             return HttpResponseServerError(str(e))
     else:
+        if not user_has_perm(request.user, 'view', event):
+            return HttpResponseForbidden("Forbidden")
         try:
             eel = event.eventlog_set.filter(N=num)[0]
         except Exception:
