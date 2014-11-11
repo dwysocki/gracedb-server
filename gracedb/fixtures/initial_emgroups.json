@@ -159,5 +159,12 @@
         "fields": {
             "name": "Test"
         }
+    },
+    {
+        "pk": 24, 
+        "model": "gracedb.emgroup", 
+        "fields": {
+            "name": "BlackGEM"
+        }
     }
 ]
