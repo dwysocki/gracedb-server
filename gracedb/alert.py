@@ -9,8 +9,7 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 
-import glue.ligolw.utils
-import ligo.lvalert.utils
+import json
 
 import logging
 
@@ -145,30 +144,23 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
         stderr=STDOUT,
         env=env)
 
-    xmldoc = ligo.lvalert.utils.make_LVAlertTable(
-                    location,
-                    event.graceid(),
-                    temp_data_loc,
-                    alert_type,
-                    description)
-    buf = StringIO.StringIO()
-    glue.ligolw.utils.write_fileobj(xmldoc, buf)
-    msg = buf.getvalue()
-
+    # Create the output dictionary and serialize as JSON.
+    lva_data = {
+        'file': location,
+        'uid': event.graceid(),
+        'data_loc': temp_data_loc,
+        'alert_type': alert_type,
+        # The following string cast is necessary because sometimes 
+        # description is a label object!
+        'description': str(description),
+    }
+    msg = json.dumps(lva_data)
     log.debug("issueXMPPAlert: writing message %s" % msg)
 
-    p.stdin.write(msg)
-    p.stdin.close()
-    # XXX Branson:  I don't think this loop will be necessary if we use a version
-    # of LVAlert_send which is guaranteed to quit after a certain number of attempts.
-    res = None
-    for i in range(1,10):
-        res = p.poll()
-        if res == None:
-            time.sleep(1)
-        else:
-            log.debug("issueXMPPAlert: return code %s" % res)
-            break
-    if res is None:
-        log.debug("issueXMPPAlert: failed to see child process terminate")
+    out, err = p.communicate(msg)
+
+    log.debug("issueXMPPAlert: return code %s" % p.returncode)
+    if p.returncode > 0:
+        # XXX This should probably raise an exception.
+        log.debug("issueXMPPAlert: ERROR: %s" % err)
 
