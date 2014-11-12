@@ -1,32 +1,50 @@
 {% extends "base.html" %}
-
 {% block title %}Home{% endblock %}
-{% block heading %}GraceDB &mdash; Overview{% endblock %}
+{% block heading %}GraceDB Overview{% endblock %}
 {% block pageid %}home{% endblock %}
+{% block jscript %}
+    <style>
+        .question {
+            font-family: Helvetica, sans-serif;
+            /*font-variant: small-caps; */
+            font-style: bold;
+            font-size: 18px;
+            padding-bottom: 5px;
+        }
+
+        .answer {
+            margin-left: 30px;
+            margin-right: 30px;
+            font-size: 14px;
+            background-color: #e2ebf2;
+            padding-top: 1px;
+            padding-bottom: 1px;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
+<!-- I find myself needing some more space. -->
+<br/> 
 
-<div class="text">
-
-<p>
-The gravitational-wave candidate event database (GraCEDb) is a
+<div class="content-area">
+<p> The gravitational-wave candidate event database (GraceDB) is a
 prototype system to organize candidate events from gravitational-wave
 searches and to provide an environment to record information about
-follow-ups.
-</p>
+follow-ups. Useful links:</p>
 
-<p>
-You can read about using the service on the
-<a href="https://www.lsc-group.phys.uwm.edu/daswg/wiki/HowtoGraceDb">Howto page</a>.  More details are available on the
-<a href="https://www.lsc-group.phys.uwm.edu/daswg/projects/gracedb.html">Project page</a>.
-</p>
+<ul>
 
-</div>
+<li><a href="https://www.lsc-group.phys.uwm.edu/daswg/wiki/GraceDBER6">Recent changes</a> <font color="red">(IMPORTANT!) </font></li>
+<li><a href="https://gw-astronomy.org/wiki/LV_EM/ElectroMagneticBulletinBoard">Prototype EMBB description</a></li>
+<li><a href="https://www.lsc-group.phys.uwm.edu/daswg/wiki/HowtoGraceDb">Howto page</a></li>
+<li><a href="https://www.lsc-group.phys.uwm.edu/daswg/projects/gracedb.html">DASWG Project page</a></li>
+<li><a href="{% url "shib:api-root" %}">Browseable REST API</a>
 
-<div class="text">
-To receive email alerts when GraCEDb events are created, sign up
-on the <a target="_blank" href="http://listserv.ligo.org/cgi-bin/mailman/listinfo/gracedb">gracedb mailing list</a> or set up your own alert under the
-<a href="{% url "userprofile-home" %}">Options</a> menu item.
+</ul>
+
 </div>
 
 {% endblock %}
