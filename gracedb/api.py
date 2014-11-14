@@ -654,7 +654,7 @@ class EventList(APIView):
 
         return response
 
-    @pipeline_auth_required
+    #@pipeline_auth_required
     def post(self, request, format=None):
 
         # XXX Deal with POSTs coming in from the old client.
@@ -665,6 +665,18 @@ class EventList(APIView):
             rv['warnings'] = 'It looks like you are using the old GraceDB client (v<=1.14). ' + \
                              'Please update! This will eventually stop working.'
 
+        # Check user authorization for pipeline. 
+        # XXX This is a temporary hack until they roll out the new client.
+        group_name = request.POST.get('group', None) 
+        if not group_name=='Test':
+            try:
+                pipeline = Pipeline.objects.get(name=request.POST['pipeline'])
+            except:
+                return Response({'error': "Please provide a valid pipeline."},
+                    status = status.HTTP_400_BAD_REQUEST)
+            if not user_has_perm(request.user, "populate", pipeline):
+                return HttpResponseForbidden("You don't have permission on this pipeline.")
+        
         form = CreateEventForm(request.POST, request.FILES)
         if form.is_valid():
             event, warnings = _createEventFromForm(request, form)
