@@ -30,20 +30,23 @@ EMBB_SMTP_SERVER = 'localhost'
 EMBB_MAIL_ADMINS = ['branson@gravity.phys.uwm.edu','roy.williams@ligo.org',]
 MBB_IGNORE_ADDRESSES = ['Mailer-Daemon@gracedb.phys.uwm.edu',]
 
-XMPP_ALERT_CHANNELS = [
-                        'burst_omega',
-                        'test_omega',
-                        'cbc_mbtaonline',
-                        'test_mbtaonline',
-                        'burst_cwb',
-                        'test_cwb',
-                        'cbc_lowmass',
-                        'test_lowmass',
-                        'cbc_highmass',
-                        'test_highmass',
-                        'test_grb',
-                        'external_grb',
-                      ]
+# 11/18/14. No longer checking XMPP_ALERT_CHANNELS. This is not necessary.
+# If someone sends out an event, an alert should go out. Listerers have the 
+# option to unsubscribe from nodes if so desired.
+#XMPP_ALERT_CHANNELS = [
+#                        'burst_omega',
+#                        'test_omega',
+#                        'cbc_mbtaonline',
+#                        'test_mbtaonline',
+#                        'burst_cwb',
+#                        'test_cwb',
+#                        'cbc_lowmass',
+#                        'test_lowmass',
+#                        'cbc_highmass',
+#                        'test_highmass',
+#                        'test_grb',
+#                        'external_grb',
+#                      ]
 
 SKYMAP_VIEWER_SERVICE_URL = "https://embb-dev.ligo.caltech.edu/cgi-bin/skymapViewer"
 

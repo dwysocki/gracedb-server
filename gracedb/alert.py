@@ -122,9 +122,9 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
 
     log.debug('issueXMPPAlert: %s %s' % (event.graceid(), nodename))
 
-    if nodename not in settings.XMPP_ALERT_CHANNELS:
-        log.debug("issueXMPPAlert: did not send alert")
-        return
+#    if nodename not in settings.XMPP_ALERT_CHANNELS:
+#        log.debug("issueXMPPAlert: did not send alert")
+#        return
 
     log.debug("issueXMPPAlert: attempting to send alert")
     env = {}
