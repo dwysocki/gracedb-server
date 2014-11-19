@@ -116,34 +116,24 @@ Event Summary:
 def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description=""):
     
     nodename = "%s_%s" % (event.group.name, event.pipeline.name)
-    if event.search:
-        nodename += "_%s" % event.search.name
     nodename = nodename.lower()
+    nodenames = [ nodename, ]
+    if event.search:
+        nodename = nodename + "_%s" % event.search.name.lower()
+        nodenames.append(nodename)
 
-    log.debug('issueXMPPAlert: %s %s' % (event.graceid(), nodename))
+    log.debug('issueXMPPAlert: %s' % event.graceid())
 
+# XXX We no longer check the XMPP_ALERT_CHANNELS list.
+# If somebody sends an event, there should always be an alert.
+# It is up to the end users to filter these out as desired.
+#
 #    if nodename not in settings.XMPP_ALERT_CHANNELS:
 #        log.debug("issueXMPPAlert: did not send alert")
 #        return
 
-    log.debug("issueXMPPAlert: attempting to send alert")
     env = {}
     env["PYTHONPATH"] = ":".join(sys.path)
-
-    null = open('/dev/null','w')
-    p = Popen(
-        ["lvalert_send",
-         "--username=gracedb",
-         "--password=w4k3upal1ve",
-         "--file=-",
-         "--node=%s" % nodename,
-        ],
-        executable="/usr/bin/lvalert_send",
-        stdin=PIPE,
-        stdout=null,
-        stderr=STDOUT,
-        env=env)
-
     # Create the output dictionary and serialize as JSON.
     lva_data = {
         'file': location,
@@ -157,10 +147,26 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
     msg = json.dumps(lva_data)
     log.debug("issueXMPPAlert: writing message %s" % msg)
 
-    out, err = p.communicate(msg)
+    for nodename in nodenames:
+        log.debug("issueXMPPAlert: attempting to send alert to node %s" % nodename)
+        null = open('/dev/null','w')
+        p = Popen(
+            ["lvalert_send",
+             "--username=gracedb",
+             "--password=w4k3upal1ve",
+             "--file=-",
+             "--node=%s" % nodename,
+            ],
+            executable="/usr/bin/lvalert_send",
+            stdin=PIPE,
+            stdout=null,
+            stderr=STDOUT,
+            env=env)
 
-    log.debug("issueXMPPAlert: return code %s" % p.returncode)
-    if p.returncode > 0:
-        # XXX This should probably raise an exception.
-        log.debug("issueXMPPAlert: ERROR: %s" % err)
+        out, err = p.communicate(msg)
+
+        log.debug("issueXMPPAlert: return code %s" % p.returncode)
+        if p.returncode > 0:
+            # XXX This should probably raise an exception.
+            log.debug("issueXMPPAlert: ERROR: %s" % err)
 
