@@ -578,7 +578,7 @@ class CwbData(Translator):
         ced_link = None
         fits_skymap_link = None
         for line in datafile:
-            if line.startswith("https"):
+            if line.startswith("http"):
                 if line.find(".fits") > 0:
                     fits_skymap_link = line
                 else:
