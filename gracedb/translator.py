@@ -531,7 +531,9 @@ class CwbData(Translator):
         # scan down for FAR
         next_line_is_far = False
         for line in datafile:
-            if line.startswith("#significance based on the last 24*6"):
+            # Change for Marco Drago, 11/20/14
+            #if line.startswith("#significance based on the last 24*6"):
+            if line.startswith("#significance based on the last day"):
                 next_line_is_far = True
                 break
         if next_line_is_far:
