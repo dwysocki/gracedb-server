@@ -959,30 +959,3 @@ def embblogentry(request, event, num=None):
 #
 
 
-=======
-        return HttpResponseRedirect(reverse(view, args=[graceid]))
-    else:
-        if not num:
-            eels = event.embbeventlog_set.all()
-            ceels = []
-            for eel in eels:
-                color = md5(eel.group.name).hexdigest()[:6]
-                ceels.append([color, eel])
-            context = {"ceels":ceels}
-            return render_to_response('gracedb/embb.json', context, context_instance=RequestContext(request), mimetype="application/json")
-        else:
-            try:
-                eel = event.embbeventlog_set.filter(N=num)[0]
-            except Exception:
-                raise Http404
-#    if not request.is_ajax():
-            context = {"eel":eel}
-            return render_to_response('gracedb/eel_detail.html', context, context_instance=RequestContext(request))
-
-#        return HttpResponseRedirect(reverse(view, args=[graceid]))
-#    rv = {}
-#    rv['comment'] = eel.comment
-#    rv['submitter'] = eel.issuer.username
-#    rv['created'] = eel.created.isoformat()
-#    return HttpResponse(json.dumps(rv), content_type="application/json")
->>>>>>> 9bef03f... updated to use lists of rectangles
