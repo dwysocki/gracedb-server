@@ -762,6 +762,8 @@ def modify_permissions(request, event):
     # Finished. Redirect back to the event.
     return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
 
+from hashlib import md5
+
 # A view to create embb log entries
 @event_and_auth_required
 def embblogentry(request, event, num=None):
@@ -772,23 +774,34 @@ def embblogentry(request, event, num=None):
             return HttpResponseBadRequest(str(e))
         except Exception, e:
             return HttpResponseServerError(str(e))
+
+        return HttpResponseRedirect(reverse(view, args=[graceid]))
     else:
         if not user_has_perm(request.user, 'view', event):
-            return HttpResponseForbidden("Forbidden")
-        try:
-            eel = event.eventlog_set.filter(N=num)[0]
-        except Exception:
-            raise Http404
+              return HttpResponseForbidden("Forbidden")
+        if not num:
+            eels = event.embbeventlog_set.all()
+            ceels = []
+            for eel in eels:
+                color = md5(eel.group.name).hexdigest()[:6]
+                ceels.append([color, eel])
+            context = {"ceels":ceels}
+            return render_to_response('gracedb/embb.json', context, context_instance=RequestContext(request), mimetype="application/json")
+        else:
+            try:
+                eel = event.embbeventlog_set.filter(N=num)[0]
+            except Exception:
+                raise Http404
+#    if not request.is_ajax():
+            context = {"eel":eel}
+            return render_to_response('gracedb/eel_detail.html', context, context_instance=RequestContext(request))
 
-    if not request.is_ajax():
-        return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
-
-    rv = {}
-    rv['comment'] = eel.comment
-    rv['submitter'] = eel.issuer.username
-    rv['created'] = eel.created.isoformat()
-
-    return HttpResponse(json.dumps(rv), content_type="application/json")
+#        return HttpResponseRedirect(reverse(view, args=[graceid]))
+#    rv = {}
+#    rv['comment'] = eel.comment
+#    rv['submitter'] = eel.issuer.username
+#    rv['created'] = eel.created.isoformat()
+#    return HttpResponse(json.dumps(rv), content_type="application/json")
 
 #------------------------------------------------------------------------------------------
 # Old Stuff
@@ -946,3 +959,30 @@ def embblogentry(request, event, num=None):
 #
 
 
+=======
+        return HttpResponseRedirect(reverse(view, args=[graceid]))
+    else:
+        if not num:
+            eels = event.embbeventlog_set.all()
+            ceels = []
+            for eel in eels:
+                color = md5(eel.group.name).hexdigest()[:6]
+                ceels.append([color, eel])
+            context = {"ceels":ceels}
+            return render_to_response('gracedb/embb.json', context, context_instance=RequestContext(request), mimetype="application/json")
+        else:
+            try:
+                eel = event.embbeventlog_set.filter(N=num)[0]
+            except Exception:
+                raise Http404
+#    if not request.is_ajax():
+            context = {"eel":eel}
+            return render_to_response('gracedb/eel_detail.html', context, context_instance=RequestContext(request))
+
+#        return HttpResponseRedirect(reverse(view, args=[graceid]))
+#    rv = {}
+#    rv['comment'] = eel.comment
+#    rv['submitter'] = eel.issuer.username
+#    rv['created'] = eel.created.isoformat()
+#    return HttpResponse(json.dumps(rv), content_type="application/json")
+>>>>>>> 9bef03f... updated to use lists of rectangles
