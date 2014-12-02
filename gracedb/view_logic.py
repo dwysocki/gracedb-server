@@ -383,7 +383,6 @@ def create_eel(d, event, user):
     gpsmin = 100000000000
     gpsmax = 0
     for i in range(nList):
-        print i
         try:
             ra = float(ratok[i])
         except:
@@ -416,6 +415,13 @@ def create_eel(d, event, user):
             raise ValueError('Cannot read duration list element %d'%i)
         if gps-w < gpsmin: gpsmin = gps-w
         if gps+w > gpsmax: gpsmax = gps+w
+
+    # Make sure the min/max ra and dec are within bounds:
+    ramin  = max(0.0,   ramin)
+    ramax  = min(360.0, ramax)
+    decmin = max(-90.0, decmin)
+    decmax = min(90.0,  decmax)
+
     eel.ra = (ramin+ramax)/2
     eel.raWidth = ramax-ramin
     eel.dec = (decmin+decmax)/2
