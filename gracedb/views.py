@@ -775,7 +775,7 @@ def embblogentry(request, event, num=None):
         except Exception, e:
             return HttpResponseServerError(str(e))
 
-        return HttpResponseRedirect(reverse(view, args=[graceid]))
+        return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
     else:
         if not user_has_perm(request.user, 'view', event):
               return HttpResponseForbidden("Forbidden")
@@ -786,15 +786,18 @@ def embblogentry(request, event, num=None):
                 color = md5(eel.group.name).hexdigest()[:6]
                 ceels.append([color, eel])
             context = {"ceels":ceels}
-            return render_to_response('gracedb/embb.json', context, context_instance=RequestContext(request), mimetype="application/json")
+            return render_to_response('gracedb/embb.json', context, 
+                context_instance=RequestContext(request), mimetype="application/json")
         else:
-            try:
-                eel = event.embbeventlog_set.filter(N=num)[0]
-            except Exception:
-                raise Http404
+            return HttpResponse(content="Individual EEL view in web interface not implemented.", 
+                status=501)
+#            try:
+#                eel = event.embbeventlog_set.filter(N=num)[0]
+#            except Exception:
+#                raise Http404
 #    if not request.is_ajax():
-            context = {"eel":eel}
-            return render_to_response('gracedb/eel_detail.html', context, context_instance=RequestContext(request))
+#            context = {"eel":eel}
+#            return render_to_response('gracedb/eel_detail.html', context, context_instance=RequestContext(request))
 
 #        return HttpResponseRedirect(reverse(view, args=[graceid]))
 #    rv = {}
