@@ -16,6 +16,8 @@ from VOEventLib.Vutil import parse, getWhereWhen
 from utils import isoToGps
 from utils.vfile import VersionedFile
 
+import json
+
 # This function checks for 'inf' in a float field, asks the database
 # what's the maximum value it can accept for that field, and returns
 # that value. Since the database query will introduce some overhead,
@@ -396,6 +398,20 @@ def handle_uploaded_data(event, datafilename,
                            issuer=event.submitter,
                            comment=error)
             log.save()
+    elif pipeline == 'LIB':
+        event_file = open(datafilename, 'r')
+        event_file_contents = event_file.read()
+        event_file.close()
+        event_dict = json.loads(event_file_contents)
+
+        # Extract relevant data from dictionary to put into event record.
+        event.gpstime     = round(event_dict['gpstime'])
+        event.far         = event_dict['FAR']
+        event.instruments = event_dict['instruments']
+        event.nevents     = event_dict.get('nevents', 1)
+        event.likelihood  = event_dict.get('likelihood', None)
+        event.save()
+
     else:
         # XXX should we do something here?
         pass
