@@ -384,7 +384,7 @@ def handle_uploaded_data(event, datafilename,
                            comment=comment)
             log.save()
 
-    elif pipeline in ['Swift', 'Fermi']:
+    elif pipeline in ['Swift', 'Fermi', 'SNEWS']:
         # Get the event time from the VOEvent file
         error = None
         try:

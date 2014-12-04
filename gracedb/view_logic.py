@@ -41,7 +41,7 @@ def _createEventFromForm(request, form):
         # Create Event
         if pipeline.name in ['gstlal', 'gstlal-spiir', 'MBTAOnline']:
             event = CoincInspiralEvent()
-        elif pipeline.name in ['Fermi', 'Swift']:
+        elif pipeline.name in ['Fermi', 'Swift', 'SNEWS']:
             event = GrbEvent()
         elif pipeline.name in ['CWB', 'CWB2G']:
             event = MultiBurstEvent() 
