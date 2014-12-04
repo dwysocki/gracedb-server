@@ -399,6 +399,9 @@ class EMBBEventLog(models.Model):
         ordering = ['-created', '-N']
         unique_together = ("event","N")
 
+    def __unicode__(self):
+        return "%s-%s-%d" % (self.event.graceid(), self.group.name, self.N)
+
     # A counter for Eels associated with a given event. This is 
     # important for addressibility.
     N = models.IntegerField(null=False)
@@ -419,26 +422,41 @@ class EMBBEventLog(models.Model):
     instrument = models.CharField(max_length=200, blank=True)
 
     # Facility-local identifier for this footprint
-    footprintID= models.CharField(max_length=200, blank=True)
+    footprintID= models.TextField(blank=True)
+
     # Now the global ID is a concatenation: facilityName#footprintID
 
     # the EM waveband used for the imaging as below
     waveband   = models.CharField(max_length=25, choices=EMSPECTRUM)
 
-    # The center of the rectangular foorprint, right ascension and declination
+    # The center of the bounding box of the rectangular footprints, right ascension and declination
     # in J2000 in decimal degrees
     ra         = models.FloatField(null=True)
     dec        = models.FloatField(null=True)
 
-    # The width and height (RA range and Dec range) in decimal degrees
+    # The width and height (RA range and Dec range) in decimal degrees of each image
     raWidth    = models.FloatField(null=True)
     decWidth   = models.FloatField(null=True)
 
-    # The GPS time of the middle of of the imaging time
+    # The GPS time of the middle of the bounding box of the imaging time
     gpstime    = models.PositiveIntegerField(null=True)
 
-    # The duration of the imaging in seconds
+    # The duration of each image in seconds
     duration   = models.PositiveIntegerField(null=True)
+
+    # The lists of RA and Dec of the centers of the images
+    raList         = models.TextField(blank=True)
+    decList        = models.TextField(blank=True)
+
+    # The width and height of each individual image
+    raWidthList    = models.TextField(blank=True)
+    decWidthList   = models.TextField(blank=True)
+
+    # The list of GPS times of the images
+    gpstimeList        = models.TextField(blank=True)
+
+    # The duration of each individual image
+    durationList   = models.TextField(blank=True)
 
     # Event Log status
     EEL_STATUS_CHOICES = (('FO','FOOTPRINT'), ('SO','SOURCE'), ('CO','COMMENT'), ('CI','CIRCULAR'))

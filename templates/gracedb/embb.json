@@ -1,0 +1,33 @@
+[
+{% for ceel in ceels %}
+    {
+    "color": "#{{ ceel.0 }}",
+
+    "ra"          : {{ ceel.1.ra }},
+    "dec"         : {{ ceel.1.dec }},
+    "gpstime"     : {{ ceel.1.gpstime }},
+
+    "raWidth"     : {{ ceel.1.raWidth }},
+    "decWidth"    : {{ ceel.1.decWidth }},
+    "duration"    : {{ ceel.1.duration }},
+
+    "raList"      :[{{ ceel.1.raList }}],
+    "decList"     :[{{ ceel.1.decList }}],
+    "gpstimeList" :[{{ ceel.1.gpstimeList }}],
+
+    "raWidthList" :[{{ ceel.1.raWidthList }}],
+    "decWidthList":[{{ ceel.1.decWidthList }}],
+    "durationList":[{{ ceel.1.durationList }}],
+
+    "group"       : "{{ ceel.1.group }}",
+    "submitter"   : "{{ ceel.1.submitter }}",
+    "footprintID" : "{{ ceel.1.footprintID }}",
+    "waveband"    : "{{ ceel.1.waveband }}",
+    "instrument"  : "{{ ceel.1.instrument }}",
+    "eel_status"  : "{{ ceel.1.eel_status }}",
+    "obs_status"  : "{{ ceel.1.obs_status }}",
+    "comment"     : "{{ ceel.1.comment }}",
+    "extra_info_dict": {{ ceel.1.extra_info_dict|safe }}
+    }{% if not forloop.last %},{% endif %}
+{% endfor %}
+]
