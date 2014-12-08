@@ -104,7 +104,7 @@ function toggle(id) {
 <div id="ifar" style="display:none;">
 {% if ifar %}
     {% for chart in ifar %}
-        <img src="{{ chart }}"><br/>
+        <img src="{{url_prefix}}{{ chart }}"><br/>
     {% endfor %}
 {% else %}
      No IFAR charts.

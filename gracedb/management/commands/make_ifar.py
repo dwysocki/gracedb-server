@@ -105,11 +105,15 @@ class Command(NoArgsCommand):
                 ifar_none(title, "No Data", filename)
         return
 
-        query = parseQuery("LowMass now yesterday .. now")
+        # XXX Branson fixing during ER6
+        #query = parseQuery("gstlal yesterday .. now")
+        query = parseQuery("gstlal now yesterday .. now")
         events = Event.objects.filter(query).distinct()
         if events.count() > 0:
-            axis_label = "GraceDB CBC LowMass ER1 events"
-            title = r"ER1 FARs from gstlal_ll_inspiral - last day"
+            axis_label = "GraceDB gstlal events"
+            # XXX Branson edited during ER6
+            # title = r"ER1 FARs from gstlal_ll_inspiral - last day"
+            title = r"FARs from gstlal - last day"
             filename = os.path.join(settings.REPORT_IFAR_IMAGE_DIR, "ifar_day.png")
             ifar_chart(events, title, axis_label, filename)
         else:
@@ -119,11 +123,12 @@ class Command(NoArgsCommand):
             except:
                 pass
 
-        query = parseQuery("LowMass a week ago .. now")
+        query = parseQuery("gstlal a week ago .. now")
         events = Event.objects.filter(query).distinct()
         if events.count() > 0:
-            axis_label = "GraceDB CBC LowMass ER1 events"
-            title = r"ER1 FARs from gstlal_ll_inspiral - last week"
+            axis_label = "GraceDB gstlal events"
+            #title = r"ER1 FARs from gstlal_ll_inspiral - last week"
+            title = r"FARs from gstlal - last week"
             filename = os.path.join(settings.REPORT_IFAR_IMAGE_DIR, "ifar_week.png")
             ifar_chart(events, title, axis_label, filename)
         else:

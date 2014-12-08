@@ -21,7 +21,10 @@ DEST_DIR = settings.LATENCY_REPORT_DEST_DIR
 MAX_X = settings.LATENCY_MAXIMUM_CHARTED
 
 WEB_PAGE_FILE_PATH = settings.LATENCY_REPORT_WEB_PAGE_FILE_PATH
+URL_PREFIX = settings.REPORT_INFO_URL_PREFIX
 
+# XXX Branson introduced during ER6 to clean things up a bit.
+PIPELINE_EXCLUDE_LIST = ['HardwareInjection', 'X', 'Q', 'Omega', 'Ringdown', 'LIB',]
 
 
 class Command(NoArgsCommand):
@@ -42,6 +45,8 @@ class Command(NoArgsCommand):
         # Make the histograms, save as png's.
         for pipeline in Pipeline.objects.all():
 #        for atype, atype_name in Event.ANALYSIS_TYPE_CHOICES:
+            if pipeline.name in PIPELINE_EXCLUDE_LIST:
+                continue
             pname = pipeline.name
             annotations[pname] = {}
             for start_time, time_range in time_ranges:
@@ -84,6 +89,8 @@ def writeIndex(notes, fname):
     table += "</tr>"
     for pipeline in Pipeline.objects.all():
     #for atype, atype_name in Event.ANALYSIS_TYPE_CHOICES:
+        if pipeline.name in PIPELINE_EXCLUDE_LIST:
+            continue
         pname = pipeline.name
         table += "<tr>"
         table += "<td>%s</td>" % pname
@@ -93,7 +100,7 @@ def writeIndex(notes, fname):
             extra = ""
             if n['fname'] is not None:
                 table += '<img width="400" height="300" src="%s"/>' % \
-                           os.path.basename(n['fname'])
+                           (URL_PREFIX + os.path.basename(n['fname']))
                 extra = "%d total events" % n['count']
             else:
                 extra = "No Applicable Events"

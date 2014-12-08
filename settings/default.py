@@ -105,6 +105,8 @@ LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
 # Uptime reporting
 UPTIME_REPORT_DIR = "/home/gracedb/data/uptime"
 
+# URL prefix for serving report information (usually plots and tables)
+REPORT_INFO_URL_PREFIX = "/report_info/"
 
 # Find another way to do this.
 #
@@ -122,16 +124,29 @@ yesterday = posixToGpsTime(time.mktime(yesterday.timetuple()))
 lastweek = posixToGpsTime(time.mktime(lastweek.timetuple()))
 
 REPORT_IFAR_IMAGE_DIR = LATENCY_REPORT_DEST_DIR
+#REPORTS_IFAR = [
+#    #(query, axis_label, title, fname),
+#    ("LowMass %d..%d" % (yesterday, now),
+#     "GraceDB CBC LowMass ER1 events",
+#     "ER1 FARs from gstlal_ll_inspiral - last day",
+#     "ifar_day.png"
+#    ),
+#    ("LowMass %d..%d" % (lastweek, now),
+#     "GraceDB CBC LowMass ER1 events",
+#     "ER1 FARs from gstlal_ll_inspiral - last week",
+#     "ifar_week.png"
+#    ),
+#]
 REPORTS_IFAR = [
     #(query, axis_label, title, fname),
-    ("LowMass %d..%d" % (yesterday, now),
-     "GraceDB CBC LowMass ER1 events",
-     "ER1 FARs from gstlal_ll_inspiral - last day",
+    ("gstlal %d..%d" % (yesterday, now),
+     "GraceDB gstlal events",
+     "FARs from gstlal - last day",
      "ifar_day.png"
     ),
-    ("LowMass %d..%d" % (lastweek, now),
-     "GraceDB CBC LowMass ER1 events",
-     "ER1 FARs from gstlal_ll_inspiral - last week",
+    ("gstlal %d..%d" % (lastweek, now),
+     "GraceDB gstlal events",
+     "FARs from gstlal - last week",
      "ifar_week.png"
     ),
 ]

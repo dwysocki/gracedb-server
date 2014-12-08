@@ -63,6 +63,7 @@ def histo(request):
              'ifar' : ifar,
              'uptime' : uptime,
              'rate' : json.dumps(rate_data(request)),
+             'url_prefix' : settings.REPORT_INFO_URL_PREFIX,
             },
             context_instance=RequestContext(request))
 
