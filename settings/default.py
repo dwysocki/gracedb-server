@@ -88,7 +88,7 @@ DATABASES = {
 
 # SkyAlert
 
-SKYALERT_IVORN_PATTERN = "ivo://gwnet#%s"
+SKYALERT_IVORN_PATTERN = "ivo://gwnet/gcn_sender#%s"
 SKYALERT_ROLE          = "test"
 SKYALERT_DESCRIPTION   = "Report of a candidate gravitational wave event"
 SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
