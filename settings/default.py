@@ -28,7 +28,7 @@ ALERT_TEST_EMAIL_TO = [
 EMBB_MAIL_ADDRESS = 'embb@gracedb.ligo.org'
 EMBB_SMTP_SERVER = 'localhost'
 EMBB_MAIL_ADMINS = ['branson@gravity.phys.uwm.edu','roy.williams@ligo.org',]
-MBB_IGNORE_ADDRESSES = ['Mailer-Daemon@gracedb.phys.uwm.edu',]
+EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@gracedb.phys.uwm.edu',]
 
 # 11/18/14. No longer checking XMPP_ALERT_CHANNELS. This is not necessary.
 # If someone sends out an event, an alert should go out. Listerers have the 
