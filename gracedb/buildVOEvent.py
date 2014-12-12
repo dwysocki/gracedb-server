@@ -8,19 +8,71 @@ See the VOEvent specification for details
 http://www.ivoa.net/Documents/latest/VOEvent.html
 """
 
-from VOEventLib.VOEvent import VOEvent, Who, What, Author, Param, How, Why
+from VOEventLib.VOEvent import VOEvent, Who, Author, Param, How, Why, What, Group
 from VOEventLib.Vutil import makeWhereWhen, stringVOEvent
 
 # XXX ER2.utils.  utils is in project directory.  ugh.
 from utils import gpsToUtc
+from datetime import datetime
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from models import CoincInspiralEvent, MultiBurstEvent
 
 import os
 
-def buildVOEvent(gevent, request=None, description=None, role=None):
-    objid = gevent.graceid()
+class VOEventBuilderException(Exception):
+    pass
+
+def get_url(request, graceid, view_name, file_name=None):
+    args = [graceid,]
+    if file_name:
+        args.append(file_name)
+    rel_url = reverse(view_name, args=args)
+    return request.build_absolute_uri(rel_url)
+
+#
+# Types of VOEvents:
+#   preliminary:    no skymap
+#   initial:        BAYESTAR skymap
+#   update:         PE skymap
+#
+#   If the type of skymap doesn't exist, then we need to fail in such
+#   a way as to get the attention of the requestor. We don't want to
+#   forward a bad VOEvent with now skymap.
+#
+#   For each skymap, we demand that there be at least one of: 1) an image file,
+#   2) a data file. The image (data) file name should conform to the pattern:
+#   stem + '.png' ('.fits.gz').
+#   This is obviously very fragile. A 'Skymap' data model would help this 
+#   situation considerably, especially if additional skymap types arise.
+#
+SKYMAP_INFO = {
+    'initial' : {
+        'name' : 'BAYESTAR',
+        'stem' : 'skymap',
+    },
+    'update'  : {
+        'name' : 'LALINFERENCE_MCMC',
+        'stem' : 'binned_posterior_samples',
+    }
+}
+
+VOEVENT_TYPES = ['preliminary', 'initial', 'update',]
+
+def buildVOEvent(event, request=None, description=None, role=None, 
+    voevent_type='preliminary'):
+
+    if not event.far:
+        raise VOEventBuilderException("Cannot build a VOEvent because event has no FAR.")
+
+    if not event.gpstime:
+        raise VOEventBuilderException("Cannot build a VOEvent because event has no gpstime.")
+
+    if not voevent_type in VOEVENT_TYPES:
+        # Do something real here XXX
+        raise VOEventBuilderException("voevent_type must be preliminary, initial, or update")
+
+    objid = event.graceid()
 
     ############ VOEvent header ############################
     v = VOEvent(version="2.0")
@@ -34,6 +86,7 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     a.add_contactName("LIGO Scientific Collaboration and Virgo Collaboration")
     #a.add_contactEmail("postmaster@ligo.org")
     w.set_Author(a)
+    w.set_Date(datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S"))
     v.set_Who(w)
 
     ############ Why ############################
@@ -44,7 +97,7 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     ############ How ############################
 
     h = How()
-    instruments = gevent.instruments.split(',')
+    instruments = event.instruments.split(',')
     if 'H1' in instruments:
         h.add_Description("H1: LIGO Hanford 4 km gravitational wave detector")
     if 'L1' in instruments:
@@ -71,156 +124,154 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     #
     # basically, a string that makes sense to humans about what units a value is. eg. "m/s"
 
-    # params related to the event. None are in Groups.
-    p = Param(name="GraceID", ucd="meta.id", value="%s"% objid)
-    p.set_Description(["Identifier in GraceDB"])
-    w.add_Param(p)
+    # The GraceID
+    w.add_Param(Param(name="GraceID", 
+        dataType="string",
+        ucd="meta.id", 
+        value=objid, 
+        Description=["Identifier in GraceDB"]))
 
-    try:
-        p = Param(name="FAR", dataType="float", ucd="arith.rate;stat.falsealarm", unit="Hz", 
-                value=float(gevent.far))
-        p.set_Description(["False alarm rate for GW candidates with this strength or greater"])
-        w.add_Param(p)
-    except:
-        pass
+    # The alert type
+    w.add_Param(Param(name="AlertType",
+        dataType="string",
+        ucd="meta.version",
+        unit="",
+        value = voevent_type.capitalize(),
+        Description=["VOEvent alert type"]))
 
-    #p = Param(name="gpstime", ucd="time.epoch", dataType="int",  value=str(gevent.gpstime))
-    #p.set_Description(["GPS time of the trigger"])
-    #w.add_Param(p)
+    # False alarm rate
+    w.add_Param(Param(name="FAR", 
+        dataType="float", 
+        ucd="arith.rate;stat.falsealarm", 
+        unit="Hz", 
+        value=float(event.far), 
+        Description=["False alarm rate for GW candidates with this strength or greater"]))
 
-    #p = Param(name="likelihood", ucd="stat.likelihood", dataType="float",  value=str(gevent.likelihood))
-    #p.set_Description(["Likelihood"])
-    #w.add_Param(p)
+    # Shib protected event page
+    w.add_Param(Param(name="EventPage",
+        ucd="meta.ref.url",
+        value=get_url(request, objid, "view2"),
+        Description=["Web page for evolving status of this candidate event"]))
 
-    shib_event_page_url = reverse("view2", args=[gevent.graceid()])
-    shib_event_page_url = request.build_absolute_uri(shib_event_page_url)
-    p = Param(name="EventPage", ucd="meta.ref.url", value=shib_event_page_url)
-    p.set_Description(["Web page for evolving status of this candidate event"])
-    w.add_Param(p)
+    # Pipeline
+    w.add_Param(Param(name="Pipeline", 
+        dataType="string", 
+        ucd="meta.code",
+        unit="",
+        value=event.pipeline.name,
+        Description=["Low-latency data analysis pipeline"]))
 
-    # For GCN / SkyAlert.
-    #
-    # pipeline  dataType="string"   ucd=
-    # FAR       dataType="float"    ucd=arith.rate   unit="Hz"
-    # DQ level  dataType="?"        ucd=
-    # IFO list  dataType="string"   ucd=
-    # URL to skymap   Reference/URL
+    # Search
+    if event.search:
+        w.add_Param(Param(name="Search", 
+            ucd="meta.code",
+            unit="",
+            dataType="string", 
+            value=event.search.name,
+            Description=["Specific low-latency search"]))
 
-#    p = Param(name="SearchType", dataType="string", value=str(gevent.get_analysisType_display()))
-#    p.set_Description(["Low-latency search type"])
-#    w.add_Param(p)
+    if voevent_type in ["initial", "update"]:
+        # Skymaps. Create group and set particular fits and image file names
+        g = Group('GW_SKYMAP', SKYMAP_INFO[voevent_type]['name'])
+        fits_name = SKYMAP_INFO[voevent_type]['stem'] + '.fits.gz'
+        img_name  = SKYMAP_INFO[voevent_type]['stem'] + '.png'
 
-    p = Param(name="Pipeline", dataType="string", value=gevent.pipeline.name)
-    p.set_Description(["Low-latency data analysis pipeline"])
-    w.add_Param(p)
+        # Check for the existence of the files.
+        for filename in [fits_name, img_name]:
+            filepath = os.path.join(event.datadir(), filename)
+            if not os.path.exists(filepath):
+                raise VOEventBuilderException("Skymap file %s not found" % filename) 
 
-    # XXX Not sure if we should include the specific search in the VOEvent.
-    if gevent.search:
-        p = Param(name="Search", dataType="string", value=gevent.search.name)
-        p.set_Description(["Specific low-latency search"])
-        w.add_Param(p)
+        # shib urls.
+        shib_fits_skymap_url = get_url(request, objid, "file", fits_name)
+        shib_png_skymap_url  = get_url(request, objid, "file", img_name)
 
-    #p = Param(name="ifolist", dataType="string", value=str(gevent.instruments))
-    #p.set_Description(["Interferometers"])
-    #w.add_Param(p)
+        # x509 urls. Hafta specify the api namespace.
+        x509_fits_skymap_url = get_url(request, objid, "x509:files", fits_name)
+        x509_png_skymap_url  = get_url(request, objid, "x509:files", img_name)
 
-    # Skymaps
-    #  Four of them, per Roy Williams.  (FITS and PNG) x  (x509 auth and Shib auth)
+        # Add parameters to the skymap group
+        g.add_Param(Param(name="skymap_png_x509", 
+            dataType="string",
+            ucd="meta.ref.url", 
+            unit="",
+            value=x509_png_skymap_url,
+            Description=["Sky Map image X509 protected"]))
 
-    # relative URLs (huh? -- Branson)
-    #x509_fits_skymap_url = reverse("file", args=[gevent.graceid(), "skymap.fits"])
-    #x509_png_skymap_url = reverse("file", args=[gevent.graceid(), "skymap.png"])
+        g.add_Param(Param(name="skymap_fits_x509", 
+            dataType="string",
+            ucd="meta.ref.url", 
+            unit="",
+            value=x509_fits_skymap_url,
+            Description=["Sky Map FITS X509 protected"]))
 
-    # XXX gracedb.ligo.org urls.  they are a little problematic.
-    # they do not do mime-types correctly and they do not let go of the connection for some reason.
-    #shib_fits_skymap_url = reverse("file", args=[gevent.graceid(), "general/bayestar/skymap.fits"])
-    #shib_png_skymap_url = reverse("file", args=[gevent.graceid(), "general/bayestar/skymap.png"])
+        g.add_Param(Param(name="skymap_png_shib", 
+            dataType="string",
+            ucd="meta.ref.url", 
+            unit="",
+            value=shib_png_skymap_url,
+            Description=["Sky Map image Shibboleth protected"]))
 
-    # Old sad bad ldad-jobs urls
-    # Confused. These are protected by shib, but so are the others.  And these are ugly.
-    # shib_fits_skymap_url = gevent.weburl() + "/private/skymap.fits"
-    # shib_png_skymap_url  = gevent.weburl() + "/private/skymap.png"
-    shib_fits_skymap_url = reverse("file", args=[gevent.graceid(), "skymap.fits"])
-    shib_png_skymap_url = reverse("file", args=[gevent.graceid(), "skymap.png"])
+        g.add_Param(Param(name="skymap_fits_shib", 
+            dataType="string",
+            ucd="meta.ref.url", 
+            unit="",
+            value=shib_fits_skymap_url,
+            Description=["Sky Map FITS Shibboleth protected"]))
 
-    # x509 urls. Hafta specify the api namespace.
-    x509_fits_skymap_url = reverse("x509:files", args=[gevent.graceid(), "skymap.fits"])
-    x509_png_skymap_url = reverse("x509:files", args=[gevent.graceid(), "skymap.png"])
-
-    # Need request to build absolute URL
-    # XXX should probably be an error if we can't give the full absolute url.
-    if request:
-
-        # Shib URL
-        # https://gracedb.ligo.org/events/G43582/files/skymap_G43582.png
-
-        x509_fits_skymap_url = request.build_absolute_uri(x509_fits_skymap_url)
-        x509_png_skymap_url = request.build_absolute_uri(x509_png_skymap_url)
-
-        shib_fits_skymap_url = request.build_absolute_uri(shib_fits_skymap_url)
-        shib_png_skymap_url = request.build_absolute_uri(shib_png_skymap_url)
-
-        p = Param(name="skymap_png_x509", ucd="meta.ref.url", value=x509_png_skymap_url)
-        p.set_Description(["Sky Map image X509 protected"])
-        w.add_Param(p)
-
-        p = Param(name="skymap_fits_x509", ucd="meta.ref.url", value=x509_fits_skymap_url)
-        p.set_Description(["Sky Map FITS X509 protected"])
-        w.add_Param(p)
-
-        p = Param(name="skymap_png_shib", ucd="meta.ref.url", value=shib_png_skymap_url)
-        p.set_Description(["Sky Map image Shibboleth protected"])
-        w.add_Param(p)
-
-        p = Param(name="skymap_fits_shib", ucd="meta.ref.url", value=shib_fits_skymap_url)
-        p.set_Description(["Sky Map FITS Shibboleth protected"])
-        w.add_Param(p)
-
-#   if request:
-#       # XXX should probably be an error if we can't give the full url.
-#       skymap_url = request.build_absolute_uri(skymap_url)
-#   p = Param(name="skymap_png", value=skymap_url)
-#   p.set_Description(["Sky Map Image"])
-#   #p.set_Reference([Reference(uri=skymap_url)])
-#   w.add_Param(p)
+        w.add_Group(g)
 
     # Analysis specific attributes
-    if isinstance(gevent,CoincInspiralEvent):
+    if isinstance(event,CoincInspiralEvent):
         # get mchirp and mass
-        mchirp = float(gevent.mchirp)
-        mass = float(gevent.mass)
+        mchirp = float(event.mchirp)
+        mass = float(event.mass)
         # calculate eta = (mchirp/total_mass)**(5/3)
         eta = pow((mchirp/mass),5.0/3.0)
-        p = Param(name="ChirpMass", dataType="float", ucd="phys.mass", unit="solar mass",
-                value=mchirp)
-        w.add_Param(p)
-        p = Param(name="Eta", dataType="float", ucd="phys.mass;arith.factor", unit="",
-                value=eta)
-        w.add_Param(p)
+        w.add_Param(Param(name="ChirpMass", 
+            dataType="float", 
+            ucd="phys.mass", 
+            unit="solar mass",
+            value=mchirp,
+            Description=["Estimated CBC chirp mass"]))
 
-        # build up MaxDistance. gevent.singleinspiral_set.all()?
+        w.add_Param(Param(name="Eta", 
+            dataType="float", 
+            ucd="phys.mass;arith.factor", 
+            unit="",
+            value=eta,
+            Description=["Estimated ratio of reduced mass to total mass"]))
+
+        # build up MaxDistance. event.singleinspiral_set.all()?
         # Each detector calculates an effective distance assuming the inspiral is 
         # optimally oriented. It is the maximum distance at which a source of the 
         # given parameters would've been seen by that particular detector. To get
         # an effective 'maximum distance', we just find the minumum over detectors
         max_distance = float('inf')
-        for obj in gevent.singleinspiral_set.all():
+        for obj in event.singleinspiral_set.all():
             if obj.eff_distance < max_distance:
                 max_distance = obj.eff_distance
         if max_distance < float('inf'):
-            p = Param(name="MaxDistance", dataType="float", ucd="pos.distance", unit="Mpc",
-                    value=max_distance)
-            w.add_Param(p)
+            w.add_Param(Param(name="MaxDistance", 
+                dataType="float", 
+                ucd="pos.distance", 
+                unit="Mpc",
+                value=max_distance, 
+                Description=["Estimated maximum distance for CBC event"]))
             
-    elif isinstance(gevent,MultiBurstEvent):
-        p = Param(name="CentralFreq", dataType="float", ucd="gw.frequency", unit="Hz", 
-                value=float(gevent.central_freq))
-        p.set_Description(["Central frequency of GW burst signal."])
-        w.add_Param(p)
-        p = Param(name="Duration", dataType="float", ucd="time.duration", unit="s", 
-                value=float(gevent.duration))
-        p.set_Description(["Measured duration of GW burst signal."])
-        w.add_Param(p)
+    elif isinstance(event,MultiBurstEvent):
+        w.add_Param(Param(name="CentralFreq", 
+            dataType="float", 
+            ucd="gw.frequency", 
+            unit="Hz", 
+            value=float(event.central_freq),
+            Description=["Central frequency of GW burst signal"]))
+        w.add_Param(Param(name="Duration", 
+            dataType="float", 
+            ucd="time.duration", 
+            unit="s", 
+            value=float(event.duration),
+            Description=["Measured duration of GW burst signal"]))
 
         # XXX Calculate the fluence. Unfortunately, this requires parsing the trigger.txt
         # file for hrss values.  These should probably be pulled into the database.
@@ -228,9 +279,9 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
         # put off changing the schema for now.
         try:
             # Go find the data file.
-            log = gevent.eventlog_set.filter(comment__startswith="Original Data").all()[0]
+            log = event.eventlog_set.filter(comment__startswith="Original Data").all()[0]
             filename = log.filename
-            filepath = os.path.join(gevent.datadir(),filename)
+            filepath = os.path.join(event.datadir(),filename)
             if os.path.isfile(filepath):
                 datafile = open(filepath,"r")
             else:
@@ -247,15 +298,17 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
             pi = 3.14152
             c = 2.99792E10
             G = 6.674E-8
-            fluence = pi * pow(c,3) * pow(gevent.central_freq,2) * 1000.0
+            fluence = pi * pow(c,3) * pow(event.central_freq,2) * 1000.0
             fluence = fluence * pow(max_hrss,2)
             fluence = fluence / (4.0*G)
 
-            p = Param(name="Fluence", dataType="float", ucd="gw.fluence", unit="erg/cm^2", 
-                    value=fluence)
-            p.set_Description(["Estimated fluence of GW burst signal."])
-            w.add_Param(p)
-        except Exception, e: 
+            w.add_Param(Param(name="Fluence", 
+                dataType="float", 
+                ucd="gw.fluence", 
+                unit="erg/cm^2", 
+                value=fluence,
+                Description=["Estimated fluence of GW burst signal"]))
+        except Exception: 
             pass
     else:
         pass
@@ -266,7 +319,7 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
     wwd = {'observatory':     'LIGO Virgo',
            'coord_system':    'UTC-FK5-GEO',
            # XXX time format
-           'time':            str(gpsToUtc(gevent.gpstime).isoformat())[:-6],   #'1918-11-11T11:11:11',
+           'time':            str(gpsToUtc(event.gpstime).isoformat())[:-6],   #'1918-11-11T11:11:11',
            #'timeError':       1.0,
            'longitude':       0.0,
            'latitude':        0.0,
@@ -287,7 +340,7 @@ def buildVOEvent(gevent, request=None, description=None, role=None):
         #schemaURL = "http://www.ivoa.net/xml/VOEvent/VOEvent-v2.0.xsd")
     return xml
 
-def submitToSkyalert(gevent, validate_only=False):
+def submitToSkyalert(event, validate_only=False):
     ## Python stub code for validating and authoring VOEvents to Skyalert
     import urllib
     dict = {}
@@ -317,7 +370,7 @@ def submitToSkyalert(gevent, validate_only=False):
         # Should alerts be run once the event is ingested?
         dict['doRules'] = 'on'
 
-    dict['xmlText'] = buildVOEvent(gevent)
+    dict['xmlText'] = buildVOEvent(event)
     params = urllib.urlencode(dict)
     f = urllib.urlopen(url, params)
     result = f.read()
