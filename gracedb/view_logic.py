@@ -102,7 +102,8 @@ def _createEventFromForm(request, form):
                 issueAlert(event,
                            #os.path.join(event.clusterurl(), "private", f.name),
                            request.build_absolute_uri(reverse("file", args=[event.graceid(),f.name])),
-                           temp_data_loc)
+                           temp_data_loc,
+                           request.build_absolute_uri(reverse("view", args=[event.graceid()])))
             except Exception, e:
                 warnings += ["Problem issuing an alert (%s)" % e]
         except Exception, e:

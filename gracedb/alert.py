@@ -1,13 +1,9 @@
 
 import sys
-import time
 from subprocess import Popen, PIPE, STDOUT
-import StringIO
 
 from django.core.mail import EmailMessage
 from django.conf import settings
-from django.contrib.sites.models import Site
-from django.core.urlresolvers import reverse
 
 import json
 
@@ -15,9 +11,9 @@ import logging
 
 log = logging.getLogger('gracedb.alert')
 
-def issueAlert(event, location, temp_data_loc):
+def issueAlert(event, location, temp_data_loc, event_url):
     issueXMPPAlert(event, location, temp_data_loc)
-    issueEmailAlert(event, location)
+    issueEmailAlert(event, event_url)
 
 def indent(nindent, text):
     return "\n".join([(nindent*' ')+line for line in text.split('\n')])
@@ -67,7 +63,7 @@ def issueAlertForLabel(event, label, doxmpp):
         email.send()
 
 
-def issueEmailAlert(event, location):
+def issueEmailAlert(event, event_url):
 
     # Gather Recipients
     if event.group.name == 'Test':
@@ -102,7 +98,7 @@ Event Summary:
     message %= (event.group.name,
                 event.pipeline.name,
                 event.graceid(),
-                'https://'+Site.objects.get_current().domain+ reverse("view", args=[event.graceid()]),
+                event_url,
                 event.weburl(),
                 "%s %s" % (event.submitter.first_name, event.submitter.last_name),
                 indent(3, prepareSummary(event))

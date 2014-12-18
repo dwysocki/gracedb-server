@@ -79,7 +79,7 @@ LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
 UPTIME_REPORT_DIR = "/home/jkanner/data/uptime"
 
 
-SITE_ID = 4
+#SITE_ID = 4
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -130,7 +130,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
+#    'django.contrib.sites',
     'django.contrib.staticfiles',
     'gracedb',
     'userprofile',
