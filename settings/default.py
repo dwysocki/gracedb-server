@@ -66,7 +66,7 @@ BLESSED_TAGS = [
 COINC_PIPELINES = [
                     'gstlal',
                     'gstlal-spiir',
-                    'MBTA',
+                    'MBTAOnline',
                    ]
 
 GRB_PIPELINES = [

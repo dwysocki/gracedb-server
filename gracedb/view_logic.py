@@ -93,7 +93,8 @@ def _createEventFromForm(request, form):
         # Temp (ha!) hack to deal with
         # out of band data from Omega to LUMIN.
         try:
-            temp_data_loc = handle_uploaded_data(event, uploadDestination)
+            temp_data_loc, translator_warnings  = handle_uploaded_data(event, uploadDestination)
+            warnings += translator_warnings
             try:
                 # Send an alert.
                 # XXX This reverse will give the web-interface URL, not the REST URL.

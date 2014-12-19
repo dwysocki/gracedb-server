@@ -18,6 +18,8 @@ from utils.vfile import VersionedFile
 
 import json
 
+import logging
+
 # This function checks for 'inf' in a float field, asks the database
 # what's the maximum value it can accept for that field, and returns
 # that value. Since the database query will introduce some overhead,
@@ -44,6 +46,8 @@ def handle_uploaded_data(event, datafilename,
                          log_filename='event.log',
                          coinc_table_filename='coinc.xml'):
 
+    logger = logging.getLogger(__name__)
+
     log = EventLog(event=event,
                    filename=os.path.basename(datafilename),
                    issuer=event.submitter,
@@ -51,10 +55,12 @@ def handle_uploaded_data(event, datafilename,
     log.save()
 
     temp_data_loc = ""
+    warnings = []
 
     pipeline = event.pipeline.name
 
-    if pipeline in [ 'gstlal', 'gstlal-spiir' ]:
+    if pipeline in [ 'gstlal', 'gstlal-spiir' ] or (pipeline=='MBTAOnline' and '.xml' in datafilename):
+        logger.debug("Okay, doing it with the coinc.")
         log_comment = "Log File Created"
         # Wildly speculative wrt HM
 
@@ -157,6 +163,8 @@ def handle_uploaded_data(event, datafilename,
 
         event.save()
 
+        logger.debug("Okay, just saved the event. Now onto the sngl stuff.")
+
         # Extract Single Inspiral Information
         s_inspiral_tables = glue.ligolw.table.getTablesByName(
                 xmldoc,
@@ -165,6 +173,8 @@ def handle_uploaded_data(event, datafilename,
         # Concatentate the tables' rows into a single table
         table = sum(s_inspiral_tables, [])
         SingleInspiral.create_events_from_ligolw_table(table, event)
+
+        logger.debug("Got down here. Should've created SingleInspiral.")
 
     elif pipeline == 'HardwareInjection':
         log_comment = "Log File Created"
@@ -218,7 +228,10 @@ def handle_uploaded_data(event, datafilename,
                        issuer=event.submitter,
                        comment=log_comment)
         log.save()
-    elif pipeline == 'MBTAOnline':
+    # XXX Submitting MBTA events by frame file is now deprecated as of 19 Dec. 2014.
+    # Feel free to break this after 19 Dec. 2015.
+    elif pipeline == 'MBTAOnline' and '.gwf' in datafilename:
+        warnings += ['Submitting MBTA events via frame file is deprecated. Please use coinc.xml file instead.']
         #here's how it works for inspirals
         #populate the tables
         #xmldoc, log_data, temp_data_loc = populate_inspiral_tables("MbtaFake-930909680-16.gwf") 
@@ -416,7 +429,7 @@ def handle_uploaded_data(event, datafilename,
         # XXX should we do something here?
         pass
 
-    return temp_data_loc
+    return temp_data_loc, warnings
 
 # Let's try to:
 #

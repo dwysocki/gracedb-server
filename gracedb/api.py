@@ -660,10 +660,11 @@ class EventList(APIView):
         # XXX Deal with POSTs coming in from the old client.
         # Eventually, we will want to get rid of this check and just let it fail.
         rv = {}
+        rv['warnings'] = []
         if 'type' in request.POST:
             request = fix_old_creation_request(request)
-            rv['warnings'] = 'It looks like you are using the old GraceDB client (v<=1.14). ' + \
-                             'Please update! This will eventually stop working.'
+            rv['warnings'] += ['It looks like you are using the old GraceDB client (v<=1.14). ' + \
+                             'Please update! This will eventually stop working.']
 
         # Check user authorization for pipeline. 
         # XXX This is a temporary hack until they roll out the new client.
@@ -682,6 +683,7 @@ class EventList(APIView):
             event, warnings = _createEventFromForm(request, form)
             if event:
                 rv.update(eventToDict(event, request=request))
+                rv['warnings'] += warnings
                 response = Response(rv, status=status.HTTP_201_CREATED)
                 response["Location"] = reverse(
                         'event-detail',
