@@ -31,7 +31,7 @@ from view_utils import flexigridResponse, jqgridResponse
 import os
 from django.conf import settings
 
-from buildVOEvent import buildVOEvent
+from buildVOEvent import buildVOEvent, VOEventBuilderException
 
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
@@ -85,18 +85,17 @@ def discovery(request):
 
 @event_and_auth_required
 def voevent(request, event):
-    if not event.far or not event.gpstime:
-        # can't build VOEvent without a FAR or GPS time
-        message = "Cannot build a VOEvent."
-        if not event.far:
-            message += " Event has no FAR."
-        if not event.gpstime:
-            message += " Event has no GPS time."
-        return render_to_response(
-                '404.html',
-                {"message":message},
-                context_instance=RequestContext(request))
-    voevent = buildVOEvent(event, request)
+    # Default VOEvent type is 'preliminary'
+    voevent_type=request.GET.get('voevent_type', 'preliminary')
+    try:
+        voevent = buildVOEvent(event, request, voevent_type=voevent_type)
+    # Exceptions caused by user errors of some sort.
+    except VOEventBuilderException, e:
+        return HttpResponseBadRequest(str(e))
+    # All other exceptions return 500.
+    except Exception, e:
+        return HttpResponseServerError(str(e))
+         
     return HttpResponse(voevent, content_type="application/xml")
 
 def create(request):

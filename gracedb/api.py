@@ -27,7 +27,7 @@ from permission_utils import user_has_perm, filter_events_for_user
 from guardian.models import GroupObjectPermission
 
 from alert import issueAlertForUpdate
-from buildVOEvent import buildVOEvent
+from buildVOEvent import buildVOEvent, VOEventBuilderException
 
 import os
 import urllib
@@ -854,8 +854,11 @@ class EventVODetail(APIView):
 
     @event_and_auth_required
     def get(self, request, event):
+        voevent_type = request.QUERY_PARAMS.get('voevent_type', 'preliminary')
         try:
-            voevent = buildVOEvent(event,request)
+            voevent = buildVOEvent(event, request, voevent_type=voevent_type)
+        except VOEventBuilderException, e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
         except Exception, e:
             return Response("Problem building VOEvent: %s" % str(e),
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
