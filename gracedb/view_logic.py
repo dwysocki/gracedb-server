@@ -344,90 +344,14 @@ def create_eel(d, event, user):
         raise ValueError('Please specify a waveband')
 
     # Assign RA and Dec, plus widths
-    eel.raList = d.get('ra', None)
-    eel.raWidthList = d.get('raWidth', None)
+    eel.raList = d.get('ra', '')
+    eel.raWidthList = d.get('raWidth', '')
 
-    eel.decList = d.get('dec', None)
-    eel.decWidthList = d.get('decWidth', None)
+    eel.decList = d.get('dec', '')
+    eel.decWidthList = d.get('decWidth', '')
 
-    eel.gpstimeList = d.get('gpstime', None)
-    eel.durationList = d.get('duration', None)
-
-    ratok = eel.raList.split(',')
-    rawtok = eel.raWidthList.split(',')
-
-    dectok = eel.decList.split(',')
-    decwtok = eel.decWidthList.split(',')
-
-    gpstok = eel.gpstimeList.split(',')
-    gpswtok = eel.durationList.split(',')
-
-    nList = len(ratok)
-    if len(dectok) != nList:
-        raise ValueError('RA and Dec lists are different lengths.')
-    if len(gpstok) != nList:
-        raise ValueError('RA and GPS lists are different lengths.')
-
-    mList = len(rawtok)
-    if len(decwtok) != mList:
-        raise ValueError('RAwidth and Decwidth lists are different lengths.')
-    if len(gpswtok) != mList:
-        raise ValueError('RAwidth and Duration lists are different lengths.')
-    if mList != 1 and mList != nList:
-        raise ValueError('Width and duration lists must be length 1 or same length as coordinate lists')
-
-    ramin = 360.0
-    ramax = 0.0
-    decmin = 90.0
-    decmax = -90.0
-    gpsmin = 100000000000
-    gpsmax = 0
-    for i in range(nList):
-        try:
-            ra = float(ratok[i])
-        except:
-            raise ValueError('Cannot read RA list element %d'%i)
-        try:
-            dec = float(dectok[i])
-        except:
-            raise ValueError('Cannot read Dec list element %d'%i)
-        try:
-            gps = int(gpstok[i])
-        except:
-            raise ValueError('Cannot read GPStime list element %d'%i)
-        if mList==1: j=0
-        else       : j=i
-        try:
-            w = float(rawtok[j])
-        except:
-            raise ValueError('Cannot read raWidth list element %d'%i)
-        if ra-w < ramin: ramin = ra-w
-        if ra+w > ramax: ramax = ra+w
-        try:
-            w = float(decwtok[j])
-        except:
-            raise ValueError('Cannot read raWidth list element %d'%i)
-        if dec-w < decmin: decmin = dec-w
-        if dec+w > decmax: decmax = dec+w
-        try:
-            w = int(gpswtok[j])
-        except:
-            raise ValueError('Cannot read duration list element %d'%i)
-        if gps-w < gpsmin: gpsmin = gps-w
-        if gps+w > gpsmax: gpsmax = gps+w
-
-    # Make sure the min/max ra and dec are within bounds:
-    ramin  = max(0.0,   ramin)
-    ramax  = min(360.0, ramax)
-    decmin = max(-90.0, decmin)
-    decmax = min(90.0,  decmax)
-
-    eel.ra = (ramin+ramax)/2
-    eel.raWidth = ramax-ramin
-    eel.dec = (decmin+decmax)/2
-    eel.decWidth = decmax-decmin
-    eel.gpstime = (gpsmin+gpsmax)/2
-    eel.duration = gpsmax-gpsmin
+    eel.gpstimeList = d.get('gpstime', '')
+    eel.durationList = d.get('duration', '')
 
     # Assign EEL status and observation status.
     try:
@@ -441,6 +365,8 @@ def create_eel(d, event, user):
 
     eel.extra_info_dict = d.get('extra_info_dict', '')
     eel.comment = d.get('comment', '')
+
+    eel.validateMakeRects()
     eel.save()
     return eel
 
