@@ -119,8 +119,7 @@ class Command(BaseCommand):
                 from_address = email_obj._unixfrom.split()[1]
             except Exception, e:
                 self.transcript += 'Problem parsing out sender address\n' + str(e)
-#%%%%                return sendResponse(settings.EMBB_MAIL_ADMINS, 'embb submission failure', self.transcript)
-        from_address='roy.williams@ligo.org'   # %%%%%
+                return sendResponse(settings.EMBB_MAIL_ADMINS, 'embb submission failure', self.transcript)
 
         # find the submitter
         # Look up the sender's address.
