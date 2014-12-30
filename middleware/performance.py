@@ -8,7 +8,12 @@ class PerformanceMiddleware:
     def process_response(self, request, response):
         # Determine whether the user tried to create or replace an event.
         logger = logging.getLogger(__name__)
-        url_name = resolve(request.path_info).url_name
+        # If the URL isn't among the URLs known to Django, we just return the response.
+        try:
+            url_name = resolve(request.path_info).url_name
+        except:
+            return response
+
         create = False
         if url_name=='create':
             create = True
