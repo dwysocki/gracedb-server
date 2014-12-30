@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from model_utils.managers import InheritanceManager
 
 from django.contrib.auth.models import User as DjangoUser
-from django.contrib.auth.models import Group
+#from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from guardian.models import GroupObjectPermission
 
@@ -16,6 +16,8 @@ import glue.ligolw
 import glue.ligolw.utils
 import glue.ligolw.table
 import glue.ligolw.lsctables
+from glue.ligolw.ligolw import LIGOLWContentHandler
+
 from glue.lal import LIGOTimeGPS
 
 import json
@@ -650,14 +652,12 @@ class SingleInspiral(models.Model):
             datafile = os.path.join(event.datadir(), 'coinc.xml')
 
         try:
-            xmldoc = glue.ligolw.utils.load_filename(datafile)
+            xmldoc = glue.ligolw.utils.load_filename(datafile, contenthandler=LIGOLWContentHandler)
         except IOError:
             return None
 
         # Extract Single Inspiral Information
-        s_inspiral_tables = glue.ligolw.table.getTablesByName(
-                xmldoc,
-                glue.ligolw.lsctables.SnglInspiralTable.tableName)
+        s_inspiral_tables = glue.ligolw.lsctables.SnglInspiralTable.get_table(xmldoc)
 
         # Concatentate the tables' rows into a single table
         table = sum(s_inspiral_tables, [])

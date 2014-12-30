@@ -71,7 +71,11 @@ from glue.ligolw import ligolw
 # lsctables MUST be loaded before utils.
 from glue.ligolw import utils
 from glue.ligolw.utils import ligolw_add
+from glue.ligolw.ligolw import LIGOLWContentHandler
+from glue.ligolw.lsctables import use_in
 import StringIO
+
+use_in(LIGOLWContentHandler)
 
 # Note about reverse() in this file -- there are THREE versions of it here.
 #
@@ -337,7 +341,7 @@ def assembleLigoLw(data):
             raise MissingCoinc
         elif not os.access(fname, os.R_OK):
             raise CoincAccess
-        utils.load_filename(fname, xmldoc=xmldoc)
+        utils.load_filename(fname, xmldoc=xmldoc, contenthandler=LIGOLWContentHandler)
     ligolw_add.reassign_ids(xmldoc)
     ligolw_add.merge_ligolws(xmldoc)
     ligolw_add.merge_compatible_tables(xmldoc)
