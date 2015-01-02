@@ -561,6 +561,12 @@ class EMBBEventLog(models.Model):
             # evaluate bounding box
             if gps-w < gpsmin: gpsmin = gps-w
             if gps+w > gpsmax: gpsmax = gps+w
+
+        # Make sure the min/max ra and dec are within bounds:
+        ramin  = max(0.0,   ramin)
+        ramax  = min(360.0, ramax)
+        decmin = max(-90.0, decmin)
+        decmax = min(90.0,  decmax)            
  
         if nList>0:
             self.ra       = (ramin + ramax)/2

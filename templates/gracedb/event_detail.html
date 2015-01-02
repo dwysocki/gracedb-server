@@ -504,7 +504,7 @@
             var sV_button = dom.byId("sV_button");
             if (sV_button) {
                 on(sV_button, "click", function() {
-                    var embblog_json_url = "/gracedb/events/{{ object.graceid }}/embblog";
+                    var embblog_json_url = "{% url "api:embbeventlog-list" object.graceid %}";
                     var embblog_json;
                     dojo.xhrGet({
                         url: embblog_json_url,
@@ -901,7 +901,8 @@ JSON data</a></td>       <td colspan=2><textarea name="extra_info_dict" rows="20
                 {% else %} 
 					data-dojo-props="title: 'Bulletin Board Log', open: false">
                 {% endif %}
-This data in <a href="/gracedb/events/{{ object.graceid }}/embblog/">JSON</a><br/>
+<!-- XXX This link is now broken. -->
+<!-- This data in <a href="/gracedb/events/{{ object.graceid }}/embblog/">JSON</a><br/> -->
 <table id="bb_2" class="event" border="1" 
 style="table-layout:fixed; width:100%;word-wrap:break-word;">
 						<thead>
