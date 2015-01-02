@@ -570,6 +570,7 @@ class EMBBEventLog(models.Model):
             self.raWidth  = ramax-ramin
             self.decWidth = decmax-decmin
             self.duration = gpsmax-gpsmin
+        return True
 
     # We overload the 'save' method to avoid race conditions, since the Eels are numbered. 
     def save(self, *args, **kwargs):
