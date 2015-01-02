@@ -819,20 +819,32 @@ Waveband</a></td>       <td colspan=2><select name="waveband">
 <option value="em.radio.100-200MHz">Radio between 100 and 200 MHz</option>
 <option value="em.radio.20-100MHz">Radio between 20 and 100 MHz</option>
                                 </select></td></tr>
+</table>
+<hr/>
+<script>
+function showRectanglesCheckbox(){
+    var s = document.getElementById('showRectangles');
+    showRectangles = s.checked;
+    if(showRectangles){ document.getElementById('rectanglesForm').style.display = "block"
+    } else {            document.getElementById('rectanglesForm').style.display = "none"
+    }
+    redrawAll();
+    return false;
+}
+</script>
+<input id="showRectangles" type="checkbox" onclick="showRectanglesCheckbox()" />add Sky Footprints<br/>
+<div id=rectanglesForm style="display: none;">
+<table>
 <tr><td><a href=# onclick="alert('RA and Dec specify a center point of a rectangle that is aligned equatorially. Or list of centers. They must be in decimal degrees 0<=RA<=360 -90<=Dec<=90, in the J2000 frame.');return false;">
 RA (decimal degrees)</a></td>             <td><input type="text" name="raList" value="" size=80/></td></tr>
 
 <tr><td><a href=# onclick="alert('RA and Dec specify a center point of a rectangle that is aligned equatorially. Or list of centers. They must be in decimal degrees 0<=RA<=360 -90<=Dec<=90, in the J2000 frame.');return false;">
 Dec (decimal degrees)</a></td>            <td><input type="text" name="decList" value="" size=80/></td></tr>
 
-<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
-RAwidth (decimal degrees)</a></td>        <td><input type="text" name="raWidthList" value=""/></td></tr>
-
-<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
-Decwidth (decimal degrees)</a></td>       <td><input type="text" name="decWidthList" value=""/></td></tr>
-
+<!--
 <script language="javascript" type="text/javascript" src="https://losc.ligo.org/s/js/gpstimeutil.js"></script>
 <script language="javascript" type="text/javascript" src="https://losc.ligo.org/s/js/sexg.js"></script>
+-->
 
 
 <tr><td><a href=# onclick="alert('The time at the center of a time interval during which the observation was taken. Or list of times.');return false;">
@@ -845,14 +857,38 @@ GPStime</a></td>
 -->
 </tr>
 
+<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
+RAwidth (decimal degrees)</a></td>        <td><input type="text" name="raWidthList" value=""/></td></tr>
+
+<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
+Decwidth (decimal degrees)</a></td>       <td><input type="text" name="decWidthList" value=""/></td></tr>
 
 <tr><td><a href=# onclick="alert('Duration is the number of seconds in the time interval during which the observation was taken.');return false;">
 Duration (seconds)</a></td>       <td><input type="text" name="durationList" value=""/></td></tr>
 
-<tr><td><a href=# onclick="alert('This section allows for machine-readable data to be included in a flexible way. any key can be any value in a JSON dictionary. There is a useful validator at http://jsonlint.com.');return false;">
-JSON data</a></td>       <td colspan=2><textarea name="extra_info_dict"  cols="50">{"phot.mag.limit": 22.3}</textarea></td></tr>
 </table>
-<input type="submit" value="Submit"/>
+</div>
+<hr/>
+<script>
+function showJsonCheckbox(){
+    var s = document.getElementById('showJson');
+    showJson = s.checked;
+    if(showJson){ document.getElementById('jsonForm').style.display = "block"
+    } else {      document.getElementById('jsonForm').style.display = "none"
+    }
+    redrawAll();
+    return false;
+}
+</script>
+<input id="showJson" type="checkbox" onclick="showJsonCheckbox()" />add JSON data<br/>
+<div id=jsonForm style="display: none;">
+<table>
+<tr><td><a href=# onclick="alert('This section allows for machine-readable data to be included in a flexible way. any key can be any value in a JSON dictionary. There is a useful validator at http://jsonlint.com.');return false;">
+JSON data</a></td>       <td colspan=2><textarea name="extra_info_dict" rows="20" cols="50"></textarea></td></tr>
+</table>
+</div>
+<hr/>
+<input type="submit" value="Submit EMBB Report"/>
 </form>
 
 
