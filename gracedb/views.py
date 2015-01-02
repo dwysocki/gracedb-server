@@ -777,20 +777,22 @@ def embblogentry(request, event, num=None):
 
         return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
     else:
-        if not user_has_perm(request.user, 'view', event):
-              return HttpResponseForbidden("Forbidden")
-        if not num:
-            eels = event.embbeventlog_set.all()
-            ceels = []
-            for eel in eels:
-                color = md5(eel.group.name).hexdigest()[:6]
-                ceels.append([color, eel])
-            context = {"ceels":ceels}
-            return render_to_response('gracedb/embb.json', context, 
-                context_instance=RequestContext(request), mimetype="application/json")
-        else:
-            return HttpResponse(content="Individual EEL view in web interface not implemented.", 
-                status=501)
+        return HttpResponseBadRequest("This URL only supports POST.")
+
+#        if not user_has_perm(request.user, 'view', event):
+#              return HttpResponseForbidden("Forbidden")
+#        if not num:
+#            eels = event.embbeventlog_set.all()
+#            ceels = []
+#            for eel in eels:
+#                color = md5(eel.group.name).hexdigest()[:6]
+#                ceels.append([color, eel])
+#            context = {"ceels":ceels}
+#            return render_to_response('gracedb/embb.json', context, 
+#                context_instance=RequestContext(request), mimetype="application/json")
+#        else:
+#            return HttpResponse(content="Individual EEL view in web interface not implemented.", 
+#                status=501)
 #            try:
 #                eel = event.embbeventlog_set.filter(N=num)[0]
 #            except Exception:
