@@ -48,7 +48,7 @@ MBB_IGNORE_ADDRESSES = ['Mailer-Daemon@gracedb.phys.uwm.edu',]
 #                        'external_grb',
 #                      ]
 
-SKYMAP_VIEWER_SERVICE_URL = "https://embb-dev.ligo.caltech.edu/cgi-bin/skymapViewer"
+SKYMAP_VIEWER_SERVICE_URL = "https://embb-dev.ligo.caltech.edu/skymap-viewer/aladin/skymap-viewer.cgi"
 
 BLESSED_TAGS = [
                  'analyst_comments',
@@ -279,10 +279,10 @@ STATICFILES_FINDERS = (
 STATICFILES_DIRS = ()
 
 # Added in order to perform data migrations on the auth app
-SOUTH_MIGRATION_MODULES = {
-    'auth' : 'migrations.auth',
-    'guardian' : 'migrations.guardian',
-}
+#SOUTH_MIGRATION_MODULES = {
+#    'auth' : 'migrations.auth',
+#    'guardian' : 'migrations.guardian',
+#}
 
 SOUTH_TESTS_MIGRATE = False
 

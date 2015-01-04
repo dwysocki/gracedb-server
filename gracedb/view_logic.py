@@ -330,6 +330,7 @@ def create_eel(d, event, user):
         eel.group = EMGroup.objects.get(name=d.get('group'))
     except:
         raise ValueError('Please specify an EM followup MOU group')
+        return False
 
     # Assign an instrument name
     eel.instrument = d.get('instrument', '')
@@ -344,14 +345,14 @@ def create_eel(d, event, user):
         raise ValueError('Please specify a waveband')
 
     # Assign RA and Dec, plus widths
-    eel.raList = d.get('ra', '')
-    eel.raWidthList = d.get('raWidth', '')
+    eel.raList = d.get('raList', '')
+    eel.raWidthList = d.get('raWidthList', '')
 
-    eel.decList = d.get('dec', '')
-    eel.decWidthList = d.get('decWidth', '')
+    eel.decList = d.get('decList', '')
+    eel.decWidthList = d.get('decWidthList', '')
 
-    eel.gpstimeList = d.get('gpstime', '')
-    eel.durationList = d.get('duration', '')
+    eel.gpstimeList = d.get('gpstimeList', '')
+    eel.durationList = d.get('durationList', '')
 
     # Assign EEL status and observation status.
     try:
@@ -366,7 +367,12 @@ def create_eel(d, event, user):
     eel.extra_info_dict = d.get('extra_info_dict', '')
     eel.comment = d.get('comment', '')
 
-    eel.validateMakeRects()
-    eel.save()
-    return eel
+    try:
+        eel.validateMakeRects()
+        eel.save()
+        return True
+    except Exception, e:
+        raise ValueError('EEL not saved' + e)
+        return False
+        
 
