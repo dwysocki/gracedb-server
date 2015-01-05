@@ -367,12 +367,6 @@ def create_eel(d, event, user):
     eel.extra_info_dict = d.get('extra_info_dict', '')
     eel.comment = d.get('comment', '')
 
-    try:
-        eel.validateMakeRects()
-        eel.save()
-        return True
-    except Exception, e:
-        raise ValueError('EEL not saved' + e)
-        return False
-        
-
+    eel.validateMakeRects()
+    eel.save()
+    return True
