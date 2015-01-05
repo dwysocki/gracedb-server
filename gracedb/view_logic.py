@@ -332,7 +332,6 @@ def create_eel(d, event, user):
         eel.group = EMGroup.objects.get(name=d.get('group'))
     except:
         raise ValueError('Please specify an EM followup MOU group')
-        return False
 
     # Assign an instrument name
     eel.instrument = d.get('instrument', '')
@@ -371,4 +370,4 @@ def create_eel(d, event, user):
 
     eel.validateMakeRects()
     eel.save()
-    return True
+    return eel
