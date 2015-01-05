@@ -294,10 +294,10 @@ STATICFILES_FINDERS = (
 STATICFILES_DIRS = ()
 
 # Added in order to perform data migrations on the auth app
-SOUTH_MIGRATION_MODULES = {
-    'auth' : 'migrations.auth',
-    'guardian' : 'migrations.guardian',
-}
+#SOUTH_MIGRATION_MODULES = {
+#    'auth' : 'migrations.auth',
+#    'guardian' : 'migrations.guardian',
+#}
 
 SOUTH_TESTS_MIGRATE = False
 

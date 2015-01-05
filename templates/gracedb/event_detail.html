@@ -504,7 +504,7 @@
             var sV_button = dom.byId("sV_button");
             if (sV_button) {
                 on(sV_button, "click", function() {
-                    var embblog_json_url = "/gracedb/events/{{ object.graceid }}/embblog";
+                    var embblog_json_url = "{% url "api:embbeventlog-list" object.graceid %}";
                     var embblog_json;
                     dojo.xhrGet({
                         url: embblog_json_url,
@@ -664,7 +664,11 @@
 <form action="{{ SKYMAP_VIEWER_SERVICE_URL }}" id="sV_form"  method="post">
     <input type="hidden" name="skymapid" value="{{ object.graceid }}">
     <!-- <input type="hidden" name="json" value="{{ skymap_json }}"> -->
-    <input type="hidden" name="json" value="blaargh">
+    <!-- <input type="hidden" name="json" value="blaargh"> -->
+
+    <input type="hidden" name="json" />
+    <input type="hidden" name="embb" />
+
     <input type="submit" value="View in skymapViewer!">
 </form>
 </div>
@@ -819,40 +823,76 @@ Waveband</a></td>       <td colspan=2><select name="waveband">
 <option value="em.radio.100-200MHz">Radio between 100 and 200 MHz</option>
 <option value="em.radio.20-100MHz">Radio between 20 and 100 MHz</option>
                                 </select></td></tr>
+</table>
+<hr/>
+<script>
+function showRectanglesCheckbox(){
+    var s = document.getElementById('showRectangles');
+    showRectangles = s.checked;
+    if(showRectangles){ document.getElementById('rectanglesForm').style.display = "block"
+    } else {            document.getElementById('rectanglesForm').style.display = "none"
+    }
+    redrawAll();
+    return false;
+}
+</script>
+<input id="showRectangles" type="checkbox" onclick="showRectanglesCheckbox()" />add Sky Footprints<br/>
+<div id=rectanglesForm style="display: none;">
+<table>
 <tr><td><a href=# onclick="alert('RA and Dec specify a center point of a rectangle that is aligned equatorially. Or list of centers. They must be in decimal degrees 0<=RA<=360 -90<=Dec<=90, in the J2000 frame.');return false;">
-RA (decimal degrees)</a></td>             <td><input type="text" name="ra" value="0.0" size=80/></td></tr>
+RA (decimal degrees)</a></td>             <td><input type="text" name="raList" value="" size=80/></td></tr>
 
 <tr><td><a href=# onclick="alert('RA and Dec specify a center point of a rectangle that is aligned equatorially. Or list of centers. They must be in decimal degrees 0<=RA<=360 -90<=Dec<=90, in the J2000 frame.');return false;">
-Dec (decimal degrees)</a></td>            <td><input type="text" name="dec" value="0.0" size=80/></td></tr>
+Dec (decimal degrees)</a></td>            <td><input type="text" name="decList" value="" size=80/></td></tr>
 
-<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
-RAwidth (decimal degrees)</a></td>        <td><input type="text" name="raWidth" value="0.0"/></td></tr>
-
-<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
-Decwidth (decimal degrees)</a></td>       <td><input type="text" name="decWidth" value="0.0"/></td></tr>
-
+<!--
 <script language="javascript" type="text/javascript" src="https://losc.ligo.org/s/js/gpstimeutil.js"></script>
 <script language="javascript" type="text/javascript" src="https://losc.ligo.org/s/js/sexg.js"></script>
+-->
 
 
 <tr><td><a href=# onclick="alert('The time at the center of a time interval during which the observation was taken. Or list of times.');return false;">
 GPStime</a></td>
-<td><input type="text" name="gpstime" value="1090000000" size=80/></td>
+<td><input type="text" name="gpstimeList" value="" size=80/></td>
 <!--
-<td><input onKeyUp="return TIMEcopy(2,1);" id="TIMEgps1" name="gpstime" maxlength="12" size="20" value="1000000000"/></td>
+<td><input onKeyUp="return TIMEcopy(2,1);" id="TIMEgps1" name="gpstimeList" maxlength="12" size="20" value="1000000000"/></td>
 <td><input onKeyUp="return TIMEcopy(1,1);" id="TIMEiso1" name="TIMEiso1" maxlength="25" size="25" value="2011-09-14T01:46:25"/></td>
 <td><span id="TIMEerr1" STYLE="font: 12px Arial; color:red">OK</span><br/></td>
 -->
 </tr>
 
+<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
+RAwidth (decimal degrees)</a></td>        <td><input type="text" name="raWidthList" value=""/></td></tr>
+
+<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
+Decwidth (decimal degrees)</a></td>       <td><input type="text" name="decWidthList" value=""/></td></tr>
 
 <tr><td><a href=# onclick="alert('Duration is the number of seconds in the time interval during which the observation was taken.');return false;">
-Duration (seconds)</a></td>       <td><input type="text" name="duration" value="10"/></td></tr>
+Duration (seconds)</a></td>       <td><input type="text" name="durationList" value=""/></td></tr>
 
-<tr><td><a href=# onclick="alert('This section allows for machine-readable data to be included in a flexible way. any key can be any value in a JSON dictionary. There is a useful validator at http://jsonlint.com.');return false;">
-JSON data</a></td>       <td colspan=2><textarea name="extra_info_dict"  cols="50">{"phot.mag.limit": 22.3}</textarea></td></tr>
 </table>
-<input type="submit" value="Submit"/>
+</div>
+<hr/>
+<script>
+function showJsonCheckbox(){
+    var s = document.getElementById('showJson');
+    showJson = s.checked;
+    if(showJson){ document.getElementById('jsonForm').style.display = "block"
+    } else {      document.getElementById('jsonForm').style.display = "none"
+    }
+    redrawAll();
+    return false;
+}
+</script>
+<input id="showJson" type="checkbox" onclick="showJsonCheckbox()" />add JSON data<br/>
+<div id=jsonForm style="display: none;">
+<table>
+<tr><td><a href=# onclick="alert('This section allows for machine-readable data to be included in a flexible way. any key can be any value in a JSON dictionary. There is a useful validator at http://jsonlint.com.');return false;">
+JSON data</a></td>       <td colspan=2><textarea name="extra_info_dict" rows="20" cols="50"></textarea></td></tr>
+</table>
+</div>
+<hr/>
+<input type="submit" value="Submit EMBB Report"/>
 </form>
 
 
@@ -865,6 +905,7 @@ JSON data</a></td>       <td colspan=2><textarea name="extra_info_dict"  cols="5
                 {% else %} 
 					data-dojo-props="title: 'Bulletin Board Log', open: false">
                 {% endif %}
+This data in <a href="{% url "api:embbeventlog-list" object.graceid %}">JSON</a><br/>
 <table id="bb_2" class="event" border="1" 
 style="table-layout:fixed; width:100%;word-wrap:break-word;">
 						<thead>
@@ -905,8 +946,8 @@ style="table-layout:fixed; width:100%;word-wrap:break-word;">
 <td>{{ eel.duration }}</td> 
 <td>{{ eel.eel_status }}</td> 
 <td>{{ eel.obs_status }}</td> 
-<td>{{ eel.comment|truncatewords:40 }}</td> 
-<td>{{ eel.extra_info_dict }}</td> 
+<td>{{ eel.comment|truncatechars:40 }}</td> 
+<td>{{ eel.extra_info_dict|truncatechars:40 }}</td> 
 </tr>
 							{% endfor %}
   						</tbody>

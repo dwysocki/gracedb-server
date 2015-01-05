@@ -45,6 +45,7 @@ ALERT_TEST_EMAIL_TO = [
 EMBB_MAIL_ADDRESS = 'embb@embb-dev.ligo.caltech.edu'
 EMBB_SMTP_SERVER = 'acrux.ligo.caltech.edu'
 EMBB_MAIL_ADMINS = ['roy.williams@ligo.org',]
+EMBB_IGNORE_ADDRESSES = []
 
 BLESSED_TAGS = [
                  'analyst_comments',
@@ -137,12 +138,21 @@ INSTALLED_APPS = (
     'ligoauth',
     'rest_framework',
     'south',
-#    'debug_toolbar',
+    'guardian',
 )
 
 INTERNAL_IPS = (
     '129.89.61.55',
 )
+
+# Added in order to perform data migrations on the auth app
+SOUTH_MIGRATION_MODULES = {
+    'auth' : 'migrations.auth',
+    'guardian' : 'migrations.guardian',
+}
+
+SOUTH_TESTS_MIGRATE = False
+
 
 
 LOGGING = {}

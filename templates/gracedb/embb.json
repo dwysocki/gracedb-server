@@ -3,31 +3,27 @@
     {
     "color": "#{{ ceel.0 }}",
 
-    "ra"          : {{ ceel.1.ra }},
-    "dec"         : {{ ceel.1.dec }},
-    "gpstime"     : {{ ceel.1.gpstime }},
+{% if ceel.1.ra           %}    "ra"          : {{ ceel.1.ra }}, {% endif %}
+{% if ceel.1.dec          %}    "dec"         : {{ ceel.1.dec }}, {% endif %}
+{% if ceel.1.gpstime      %}    "gpstime"     : {{ ceel.1.gpstime }}, {% endif %}
 
-    "raWidth"     : {{ ceel.1.raWidth }},
-    "decWidth"    : {{ ceel.1.decWidth }},
-    "duration"    : {{ ceel.1.duration }},
+{% if ceel.1.raList       %}    "raList"      :[{{ ceel.1.raList }}], {% endif %}
+{% if ceel.1.decList      %}    "decList"     :[{{ ceel.1.decList }}], {% endif %}
+{% if ceel.1.gpstimeList  %}    "gpstimeList" :[{{ ceel.1.gpstimeList }}], {% endif %}
 
-    "raList"      :[{{ ceel.1.raList }}],
-    "decList"     :[{{ ceel.1.decList }}],
-    "gpstimeList" :[{{ ceel.1.gpstimeList }}],
+{% if ceel.1.raWidthList  %}    "raWidthList" :[{{ ceel.1.raWidthList }}], {% endif %}
+{% if ceel.1.decWidthList %}    "decWidthList":[{{ ceel.1.decWidthList }}], {% endif %}
+{% if ceel.1.durationList %}    "durationList":[{{ ceel.1.durationList }}], {% endif %}
 
-    "raWidthList" :[{{ ceel.1.raWidthList }}],
-    "decWidthList":[{{ ceel.1.decWidthList }}],
-    "durationList":[{{ ceel.1.durationList }}],
-
-    "group"       : "{{ ceel.1.group }}",
-    "submitter"   : "{{ ceel.1.submitter }}",
-    "footprintID" : "{{ ceel.1.footprintID }}",
-    "waveband"    : "{{ ceel.1.waveband }}",
-    "instrument"  : "{{ ceel.1.instrument }}",
-    "eel_status"  : "{{ ceel.1.eel_status }}",
-    "obs_status"  : "{{ ceel.1.obs_status }}",
-    "comment"     : "{{ ceel.1.comment }}",
-    "extra_info_dict": {{ ceel.1.extra_info_dict|safe }}
+{% if ceel.1.group        %}    "group"       : "{{ ceel.1.group }}", {% endif %}
+{% if ceel.1.submitter    %}    "submitter"   : "{{ ceel.1.submitter }}", {% endif %}
+{% if ceel.1.footprintID  %}    "footprintID" : "{{ ceel.1.footprintID }}", {% endif %}
+{% if ceel.1.waveband     %}    "waveband"    : "{{ ceel.1.waveband }}", {% endif %}
+{% if ceel.1.instrument   %}    "instrument"  : "{{ ceel.1.instrument }}", {% endif %}
+{% if ceel.1.eel_status   %}    "eel_status"  : "{{ ceel.1.eel_status }}", {% endif %}
+{% if ceel.1.obs_status   %}    "obs_status"  : "{{ ceel.1.obs_status }}", {% endif %}
+{% if ceel.1.comment      %}    "comment"     : "{{ ceel.1.comment }}", {% endif %}
+"extra_info_dict": {% if ceel.1.extra_info_dict %} {{ ceel.1.extra_info_dict|safe }} {% else %} {} {% endif %}
     }{% if not forloop.last %},{% endif %}
 {% endfor %}
 ]
