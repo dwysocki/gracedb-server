@@ -23,11 +23,15 @@ def assembleLigoLw(objects):
     # lsctables MUST be loaded before utils.
     from glue.ligolw import utils
     from glue.ligolw.utils import ligolw_add
+    from glue.ligolw.ligolw import LIGOLWContentHandler
+    from glue.ligolw.lsctables import use_in
+
+    use_in(LIGOLWContentHandler)
 
     xmldoc = ligolw.Document()
     for obj in objects:
         fname = os.path.join(GRACEDB_DATA_DIR, obj.graceid(), "private", "coinc.xml")
-        utils.load_filename(fname, xmldoc=xmldoc)
+        utils.load_filename(fname, xmldoc=xmldoc, contenthandler=LIGOLWContentHandler)
 
     ligolw_add.reassign_ids(xmldoc)
     ligolw_add.merge_ligolws(xmldoc)

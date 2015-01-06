@@ -71,7 +71,11 @@ from glue.ligolw import ligolw
 # lsctables MUST be loaded before utils.
 from glue.ligolw import utils
 from glue.ligolw.utils import ligolw_add
+from glue.ligolw.ligolw import LIGOLWContentHandler
+from glue.ligolw.lsctables import use_in
 import StringIO
+
+use_in(LIGOLWContentHandler)
 
 # Note about reverse() in this file -- there are THREE versions of it here.
 #
@@ -337,7 +341,7 @@ def assembleLigoLw(data):
             raise MissingCoinc
         elif not os.access(fname, os.R_OK):
             raise CoincAccess
-        utils.load_filename(fname, xmldoc=xmldoc)
+        utils.load_filename(fname, xmldoc=xmldoc, contenthandler=LIGOLWContentHandler)
     ligolw_add.reassign_ids(xmldoc)
     ligolw_add.merge_ligolws(xmldoc)
     ligolw_add.merge_compatible_tables(xmldoc)
@@ -1123,12 +1127,21 @@ def embbEventLogToDict(eel, request=None):
                 "instrument" : eel.instrument,
                 "footprintID" : eel.footprintID,
                 "waveband" : eel.waveband,
-                "ra" : eel.ra,
-                "dec" : eel.dec,
-                "raWidth" : eel.raWidth,
+
+                "ra"       : eel.ra,
+                "dec"      : eel.dec,
+                "raWidth"  : eel.raWidth,
                 "decWidth" : eel.decWidth,
-                "gpstime" : eel.gpstime,
+                "gpstime"  : eel.gpstime,
                 "duration" : eel.duration,
+
+                "raList"       : json.loads('['+eel.raList+']'),
+                "decList"      : json.loads('['+eel.decList+']'),
+                "raWidthList"  : json.loads('['+eel.raWidthList+']'),
+                "decWidthList" : json.loads('['+eel.decWidthList+']'),
+                "gpstimeList"  : json.loads('['+eel.gpstimeList+']'),
+                "durationList" : json.loads('['+eel.durationList+']'),
+
                 "eel_status" : eel.get_eel_status_display(),
                 "obs_status" : eel.get_obs_status_display(),
                 "comment" : eel.comment,

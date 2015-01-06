@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from model_utils.managers import InheritanceManager
 
 from django.contrib.auth.models import User as DjangoUser
-from django.contrib.auth.models import Group
+#from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from guardian.models import GroupObjectPermission
 
@@ -16,6 +16,8 @@ import glue.ligolw
 import glue.ligolw.utils
 import glue.ligolw.table
 import glue.ligolw.lsctables
+from glue.ligolw.ligolw import LIGOLWContentHandler
+
 from glue.lal import LIGOTimeGPS
 
 import json
@@ -473,6 +475,111 @@ class EMBBEventLog(models.Model):
     # for example  {"phot.mag.limit": 22.3}
     extra_info_dict = models.TextField(blank=True)
 
+    # Validates the input and builds  bounding box in RA/Dec/GPS
+    def validateMakeRects(self):
+        # get all the list based position and times and their widths
+        raRealList = []
+        rawRealList = []
+        # add a [ and ] to convert the input csv list to a json parsable text
+
+        if self.raList:        raRealList = json.loads('['+self.raList+']')
+        if self.raWidthList:   rawRealList = json.loads('['+self.raWidthList+']')
+
+        if self.decList:       decRealList = json.loads('['+self.decList+']')
+        if self.decWidthList:  decwRealList = json.loads('['+self.decWidthList+']')
+
+        if self.gpstimeList:   gpstimeRealList = json.loads('['+self.gpstimeList+']')
+        if self.durationList:  durationRealList = json.loads('['+self.durationList+']')
+
+        # is there anything in the ra list? 
+        nList = len(raRealList)
+        if nList > 0: 
+            if decRealList and len(decRealList) != nList:
+                raise ValueError('RA and Dec lists are different lengths.')
+            if gpstimeRealList and len(gpstimeRealList) != nList:
+                raise ValueError('RA and GPS lists are different lengths.')
+
+        # is there anything in the raWidth list? 
+        mList = len(rawRealList)
+        if mList > 0:
+            if decwRealList and len(decwRealList) != mList:
+                raise ValueError('RAwidth and Decwidth lists are different lengths.')
+            if durationRealList and len(durationRealList) != mList:
+                raise ValueError('RAwidth and Duration lists are different lengths.')
+
+            # There can be 1 width for the whole list, or one for each ra/dec/gps 
+            if mList != 1 and mList != nList:
+                raise ValueError('Width and duration lists must be length 1 or same length as coordinate lists')
+        else:
+            mList = 0
+    
+        ramin = 360.0
+        ramax = 0.0
+        decmin = 90.0
+        decmax = -90.0
+        gpsmin = 100000000000
+        gpsmax = 0
+        for i in range(nList):
+            try:
+                ra = float(raRealList[i])
+            except:
+                raise ValueError('Cannot read RA list element %d of %s'%(i, self.raList))
+            try:
+                dec = float(decRealList[i])
+            except:
+                raise ValueError('Cannot read Dec list element %d of %s'%(i, self.decList))
+            try:
+                gps = int(gpstimeRealList[i])
+            except:
+                raise ValueError('Cannot read GPStime list element %d of %s'%(i, self.gpstimeList))
+
+            # the widths list can have 1 member to cover all, or one for each
+            if mList==1: j=0
+            else       : j=i
+    
+            try:
+                w = float(rawRealList[j])/2
+            except:
+                raise ValueError('Cannot read raWidth list element %d of %s'%(i, self.raWidthList))
+
+            # evaluate bounding box
+            if ra-w < ramin: ramin = ra-w
+            if ra+w > ramax: ramax = ra+w
+    
+            try:
+                w = float(decwRealList[j])/2
+            except:
+                raise ValueError('Cannot read raWidth list element %d of %s'%(i, self.decWidthList))
+
+            # evaluate bounding box
+            if dec-w < decmin: decmin = dec-w
+            if dec+w > decmax: decmax = dec+w
+    
+            try:
+                w = int(durationRealList[j])/2
+            except:
+                raise ValueError('Cannot read duration list element %d of %s'%(i, self.durationList))
+
+            # evaluate bounding box
+            if gps-w < gpsmin: gpsmin = gps-w
+            if gps+w > gpsmax: gpsmax = gps+w
+
+        # Make sure the min/max ra and dec are within bounds:
+        ramin  = max(0.0,   ramin)
+        ramax  = min(360.0, ramax)
+        decmin = max(-90.0, decmin)
+        decmax = min(90.0,  decmax)            
+ 
+        if nList>0:
+            self.ra       = (ramin + ramax)/2
+            self.dec      = (decmin + decmax)/2
+            self.gpstime  = (gpsmin+gpsmax)/2
+        if mList>0:
+            self.raWidth  = ramax-ramin
+            self.decWidth = decmax-decmin
+            self.duration = gpsmax-gpsmin
+        return True
+
     # We overload the 'save' method to avoid race conditions, since the Eels are numbered. 
     def save(self, *args, **kwargs):
         success = False
@@ -650,14 +757,12 @@ class SingleInspiral(models.Model):
             datafile = os.path.join(event.datadir(), 'coinc.xml')
 
         try:
-            xmldoc = glue.ligolw.utils.load_filename(datafile)
+            xmldoc = glue.ligolw.utils.load_filename(datafile, contenthandler=LIGOLWContentHandler)
         except IOError:
             return None
 
         # Extract Single Inspiral Information
-        s_inspiral_tables = glue.ligolw.table.getTablesByName(
-                xmldoc,
-                glue.ligolw.lsctables.SnglInspiralTable.tableName)
+        s_inspiral_tables = glue.ligolw.lsctables.SnglInspiralTable.get_table(xmldoc)
 
         # Concatentate the tables' rows into a single table
         table = sum(s_inspiral_tables, [])

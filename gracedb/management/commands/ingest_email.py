@@ -90,6 +90,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.transcript = 'Started email ingester\n'
+        # must provide a filename
+        if len(args) < 1:
+            self.transcript += 'No filename provided'
+            return sendResponse(settings.EMBB_MAIL_ADMINS, 'embb submission', self.transcript)
 
         # The file is understood to contain the raw contents of the email.
         filename = args[0]
@@ -166,7 +170,6 @@ class Command(BaseCommand):
                 encoding = email_obj.get_content_charset()
             except:
                 pass
-
         if content_transfer_encoding:
             if content_transfer_encoding == 'quoted-printable':
                 msg = a2b_qp(msg)
@@ -181,7 +184,10 @@ class Command(BaseCommand):
         msg = get_unicode_and_fix_quotes(msg, encoding)
 
         # Get the body of the message and convert to lines.
-        lines = msg.split('\n')
+        if msg:
+            lines = msg.split('\n')
+        else:
+            lines = []
 
         comment = ''
         dict = {}
@@ -218,7 +224,18 @@ class Command(BaseCommand):
                 return dict.pop(key)
             else:
                 return default
-            
+
+        def getTextList(dict, key1, key2, default):
+            val = None
+            if dict.has_key(key1): val = dict[key1]
+            if dict.has_key(key2): val = dict[key2]
+            if val:
+                if isinstance(val, list):
+                    return json.dumps(val)[1:-1]
+                else:
+                    return str(val)
+            else:
+                return default
         
 # look for the JSON field at the end of the mail
         extra_dict = {}
@@ -232,9 +249,10 @@ class Command(BaseCommand):
                 return sendResponse(from_address, reply_subject, self.transcript)
 
 # look for PARAM fields of the form
-# PARAM:  apple=34.2
+# PARAM:  apple=34.2 or appleList=[2,3,4]
         if dict.has_key('PARAM'):
             lines = dict['PARAM'].split('\n')
+
             for line in lines:
                 tok = line.split('=')
                 if len(tok) == 2:
@@ -276,20 +294,23 @@ class Command(BaseCommand):
             self.transcript += str(e)
             return sendResponse(from_address, reply_subject, self.transcript)
 
-        eel.eel_status = getpop(extra_dict, 'eel_status', 'FO')
-        eel.obs_status = getpop(extra_dict, 'obs_status', 'TE')
+        eel.eel_status  = getpop(extra_dict, 'eel_status', 'FO')
+        eel.obs_status  = getpop(extra_dict, 'obs_status', 'TE')
         eel.footprintID = getpop(extra_dict, 'footprintID', '')
-        eel.waveband = getpop(extra_dict, 'waveband', 'em.opt')
-        eel.ra = getpop(extra_dict, 'ra', 0.0)
-        eel.dec = getpop(extra_dict, 'dec', 0.0)
-        eel.raWidth = getpop(extra_dict, 'raWidth', 0.0)
-        eel.decWidth = getpop(extra_dict, 'decWidth', 0.0)
-        eel.gpstime = getpop(extra_dict, 'gpstime', 0)
-        eel.duration = getpop(extra_dict, 'duration', 0)
+        eel.waveband    = getpop(extra_dict, 'waveband', 'em.opt')
+
+        eel.raList          = getTextList(extra_dict, 'ra',       'raList',       '')
+        eel.decList         = getTextList(extra_dict, 'dec',      'decList',      '')
+        eel.raWidthList     = getTextList(extra_dict, 'raWidth',  'raWidthList',  '')
+        eel.decWidthList    = getTextList(extra_dict, 'decWidth', 'decWidthList', '')
+        eel.gpstimeList     = getTextList(extra_dict, 'gpstime',  'gpstimeList',  '')
+        eel.durationList    = getTextList(extra_dict, 'duration', 'durationList', '')
+
+        eel.validateMakeRects()
+
         eel.extra_info_dict = json.dumps(extra_dict)
         self.transcript += 'Extra_info_dict is %s\n' % eel.extra_info_dict
     
-#        eel.comment = 'hello'    #   wierdchars.sub(u'', comment)
         eel.comment = comment
 
         try:

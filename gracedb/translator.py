@@ -4,9 +4,10 @@ import os
 from .models import EventLog
 from .models import SingleInspiral
 
-import glue
-import glue.ligolw.utils
-import glue.ligolw.lsctables
+from glue.ligolw.utils import load_filename
+from glue.ligolw.lsctables import CoincInspiralTable, SnglInspiralTable, use_in
+from glue.ligolw.lsctables import SimInspiralTable, MultiBurstTable, CoincTable
+from glue.ligolw.ligolw import LIGOLWContentHandler
 
 from gracedb.serialize import populate_inspiral_tables, \
                                populate_omega_tables,    \
@@ -19,6 +20,8 @@ from utils.vfile import VersionedFile
 import json
 
 import logging
+
+use_in(LIGOLWContentHandler)
 
 # This function checks for 'inf' in a float field, asks the database
 # what's the maximum value it can accept for that field, and returns
@@ -46,8 +49,6 @@ def handle_uploaded_data(event, datafilename,
                          log_filename='event.log',
                          coinc_table_filename='coinc.xml'):
 
-    logger = logging.getLogger(__name__)
-
     log = EventLog(event=event,
                    filename=os.path.basename(datafilename),
                    issuer=event.submitter,
@@ -60,33 +61,35 @@ def handle_uploaded_data(event, datafilename,
     pipeline = event.pipeline.name
 
     if pipeline in [ 'gstlal', 'gstlal-spiir' ] or (pipeline=='MBTAOnline' and '.xml' in datafilename):
-        logger.debug("Okay, doing it with the coinc.")
         log_comment = "Log File Created"
         # Wildly speculative wrt HM
 
         try:
-            xmldoc = glue.ligolw.utils.load_filename(datafilename)
+            xmldoc = load_filename(datafilename, contenthandler = LIGOLWContentHandler)
         except Exception, e:
             message = "Could not read data (%s)" % str(e)
             EventLog(event=event, issuer=event.submitter, comment=message).save()
             return
 
+        # Try reading the CoincInspiralTable
+        try:
+            coinc_table = CoincInspiralTable.get_table(xmldoc)[0]
+        except Exception, e:
+            warnings += "Could not extract coinc inspiral table."
+            return temp_data_loc, warnings
+
         # Create Log Data
-        # XXX This is messy and redundant.  All of this is also below.
         try:
             log_data = ["Pipeline: %s" % pipeline]
             if event.search:
                 log_data.append("Search: %s" % event.search.name)
-            origdata = glue.ligolw.table.getTablesByName(
-                                        xmldoc,
-                                        glue.ligolw.lsctables.CoincInspiralTable.tableName)
 
-            mchirp   = origdata[0][0].mchirp
-            mass     = origdata[0][0].mass
-            end_time = (origdata[0][0].end_time, origdata[0][0].end_time_ns)
-            snr      = origdata[0][0].snr
-            ifos     = origdata[0][0].ifos
-            far      = origdata[0][0].combined_far
+            mchirp   = coinc_table.mchirp
+            mass     = coinc_table.mass
+            end_time = (coinc_table.end_time, coinc_table.end_time_ns)
+            snr      = coinc_table.snr
+            ifos     = coinc_table.ifos
+            far      = coinc_table.combined_far
 
             if mchirp is not None:
                 log_data.append("MChirp: %0.3f" % mchirp)
@@ -131,70 +134,54 @@ def handle_uploaded_data(event, datafilename,
                        comment="Coinc Table Created")
         log.save()
 
-
         # Extract relevant data from xmldoc to put into event record.
-        coinc_table = glue.ligolw.table.getTablesByName(
-                            xmldoc,
-                            glue.ligolw.lsctables.CoincInspiralTable.tableName)
-        coinc_table = coinc_table[0]
-        event.gpstime = coinc_table[0].end_time
-        event.far = coinc_table[0].combined_far
-
-        coinc_table = glue.ligolw.table.getTablesByName(
-                            xmldoc,
-                            glue.ligolw.lsctables.CoincTable.tableName)
-        coinc_table = coinc_table[0]
-        event.instruments = coinc_table[0].instruments
-        event.nevents = coinc_table[0].nevents
-        event.likelihood = cleanData(coinc_table[0].likelihood,'likelihood')
+        event.gpstime = coinc_table.end_time
+        event.far = coinc_table.combined_far
+        # Try to get the coinc_event_table
+        try:
+            coinc_event_table = CoincTable.get_table(xmldoc)[0]
+        except Exception, e:
+            warnings += "Could not extract coinc event table."
+            return temp_data_loc, warnings
+        event.instruments = coinc_event_table.instruments
+        event.nevents = coinc_event_table.nevents
+        event.likelihood = cleanData(coinc_event_table.likelihood,'likelihood')
 
         event.ifos             = ifos
         event.end_time         = end_time[0]
         event.end_time_ns      = end_time[1]
         event.mass             = mass
         event.mchirp           = mchirp
-        event.minimum_duration = getattr(origdata[0][0], "minimum_duration", None)
+        event.minimum_duration = getattr(coinc_table, "minimum_duration", None)
         event.snr              = snr
-        event.false_alarm_rate = getattr(origdata[0][0], "false_alarm_rate", None)
+        event.false_alarm_rate = getattr(coinc_table, "false_alarm_rate", None)
         event.combined_far     = far
 
         # XXX xml_filename unused
         #xml_filename = os.path.join(output_dir, coinc_table_filename)
-
         event.save()
 
-        logger.debug("Okay, just saved the event. Now onto the sngl stuff.")
-
         # Extract Single Inspiral Information
-        s_inspiral_tables = glue.ligolw.table.getTablesByName(
-                xmldoc,
-                glue.ligolw.lsctables.SnglInspiralTable.tableName)
-
-        # Concatentate the tables' rows into a single table
-        table = sum(s_inspiral_tables, [])
-        SingleInspiral.create_events_from_ligolw_table(table, event)
-
-        logger.debug("Got down here. Should've created SingleInspiral.")
+        s_inspiral_table = SnglInspiralTable.get_table(xmldoc)
+        SingleInspiral.create_events_from_ligolw_table(s_inspiral_table, event)
 
     elif pipeline == 'HardwareInjection':
         log_comment = "Log File Created"
-        xmldoc = glue.ligolw.utils.load_filename(datafilename)
+        xmldoc = load_filename(datafilename, contenthandler=LIGOLWContentHandler)
 
         # Create Log Data
         # XXX This is messy and redundant.  All of this is also below.
         try:
             log_data = ["Pipeline: %s" % pipeline]
-            origdata = glue.ligolw.table.getTablesByName(
-                                        xmldoc,
-                                        glue.ligolw.lsctables.SimInspiralTable.tableName)
-
-            mchirp   = origdata[0][0].mchirp
-            mass     = (origdata[0][0].mass1, origdata[0][0].mass2)
-            spin1    = (origdata[0][0].spin1x, origdata[0][0].spin1y, origdata[0][0].spin1z)
-            spin2    = (origdata[0][0].spin2x, origdata[0][0].spin2y, origdata[0][0].spin2z)
-            end_time = (origdata[0][0].geocent_end_time, origdata[0][0].geocent_end_time_ns)
+            origdata = SimInspiralTable.get_table(xmldoc)
+            origdata = origdata[0]
+            mchirp   = origdata.mchirp
+            mass     = (origdata.mass1, origdata.mass2)
+            spin1    = (origdata.spin1x, origdata.spin1y, origdata.spin1z)
+            spin2    = (origdata.spin2x, origdata.spin2y, origdata.spin2z)
+            end_time = (origdata.geocent_end_time, origdata.geocent_end_time_ns)
             # XXX unused
-            #waveform = origdata[0][0].waveform
+            #waveform = origdata.waveform
 
             if mchirp is not None:
                 log_data.append("MChirp: %0.3f" % mchirp)
@@ -264,50 +251,33 @@ def handle_uploaded_data(event, datafilename,
         log.save()
 
         # Extract relevant data from xmldoc.
-        coinc_table = glue.ligolw.table.getTablesByName(
-                            xmldoc,
-                            glue.ligolw.lsctables.CoincInspiralTable.tableName)
+        coinc_table = CoincInspiralTable.get_table(xmldoc)
         coinc_table = coinc_table[0]
-        event.gpstime = coinc_table[0].end_time
+        event.gpstime = coinc_table.end_time
         # Per Patrick 02FEB12.  All MBTA events with null far should have zero far.
-        event.far = coinc_table[0].combined_far or 0
+        event.far = coinc_table.combined_far or 0
 
-        coinc_table = glue.ligolw.table.getTablesByName(
-                            xmldoc,
-                            glue.ligolw.lsctables.CoincTable.tableName)
-        coinc_table = coinc_table[0]
-        event.instruments = coinc_table[0].instruments
-        event.nevents = coinc_table[0].nevents
-        event.likelihood = cleanData(coinc_table[0].likelihood,'likelihood')
+        event.instruments = coinc_table.instruments
+        event.nevents = coinc_table.nevents
+        event.likelihood = cleanData(coinc_table.likelihood,'likelihood')
 
         # extended attributes
-        coinc_inspiral_table = glue.ligolw.table.getTablesByName(
-                            xmldoc,
-                            glue.ligolw.lsctables.CoincInspiralTable.tableName)
-        coinc_inspiral_table = coinc_inspiral_table[0]
-        event.ifos             = coinc_inspiral_table[0].ifos
-        event.end_time         = coinc_inspiral_table[0].end_time
-        event.end_time_ns      = coinc_inspiral_table[0].end_time_ns
-        event.mass             = coinc_inspiral_table[0].mass
-        event.mchirp           = coinc_inspiral_table[0].mchirp
-        #event.minimum_duration = coinc_inspiral_table[0].minimum_duration
-        event.snr              = coinc_inspiral_table[0].snr
-        event.false_alarm_rate = coinc_inspiral_table[0].false_alarm_rate
-        event.combined_far     = coinc_inspiral_table[0].combined_far
-
-        # XXX xml_filename unused
-        #xml_filename = os.path.join(output_dir, coinc_table_filename)
+        event.ifos             = coinc_table.ifos
+        event.end_time         = coinc_table.end_time
+        event.end_time_ns      = coinc_table.end_time_ns
+        event.mass             = coinc_table.mass
+        event.mchirp           = coinc_table.mchirp
+        #event.minimum_duration = coinc_table.minimum_duration
+        event.snr              = coinc_table.snr
+        event.false_alarm_rate = coinc_table.false_alarm_rate
+        event.combined_far     = coinc_table.combined_far
 
         event.save()
 
         # Extract Single Inspiral Information
-        s_inspiral_tables = glue.ligolw.table.getTablesByName(
-                xmldoc,
-                glue.ligolw.lsctables.SnglInspiralTable.tableName)
+        s_inspiral_table = SnglInspiralTable.get_table(xmldoc)
 
-        # Concatentate the tables' rows into a single table
-        table = sum(s_inspiral_tables, [])
-        SingleInspiral.create_events_from_ligolw_table(table, event)
+        SingleInspiral.create_events_from_ligolw_table(s_inspiral_table, event)
 
     elif pipeline == 'Omega':
         #here's how it works for bursts
@@ -336,19 +306,15 @@ def handle_uploaded_data(event, datafilename,
         log.save()
 
         # Extract relevant data from xmldoc.
-        coinc_table = glue.ligolw.table.getTablesByName(
-                            xmldoc,
-                            glue.ligolw.lsctables.MultiBurstTable.tableName)
-        coinc_table = coinc_table[0]
-        event.gpstime = coinc_table[0].start_time
+        mb_table = MultiBurstTable.get_table(xmldoc)
+        mb_table = mb_table[0]
+        event.gpstime = mb_table.start_time
 
-        coinc_table = glue.ligolw.table.getTablesByName(
-                            xmldoc,
-                            glue.ligolw.lsctables.CoincTable.tableName)
+        coinc_table = CoincTable.get_table(xmldoc)
         coinc_table = coinc_table[0]
-        event.instruments = coinc_table[0].instruments
-        event.nevents = coinc_table[0].nevents
-        event.likelihood = cleanData(coinc_table[0].likelihood, 'likelihood')
+        event.instruments = coinc_table.instruments
+        event.nevents = coinc_table.nevents
+        event.likelihood = cleanData(coinc_table.likelihood, 'likelihood')
 
         # XXX xml_filename unused.
         #xml_filename = os.path.join(output_dir, coinc_table_filename)
