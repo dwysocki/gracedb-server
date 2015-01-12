@@ -996,13 +996,25 @@ def eventLogToDict(log, request=None):
                 args=[log.event.graceid(), filename],
                 request=request)
 
+        # This is purely for convenience in working with the web interface.
+        tag_names = [tag.name for tag in log.tag_set.all() ];
+
+    issuer_info = {
+        "username": log.issuer.username,
+        "display_name": "%s %s" % (log.issuer.first_name, log.issuer.last_name),
+    }
+
     return {
-                "comment" : log.comment,
-                "created" : log.created,
-                "issuer"  : log.issuer.username,
-                "self"    : uri,
-                "tags"    : taglist_uri,
-                "file"    : file_uri,
+                "N"            : log.N,
+                "comment"      : log.comment,
+                "created"      : log.created,
+                "issuer"       : issuer_info,
+                "filename"     : log.filename,
+                "file_version" : log.file_version,
+                "tag_names"    : tag_names,
+                "self"         : uri,
+                "tags"         : taglist_uri,
+                "file"         : file_uri,
            }
 
 class EventLogList(APIView):
@@ -1120,6 +1132,7 @@ def embbEventLogToDict(eel, request=None):
                 args=[eel.event.graceid(), eel.N],
                 request=request)
     return {
+                "N"       : eel.N,
                 "self"    : uri,
                 "created" : eel.created,
                 "submitter"  : eel.submitter.username,
@@ -1267,13 +1280,20 @@ class TagList(APIView):
 
     def get(self, request):
         # Return a list of links to all tag objects.
+        tag_dict = {}
+        for tag in Tag.objects.all():
+            tag_dict[tag.name] = { 
+                'displayName': tag.displayName,
+                'blessed': tag.name in settings.BLESSED_TAGS
+            }
         rv = {
 #                 'tags' : [ reverse("tag-detail", args=[tag.name],
 #                                    request=request)
 #                            for tag in Tag.objects.all() ]
 #                For now, we just output the tag names, since we don't know what 
 #                tag-detail should look like.
-                 'tags' : [ tag.name for tag in Tag.objects.all() ]
+#                 'tags' : [ tag.name for tag in Tag.objects.all() ]
+                  'tags' : tag_dict,
              }
         return Response(rv)
 

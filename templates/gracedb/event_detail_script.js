@@ -1,0 +1,996 @@
+// Ugh. Why do I have to pull the stuff in here?
+// Tooltip pop-ups for labels.
+var label_descriptions = {
+    cWB_s: "cWB_s",
+    cWB_r: "cWB_r",
+    EM_READY: "Has been processed by GDB Processor.<br/>Skymaps have been produced.",
+    SWIFT_NO: "Do not send notification to SWIFT telescope.",
+    SWIFT_GO: "Send notification to SWIFT telescope.",
+    LUMIN_NO: "LUMIN No",
+    LUMIN_GO: "LUMIN Go",
+    DQV: "Data quality veto.",
+    INJ: "Injection occured near this time."
+}
+function tooltiptext(name, creator, time) {
+    return ( creator + " " + time + "<br/>" + label_descriptions[name] );
+};
+var tooltip=function(){
+ var id = 'tt';
+ var top = 3;
+ var left = 3;
+ var maxw = 300;
+ var speed = 10;
+ var timer = 20;
+ var endalpha = 95;
+ var alpha = 0;
+ var tt,t,c,b,h;
+ var ie = document.all ? true : false;
+ return{
+  show:function(v,w){
+   if(tt == null){
+    tt = document.createElement('div');
+    tt.setAttribute('id',id);
+    t = document.createElement('div');
+    t.setAttribute('id',id + 'top');
+    c = document.createElement('div');
+    c.setAttribute('id',id + 'cont');
+    b = document.createElement('div');
+    b.setAttribute('id',id + 'bot');
+    tt.appendChild(t);
+    tt.appendChild(c);
+    tt.appendChild(b);
+    document.body.appendChild(tt);
+    tt.style.opacity = 0;
+    tt.style.filter = 'alpha(opacity=0)';
+    document.onmousemove = this.pos;
+   }
+   tt.style.display = 'block';
+   c.innerHTML = v;
+   tt.style.width = w ? w + 'px' : 'auto';
+   if(!w && ie){
+    t.style.display = 'none';
+    b.style.display = 'none';
+    tt.style.width = tt.offsetWidth;
+    t.style.display = 'block';
+    b.style.display = 'block';
+   }
+  if(tt.offsetWidth > maxw){tt.style.width = maxw + 'px'}
+  h = parseInt(tt.offsetHeight) + top;
+  clearInterval(tt.timer);
+  tt.timer = setInterval(function(){tooltip.fade(1)},timer);
+  },
+  pos:function(e){
+   var u = ie ? event.clientY + document.documentElement.scrollTop : e.pageY;
+   var l = ie ? event.clientX + document.documentElement.scrollLeft : e.pageX;
+   tt.style.top = (u - h) + 'px';
+   tt.style.left = (l + left) + 'px';
+  },
+  fade:function(d){
+   var a = alpha;
+   if((a != endalpha && d == 1) || (a != 0 && d == -1)){
+    var i = speed;
+   if(endalpha - a < speed && d == 1){
+    i = endalpha - a;
+   }else if(alpha < speed && d == -1){
+     i = a;
+   }
+   alpha = a + (i * d);
+   tt.style.opacity = alpha * .01;
+   tt.style.filter = 'alpha(opacity=' + alpha + ')';
+  }else{
+    clearInterval(tt.timer);
+     if(d == -1){tt.style.display = 'none'}
+  }
+ },
+ hide:function(){
+  clearInterval(tt.timer);
+   tt.timer = setInterval(function(){tooltip.fade(-1)},timer);
+  }
+ };
+}();
+
+
+
+
+
+// A utility
+var getKeys = function(obj){
+   var keys = [];
+   for(var key in obj){
+      keys.push(key);
+   }
+   return keys;
+}
+
+var image_extensions = ['png', 'gif', 'jpg'];
+
+// A utility function to determine whether a log message has an image.
+// This would not be necessary if we were using django template language
+var hasImage = function(object) {
+    if (!object.filename) return false;
+    var file_extension = object.filename.slice(object.filename.length - 3);
+    return image_extensions.indexOf(file_extension) >= 0; 
+}
+
+// some URLs. Usage of Django template syntax should be limited to here
+var tagListUrl          = '{% url "api:tag-list" %}';
+var tagUrlPattern       = '{% url "taglogentry" object.graceid "000" "temp" %}';
+var eventLogListUrl     = '{% url "api:eventlog-list" object.graceid %}';
+var eventLogSaveUrl     = '{% url "logentry" object.graceid "" %}';
+var embbEventLogListUrl = '{% url "api:embbeventlog-list" object.graceid %}';
+var skymapJsonUrl       = '{% url "file" object.graceid "skymap.json" %}';
+var skymapViewerUrl     = '{{ SKYMAP_VIEWER_SERVICE_URL }}';
+
+// This little list determines the priority ordering of the digest sections.
+var blessed_tag_priority_order = [
+    'analyst_comments',
+    'psd',
+    'data_quality',
+    'sky_loc',
+    'background',
+    'ext_coinc',
+    'strain',
+    'tfplots',
+    'sig_info',
+    'audio',    
+];
+
+require([
+    'dojo/_base/declare',
+    'dojo/query',
+    'dojo/on',
+    'dojo/parser',
+    'dojo/dom',
+    'dojo/dom-construct',
+    'dojo/dom-style',
+    'dojo/request',
+    'dojo/store/Memory',
+    'dojo/data/ObjectStore',
+    'dstore/Rest',
+    'dstore/RequestMemory',
+    'dgrid/Grid',
+    'dgrid/extensions/DijitRegistry',
+    'put-selector/put',
+    'dijit/TitlePane',
+    'dijit/form/Form',        
+    'dijit/form/Button',
+    'dijit/form/TextBox',
+    'dijit/form/ComboBox',
+    'dijit/form/Select',
+    'dijit/Tooltip',
+    'dijit/Dialog',
+    'dijit/Editor',
+    'dojox/editor/plugins/Save',
+    'dojox/editor/plugins/Preview',
+    'dojox/layout/ScrollPane',
+    'dojox/image/LightboxNano',
+    'dijit/_editor/plugins/TextColor',
+    'dijit/_editor/plugins/LinkDialog',
+    'dijit/_editor/plugins/ViewSource',
+    'dijit/_editor/plugins/NewPage',
+    'dijit/_editor/plugins/FullScreen',
+    'dojo/domReady!',
+], function(declare, query, on, parser, dom, domConstruct, domStyle, request, Memory, ObjectStore,
+    Rest, RequestMemory, Grid, DijitRegistry, 
+    put, 
+    TitlePane, Form, Button, TextBox, ComboBox, Select, Tooltip, Dialog, Editor, 
+    Save, Preview, ScrollPane) {
+
+    parser.parse();
+    //----------------------------------------------------------------------------------------
+    // Some utility functions
+    //----------------------------------------------------------------------------------------
+    var createExpandingSection = function (titleNode, contentNode, formNode, titleText, initiallyOpen) {
+
+        // Instead let's make a table. 
+        var titleTableRow = put(titleNode, "table tr");
+        var expandGlyphNode = put(titleTableRow, "td.title div.expandGlyph"); 
+        var titleTextNode = put(titleTableRow, "td.title h2", titleText);
+        var addButtonNode = put(titleTableRow, "td.title div.expandFormButton", '(add)');
+
+        if (!(initiallyOpen && initiallyOpen==true)) { 
+            put(expandGlyphNode, '.closed');
+            domStyle.set(contentNode, 'display', 'none');
+            domStyle.set(addButtonNode, 'display', 'none');
+        }
+        // This one is always closed initially
+        domStyle.set(formNode, 'display', 'none');
+       
+        on(expandGlyphNode, "click", function() {
+            if (domStyle.get(contentNode, 'display') == 'none') {
+                domStyle.set(contentNode, 'display', 'block');
+                domStyle.set(addButtonNode, 'display', 'block');
+                put(expandGlyphNode, '!closed');
+            } else {
+                domStyle.set(contentNode, 'display', 'none');
+                domStyle.set(addButtonNode, 'display', 'none');
+                put(expandGlyphNode, '.closed');
+            }
+        });
+        
+        on(titleTextNode, "click", function() {
+            if (domStyle.get(contentNode, 'display') == 'none') {
+                domStyle.set(contentNode, 'display', 'block');
+                domStyle.set(addButtonNode, 'display', 'block');
+                put(expandGlyphNode, '!closed');
+            } else {
+                domStyle.set(contentNode, 'display', 'none');
+                domStyle.set(addButtonNode, 'display', 'none');
+                put(expandGlyphNode, '.closed');
+            }
+        });
+
+        on(addButtonNode, "click", function() {
+            if (domStyle.get(formNode, 'display') == 'none') {
+                domStyle.set(formNode, 'display', 'block');
+                addButtonNode.innerHTML = '(cancel)';
+            } else {
+                domStyle.set(formNode, 'display', 'none');
+                addButtonNode.innerHTML = '(add)';
+            }
+        });
+    }
+
+    var timeChoicesData = [ 
+        {"id": "llo",   "label": "LLO Local"},
+        {"id": "lho",   "label": "LHO Local"},
+        {"id": "virgo", "label": "Virgo Local"},
+        {"id": "utc",   "label": "UTC"},
+    ];
+    // XXX Fixme. So. Bad.
+    var timeChoicesDataWithGps = [ 
+        {"id": "gps",   "label": "GPS Time"},
+        {"id": "llo",   "label": "LLO Local"},
+        {"id": "lho",   "label": "LHO Local"},
+        {"id": "virgo", "label": "Virgo Local"},
+        {"id": "utc",   "label": "UTC"},
+    ];
+
+    var timeChoices = new Memory ({ data: timeChoicesData });
+    var timeChoicesStore = new ObjectStore({ objectStore: timeChoices});
+    var timeChoicesWithGps = new Memory ({ data: timeChoicesDataWithGps });
+    var timeChoicesWithGpsStore = new ObjectStore({ objectStore: timeChoicesWithGps});
+
+    var createTimeSelect = function(node, label, defaultName, useGps) {
+        var myStore = (useGps) ? timeChoicesWithGpsStore : timeChoicesStore;
+        var s = new Select({ store: myStore }, node);
+        s.attr("value", defaultName);
+        s.on("change", function () { changeTime(this, label); });
+        return s;
+    }
+
+    //----------------------------------------------------------------------------------------
+    // Take care of stray time selects
+    //----------------------------------------------------------------------------------------
+    createTimeSelect(dom.byId('basic_info_event_ts'), 'gps', 'gps', true);
+    createTimeSelect(dom.byId('basic_info_created_ts'), 'created', 'utc', true);
+    createTimeSelect(dom.byId('neighbors_event_ts'), 'ngps', 'gps', true);
+    createTimeSelect(dom.byId('neighbors_created_ts'), 'ncreated', 'utc', true);
+
+    //----------------------------------------------------------------------------------------
+    // Section for EMBB 
+    //----------------------------------------------------------------------------------------
+    var eventDetailContainer = dom.byId('event_detail_content');
+    var embbDiv = put(eventDetailContainer, 'div.content-area#embb_container');
+    var embbTitleDiv = put(embbDiv, 'div#embb_title_expander');
+    var embbContentDiv = put(embbDiv, 'div#embb_content'); 
+
+    // Put the EEL form into the content div
+    var oldEelFormDiv = dom.byId('eelFormContainer');
+    var eelFormContents = oldEelFormDiv.innerHTML;
+    domConstruct.destroy('eelFormContainer');
+    var embbAddDiv = put(embbContentDiv, 'div#add_eel_container');
+    var embbAddFormDiv = put(embbAddDiv, 'div#add_eel_form_container');
+    embbAddFormDiv.innerHTML = eelFormContents;
+
+    createExpandingSection(embbTitleDiv, embbContentDiv, embbAddDiv, 'Electromagnetic Bulletin Board');
+
+    // Append the div that will hold our dgrid
+    put(embbContentDiv, 'div#eel-grid');
+        
+    embbStore = new declare([Rest, RequestMemory])({target: embbEventLogListUrl});
+    embbStore.get('').then(function(content) {
+        // Pull the EELs out of the rest content and create a new simple store from them.
+        var eels = content.embblog;
+
+        var columns  = [
+            { field: 'created', label: 'Time Created (UTC)' },
+            { field: 'submitter', label: 'Submitter' },
+            { field: 'group', label: 'MOU Group' },
+            { field: 'gpstime', label: 'GPS time of observation' },
+            { field: 'duration', label: 'Exposure time (s)' },
+            { field: 'radec',
+              label: 'Covering (ra, dec)',
+                get: function(object){
+                    var rastring = object.ra + " \xB1 " + object.raWidth/2.0;
+                    var decstring = object.dec + " \xB1 " + object.decWidth/2.0;
+                    return "(" + rastring + ','  + decstring + ")";
+                },
+            }
+        ]; 
+
+        var subRowColumns  = [ 
+                { field: 'instrument', label: 'Instrument' },
+                { field: 'eel_status', label: 'Entry type' },
+                { field: 'footprintID', label: 'Observation ID' },
+                { field: 'waveband', label: 'Waveband' },
+                { field: 'obs_status', label: 'Observation status' },
+                { field: 'extra_info_dict', label: 'JSON info' },
+        ]; 
+
+        // Add extra class names to our grid cells so we can style them separately
+        for (i = 0; i < columns.length; i++) {
+            columns[i].className = 'supergrid-cell';
+        }
+        for (i = 0; i < subRowColumns.length; i++) {
+            subRowColumns[i].className = 'subgrid-cell';
+        }
+
+        var grid = new Grid({ 
+            columns: columns,
+            className: 'dgrid-autoheight',
+
+            renderRow: function (object, options) {
+                // Add the supergrid-row class to the row so we can style it separately from the subrows.
+                var div = put('div.collapsed.supergrid-row', Grid.prototype.renderRow.call(this, object, options));
+
+                // Add the subdiv table which will expand and contract.
+                var t = put(div, 'div.expando table');
+                // I'm finding that the table needs to be 100% of the available width, otherwise
+                // Firefox doesn't like it. Hence the extra empty column.
+                var subGridNode = put(t, 'tr td[style="width: 5%"]+td div');
+                var sg = new Grid({
+                    columns: subRowColumns,
+                    className: 'dgird-subgrid',
+                }, subGridNode);
+                sg.renderArray([object]);
+                // Add the text comment
+                put(t, 'tr td[style="width: 5%"]+td div.subrid-text', object.comment); 
+
+                return div;
+            }
+        }, 'eel-grid'); 
+        grid.renderArray(eels);
+        grid.set("sort", 'N', descending=true);
+
+        var expandedNode = null;
+
+        // listen for clicks to trigger expand/collapse in table view mode
+        var expandoListener = on(grid.domNode, '.dgrid-row:click', function (event) {
+            var node = grid.row(event).element;
+            var collapsed = node.className.indexOf('collapsed') >= 0;
+
+            // toggle state of node which was clicked
+            put(node, (collapsed ? '!' : '.') + 'collapsed');
+
+            // if clicked row wasn't expanded, collapse any previously-expanded row
+            collapsed && expandedNode && put(expandedNode, '.collapsed');
+
+            // if the row clicked was previously expanded, nothing is expanded now
+            expandedNode = collapsed ? node : null;
+        });
+
+    });
+
+
+    //----------------------------------------------------------------------------------------
+    // Section for log entries
+    //----------------------------------------------------------------------------------------
+    var annotationsDiv = put(eventDetailContainer, 'div.content-area');
+    var logTitleDiv = put(annotationsDiv, 'div#log_title_expander');
+    var logContentDiv = put(annotationsDiv, 'div#log_content');
+
+    // Create the form for adding a new log entry.
+    var logAddDiv = put(logContentDiv, 'div#new_log_entry_form');
+    put(logAddDiv, 'div#previewer');
+    put(logAddDiv, 'div#editor');
+    createExpandingSection(logTitleDiv, logContentDiv, logAddDiv, 'Event Log Messages', true);
+
+    //----------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------
+    // Get the tag properties. Sorta hate it that this is so complicated.
+    tagStore = new declare([Rest, RequestMemory])({target: tagListUrl});
+    tagStore.get('').then(function(content) { 
+        var tags = content.tags;
+
+        var tag_display_names = new Object();
+        var blessed_tags = new Array();
+        for (var tag_name in tags) {
+            var tag = tags[tag_name];
+            tag_display_names[tag_name] = tag.displayName;
+            if (tag.blessed) blessed_tags.push({ name: tag_name }); 
+        }
+        // Reorder the blessed tags according to the priority order above.
+        var new_blessed_tags = new Array();
+        for (var i=0; i<blessed_tag_priority_order.length; i++) {
+            var tag_name = blessed_tag_priority_order[i];
+            for (var j=0; j<blessed_tags.length; j++) {
+                if (blessed_tags[j].name == tag_name) {
+                    new_blessed_tags.push(blessed_tags[j]);
+                    break;
+                }
+            }
+        }
+        // Add the rest of them.
+        for (var i=0; i<blessed_tags.length; i++) {
+            if (new_blessed_tags.indexOf(blessed_tags[i]) < 0) {
+                new_blessed_tags.push(blessed_tags[i]);
+            }
+
+        }
+        blessed_tags = new_blessed_tags;
+        var blessed_tag_names = blessed_tags.map(function (obj) { return obj.name; });
+        var blessedTagStore = new Memory({ data: blessed_tags });
+
+        // Create the tag callback generators. These don't depend on the log message contents
+        // so we should be able to define them here.
+        function getTagDelCallback(tag_name, N) {
+            return function() {
+                tagUrl = tagUrlPattern.replace("000", N).replace("temp",tag_name); 
+                var tagResultDialog = new Dialog({ style: "width: 300px" }); 
+                var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" }); 
+                var tbnode = domConstruct.create("div", { 
+                        style: "margin: 0px auto 0px auto; text-align: center;" 
+                }, actionBar); 
+                var tagButton = new Button({ 
+                    label: "Ok", 
+                    onClick: function(){ 
+                    tagResultDialog.hide(); 
+                }}).placeAt(tbnode); 
+                request.del(tagUrl).then( 
+                    function(text){ 
+                        tagResultDialog.set("content", text); 
+                        domConstruct.place(actionBar, tagResultDialog.containerNode); 
+                        tagResultDialog.show(); 
+                        location.reload(true); 
+                    }, 
+                    function(error){ 
+                        tagResultDialog.set("content", "Error: " + error); 
+                        domConstruct.place(actionBar, tagResultDialog.containerNode); 
+                        tagResultDialog.show();  
+                    });
+                } 
+        }
+        
+        function getTagAddCallback(N) {
+            return function() {
+                // Create the tag result dialog.
+                var tagResultDialog = new Dialog({ style: "width: 300px" }); 
+                var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" }); 
+                var tbnode = domConstruct.create("div", { 
+                        style: "margin: 0px auto 0px auto; text-align: center;" 
+                }, actionBar); 
+                var tagButton = new Button({ 
+                    label: "Ok", 
+                    onClick: function(){ 
+                    tagResultDialog.hide();
+                    }
+                }).placeAt(tbnode); 
+
+                // Create the form
+                addTagForm = new Form();
+                var msg = "<p> Choose a tag \
+                    name from the dropdown menu or enter a new one.  If you are \
+                    creating a new tag, please also provide a display name. </p>";
+                domConstruct.create("div", {innerHTML: msg} , addTagForm.containerNode);
+
+                // Form for tagging existing log messages.
+                new ComboBox({
+                    name: "existingTagSelect",
+                    value: "",
+                    store: blessedTagStore,
+                    searchAttr: "name"
+                }).placeAt(addTagForm.containerNode);
+
+                new TextBox({
+                    name: "tagDispName",
+                }).placeAt(addTagForm.containerNode);
+
+                new Button({
+                    type: "submit",
+                    label: "OK",
+                }).placeAt(addTagForm.containerNode);
+
+                // Create the dialoge
+                addTagDialog = new Dialog({
+                    title: "Add Tag",
+                    content: addTagForm,
+                    style: "width: 300px"
+                    });
+
+                // Define the form on submit handler
+                on(addTagForm, "submit", function(evt) {
+                    evt.stopPropagation();
+                    evt.preventDefault();
+                    formData = addTagForm.getValues();
+                    var tagName = formData.existingTagSelect;
+                    var tagDispName = formData.tagDispName;
+                    var tagUrl = tagUrlPattern.replace("000", N).replace("temp",tagName);
+
+                    request.post(tagUrl, {
+                        data: {displayName: tagDispName}
+                    }).then(
+                        function(text){
+                            tagResultDialog.set("content", text);
+                            domConstruct.place(actionBar, tagResultDialog.containerNode);
+                            tagResultDialog.show();
+                            location.reload(true);
+                        },
+                        function(error){
+                            tagResultDialog.set("content", "Error: " + error);
+                            domConstruct.place(actionBar, tagResultDialog.containerNode);
+                            tagResultDialog.show(); 
+                        }
+                   );
+                   addTagDialog.hide();
+                });
+
+                // show the dialog
+                addTagDialog.show();
+            }
+        }
+
+        //----------------------------------------------------------------------------------------
+        //----------------------------------------------------------------------------------------
+        // Now that we've got the tag info, let's get the event log objects.
+        logStore = new declare([Rest, RequestMemory])({target: eventLogListUrl});
+        logStore.get('').then(function(content) {
+
+            // Pull the logs out of the JSON returned by the server.
+            var logs = content.log;
+            var Nlogs = logs.length;
+
+            // Convert the 'created' times to UTC.
+            logs = logs.map( function(obj) {
+                var server_t = moment.tz(obj.created, 'America/Chicago');
+                obj.created = server_t.clone().tz('UTC').format('LLL');
+                return obj;
+            });
+            
+            // Total up the tags present. This list will have duplicates.
+            var total_tags = new Array();
+            logs.forEach( function(log) { 
+                log.tag_names.forEach( function (tag_name) {
+                    total_tags.push(tag_name);
+                });
+            });
+            
+            // Figure out what blessed tags are present. 
+            var our_blessed_tags = blessed_tag_names.filter( function(value) {
+                return total_tags.indexOf(value) >= 0;
+            });
+
+            // If there are any blessed tags here, we'll do TitlePanes
+            if (our_blessed_tags.length > 0) {
+                // define our columns for the topical digest panes
+                var columns = [
+                    { 
+                        field: 'created', 
+                        renderHeaderCell: function(node) {
+                            timeHeaderContainer = put(node, 'div');
+                            createTimeSelect(timeHeaderContainer, 'log', 'llo');
+                            put(timeHeaderContainer, 'div', 'Log Entry Created');
+                            return timeHeaderContainer;
+                        },
+                        renderCell: function(object, value, node, options) {
+                            var server_t = moment.tz(object.created, 'America/Chicago');
+                            var t = put(node, 'time[name="time-log"]', server_t.format('LLL'));
+                            put(t, '[utc="$"]', server_t.clone().tz('UTC').format('LLL'));
+                            put(t, '[llo="$"]', server_t.format('LLL'));
+                            put(t, '[lho="$"]', server_t.clone().tz('America/Los_Angeles').format('LLL'));
+                            put(t, '[virgo="$"]', server_t.clone().tz('Europe/Rome').format('LLL'));
+                            return t;                                                       
+                        }
+                    }, 
+                    { field: 'issuer', label: 'Submitter', get: function(obj) { return obj.issuer.display_name; } },
+                    // Sometimes the comment contains HTML, so we just want to return whatever it has.
+                    // This is where the link with the filename goes. Also the view in skymapViewer button
+                    { 
+                        field: 'comment', 
+                        label: 'Comment', 
+                        renderCell: function(object, value, node, options) {
+                            var commentDiv = put(node, 'div');
+                            // Putting this in the innerHTML allows users to create comments in HTML.
+                            // Whereas, inserting the comment with the put selector escapes it.
+                            commentDiv.innerHTML += value + ' ';
+                            if (object.filename) put(commentDiv, 'a[href=$]', object.file, object.filename);
+                            if (object.filename == 'skymap.json') {
+                                var svButton = put(commentDiv, 'button.modButtonClass#sV_button', 'View in SkymapViewer!');
+                                put(svButton, '[type="button"][data-dojo-type="dijit/form/Button"]');
+                                put(svButton, '[style="float: right"]');
+                            }
+                            return commentDiv;
+                        }
+                    },
+
+                ]; 
+
+                // Create the topical digest title panes
+                for (i=0; i<our_blessed_tags.length; i++) {
+                    var tag_name = our_blessed_tags[i];
+                    // First filter the log messages based on whether they have this blessed tag.
+                    var tagLogs = logs.filter( function(obj) { 
+                        // XXX Not sure why this simpler filter didn't work.
+                        // return obj.tag_names.indexOf(tag_name) > 0;
+                        for (var k=0; k<obj.tag_names.length; k++) {
+                            if (obj.tag_names[k]==tag_name) return true;
+                        }
+                        return false;  
+                    });
+
+                    // Next filter the remaining log messages based on whether or not images are present.
+                    var imgLogs = tagLogs.filter( function(obj) { return hasImage(obj); });
+                    var noImgLogs = tagLogs.filter ( function(obj) { return !hasImage(obj); }); 
+
+                    // Create the title pane with a placeholder div
+                    var pane_contents_id = tag_name + '_pane';
+                    var tp = new TitlePane({ 
+                        title: tag_display_names[tag_name],
+                        content: '<div id="' + pane_contents_id + '"></div>',
+                        open: true
+                    });
+                    logContentDiv.appendChild(tp.domNode);
+                    paneContentsNode = dom.byId(pane_contents_id);
+
+                    // Handle the log messages with images by putting them in little box.
+                    if (imgLogs.length) {
+                        var figContainerId = tag_name + '_figure_container';
+                        var figDiv = put(paneContentsNode, 'div#' + figContainerId);
+                        var figRow = put(figDiv, 'table.figure_container tr');
+                        for (j=0; j<imgLogs.length; j++) {
+                            var log = imgLogs[j];
+                            var figTabInner = put(figRow, 'td table.figures'); 
+                            var figA = put(figTabInner, 'tr.figrow img[height="180"][src=$]', log.file); 
+                            new dojox.image.LightboxNano({href: log.file}, figA); 
+                            var figComment = put(figTabInner, 'tr td');
+                            figComment.innerHTML = log.comment;
+                            figComment.innerHTML += ' <a href="' + log.file + '">' + log.filename + '.</a> ';
+                            figComment.innerHTML += 'Submitted by ' + log.issuer.display_name + ' on ' + log.created;
+                        }
+                        // Put the figures in a scrolling pane in case there are too many to display horizontally
+                        var sp = new dojox.layout.ScrollPane({ orientation: "horizontal", style: "overflow: hidden;" },
+                            figContainerId);
+
+                    }
+
+                    // Handle the log messages without images by putting them in a grid.
+                    if (noImgLogs.length) {
+                        var gridNode = put(paneContentsNode, 'div#' + pane_contents_id + '-grid')
+                        var grid = new declare([Grid, DijitRegistry])({
+                            columns: columns,
+                            className: 'dgrid-autoheight',
+                            // Overriding renderRow here to add an extra class to the row. This is for styling.
+                            renderRow: function(object,options) {
+                                return put('div.supergrid-row', Grid.prototype.renderRow.call(this,object,options));
+                            }
+                        }, gridNode);
+                        grid.renderArray(noImgLogs);
+                        grid.set("sort", 'N', descending=true);
+                    }
+
+                }
+
+                // Create the full event-log title pane
+                var columns = [
+                    { field: 'N', label: 'No.' },
+                    { 
+                        field: 'created', 
+                        renderHeaderCell: function(node) {
+                            timeHeaderContainer = put(node, 'div');
+                            var ts = createTimeSelect(timeHeaderContainer, 'audit-log', 'llo');
+                            put(timeHeaderContainer, 'div', 'Log Entry Created');
+                            // XXX Not sure how to get this to do the right thing.
+                            return timeHeaderContainer; 
+                            //return ts;
+                        },
+                        renderCell: function(object, value, node, options) {
+                            var server_t = moment.tz(object.created, 'America/Chicago');
+                            var t = put(node, 'time[name="time-audit-log"]', server_t.format('LLL'));
+                            put(t, '[utc="$"]', server_t.clone().tz('UTC').format('LLL'));
+                            put(t, '[llo="$"]', server_t.format('LLL'));
+                            put(t, '[lho="$"]', server_t.clone().tz('America/Los_Angeles').format('LLL'));
+                            put(t, '[virgo="$"]', server_t.clone().tz('Europe/Rome').format('LLL'));
+                            return t;                                                       
+                        }
+                    }, 
+{ field: 'issuer', label: 'Submitter', get: function(obj) { return obj.issuer.display_name; } },
+                    // Sometimes the comment contains HTML, so we just want to return whatever it has.
+                    // This is where the link with the filename goes. Also the view in skymapViewer button
+                    { 
+                        field: 'comment', 
+                        label: 'Comment', 
+                        renderCell: function(object, value, node, options) {
+                            commentDiv = put(node, 'div');
+                            // Putting this in the innerHTML allows users to create comments in HTML.
+                            // Whereas, inserting the comment with the put selector escapes it.
+                            commentDiv.innerHTML += value + ' ';
+                            if (object.filename) put(commentDiv, 'a[href=$]', object.file, object.filename);
+                            // Create tag-related features
+                            var tagButtonContainer = put(commentDiv, 'div.tagButtonContainerClass');
+                            // For each existing tag on a log message, we will make a little widget
+                            // to delete it.
+                            object.tag_names.forEach( function(tag_name) {
+                                var delDiv = put(tagButtonContainer, 'div.tagDelButtonDivClass');
+                                var del_button_id = "del_button_" + object.N + '_' + tag_name;
+                                var delButton = put(delDiv, 'button.modButtonClass.left#' + del_button_id);
+                                put(delButton, '[data-dojo-type="dijit/form/Button"]');
+                                // It looks like an 'x', so people will know that this means 'delete'
+                                delButton.innerHTML = '&times;';
+                                var labButton = put(delDiv, 'button.modButtonClass.right', tag_name); 
+                            }); 
+                            // Create a button for adding a new tag.
+                            var add_button_id = 'addtag_' + object.N;
+                            var addButton = put(tagButtonContainer, 'button.modButtonClass#' + add_button_id);
+                            put(addButton, '[data-dojo-type="dijit/form/Button"]');
+                            // Put a plus sign in there.
+                            addButton.innerHTML = '&#43;';
+
+                            // The div is finally ready. Return it.
+                            return commentDiv;
+                        }
+                    },
+                    {
+                        field: 'image',
+                        label: ' ',
+                        renderCell: function(object, value, node, options) {
+                            if (value) {
+                                imgNode = put(node, 'img[height="60"][src="$"]', value);
+                                return new dojox.image.LightboxNano({ href: value }, imgNode); 
+                            }
+                        },
+                        get: function(object) { 
+                            if (hasImage(object)) {
+                                return object.file;
+                            } else {
+                                return null;
+                            }
+                        },
+                    }
+                ]; 
+
+                var pane_contents_id = 'full_log_pane_div';
+                
+                // Create the title pane with a placeholder div
+                var tp = new TitlePane({ 
+                    title: 'Full Event Log',
+                    content: '<div id="' + pane_contents_id + '"></div>',
+                    open: false
+                });
+                logContentDiv.appendChild(tp.domNode);
+
+                var grid = new declare([Grid, DijitRegistry])({
+                    minRowsPerPage: Nlogs,
+                    columns: columns,
+                    className: 'dgrid-autoheight',
+                    renderRow: function(object,options) {
+                        return put('div.supergrid-row', Grid.prototype.renderRow.call(this,object,options));
+                    }
+                }, pane_contents_id);
+                grid.renderArray(logs);
+                grid.set("sort", 'N', descending=true);
+
+            } else {
+                // Not doing title panes, just put up the usual log message section.
+                // Will have the full eventlog section. Same as above, except that it 
+                // won't be in a title pane. What is the best way to do this.
+
+                var columns = [
+                    { field: 'N', label: 'No.' },
+                    { field: 'created', label: 'Log Entry Created (UTC)' }, 
+                    { field: 'issuer', label: 'Submitter', get: function(obj) { return obj.issuer.display_name; } },
+                    // Sometimes the comment contains HTML, so we just want to return whatever it has.
+                    // This is where the link with the filename goes. Also the view in skymapViewer button
+                    { 
+                        field: 'comment', 
+                        label: 'Comment', 
+                        renderCell: function(object, value, node, options) {
+                            commentDiv = put(node, 'div');
+                            // Putting this in the innerHTML allows users to create comments in HTML.
+                            // Whereas, inserting the comment with the put selector escapes it.
+                            commentDiv.innerHTML += value + ' ';
+                            if (object.filename) put(commentDiv, 'a[href=$]', object.file, object.filename);
+                            // Create tag-related features
+                            var tagButtonContainer = put(commentDiv, 'div.tagButtonContainerClass');
+                            // For each existing tag on a log message, we will make a little widget
+                            // to delete it.
+                            object.tag_names.forEach( function(tag_name) {
+                                var delDiv = put(tagButtonContainer, 'div.tagDelButtonDivClass');
+                                var del_button_id = "del_button_" + object.N + '_' + tag_name;
+                                var delButton = put(delDiv, 'button.modButtonClass.left#' + del_button_id);
+                                put(delButton, '[data-dojo-type="dijit/form/Button"]');
+                                // It looks like an 'x', so people will know that this means 'delete'
+                                delButton.innerHTML = '&times;';
+                                var labButton = put(delDiv, 'button.modButtonClass.right', tag_name); 
+                            }); 
+                            // Create a button for adding a new tag.
+                            var add_button_id = 'addtag_' + object.N;
+                            var addButton = put(tagButtonContainer, 'button.modButtonClass#' + add_button_id);
+                            put(addButton, '[data-dojo-type="dijit/form/Button"]');
+                            // Put a plus sign in there.
+                            addButton.innerHTML = '&#43;';
+
+                            // The div is finally ready. Return it.
+                            return commentDiv;
+                        }
+                    },
+                    {
+                        field: 'image',
+                        label: ' ',
+                        renderCell: function(object, value, node, options) {
+                            if (value) {
+                                imgNode = put(node, 'a[href="$"]', value);
+                                put(imgNode, '[dojoType="dojox.image.LightboxNano"]');
+                                put(imgNode, 'img[height="60"][src="$"]', value);
+                                return imgNode;
+                            }
+                        },
+                        get: function(object) { 
+                            if (hasImage(object)) {
+                                return object.file;
+                            } else {
+                                return null;
+                            }
+                        },
+                    }
+                ]; 
+
+                var grid = new declare([Grid, DijitRegistry])({
+                    minRowsPerPage: Nlogs,
+                    columns: columns,
+                    className: 'dgrid-autoheight',
+                    renderRow: function(object,options) {
+                        return put('div.supergrid-row', Grid.prototype.renderRow.call(this,object,options));
+                    }
+                }, logContentDiv);
+                grid.renderArray(logs);
+                grid.set("sort", 'N', descending=true);
+
+            }
+
+            //-------------------------------------------------------------------
+            // Now that the annotations section has been added to the dom, we
+            // can work on its functionality.
+            //-------------------------------------------------------------------
+            var logtitle = dom.byId("logmessagetitle");
+            var logtext = dom.byId("newlogtext");
+
+            var editor_div = dom.byId("editor");
+            var preview_div = dom.byId("previewer");
+
+            // A pane holder for the form that will tag new log messages.
+            // I need it up here because we're going to integrate it with the
+            // editor components.
+            /* 
+            dojo.style(preview_div, { 'display':'none'});
+            dojo.style(editor_div, { 'display':'none'});
+
+            var button_element = dojo.create('button');
+            dojo.place(button_element, logtitle, "right");
+            var button = new Button({
+                label: "Add Log Entry",
+                state: "add",
+                onClick: function(){
+                    if (this.state == 'add') {
+                        dojo.style(editor_div, {'display':'block'});
+                        button.set('label', "Cancel Log Entry");
+                        button.set('state', 'cancel');
+                        editor.focus();
+                    }
+                    else {
+                        dojo.style(editor_div, {'display':'none'});
+                        dojo.style(preview_div, {'display':'none'});
+                        button.set('label', "Add Log Entry");
+                        button.set('state', 'add');
+                        editor.set('value','');
+                    }
+                },
+            }, button_element); */
+
+            var savebutton = new Save({
+                    url: eventLogSaveUrl,
+                    onSuccess: function (resp, ioargs) {
+                        //this.inherited(resp, ioargs);
+                        this.button.set("disabled", false);
+                        location.reload(true);
+                    },
+                    onError: function (error, ioargs) {
+                        //this.inherited(error, ioargs);
+                        this.button.set("disabled", false);
+                        alert("o hai " + error);
+                    },
+                    save: function(postdata) {
+                    var newTagName = "analyst_comments";
+                    var postArgs = {
+                                url: this.url,
+                                content: { comment: postdata, tagname: newTagName },
+                                handleAs: "json"
+                        };
+                        this.button.set("disabled", true);
+                        var deferred = dojo.xhrPost(postArgs);
+                        deferred.addCallback(dojo.hitch(this, this.onSuccess));
+                        deferred.addErrback(dojo.hitch(this, this.onError));
+                        // Call whatever function is necessary to attach the tag
+                        // or add to the postdata and handle in the django view?
+                    }
+            });
+
+            var previewbutton = new Preview({
+                _preview: function(){
+                        var content = this.editor.get("value");
+                        preview_div.innerHTML = editor.get('value');
+                        dojo.style(preview_div, {
+                            'display':'block',
+                            'border': ".2em solid #900",
+                            'padding': '10px'
+                        });
+                        MathJax.Hub.Queue(["Typeset",MathJax.Hub, preview_div]);
+                    }
+            });
+
+            var editor = new Editor({
+                 extraPlugins : ['hiliteColor','|','createLink',
+                                 'insertImage','fullscreen','viewsource','newpage', '|', previewbutton, savebutton] 
+            }, editor_div);
+            editor.startup();
+
+            // For each log, attach callbacks for the tag delete and add buttons.
+            logs.forEach( function(log) {
+                // Attach a delete callback for each tag.
+                log.tag_names.forEach( function(tag_name) {
+                    var del_button_id = "del_button_" + log.N + '_' + tag_name;
+                    on(dom.byId(del_button_id), "click", getTagDelCallback(tag_name, log.N));
+                    new Tooltip({ connectId: del_button_id, label: "delete this tag" });
+                });
+
+                // Attach an add tag callback for each log.
+                var add_button_id = 'addtag_' + log.N;
+                on(dom.byId(add_button_id), "click", getTagAddCallback(log.N));
+                new Tooltip({ connectId: add_button_id, label: "tag this log message" });
+
+            });                 
+
+            // Handle the post to skymapViewer button.
+            // Tacking on an invisible div with a form inside.
+            sVdiv = put(annotationsDiv, 'div#sV_form_div[style="display: none"]');
+            sVform = put(sVdiv, 'form#sV_form[method="post"][action="$"]', 
+                encodeURI(skymapViewerUrl));
+            put(sVform, 'input[type="hidden"][name="json"]');
+            put(sVform, 'input[type="hidden"][name="embb"]');
+            put(sVform, 'input[type="submit"][value="View in skymapViewer!"]');
+            
+            var sV_button = dom.byId("sV_button");
+            if (sV_button) {
+                on(sV_button, "click", function() {
+                    console.log("You clicked the button!");
+                    var embblog_json_url = embbEventLogListUrl;
+                    var embblog_json;
+                    dojo.xhrGet({
+                        url: embblog_json_url + "?format=json",
+                        async: true,
+                        load: function(embblog_json) {
+
+                        // fetch JSON content.
+                        dojo.xhrGet({
+                            url: skymapJsonUrl,
+                            load: function(result) { 
+                                // Find the form and set its value to the appropriate JSON        
+                                sV_form = dom.byId("sV_form");
+                                // Shove the skymap.json contents into the value for the second form field.
+                                sV_form.elements[1].value = result; 
+                                sV_form.elements[2].value = embblog_json; 
+                                // Submit the form, which takes the user to the skymapViewer server.
+                                sV_form.submit();
+                            }
+                        });    // end of inside ajax
+                        }
+                    });        // end of outside ajax
+                });
+            }
+
+
+        });
+    });
+
+
+});
+
