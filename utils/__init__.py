@@ -32,6 +32,7 @@ leapSeconds = map(calendar.timegm, [
     (2006, 1, 0, 0, 0, 0, 0, 0, 0),
     (2009, 1, 0, 0, 0, 0, 0, 0, 0),
     (2012, 7, 0, 0, 0, 0, 0, 0, 0),
+    (2015, 7, 0, 0, 0, 0, 0, 0, 0),
 ])
 
 def gpsToPosixTime(gpsTime):

@@ -507,28 +507,28 @@
                     var embblog_json_url = "{% url "api:embbeventlog-list" object.graceid %}";
                     var embblog_json;
                     dojo.xhrGet({
-                        url: embblog_json_url,
-                        sync: true,
-                        load: function(result) {
-                            embblog_json = result;
-                        }
-                    });
+                        url: embblog_json_url + "?format=json",
+                        async: true,
+                        load: function(embblog_json) {
 
-                    // construct skymap.json url.
-                    var skymap_json_url = "{% url "file" object.graceid "skymap.json" %}"
-                    // fetch JSON content.
-                    dojo.xhrGet({
-                        url: skymap_json_url,
-                        load: function(result) { 
-                            // Find the form and set its value to the appropriate JSON        
-                            sV_form = dom.byId("sV_form");
-                            // Shove the skymap.json contents into the value for the second form field.
-                            sV_form.elements[1].value = result; 
-                            sV_form.elements[2].value = embblog_json; 
-                            // Submit the form, which takes the user to the skymapViewer server.
-                            sV_form.submit();
+
+                        // construct skymap.json url.
+                        var skymap_json_url = "{% url "file" object.graceid "skymap.json" %}"
+                        // fetch JSON content.
+                        dojo.xhrGet({
+                            url: skymap_json_url,
+                            load: function(result) { 
+                                // Find the form and set its value to the appropriate JSON        
+                                sV_form = dom.byId("sV_form");
+                                // Shove the skymap.json contents into the value for the second form field.
+                                sV_form.elements[1].value = result; 
+                                sV_form.elements[2].value = embblog_json; 
+                                // Submit the form, which takes the user to the skymapViewer server.
+                                sV_form.submit();
+                            }
+                        });    // end of inside ajax
                         }
-                    });
+                    });        // end of outside ajax
                 });
             }
 
