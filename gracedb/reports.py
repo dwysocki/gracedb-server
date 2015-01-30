@@ -57,17 +57,25 @@ def histo(request):
         uptime = None
 
 
+    # Rate information
+    try:
+        rate_info = open(settings.RATE_INFO_FILE).read()
+    except IOError:
+        rate_info = None
+
     return render_to_response(
             'gracedb/histogram.html',
             {'table': table,
              'ifar' : ifar,
              'uptime' : uptime,
-             'rate' : json.dumps(rate_data(request)),
+             #'rate' : json.dumps(rate_data(request)),
+             'rate' : rate_info,
              'url_prefix' : settings.REPORT_INFO_URL_PREFIX,
             },
             context_instance=RequestContext(request))
 
-def rate_data(request):
+#def rate_data(request):
+def rate_data():
     # XXX there is a better way -- should be using group_by or something.
     # WAAY too many queries (~300) going on here.
     now = datetime.now()
@@ -76,7 +84,7 @@ def rate_data(request):
     ts_min = now - 60 * day
     ts_max = now
     ts_step = day
-    window_size = day
+#    window_size = day
 
     types = [
         ("total",   Q()),

@@ -105,6 +105,9 @@ LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
 # Uptime reporting
 UPTIME_REPORT_DIR = "/home/gracedb/data/uptime"
 
+# Rate file location
+RATE_INFO_FILE = "/home/gracedb/data/rate_info.json"
+
 # URL prefix for serving report information (usually plots and tables)
 REPORT_INFO_URL_PREFIX = "/report_info/"
 

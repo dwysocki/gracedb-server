@@ -46,12 +46,14 @@ XMPP_ALERT_CHANNELS = [
                       ]
  
 # Latency histograms.  Where they go and max latency to bin.
-LATENCY_REPORT_DEST_DIR = "/home/branson/data/latency"
+LATENCY_REPORT_DEST_DIR = "/home/branson/fake_data/latency"
 LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
 
 # Uptime reporting
-UPTIME_REPORT_DIR = "/homebransonbmoe/data/uptime"
+UPTIME_REPORT_DIR = "/home/branson/fake_data/uptime"
 
+# Rate file location
+RATE_INFO_FILE = "/home/branson/fake_data/rate_info.json"
 
 #SITE_ID = 1
 
