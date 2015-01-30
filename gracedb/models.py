@@ -135,19 +135,14 @@ class Event(models.Model):
         ordering = ["-id"]
 
     def graceid(self):
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.debug("Barf! my id=%d, search=%s" % (self.id, self.search))
         if self.group.name == "Test":
             return "T%04d" % self.id
         elif str(self.search) == str("MDC"):
-            logger.debug("Did i get in here at all?")
             return "M%04d" % self.id
         elif self.pipeline == "HardwareInjection":
             return "H%04d" % self.id
         elif self.group.name == "External":
             return "E%04d" % self.id
-        logger.debug("but I still got down here. Hwhy?")
         return "G%04d" % self.id
 
     def weburl(self):
