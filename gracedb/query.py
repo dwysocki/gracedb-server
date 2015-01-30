@@ -138,6 +138,12 @@ eidRange = eid + Suppress("..") + eid
 eidQ = Optional(Suppress(Keyword("eid:"))) + (eid^eidRange)
 eidQ = eidQ.setParseAction(maybeRange("eid", dbname="id"))
 
+# MDC event id
+mid = Suppress("M")+Word("0123456789")
+midRange = mid + Suppress("..") + mid
+midQ = Optional(Suppress(Keyword("mid:"))) + (mid^midRange)
+midQ = midQ.setParseAction(maybeRange("mid", dbname="id"))
+
 # Submitter
 submitter = QuotedString('"').setParseAction(lambda toks: Q(submitter__username=toks[0]))
 submitterQ = Optional(Suppress(Keyword("submitter:"))) + submitter
@@ -258,7 +264,7 @@ ifoQ = ifoListQ | nifoQ
 ###########################
 
 #q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | eidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
-q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | eidQ | labelQ | searchQ | pipelineQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
+q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | eidQ | midQ | labelQ | searchQ | pipelineQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
 
 #andTheseTags = ["attr"]
 andTheseTags = ["nevents"]
@@ -286,6 +292,8 @@ def parseQuery(s):
         d["hid"] = d["hid"] & Q(pipeline__name="HardwareInjection")
     if "eid" in d:
         d["eid"] = d["eid"] & Q(group__name="External")
+    if "mid" in d:
+        d["mid"] = d["mid"] & Q(search__name="MDC")
     if "id" in d:
         d["id"] = d["id"] & ~Q(pipeline__name="HardwareInjection") & ~Q(group__name="External")
     if "id" in d and "hid" in d:

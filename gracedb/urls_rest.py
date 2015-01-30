@@ -28,23 +28,23 @@ urlpatterns = patterns('gracedb.api',
     # events/[{graceid}[/{version}]]
     url (r'events/$',
         EventList.as_view(), name='event-list'),
-    url (r'events/voevent/(?P<graceid>[GEHT]\d+)$',
+    url (r'events/voevent/(?P<graceid>[GEHMT]\d+)$',
         EventVODetail.as_view(), name='event-vo-detail'),
-    url (r'events/(?P<graceid>[GEHT]\d+)$',
+    url (r'events/(?P<graceid>[GEHMT]\d+)$',
         EventDetail.as_view(), name='event-detail'),
 
     # Event Log Resources
     # events/{graceid}/logs/[{logid}]
-    url (r'events/(?P<graceid>[GEHT]\d+)/log/$',
+    url (r'events/(?P<graceid>[GEHMT]\d+)/log/$',
         EventLogList.as_view(), name='eventlog-list'),
-    url (r'events/(?P<graceid>[GEHT]\d+)/log/(?P<n>\d+)$',
+    url (r'events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)$',
         EventLogDetail.as_view(), name='eventlog-detail'),
 
     # EMBB Event Log Resources
     # events/{graceid}/logs/[{logid}]
-    url (r'events/(?P<graceid>[GEHT]\d+)/embb/$',
+    url (r'events/(?P<graceid>[GEHMT]\d+)/embb/$',
         EMBBEventLogList.as_view(), name='embbeventlog-list'),
-    url (r'events/(?P<graceid>[GEHT]\d+)/embb/(?P<n>\d+)$',
+    url (r'events/(?P<graceid>[GEHMT]\d+)/embb/(?P<n>\d+)$',
         EMBBEventLogDetail.as_view(), name='embbeventlog-detail'),
 
     # Tag Resources
@@ -53,21 +53,21 @@ urlpatterns = patterns('gracedb.api',
     # XXX unclear what the tag detail resource should be.
     #url (r'^tag/(?P<tagname>\w+)$', 
     #    TagDetail.as_view(), name='tag-detail'),
-    url (r'events/(?P<graceid>[GEHT]\d+)/tag/$',
+    url (r'events/(?P<graceid>[GEHMT]\d+)/tag/$',
         EventTagList.as_view(), name='eventtag-list'),
-    url (r'events/(?P<graceid>[GEHT]\d+)/tag/(?P<tagname>\w+)$',
+    url (r'events/(?P<graceid>[GEHMT]\d+)/tag/(?P<tagname>\w+)$',
         EventTagDetail.as_view(), name='eventtag-detail'),
-    url (r'events/(?P<graceid>[GEHT]\d+)/log/(?P<n>\d+)/tag/$',
+    url (r'events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)/tag/$',
         EventLogTagList.as_view(), name='eventlogtag-list'),
-    url (r'events/(?P<graceid>[GEHT]\d+)/log/(?P<n>\d+)/tag/(?P<tagname>\w+)$',
+    url (r'events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)/tag/(?P<tagname>\w+)$',
         EventLogTagDetail.as_view(), name='eventlogtag-detail'),
 
     # Permission Resources
-    url (r'events/(?P<graceid>[GEHT]\d+)/perms/$',
+    url (r'events/(?P<graceid>[GEHMT]\d+)/perms/$',
         EventPermissionList.as_view(), name='eventpermission-list'),
-    url (r'events/(?P<graceid>[GEHT]\d+)/perms/(?P<group_name>.+)/$', 
+    url (r'events/(?P<graceid>[GEHMT]\d+)/perms/(?P<group_name>.+)/$', 
         GroupEventPermissionList.as_view(), name='groupeventpermission-list'),
-    url (r'events/(?P<graceid>[GEHT]\d+)/perms/(?P<group_name>.+)/(?P<perm_shortname>\w+)$', 
+    url (r'events/(?P<graceid>[GEHMT]\d+)/perms/(?P<group_name>.+)/(?P<perm_shortname>\w+)$', 
         GroupEventPermissionDetail.as_view(), name='groupeventpermission-detail'),
 
     # Event File Resources
