@@ -288,6 +288,9 @@ REST_FRAMEWORK = {
 STATIC_URL = "/gracedb-static/"
 STATIC_ROOT = "/home/gracedb/graceproj/static/"
 
+BOWER_URL = "/bower-static/"
+BOWER_ROOT = "/home/gracedb/bower_components/"
+
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',

@@ -1030,13 +1030,20 @@ class TagList(APIView):
 
     def get(self, request):
         # Return a list of links to all tag objects.
+        tag_dict = {}
+        for tag in Tag.objects.all():
+            tag_dict[tag.name] = { 
+                'displayName': tag.displayName,
+                'blessed': tag.name in settings.BLESSED_TAGS
+            }
         rv = {
 #                 'tags' : [ reverse("tag-detail", args=[tag.name],
 #                                    request=request)
 #                            for tag in Tag.objects.all() ]
 #                For now, we just output the tag names, since we don't know what 
 #                tag-detail should look like.
-                 'tags' : [ tag.name for tag in Tag.objects.all() ]
+#                 'tags' : [ tag.name for tag in Tag.objects.all() ]
+                  'tags' : tag_dict,
              }
         return Response(rv)
 

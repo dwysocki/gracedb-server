@@ -196,33 +196,46 @@ def eventToDict(event, columns=None, request=None):
     return rv
 
 def eventLogToDict(log, request=None):
-      uri = None
-      taglist_uri = None
-      file_uri = None
-      if request:
-          uri = reverse("eventlog-detail",
-                  args=[log.event.graceid(), log.N],
-                  request=request)
-          taglist_uri = reverse("eventlogtag-list",
-                  args=[log.event.graceid(), log.N],
-                  request=request)
-          if log.filename:
-              actual_filename = log.filename
-              if log.file_version:
-                  actual_filename += ',%d' % log.file_version
-              filename = urlquote(actual_filename)
-              file_uri = reverse("files",
-                  args=[log.event.graceid(), filename],
-                  request=request)
-  
-      return {
-                  "comment" : log.comment,
-                  "created" : log.created.isoformat(),
-                  "issuer"  : log.issuer.username,
-                  "self"    : uri,
-                  "tags"    : taglist_uri,
-                  "file"    : file_uri,
-             }
+    uri = None
+    taglist_uri = None
+    file_uri = None
+    if request:
+        uri = reverse("eventlog-detail",
+                args=[log.event.graceid(), log.N],
+                request=request)
+        taglist_uri = reverse("eventlogtag-list",
+                args=[log.event.graceid(), log.N],
+                request=request)
+        if log.filename:
+            actual_filename = log.filename
+            if log.file_version:
+                actual_filename += ',%d' % log.file_version
+            filename = urlquote(actual_filename)
+            file_uri = reverse("files",
+                args=[log.event.graceid(), filename],
+                request=request)
+
+        # This is purely for convenience in working with the web interface.
+        tag_names = [tag.name for tag in log.tag_set.all() ];
+
+    issuer_info = {
+        "username": log.issuer.username,
+        "display_name": "%s %s" % (log.issuer.first_name, log.issuer.last_name),
+    }
+
+    return {
+                "N"            : log.N,
+                "comment"      : log.comment,
+                "created"      : log.created,
+                "issuer"       : issuer_info,
+                "filename"     : log.filename,
+                "file_version" : log.file_version,
+                "tag_names"    : tag_names,
+                "self"         : uri,
+                "tags"         : taglist_uri,
+                "file"         : file_uri,
+           }
+
 
 def labelToDict(label, request=None):
     return { 
@@ -242,8 +255,9 @@ def embbEventLogToDict(eel, request=None):
                   args=[eel.event.graceid(), eel.N],
                   request=request)
       return {
+                  "N"       : eel.N,
                   "self"    : uri,
-                  "created" : eel.created.isoformat(),
+                  "created" : eel.created,
                   "submitter"  : eel.submitter.username,
                   "group" : eel.group.name,
                   "instrument" : eel.instrument,
@@ -269,6 +283,8 @@ def embbEventLogToDict(eel, request=None):
                   "comment" : eel.comment,
                   "extra_info_dict" : eel.extra_info_dict,
              }
+  
+
 
 #---------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------

@@ -19,6 +19,9 @@ DATABASES = {
 STATIC_URL = "/branson-static/"
 STATIC_ROOT = "/home/branson/gracedbdev/static/"
 
+BOWER_URL = "/bower-static/"
+BOWER_ROOT = "/home/branson/bower_components/"
+
 GRACEDB_DATA_DIR = "/home/branson/fake_data"
 
 ALERT_EMAIL_FROM = "Dev Alert <root@moe.phys.uwm.edu>"

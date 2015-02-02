@@ -2,7 +2,7 @@
 {% load timeutil %}
 
 {% block basic_info %}
-<h3> Basic Info </h3>
+<h2> Basic Info </h2>
 
 <table class="event">
     {% if skyalert_authorized  %}
@@ -19,13 +19,13 @@
             <th>Search</th>
             <th>Instruments</th>
             <th>
-                {{ "gps"|timeselect:"gps" }}
-                Event Time
+                <div id="basic_info_event_ts"></div>
+                <div> Event Time </div>
             </th>
             <th>Links</th>
             <th>
-                {{"created"|timeselect:"utc" }}
-                Submitted
+                <div id="basic_info_created_ts"></div>
+                <div> Submitted </div>
             </th>
     </tr>
 

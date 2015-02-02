@@ -1,11 +1,11 @@
 {% load timeutil %}
 {% load scientific %}
 <div id="neighbors" class="content-area">
-<h3>Neighbors &nbsp;
+<h2>Neighbors &nbsp;
     <span data-dojo-type="dijit/InlineEditBox"
         data-dojo-props="editor:'dijit/form/TextBox', editorParams:{constraints:{places:0} }" width="100px" 
         title="window"
-        onchange="refresh_neighbors(this.value)">{{neighbor_delta}}</span></h3>
+        onchange="refresh_neighbors(this.value)">{{neighbor_delta}}</span></h2>
 
 {% if nearby %}
 
@@ -18,15 +18,15 @@
             <th>Search</th>
             <th>Instruments</th>
             <th>
-                {{ "ngps"|timeselect:"gps" }}
-                Event Time
+                <div id="neighbors_event_ts"></div>
+                <div> Event Time </div>
             </th>
             <th>&Delta;gpstime</th>
             <th>FAR (Hz)</th>
             <th>Links</th>
             <th>
-                {{"ncreated"|timeselect:"utc" }}
-                Submitted
+                <div id="neighbors_created_ts"></div>
+                <div> Submitted </div>
             </th>
     </tr>
     {% for delta, object in nearby %}

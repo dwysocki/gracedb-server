@@ -2,12 +2,13 @@
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
+{% block headcontents %}
     <link rel="stylesheet" href="{{STATIC_URL}}css/style.css" />
     <title>GraceDb | {% block title %}{% endblock %}</title>
 <!-- START TESTING -->
 <script type="text/javascript">
 function changeTime(obj, label) {
-    var timetype= obj[obj.selectedIndex].value;
+    var timetype = obj.get("value");
     if (timetype=="") { return; }
     var times = document.getElementsByName("time-"+label);
     for (i=0; i<times.length; i++) {
@@ -16,6 +17,7 @@ function changeTime(obj, label) {
     }
 }
 </script>
+{% endblock %}
 <!-- END TESTING -->
 {% block jscript %}{% endblock %}
 </head>

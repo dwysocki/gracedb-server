@@ -284,6 +284,7 @@ def view(request, event):
     context['single_inspiral_events'] = list(event.singleinspiral_set.all())
     context['neighbor_delta'] = "[%+d,%+d]" % (-5,5)
     context['SKYMAP_VIEWER_SERVICE_URL'] = settings.SKYMAP_VIEWER_SERVICE_URL
+    context['BOWER_URL'] = settings.BOWER_URL
 
     # XXX This is something of a hack. In the future, we will want to show the
     # executive user a list of groups and a two column list of radio buttons, showing
@@ -761,14 +762,12 @@ def modify_permissions(request, event):
     # Finished. Redirect back to the event.
     return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
 
-from hashlib import md5
-
 # A view to create embb log entries
 @event_and_auth_required
 def embblogentry(request, event, num=None):
     if request.method == "POST":
         try:
-            eel = create_eel(request.POST, event, request.user)
+            create_eel(request.POST, event, request.user)
         except ValueError, e:
             return HttpResponseBadRequest(str(e))
         except Exception, e:
