@@ -226,7 +226,7 @@ def eventLogToDict(log, request=None):
     return {
                 "N"            : log.N,
                 "comment"      : log.comment,
-                "created"      : log.created,
+                "created"      : log.created.isoformat(),
                 "issuer"       : issuer_info,
                 "filename"     : log.filename,
                 "file_version" : log.file_version,
@@ -257,7 +257,7 @@ def embbEventLogToDict(eel, request=None):
       return {
                   "N"       : eel.N,
                   "self"    : uri,
-                  "created" : eel.created,
+                  "created" : eel.created.isoformat(),
                   "submitter"  : eel.submitter.username,
                   "group" : eel.group.name,
                   "instrument" : eel.instrument,
