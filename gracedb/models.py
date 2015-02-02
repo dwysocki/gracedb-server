@@ -725,6 +725,12 @@ class SingleInspiral(models.Model):
     Gamma7            = models.FloatField(null=True)
     Gamma8            = models.FloatField(null=True)
     Gamma9            = models.FloatField(null=True)
+    spin1x            = models.FloatField(null=True)
+    spin1y            = models.FloatField(null=True)
+    spin1z            = models.FloatField(null=True)
+    spin2x            = models.FloatField(null=True)
+    spin2y            = models.FloatField(null=True)
+    spin2z            = models.FloatField(null=True)
 
     def end_time_full(self):
         return LIGOTimeGPS(self.end_time, self.end_time_ns)

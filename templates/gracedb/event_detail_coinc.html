@@ -15,7 +15,7 @@
 <h2>Coinc Tables</h2>
 <!-- <table class="analysis_specific"> <tbody> -->
 <!-- 5 rows here -->
-<table style="height:320px"> 
+<table style="height:364px"> 
     <!-- <tr> <th> ifos </th> <td> {{object.ifos}} </td> </tr>  -->
     <tr> <th> End Time </th> <td> {{object|end_time:4}} </td> </tr>
     <!--<tr> <th> end_time_ns </th> <td> {{object.end_time_ns}} </td> </tr> -->
@@ -359,6 +359,18 @@
 		<td>{{ e.gamma9 }}</td>
 		{% endfor %}
     </tr> -->
+	<tr>
+		<th>spin1z</th>
+		{% for e in single_inspiral_events %}
+		<td>{{ e.spin1z }}</td>
+		{% endfor %}
+    </tr> 
+	<tr>
+		<th>spin2z</th>
+		{% for e in single_inspiral_events %}
+		<td>{{ e.spin2z }}</td>
+		{% endfor %}
+    </tr> 
 </table>
 </div> 
 
