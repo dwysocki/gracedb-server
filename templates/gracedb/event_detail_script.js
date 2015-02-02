@@ -293,83 +293,88 @@ require([
         // Pull the EELs out of the rest content and create a new simple store from them.
         var eels = content.embblog;
 
-        var columns  = [
-            { field: 'created', label: 'Time Created (UTC)' },
-            { field: 'submitter', label: 'Submitter' },
-            { field: 'group', label: 'MOU Group' },
-            { field: 'gpstime', label: 'GPS time of observation' },
-            { field: 'duration', label: 'Exposure time (s)' },
-            { field: 'radec',
-              label: 'Covering (ra, dec)',
-                get: function(object){
-                    var rastring = object.ra + " \xB1 " + object.raWidth/2.0;
-                    var decstring = object.dec + " \xB1 " + object.decWidth/2.0;
-                    return "(" + rastring + ','  + decstring + ")";
-                },
+        if (eels.length == 0) {
+            eelDiv = dom.byId('eel-grid');
+            eelDiv.innerHTML = '<p> (No EMBB log entries.) </p>';
+        } else {
+
+            var columns  = [
+                { field: 'created', label: 'Time Created (UTC)' },
+                { field: 'submitter', label: 'Submitter' },
+                { field: 'group', label: 'MOU Group' },
+                { field: 'gpstime', label: 'GPS time of observation' },
+                { field: 'duration', label: 'Exposure time (s)' },
+                { field: 'radec',
+                  label: 'Covering (ra, dec)',
+                    get: function(object){
+                        var rastring = object.ra + " \xB1 " + object.raWidth/2.0;
+                        var decstring = object.dec + " \xB1 " + object.decWidth/2.0;
+                        return "(" + rastring + ','  + decstring + ")";
+                    },
+                }
+            ]; 
+
+            var subRowColumns  = [ 
+                    { field: 'instrument', label: 'Instrument' },
+                    { field: 'eel_status', label: 'Entry type' },
+                    { field: 'footprintID', label: 'Observation ID' },
+                    { field: 'waveband', label: 'Waveband' },
+                    { field: 'obs_status', label: 'Observation status' },
+                    { field: 'extra_info_dict', label: 'JSON info' },
+            ]; 
+
+            // Add extra class names to our grid cells so we can style them separately
+            for (i = 0; i < columns.length; i++) {
+                columns[i].className = 'supergrid-cell';
             }
-        ]; 
-
-        var subRowColumns  = [ 
-                { field: 'instrument', label: 'Instrument' },
-                { field: 'eel_status', label: 'Entry type' },
-                { field: 'footprintID', label: 'Observation ID' },
-                { field: 'waveband', label: 'Waveband' },
-                { field: 'obs_status', label: 'Observation status' },
-                { field: 'extra_info_dict', label: 'JSON info' },
-        ]; 
-
-        // Add extra class names to our grid cells so we can style them separately
-        for (i = 0; i < columns.length; i++) {
-            columns[i].className = 'supergrid-cell';
-        }
-        for (i = 0; i < subRowColumns.length; i++) {
-            subRowColumns[i].className = 'subgrid-cell';
-        }
-
-        var grid = new Grid({ 
-            columns: columns,
-            className: 'dgrid-autoheight',
-
-            renderRow: function (object, options) {
-                // Add the supergrid-row class to the row so we can style it separately from the subrows.
-                var div = put('div.collapsed.supergrid-row', Grid.prototype.renderRow.call(this, object, options));
-
-                // Add the subdiv table which will expand and contract.
-                var t = put(div, 'div.expando table');
-                // I'm finding that the table needs to be 100% of the available width, otherwise
-                // Firefox doesn't like it. Hence the extra empty column.
-                var subGridNode = put(t, 'tr td[style="width: 5%"]+td div');
-                var sg = new Grid({
-                    columns: subRowColumns,
-                    className: 'dgird-subgrid',
-                }, subGridNode);
-                sg.renderArray([object]);
-                // Add the text comment
-                put(t, 'tr td[style="width: 5%"]+td div.subrid-text', object.comment); 
-
-                return div;
+            for (i = 0; i < subRowColumns.length; i++) {
+                subRowColumns[i].className = 'subgrid-cell';
             }
-        }, 'eel-grid'); 
-        grid.renderArray(eels);
-        grid.set("sort", 'N', descending=true);
 
-        var expandedNode = null;
+            var grid = new Grid({ 
+                columns: columns,
+                className: 'dgrid-autoheight',
 
-        // listen for clicks to trigger expand/collapse in table view mode
-        var expandoListener = on(grid.domNode, '.dgrid-row:click', function (event) {
-            var node = grid.row(event).element;
-            var collapsed = node.className.indexOf('collapsed') >= 0;
+                renderRow: function (object, options) {
+                    // Add the supergrid-row class to the row so we can style it separately from the subrows.
+                    var div = put('div.collapsed.supergrid-row', Grid.prototype.renderRow.call(this, object, options));
 
-            // toggle state of node which was clicked
-            put(node, (collapsed ? '!' : '.') + 'collapsed');
+                    // Add the subdiv table which will expand and contract.
+                    var t = put(div, 'div.expando table');
+                    // I'm finding that the table needs to be 100% of the available width, otherwise
+                    // Firefox doesn't like it. Hence the extra empty column.
+                    var subGridNode = put(t, 'tr td[style="width: 5%"]+td div');
+                    var sg = new Grid({
+                        columns: subRowColumns,
+                        className: 'dgird-subgrid',
+                    }, subGridNode);
+                    sg.renderArray([object]);
+                    // Add the text comment
+                    put(t, 'tr td[style="width: 5%"]+td div.subrid-text', object.comment); 
 
-            // if clicked row wasn't expanded, collapse any previously-expanded row
-            collapsed && expandedNode && put(expandedNode, '.collapsed');
+                    return div;
+                }
+            }, 'eel-grid'); 
+            grid.renderArray(eels);
+            grid.set("sort", 'N', descending=true);
 
-            // if the row clicked was previously expanded, nothing is expanded now
-            expandedNode = collapsed ? node : null;
-        });
+            var expandedNode = null;
 
+            // listen for clicks to trigger expand/collapse in table view mode
+            var expandoListener = on(grid.domNode, '.dgrid-row:click', function (event) {
+                var node = grid.row(event).element;
+                var collapsed = node.className.indexOf('collapsed') >= 0;
+
+                // toggle state of node which was clicked
+                put(node, (collapsed ? '!' : '.') + 'collapsed');
+
+                // if clicked row wasn't expanded, collapse any previously-expanded row
+                collapsed && expandedNode && put(expandedNode, '.collapsed');
+
+                // if the row clicked was previously expanded, nothing is expanded now
+                expandedNode = collapsed ? node : null;
+            });
+        } // endif on whether we have any eels or not.
     });
 
 

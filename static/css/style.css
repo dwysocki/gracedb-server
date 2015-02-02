@@ -62,11 +62,12 @@ table.figures {width:300px;height:270px;border:1px solid gray;}
     background-color: rgb(200, 200, 200);
     cursor: pointer;
     min-width: 20px;
-    min-height: 20px;
+    /* min-height: 20px; */
+    height: 20px;
 }
 
 .modButtonClass.left {   
-    padding: 0px 0px 0px 0px;
+    padding: 2px 0px 2px 0px;
     margin: 2px 0px 2px 2px;
 }
 
