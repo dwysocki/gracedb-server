@@ -751,7 +751,11 @@ class SingleInspiral(models.Model):
             e = cls(event=event)
             #log.debug("Single/creating event")
             for column in field_names:
-                value = getattr(row, column)
+                try:
+                    value = getattr(row, column)
+                except:
+                    # We don't want to fail if the value is not present.
+                    value = None
                 #log.debug("Setting column '%s' with value '%s'" % (column, value))
                 setattr(e, column, value)
             e.save()
