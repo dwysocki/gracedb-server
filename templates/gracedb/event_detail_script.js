@@ -823,10 +823,8 @@ require([
                         label: ' ',
                         renderCell: function(object, value, node, options) {
                             if (value) {
-                                imgNode = put(node, 'a[href="$"]', value);
-                                put(imgNode, '[dojoType="dojox.image.LightboxNano"]');
-                                put(imgNode, 'img[height="60"][src="$"]', value);
-                                return imgNode;
+                                imgNode = put(node, 'img[height="60"][src="$"]', value);
+                                return new dojox.image.LightboxNano({ href: value }, imgNode); 
                             }
                         },
                         get: function(object) { 
