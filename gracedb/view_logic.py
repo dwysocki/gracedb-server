@@ -29,8 +29,6 @@ import json
 import datetime
 
 def _createEventFromForm(request, form):
-    import logging
-    logger = logging.getLogger(__name__)
     saved = False
     warnings = []
     try:
@@ -102,10 +100,7 @@ def _createEventFromForm(request, form):
                 # Send an alert.
                 # XXX This reverse will give the web-interface URL, not the REST URL.
                 # This could be a problem if anybody ever tries to use it.
-                # NOTE: The clusterurl method should be considered deprecated.
-                logger.debug("Bout to issue the alert.")
                 issueAlert(event,
-                           #os.path.join(event.clusterurl(), "private", f.name),
                            request.build_absolute_uri(reverse("file", args=[event.graceid(),f.name])),
                            request.build_absolute_uri(reverse("view", args=[event.graceid()])),
                            eventToDict(event, request=request))

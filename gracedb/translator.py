@@ -120,9 +120,6 @@ def handle_uploaded_data(event, datafilename,
 
         # Create EventLog entries about these files.
 
-        # XXX provate_data_url unused
-        #private_data_url = os.path.join(event.weburl(), 'private')
-
         log = EventLog(event=event,
                        filename=log_filename,
                        issuer=event.submitter,
@@ -208,9 +205,6 @@ def handle_uploaded_data(event, datafilename,
 
         # Create EventLog entries about these files.
 
-        # XXX private_data_url unused
-        #private_data_url = os.path.join(event.weburl(), 'private')
-
         event.gpstime = end_time[0]
         event.save()
 
@@ -238,10 +232,6 @@ def handle_uploaded_data(event, datafilename,
                            log_fname=log_filename)
 
         # Create EventLog entries about these files.
-
-        # XXX provate_data_url unused
-        #private_data_url = os.path.join(event.weburl(), 'private')
-
         log = EventLog(event=event,
                        filename=log_filename,
                        issuer=event.submitter,
@@ -293,10 +283,6 @@ def handle_uploaded_data(event, datafilename,
         write_output_files(output_dir, xmldoc, log_data)
 
         # Create EventLog entries about these files.
-
-        # XXX provate_data_url unused
-        #private_data_url = os.path.join(event.weburl(), 'private')
-
         log = EventLog(event=event,
                        filename=log_filename,
                        issuer=event.submitter,

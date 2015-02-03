@@ -149,11 +149,6 @@ class Event(models.Model):
         # XXX Not good.  But then, it never was.
         return reverse('file_list', args=[self.graceid()])
 
-    # XXX This should be considered deprecated. (Branson, July 22, 2014.)
-    def clusterurl(self):
-        #return "pcdev1.phys.uwm.edu:/archive/gracedb/data/%s" % self.graceid()
-        return "file://pcdev1.phys.uwm.edu/archive/gracedb/data/%s" % self.graceid()
-
     def datadir(self, general=False):
         # Move to this.  Not the (more) ad hoc crap that's floating around.
         if general:
@@ -293,7 +288,6 @@ class EventLog(models.Model):
             if self.file_version >= 0:
                 actual_filename += ',%d' % self.file_version
             return reverse('file', args=[self.event.graceid(), actual_filename])
-            #return os.path.join(self.event.weburl(), 'private', self.filename)
         else:
             return None
 
