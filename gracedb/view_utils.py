@@ -1,7 +1,9 @@
 
 from django.http import HttpResponse
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse as django_reverse
+from django.utils import dateformat
 from django.utils.html import escape, urlize
+from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 
 from utils.vfile import VersionedFile
@@ -17,6 +19,278 @@ MAX_QUERY_RESULTS = 1000
 GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 
 import json
+import pytz
+
+SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
+def timeToUTC(dt):
+    if not dt.tzinfo:
+        dt = SERVER_TZ.localize(dt)
+    return dateformat.format(dt.astimezone(pytz.utc), settings.GRACE_DATETIME_FORMAT)
+
+#---------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
+# Modified reverse for REST API and serializers below
+#---------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
+
+from rest_framework.reverse import reverse as rest_framework_reverse
+from django.core.urlresolvers import resolve, get_script_prefix
+
+# Note about reverse() in this file -- there are THREE versions of it here.
+  #
+  # SOURCE                               LOCAL NAME
+  # django.core.urlresolvers.reverse ==> django_reverse
+  # rest_framework.reverse.reverse   ==> rest_framework_reverse
+  # reverse defined below            ==> reverse
+  #
+  # The Django reverse returns relative paths.
+  #
+  # The rest framework reverse is basically the same as the Django version
+  # but will return full paths if the request is passed in using the request kw arg.
+  #
+  # The reverse defined below is basically the rest framework reverse, but
+  # will attempt to deal with multiply-include()-ed url.py-type files with
+  # different namespaces.  (see the comments in the function)
+def reverse(name, *args, **kw):
+      """Find a URL.  Respect where that URL was defined in urls.py
+  
+      Allow for a set of URLs to have been include()-ed on multiple URL paths.
+  
+      eg  urlpatterns = (
+          (r'^api1/', include('someapp.urls', app_name="api", namespace="x509")),
+          (r'^api2/', include('someapp.urls', app_name="api", namespace="shib")),
+          ...)
+  
+      then reverse("api:root", request=self.request) will give the obviously
+      correct full URL for the URL named "root" in someapp/urls.py.  Django's
+      reverse will pick one URL path and use it no matter what path the
+      URL resolver flows through and it will do so whether you specify an app_name
+      or not.
+  
+      This function solves that issue.  app_name and namespace are required.
+      The request must be the value at kw['request']
+  
+      Assembled with hints from http://stackoverflow.com/a/13249060
+      """
+      # XXX rashly assuming app is "api:"  brutal.
+      if type(name) == str and not name.startswith("api:"):
+          name = "api:"+name
+  
+      # Idea is to put 'current_app' into the kw args of reverse
+      # where current_app is the namespace of the urlpattern we got here from.
+      # Given that, reverse will find the right patterns in your urlpatterns.
+      # I do know know why Django does not do this by default.
+  
+      # This probably only works if you give app_names which are the same
+      # and namespaces that are different.
+  
+      if 'request' in kw and 'current_app' not in kw:
+          request = kw['request']
+          # For some reason, resolve() does not seem to like the script_prefix.
+          # So, remove it.
+          prefix = get_script_prefix()
+          path = request.path.replace(prefix, '/')
+          current_app = resolve(path).namespace
+          kw['current_app'] = current_app
+  
+      return rest_framework_reverse(name, *args, **kw)
+
+
+#---------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
+# Custom serializers 
+#---------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
+
+def eventToDict(event, columns=None, request=None):
+    """Convert an Event to a dictionary."""
+    rv = {}
+    graceid = event.graceid()
+    try:
+      rv['submitter'] = event.submitter.username
+    except:
+      rv['submitter'] = 'Unknown'
+
+    rv['created'] = timeToUTC(event.created)
+    rv['group'] = event.group.name
+    rv['graceid'] = graceid
+    rv['pipeline'] = event.pipeline.name
+    if event.search:
+        rv['search'] = event.search.name
+    rv['gpstime'] = event.gpstime
+    rv['instruments'] = event.instruments
+    rv['nevents'] = event.nevents
+    rv['far'] = event.far
+    rv['likelihood'] = event.likelihood
+    rv['labels'] = dict([
+          (labelling.label.name,
+              reverse("labels",
+                  args=[graceid, labelling.label.name],
+                  request=request))
+          for labelling in event.labelling_set.all()])
+    # XXX Try to produce a dictionary of analysis specific attributes.  Duck typing.
+    rv['extra_attributes'] = {}
+    try:
+        # GrbEvent
+        rv['extra_attributes']['GRB'] = {
+              "ivorn" : event.ivorn,
+              "author_ivorn" : event.author_ivorn,
+              "author_shortname" : event.author_shortname,
+              "observatory_location_id" : event.observatory_location_id,
+              "coord_system" : event.coord_system,
+              "ra" : event.ra,
+              "dec" : event.dec,
+              "error_radius" : event.error_radius,
+              "how_description" : event.how_description,
+              "how_reference_url" : event.how_reference_url,
+              }
+    except:
+        pass
+    try:
+        # CoincInspiralEvent
+        rv['extra_attributes']['CoincInspiral'] = {
+              "ifos" : event.ifos,
+              "end_time" : event.end_time,
+              "end_time_ns" : event.end_time_ns,
+              "mass" : event.mass,
+              "mchirp" : event.mchirp,
+              "minimum_duration" : event.minimum_duration,
+              "snr" : event.snr,
+              "false_alarm_rate" : event.false_alarm_rate,
+              "combined_far" : event.combined_far,
+              }
+    except:
+        pass
+    try:
+        # MultiBurstEvent
+        rv['extra_attributes']['MultiBurst'] = {
+              "ifos" : event.ifos,
+              "start_time" : event.start_time,
+              "start_time_ns" : event.start_time_ns,
+              "duration" : event.duration,
+              "peak_time" : event.peak_time,
+              "peak_time_ns" : event.peak_time_ns,
+              "central_freq" : event.central_freq,
+              "bandwidth" : event.bandwidth,
+              "amplitude" : event.amplitude,
+              "snr" : event.snr,
+              "confidence" : event.confidence,
+              "false_alarm_rate" : event.false_alarm_rate,
+              "ligo_axis_ra" : event.ligo_axis_ra,
+              "ligo_axis_dec" : event.ligo_axis_dec,
+              "ligo_angle" : event.ligo_angle,
+              "ligo_angle_sig" : event.ligo_angle_sig,
+              }
+    except:
+        pass
+    rv['links'] = {
+          "neighbors" : reverse("neighbors", args=[graceid], request=request),
+          "log"   : reverse("eventlog-list", args=[graceid], request=request),
+          "embb"   : reverse("embbeventlog-list", args=[graceid], request=request),
+          "files" : reverse("files", args=[graceid], request=request),
+          "filemeta" : reverse("filemeta", args=[graceid], request=request),
+          "labels" : reverse("labels", args=[graceid], request=request),
+          "self"  : reverse("event-detail", args=[graceid], request=request),
+          "tags"  : reverse("eventtag-list", args=[graceid], request=request),
+          }
+    return rv
+
+def eventLogToDict(log, request=None):
+    uri = None
+    taglist_uri = None
+    file_uri = None
+    if request:
+        uri = reverse("eventlog-detail",
+                args=[log.event.graceid(), log.N],
+                request=request)
+        taglist_uri = reverse("eventlogtag-list",
+                args=[log.event.graceid(), log.N],
+                request=request)
+        if log.filename:
+            actual_filename = log.filename
+            if log.file_version:
+                actual_filename += ',%d' % log.file_version
+            filename = urlquote(actual_filename)
+            file_uri = reverse("files",
+                args=[log.event.graceid(), filename],
+                request=request)
+
+        # This is purely for convenience in working with the web interface.
+        tag_names = [tag.name for tag in log.tag_set.all() ];
+
+    issuer_info = {
+        "username": log.issuer.username,
+        "display_name": "%s %s" % (log.issuer.first_name, log.issuer.last_name),
+    }
+
+    return {
+                "N"            : log.N,
+                "comment"      : log.comment,
+                "created"      : log.created.isoformat(),
+                "issuer"       : issuer_info,
+                "filename"     : log.filename,
+                "file_version" : log.file_version,
+                "tag_names"    : tag_names,
+                "self"         : uri,
+                "tags"         : taglist_uri,
+                "file"         : file_uri,
+           }
+
+
+def labelToDict(label, request=None):
+    return { 
+            "name" : label.label.name,
+            "creator" : label.creator.username,
+            "created" : label.created.isoformat(),
+            "self" : reverse("labels",
+                args=[label.event.graceid(), label.label.name],
+                request=request),
+           }
+
+# EEL serializer.
+def embbEventLogToDict(eel, request=None):
+      uri = None
+      if request:
+          uri = reverse("embbeventlog-detail",
+                  args=[eel.event.graceid(), eel.N],
+                  request=request)
+      return {
+                  "N"       : eel.N,
+                  "self"    : uri,
+                  "created" : eel.created.isoformat(),
+                  "submitter"  : eel.submitter.username,
+                  "group" : eel.group.name,
+                  "instrument" : eel.instrument,
+                  "footprintID" : eel.footprintID,
+                  "waveband" : eel.waveband,
+  
+                  "ra"       : eel.ra,
+                  "dec"      : eel.dec,
+                  "raWidth"  : eel.raWidth,
+                  "decWidth" : eel.decWidth,
+                  "gpstime"  : eel.gpstime,
+                  "duration" : eel.duration,
+  
+                  "raList"       : json.loads('['+eel.raList+']'),
+                  "decList"      : json.loads('['+eel.decList+']'),
+                  "raWidthList"  : json.loads('['+eel.raWidthList+']'),
+                  "decWidthList" : json.loads('['+eel.decWidthList+']'),
+                  "gpstimeList"  : json.loads('['+eel.gpstimeList+']'),
+                  "durationList" : json.loads('['+eel.durationList+']'),
+  
+                  "eel_status" : eel.get_eel_status_display(),
+                  "obs_status" : eel.get_obs_status_display(),
+                  "comment" : eel.comment,
+                  "extra_info_dict" : eel.extra_info_dict,
+             }
+  
+
+
+#---------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
+# Miscellany
+#---------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
 
 def assembleLigoLw(objects):
     from glue.ligolw import ligolw
@@ -115,14 +389,14 @@ def flexigridResponse(request, objects):
         rows.append(
             { 'id' : object.id,
               'cell': [ '<a href="%s">%s</a>' %
-                            (reverse("view", args=[object.graceid()]), object.graceid()),
+                            (django_reverse("view", args=[object.graceid()]), object.graceid()),
                          #Labels
                         " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();"  style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name)
                                 for label in object.labelling_set.all()]),
                         # Links to neighbors
                         ', '.join([
                             '<a href="%s">%s</a>' %
-                            (reverse("view", args=[n.graceid()]), n.graceid())
+                            (django_reverse("view", args=[n.graceid()]), n.graceid())
                             for n in object.neighbors()
                         ]),
                         object.group.name,

@@ -105,6 +105,9 @@ LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
 # Uptime reporting
 UPTIME_REPORT_DIR = "/home/gracedb/data/uptime"
 
+# Rate file location
+RATE_INFO_FILE = "/home/gracedb/data/rate_info.json"
+
 # URL prefix for serving report information (usually plots and tables)
 REPORT_INFO_URL_PREFIX = "/report_info/"
 
@@ -285,6 +288,9 @@ REST_FRAMEWORK = {
 STATIC_URL = "/gracedb-static/"
 STATIC_ROOT = "/home/gracedb/graceproj/static/"
 
+BOWER_URL = "/bower-static/"
+BOWER_ROOT = "/home/gracedb/bower_components/"
+
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -294,10 +300,10 @@ STATICFILES_FINDERS = (
 STATICFILES_DIRS = ()
 
 # Added in order to perform data migrations on the auth app
-#SOUTH_MIGRATION_MODULES = {
-#    'auth' : 'migrations.auth',
-#    'guardian' : 'migrations.guardian',
-#}
+SOUTH_MIGRATION_MODULES = {
+    'auth' : 'migrations.auth',
+    'guardian' : 'migrations.guardian',
+}
 
 SOUTH_TESTS_MIGRATE = False
 

@@ -137,6 +137,8 @@ class Event(models.Model):
     def graceid(self):
         if self.group.name == "Test":
             return "T%04d" % self.id
+        elif str(self.search) == str("MDC"):
+            return "M%04d" % self.id
         elif self.pipeline == "HardwareInjection":
             return "H%04d" % self.id
         elif self.group.name == "External":
@@ -209,6 +211,8 @@ class Event(models.Model):
         if (id[0] == "H") and (e.pipeline.name == "HardwareInjection"):
             return e
         if (id[0] == "E") and (e.group.name == "External"):
+            return e
+        if (id[0] == "M") and (e.search.name == "MDC"):
             return e
         if (id[0] == "G"):
             return e
@@ -721,6 +725,12 @@ class SingleInspiral(models.Model):
     Gamma7            = models.FloatField(null=True)
     Gamma8            = models.FloatField(null=True)
     Gamma9            = models.FloatField(null=True)
+    spin1x            = models.FloatField(null=True)
+    spin1y            = models.FloatField(null=True)
+    spin1z            = models.FloatField(null=True)
+    spin2x            = models.FloatField(null=True)
+    spin2y            = models.FloatField(null=True)
+    spin2z            = models.FloatField(null=True)
 
     def end_time_full(self):
         return LIGOTimeGPS(self.end_time, self.end_time_ns)

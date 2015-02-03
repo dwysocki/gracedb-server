@@ -55,6 +55,9 @@ def handle_uploaded_data(event, datafilename,
                    comment="Original Data")
     log.save()
 
+    # XXX If you can manage to get rid of the MBTA .gwf parsing and
+    # the Omega event parsing, you can deprecate temp_data_loc. It 
+    # has already been removed from the alerts.
     temp_data_loc = ""
     warnings = []
 

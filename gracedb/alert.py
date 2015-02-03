@@ -11,8 +11,8 @@ import logging
 
 log = logging.getLogger('gracedb.alert')
 
-def issueAlert(event, location, temp_data_loc, event_url):
-    issueXMPPAlert(event, location, temp_data_loc)
+def issueAlert(event, location, event_url, serialized_object=None):
+    issueXMPPAlert(event, location, serialized_object=serialized_object)
     issueEmailAlert(event, event_url)
 
 def indent(nindent, text):
@@ -23,14 +23,16 @@ def prepareSummary(event):
     return "GPS Time: %s" % event.gpstime
 
 
-def issueAlertForUpdate(event, description, doxmpp, filename=""):
+# The serialized object passed in here will normally be an EventLog or EMBB log entry
+def issueAlertForUpdate(event, description, doxmpp, filename="", serialized_object=None):
     if doxmpp:
-        issueXMPPAlert(event, filename, "", "update", description)
+        issueXMPPAlert(event, filename, "update", description, serialized_object)
     # XXX No emails for this.  Argh.
 
-def issueAlertForLabel(event, label, doxmpp):
+# The only kind of serialized object relevant for a Label is an event.
+def issueAlertForLabel(event, label, doxmpp, serialized_event=None):
     if doxmpp:
-        issueXMPPAlert(event, "", "", "label", label)
+        issueXMPPAlert(event, "", "label", label, serialized_event)
     # Email
     profileRecips = []
     pipeline = event.pipeline
@@ -109,7 +111,8 @@ Event Summary:
 
     #send_mail(subject, message, fromaddress, toaddresses)
 
-def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description=""):
+def issueXMPPAlert(event, location, alert_type="new", description="", serialized_object=None):
+    log.debug('issueXMPPAlert: inside')
     
     nodename = "%s_%s" % (event.group.name, event.pipeline.name)
     nodename = nodename.lower()
@@ -134,12 +137,13 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
     lva_data = {
         'file': location,
         'uid': event.graceid(),
-        'data_loc': temp_data_loc,
         'alert_type': alert_type,
         # The following string cast is necessary because sometimes 
         # description is a label object!
         'description': str(description),
     }
+    if serialized_object:
+        lva_data['object'] = serialized_object
     msg = json.dumps(lva_data)
     log.debug("issueXMPPAlert: writing message %s" % msg)
 
@@ -148,6 +152,7 @@ def issueXMPPAlert(event, location, temp_data_loc, alert_type="new", description
         null = open('/dev/null','w')
         p = Popen(
             ["lvalert_send",
+#             "--server=jabber.phys.uwm.edu",
              "--username=gracedb",
              "--password=w4k3upal1ve",
              "--file=-",

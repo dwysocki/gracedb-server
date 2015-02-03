@@ -1,0 +1,180 @@
+<div data-dojo-type="dijit/form/Form" id="eelFormContainer"
+data-dojo-id="eelFormContainer" encType="multipart/form-data" action=""
+method="">
+<script>
+ require(["dojo/parser", "dijit/form/Form", "dijit/form/Button", "dijit/form/ValidationTextBox", "dijit/form/DateTextBox"]);
+ </script>
+		 
+<script type="dojo/on" data-dojo-event="reset">
+return confirm('Press OK to reset widget values');
+</script>
+<script type="dojo/on" data-dojo-event="submit">
+if(this.validate()){
+return confirm('Form is valid, press OK to submit');
+}else{
+alert('Form contains invalid data.  Please correct first');
+return false;
+}
+return true;
+</script>
+
+<form method="POST" action="{% url "embblogentry" object.graceid "" %}">
+<table>
+
+<tr><td><a href=# onclick="alert('Define here what subclass of report this is:\n FOOTPRINT: There is or could be image data taken of the sky, with a specific instrument, at a specific time, in a specific waveband, as followup of a specific LVC alert.\n SOURCE: There is a candidate source at the given location, that could be associated with the given LVC alert.\n COMMENT: The primary purpose of this report is a human-written comment concerning the given LVC alert.'); return false;">
+What type of report is this?</a></td>       <td><select name="eel_status">
+<option value="FO">FOOTPRINT</option>
+<option value="SO">SOURCE</option>
+<option value="CO">COMMENT</option>
+</select></td></tr>
+
+<tr><td><a href=# onclick="alert('There is also Observation Status which is:\n OBSERVATION: has been done.\n PREDICTION: this report represents intent or future observation.\n TEST: This EEL is part of a test and has no astrophysical significance.\n NOT APPLICABLE: It is neither observation nor prediction.'); return false;">
+Observation Status</a></td>       <td><select name="obs_status">
+<option value="OB">OBSERVATION</option>
+<option value="PR">PREDICTION</option>
+<option value="TE">TEST</option>
+<option value="NA">NOT APPLICABLE</option>
+</select></td></tr>
+
+<tr><td><a href=# onclick="alert('Group with which the LSC has signed a trust agreement, hereby providing data 
+under its trust (required).'); return false;">
+Which MOU Group provides this report?</a></td>       <td><select name="group">
+{% for g in groups %}
+<option value="{{ g }}">{{ g }}</option>
+{% endfor %} </select> </td> </tr>
+
+<tr><td><a href=# onclick="alert('An ID from the data owner to identify this footprint (optional).');return false;">
+Your reference</a></td>   <td><input type="text" name="footprintID"/></td></tr>
+
+<tr><td><a href=# onclick="alert('A natural language report.');return false;">
+Report as text</a></td>         <td colspan=2><textarea name="comment" rows="8" cols="50"></textarea></td></tr>
+
+<tr><td><a href=# onclick="alert('The name of the photon detector whose observational metadata is being recorded here (optional).');return false;">
+Instrument</a></td>       <td><input type="text" name="instrument"> </td> </tr>
+
+<tr><td><a href=# onclick="alert('Specify waveband of the observation. Vocabulary is taken from the UCD vocabulary, a Virtual Observatory standard. Waveband can be either wide (eg Radio) or narrow (eg Radio 200-400 MHz).');return false;">
+Waveband</a></td>       <td colspan=2><select name="waveband">
+<option value="em.gamma">Gamma rays part of the spectrum</option>
+<option value="em.gamma.soft">Soft gamma ray (120 - 500 keV)</option>
+<option value="em.gamma.hard">Hard gamma ray (&gt;500 keV)</option>
+<option value="em.X-ray">X-ray part of the spectrum</option>
+<option value="em.X-ray.soft">Soft X-ray (0.12 - 2 keV)</option>
+<option value="em.X-ray.medium">Medium X-ray (2 - 12 keV)</option>
+<option value="em.X-ray.hard">Hard X-ray (12 - 120 keV)</option>
+<option value="em.UV">Ultraviolet part of the spectrum</option>
+<option value="em.UV.10-50nm">Ultraviolet between 10 and 50 nm</option>
+<option value="em.UV.50-100nm">Ultraviolet between 50 and 100 nm</option>
+<option value="em.UV.100-200nm">Ultraviolet between 100 and 200 nm</option>
+<option value="em.UV.200-300nm">Ultraviolet between 200 and 300 nm</option>
+<option value="em.UV.FUV">Far-Infrared, 30-100 microns</option>
+<option value="em.opt">Optical part of the spectrum</option>
+<option value="em.opt.U">Optical band between 300 and 400 nm</option>
+<option value="em.opt.B">Optical band between 400 and 500 nm</option>
+<option value="em.opt.V">Optical band between 500 and 600 nm</option>
+<option value="em.opt.R">Optical band between 600 and 750 nm</option>
+<option value="em.opt.I">Optical band between 750 and 1000 nm</option>
+<option value="em.IR">Infrared part of the spectrum</option>
+<option value="em.IR.NIR">Near-Infrared, 1-5 microns</option>
+<option value="em.IR.J">Infrared between 1.0 and 1.5 micron</option>
+<option value="em.IR.H">Infrared between 1.5 and 2 micron</option>
+<option value="em.IR.K">Infrared between 2 and 3 micron</option>
+<option value="em.IR.MIR">Medium-Infrared, 5-30 microns</option>
+<option value="em.IR.3-4um">Infrared between 3 and 4 micron</option>
+<option value="em.IR.4-8um">Infrared between 4 and 8 micron</option>
+<option value="em.IR.8-15um">Infrared between 8 and 15 micron</option>
+<option value="em.IR.15-30um">Infrared between 15 and 30 micron</option>
+<option value="em.IR.30-60um">Infrared between 30 and 60 micron</option>
+<option value="em.IR.60-100um">Infrared between 60 and 100 micron</option>
+<option value="em.IR.FIR">Far-Infrared, 30-100 microns</option>
+<option value="em.mm">Millimetric part of the spectrum</option>
+<option value="em.mm.1500-3000GHz">Millimetric between 1500 and 3000 GHz</option>
+<option value="em.mm.750-1500GHz">Millimetric between 750 and 1500 GHz</option>
+<option value="em.mm.400-750GHz">Millimetric between 400 and 750 GHz</option>
+<option value="em.mm.200-400GHz">Millimetric between 200 and 400 GHz</option>
+<option value="em.mm.100-200GHz">Millimetric between 100 and 200 GHz</option>
+<option value="em.mm.50-100GHz">Millimetric between 50 and 100 GHz</option>
+<option value="em.mm.30-50GHz">Millimetric between 30 and 50 GHz</option>
+<option value="em.radio">Radio part of the spectrum</option>
+<option value="em.radio.12-30GHz">Radio between 12 and 30 GHz</option>
+<option value="em.radio.6-12GHz">Radio between 6 and 12 GHz</option>
+<option value="em.radio.3-6GHz">Radio between 3 and 6 GHz</option>
+<option value="em.radio.1500-3000MHz">Radio between 1500 and 3000 MHz</option>
+<option value="em.radio.750-1500MHz">Radio between 750 and 1500 MHz</option>
+<option value="em.radio.400-750MHz">Radio between 400 and 750 MHz</option>
+<option value="em.radio.200-400MHz">Radio between 200 and 400 MHz</option>
+<option value="em.radio.100-200MHz">Radio between 100 and 200 MHz</option>
+<option value="em.radio.20-100MHz">Radio between 20 and 100 MHz</option>
+                                </select></td></tr>
+</table>
+<hr/>
+<script>
+function showRectanglesCheckbox(){
+    var s = document.getElementById('showRectangles');
+    showRectangles = s.checked;
+    if(showRectangles){ document.getElementById('rectanglesForm').style.display = "block"
+    } else {            document.getElementById('rectanglesForm').style.display = "none"
+    }
+    redrawAll();
+    return false;
+}
+</script>
+<input id="showRectangles" type="checkbox" onclick="showRectanglesCheckbox()" />add Sky Footprints<br/>
+<div id=rectanglesForm style="display: none;">
+<table>
+<tr><td><a href=# onclick="alert('RA and Dec specify a center point of a rectangle that is aligned equatorially. Or list of centers. They must be in decimal degrees 0<=RA<=360 -90<=Dec<=90, in the J2000 frame.');return false;">
+RA (decimal degrees)</a></td>             <td><input type="text" name="raList" value="" size=80/></td></tr>
+
+<tr><td><a href=# onclick="alert('RA and Dec specify a center point of a rectangle that is aligned equatorially. Or list of centers. They must be in decimal degrees 0<=RA<=360 -90<=Dec<=90, in the J2000 frame.');return false;">
+Dec (decimal degrees)</a></td>            <td><input type="text" name="decList" value="" size=80/></td></tr>
+
+<!--
+<script language="javascript" type="text/javascript" src="https://losc.ligo.org/s/js/gpstimeutil.js"></script>
+<script language="javascript" type="text/javascript" src="https://losc.ligo.org/s/js/sexg.js"></script>
+-->
+
+<tr><td><a href=# onclick="alert('The time at the center of a time interval during which the observation was taken. Or list of times.');return false;">
+GPStime</a></td>
+<td><input type="text" name="gpstimeList" value="" size=80/></td>
+<!--
+<td><input onKeyUp="return TIMEcopy(2,1);" id="TIMEgps1" name="gpstimeList" maxlength="12" size="20" value="1000000000"/></td>
+<td><input onKeyUp="return TIMEcopy(1,1);" id="TIMEiso1" name="TIMEiso1" maxlength="25" size="25" value="2011-09-14T01:46:25"/></td>
+<td><span id="TIMEerr1" STYLE="font: 12px Arial; color:red">OK</span><br/></td>
+-->
+</tr>
+
+<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
+RAwidth (decimal degrees)</a></td>        <td><input type="text" name="raWidthList" value=""/></td></tr>
+
+<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
+Decwidth (decimal degrees)</a></td>       <td><input type="text" name="decWidthList" value=""/></td></tr>
+
+<tr><td><a href=# onclick="alert('Duration is the number of seconds in the time interval during which the observation was taken.');return false;">
+Duration (seconds)</a></td>       <td><input type="text" name="durationList" value=""/></td></tr>
+
+</table>
+</div>
+<hr/>
+<script>
+function showJsonCheckbox(){
+    var s = document.getElementById('showJson');
+    showJson = s.checked;
+    if(showJson){ document.getElementById('jsonForm').style.display = "block"
+    } else {      document.getElementById('jsonForm').style.display = "none"
+    }
+    redrawAll();
+    return false;
+}
+</script>
+<input id="showJson" type="checkbox" onclick="showJsonCheckbox()" />add JSON data<br/>
+<div id=jsonForm style="display: none;">
+<table>
+<tr><td><a href=# onclick="alert('This section allows for machine-readable data to be included in a flexible way. any key can be any value in a JSON dictionary. There is a useful validator at http://jsonlint.com.');return false;">
+JSON data</a></td>       <td colspan=2><textarea name="extra_info_dict" rows="20" cols="50"></textarea></td></tr>
+</table>
+</div>
+<hr/>
+<input type="submit" value="Submit EMBB Report"/>
+</form>
+
+</div>
+

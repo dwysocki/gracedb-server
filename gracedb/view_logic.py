@@ -12,6 +12,7 @@ from translator import handle_uploaded_data
 
 from utils.vfile import VersionedFile
 from view_utils import _saveUploadedFile
+from view_utils import eventToDict, eventLogToDict
 from permission_utils import assign_default_event_perms
 
 from django.contrib.contenttypes.models import ContentType
@@ -28,6 +29,8 @@ import json
 import datetime
 
 def _createEventFromForm(request, form):
+    import logging
+    logger = logging.getLogger(__name__)
     saved = False
     warnings = []
     try:
@@ -100,11 +103,12 @@ def _createEventFromForm(request, form):
                 # XXX This reverse will give the web-interface URL, not the REST URL.
                 # This could be a problem if anybody ever tries to use it.
                 # NOTE: The clusterurl method should be considered deprecated.
+                logger.debug("Bout to issue the alert.")
                 issueAlert(event,
                            #os.path.join(event.clusterurl(), "private", f.name),
                            request.build_absolute_uri(reverse("file", args=[event.graceid(),f.name])),
-                           temp_data_loc,
-                           request.build_absolute_uri(reverse("view", args=[event.graceid()])))
+                           request.build_absolute_uri(reverse("view", args=[event.graceid()])),
+                           eventToDict(event, request=request))
             except Exception, e:
                 warnings += ["Problem issuing an alert (%s)" % e]
         except Exception, e:
@@ -187,7 +191,9 @@ def _createLog(request, graceid, comment, uploadedFile=None):
             description = "LOG: "
             if uploadedFile:
                 description = "UPLOAD: '%s' " % uploadedFile.name
-            issueAlertForUpdate(event, description+comment, doxmpp=True, filename=uploadedFile.name)
+            issueAlertForUpdate(event, description+comment, doxmpp=True, 
+                filename=uploadedFile.name,
+                serialized_object=eventLogToDict(logEntry, request=request))
         except Exception, e:
             rdict['error'] = "Failed to save log message: %s" % str(e) 
 

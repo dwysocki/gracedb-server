@@ -30,29 +30,31 @@ table.gstlalcbc th {padding:3px;border:none;vertical-align:bottom;}
 table.figures tr.figrow  {text-align:center;} 
 table.figures {width:300px;height:270px;border:1px solid gray;}
 
+/*  This was trying to style the title pane buttons. Doesn't work anymore.
 .tundra.eventDetail .pmTitlePaneClass .dijitOpen .dijitArrowNode {
     background-repeat: no-repeat;
     height: 14px;
     width: 14px;
 }
 
-.tundra.eventDetail .pmTitlePaneClass .dijitClosed .dijitArrowNode {
+.dijitClosed .dijitArrowNode {
     background-repeat: no-repeat;
     height: 14px;
     width: 14px;
 }
 
-.tundra.eventDetail .pmTitlePaneClass .dijitClosed .dijitArrowNode {
+.dijitClosed .dijitArrowNode {
     background-image: url('../images/plusButton.gif');
     background-position: 0px 0px;
 }
 
-.tundra.eventDetail .pmTitlePaneClass .dijitOpen .dijitArrowNode {
+.dijitOpen .dijitArrowNode {
     background-image: url('../images/minusButton.gif');
     background-position: 0px 0px;
 }
+*/ 
 
-.tundra.eventDetail .modButtonClass .dijitButtonNode {
+.modButtonClass {
     border: none;
     border-bottom: none;
     background-image: none;
@@ -60,18 +62,21 @@ table.figures {width:300px;height:270px;border:1px solid gray;}
     background-color: rgb(200, 200, 200);
     cursor: pointer;
     min-width: 20px;
+    /* min-height: 20px; */
+    height: 20px;
 }
 
-.tundra.eventDetail .modButtonClass.left.dijitButton {
-    padding: 0px 0px 0px 0px;
+.modButtonClass.left {   
+    padding: 2px 0px 2px 0px;
     margin: 2px 0px 2px 2px;
 }
-.tundra.eventDetail .modButtonClass.right.dijitButton {
-    padding: 2px 0px 2px 0px;
+
+.modButtonClass.right {
+    padding: 2px 2px 2px 0px;
     margin: 2px 2px 2px 0px;
 }
 
-.tundra.eventDetail .dijitDisabled .dijitButtonText {
+.dijitDisabled .dijitButtonText {
     color: #000000;
 }
 
@@ -85,7 +90,7 @@ table.figures {width:300px;height:270px;border:1px solid gray;}
     float: right;
 }
 
-.tundra.eventDetail .permButtonClass {
+.permButtonClass {
     font: x-small "Lucida Grande", "Lucida Sans Unicode", geneva, verdana, sans-serif;
     font-size: 150%;
     background-color : #ff6666;
@@ -370,3 +375,79 @@ table thead th.sorted a { padding-right:13px; }
 table thead th.ascending a { background:url('../images/arrow-down.gif') right .4em no-repeat; }
 table thead th.descending a { background:url('../images/arrow-up.gif') right .4em no-repeat; }
 
+
+/* Stuff added for dgrid */
+/* XXX FIXME. Note how this assumes the bower stuff will be in your home directory. Not cool. */
+@import "~/bower_components/dgrid/css/dgrid.css";
+
+.collapsed .expando {
+    display: none;
+}
+
+div.dgrid-row.collapsed:hover {
+    /* background-color: rgb(240,248,255); */
+    /* background-color: #ff6666; */
+    background-color: #d8bfd8;
+    cursor: pointer;
+}
+
+.supergrid-row.dgrid-row-odd {background-color:#edf3fe;}
+.supergrid-row.dgrid-row-even {background-color:#fff;}
+
+.dgrid.dgrid-grid.ui-widget.dgird-subgrid { 
+    height: auto;
+    border: none;
+}
+
+.tundra.eventDetail .dgrid-cell {
+    border: none;
+}
+
+.dgrid-cell.supergrid-cell {
+    border-top-style: solid;
+}
+
+.dgrid-cell.subgrid-cell {
+    border: none;
+}
+
+.dgrid-cell.field-N {
+    width: 5%;
+}
+
+.dgrid-cell.field-comment { 
+    width: 50%;
+}
+
+.dgrid-cell.field-image {
+    width: 10%;
+}
+
+th.dgrid-cell {
+    vertical-align: bottom;
+}
+
+/* Stuff added for new event detail */
+
+td.title {
+    cursor: pointer;
+}
+
+div.expandGlyph {
+    background-image: url('/bower-static/dijit/themes/tundra/images/spriteArrows.png');
+    background-repeat: no-repeat;
+    background-position: 0px 0px; 
+    vertical-align: middle;
+    height: 7px;
+    width: 7px;
+    padding: 0 0 0 0;
+}
+
+div.expandGlyph.closed {
+    background-position: -14px 0px;
+}
+
+.expandFormButton {
+    color: blue;
+    text-decoration: underline;
+}
