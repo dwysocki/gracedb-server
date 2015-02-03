@@ -19,8 +19,6 @@ from utils.vfile import VersionedFile
 
 import json
 
-import logging
-
 use_in(LIGOLWContentHandler)
 
 # This function checks for 'inf' in a float field, asks the database
@@ -166,6 +164,9 @@ def handle_uploaded_data(event, datafilename,
 
         # Extract Single Inspiral Information
         s_inspiral_table = SnglInspiralTable.get_table(xmldoc)
+        # If this is a replacement, we might already have single inspiral tables
+        # associated. So we should re-create them.
+        event.singleinspiral_set.all().delete()
         SingleInspiral.create_events_from_ligolw_table(s_inspiral_table, event)
 
     elif pipeline == 'HardwareInjection':
