@@ -24,6 +24,7 @@ ALERT_EMAIL_BCC = [
 ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@archie.phys.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
                       ]
+ALERT_XMPP_SERVER = "lvalert.phys.uwm.edu"
 
 EMBB_MAIL_ADDRESS = 'embb@gracedb.ligo.org'
 EMBB_SMTP_SERVER = 'localhost'

@@ -34,6 +34,7 @@ ALERT_TEST_EMAIL_FROM = "Dev Test Alert <root@moe.phys.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
     "Branson Stephens <branson@gravity.phys.uwm.edu>",
     ]
+ALERT_XMPP_SERVER = "jabber.phys.uwm.edu"
 
 EMBB_MAIL_ADDRESS = 'branson@moe.phys.uwm.edu'
 EMBB_SMTP_SERVER = 'localhost'
