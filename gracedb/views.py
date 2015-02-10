@@ -36,8 +36,6 @@ from buildVOEvent import buildVOEvent, VOEventBuilderException
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
 
-GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
-
 import json
 from django.utils.functional import wraps
 
@@ -274,8 +272,8 @@ def neighbors(request, event, delta1, delta2=None):
 def view(request, event):
     context = {}
     context['object'] = event
-    context['eventdesc'] = get_file(event.graceid(), "event.log")
-    context['userdesc'] = get_file(event.graceid(), "user.log")
+    context['eventdesc'] = get_file(event, "event.log")
+    context['userdesc'] = get_file(event, "user.log")
     context['nearby'] = [(e.gpstime - event.gpstime, e)
                             for e in event.neighbors()]
 #    context['skyalert_authorized'] = skyalert_authorized(request)
@@ -661,7 +659,6 @@ def performance(request):
 
 #
 # A view for the list of files associated with an event.
-# We're deliberately leaving out the /general directory.
 # The idea is to get rid of that horrible /gracedb-files/ url.
 #
 @event_and_auth_required

@@ -23,8 +23,6 @@ from guardian.models import GroupObjectPermission
 import os
 from django.conf import settings
 
-GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
-
 import json
 import datetime
 
@@ -74,17 +72,12 @@ def _createEventFromForm(request, form):
 
         event.refresh_perms()
 
-        dirPrefix = GRACEDB_DATA_DIR
-        eventDir = os.path.join(dirPrefix, event.graceid())
-        os.mkdir( eventDir )
-        os.mkdir( os.path.join(eventDir,"private") )
-        os.mkdir( os.path.join(eventDir,"general") )
-        #os.chmod( os.path.join(eventDir,"general"), int("041777",8) )
-        os.chmod( os.path.join(eventDir,"general"), 041777 )
+        # Write the event data file to disk. 
+        eventDir = event.eventdir()
+        os.makedirs( eventDir )
         f = request.FILES['eventFile']
-        uploadDestination = os.path.join(eventDir, "private", f.name)
+        uploadDestination = os.path.join(eventDir, f.name)
         fdest = VersionedFile(uploadDestination, 'w')
-        # Save uploaded file into user private area.
         for chunk in f.chunks():
             fdest.write(chunk)
         fdest.close()

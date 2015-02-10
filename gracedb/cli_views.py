@@ -18,8 +18,6 @@ from django.conf import settings
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
 
-GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
-
 import json
 
 def cli_search(request):
@@ -181,7 +179,7 @@ def upload(request):
             # XXX
             # Badnesses:
             #   Same hardcoded path in multiple places.
-            fname = os.path.join(GRACEDB_DATA_DIR, event.graceid(), "private", uploadedfile.name)
+            fname = os.path.join(event.datadir(), uploadedfile.name)
             f = VersionedFile(fname, 'w')
             for chunk in uploadedfile.chunks():
                 f.write(chunk)

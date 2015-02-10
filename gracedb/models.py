@@ -28,6 +28,9 @@ from utils import posixToGpsTime
 from django.conf import settings
 import pytz, time
 
+from cStringIO import StringIO
+from hashlib import sha1
+
 SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 
 # Let's say we start here on schema versions
@@ -149,13 +152,16 @@ class Event(models.Model):
         # XXX Not good.  But then, it never was.
         return reverse('file_list', args=[self.graceid()])
 
-    def datadir(self, general=False):
-        # Move to this.  Not the (more) ad hoc crap that's floating around.
-        if general:
-            subdir = "general"
-        else:
-            subdir = "private"
-        return os.path.join(settings.GRACEDB_DATA_DIR, self.graceid(), subdir)
+    def datadir(self):
+        # Create a file-like object which is the SHA-1 hexdigest of the Event's primary key
+        hdf = StringIO(sha1(str(self.id)).hexdigest())
+
+        # Build up the nodes of the directory structure
+        nodes = [hdf.read(i) for i in settings.GRACEDB_DIR_DIGITS]
+
+        # Read whatever is left over. This is the 'leaf' directory.
+        nodes.append(hdf.read())
+        return os.path.join(settings.GRACEDB_DATA_DIR, *nodes)
 
     def ligoApproved(self):
         return self.approval_set.filter(approvingCollaboration='L').count()

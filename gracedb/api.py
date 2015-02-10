@@ -273,7 +273,7 @@ def assembleLigoLw(data):
         eventDictList = [data,]
     xmldoc = ligolw.Document()
     for e in eventDictList:
-        fname = os.path.join(settings.GRACEDB_DATA_DIR, e['graceid'], "private", "coinc.xml")
+        fname = os.path.join(e.datadir(), "coinc.xml")
         if not os.path.exists(fname):
             raise MissingCoinc
         elif not os.access(fname, os.R_OK):
@@ -559,28 +559,6 @@ class LigoLwParser(parsers.MultiPartParser):
         data = parsers.MultiPartParser.parse(self, *args, **kwargs)
         return data
 
-#       eventData = data.files['eventFile'].read()
-
-#       dirPrefix = settings.GRACEDB_DATA_DIR
-#       eventDir = os.path.join(dirPrefix, event.graceid())
-#       # XXX handle duplicate file names.
-#       f = request.FILES['eventFile']
-#       uploadDestination = os.path.join(eventDir, "private", f.name)
-#       fdest = open(uploadDestination, 'w')
-#       # Save uploaded file into user private area.
-#       for chunk in f.chunks():
-#           fdest.write(chunk)
-#       fdest.close()
-
-#       # Extract Info from uploaded data
-#       try:
-#           handle_uploaded_data(event, uploadDestination)
-#       except:
-#           return Response("Bad Data",
-#                   status=status.HTTP_400_BAD_REQUEST)
-#       return Response(status=status.HTTP_202_ACCEPTED)
-
-
 class EventDetail(APIView):
     authentication_classes = (LigoAuthentication,)
     #parser_classes = (LigoLwParser, RawdataParser)
@@ -651,13 +629,10 @@ class EventDetail(APIView):
 #           return Response("\n".join(messages),
 #                   status=status.HTTP_400_BAD_REQUEST)
 
-        dirPrefix = settings.GRACEDB_DATA_DIR
-        eventDir = os.path.join(dirPrefix, event.graceid())
         # XXX handle duplicate file names.
         f = request.FILES['eventFile']
-        uploadDestination = os.path.join(eventDir, "private", f.name)
+        uploadDestination = os.path.join(event.datadir(), f.name)
         fdest = VersionedFile(uploadDestination, 'w')
-        # Save uploaded file into user private area.
         #for chunk in f.chunks():
         #    fdest.write(chunk)
         #fdest.close()
@@ -843,10 +818,6 @@ class EventLogList(APIView):
         file_version = None
         if uploadedFile:
             filename = uploadedFile.name 
-            if filename.startswith("general/"):
-                # No writing to general/
-                return HttpResponseForbidden("cannot write to general directory")
-
             filepath = os.path.join(event.datadir(), filename)
 
             try:
@@ -1451,18 +1422,7 @@ def download(request, graceid, filename=""):
     except Event.DoesNotExist:
         return HttpResponseNotFound("Event not found")
 
-    # The plan to deal with that wretched general/ directory maybe
-    # should be to move it INTO private.  Then externally, things
-    # would look like they do now, but the code here would be MUCH
-    # more sane and much shorter.
-
-    # UGLY hack to deal with /private vs /general dirs
-    general = False
-    if filename.startswith("general/"):
-        filename = filename[len("general/"):]
-        general = True
-
-    filepath = os.path.join(event.datadir(general), filename)
+    filepath = os.path.join(event.datadir(), filename)
 
     if not os.path.exists(filepath):
         response = HttpResponseNotFound("File does not exist")
@@ -1502,16 +1462,6 @@ def download(request, graceid, filename=""):
                 filename = os.path.join(dirname, filename)
                 rv[filename] = django_reverse(download, args=[graceid, filename])
 
-        # XXX UGH...  that awful general/ dir
-        filepath = event.datadir(general=True)
-        for dirname, dirnames, filenames in os.walk(filepath):
-            # XXX HORRIBLE
-            dirname = dirname[len(filepath)-len("general"):]  # cut off base event dir path
-            for filename in filenames:
-                # relative path from root of event data dir
-                filename = os.path.join(dirname, filename)
-                rv[filename] = django_reverse(download, args=[graceid, filename])
-
         response = HttpResponse(json.dumps(rv), content_type="application/json")
     elif os.path.isdir(filepath):
         response = HttpResponseForbidden("%s is a directory" % filename)
@@ -1534,18 +1484,7 @@ class Files(APIView):
         filename = filename or ""
         graceid = event.graceid()
 
-        # The plan to deal with that general/ directory maybe
-        # should be to move it INTO private.  Then externally, things
-        # would look like they do now, but the code here would be MUCH
-        # more sane and much shorter.
-
-        # UGLY hack to deal with /private vs /general dirs
-        general = False
-        if filename.startswith("general/"):
-            filename = filename[len("general/"):]
-            general = True
-
-        filepath = os.path.join(event.datadir(general), filename)
+        filepath = os.path.join(event.datadir(), filename)
 
         if not os.path.exists(filepath):
             response = HttpResponseNotFound("File does not exist")
@@ -1578,35 +1517,6 @@ class Files(APIView):
                                 args=[graceid, filename],
                                 request=request),
                             })
-
-            # XXX UGH...  that awful general/ dir
-            # Actually not terrible, but do not like private/general as siblings.
-            # Their parent is basically empty.
-            filepath = event.datadir(general=True)
-            for dirname, dirnames, filenames in os.walk(filepath):
-                # XXX HORRIBLE
-                dirname = dirname[len(filepath)-len("general"):]  # cut off base event dir path
-                for filename in filenames:
-                    # relative path from root of event data dir
-                    filename = os.path.join(dirname, filename)
-                    rv[filename] = reverse("files", args=[graceid, filename], request=request)
-                    files.append({
-                            'name' : filename,
-                            'link' :  reverse("files",
-                                args=[graceid, filename],
-                                request=request),
-                            })
-
-            #response = HttpResponse(simplejson.dumps(rv), content_type="application/json")
-#           response = Response({
-#               'links' : {
-#                   'self' : request.build_absolute_uri(),
-#                   'event' : reverse("event-detail",
-#                       args=[graceid],
-#                       request=request),
-#                   },
-#               'files' : files,
-#               })
             response = Response(rv)
         elif os.path.isdir(filepath):
             # XXX Really?
@@ -1620,11 +1530,6 @@ class Files(APIView):
     def put(self, request, event, filename=""):
         """ File uploader.  Implements file versioning. """
         filename = filename or ""
-
-        if filename.startswith("general/"):
-            # No writing to general/
-            return HttpResponseForbidden("cannot write to general directory")
-
         filepath = os.path.join(event.datadir(), filename)
 
         try:
