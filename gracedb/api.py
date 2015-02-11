@@ -492,10 +492,6 @@ class EventList(APIView):
 
     #@pipeline_auth_required
     def post(self, request, format=None):
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.debug("Hello from inside the event creator.")
-
         # XXX Deal with POSTs coming in from the old client.
         # Eventually, we will want to get rid of this check and just let it fail.
         rv = {}
@@ -803,10 +799,14 @@ class EventLogList(APIView):
              }
         return Response(rv)
 
+
     @event_and_auth_required
     def post(self, request, event):
         message = request.DATA.get('message')
-        tagname = request.DATA.get('tagname')
+        tagnames = request.DATA.get('tagname', None)
+        # Convert tagnames from comma separated list.
+        if tagnames:
+            tagnames = tagnames.split(',')
 
         try:
             uploadedFile = request.FILES['upload'] 
@@ -849,13 +849,14 @@ class EventLogList(APIView):
         response = Response(rv, status=status.HTTP_201_CREATED)
         response['Location'] = rv['self']
 
-        if tagname:
-            n = logentry.N
-            tmp = EventLogTagDetail()
-            retval = tmp.put(request, event.graceid(), n, tagname) 
-            # XXX This seems like a bizarre way of getting an error message out.
-            if retval.status_code != 201:
-                response['tagWarning'] = 'Error creating tag.'
+        if tagnames and len(tagnames):
+            for tagname in tagnames:
+                n = logentry.N
+                tmp = EventLogTagDetail()
+                retval = tmp.put(request, event.graceid(), n, tagname) 
+                # XXX This seems like a bizarre way of getting an error message out.
+                if retval.status_code != 201:
+                    response['tagWarning'] = 'Error creating tag %s.' % tagname
 
         # Issue alert.
         description = "LOG: "
