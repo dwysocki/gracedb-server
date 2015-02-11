@@ -73,7 +73,7 @@ def _createEventFromForm(request, form):
         event.refresh_perms()
 
         # Write the event data file to disk. 
-        eventDir = event.eventdir()
+        eventDir = event.datadir()
         os.makedirs( eventDir )
         f = request.FILES['eventFile']
         uploadDestination = os.path.join(eventDir, f.name)
