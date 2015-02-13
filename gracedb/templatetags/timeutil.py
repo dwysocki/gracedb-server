@@ -12,7 +12,7 @@ from utils import posixToGpsTime, gpsToUtc
 import pytz
 import time
 import datetime
-import logging
+import decimal
 
 # DATETIME_SETTINGS is guaranteed to be set.  GRACE_DATETIME_FORMAT is not.
 FORMAT = getattr(settings, 'GRACE_DATETIME_FORMAT', settings.DATETIME_FORMAT)
@@ -59,6 +59,10 @@ def multiTime(t, label, autoescape=None):
         gps_time = t
         dt = gpsToUtc(t)
         posix_time = time.mktime(dt.timetuple())
+    elif isinstance(t, decimal.Decimal):
+        gps_time = float(t)
+        dt = gpsToUtc(t)
+        posix_time = time.mktime(dt.timetuple())
     else:
         return "N/A"
         return '<time utc="%s" gps="%s" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
@@ -79,7 +83,7 @@ def multiTime(t, label, autoescape=None):
     else:
         display_time = gps_time
 
-    rv = '<time utc="%s" gps="%s" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
+    rv = '<time utc="%s" gps="%14.4f" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
             (utc_time, gps_time, llo_time, lho_time, virgo_time, js_parsable_time, label_attr, display_time)
 
     return mark_safe(rv)
@@ -144,12 +148,16 @@ def timeSelections(t):
         gps_time = t
         dt = gpsToUtc(t)
         posix_time = time.mktime(dt.timetuple())
+    elif isinstance(t, decimal.Decimal):
+        gps_time = float(t)
+        dt = gpsToUtc(t)
+        posix_time = time.mktime(dt.timetuple())
     else:
         raise ValueError("time must be type int, long or datetime, not '%s'" % type(t))
 
     # JavaScript -- parsable by Date() object constructor
     # "Jan 2, 1985 00:00:00 UTC"
-    js_parsable_time = dateformat.format(dt, "F j, Y h:i:s")+" UTC"
+    #js_parsable_time = dateformat.format(dt, "F j, Y h:i:s")+" UTC"
 
     rv['gps'] = gps_time
     rv['lho'] = dateformat.format(dt.astimezone(LHO_TZ), format)
@@ -172,5 +180,5 @@ def end_time(event,digits=4):
         # ugh. must pad with zeros to the right.
         decimal_part = str(decimal_part)[1:].ljust(digits+1,'0')
         return str(event.end_time) + decimal_part
-    except Exception, e:
+    except Exception:
         return None

@@ -121,7 +121,8 @@ class Event(models.Model):
     #   Note that the semantics for this is different depending
     #   on search type, so in some sense, querying on this may
     #   be considered, umm, wrong?  But it is a starting point.
-    gpstime = models.PositiveIntegerField(null=True)
+    #gpstime = models.PositiveIntegerField(null=True)
+    gpstime = models.DecimalField(max_digits=16, decimal_places=6, null=True)
 
     labels = models.ManyToManyField(Label, through="Labelling")
 

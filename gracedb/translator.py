@@ -14,7 +14,7 @@ from gracedb.serialize import populate_inspiral_tables, \
                                write_output_files
 
 from VOEventLib.Vutil import parse, getWhereWhen
-from utils import isoToGps
+from utils import isoToGps, isoToGpsFloat
 from utils.vfile import VersionedFile
 
 import json
@@ -133,7 +133,7 @@ def handle_uploaded_data(event, datafilename,
         log.save()
 
         # Extract relevant data from xmldoc to put into event record.
-        event.gpstime = coinc_table.end_time
+        event.gpstime = coinc_table.end_time + float(coinc_table.end_time_ns)/1.e9
         event.far = coinc_table.combined_far
         # Try to get the coinc_event_table
         try:
@@ -205,7 +205,8 @@ def handle_uploaded_data(event, datafilename,
 
         # Create EventLog entries about these files.
 
-        event.gpstime = end_time[0]
+        #event.gpstime = end_time[0]
+        event.gpstime = end_time[0] + float(end_time[1])/1e9
         event.save()
 
         log = EventLog(event=event,
@@ -247,7 +248,8 @@ def handle_uploaded_data(event, datafilename,
         # Extract relevant data from xmldoc.
         coinc_table = CoincInspiralTable.get_table(xmldoc)
         coinc_table = coinc_table[0]
-        event.gpstime = coinc_table.end_time
+        #event.gpstime = coinc_table.end_time
+        event.gpstime = coinc_table.end_time + float(coinc_table.end_time_ns)/1e9
         # Per Patrick 02FEB12.  All MBTA events with null far should have zero far.
         event.far = coinc_table.combined_far or 0
 
@@ -374,7 +376,7 @@ def handle_uploaded_data(event, datafilename,
         event_dict = json.loads(event_file_contents)
 
         # Extract relevant data from dictionary to put into event record.
-        event.gpstime     = round(event_dict['gpstime'])
+        event.gpstime     = event_dict['gpstime']
         event.far         = event_dict['FAR']
         event.instruments = event_dict['instruments']
         event.nevents     = event_dict.get('nevents', 1)
@@ -409,7 +411,9 @@ class Translator(object):
 
     def castData(self, data):
         # convert ints to ints
-        for key in ['gpstime', 'likelihood']:
+        # No longer casting gpstime to integer.
+        #for key in ['gpstime', 'likelihood']:
+        for key in ['likelihood']:
             if data[key]:
                 data[key] = int(float(data[key]))
 
@@ -593,7 +597,7 @@ def populateGrbEventFromVOEventFile(filename, event):
     v = parse(filename)
     wherewhen = getWhereWhen(v)
 
-    event.gpstime = isoToGps(wherewhen['time'])
+    event.gpstime = isoToGpsFloat(wherewhen['time'])
     event.ivorn = v.ivorn
 
     event.author_shortname = v.get_Who().Author.shortName[0]

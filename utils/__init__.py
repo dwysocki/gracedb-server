@@ -11,7 +11,6 @@ import pytz
 import datetime
 
 import calendar
-from time import mktime
 
 gpsEpoch = calendar.timegm((1980, 1, 6, 0,  0,  0,  0,  0,  0))
 
@@ -69,3 +68,20 @@ def isoToGps(t):
         fracSec = 0
     posixTime = calendar.timegm(ISOTime.utctimetuple()) + fracSec 
     return int(round(posixToGpsTime(posixTime)))
+
+def isoToGpsFloat(t):
+    # The input is a string in ISO time format: 2012-10-28T05:04:31.91
+    # First strip out whitespace, then split off the factional 
+    # second.  We'll add that back later.
+    t=t.strip()
+    ISOTime = t.split('.')[0]
+    ISOTime = datetime.datetime.strptime(ISOTime,"%Y-%m-%dT%H:%M:%S")
+    # Need to set UTC time zone or this is interpreted as local time.
+    ISOTime = ISOTime.replace(tzinfo=pytz.utc)
+    sec_substr = t.split('.')[1]
+    if sec_substr:
+        fracSec = float('0.' + sec_substr)
+    else:
+        fracSec = 0
+    posixTime = calendar.timegm(ISOTime.utctimetuple()) + fracSec 
+    return posixToGpsTime(posixTime)
