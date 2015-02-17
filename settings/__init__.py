@@ -35,6 +35,9 @@ configs = {
     '/home/roywilliams/gracedbdev': 'roy',
     '/home/roywilliams/gracedbdev/gracedb': 'roy',
 
+    '/home/glitchdb/glitchdb-dev': 'glitchdb',
+    '/home/glitchdb/glitchdb-dev/gracedb': 'glitchdb',
+
     "/home/gracedb/gracestage" : "stage",
 
 }
