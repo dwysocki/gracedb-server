@@ -23,14 +23,10 @@ from guardian.models import GroupObjectPermission
 import os
 from django.conf import settings
 
-GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
-
 import json
 import datetime
 
 def _createEventFromForm(request, form):
-    import logging
-    logger = logging.getLogger(__name__)
     saved = False
     warnings = []
     try:
@@ -76,17 +72,12 @@ def _createEventFromForm(request, form):
 
         event.refresh_perms()
 
-        dirPrefix = GRACEDB_DATA_DIR
-        eventDir = os.path.join(dirPrefix, event.graceid())
-        os.mkdir( eventDir )
-        os.mkdir( os.path.join(eventDir,"private") )
-        os.mkdir( os.path.join(eventDir,"general") )
-        #os.chmod( os.path.join(eventDir,"general"), int("041777",8) )
-        os.chmod( os.path.join(eventDir,"general"), 041777 )
+        # Write the event data file to disk. 
+        eventDir = event.datadir()
+        os.makedirs( eventDir )
         f = request.FILES['eventFile']
-        uploadDestination = os.path.join(eventDir, "private", f.name)
+        uploadDestination = os.path.join(eventDir, f.name)
         fdest = VersionedFile(uploadDestination, 'w')
-        # Save uploaded file into user private area.
         for chunk in f.chunks():
             fdest.write(chunk)
         fdest.close()
@@ -102,10 +93,7 @@ def _createEventFromForm(request, form):
                 # Send an alert.
                 # XXX This reverse will give the web-interface URL, not the REST URL.
                 # This could be a problem if anybody ever tries to use it.
-                # NOTE: The clusterurl method should be considered deprecated.
-                logger.debug("Bout to issue the alert.")
                 issueAlert(event,
-                           #os.path.join(event.clusterurl(), "private", f.name),
                            request.build_absolute_uri(reverse("file", args=[event.graceid(),f.name])),
                            request.build_absolute_uri(reverse("view", args=[event.graceid()])),
                            eventToDict(event, request=request))

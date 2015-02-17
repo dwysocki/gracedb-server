@@ -152,7 +152,7 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
         null = open('/dev/null','w')
         p = Popen(
             ["lvalert_send",
-#             "--server=jabber.phys.uwm.edu",
+             "--server=%s" % settings.ALERT_XMPP_SERVER,
              "--username=gracedb",
              "--password=w4k3upal1ve",
              "--file=-",

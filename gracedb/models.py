@@ -28,6 +28,9 @@ from utils import posixToGpsTime
 from django.conf import settings
 import pytz, time
 
+from cStringIO import StringIO
+from hashlib import sha1
+
 SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 
 # Let's say we start here on schema versions
@@ -118,7 +121,8 @@ class Event(models.Model):
     #   Note that the semantics for this is different depending
     #   on search type, so in some sense, querying on this may
     #   be considered, umm, wrong?  But it is a starting point.
-    gpstime = models.PositiveIntegerField(null=True)
+    #gpstime = models.PositiveIntegerField(null=True)
+    gpstime = models.DecimalField(max_digits=16, decimal_places=6, null=True)
 
     labels = models.ManyToManyField(Label, through="Labelling")
 
@@ -149,18 +153,16 @@ class Event(models.Model):
         # XXX Not good.  But then, it never was.
         return reverse('file_list', args=[self.graceid()])
 
-    # XXX This should be considered deprecated. (Branson, July 22, 2014.)
-    def clusterurl(self):
-        #return "pcdev1.phys.uwm.edu:/archive/gracedb/data/%s" % self.graceid()
-        return "file://pcdev1.phys.uwm.edu/archive/gracedb/data/%s" % self.graceid()
+    def datadir(self):
+        # Create a file-like object which is the SHA-1 hexdigest of the Event's primary key
+        hdf = StringIO(sha1(str(self.id)).hexdigest())
 
-    def datadir(self, general=False):
-        # Move to this.  Not the (more) ad hoc crap that's floating around.
-        if general:
-            subdir = "general"
-        else:
-            subdir = "private"
-        return os.path.join(settings.GRACEDB_DATA_DIR, self.graceid(), subdir)
+        # Build up the nodes of the directory structure
+        nodes = [hdf.read(i) for i in settings.GRACEDB_DIR_DIGITS]
+
+        # Read whatever is left over. This is the 'leaf' directory.
+        nodes.append(hdf.read())
+        return os.path.join(settings.GRACEDB_DATA_DIR, *nodes)
 
     def ligoApproved(self):
         return self.approval_set.filter(approvingCollaboration='L').count()
@@ -293,7 +295,6 @@ class EventLog(models.Model):
             if self.file_version >= 0:
                 actual_filename += ',%d' % self.file_version
             return reverse('file', args=[self.event.graceid(), actual_filename])
-            #return os.path.join(self.event.weburl(), 'private', self.filename)
         else:
             return None
 

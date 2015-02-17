@@ -304,7 +304,7 @@ def assembleLigoLw(objects):
 
     xmldoc = ligolw.Document()
     for obj in objects:
-        fname = os.path.join(GRACEDB_DATA_DIR, obj.graceid(), "private", "coinc.xml")
+        fname = os.path.join(obj.datadir(), "coinc.xml")
         utils.load_filename(fname, xmldoc=xmldoc, contenthandler=LIGOLWContentHandler)
 
     ligolw_add.reassign_ids(xmldoc)
@@ -313,8 +313,7 @@ def assembleLigoLw(objects):
     return xmldoc
 
 def _saveUploadedFile(event, uploadedFile):
-    # XXX Hardcoding.
-    fname = os.path.join(GRACEDB_DATA_DIR, event.graceid(), "private", uploadedFile.name)
+    fname = os.path.join(event.datadir(), uploadedFile.name)
     f = VersionedFile(fname, "w")
     for chunk in uploadedFile.chunks():
         f.write(chunk)
@@ -438,9 +437,8 @@ def flexigridResponse(request, objects):
 
     return response
 
-def get_file(graceid, filename="event.log"):
-    dirPrefix = GRACEDB_DATA_DIR
-    logfilename = os.path.join(dirPrefix, graceid, "private", filename)
+def get_file(event, filename="event.log"):
+    logfilename = os.path.join(event.datadir(), filename)
     contents = ""
     try:
         lines = open(logfilename, "r").readlines()

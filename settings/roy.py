@@ -41,6 +41,7 @@ ALERT_TEST_EMAIL_TO = [
     "Roy Williams <roy@caltech.edu>",
     ]
 
+ALERT_XMPP_SERVER = 'jabber.phys.uwm.edu'
 
 EMBB_MAIL_ADDRESS = 'embb@embb-dev.ligo.caltech.edu'
 EMBB_SMTP_SERVER = 'acrux.ligo.caltech.edu'

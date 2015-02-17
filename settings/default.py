@@ -24,6 +24,7 @@ ALERT_EMAIL_BCC = [
 ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@archie.phys.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
                       ]
+ALERT_XMPP_SERVER = "lvalert.phys.uwm.edu"
 
 EMBB_MAIL_ADDRESS = 'embb@gracedb.ligo.org'
 EMBB_SMTP_SERVER = 'localhost'
@@ -96,6 +97,11 @@ SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
 
 GRACEDB_DATA_DIR = "/mnt/gracedb-web/data"
 #GRACEDB_DATA_DIR = "/mnt/gracedb-web-temp/data"
+# First level subdirs with 2 chars, second level with 1 char
+# These DIR_DIGITS had better add up to a number less than 40 (which is
+# the length of a SHA-1 hexdigest. Actually, it should be way less than
+# 40--or you're a crazy person.
+GRACEDB_DIR_DIGITS = [2, 1,]
 
 # Latency histograms.  Where they go and max latency to bin.
 LATENCY_REPORT_DEST_DIR = "/home/gracedb/data/latency"

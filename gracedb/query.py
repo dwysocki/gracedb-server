@@ -15,7 +15,8 @@
 from nltime import nlTimeExpression as nltime_
 nltime = nltime_.setParseAction(lambda toks: toks["calculatedTime"])
 
-import time, datetime
+#import time, datetime
+import datetime
 import models
 from django.db.models import Q
 
@@ -23,7 +24,7 @@ from pyparsing import \
     Word, nums, Literal, CaselessLiteral, delimitedList, Suppress, QuotedString, \
     Keyword, Combine, Or, Optional, OneOrMore, alphas, Regex, \
     opAssoc, operatorPrecedence, oneOf, \
-    stringStart, stringEnd
+    stringStart, stringEnd, FollowedBy
 
 def maybeRange(name, dbname=None):
     dbname = dbname or name
@@ -101,7 +102,14 @@ pipelineQ = pipelineQ.setParseAction(lambda toks: ("pipeline", Q(pipeline__name_
 # Search
 searchNames = [search.name for search in models.Search.objects.all()]
 search = Or(map(CaselessLiteral, searchNames)).setName("search name")
-searchList = OneOrMore(search).setName("search list")
+# XXX Branson: The change below was made 2/17/15 to fix a bug in which 
+# searches like 'grbevent.ra > 0' failed due to the 'grb' being peeled off
+# and assumed to be part of a 'Search' query. So we don't consume a token
+# for the search query if it is immediately followed by the caseless 
+# literal 'event'.
+eventLiteral = CaselessLiteral('event')
+#searchList = OneOrMore(search).setName("search list")
+searchList = OneOrMore(search + ~FollowedBy(eventLiteral)).setName("search list")
 searchQ = (Optional(Suppress(Keyword("search:"))) + searchList)
 searchQ = searchQ.setParseAction(lambda toks: ("search", Q(search__name__in=toks.asList())))
 
@@ -208,6 +216,7 @@ tableTranslations = {
         'mb': 'multiburstevent',
         'coincinspiral': 'coincinspiralevent',
         'multiburst': 'multiburstevent',
+        'grb': 'grbevent',
         }
 
 def buildDjangoQueryField(toks):
@@ -247,7 +256,6 @@ attrExpressions = operatorPrecedence(term,
 #attributeQ = lparen + attrExpressions + rparen
 attributeQ = attrExpressions.copy()
 attributeQ.setParseAction(lambda toks: ("attr", toks[0]))
-
 
 ###########################
 
