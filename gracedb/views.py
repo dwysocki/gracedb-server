@@ -354,7 +354,16 @@ def search(request, format=""):
                     # XXX  Make this -- Better.
                     return HttpResponse("Sorry -- no more than 1000 events currently allowed.")
 
-                xmldoc = assembleLigoLw(objects)
+                try:
+                    xmldoc = assembleLigoLw(objects)
+                except IOError:
+                    msg = "At least one of the query results has no associated coinc.xml file."
+                    msg += " LigoLw tables are available for queries that return only coinc inspiral events."
+                    msg += " Please try your query again."
+                    return HttpResponseBadRequest(msg)
+                except Exception, e:
+                    msg = "An error occured while trying to compile LigoLw results: %s" % str(e)
+                    return HttpResponseServerError(msg)
 
                 response = HttpResponse(mimetype='application/xml')
                 response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
