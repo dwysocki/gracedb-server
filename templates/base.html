@@ -4,7 +4,7 @@
 <head>
 {% block headcontents %}
     <link rel="stylesheet" href="{{STATIC_URL}}css/style.css" />
-    <title>GraceDb | {% block title %}{% endblock %}</title>
+    <title>GlitchDD | {% block title %}{% endblock %}</title>
 <!-- START TESTING -->
 <script type="text/javascript">
 function changeTime(obj, label) {
@@ -27,7 +27,7 @@ function changeTime(obj, label) {
 <div id="content">
 
 <center>
-<h1> GraceDB &mdash; Gravitational Wave Candidate Event Database</h1>
+<h1> GlitchDB &mdash; Glitch Candidate Event Database</h1>
 </center>
 
 {% block nav %}
@@ -51,9 +51,11 @@ function changeTime(obj, label) {
 </ul>
 <center>
     {% if config_name %}
+<!--
       <h1 style="color: red;">
           {{config_name}}
       </h1>
+-->
     {% endif %}
 </center>
 {% endblock %}

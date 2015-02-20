@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
-{% block heading %}GraceDB Overview{% endblock %}
+{% block heading %}GlitchDB Overview{% endblock %}
 {% block pageid %}home{% endblock %}
 {% block jscript %}
     <style>
@@ -32,15 +32,14 @@
 
 <div class="text">
 
-<p> The gravitational-wave candidate event database (GraceDB) is a
-prototype system to organize candidate events from gravitational-wave
-searches and to provide an environment to record information about
-follow-ups. </p>
+<p> The glitch database (GlitchDB) is a
+prototype system to organize candidate glitch events
+and to provide an environment to record information about
+follow-ups. This project is based on <a href="https://gracedb.ligo.org">GraceDB</a>. </p>
 
 <ul>
 
 <li><a href="https://www.lsc-group.phys.uwm.edu/daswg/wiki/GraceDBER6">Recent changes</a> <font color="red">(IMPORTANT!) </font></li>
-<li><a href="https://gw-astronomy.org/wiki/LV_EM/ElectroMagneticBulletinBoard">Prototype EMBB description</a></li>
 <li><a href="https://www.lsc-group.phys.uwm.edu/daswg/wiki/HowtoGraceDb">Howto page</a></li>
 <li><a href="https://www.lsc-group.phys.uwm.edu/daswg/projects/gracedb.html">DASWG Project page</a></li>
 <li><a href="{% url "shib:api-root" %}">Browseable REST API</a>
