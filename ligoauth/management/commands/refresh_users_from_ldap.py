@@ -85,8 +85,9 @@ class Command(NoArgsCommand):
                         current_dns = set([ cert.subject for cert in user.x509cert_set.all() ])
 
                         if current_dns != new_dns:
-                            for dn in current_dns - new_dns:
-                                X509Cert.objects.get(subject=dn).delete()
+# XXX Some certs put in by hand are getting blow away. I don't think this feature is really needed anyway.
+#                            for dn in current_dns - new_dns:
+#                                X509Cert.objects.get(subject=dn).delete()
                             for dn in new_dns - current_dns:
                                 cert, created = X509Cert.objects.get_or_create(subject=dn)
                                 if created:
