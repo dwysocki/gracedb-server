@@ -957,6 +957,7 @@ require([
             sVdiv = put(annotationsDiv, 'div#sV_form_div[style="display: none"]');
             sVform = put(sVdiv, 'form#sV_form[method="post"][action="$"]', 
                 encodeURI(skymapViewerUrl));
+            put(sVform, 'input[type="hidden"][name="skymapid"][value="{{ object.graceid }}"]'); 
             put(sVform, 'input[type="hidden"][name="json"]');
             put(sVform, 'input[type="hidden"][name="embb"]');
             put(sVform, 'input[type="submit"][value="View in skymapViewer!"]');
