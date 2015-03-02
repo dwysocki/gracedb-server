@@ -53,6 +53,7 @@ SKYMAP_VIEWER_SERVICE_URL = "https://embb-dev.ligo.caltech.edu/skymap-viewer/ala
 
 BLESSED_TAGS = [
                  'analyst_comments',
+                 'em_follow',
                  'psd',
                  'data_quality',
                  'sky_loc',
