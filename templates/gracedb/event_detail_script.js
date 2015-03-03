@@ -118,7 +118,9 @@ var tagUrlPattern       = '{% url "taglogentry" object.graceid "000" "temp" %}';
 var eventLogListUrl     = '{% url "api:eventlog-list" object.graceid %}';
 var eventLogSaveUrl     = '{% url "logentry" object.graceid "" %}';
 var embbEventLogListUrl = '{% url "api:embbeventlog-list" object.graceid %}';
-var skymapJsonUrl       = '{% url "file" object.graceid "skymap.json" %}';
+// XXX Branson made this change on 3/3/15
+//var skymapJsonUrl       = '{% url "file" object.graceid "skymap.json" %}';
+var skymapJsonUrl       = '{% url "file" object.graceid "bayestar.json" %}';
 var skymapViewerUrl     = '{{ SKYMAP_VIEWER_SERVICE_URL }}';
 
 // This little list determines the priority ordering of the digest sections.
@@ -599,7 +601,9 @@ require([
                             // Whereas, inserting the comment with the put selector escapes it.
                             commentDiv.innerHTML += value + ' ';
                             if (object.filename) put(commentDiv, 'a[href=$]', object.file, object.filename);
-                            if (object.filename == 'skymap.json') {
+                            // Branson, 3/3/15
+                            //if (object.filename == 'skymap.json') {
+                            if (object.filename == 'bayestar.json') {
                                 var svButton = put(commentDiv, 'button.modButtonClass#sV_button', 'View in SkymapViewer!');
                                 put(svButton, '[type="button"][data-dojo-type="dijit/form/Button"]');
                                 put(svButton, '[style="float: right"]');
