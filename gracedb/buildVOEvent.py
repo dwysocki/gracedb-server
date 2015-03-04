@@ -49,11 +49,11 @@ def get_url(request, graceid, view_name, file_name=None):
 SKYMAP_INFO = {
     'initial' : {
         'name' : 'BAYESTAR',
-        'stem' : 'skymap',
+        'stem' : 'bayestar',
     },
     'update'  : {
         'name' : 'LALINFERENCE_MCMC',
-        'stem' : 'binned_posterior_samples',
+        'stem' : 'lalinference_nest',
     }
 }
 
