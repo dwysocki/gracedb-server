@@ -284,6 +284,45 @@ def embbEventLogToDict(eel, request=None):
                   "extra_info_dict" : eel.extra_info_dict,
              }
   
+# VOEvent serializer
+def voeventToDict(voevent, request=None):
+    filename = urlquote('%s,%d' % (voevent.filename, voevent.file_version))
+
+    uri = None
+    file_uri = None
+    if request:
+        uri = reverse("voevent-detail",
+                args=[voevent.event.graceid(), voevent.N],
+                request=request)
+        file_uri = reverse("files",
+            args=[voevent.event.graceid(), filename],
+            request=request)
+
+    issuer_info = {
+        "username": voevent.issuer.username,
+        "display_name": "%s %s" % (voevent.issuer.first_name, voevent.issuer.last_name),
+    }
+
+    # Read in the filecontents
+    filepath = os.path.join(voevent.event.datadir(), voevent.filename)
+    text = None
+    try: 
+        text = open(filepath, 'r').read()
+    except:
+        pass
+
+    return {
+                "self"         : uri,
+                "text"         : text,
+                "file"         : file_uri,
+                "N"            : voevent.N,
+                "issuer"       : issuer_info,
+                "ivorn"        : voevent.ivorn,
+                "filename"     : voevent.filename,
+                "file_version" : voevent.file_version,
+                "voevent_type" : voevent.voevent_type,
+                "created"      : voevent.created.isoformat(),
+           }
 
 
 #---------------------------------------------------------------------------------------

@@ -5,7 +5,7 @@ from django.conf.urls import patterns, url
 
 # rest_framework
 from gracedb.api import GracedbRoot
-from gracedb.api import EventList, EventDetail, EventVODetail
+from gracedb.api import EventList, EventDetail
 from gracedb.api import EventLogList, EventLogDetail
 from gracedb.api import EMBBEventLogList, EMBBEventLogDetail
 from gracedb.api import TagList
@@ -18,6 +18,7 @@ from gracedb.api import PerformanceInfo
 from gracedb.api import EventPermissionList
 from gracedb.api import GroupEventPermissionList
 from gracedb.api import GroupEventPermissionDetail
+from gracedb.api import VOEventList, VOEventDetail
 
 
 urlpatterns = patterns('gracedb.api',
@@ -28,8 +29,6 @@ urlpatterns = patterns('gracedb.api',
     # events/[{graceid}[/{version}]]
     url (r'events/$',
         EventList.as_view(), name='event-list'),
-    url (r'events/voevent/(?P<graceid>[GEHMT]\d+)$',
-        EventVODetail.as_view(), name='event-vo-detail'),
     url (r'events/(?P<graceid>[GEHMT]\d+)$',
         EventDetail.as_view(), name='event-detail'),
 
@@ -39,6 +38,13 @@ urlpatterns = patterns('gracedb.api',
         EventLogList.as_view(), name='eventlog-list'),
     url (r'events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)$',
         EventLogDetail.as_view(), name='eventlog-detail'),
+
+    # VOEvent Resources
+    # events/{graceid}/voevent/[{serial_number}]
+    url (r'events/(?P<graceid>[GEHMT]\d+)/voevent/$',
+        VOEventList.as_view(), name='voevent-list'),
+    url (r'events/(?P<graceid>[GEHMT]\d+)/voevent/(?P<n>\d+)$',
+        VOEventDetail.as_view(), name='voevent-detail'),
 
     # EMBB Event Log Resources
     # events/{graceid}/logs/[{logid}]

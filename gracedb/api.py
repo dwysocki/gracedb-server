@@ -14,12 +14,13 @@ from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.contenttypes.models import ContentType
 from gracedb.models import Event, Group, Search, Pipeline, EventLog, Tag
 from gracedb.models import EMGroup, EMBBEventLog, EMSPECTRUM
+from gracedb.models import VOEvent
 from view_logic import create_label, get_performance_info
 from view_logic import _createEventFromForm
 from view_logic import create_eel
 from view_utils import fix_old_creation_request
 from view_utils import eventToDict, eventLogToDict, labelToDict
-from view_utils import embbEventLogToDict
+from view_utils import embbEventLogToDict, voeventToDict
 from view_utils import reverse
 
 from translator import handle_uploaded_data
@@ -343,32 +344,6 @@ class TSVRenderer(BaseRenderer):
        
         return outTable
 
-# XXX this doesn't work because you don't have the request here. You could
-# try stuffing it into the renderer context, but that's really ugly. 
-#class VOEventRenderer(BaseRenderer):
-#    media_type = 'application/xml'
-#    format = 'xml'
-#
-#    def render(self, data, media_type=None, renderer_context=None):
-#        if 'error' in data.keys():
-#            return data['error']
-#
-#        outDoc = ''
-#        for e in data['events']:
-#            graceid = e['graceid']
-#
-#            try:
-#                # XXX If any part of this fails, the VOEvent will be empty.
-#                event = Event.getByGraceid(graceid)
-#                if not event.far or not event.gpstime:
-#                    raise Exception
-#                voevent = buildVOEvent(event, request)
-#            except:
-#                voevent = ''
-#            outDoc += voevent + '\n'
-#       
-#        return outDoc
-
 #==================================================================
 # Events
 
@@ -649,33 +624,6 @@ class EventDetail(APIView):
             return Response("Bad Data",
                     status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_202_ACCEPTED)
-
-# FIXME or something.
-# This should really be a renderer and not a view. But the problem 
-# is that the renderer needs the request in order to build up URLs.
-# There must be a better way of doing this.
-class EventVODetail(APIView):
-    authentication_classes = (LigoAuthentication,)
-    #parser_classes = (LigoLwParser, RawdataParser)
-    parser_classes = (parsers.MultiPartParser,)
-    #serializer_class = EventSerializer
-    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
-    renderer_classes = (JSONRenderer, BrowsableAPIRenderer,)
-
-    @event_and_auth_required
-    def get(self, request, event):
-        voevent_type = request.QUERY_PARAMS.get('voevent_type', 'preliminary')
-        try:
-            voevent = buildVOEvent(event, request, voevent_type=voevent_type)
-        except VOEventBuilderException, e:
-            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
-        except Exception, e:
-            return Response("Problem building VOEvent: %s" % str(e),
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        response = Response(voevent)
-        response["Cache-Control"] = "no-cache"
-        return response
 
 #==================================================================
 # Neighbors
@@ -1336,10 +1284,10 @@ class GracedbRoot(APIView):
         # Is there better?
         detail = reverse("event-detail", args=["G1200"], request=request)
         detail = detail.replace("G1200", "{graceid}")
-        vo_detail = reverse("event-vo-detail", args=["G1200"], request=request)
-        vo_detail = vo_detail.replace("G1200", "{graceid}")
         log = reverse("eventlog-list", args=["G1200"], request=request)
         log = log.replace("G1200", "{graceid}")
+        voevent = reverse("voevent-list", args=["G1200"], request=request)
+        voevent = voevent.replace("G1200", "{graceid}")
         embb = reverse("embbeventlog-list", args=["G1200"], request=request)
         embb = embb.replace("G1200", "{graceid}")
 
@@ -1368,7 +1316,7 @@ class GracedbRoot(APIView):
 
         templates = {
                 "event-detail-template" : detail,
-                "event-vo-detail-template" : vo_detail,
+                "voevent-list-template" : voevent,
                 "event-log-template" : log,
                 "embb-event-log-template" : embb,
                 "event-label-template" : labels,
@@ -1408,6 +1356,7 @@ class GracedbRoot(APIView):
             "wavebands"      : dict(EMSPECTRUM),
             "eel-statuses"   : dict(EMBBEventLog.EEL_STATUS_CHOICES),
             "obs-statuses"   : dict(EMBBEventLog.OBS_STATUS_CHOICES),
+            "voevent-types"  : dict(VOEvent.VOEVENT_TYPE_CHOICES),
            })
 
 ##################################################################
@@ -1611,4 +1560,123 @@ class PerformanceInfo(APIView):
             return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(performance_info,status=status.HTTP_200_OK)
+
+
+#==================================================================
+# VOEvent Resources
+
+class VOEventList(APIView):
+    """VOEvent List Resource
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
+
+    @event_and_auth_required
+    def get(self, request, event):
+        voeventset = event.voevent_set.order_by("created","N")
+        count = voeventset.count()
+
+        voevents = [ voeventToDict(voevent, request)
+                for voevent in voeventset.iterator() ]
+
+        rv = {
+                'start': 0,
+                'numRows' : count,
+                'links' : {
+                    'self' : request.build_absolute_uri(),
+                    'first' : request.build_absolute_uri(),
+                    'last' : request.build_absolute_uri(),
+                    },
+                'voevents' : voevents,
+             }
+        return Response(rv)
+
+    @event_and_auth_required
+    def post(self, request, event):
+        voevent_type = request.DATA.get('voevent_type', None)
+        if not voevent_type:
+            msg = "You must provide a valid voevent_type."
+            return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
+            
+        skymap_type = request.DATA.get('skymap_type', None)
+        skymap_filename = request.DATA.get('skymap_filename', None)
+        skymap_image_filename = request.DATA.get('skymap_image_filename', None)
+
+        if (skymap_filename and not skymap_type) or (skymap_type and not skymap_filename):
+            msg = "Both or neither of skymap_time and skymap_filename must be specified."
+            return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
+
+        # Instantiate the voevent and save in order to get the serial number
+        voevent = VOEvent(voevent_type=voevent_type, event=event, issuer=request.user)
+
+        try:
+            voevent.save()
+        except Exception as e:
+            return Response("Failed to create VOEvent: %s" % str(e),
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        # Now, you need to actually build the VOEvent.
+        try:
+            voevent_text, ivorn = buildVOEvent(event, voevent.N, voevent_type, request,
+                skymap_filename = skymap_filename, skymap_type = skymap_type,
+                skymap_image_filename = skymap_image_filename)
+        except VOEventBuilderException, e:
+            msg = "Problem building VOEvent: %s" % str(e)
+            return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
+
+        voevent_display_type = dict(VOEvent.VOEVENT_TYPE_CHOICES)[voevent_type].capitalize()
+        filename = "%s-%d-%s.xml" % (event.graceid(), voevent.N, voevent_display_type)
+        filepath = os.path.join(event.datadir(), filename)
+        fdest = VersionedFile(filepath, 'w')
+        fdest.write(voevent_text)
+        fdest.close()
+        file_version = fdest.version
+
+        voevent.filename = filename
+        voevent.file_version = file_version
+        voevent.ivorn = ivorn
+        voevent.save()
+
+        rv = voeventToDict(voevent, request=request)
+
+        # Create LogEntry to document the new VOEvent.
+        logentry = EventLog(event=event,
+                             issuer=request.user,
+                             comment='',
+                             filename=filename,
+                             file_version=file_version)
+        try:
+            logentry.save()
+        except:
+            rv['warnings'] = 'Problem saving log entry for VOEvent %s of %s' % (voevent.N, 
+                event.graceid()) 
+
+        # Tag log entry as 'sky_loc'
+        tmp = EventLogTagDetail()
+        retval = tmp.put(request, event.graceid(), logentry.N, 'em_follow') 
+        # XXX This seems like a bizarre way of getting an error message out.
+        if retval.status_code != 201:
+            rv['tagWarning'] = 'Error tagging VOEvent log message as em_follow.'
+
+        # Issue alert.
+        description = "VOEVENT: %s" % filename
+        issueAlertForUpdate(event, description, doxmpp=True, 
+            filename=filename, serialized_object=rv)
+
+        response = Response(rv, status=status.HTTP_201_CREATED)
+        response['Location'] = rv['self']
+        return response
+
+class VOEventDetail(APIView):
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
+
+    @event_and_auth_required
+    def get(self, request, event, n):
+        try:
+            voevent = event.voevent_set.filter(N=n)[0]
+        except:
+            return Response("VOEvent does not exist.",
+                    status=status.HTTP_404_NOT_FOUND)
+        return Response(voeventToDict(voevent, request=request))
 

@@ -822,3 +822,54 @@ class Tag(models.Model):
 #         # messages in the tag.
 #         eventlist = [log.event for log in self.eventlogs.all()]
 
+class VOEvent(models.Model):
+    class Meta:
+        ordering = ['-created','-N']
+        unique_together = ("event","N")
+    # Now N will be the serial number.
+    event = models.ForeignKey(Event, null=False)
+    created = models.DateTimeField(auto_now_add=True)
+    issuer = models.ForeignKey(DjangoUser)
+    ivorn = models.CharField(max_length=200, default="")
+    filename = models.CharField(max_length=100, default="")
+    file_version = models.IntegerField(null=True)
+    N = models.IntegerField(null=False)
+    VOEVENT_TYPE_CHOICES = (('PR','preliminary'), ('IN','initial'), ('UP','update'), ('RE', 'retraction'),)
+    voevent_type = models.CharField(max_length=2, choices=VOEVENT_TYPE_CHOICES)
+
+    def fileurl(self):
+        if self.filename:
+            actual_filename = self.filename
+            if self.file_version >= 0:
+                actual_filename += ',%d' % self.file_version
+            return reverse('file', args=[self.event.graceid(), actual_filename])
+        else:
+            return None
+
+    def save(self, *args, **kwargs):
+        success = False
+        # XXX filename must not be 'None' because null=False for the filename
+        # field above.
+        self.filename = self.filename or ""
+        attempts = 0
+        while (not success and attempts < 5):
+            attempts = attempts + 1
+            if not self.N:
+                if self.event.voevent_set.count():
+                    self.N = int(self.event.voevent_set.aggregate(models.Max('N'))['N__max']) + 1
+                else:
+                    self.N = 1
+            try:
+                super(VOEvent, self).save(*args, **kwargs)
+                success = True
+            except IntegrityError:
+                # IntegrityError means an attempt to insert a duplicate
+                # key or to violate a foreignkey constraint.
+                # We are under race conditions.  Let's try again.
+                pass
+
+        if not success:
+            # XXX Should this be a custom exception?  That way we could catch it
+            # in the views that use it and give an informative error message.
+            raise Exception("Too many attempts to save log message. Something is wrong.")
+
