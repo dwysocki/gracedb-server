@@ -103,6 +103,8 @@ var getKeys = function(obj){
 }
 
 var image_extensions = ['png', 'gif', 'jpg'];
+var TIME_DISP_FMT = 'MMM D, YYYY h:mm:ss A';
+//var TIME_DISP_FMT = 'LLL';
 
 // A utility function to determine whether a log message has an image.
 // This would not be necessary if we were using django template language
@@ -550,7 +552,7 @@ require([
             // Convert the 'created' times to UTC.
             logs = logs.map( function(obj) {
                 var server_t = moment.tz(obj.created, 'America/Chicago');
-                obj.created = server_t.clone().tz('UTC').format('LLL');
+                obj.created = server_t.clone().tz('UTC').format(TIME_DISP_FMT);
                 return obj;
             });
             
@@ -581,11 +583,11 @@ require([
                         },
                         renderCell: function(object, value, node, options) {
                             var server_t = moment.tz(object.created, 'America/Chicago');
-                            var t = put(node, 'time[name="time-log"]', server_t.format('LLL'));
-                            put(t, '[utc="$"]', server_t.clone().tz('UTC').format('LLL'));
-                            put(t, '[llo="$"]', server_t.format('LLL'));
-                            put(t, '[lho="$"]', server_t.clone().tz('America/Los_Angeles').format('LLL'));
-                            put(t, '[virgo="$"]', server_t.clone().tz('Europe/Rome').format('LLL'));
+                            var t = put(node, 'time[name="time-log"]', server_t.format(TIME_DISP_FMT));
+                            put(t, '[utc="$"]', server_t.clone().tz('UTC').format(TIME_DISP_FMT));
+                            put(t, '[llo="$"]', server_t.format(TIME_DISP_FMT));
+                            put(t, '[lho="$"]', server_t.clone().tz('America/Los_Angeles').format(TIME_DISP_FMT));
+                            put(t, '[virgo="$"]', server_t.clone().tz('Europe/Rome').format(TIME_DISP_FMT));
                             return t;                                                       
                         }
                     }, 
@@ -694,11 +696,11 @@ require([
                         },
                         renderCell: function(object, value, node, options) {
                             var server_t = moment.tz(object.created, 'America/Chicago');
-                            var t = put(node, 'time[name="time-audit-log"]', server_t.format('LLL'));
-                            put(t, '[utc="$"]', server_t.clone().tz('UTC').format('LLL'));
-                            put(t, '[llo="$"]', server_t.format('LLL'));
-                            put(t, '[lho="$"]', server_t.clone().tz('America/Los_Angeles').format('LLL'));
-                            put(t, '[virgo="$"]', server_t.clone().tz('Europe/Rome').format('LLL'));
+                            var t = put(node, 'time[name="time-audit-log"]', server_t.format(TIME_DISP_FMT));
+                            put(t, '[utc="$"]', server_t.clone().tz('UTC').format(TIME_DISP_FMT));
+                            put(t, '[llo="$"]', server_t.format(TIME_DISP_FMT));
+                            put(t, '[lho="$"]', server_t.clone().tz('America/Los_Angeles').format(TIME_DISP_FMT));
+                            put(t, '[virgo="$"]', server_t.clone().tz('Europe/Rome').format(TIME_DISP_FMT));
                             return t;                                                       
                         }
                     }, 
