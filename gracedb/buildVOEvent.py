@@ -179,7 +179,8 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             raise VOEventBuilderException("Skymap file does not exist: %s" % skymap_filename)
 
         # Let's try to get an image.
-        if not skymap_image_filename:
+        img_name = skymap_image_filename
+        if not img_name:
             stem = '.'.join(fits_name.split('.')[:-1])
             img_name = stem + '.png'
             img_path = os.path.join(event.datadir(), img_name)
