@@ -61,6 +61,7 @@ BLESSED_TAGS = [
                  'ext_coinc',
                  'strain',
                  'tfplots',
+                 'pe',
                  'sig_info',
                  'audio',
                ]
