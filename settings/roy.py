@@ -110,6 +110,7 @@ AUTHENTICATION_BACKENDS = (
 #   'ligoauth.middleware.auth.RemoteUserBackend',
 #   'ligodjangoauth.LigoShibbolethAuthBackend',
 #   'django.contrib.auth.backends.ModelBackend',
+    'guardian.backends.ObjectPermissionBackend',
 )
 
 
@@ -147,10 +148,10 @@ INTERNAL_IPS = (
 )
 
 # Added in order to perform data migrations on the auth app
-SOUTH_MIGRATION_MODULES = {
-    'auth' : 'migrations.auth',
-    'guardian' : 'migrations.guardian',
-}
+#SOUTH_MIGRATION_MODULES = {
+#    'auth' : 'migrations.auth',
+#    'guardian' : 'migrations.guardian',
+#}
 
 SOUTH_TESTS_MIGRATE = False
 
