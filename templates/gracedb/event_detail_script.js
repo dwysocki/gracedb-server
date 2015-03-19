@@ -122,7 +122,7 @@ var eventLogSaveUrl     = '{% url "logentry" object.graceid "" %}';
 var embbEventLogListUrl = '{% url "api:embbeventlog-list" object.graceid %}';
 // XXX Branson made this change on 3/3/15
 //var skymapJsonUrl       = '{% url "file" object.graceid "skymap.json" %}';
-var skymapJsonUrl       = '{% url "file" object.graceid "bayestar.json" %}';
+var skymapJsonUrl       = '{% url "file" object.graceid "" %}';
 var skymapViewerUrl     = '{{ SKYMAP_VIEWER_SERVICE_URL }}';
 
 // This little list determines the priority ordering of the digest sections.
@@ -605,8 +605,11 @@ require([
                             if (object.filename) put(commentDiv, 'a[href=$]', object.file, object.filename);
                             // Branson, 3/3/15
                             //if (object.filename == 'skymap.json') {
-                            if (object.filename == 'bayestar.json') {
-                                var svButton = put(commentDiv, 'button.modButtonClass#sV_button', 'View in SkymapViewer!');
+                            var isItJson = object.filename.indexOf(".json");
+                            if (isItJson  > -1) {
+                                var skymapName = object.filename.substring(0, isItJson);
+                                var svButton = put(commentDiv, 
+                                    'button.modButtonClass.sV_button#'+skymapName, 'View in SkymapViewer!');
                                 put(svButton, '[type="button"][data-dojo-type="dijit/form/Button"]');
                                 put(svButton, '[style="float: right"]');
                             }
@@ -958,44 +961,51 @@ require([
 
             });                 
 
-            // Handle the post to skymapViewer button.
-            // Tacking on an invisible div with a form inside.
-            sVdiv = put(annotationsDiv, 'div#sV_form_div[style="display: none"]');
-            sVform = put(sVdiv, 'form#sV_form[method="post"][action="$"]', 
+            var nodeList = query('.sV_button');
+            for(var i=0; i<nodeList.length; i++){
+                node = nodeList[i];
+                var skymapName = node.id;
+                // Handle the post to skymapViewer button.
+                // Tacking on an invisible div with a form inside.
+                sVdiv = put(annotationsDiv, 'div#sV_form_div[style="display: none"]');
+                sVform = put(sVdiv, 'form#sV_form[method="post"][action="$"]', 
                 encodeURI(skymapViewerUrl));
-            put(sVform, 'input[type="hidden"][name="skymapid"][value="{{ object.graceid }}"]'); 
-            put(sVform, 'input[type="hidden"][name="json"]');
-            put(sVform, 'input[type="hidden"][name="embb"]');
-            put(sVform, 'input[type="submit"][value="View in skymapViewer!"]');
+                put(sVform, 'input[type="hidden"][name="skymapid"][value="{{ object.graceid }}"]'); 
+                put(sVform, 'input[type="hidden"][name="json"]');
+                put(sVform, 'input[type="hidden"][name="embb"]');
+                put(sVform, 'input[type="submit"][value="View in skymapViewer!"]');
             
-            var sV_button = dom.byId("sV_button");
-            if (sV_button) {
-                on(sV_button, "click", function() {
-                    console.log("You clicked the button!");
-                    var embblog_json_url = embbEventLogListUrl;
-                    var embblog_json;
-                    dojo.xhrGet({
-                        url: embblog_json_url + "?format=json",
-                        async: true,
-                        load: function(embblog_json) {
+                var sV_button = dom.byId(skymapName);
+                if (sV_button) {
+                    on(sV_button, "click", function(e) {
+                        sjurl = skymapJsonUrl + '/' + e.toElement.id + '.json';
+                        console.log("You clicked the button for "+sjurl);
+                        var embblog_json_url = embbEventLogListUrl;
+                        var embblog_json;
 
-                        // fetch JSON content.
                         dojo.xhrGet({
-                            url: skymapJsonUrl,
-                            load: function(result) { 
-                                // Find the form and set its value to the appropriate JSON        
-                                sV_form = dom.byId("sV_form");
-                                // Shove the skymap.json contents into the value for the second form field.
-                                sV_form.elements[1].value = result; 
-                                sV_form.elements[2].value = embblog_json; 
-                                // Submit the form, which takes the user to the skymapViewer server.
-                                sV_form.submit();
+                            url: embblog_json_url + "?format=json",
+                            async: true,
+                            load: function(embblog_json) {
+    
+                            // fetch JSON content.
+                            dojo.xhrGet({
+                                url: sjurl,
+                                load: function(result) { 
+                                    // Find the form and set its value to the appropriate JSON        
+                                    sV_form = dom.byId("sV_form");
+                                    // Shove the skymap.json contents into the value for the second form field.
+                                    sV_form.elements[1].value = result; 
+                                    sV_form.elements[2].value = embblog_json; 
+                                    // Submit the form, which takes the user to the skymapViewer server.
+                                    sV_form.submit();
+                                }
+                            });    // end of inside ajax
                             }
-                        });    // end of inside ajax
-                        }
-                    });        // end of outside ajax
-                });
-            }
+                        });        // end of outside ajax
+                    });
+                }
+            }   // end of loop over buttons
 
 
         });
