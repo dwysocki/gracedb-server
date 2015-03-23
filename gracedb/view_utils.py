@@ -215,8 +215,8 @@ def eventLogToDict(log, request=None):
                 args=[log.event.graceid(), filename],
                 request=request)
 
-        # This is purely for convenience in working with the web interface.
-        tag_names = [tag.name for tag in log.tag_set.all() ];
+    # This is purely for convenience in working with the web interface.
+    tag_names = [tag.name for tag in log.tag_set.all() ];
 
     issuer_info = {
         "username": log.issuer.username,

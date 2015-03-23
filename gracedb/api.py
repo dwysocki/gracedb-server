@@ -793,9 +793,6 @@ class EventLogList(APIView):
             # Since this is likely due to race conditions, we will return 503
             return Response("Failed to save log entry: %s" % str(e),
                     status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        rv = eventLogToDict(logentry, request=request)
-        response = Response(rv, status=status.HTTP_201_CREATED)
-        response['Location'] = rv['self']
 
         if tagnames and len(tagnames):
             for tagname in tagnames:
@@ -805,6 +802,11 @@ class EventLogList(APIView):
                 # XXX This seems like a bizarre way of getting an error message out.
                 if retval.status_code != 201:
                     response['tagWarning'] = 'Error creating tag %s.' % tagname
+
+        # Serialize the event log object *after* adding tags!
+        rv = eventLogToDict(logentry, request=request)
+        response = Response(rv, status=status.HTTP_201_CREATED)
+        response['Location'] = rv['self']
 
         # Issue alert.
         description = "LOG: "
