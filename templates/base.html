@@ -8,7 +8,8 @@
 <!-- START TESTING -->
 <script type="text/javascript">
 function changeTime(obj, label) {
-    var timetype = obj.get("value");
+    //var timetype = obj.get("value");
+    var timetype = obj.value;
     if (timetype=="") { return; }
     var times = document.getElementsByName("time-"+label);
     for (i=0; i<times.length; i++) {
