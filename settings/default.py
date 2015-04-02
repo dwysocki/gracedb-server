@@ -231,6 +231,7 @@ AUTHENTICATION_BACKENDS = (
 #   'gracedb.middleware.auth.LigoAuthBackend',
     'ligoauth.middleware.auth.LigoX509Backend',
     'ligoauth.middleware.auth.LigoShibBackend',
+    'ligoauth.middleware.auth.LigoBasicBackend',
     'ligoauth.middleware.auth.ModelBackend',
 #   'ligoauth.middleware.auth.RemoteUserBackend',
 #   'ligodjangoauth.LigoShibbolethAuthBackend',
@@ -314,6 +315,9 @@ SOUTH_MIGRATION_MODULES = {
 }
 
 SOUTH_TESTS_MIGRATE = False
+
+# passwords for LVEM scripted access expire after 365 days.
+PASSWORD_EXPIRATION_TIME = timedelta(days=365)
 
 # XXX The following Log settings are for a performance metric.
 import logging

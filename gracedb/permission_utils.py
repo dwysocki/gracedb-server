@@ -59,3 +59,17 @@ def internal_user_required(view):
             return HttpResponseForbidden("Forbidden")
         return view(request, *args, **kwargs)
     return inner
+
+#-------------------------------------------------------------------------------
+# A wrapper for views that checks whether the user is in the LV-EM group, and if not
+# returns a 403.
+#-------------------------------------------------------------------------------
+def lvem_user_required(view):
+    @wraps(view)
+    def inner(request, *args, **kwargs):
+        # XXX Should probably move this list of internal groups into settings.
+        lvem_groups = [Group.objects.get(name='gw-astronomy:LV-EM')]
+        if not set(list(lvem_groups)) & set(list(request.user.groups.all())):
+            return HttpResponseForbidden("Forbidden")
+        return view(request, *args, **kwargs)
+    return inner
