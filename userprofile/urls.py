@@ -1,8 +1,7 @@
 
 # Changed for Django 1.6
 #from django.conf.urls.defaults import *
-from django.conf.urls import patterns, url, include
-
+from django.conf.urls import patterns, url
 
 urlpatterns = patterns('userprofile.views',
     url (r'^$', 'index', name="userprofile-home"),
@@ -14,11 +13,6 @@ urlpatterns = patterns('userprofile.views',
     url (r'^trigger/delete/(?P<id>[\d]+)$', 'delete', name="userprofile-delete"),
     url (r'^trigger/edit/(?P<id>[\d]+)$', 'edit', name="userprofile-edit"),
 
-#   (r'^view/(?P<uid>[\w\d]+)', 'view'),
-#   (r'^edit/(?P<uid>[\w\d]+)', 'edit'),
-#   (r'^request_archive/(?P<uid>[\w\d]+)(?P<rescind>/rescind)?', 'request_archive'),
-#   (r'^approve_archive/(?P<uid>[\w\d]+)(?P<rescind>/rescind)?', 'approve_archive'),
-#   url (r'^query', 'query', name="search"),
-#   url (r'^mine/$', 'mine', name="mine"),
-#   url (r'^myapprovals/$', 'myapprovals', name="myapprovals"),
+    url (r'^manage_password$', 'managePassword', name="userprofile-manage-password"),
+
 )

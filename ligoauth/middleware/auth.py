@@ -1,5 +1,6 @@
 
 import re
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User, AnonymousUser, Group
 from django.contrib.auth.backends import RemoteUserBackend as DefaultRemoteUserBackend
@@ -9,9 +10,13 @@ from ligoauth.models import certdn_to_user
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from django.http import HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden
 
 proxyPattern = re.compile(r'^(.*?)(/CN=\d+)*$')
+
+from datetime import datetime
+from base64 import b64decode
+import json
 
 # XXX Hack. This will go away when we get the new perms infrastructure in place.
 PUBLIC_URLS = [
@@ -108,6 +113,19 @@ class LigoAuthMiddleware:
         if not user and dn:
             user = authenticate(dn=dn)
 
+        authn_header = request.META.get('HTTP_AUTHORIZATION', None)
+        if not user and 'apibasic' in request.path and authn_header:
+            user = authenticate(authn_header=authn_header)
+            # XXX Note: We are using date_joined to store the date
+            # when the password was set, not when the user joined up. 
+            # This could cause some strange behavior if we ever want to
+            # actually use 'date_joined' for it's intended purpose.
+            # check: is now greater than date_joined + time_delta?
+            if user:
+                if datetime.now() > user.date_joined + settings.PASSWORD_EXPIRATION_TIME:
+                    msg = "Your password has expired. Please log in and request another."
+                    return HttpResponseForbidden(json.dumps({'error': msg})) 
+
         if user and user.is_active:
             # Ideal, normal case.  Yay!
             pass
@@ -134,6 +152,12 @@ class LigoAuthMiddleware:
             if is_cli:
                 message = "Your credentials are not valid."
                 return HttpResponseForbidden("{ 'error': '%s'  }" % message)
+            if 'apibasic' in request.path:
+                # The user was trying to get to the API exposed by basic auth. Send JSON with challenge.
+                msg = "Login failed: Incorrect username or password."
+                response = HttpResponse(json.dumps({'error': msg}), status=401)
+                response['WWW-Authenticate'] = 'Basic realm="/apibasic/"'
+                return response
             return render_to_response(
                     'forbidden.html',
                     {'error': message},
@@ -167,6 +191,47 @@ class LigoShibBackend:
         try:
             return User.objects.get(username=principal)
         except User.DoesNotExist:
+            return None
+
+    def get_user(self, user_id):
+        try:
+            return User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return None
+
+class LigoBasicBackend:
+    
+    supports_object_permissions = False
+    supports_anonymous_user = False
+    supports_inactive_user = False
+
+    def authenticate(self, authn_header):
+        # dig out the username and password from the authn header
+        username = None
+        password = None
+
+        try:
+            authn_type, cred = authn_header.strip().split()
+        except:
+            return None
+
+        if authn_type.lower() != 'basic':
+            return None
+
+        try:
+            cred = b64decode(cred)
+            username, password = cred.split(':')
+        except:
+            return None
+
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return None
+
+        if user.check_password(password):
+            return user
+        else:
             return None
 
     def get_user(self, user_id):

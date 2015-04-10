@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Options | Notifications{% endblock %}
-{% block heading %}Notifications{% endblock %}
+{% block heading %}Notifications (LVC Users){% endblock %}
 {% block pageid %}userprofile{% endblock %}
 
 {% block content %}
@@ -16,9 +16,10 @@
    </ul>
 {% endfor %}
 
-<a href="{% url "userprofile-create" %}">Create New Notification</a>
+<a href="{% url "userprofile-create" %}">Create New Notification (LVC users)</a>
+<br/><br/>
 
-<h2>Contacts</h2>
+<h2>Contacts (LVC Users)</h2>
 {% for contact in contacts %}
     <ul>
         <li>
@@ -30,5 +31,10 @@
 {% endfor %}
 
 <a href="{% url "userprofile-create-contact" %}">Create New Contact</a>
+<br/><br/>
+
+<h2>Passwords for Scripted Access (LV-EM users)</h2>
+
+<a href="{% url "userprofile-manage-password" %}">Manage Password</a>
 
 {% endblock %}
