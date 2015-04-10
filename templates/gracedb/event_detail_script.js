@@ -978,7 +978,7 @@ require([
                 var sV_button = dom.byId(skymapName);
                 if (sV_button) {
                     on(sV_button, "click", function(e) {
-                        sjurl = skymapJsonUrl + '/' + e.toElement.id + '.json';
+                        sjurl = skymapJsonUrl + '/' + e.target.id + '.json';
                         console.log("You clicked the button for "+sjurl);
                         var embblog_json_url = embbEventLogListUrl;
                         var embblog_json;
