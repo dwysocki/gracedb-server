@@ -283,6 +283,50 @@ def embbEventLogToDict(eel, request=None):
                   "comment" : eel.comment,
                   "extra_info_dict" : eel.extra_info_dict,
              }
+
+# EMObservation serializer.
+def emObservationToDict(emo, request=None):
+      uri = None
+      if request:
+          uri = reverse("emobservation-detail",
+                  args=[emo.event.graceid(), emo.N],
+                  request=request)
+      
+      return {
+                  "N"               : emo.N,
+                  "footprint_count" : emo.emfootprint_set.count(),
+                  "self"            : uri,
+                  "created"         : emo.created.isoformat(),
+                  "submitter"       : emo.submitter.username,
+                  "group"           : emo.group.name,
+  
+                  "ra"       : emo.ra,
+                  "dec"      : emo.dec,
+                  "raWidth"  : emo.raWidth,
+                  "decWidth" : emo.decWidth,
+                  "footprints" : [ emFootprintToDict(emf) for emf in emo.emfootprint_set.all()]
+              }
+
+# EMFootprint serializer
+def emFootprintToDict(emf, request=None):
+#      uri = None
+#      if request:
+#          uri = reverse("emfootprint-detail",
+#                  args=[emf.emobservation.event.graceid(), emf.emobservation.N, emf.N],
+#                  request=request)
+      
+      return {
+# FIXME: At this point, we're not exposing the individual footprints.
+# It would probably be nice to expose these resources, at least to GET.
+#                  "self"            : uri,
+                  "N"               : emf.N,
+                  "ra"              : emf.ra,
+                  "dec"             : emf.dec,
+                  "raWidth"         : emf.raWidth,
+                  "decWidth"        : emf.decWidth,
+                  "start_time"      : emf.start_time.isoformat(),
+                  "exposure_time"   : emf.exposure_time,
+              }
   
 # VOEvent serializer
 def voeventToDict(voevent, request=None):

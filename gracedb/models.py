@@ -396,6 +396,153 @@ EMSPECTRUM = (
 ('em.radio.20-100MHz',  'Radio between 20 and 100 MHz'),
 )
 
+class EMObservation(models.Model):
+    """
+    EMObservation:  An observation record for EM followup.  
+    """
+    class Meta:
+        ordering = ['-created', '-N']
+        unique_together = ("event","N")
+
+    def __unicode__(self):
+        return "%s-%s-%d" % (self.event.graceid(), self.group.name, self.N)
+
+    N = models.IntegerField(null=False)
+    created = models.DateTimeField(auto_now_add=True)
+    event = models.ForeignKey(Event)
+    submitter  = models.ForeignKey(DjangoUser)  
+
+    # The MOU group responsible 
+    group = models.ForeignKey(EMGroup)       # from a table of facilities
+
+    # The following fields should be calculated from the footprint info provided
+    # by the user. These fields are just for convenience and fast searching
+
+    # The center of the bounding box of the rectangular footprints ra,dec
+    # in J2000 in decimal degrees
+    ra         = models.FloatField(null=True)
+    dec        = models.FloatField(null=True)    
+
+    # The width and height (RA range and Dec range) in decimal degrees 
+    raWidth    = models.FloatField(null=True)
+    decWidth   = models.FloatField(null=True)    
+
+    # We overload the 'save' method to avoid race conditions, since the Eels are numbered. 
+    def save(self, *args, **kwargs):
+        success = False
+        attempts = 0
+        while (not success and attempts < 5):
+            attempts = attempts + 1
+            # If I've already got an N assigned, let's not assign another.
+            if not self.N:
+                if self.event.emobservation_set.count():
+                    self.N = int(self.event.emobservation_set.aggregate(models.Max('N'))['N__max']) + 1
+                else:
+                    self.N = 1
+            try:
+                super(EMObservation, self).save(*args, **kwargs)
+                success = True
+            except IntegrityError:
+                # IntegrityError means an attempt to insert a duplicate
+                # key or to violate a foreignkey constraint.
+                # We are under race conditions.  Let's try again.
+                pass
+
+        if not success:
+            # XXX Should this be a custom exception?  That way we could catch it
+            # in the views that use it and give an informative error message.
+            raise Exception("Too many attempts to save EMObservation entry. Something is wrong.")
+
+    def calculateCoveringRegion(self):
+        # How to access the related footprint objects?
+        footprints = self.emfootprint_set.all()
+        if not footprints:
+            return
+
+        ramin = 360.0
+        ramax = 0.0
+        decmin = 90.0
+        decmax = -90.0
+
+        for f in footprints:
+            
+            # evaluate bounding box
+            w = float(f.raWidth)/2
+            if f.ra-w < ramin: ramin = f.ra-w
+            if f.ra+w > ramax: ramax = f.ra+w
+
+            w = float(f.decWidth)/2
+            if f.dec-w < decmin: decmin = f.dec-w
+            if f.dec+w > decmax: decmax = f.dec+w
+
+        # Make sure the min/max ra and dec are within bounds:
+        ramin  = max(0.0,   ramin)
+        ramax  = min(360.0, ramax)
+        decmin = max(-90.0, decmin)
+        decmax = min(90.0,  decmax)
+
+        # Calculate sky rectangle bounds
+        self.ra       = (ramin + ramax)/2
+        self.dec      = (decmin + decmax)/2
+        self.raWidth  = ramax-ramin
+        self.decWidth = decmax-decmin
+
+class EMFootprint(models.Model):
+    """
+    A single footprint associated with an observation.
+    Each EMObservation can have many footprints underneath.
+
+    None of the fields are optional here.
+    """
+    class Meta:
+        ordering = ['-N']
+        unique_together = ("observation","N")
+
+    N = models.IntegerField(null=False)
+
+    observation = models.ForeignKey(EMObservation, null = False)
+
+    # The center of the rectangular footprint, right ascension and declination
+    # in J2000 in decimal degrees
+    ra         = models.FloatField()
+    dec        = models.FloatField()    
+
+    # The width and height (RA range and Dec range) in decimal degrees 
+    raWidth    = models.FloatField()
+    decWidth   = models.FloatField()    
+
+    # The start time of the observation for this footprint
+    start_time = models.DateTimeField()
+
+    # The exposure time in seconds for this footprint
+    exposure_time = models.PositiveIntegerField()
+
+    # We overload the 'save' method to avoid race conditions, since the Eels are numbered. 
+    def save(self, *args, **kwargs):
+        success = False
+        attempts = 0
+        while (not success and attempts < 5):
+            attempts = attempts + 1
+            # If I've already got an N assigned, let's not assign another.
+            if not self.N:
+                if self.observation.emfootprint_set.count():
+                    self.N = int(self.observation.emfootprint_set.aggregate(models.Max('N'))['N__max']) + 1
+                else:
+                    self.N = 1
+            try:
+                super(EMFootprint, self).save(*args, **kwargs)
+                success = True
+            except IntegrityError:
+                # IntegrityError means an attempt to insert a duplicate
+                # key or to violate a foreignkey constraint.
+                # We are under race conditions.  Let's try again.
+                pass
+
+        if not success:
+            # XXX Should this be a custom exception?  That way we could catch it
+            # in the views that use it and give an informative error message.
+            raise Exception("Too many attempts to save Footprint. Something is wrong.")
+
 class EMBBEventLog(models.Model):
     """EMBB EventLog:  A multi-purpose annotation for EM followup.
      

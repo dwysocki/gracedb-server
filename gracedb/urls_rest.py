@@ -8,6 +8,8 @@ from gracedb.api import GracedbRoot
 from gracedb.api import EventList, EventDetail
 from gracedb.api import EventLogList, EventLogDetail
 from gracedb.api import EMBBEventLogList, EMBBEventLogDetail
+from gracedb.api import EMObservationList, EMObservationDetail
+#from gracedb.api import EMFootprintList, EMFootprintDetail
 from gracedb.api import TagList
 # from gracedb.api import TagDetail
 from gracedb.api import EventTagList, EventTagDetail
@@ -46,12 +48,20 @@ urlpatterns = patterns('gracedb.api',
     url (r'events/(?P<graceid>[GEHMT]\d+)/voevent/(?P<n>\d+)$',
         VOEventDetail.as_view(), name='voevent-detail'),
 
-    # EMBB Event Log Resources
+    # EMBB Resources
     # events/{graceid}/logs/[{logid}]
     url (r'events/(?P<graceid>[GEHMT]\d+)/embb/$',
         EMBBEventLogList.as_view(), name='embbeventlog-list'),
     url (r'events/(?P<graceid>[GEHMT]\d+)/embb/(?P<n>\d+)$',
         EMBBEventLogDetail.as_view(), name='embbeventlog-detail'),
+    url (r'events/(?P<graceid>[GEHMT]\d+)/emobservation/$',
+        EMObservationList.as_view(), name='emobservation-list'),
+    url (r'events/(?P<graceid>[GEHMT]\d+)/emobservation/(?P<n>\d+)$',
+        EMObservationDetail.as_view(), name='emobservation-detail'),
+#    url (r'events/(?P<graceid>[GEHMT]\d+)/emobservation/(?P<n>\d+)/emfootprint/$',
+#        EMFootprintList.as_view(), name='emfootprint-list'),
+#    url (r'events/(?P<graceid>[GEHMT]\d+)/emobservation/(?P<n>\d+)/emfootprint/(?P<m>\d+)$',
+#        EMFootprintDetail.as_view(), name='emfootprint-detail'),
 
     # Tag Resources
     url (r'^tag/$', 
