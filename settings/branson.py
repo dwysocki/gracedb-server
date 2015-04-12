@@ -25,6 +25,8 @@ BOWER_ROOT = "/home/branson/bower_components/"
 #GRACEDB_DATA_DIR = "/home/branson/fake_data"
 GRACEDB_DATA_DIR = "/home/branson/new_fake_data"
 
+EMAIL_HOST = 'localhost'
+
 ALERT_EMAIL_FROM = "Dev Alert <root@moe.phys.uwm.edu>"
 ALERT_EMAIL_TO = [
     "Branson Stephens <branson@gravity.phys.uwm.edu>",
@@ -35,7 +37,7 @@ ALERT_TEST_EMAIL_FROM = "Dev Test Alert <root@moe.phys.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
     "Branson Stephens <branson@gravity.phys.uwm.edu>",
     ]
-ALERT_XMPP_SERVERS = ["jabber.phys.uwm.edu",]
+ALERT_XMPP_SERVER = "jabber.phys.uwm.edu",
 
 EMBB_MAIL_ADDRESS = 'branson@moe.phys.uwm.edu'
 EMBB_SMTP_SERVER = 'localhost'

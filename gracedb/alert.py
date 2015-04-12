@@ -8,6 +8,10 @@ from django.conf import settings
 import json
 
 import logging
+from hashlib import sha1
+
+from ligo.overseer.client import send_to_overseer
+from multiprocessing import Process, Manager
 
 log = logging.getLogger('gracedb.alert')
 
@@ -112,7 +116,6 @@ Event Summary:
     #send_mail(subject, message, fromaddress, toaddresses)
 
 def issueXMPPAlert(event, location, alert_type="new", description="", serialized_object=None):
-    log.debug('issueXMPPAlert: inside')
     
     nodename = "%s_%s" % (event.group.name, event.pipeline.name)
     nodename = nodename.lower()
@@ -147,28 +150,44 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
     msg = json.dumps(lva_data)
     log.debug("issueXMPPAlert: writing message %s" % msg)
 
-    for server in settings.ALERT_XMPP_SERVERS:
-        for nodename in nodenames:
-            log.debug("issueXMPPAlert: attempting to send alert to node %s at %s" % (nodename, server))
-            null = open('/dev/null','w')
-            p = Popen(
-                ["lvalert_send",
-                 "--server=%s" % server,
-                 "--username=gracedb",
-                 "--password=w4k3upal1ve",
-                 "--file=-",
-                 "--node=%s" % nodename,
-                ],
-                executable="/usr/bin/lvalert_send",
-                stdin=PIPE,
-                stdout=null,
-                stderr=STDOUT,
-                env=env)
+    manager = Manager()
 
-            out, err = p.communicate(msg)
+    for nodename in nodenames:
+        
+        # Calculate unique message_id and log
+        message_id = sha1(nodename + msg).hexdigest()
+        log.info("issueXMPPAlert: sending %s to node %s" % (message_id, nodename))
 
-            log.debug("issueXMPPAlert: return code %s" % p.returncode)
-            if p.returncode > 0:
-                # XXX This should probably raise an exception.
-                log.debug("issueXMPPAlert: ERROR: %s" % err)
+        rdict = manager.dict()
+        msg_dict = {'node_name': nodename, 'message': msg, 'action': 'push'}
+        p = Process(target=send_to_overseer, args=(msg_dict, rdict, log, True))
+        p.start()
+        p.join()
+
+        if rdict.get('success', None):
+            continue
+
+        # If not success, we need to do this the old way.
+        log.info("issueXMPPAlert: failover to lvalert_send") 
+        null = open('/dev/null','w')
+        p = Popen(
+            ["lvalert_send",
+             "--server=%s" % settings.ALERT_XMPP_SERVER,
+             "--username=gracedb",
+             "--password=w4k3upal1ve",
+             "--file=-",
+             "--node=%s" % nodename,
+            ],
+            executable="/usr/bin/lvalert_send",
+            stdin=PIPE,
+            stdout=null,
+            stderr=STDOUT,
+            env=env)
+
+        out, err = p.communicate(msg)
+
+        log.debug("issueXMPPAlert: return code %s" % p.returncode)
+        if p.returncode > 0:
+            # XXX This should probably raise an exception.
+            log.debug("issueXMPPAlert: ERROR: %s" % err)
 
