@@ -6,7 +6,8 @@ DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE= False
 
-EMAIL_HOST = 'gravity.phys.uwm.edu'
+#EMAIL_HOST = 'gravity.phys.uwm.edu'
+EMAIL_HOST = 'localhost'
 
 ADMINS = (
     ('Branson Stephens', 'branson@gravity.phys.uwm.edu'),
@@ -24,7 +25,7 @@ ALERT_EMAIL_BCC = [
 ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@archie.phys.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
                       ]
-ALERT_XMPP_SERVER = "lvalert.cgca.uwm.edu"
+ALERT_XMPP_SERVER = "lvalert.phys.uwm.edu"
 
 EMBB_MAIL_ADDRESS = 'embb@gracedb.ligo.org'
 EMBB_SMTP_SERVER = 'localhost'
