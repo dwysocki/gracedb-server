@@ -8,10 +8,10 @@ from django.conf import settings
 import json
 
 import logging
-from hashlib import sha1
+#from hashlib import sha1
 
-from ligo.overseer.client import send_to_overseer
-from multiprocessing import Process, Manager
+#from ligo.overseer.client import send_to_overseer
+#from multiprocessing import Process, Manager
 
 log = logging.getLogger('gracedb.alert')
 
@@ -154,18 +154,18 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
 
     for nodename in nodenames:
         
-        # Calculate unique message_id and log
-        message_id = sha1(nodename + msg).hexdigest()
-        log.info("issueXMPPAlert: sending %s to node %s" % (message_id, nodename))
-
-        rdict = manager.dict()
-        msg_dict = {'node_name': nodename, 'message': msg, 'action': 'push'}
-        p = Process(target=send_to_overseer, args=(msg_dict, rdict, log, True))
-        p.start()
-        p.join()
-
-        if rdict.get('success', None):
-            continue
+#        # Calculate unique message_id and log
+#        message_id = sha1(nodename + msg).hexdigest()
+#        log.info("issueXMPPAlert: sending %s to node %s" % (message_id, nodename))
+#
+#        rdict = manager.dict()
+#        msg_dict = {'node_name': nodename, 'message': msg, 'action': 'push'}
+#        p = Process(target=send_to_overseer, args=(msg_dict, rdict, log, True))
+#        p.start()
+#        p.join()
+#
+#        if rdict.get('success', None):
+#            continue
 
         # If not success, we need to do this the old way.
         log.info("issueXMPPAlert: failover to lvalert_send") 
