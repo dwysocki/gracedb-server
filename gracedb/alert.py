@@ -150,7 +150,7 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
     msg = json.dumps(lva_data)
     log.debug("issueXMPPAlert: writing message %s" % msg)
 
-    manager = Manager()
+#    manager = Manager()
 
     for nodename in nodenames:
         
