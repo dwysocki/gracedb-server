@@ -203,6 +203,12 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         if img_name:
             x509_png_skymap_url  = get_url(request, objid, "x509:files", img_name)
 
+        # basic urls. Hafta specify the api namespace.
+        basic_fits_skymap_url = get_url(request, objid, "basic:files", fits_name)
+        if img_name:
+            basic_png_skymap_url  = get_url(request, objid, "basic:files", img_name)
+        
+
         # Add parameters to the skymap group
         g.add_Param(Param(name="skymap_fits_shib", 
             dataType="string",
@@ -216,6 +222,12 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             unit="",
             value=x509_fits_skymap_url,
             Description=["Sky Map FITS X509 protected"]))
+        g.add_Param(Param(name="skymap_fits_basic", 
+            dataType="string",
+            ucd="meta.ref.url", 
+            unit="",
+            value=basic_fits_skymap_url,
+            Description=["Sky Map FITS basic auth protected"]))
 
         if img_name:
             g.add_Param(Param(name="skymap_png_shib", 
@@ -230,6 +242,12 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                 unit="",
                 value=x509_png_skymap_url,
                 Description=["Sky Map image X509 protected"]))
+            g.add_Param(Param(name="skymap_png_basic", 
+                dataType="string",
+                ucd="meta.ref.url", 
+                unit="",
+                value=basic_png_skymap_url,
+                Description=["Sky Map image basic auth protected"]))
 
         w.add_Group(g)
 
