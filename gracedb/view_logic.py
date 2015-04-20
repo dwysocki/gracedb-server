@@ -7,6 +7,7 @@ from models import CoincInspiralEvent
 from models import MultiBurstEvent
 from models import GrbEvent
 from models import EMBBEventLog, EMGroup
+from models import EMObservation, EMFootprint
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
 from translator import handle_uploaded_data
 
@@ -25,6 +26,7 @@ from django.conf import settings
 
 import json
 import datetime
+import dateutil
 
 def _createEventFromForm(request, form):
     saved = False
@@ -365,3 +367,117 @@ def create_eel(d, event, user):
     eel.validateMakeRects()
     eel.save()
     return eel
+
+#
+# Create an EMBB Observaton Record
+#
+def create_emobservation(d, event, user):    
+    # create a log entry
+    emo = EMObservation(event=event)
+    emo.event = event
+    emo.submitter = user
+    # Assign a group name
+    try:
+        emo.group = EMGroup.objects.get(name=d.get('group'))
+    except:
+        raise ValueError('Please specify an EM followup MOU group')
+
+    # Must do this so as to have an id.
+    emo.save()
+
+    # Assign RA and Dec, plus widths
+    raList = d.get('raList', '')
+    raWidthList = d.get('raWidthList', '')
+
+    decList = d.get('decList', '')
+    decWidthList = d.get('decWidthList', '')
+
+    startTimeList = d.get('startTimeList', '')
+    durationList = d.get('durationList', '')
+
+    # Much code here lifted from EMBBEventLog.validateMakeRects
+    # get all the list based position and times and their widths
+    raRealList = []
+    rawRealList = []
+    # add a [ and ] to convert the input csv list to a json parsable text
+
+    if raList:        raRealList = json.loads('['+raList+']')
+    if raWidthList:   rawRealList = json.loads('['+raWidthList+']')
+
+    if decList:       decRealList = json.loads('['+decList+']')
+    if decWidthList:  decwRealList = json.loads('['+decWidthList+']')
+
+    # this will actually be a list of ISO times in double quotes
+    if startTimeList:   startTimeRealList = json.loads('['+startTimeList+']')
+    if durationList:  durationRealList = json.loads('['+durationList+']')
+
+    # is there anything in the ra list? 
+    nList = len(raRealList)
+    if nList > 0:
+        if decRealList and len(decRealList) != nList:
+            raise ValueError('RA and Dec lists are different lengths.')
+        if startTimeRealList and len(startTimeRealList) != nList:
+            raise ValueError('RA and start time lists are different lengths.')
+
+    # is there anything in the raWidth list? 
+    mList = len(rawRealList)
+    if mList > 0:
+        if decwRealList and len(decwRealList) != mList:
+            raise ValueError('RAwidth and Decwidth lists are different lengths.')
+        if durationRealList and len(durationRealList) != mList:
+            raise ValueError('RAwidth and Duration lists are different lengths.')
+
+        # There can be 1 width for the whole list, or one for each ra/dec/gps 
+        if mList != 1 and mList != nList:
+            raise ValueError('Width and duration lists must be length 1 or same length as coordinate lists')
+    else:
+        mList = 0
+
+    for i in range(nList):
+        try:
+            ra = float(raRealList[i])
+        except:
+            raise ValueError('Cannot read RA list element %d of %s'%(i, emo.raList))
+        try:
+            dec = float(decRealList[i])
+        except:
+            raise ValueError('Cannot read Dec list element %d of %s'%(i, emo.decList))
+        try:
+            start_time = startTimeRealList[i]
+        except:
+            raise ValueError('Cannot read GPStime list element %d of %s'%(i, emo.startTimeList))
+
+        # the widths list can have 1 member to cover all, or one for each
+        if mList==1: j=0
+        else       : j=i
+
+        try:
+            raWidth = float(rawRealList[j])
+        except:
+            raise ValueError('Cannot read raWidth list element %d of %s'%(i, emo.raWidthList))
+
+        try:
+            decWidth = float(decwRealList[j])
+        except:
+            raise ValueError('Cannot read raWidth list element %d of %s'%(i, emo.decWidthList))
+
+        try:
+            duration = int(durationRealList[j])
+        except:
+            raise ValueError('Cannot read duration list element %d of %s'%(i, emo.durationList))
+
+        try:
+            start_time = dateutil.parser.parse(start_time)
+        except:
+            raise ValueError('Could not parse start time list element %d of %s'%(i, emo.durationList))
+
+
+        # Create footprint object 
+        EMFootprint.objects.create(observation=emo, ra=ra, dec=dec, 
+            raWidth=raWidth, decWidth=decWidth, start_time=start_time, 
+            exposure_time=duration)
+
+    # Calculate covering region for observation
+    emo.calculateCoveringRegion()
+    emo.save()
+    return emo

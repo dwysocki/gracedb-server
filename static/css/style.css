@@ -423,6 +423,14 @@ div.dgrid-row.collapsed:hover {
     width: 10%;
 }
 
+.dgrid-cell.field-footprint_count {
+    width: 8em;
+}
+
+.dgrid-cell.field-group {
+    width: 10em;
+}
+
 th.dgrid-cell {
     vertical-align: bottom;
 }

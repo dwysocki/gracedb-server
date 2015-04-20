@@ -14,13 +14,16 @@ from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.contenttypes.models import ContentType
 from gracedb.models import Event, Group, Search, Pipeline, EventLog, Tag
 from gracedb.models import EMGroup, EMBBEventLog, EMSPECTRUM
+#from gracedb.models import EMObservation, EMFootprint
 from gracedb.models import VOEvent
 from view_logic import create_label, get_performance_info
 from view_logic import _createEventFromForm
 from view_logic import create_eel
+from view_logic import create_emobservation
 from view_utils import fix_old_creation_request
 from view_utils import eventToDict, eventLogToDict, labelToDict
 from view_utils import embbEventLogToDict, voeventToDict
+from view_utils import emObservationToDict
 from view_utils import reverse
 
 from translator import handle_uploaded_data
@@ -898,6 +901,77 @@ class EMBBEventLogDetail(APIView):
 
         return Response(embbEventLogToDict(rv, request=request))
 
+
+#==================================================================
+# EMObservation (EMO)
+
+class EMObservationList(APIView):
+    """EMObservation Record List Resource
+
+    POST param 'message'
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
+
+    @event_and_auth_required
+    def get(self, request, event):
+        emo_set = event.emobservation_set.order_by("created","N")
+        count = emo_set.count()
+
+        emo = [ emObservationToDict(emo, request)
+                for emo in emo_set.iterator() ]
+
+        rv = {
+                'start': 0,
+                'numRows' : count,
+                'links' : {
+                    'self' : request.build_absolute_uri(),
+                    'first' : request.build_absolute_uri(),
+                    'last' : request.build_absolute_uri(),
+                    },
+                'observations' : emo,
+             }
+        return Response(rv)
+
+    @event_and_auth_required
+    def post(self, request, event):
+        try:
+            emo = create_emobservation(request.DATA, event, request.user)
+        except ValueError, e:
+            return Response("%s" % str(e), status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError, e:
+            return Response("Failed to save EMBB observation record: %s" % str(e),
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except Exception, e:
+            return Response("Problem creating EMBB Observation: %s" % str(e), 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        rv = emObservationToDict(emo, request=request)
+        response = Response(rv, status=status.HTTP_201_CREATED)
+        response['Location'] = rv['self']
+
+        # Issue alert.
+        description = "New EMBB observation record."
+        issueAlertForUpdate(event, description, doxmpp=True,
+            filename="", serialized_object=rv)
+
+        return response
+
+class EMObservationDetail(APIView):
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
+
+    @event_and_auth_required
+    def get(self, request, event, n):
+        try:
+            rv = event.emobservation_set.filter(N=n)[0]
+        except:
+            return Response("Observation record not nound",
+                    status=status.HTTP_404_NOT_FOUND)
+
+        return Response(emObservationToDict(rv, request=request))
+
+
 #==================================================================
 # Tags
 
@@ -1292,6 +1366,8 @@ class GracedbRoot(APIView):
         voevent = voevent.replace("G1200", "{graceid}")
         embb = reverse("embbeventlog-list", args=["G1200"], request=request)
         embb = embb.replace("G1200", "{graceid}")
+        emo = reverse("emobservation-list", args=["G1200"], request=request)
+        emo = emo.replace("G1200", "{graceid}")
 
         files = reverse("files", args=["G1200", "filename"], request=request)
         files = files.replace("G1200", "{graceid}")
@@ -1320,6 +1396,7 @@ class GracedbRoot(APIView):
                 "event-detail-template" : detail,
                 "voevent-list-template" : voevent,
                 "event-log-template" : log,
+                "emobservation-list-template": emo,
                 "embb-event-log-template" : embb,
                 "event-label-template" : labels,
                 "files-template" : files,

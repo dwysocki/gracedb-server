@@ -90,7 +90,55 @@ var tooltip=function(){
 }();
 
 
+// This should probably also go somewhere else.
+// Closure
+(function() {
+  /**
+   * Decimal adjustment of a number.
+   *
+   * @param {String}  type  The type of adjustment.
+   * @param {Number}  value The number.
+   * @param {Integer} exp   The exponent (the 10 logarithm of the adjustment base).
+   * @returns {Number} The adjusted value.
+   */
+  function decimalAdjust(type, value, exp) {
+    // If the exp is undefined or zero...
+    if (typeof exp === 'undefined' || +exp === 0) {
+      return Math[type](value);
+    }
+    value = +value;
+    exp = +exp;
+    // If the value is not a number or the exp is not an integer...
+    if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+      return NaN;
+    }
+    // Shift
+    value = value.toString().split('e');
+    value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
+    // Shift back
+    value = value.toString().split('e');
+    return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+  }
 
+  // Decimal round
+  if (!Math.round10) {
+    Math.round10 = function(value, exp) {
+      return decimalAdjust('round', value, exp);
+    };
+  }
+  // Decimal floor
+  if (!Math.floor10) {
+    Math.floor10 = function(value, exp) {
+      return decimalAdjust('floor', value, exp);
+    };
+  }
+  // Decimal ceil
+  if (!Math.ceil10) {
+    Math.ceil10 = function(value, exp) {
+      return decimalAdjust('ceil', value, exp);
+    };
+  }
+})();
 
 
 // A utility
@@ -119,9 +167,7 @@ var tagListUrl          = '{% url "api:tag-list" %}';
 var tagUrlPattern       = '{% url "taglogentry" object.graceid "000" "temp" %}';
 var eventLogListUrl     = '{% url "api:eventlog-list" object.graceid %}';
 var eventLogSaveUrl     = '{% url "logentry" object.graceid "" %}';
-var embbEventLogListUrl = '{% url "api:embbeventlog-list" object.graceid %}';
-// XXX Branson made this change on 3/3/15
-//var skymapJsonUrl       = '{% url "file" object.graceid "skymap.json" %}';
+var emObservationListUrl = '{% url "api:emobservation-list" object.graceid %}';
 var skymapJsonUrl       = '{% url "file" object.graceid "" %}';
 var skymapViewerUrl     = '{{ SKYMAP_VIEWER_SERVICE_URL }}';
 
@@ -195,7 +241,7 @@ require([
         if (!(initiallyOpen && initiallyOpen==true)) { 
             put(expandGlyphNode, '.closed');
             domStyle.set(contentNode, 'display', 'none');
-            domStyle.set(addButtonNode, 'display', 'none');
+            domStyle.set(addButtonNode, 'display', 'none'); 
         }
         // This one is always closed initially
         domStyle.set(formNode, 'display', 'none');
@@ -203,7 +249,7 @@ require([
         on(expandGlyphNode, "click", function() {
             if (domStyle.get(contentNode, 'display') == 'none') {
                 domStyle.set(contentNode, 'display', 'block');
-                domStyle.set(addButtonNode, 'display', 'block');
+                domStyle.set(addButtonNode, 'display', 'block'); 
                 put(expandGlyphNode, '!closed');
             } else {
                 domStyle.set(contentNode, 'display', 'none');
@@ -215,7 +261,7 @@ require([
         on(titleTextNode, "click", function() {
             if (domStyle.get(contentNode, 'display') == 'none') {
                 domStyle.set(contentNode, 'display', 'block');
-                domStyle.set(addButtonNode, 'display', 'block');
+                domStyle.set(addButtonNode, 'display', 'block'); 
                 put(expandGlyphNode, '!closed');
             } else {
                 domStyle.set(contentNode, 'display', 'none');
@@ -231,6 +277,38 @@ require([
             } else {
                 domStyle.set(formNode, 'display', 'none');
                 addButtonNode.innerHTML = '(add)';
+            }
+        });
+    }
+
+    var createExpandingSectionNoForm = function (titleNode, contentNode, titleText, initiallyOpen) {
+        // Instead let's make a table. 
+        var titleTableRow = put(titleNode, "table tr");
+        var expandGlyphNode = put(titleTableRow, "td.title div.expandGlyph"); 
+        var titleTextNode = put(titleTableRow, "td.title h2", titleText);
+
+        if (!(initiallyOpen && initiallyOpen==true)) { 
+            put(expandGlyphNode, '.closed');
+            domStyle.set(contentNode, 'display', 'none');
+        }
+       
+        on(expandGlyphNode, "click", function() {
+            if (domStyle.get(contentNode, 'display') == 'none') {
+                domStyle.set(contentNode, 'display', 'block');
+                put(expandGlyphNode, '!closed');
+            } else {
+                domStyle.set(contentNode, 'display', 'none');
+                put(expandGlyphNode, '.closed');
+            }
+        });
+        
+        on(titleTextNode, "click", function() {
+            if (domStyle.get(contentNode, 'display') == 'none') {
+                domStyle.set(contentNode, 'display', 'block');
+                put(expandGlyphNode, '!closed');
+            } else {
+                domStyle.set(contentNode, 'display', 'none');
+                put(expandGlyphNode, '.closed');
             }
         });
     }
@@ -280,51 +358,55 @@ require([
     var embbContentDiv = put(embbDiv, 'div#embb_content'); 
 
     // Put the EEL form into the content div
-    var oldEelFormDiv = dom.byId('eelFormContainer');
-    var eelFormContents = oldEelFormDiv.innerHTML;
-    domConstruct.destroy('eelFormContainer');
-    var embbAddDiv = put(embbContentDiv, 'div#add_eel_container');
-    var embbAddFormDiv = put(embbAddDiv, 'div#add_eel_form_container');
-    embbAddFormDiv.innerHTML = eelFormContents;
+    // FIXME This needs to be cleaned up. Empty div for now.
+    //var oldEelFormDiv = dom.byId('eelFormContainer');
+    //var eelFormContents = oldEelFormDiv.innerHTML;
+    domConstruct.destroy('eelFormContainer'); 
+    // var embbAddDiv = put(embbContentDiv, 'div#add_eel_container');
+    /* var embbAddFormDiv = put(embbAddDiv, 'div#add_eel_form_container');
+    embbAddFormDiv.innerHTML = eelFormContents; */
 
-    createExpandingSection(embbTitleDiv, embbContentDiv, embbAddDiv, 'Electromagnetic Bulletin Board');
+    createExpandingSectionNoForm(embbTitleDiv, embbContentDiv, 'Electromagnetic Bulletin Board');
 
     // Append the div that will hold our dgrid
-    put(embbContentDiv, 'div#eel-grid');
+    put(embbContentDiv, 'div#emo-grid');
         
-    embbStore = new declare([Rest, RequestMemory])({target: embbEventLogListUrl});
-    embbStore.get('').then(function(content) {
+    emoStore = new declare([Rest, RequestMemory])({target: emObservationListUrl});
+    emoStore.get('').then(function(content) {
         // Pull the EELs out of the rest content and create a new simple store from them.
-        var eels = content.embblog;
+        var emos = content.observations;
 
-        if (eels.length == 0) {
-            eelDiv = dom.byId('eel-grid');
-            eelDiv.innerHTML = '<p> (No EMBB log entries.) </p>';
+        if (emos.length == 0) {
+            emoDiv = dom.byId('emo-grid');
+            emoDiv.innerHTML = '<p> (No EM observation entries.) </p>';
         } else {
 
             var columns  = [
                 { field: 'created', label: 'Time Created (UTC)' },
                 { field: 'submitter', label: 'Submitter' },
                 { field: 'group', label: 'MOU Group' },
-                { field: 'gpstime', label: 'GPS time of observation' },
-                { field: 'duration', label: 'Exposure time (s)' },
+                { field: 'footprint_count', label: 'N_regions' },
                 { field: 'radec',
                   label: 'Covering (ra, dec)',
                     get: function(object){
-                        var rastring = object.ra + " \xB1 " + object.raWidth/2.0;
-                        var decstring = object.dec + " \xB1 " + object.decWidth/2.0;
+                        var raLoc = Math.round10(object.ra, -2);
+                        var raHalfWidthLoc = Math.round10(object.raWidth/2.0, -2);
+                        var decLoc = Math.round10(object.dec, -2);
+                        var decHalfWidthLoc = Math.round10(object.decWidth/2.0, -2);
+                        var rastring = raLoc + " \xB1 " + raHalfWidthLoc;
+                        var decstring = decLoc + " \xB1 " + decHalfWidthLoc;
                         return "(" + rastring + ','  + decstring + ")";
                     },
                 }
             ]; 
 
             var subRowColumns  = [ 
-                    { field: 'instrument', label: 'Instrument' },
-                    { field: 'eel_status', label: 'Entry type' },
-                    { field: 'footprintID', label: 'Observation ID' },
-                    { field: 'waveband', label: 'Waveband' },
-                    { field: 'obs_status', label: 'Observation status' },
-                    { field: 'extra_info_dict', label: 'JSON info' },
+                { field: 'start_time', label: 'Start Time (UTC)' },
+                { field: 'exposure_time', label: 'Exposure Time (s)' },
+                { field: 'ra', label: 'ra'},
+                { field: 'raWidth', label: 'ra width'},
+                { field: 'dec', label: 'dec'},
+                { field: 'decWidth', label: 'dec width'}
             ]; 
 
             // Add extra class names to our grid cells so we can style them separately
@@ -352,14 +434,14 @@ require([
                         columns: subRowColumns,
                         className: 'dgird-subgrid',
                     }, subGridNode);
-                    sg.renderArray([object]);
+                    sg.renderArray(object.footprints);
                     // Add the text comment
-                    put(t, 'tr td[style="width: 5%"]+td div.subrid-text', object.comment); 
+                    //put(t, 'tr td[style="width: 5%"]+td div.subrid-text', object.comment); 
 
                     return div;
                 }
-            }, 'eel-grid'); 
-            grid.renderArray(eels);
+            }, 'emo-grid'); 
+            grid.renderArray(emos);
             grid.set("sort", 'N', descending=true);
 
             var expandedNode = null;
@@ -378,7 +460,7 @@ require([
                 // if the row clicked was previously expanded, nothing is expanded now
                 expandedNode = collapsed ? node : null;
             });
-        } // endif on whether we have any eels or not.
+        } // endif on whether we have any emos or not.
     });
 
 
