@@ -382,34 +382,52 @@ def create_emobservation(d, event, user):
     except:
         raise ValueError('Please specify an EM followup MOU group')
 
-    # Must do this so as to have an id.
-    emo.save()
-
     # Assign RA and Dec, plus widths
-    raList = d.get('raList', '')
-    raWidthList = d.get('raWidthList', '')
+    try:
+        raList = d.get('raList')
+        raWidthList = d.get('raWidthList')
 
-    decList = d.get('decList', '')
-    decWidthList = d.get('decWidthList', '')
+        decList = d.get('decList')
+        decWidthList = d.get('decWidthList')
 
-    startTimeList = d.get('startTimeList', '')
-    durationList = d.get('durationList', '')
+        startTimeList = d.get('startTimeList')
+        durationList = d.get('durationList')
+    except Exception, e:
+        raise ValueError('Lacking input: %s' % str(e))
+
+    for list_string in [raList, raWidthList, decList, decWidthList, startTimeList, durationList]:
+        if len(list_string) == 0:
+            raise ValueError('All fields are required, please try again.')
+
+    # Let's do some checking on the startTimeList. The ISO 8601 strings
+    # should be enclosed in quotes and separated by commas.
+    if startTimeList:
+        testStartTimeList = startTimeList.split(',')
+        newStartTimeList = []
+        for timeString in testStartTimeList:
+            # Look for double quotes in the time string. If not present,
+            # put them in. This has to be JSON parseable.
+            if not '"' in timeString:
+                timeString = '"' + timeString + '"'
+            newStartTimeList.append(timeString)
+
+        startTimeList = ','.join(newStartTimeList)
 
     # Much code here lifted from EMBBEventLog.validateMakeRects
     # get all the list based position and times and their widths
-    raRealList = []
-    rawRealList = []
     # add a [ and ] to convert the input csv list to a json parsable text
+    try:
+        raRealList = json.loads('['+raList+']')
+        rawRealList = json.loads('['+raWidthList+']')
 
-    if raList:        raRealList = json.loads('['+raList+']')
-    if raWidthList:   rawRealList = json.loads('['+raWidthList+']')
+        decRealList = json.loads('['+decList+']')
+        decwRealList = json.loads('['+decWidthList+']')
 
-    if decList:       decRealList = json.loads('['+decList+']')
-    if decWidthList:  decwRealList = json.loads('['+decWidthList+']')
-
-    # this will actually be a list of ISO times in double quotes
-    if startTimeList:   startTimeRealList = json.loads('['+startTimeList+']')
-    if durationList:  durationRealList = json.loads('['+durationList+']')
+        # this will actually be a list of ISO times in double quotes
+        startTimeRealList = json.loads('['+startTimeList+']')
+        durationRealList = json.loads('['+durationList+']')
+    except Exception, e:
+        raise ValueError('Problem interpreting list: %s' % str(e))
 
     # is there anything in the ra list? 
     nList = len(raRealList)
@@ -432,6 +450,10 @@ def create_emobservation(d, event, user):
             raise ValueError('Width and duration lists must be length 1 or same length as coordinate lists')
     else:
         mList = 0
+
+    # now that we've validated the input, save the emo object
+    # Must do this so as to have an id.
+    emo.save()
 
     for i in range(nList):
         try:

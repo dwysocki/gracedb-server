@@ -25,6 +25,7 @@ from view_logic import _createEventFromForm
 from view_logic import get_performance_info
 from view_logic import get_lvem_perm_status
 from view_logic import create_eel
+from view_logic import create_emobservation
 from view_utils import assembleLigoLw, get_file
 from view_utils import flexigridResponse, jqgridResponse
 
@@ -811,6 +812,21 @@ def embblogentry(request, event, num=None):
 #    rv['submitter'] = eel.issuer.username
 #    rv['created'] = eel.created.isoformat()
 #    return HttpResponse(json.dumps(rv), content_type="application/json")
+
+# A view to create embb log entries
+@event_and_auth_required
+def emobservation_entry(request, event, num=None):
+    if request.method == "POST":
+        try:
+            create_emobservation(request.POST, event, request.user)
+        except ValueError, e:
+            return HttpResponseBadRequest(str(e))
+        except Exception, e:
+            return HttpResponseServerError(str(e))
+
+        return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
+    else:
+        return HttpResponseBadRequest("This URL only supports POST.")
 
 #------------------------------------------------------------------------------------------
 # Old Stuff

@@ -21,6 +21,7 @@ urlpatterns = patterns('gracedb.views',
     url (r'^(?P<graceid>[GEHMT]\d+)/files/(?P<filename>.*)$', download, name="file"),
     url (r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>([\d]*|preview))$', 'logentry', name="logentry"),
     url (r'^(?P<graceid>[GEHMT]\d+)/embblog/(?P<num>([\d]*|preview))$', 'embblogentry', name="embblogentry"),
+    url (r'^(?P<graceid>[GEHMT]\d+)/emobservation/(?P<num>([\d]*|preview))$', 'emobservation_entry', name="emobservation_entry"),
     url (r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>\d+)/tag/(?P<tagname>\w+)$', 'taglogentry', name="taglogentry"),
 
 # RDW Aug 2014

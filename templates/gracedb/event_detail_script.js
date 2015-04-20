@@ -362,12 +362,18 @@ require([
     // FIXME This needs to be cleaned up. Empty div for now.
     //var oldEelFormDiv = dom.byId('eelFormContainer');
     //var eelFormContents = oldEelFormDiv.innerHTML;
+    var oldEmoFormDiv = dom.byId('emoFormContainer');
+    var emoFormContents = oldEmoFormDiv.innerHTML;
     domConstruct.destroy('eelFormContainer'); 
+    domConstruct.destroy('emoFormContainer'); 
     // var embbAddDiv = put(embbContentDiv, 'div#add_eel_container');
     /* var embbAddFormDiv = put(embbAddDiv, 'div#add_eel_form_container');
     embbAddFormDiv.innerHTML = eelFormContents; */
+    var emoAddDiv = put(embbContentDiv, 'div#add_emo_container');
+    var emoAddFormDiv = put(emoAddDiv, 'div#add_emo_form_container');
+    emoAddFormDiv.innerHTML = emoFormContents; 
 
-    createExpandingSectionNoForm(embbTitleDiv, embbContentDiv, 'Electromagnetic Bulletin Board');
+    createExpandingSection(embbTitleDiv, embbContentDiv, emoAddFormDiv, 'Electromagnetic Bulletin Board');
 
     // Append the div that will hold our dgrid
     put(embbContentDiv, 'div#emo-grid');
