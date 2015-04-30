@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.core.urlresolvers import reverse as django_reverse
 from django.utils import dateformat
 from django.utils.html import escape, urlize
-from django.utils.http import urlquote
+#from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 
 from utils.vfile import VersionedFile
@@ -208,9 +208,13 @@ def eventLogToDict(log, request=None):
                 request=request)
         if log.filename:
             actual_filename = log.filename
-            if log.file_version:
+            if log.file_version >= 0:
                 actual_filename += ',%d' % log.file_version
-            filename = urlquote(actual_filename)
+            # NOTE: the reverse function will return a urlquoted
+            # result, so we don't need urlquote here. Effectively
+            # escaping twice results in wrong urls. 
+            #filename = urlquote(actual_filename)
+            filename = actual_filename
             file_uri = reverse("files",
                 args=[log.event.graceid(), filename],
                 request=request)
@@ -330,7 +334,9 @@ def emFootprintToDict(emf, request=None):
   
 # VOEvent serializer
 def voeventToDict(voevent, request=None):
-    filename = urlquote('%s,%d' % (voevent.filename, voevent.file_version))
+    # NOTE the urlquote will be done by the reverse function.
+    #filename = urlquote('%s,%d' % (voevent.filename, voevent.file_version))
+    filename = '%s,%d' % (voevent.filename, voevent.file_version)
 
     uri = None
     file_uri = None

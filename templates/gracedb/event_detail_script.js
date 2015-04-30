@@ -163,12 +163,12 @@ var hasImage = function(object) {
 }
 
 // some URLs. Usage of Django template syntax should be limited to here
-var tagListUrl          = '{% url "api:tag-list" %}';
+var tagListUrl          = '{% url "shib:tag-list" %}';
 var tagUrlPattern       = '{% url "taglogentry" object.graceid "000" "temp" %}';
-var eventLogListUrl     = '{% url "api:eventlog-list" object.graceid %}';
+var eventLogListUrl     = '{% url "shib:eventlog-list" object.graceid %}';
 var eventLogSaveUrl     = '{% url "logentry" object.graceid "" %}';
-var embbEventLogListUrl = '{% url "api:embbeventlog-list" object.graceid %}';
-var emObservationListUrl = '{% url "api:emobservation-list" object.graceid %}';
+var embbEventLogListUrl = '{% url "shib:embbeventlog-list" object.graceid %}';
+var emObservationListUrl = '{% url "shib:emobservation-list" object.graceid %}';
 var skymapJsonUrl       = '{% url "file" object.graceid "" %}';
 var skymapViewerUrl     = '{{ SKYMAP_VIEWER_SERVICE_URL }}';
 
