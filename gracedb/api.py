@@ -868,7 +868,7 @@ class EMBBEventLogList(APIView):
         try:
             eel = create_eel(request.DATA, event, request.user)
         except ValueError, e:
-            return Response("str(e)", status=status.HTTP_400_BAD_REQUEST)
+            return Response("%s" % str(e), status=status.HTTP_400_BAD_REQUEST)
         except IntegrityError, e:
             return Response("Failed to save EMBB entry: %s" % str(e),
                     status=status.HTTP_503_SERVICE_UNAVAILABLE)
