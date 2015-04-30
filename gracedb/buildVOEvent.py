@@ -151,6 +151,14 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             value=float(event.far), 
             Description=["False alarm rate for GW candidates with this strength or greater"]))
 
+        # Group
+        w.add_Param(Param(name="Group", 
+            dataType="string", 
+            ucd="meta.code",
+            unit="",
+            value=event.group.name,
+            Description=["Data analysis working group"]))
+
         # Pipeline
         w.add_Param(Param(name="Pipeline", 
             dataType="string", 
