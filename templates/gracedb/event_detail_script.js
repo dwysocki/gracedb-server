@@ -1071,9 +1071,11 @@ require([
                         console.log("You clicked the button for "+sjurl);
                         var embblog_json_url = embbEventLogListUrl;
                         var embblog_json;
+                        var emobservation_json_url = emObservationListUrl;
 
                         dojo.xhrGet({
-                            url: embblog_json_url + "?format=json",
+                            //url: embblog_json_url + "?format=json",
+                            url: emobservation_json_url + "?format=json&skymapViewer",
                             async: true,
                             load: function(embblog_json) {
     
