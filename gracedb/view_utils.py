@@ -21,6 +21,9 @@ GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 import json
 import pytz
 
+from datetime import datetime
+from time import mktime
+
 SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 def timeToUTC(dt):
     if not dt.tzinfo:
@@ -331,6 +334,64 @@ def emFootprintToDict(emf, request=None):
                   "start_time"      : emf.start_time.isoformat(),
                   "exposure_time"   : emf.exposure_time,
               }
+
+# XXX Eventually hope to remove this
+# EMObservation serializer for the skymap Viewer
+def skymapViewerEMObservationToDict(emo, request=None):
+    uri = None
+    if request:
+        uri = reverse("emobservation-detail",
+                args=[emo.event.graceid(), emo.N],
+                request=request)
+
+    # Keys we want:
+    # comment - empty
+    # footprintID - average time, UTC
+    # group
+    # decWidthList, raWidthList, raList, decList
+
+    raList = []
+    decList = []
+    raWidthList = []
+    decWidthList = []
+    startTimeList = []
+
+    for fp in emo.emfootprint_set.all():
+        raList.append(fp.ra)
+        decList.append(fp.dec)
+        raWidthList.append(fp.raWidth)
+        decWidthList.append(fp.decWidth)
+        startTimeList.append(fp.start_time)
+
+    # Now find the average start time.
+    time_count = 0
+    avg_time_s = 0.0
+    for t in startTimeList:
+        time_count += 1
+        # timetuple throws away the microsecond for some reason
+        avg_time_s += mktime(t.timetuple()) + float(t.microsecond)/1e6
+
+    if time_count > 0:
+        avg_time_s /= time_count
+
+    avg_time = datetime.fromtimestamp(avg_time_s)
+    avg_time_string = avg_time.strftime("%a %b %d %H:%M:%S UTC %Y")
+          
+    return {
+                "N"               : emo.N,
+                "self"            : uri,
+                "created"         : emo.created.isoformat(),
+                "submitter"       : emo.submitter.username,
+                "comment"         : '',
+                "footprintID"     : avg_time_string,
+                "group"           : emo.group.name,
+  
+                "raList"       : raList,
+                "decList"      : decList,
+                "raWidthList"  : raWidthList,
+                "decWidthList" : decWidthList,
+            }
+
   
 # VOEvent serializer
 def voeventToDict(voevent, request=None):

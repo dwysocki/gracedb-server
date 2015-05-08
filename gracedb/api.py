@@ -23,7 +23,7 @@ from view_logic import create_emobservation
 from view_utils import fix_old_creation_request
 from view_utils import eventToDict, eventLogToDict, labelToDict
 from view_utils import embbEventLogToDict, voeventToDict
-from view_utils import emObservationToDict
+from view_utils import emObservationToDict, skymapViewerEMObservationToDict
 from view_utils import reverse
 
 from translator import handle_uploaded_data
@@ -918,19 +918,38 @@ class EMObservationList(APIView):
         emo_set = event.emobservation_set.order_by("created","N")
         count = emo_set.count()
 
-        emo = [ emObservationToDict(emo, request)
-                for emo in emo_set.iterator() ]
+        # XXX Note the following hack.
+        # If this JSON information is requested for skymapViewer, use a different
+        # representation for backwards compatibility.
+        if 'skymapViewer' in request.QUERY_PARAMS.keys():
+            emo = [ skymapViewerEMObservationToDict(emo, request)
+                    for emo in emo_set.iterator() ]
 
-        rv = {
-                'start': 0,
-                'numRows' : count,
-                'links' : {
-                    'self' : request.build_absolute_uri(),
-                    'first' : request.build_absolute_uri(),
-                    'last' : request.build_absolute_uri(),
-                    },
-                'observations' : emo,
-             }
+            rv = {
+                    'start': 0,
+                    'numRows' : count,
+                    'links' : {
+                        'self' : request.build_absolute_uri(),
+                        'first' : request.build_absolute_uri(),
+                        'last' : request.build_absolute_uri(),
+                        },
+                    'embblog' : emo,
+                 }
+
+        else:
+            emo = [ emObservationToDict(emo, request)
+                    for emo in emo_set.iterator() ]
+
+            rv = {
+                    'start': 0,
+                    'numRows' : count,
+                    'links' : {
+                        'self' : request.build_absolute_uri(),
+                        'first' : request.build_absolute_uri(),
+                        'last' : request.build_absolute_uri(),
+                        },
+                    'observations' : emo,
+                 }
         return Response(rv)
 
     @event_and_auth_required
