@@ -382,6 +382,8 @@ def create_emobservation(d, event, user):
     except:
         raise ValueError('Please specify an EM followup MOU group')
 
+    emo.comment = d.get('comment', '')
+
     # Assign RA and Dec, plus widths
     try:
         raList = d.get('raList')

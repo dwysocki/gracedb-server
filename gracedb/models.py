@@ -427,6 +427,8 @@ class EMObservation(models.Model):
     raWidth    = models.FloatField(null=True)
     decWidth   = models.FloatField(null=True)    
 
+    comment = models.TextField(blank=True)
+
     # We overload the 'save' method to avoid race conditions, since the Eels are numbered. 
     def save(self, *args, **kwargs):
         success = False

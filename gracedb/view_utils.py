@@ -306,6 +306,7 @@ def emObservationToDict(emo, request=None):
                   "created"         : emo.created.isoformat(),
                   "submitter"       : emo.submitter.username,
                   "group"           : emo.group.name,
+                  "comment"         : emo.comment,                  
   
                   "ra"       : emo.ra,
                   "dec"      : emo.dec,
@@ -382,7 +383,7 @@ def skymapViewerEMObservationToDict(emo, request=None):
                 "self"            : uri,
                 "created"         : emo.created.isoformat(),
                 "submitter"       : emo.submitter.username,
-                "comment"         : '',
+                "comment"         : emo.comment,
                 "footprintID"     : avg_time_string,
                 "group"           : emo.group.name,
   

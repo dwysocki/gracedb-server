@@ -441,6 +441,10 @@ td.title {
     cursor: pointer;
 }
 
+div.expandFormButton {
+    cursor: pointer;
+}
+
 div.expandGlyph {
     background-image: url('/bower-static/dijit/themes/tundra/images/spriteArrows.png');
     background-repeat: no-repeat;

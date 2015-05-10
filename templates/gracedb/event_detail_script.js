@@ -354,122 +354,29 @@ require([
     // Section for EMBB 
     //----------------------------------------------------------------------------------------
     var eventDetailContainer = dom.byId('event_detail_content');
-    var embbDiv = put(eventDetailContainer, 'div.content-area#embb_container');
-    var embbTitleDiv = put(embbDiv, 'div#embb_title_expander');
-    var embbContentDiv = put(embbDiv, 'div#embb_content'); 
+    //var embbDiv = put(eventDetailContainer, 'div.content-area#embb_container');
+    //var embbTitleDiv = put(embbDiv, 'div#embb_title_expander');
+    //var embbContentDiv = put(embbDiv, 'div#embb_content'); 
 
     // Put the EEL form into the content div
     // FIXME This needs to be cleaned up. Empty div for now.
     //var oldEelFormDiv = dom.byId('eelFormContainer');
     //var eelFormContents = oldEelFormDiv.innerHTML;
-    var oldEmoFormDiv = dom.byId('emoFormContainer');
-    var emoFormContents = oldEmoFormDiv.innerHTML;
-    domConstruct.destroy('eelFormContainer'); 
-    domConstruct.destroy('emoFormContainer'); 
+    //var oldEmoFormDiv = dom.byId('emoFormContainer');
+    //var emoFormContents = oldEmoFormDiv.innerHTML;
+    // domConstruct.destroy('eelFormContainer'); 
+    //domConstruct.destroy('emoFormContainer'); 
     // var embbAddDiv = put(embbContentDiv, 'div#add_eel_container');
     /* var embbAddFormDiv = put(embbAddDiv, 'div#add_eel_form_container');
     embbAddFormDiv.innerHTML = eelFormContents; */
-    var emoAddDiv = put(embbContentDiv, 'div#add_emo_container');
-    var emoAddFormDiv = put(emoAddDiv, 'div#add_emo_form_container');
-    emoAddFormDiv.innerHTML = emoFormContents; 
+    //var emoAddDiv = put(embbContentDiv, 'div#add_emo_container');
+    //var emoAddFormDiv = put(emoAddDiv, 'div#add_emo_form_container');
+    //emoAddFormDiv.innerHTML = emoFormContents; 
 
-    createExpandingSection(embbTitleDiv, embbContentDiv, emoAddFormDiv, 'Electromagnetic Bulletin Board');
+    //createExpandingSection(embbTitleDiv, embbContentDiv, emoAddFormDiv, 'Electromagnetic Bulletin Board');
 
     // Append the div that will hold our dgrid
-    put(embbContentDiv, 'div#emo-grid');
-        
-    emoStore = new declare([Rest, RequestMemory])({target: emObservationListUrl});
-    emoStore.get('').then(function(content) {
-        // Pull the EELs out of the rest content and create a new simple store from them.
-        var emos = content.observations;
-
-        if (emos.length == 0) {
-            emoDiv = dom.byId('emo-grid');
-            emoDiv.innerHTML = '<p> (No EM observation entries.) </p>';
-        } else {
-
-            var columns  = [
-                { field: 'created', label: 'Time Created (UTC)' },
-                { field: 'submitter', label: 'Submitter' },
-                { field: 'group', label: 'MOU Group' },
-                { field: 'footprint_count', label: 'N_regions' },
-                { field: 'radec',
-                  label: 'Covering (ra, dec)',
-                    get: function(object){
-                        var raLoc = Math.round10(object.ra, -2);
-                        var raHalfWidthLoc = Math.round10(object.raWidth/2.0, -2);
-                        var decLoc = Math.round10(object.dec, -2);
-                        var decHalfWidthLoc = Math.round10(object.decWidth/2.0, -2);
-                        var rastring = raLoc + " \xB1 " + raHalfWidthLoc;
-                        var decstring = decLoc + " \xB1 " + decHalfWidthLoc;
-                        return "(" + rastring + ','  + decstring + ")";
-                    },
-                }
-            ]; 
-
-            var subRowColumns  = [ 
-                { field: 'start_time', label: 'Start Time (UTC)' },
-                { field: 'exposure_time', label: 'Exposure Time (s)' },
-                { field: 'ra', label: 'ra'},
-                { field: 'raWidth', label: 'ra width'},
-                { field: 'dec', label: 'dec'},
-                { field: 'decWidth', label: 'dec width'}
-            ]; 
-
-            // Add extra class names to our grid cells so we can style them separately
-            for (i = 0; i < columns.length; i++) {
-                columns[i].className = 'supergrid-cell';
-            }
-            for (i = 0; i < subRowColumns.length; i++) {
-                subRowColumns[i].className = 'subgrid-cell';
-            }
-
-            var grid = new Grid({ 
-                columns: columns,
-                className: 'dgrid-autoheight',
-
-                renderRow: function (object, options) {
-                    // Add the supergrid-row class to the row so we can style it separately from the subrows.
-                    var div = put('div.collapsed.supergrid-row', Grid.prototype.renderRow.call(this, object, options));
-
-                    // Add the subdiv table which will expand and contract.
-                    var t = put(div, 'div.expando table');
-                    // I'm finding that the table needs to be 100% of the available width, otherwise
-                    // Firefox doesn't like it. Hence the extra empty column.
-                    var subGridNode = put(t, 'tr td[style="width: 5%"]+td div');
-                    var sg = new Grid({
-                        columns: subRowColumns,
-                        className: 'dgird-subgrid',
-                    }, subGridNode);
-                    sg.renderArray(object.footprints);
-                    // Add the text comment
-                    //put(t, 'tr td[style="width: 5%"]+td div.subrid-text', object.comment); 
-
-                    return div;
-                }
-            }, 'emo-grid'); 
-            grid.renderArray(emos);
-            grid.set("sort", 'N', descending=true);
-
-            var expandedNode = null;
-
-            // listen for clicks to trigger expand/collapse in table view mode
-            var expandoListener = on(grid.domNode, '.dgrid-row:click', function (event) {
-                var node = grid.row(event).element;
-                var collapsed = node.className.indexOf('collapsed') >= 0;
-
-                // toggle state of node which was clicked
-                put(node, (collapsed ? '!' : '.') + 'collapsed');
-
-                // if clicked row wasn't expanded, collapse any previously-expanded row
-                collapsed && expandedNode && put(expandedNode, '.collapsed');
-
-                // if the row clicked was previously expanded, nothing is expanded now
-                expandedNode = collapsed ? node : null;
-            });
-        } // endif on whether we have any emos or not.
-    });
-
+    //put(embbContentDiv, 'div#emo-grid');
 
     //----------------------------------------------------------------------------------------
     // Section for log entries
@@ -773,6 +680,47 @@ require([
 
                 }
 
+                // Create the EMObservations title pane
+                // XXX Branson fixme
+                var pane_contents_id = 'emobservations_pane_div';
+                
+                // Create the title pane with a placeholder div
+                var emo_tp = new TitlePane({ 
+                    title: 'EM Observations',
+                    content: '<div id="' + pane_contents_id + '"></div>',
+                    open: true
+                });
+                logContentDiv.appendChild(emo_tp.domNode);
+    
+                var emoDiv = dom.byId(pane_contents_id);
+                // Create the section for adding EMObservation records. First an outer container:
+                var emoAddDiv = put(emoDiv, 'div#add_emo_container');
+                // The order is important. First the toggling form display button, then the form.
+                // FIXME: Such a sad way of putting in vertical space.
+                put(emoDiv, 'br')
+                var addEmoButtonNode = put(emoAddDiv, 'div.expandFormButton', '(add observation record)');
+                var emoAddFormDiv = put(emoAddDiv, 'div#add_emo_form_container');
+                domStyle.set(emoAddFormDiv, 'display', 'none');
+                
+                on(addEmoButtonNode, "click", function() {
+                    if (domStyle.get(emoAddFormDiv, 'display') == 'none') {
+                        domStyle.set(emoAddFormDiv, 'display', 'block');
+                        addEmoButtonNode.innerHTML = '(cancel)';
+                    } else {
+                        domStyle.set(emoAddFormDiv, 'display', 'none');
+                        addEmoButtonNode.innerHTML = '(add observation record)';
+                    }
+                });
+
+                // Grab the form fragment and put it in the right place.
+                var oldEmoFormDiv = dom.byId('emoFormContainer');
+                var emoFormContents = oldEmoFormDiv.innerHTML;               
+                domConstruct.destroy('emoFormContainer');
+                emoAddFormDiv.innerHTML = emoFormContents;
+                
+                // Create the div for our grid to attach to
+                put(emoDiv, 'div#emo-grid');
+
                 // Create the full event-log title pane
                 var columns = [
                     { field: 'N', label: 'No.' },
@@ -857,7 +805,8 @@ require([
                 var tp = new TitlePane({ 
                     title: 'Full Event Log',
                     content: '<div id="' + pane_contents_id + '"></div>',
-                    open: false
+                    //open: false
+                    open: true
                 });
                 logContentDiv.appendChild(tp.domNode);
 
@@ -872,10 +821,17 @@ require([
                 grid.renderArray(logs);
                 grid.set("sort", 'N', descending=true);
 
+                // Now that we've constructed it, let's close the title pane. 
+                tp.toggle()
+
             } else {
                 // Not doing title panes, just put up the usual log message section.
                 // Will have the full eventlog section. Same as above, except that it 
                 // won't be in a title pane. What is the best way to do this.
+
+                // If we're not doing title panes, we still need to remember to destroy
+                // the emoFormContainer. Otherwise it shows up!
+                domConstruct.destroy('emoFormContainer');
 
                 var columns = [
                     { field: 'N', label: 'No.' },
@@ -947,6 +903,107 @@ require([
                 grid.set("sort", 'N', descending=true);
 
             }
+
+            //-------------------------------------------------------------------
+            // Finally, let's see if we can get those EMOs in
+            //-------------------------------------------------------------------
+            emoStore = new declare([Rest, RequestMemory])({target: emObservationListUrl});
+            emoStore.get('').then(function(content) {
+                // Pull the EELs out of the rest content and create a new simple store from them.
+                var emos = content.observations;
+
+                if (emos.length == 0) {
+                    emoDiv = dom.byId('emo-grid');
+                    emoDiv.innerHTML = '<p> No EM observation entries so far. </p>';
+
+                    // Let's try toggling the emo title pane closed.
+                    if (emo_tp.open) { emo_tp.toggle(); }
+                } else {
+
+                    var columns  = [
+                        { field: 'created', label: 'Time Created (UTC)' },
+                        { field: 'submitter', label: 'Submitter' },
+                        { field: 'group', label: 'MOU Group' },
+                        { field: 'footprint_count', label: 'N_regions' },
+                        { field: 'radec',
+                          label: 'Covering (ra, dec)',
+                            get: function(object){
+                                var raLoc = Math.round10(object.ra, -2);
+                                var raHalfWidthLoc = Math.round10(object.raWidth/2.0, -2);
+                                var decLoc = Math.round10(object.dec, -2);
+                                var decHalfWidthLoc = Math.round10(object.decWidth/2.0, -2);
+                                var rastring = raLoc + " \xB1 " + raHalfWidthLoc;
+                                var decstring = decLoc + " \xB1 " + decHalfWidthLoc;
+                                return "(" + rastring + ','  + decstring + ")";
+                            },
+                        }
+                    ]; 
+
+                    var subRowColumns  = [ 
+                        { field: 'start_time', label: 'Start Time (UTC)' },
+                        { field: 'exposure_time', label: 'Exposure Time (s)' },
+                        { field: 'ra', label: 'ra'},
+                        { field: 'raWidth', label: 'ra width'},
+                        { field: 'dec', label: 'dec'},
+                        { field: 'decWidth', label: 'dec width'}
+                    ]; 
+
+                    // Add extra class names to our grid cells so we can style them separately
+                    for (i = 0; i < columns.length; i++) {
+                        columns[i].className = 'supergrid-cell';
+                    }
+                    for (i = 0; i < subRowColumns.length; i++) {
+                        subRowColumns[i].className = 'subgrid-cell';
+                    }
+
+                    var grid = new Grid({ 
+                        columns: columns,
+                        className: 'dgrid-autoheight',
+
+                        renderRow: function (object, options) {
+                            // Add the supergrid-row class to the row so we can style it separately from the subrows.
+                            var div = put('div.collapsed.supergrid-row', Grid.prototype.renderRow.call(this, object, options));
+
+                            // Add the subdiv table which will expand and contract.
+                            var t = put(div, 'div.expando table');
+                            // I'm finding that the table needs to be 100% of the available width, otherwise
+                            // Firefox doesn't like it. Hence the extra empty column.
+                            var subGridNode = put(t, 'tr td[style="width: 5%"]+td div');
+                            var sg = new Grid({
+                                columns: subRowColumns,
+                                className: 'dgird-subgrid',
+                            }, subGridNode);
+                            sg.renderArray(object.footprints);
+                            // Add the text comment div as long as the comment is not an empty string.
+                            if (object.comment !== "") {
+                                put(t, 'tr td[style="width: 5%"]+td div.subrid-text', object.comment); 
+                            }
+
+                            return div;
+                        }
+                    }, 'emo-grid'); 
+                    grid.renderArray(emos);
+                    grid.set("sort", 'N', descending=true);
+
+                    var expandedNode = null;
+
+                    // listen for clicks to trigger expand/collapse in table view mode
+                    var expandoListener = on(grid.domNode, '.dgrid-row:click', function (event) {
+                        var node = grid.row(event).element;
+                        var collapsed = node.className.indexOf('collapsed') >= 0;
+
+                        // toggle state of node which was clicked
+                        put(node, (collapsed ? '!' : '.') + 'collapsed');
+
+                        // if clicked row wasn't expanded, collapse any previously-expanded row
+                        collapsed && expandedNode && put(expandedNode, '.collapsed');
+
+                        // if the row clicked was previously expanded, nothing is expanded now
+                        expandedNode = collapsed ? node : null;
+                    });
+                } // endif on whether we have any emos or not.
+            });
+
 
             //-------------------------------------------------------------------
             // Now that the annotations section has been added to the dom, we
