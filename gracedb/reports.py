@@ -122,7 +122,7 @@ def rate_data():
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
 
-# The following two util routines are for gstlalcbc_report. This is messy.
+# The following two util routines are for cbc_report. This is messy.
 def cluster(events):
     # FIXME N^2 clustering, but event list should always be small anyway...
     def quieter(e1, events = events, win = 5):
@@ -143,7 +143,7 @@ def to_png_image(out = sys.stdout):
     return base64.b64encode(f.getvalue())
 
 @internal_user_required
-def gstlalcbc_report(request, format=""):
+def cbc_report(request, format=""):
 
     if not request.user or not request.user.is_authenticated():
         return HttpResponseForbidden("Forbidden")
@@ -179,7 +179,7 @@ def gstlalcbc_report(request, format=""):
                 errormsg = 'Your query returned items that are not CoincInspiral Events. '
                 errormsg += 'Please try again.'
                 form = SimpleSearchForm()
-                return render_to_response('gracedb/gstlalcbc_report.html', 
+                return render_to_response('gracedb/cbc_report.html', 
                         { 'form':form, 'message':errormsg}, 
                         context_instance=RequestContext(request))
 
@@ -197,7 +197,7 @@ def gstlalcbc_report(request, format=""):
             # Bounce back to the user with an error message
             errormsg = 'Your query does not have a gpstime range. Please try again.'
             form = SimpleSearchForm()
-            return render_to_response('gracedb/gstlalcbc_report.html', 
+            return render_to_response('gracedb/cbc_report.html', 
                     { 'form':form, 'message':errormsg}, 
                     context_instance=RequestContext(request))
         lt = int(gpsrange[1]) - int(gpsrange[0])
@@ -206,14 +206,14 @@ def gstlalcbc_report(request, format=""):
         # XXX Hardcoded limit
         if objects.count() > 2000:
             errormsg = 'Your query returned too many events. Please try again.'
-            return render_to_response('gracedb/gstlalcbc_report.html', 
+            return render_to_response('gracedb/cbc_report.html', 
                     { 'form':form, 'message':errormsg}, 
                     context_instance=RequestContext(request))
 
         # Zero events will break the min/max over masses below. 
         if objects.count() < 1:
             errormsg = 'Your query returned no events. Please try again.'
-            return render_to_response('gracedb/gstlalcbc_report.html', 
+            return render_to_response('gracedb/cbc_report.html', 
                     { 'form':form, 'message':errormsg}, 
                     context_instance=RequestContext(request))
 
@@ -299,7 +299,7 @@ def gstlalcbc_report(request, format=""):
         context = {
             'title': title,
             'form': form,
-            'formAction': reverse(gstlalcbc_report),
+            'formAction': reverse(cbc_report),
             'count' : objects.count(),
             'rawquery' : rawquery,
             'FAR_color_map' : FAR_color_map,
@@ -308,10 +308,10 @@ def gstlalcbc_report(request, format=""):
             'ifar_plot' : ifar_plot,
             'clustered_events' : clustered_events,
         }
-        return render_to_response('gracedb/gstlalcbc_report.html', context,
+        return render_to_response('gracedb/cbc_report.html', context,
                 context_instance=RequestContext(request))
 
-    return render_to_response('gracedb/gstlalcbc_report.html',
+    return render_to_response('gracedb/cbc_report.html',
             { 'form' : form,
             },
             context_instance=RequestContext(request))
