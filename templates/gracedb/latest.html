@@ -136,7 +136,7 @@
         <td>{{ object.instruments }}</td>
         <td>{% if object.gpstime%}
                 <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
-                {{ object.gpstime|multiTime:"gps" }}
+                {{ object.gpstime|multiTimeMicroSeconds:"gps" }}
             {% endif %}</td>
         <td>{{ object.far|scientific }}</td>
         <td style="text-align:center">{{ object.reportingLatency }}</td>

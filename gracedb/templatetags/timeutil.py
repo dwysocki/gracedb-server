@@ -34,10 +34,7 @@ register = template.Library()
 #   will convert from that time system, to ...
 #     <time value="POSIX TIME VALUE" [label="LABEL"]>FORMATTED TIME</time>
 
-@register.filter
-def multiTime(t, label, autoescape=None):
-    format = FORMAT
-
+def get_multitime_value(t, label, autoescape, format):
     if autoescape:
         esc = conditional_escape
     else:
@@ -87,8 +84,18 @@ def multiTime(t, label, autoescape=None):
             (utc_time, gps_time, llo_time, lho_time, virgo_time, js_parsable_time, label_attr, display_time)
 
     return mark_safe(rv)
+
+@register.filter
+def multiTime(t, label, autoescape=None):
+    format = FORMAT
+    return get_multitime_value(t, label, autoescape, format)
 multiTime.needs_autoescape = True
 
+@register.filter
+def multiTimeMicroSeconds(t, label, autoescape=None):
+    format = 'Y-m-d H:i:s.u T'
+    return get_multitime_value(t, label, autoescape, format)
+multiTimeMicroSeconds.needs_autoescape = True
 
 @register.filter
 def timeselect(label, default, autoescape=None):
