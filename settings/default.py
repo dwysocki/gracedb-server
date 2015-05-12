@@ -27,6 +27,8 @@ ALERT_TEST_EMAIL_TO = [
                       ]
 ALERT_XMPP_SERVER = "lvalert.phys.uwm.edu"
 ALERT_XMPP_SERVERS = ["lvalert.phys.uwm.edu", "lvalert.cgca.uwm.edu"]
+#LVALERT_SEND_EXECUTABLE = 'lvalert_send'
+LVALERT_SEND_EXECUTABLE = '/home/lars/wsgi-sandbox/bin/lvalert_send'
 
 EMBB_MAIL_ADDRESS = 'embb@gracedb.ligo.org'
 EMBB_SMTP_SERVER = 'localhost'
