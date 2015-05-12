@@ -152,8 +152,9 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
 
 #    manager = Manager()
 
-    for nodename in nodenames:
-        
+    for server in settings.ALERT_XMPP_SERVERS:
+        for nodename in nodenames:
+            
 #        # Calculate unique message_id and log
 #        message_id = sha1(nodename + msg).hexdigest()
 #        log.info("issueXMPPAlert: sending %s to node %s" % (message_id, nodename))
@@ -167,27 +168,28 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
 #        if rdict.get('success', None):
 #            continue
 
-        # If not success, we need to do this the old way.
-        log.info("issueXMPPAlert: failover to lvalert_send") 
-        null = open('/dev/null','w')
-        p = Popen(
-            ["lvalert_send",
-             "--server=%s" % settings.ALERT_XMPP_SERVER,
-             "--username=gracedb",
-             "--password=w4k3upal1ve",
-             "--file=-",
-             "--node=%s" % nodename,
-            ],
-            executable="/usr/bin/lvalert_send",
-            stdin=PIPE,
-            stdout=null,
-            stderr=STDOUT,
-            env=env)
+            # If not success, we need to do this the old way.
+            log.info("issueXMPPAlert: failover to lvalert_send") 
+            null = open('/dev/null','w')
+            p = Popen(
+                ["lvalert_send",
+                 #"--server=%s" % settings.ALERT_XMPP_SERVER,
+                 "--server=%s" % server,
+                 "--username=gracedb",
+                 "--password=w4k3upal1ve",
+                 "--file=-",
+                 "--node=%s" % nodename,
+                ],
+                executable="/usr/bin/lvalert_send",
+                stdin=PIPE,
+                stdout=null,
+                stderr=STDOUT,
+                env=env)
 
-        out, err = p.communicate(msg)
+            out, err = p.communicate(msg)
 
-        log.debug("issueXMPPAlert: return code %s" % p.returncode)
-        if p.returncode > 0:
-            # XXX This should probably raise an exception.
-            log.debug("issueXMPPAlert: ERROR: %s" % err)
+            log.debug("issueXMPPAlert: return code %s" % p.returncode)
+            if p.returncode > 0:
+                # XXX This should probably raise an exception.
+                log.debug("issueXMPPAlert: ERROR: %s" % err)
 
