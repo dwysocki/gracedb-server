@@ -26,7 +26,8 @@ from django.conf import settings
 
 import json
 import datetime
-import dateutil
+#import dateutil
+from dateutil import parser
 
 def _createEventFromForm(request, form):
     saved = False
@@ -382,7 +383,12 @@ def create_emobservation(d, event, user):
     except:
         raise ValueError('Please specify an EM followup MOU group')
 
-    emo.comment = d.get('comment', '')
+# XXX I have literally no idea why this is necessary.
+#    emo.comment = d.get('comment', '')
+    comment = d.get('comment', None)
+    if not comment:
+        comment = ''
+    emo.comment = comment
 
     # Assign RA and Dec, plus widths
     try:
@@ -461,15 +467,15 @@ def create_emobservation(d, event, user):
         try:
             ra = float(raRealList[i])
         except:
-            raise ValueError('Cannot read RA list element %d of %s'%(i, emo.raList))
+            raise ValueError('Cannot read RA list element %d of %s'%(i, raList))
         try:
             dec = float(decRealList[i])
         except:
-            raise ValueError('Cannot read Dec list element %d of %s'%(i, emo.decList))
+            raise ValueError('Cannot read Dec list element %d of %s'%(i, decList))
         try:
             start_time = startTimeRealList[i]
         except:
-            raise ValueError('Cannot read GPStime list element %d of %s'%(i, emo.startTimeList))
+            raise ValueError('Cannot read GPStime list element %d of %s'%(i, startTimeList))
 
         # the widths list can have 1 member to cover all, or one for each
         if mList==1: j=0
@@ -478,22 +484,22 @@ def create_emobservation(d, event, user):
         try:
             raWidth = float(rawRealList[j])
         except:
-            raise ValueError('Cannot read raWidth list element %d of %s'%(i, emo.raWidthList))
+            raise ValueError('Cannot read raWidth list element %d of %s'%(i, raWidthList))
 
         try:
             decWidth = float(decwRealList[j])
         except:
-            raise ValueError('Cannot read raWidth list element %d of %s'%(i, emo.decWidthList))
+            raise ValueError('Cannot read raWidth list element %d of %s'%(i, decWidthList))
 
         try:
             duration = int(durationRealList[j])
         except:
-            raise ValueError('Cannot read duration list element %d of %s'%(i, emo.durationList))
+            raise ValueError('Cannot read duration list element %d of %s'%(i, durationList))
 
         try:
-            start_time = dateutil.parser.parse(start_time)
+            start_time = parser.parse(start_time)
         except:
-            raise ValueError('Could not parse start time list element %d of %s'%(i, emo.durationList))
+            raise ValueError('Could not parse start time list element %d of %s'%(i, startTimeRealList))
 
 
         # Create footprint object 
@@ -505,3 +511,4 @@ def create_emobservation(d, event, user):
     emo.calculateCoveringRegion()
     emo.save()
     return emo
+    
