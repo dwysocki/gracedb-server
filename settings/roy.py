@@ -42,6 +42,8 @@ ALERT_TEST_EMAIL_TO = [
     ]
 
 ALERT_XMPP_SERVER = 'jabber.phys.uwm.edu'
+ALERT_XMPP_SERVERS = ['jabber.phys.uwm.edu',]
+LVALERT_SEND_EXECUTABLE = '/usr/bin/lvalert_send'
 
 EMBB_MAIL_ADDRESS = 'embb@embb-dev.ligo.caltech.edu'
 EMBB_SMTP_SERVER = 'acrux.ligo.caltech.edu'
