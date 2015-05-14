@@ -1,6 +1,6 @@
 import os, shutil
 from django.core.management.base import NoArgsCommand
-from gracedb.models import Event, Search, Pipeline, Group
+from gracedb.models import Event, Search, Group
 
 class Command(NoArgsCommand):
     help = "I kill the MDC events."
@@ -11,11 +11,9 @@ class Command(NoArgsCommand):
         directories are owned by www-data. And the 'gracedb' user 
         doesn't have sudo.
         """
-        CBC = Group.objects.get(name='CBC')
-        gstlal = Pipeline.objects.get(name='gstlal')
         MDC = Search.objects.get(name='MDC')
-
-        events = Event.objects.filter(group=CBC, pipeline=gstlal, search=MDC)
+        Test = Group.objects.get(name='Test')
+        events = Event.objects.filter(search=MDC).exclude(group=Test)
 
         for e in events:
             datadir = e.datadir()
