@@ -38,8 +38,9 @@ VOEVENT_TYPE_DICT = dict(GraceDBVOEvent.VOEVENT_TYPE_CHOICES)
 def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filename=None,
     skymap_type=None, skymap_image_filename = None):
 
-    if not event.far:
-        raise VOEventBuilderException("Cannot build a VOEvent because event has no FAR.")
+# XXX Branson commenting out. Reed's MDC events do not have FAR for some reason.
+#    if not event.far:
+#        raise VOEventBuilderException("Cannot build a VOEvent because event has no FAR.")
 
     if not event.gpstime:
         raise VOEventBuilderException("Cannot build a VOEvent because event has no gpstime.")
@@ -144,12 +145,13 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             Description=["List of instruments used in analysis to identify this event"]))
 
         # False alarm rate
-        w.add_Param(Param(name="FAR", 
-            dataType="float", 
-            ucd="arith.rate;stat.falsealarm", 
-            unit="Hz", 
-            value=float(event.far), 
-            Description=["False alarm rate for GW candidates with this strength or greater"]))
+        if event.far:
+            w.add_Param(Param(name="FAR", 
+                dataType="float", 
+                ucd="arith.rate;stat.falsealarm", 
+                unit="Hz", 
+                value=float(event.far), 
+                Description=["False alarm rate for GW candidates with this strength or greater"]))
 
         # Group
         w.add_Param(Param(name="Group", 
