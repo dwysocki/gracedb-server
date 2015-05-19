@@ -3,6 +3,7 @@ from guardian.shortcuts import assign_perm
 from django.contrib.auth.models import Group
 from django.utils.functional import wraps
 from django.http import HttpResponseForbidden
+from gracedb.models import Event
 
 #-------------------------------------------------------------------------------
 # A convenient wrapper for permission checks.
@@ -18,6 +19,9 @@ def user_has_perm(user, shortname, obj):
 # when there are many objects.
 #-------------------------------------------------------------------------------
 def filter_events_for_user(events, user, shortname):
+    # If user is None, return empty queryset
+    if not user:
+        return Event.objects.none()
     auth_filter = Q()
     for group in user.groups.all():
         perm_string = '%s_can_%s' % (group.name, shortname)

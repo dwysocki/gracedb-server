@@ -556,6 +556,8 @@ def oldsearch(request):
             context_instance=RequestContext(request))
 
 def latest(request):
+    if not request.user or not request.user.is_authenticated():
+        return HttpResponseForbidden("Forbidden")
     context = {}
 
     if request.method == "GET":
