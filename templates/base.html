@@ -45,7 +45,11 @@ function changeTime(obj, label) {
     <li id="nav-userprofile"><a href="{% url "userprofile-home" %}">Options</a></li>
     {% endif %}
     {% if user %}
-        <li id="nav-user">Authenticated as: {{ user.first_name }} {{user.last_name }}</li>
+        {% if user.first_name %}
+            <li id="nav-user">Authenticated as: {{ user.first_name }} {{user.last_name }}</li>
+        {% else %}
+            <li id="nav-user">Authenticated as: {{ user.username }}</li>
+        {% endif %}
     {% else %}
         <li id="nav-login"><a href="{{ login_url }}">Login</a></li>
     {% endif %}
