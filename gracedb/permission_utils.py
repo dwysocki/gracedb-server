@@ -22,6 +22,8 @@ def filter_events_for_user(events, user, shortname):
     # If user is None, return empty queryset
     if not user:
         return Event.objects.none()
+    if not user.groups.count():
+        return Event.objects.none()
     auth_filter = Q()
     for group in user.groups.all():
         perm_string = '%s_can_%s' % (group.name, shortname)
