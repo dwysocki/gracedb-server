@@ -6,6 +6,7 @@
 {% block heading %}Forbidden{{ object.graceid }}{% endblock %}
 
 {% block content %}
-    <p>You are {{ error }} and the item you requested is not for you.</p> {{ message|safe }}
+    <!-- <p>You are {{ error }} and the item you requested is not for you.</p> {{ message|safe }} -->
+    <p>You are {{ user.username }} and the item you requested is not for you.</p> {{ error|safe }}
 {% endblock %}
 
