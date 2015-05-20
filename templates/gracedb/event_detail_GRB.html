@@ -68,12 +68,27 @@
 				{{object.how_description}}
 {% endif %}
 		</td></tr>
+        {% if object.trigger_duration %}
+		<tr><th>Trigger duration</th><td colspan="2">{{object.trigger_duration}}</td></tr>
+        {% endif %}
+        {% if object.t90 %}
+		<tr><th>T90</th><td colspan="2">{{object.t90}}</td></tr>
+        {% endif %}
 		<tr><th>Location</th><th>Coord System</th><td>{{object.coord_system}}</td></tr>
 		<tr><td></td><th width="150px">RA</th><td>{{object.ra}}</td></tr>
 		<tr><td></td><th>Dec</th><td>{{object.dec}}</td></tr>
 		<tr><td></td><th>Err</th><td>{{object.error_radius}}</td></tr>
 	</tbody>
 </table> 
+
+{% if can_modify_t90 %}
+<div class="content-area">
+<form action="{% url "modify_t90" object.graceid %}" method="post">
+    <input type="text" name="t90" value="{{ object.t90 }}">
+    <input type="submit" value="Update T90" class="t90ButtonClass">
+</form>
+</div>
+{% endif %}
 
 {% endif %}
 {% endblock %}

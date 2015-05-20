@@ -1,7 +1,8 @@
 
 # Changed for Django 1.6
 #from django.conf.urls.defaults import *
-from django.conf.urls import patterns, url, include
+#from django.conf.urls import patterns, url, include
+from django.conf.urls import patterns, url
 
 #import django.views.generic.list_detail
 
@@ -16,6 +17,7 @@ urlpatterns = patterns('gracedb.views',
 #    url (r'^skyalert/(?P<graceid>[GEHMT]\d+)', 'skyalert', name="skyalert"),
     url (r'^neighbors/(?P<graceid>[GEHMT]\d+)/\(?(?P<delta1>[-+]?\d+)(,(?P<delta2>[-+]?\d+)\)?)?', 'neighbors', name="neighbors"),
     url (r'^(?P<graceid>[GEHMT]\d+)$', 'view', name="view2"),
+    url (r'^(?P<graceid>[GEHMT]\d+)/t90/$', 'modify_t90', name="modify_t90"),
     url (r'^(?P<graceid>[GEHMT]\d+)/perms/$', 'modify_permissions', name="modify_permissions"),
     url (r'^(?P<graceid>[GEHMT]\d+)/files/$', 'file_list', name="file_list"),
     url (r'^(?P<graceid>[GEHMT]\d+)/files/(?P<filename>.*)$', download, name="file"),

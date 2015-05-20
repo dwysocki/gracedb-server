@@ -146,6 +146,8 @@ def eventToDict(event, columns=None, request=None):
               "error_radius" : event.error_radius,
               "how_description" : event.how_description,
               "how_reference_url" : event.how_reference_url,
+              "T90" : event.t90,
+              "trigger_duration": event.trigger_duration,
               }
     except:
         pass
