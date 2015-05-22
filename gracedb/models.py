@@ -786,6 +786,8 @@ class GrbEvent(Event):
     error_radius = models.FloatField(null=True)
     how_description = models.CharField(max_length=200, null=True)
     how_reference_url = models.URLField(null=True)
+    trigger_duration = models.FloatField(null=True)
+    t90 = models.FloatField(null=True)
 
 class CoincInspiralEvent(Event):
     ifos             = models.CharField(max_length=20, default="")

@@ -10,7 +10,7 @@ from django.shortcuts import render_to_response
 #from django.views.generic.list_detail import object_list
 from django.views.generic.list import ListView
 
-from models import Event, Group, EventLog, Label, Tag, Pipeline, Search
+from models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
 from models import EMGroup
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
 
@@ -298,6 +298,9 @@ def view(request, event):
     except:
         pass
     context['lvem_group_name'] = lvem_group_name
+
+    if event.pipeline.name in settings.GRB_PIPELINES:
+        context['can_modify_t90'] = request.user.has_perm('gracedb.t90_grbevent')
 
     # Choose your template according to the event's pipeline.
     templates = ['gracedb/event_detail.html',]
@@ -829,6 +832,34 @@ def emobservation_entry(request, event, num=None):
         return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
     else:
         return HttpResponseBadRequest("This URL only supports POST.")
+
+@event_and_auth_required
+def modify_t90(request, event):
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.debug("Inside modify_t90")
+    logger.debug("Post dictionary keys: %s" % request.POST.keys())
+    if not request.method=='POST':
+        msg = 'Modify_permissions only allows POST.'
+        return HttpResponseBadRequest(msg)
+    if not isinstance(event, GrbEvent):
+        msg = 'Modify_t90 only works on GrbEvent objects.'
+        return HttpResponseBadRequest(msg)
+    if not request.user.has_perm('gracedb.t90_grbevent'):
+        msg = "You aren't authorized to create permission objects."
+        return HttpResponseForbidden(msg)
+
+    t90 = request.POST.get('t90', None)
+    if not t90:
+        msg = 'Modify_t90 requires t90 value in POST.'
+        return HttpResponseBadRequest(msg)
+
+    event.t90 = t90
+    event.save()
+
+    # Finished. Redirect back to the event.
+    return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
+
 
 #------------------------------------------------------------------------------------------
 # Old Stuff

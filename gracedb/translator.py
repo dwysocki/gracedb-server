@@ -13,7 +13,7 @@ from gracedb.serialize import populate_inspiral_tables, \
                                populate_omega_tables,    \
                                write_output_files
 
-from VOEventLib.Vutil import parse, getWhereWhen
+from VOEventLib.Vutil import parse, getWhereWhen, findParam
 from utils import isoToGps, isoToGpsFloat
 from utils.vfile import VersionedFile
 
@@ -612,3 +612,16 @@ def populateGrbEventFromVOEventFile(filename, event):
     event.how_description = v.get_How().get_Description()[0]  
     event.how_reference_url = v.get_How().get_Reference()[0].uri
 
+    # try to find a trigger_duration value
+    # Fermi uses Trig_Dur, while Swift uses Integ_Time
+    # One or the other may be present, but not both
+    trigger_duration = None
+    try:
+        trigger_duration = findParam(v, '', 'Trig_Dur').get_value()
+    except:
+        pass
+    try:
+        trigger_duration = findParam(v, '', 'Integ_Time').get_value()
+    except:
+        pass
+    event.trigger_duration = trigger_duration

@@ -22,7 +22,7 @@ from django.db.models import Q
 
 from pyparsing import \
     Word, nums, Literal, CaselessLiteral, delimitedList, Suppress, QuotedString, \
-    Keyword, Combine, Or, Optional, OneOrMore, alphas, Regex, \
+    Keyword, Combine, Or, Optional, OneOrMore, alphas, alphanums, Regex, \
     opAssoc, operatorPrecedence, oneOf, \
     stringStart, stringEnd, FollowedBy
 
@@ -231,7 +231,8 @@ afloat = Combine(
          ) + Optional(exponent)
 afloat.setParseAction(lambda toks: float("".join(toks)))
 
-lhs = delimitedList(Word(alphas+'_'), '.')
+#lhs = delimitedList(Word(alphas+'_'), '.')
+lhs = delimitedList(Word(alphanums+'_'), '.')
 lhs.setParseAction(buildDjangoQueryField)
 
 rhs = afloat | QuotedString('"')

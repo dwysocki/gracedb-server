@@ -99,6 +99,15 @@ table.figures {width:300px;height:270px;border:1px solid gray;}
     border-bottom: none;
 }
 
+.t90ButtonClass {
+    /* font: x-small "Lucida Grande", "Lucida Sans Unicode", geneva, verdana, sans-serif; */
+    font-weight: bold;
+    background-color : #d0d0d0;
+    cursor: pointer;
+    border: none;
+    border-bottom: none;
+}
+
 /* End Branson */
 
 td, th {padding:3px;border:none;}
