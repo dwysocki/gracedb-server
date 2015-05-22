@@ -835,10 +835,6 @@ def emobservation_entry(request, event, num=None):
 
 @event_and_auth_required
 def modify_t90(request, event):
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.debug("Inside modify_t90")
-    logger.debug("Post dictionary keys: %s" % request.POST.keys())
     if not request.method=='POST':
         msg = 'Modify_permissions only allows POST.'
         return HttpResponseBadRequest(msg)
