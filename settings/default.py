@@ -25,8 +25,9 @@ ALERT_EMAIL_BCC = [
 ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@archie.phys.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
                       ]
-ALERT_XMPP_SERVER = "lvalert.phys.uwm.edu"
-ALERT_XMPP_SERVERS = ["lvalert.phys.uwm.edu", "lvalert.cgca.uwm.edu"]
+#ALERT_XMPP_SERVER = "lvalert.phys.uwm.edu"
+#ALERT_XMPP_SERVERS = ["lvalert.phys.uwm.edu", "lvalert.cgca.uwm.edu"]
+ALERT_XMPP_SERVERS = ["lvalert.cgca.uwm.edu"]
 LVALERT_SEND_EXECUTABLE = '/usr/bin/lvalert_send'
 
 EMBB_MAIL_ADDRESS = 'embb@gracedb.ligo.org'
