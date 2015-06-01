@@ -517,6 +517,8 @@ class CwbData(Translator):
             key, val = line
             rawdata[key] = val.split()
 
+        datafile.seek(0)
+
         # scan down for FAR
         next_line_is_far = False
         for line in datafile:
@@ -568,6 +570,7 @@ class CwbData(Translator):
         # Check for the links at the end.
         ced_link = None
         fits_skymap_link = None
+        datafile.seek(0)
         for line in datafile:
             if line.startswith("http"):
                 if line.find(".fits") > 0:
