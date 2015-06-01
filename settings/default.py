@@ -30,6 +30,12 @@ ALERT_TEST_EMAIL_TO = [
 ALERT_XMPP_SERVERS = ["lvalert.cgca.uwm.edu"]
 LVALERT_SEND_EXECUTABLE = '/usr/bin/lvalert_send'
 
+# For each lvalert server, a separate instance of the lvalert_overseer
+# must be running and listening on a distinct port. 
+LVALERT_OVERSEER_PORTS = {
+    'lvalert.cgca.uwm.edu': 8000,
+}
+
 EMBB_MAIL_ADDRESS = 'embb@gracedb.ligo.org'
 EMBB_SMTP_SERVER = 'localhost'
 EMBB_MAIL_ADMINS = ['branson@gravity.phys.uwm.edu','roy.williams@ligo.org',]

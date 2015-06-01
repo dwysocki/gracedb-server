@@ -37,9 +37,14 @@ ALERT_TEST_EMAIL_FROM = "Dev Test Alert <root@moe.phys.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
     "Branson Stephens <branson@gravity.phys.uwm.edu>",
     ]
-ALERT_XMPP_SERVER = "jabber.phys.uwm.edu",
-ALERT_XMPP_SERVERS = ["jabber.phys.uwm.edu",]
-LVALERT_SEND_EXECUTABLE = '/home/branson/djangoenv/bin/lvalert_send'
+ALERT_XMPP_SERVERS = ["lvalert-test.cgca.uwm.edu",]
+LVALERT_SEND_EXECUTABLE = '/usr/bin/lvalert_send'
+
+# For each lvalert server, a separate instance of the lvalert_overseer
+# must be running and listening on a distinct port. 
+LVALERT_OVERSEER_PORTS = {
+    'lvalert-test.cgca.uwm.edu': 8001,
+}
 
 EMBB_MAIL_ADDRESS = 'branson@moe.phys.uwm.edu'
 EMBB_SMTP_SERVER = 'localhost'

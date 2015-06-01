@@ -41,9 +41,14 @@ ALERT_TEST_EMAIL_TO = [
     "Roy Williams <roy@caltech.edu>",
     ]
 
-ALERT_XMPP_SERVER = 'jabber.phys.uwm.edu'
-ALERT_XMPP_SERVERS = ['jabber.phys.uwm.edu',]
+ALERT_XMPP_SERVERS = ['lvalert-test.cgca.uwm.edu',]
 LVALERT_SEND_EXECUTABLE = '/usr/bin/lvalert_send'
+
+# For each lvalert server, a separate instance of the lvalert_overseer
+# must be running and listening on a distinct port. 
+LVALERT_OVERSEER_PORTS = {
+    'lvalert-test.cgca.uwm.edu': 8001,
+}
 
 EMBB_MAIL_ADDRESS = 'embb@embb-dev.ligo.caltech.edu'
 EMBB_SMTP_SERVER = 'acrux.ligo.caltech.edu'
