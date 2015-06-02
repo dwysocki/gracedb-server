@@ -71,6 +71,10 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None):
 
 def issueEmailAlert(event, event_url):
 
+    # XXX FIXME
+    if event.search.name == 'MDC':
+        return
+
     # Gather Recipients
     if event.group.name == 'Test':
         fromaddress = settings.ALERT_TEST_EMAIL_FROM
