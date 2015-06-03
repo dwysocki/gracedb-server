@@ -60,7 +60,10 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     ############ VOEvent header ############################
     v = VOEvent(version="2.0")
     v.set_ivorn(ivorn)
-    v.set_role(settings.SKYALERT_ROLE)
+    if event.search.name == 'MDC':
+        v.set_role("test")
+    else:
+        v.set_role("observation")
     if voevent_type != 'retraction':
         v.set_Description(settings.SKYALERT_DESCRIPTION)
 
@@ -111,6 +114,14 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     # [25] http://vizier.u-strasbg.fr/doc/catstd-3.2.htx
     #
     # basically, a string that makes sense to humans about what units a value is. eg. "m/s"
+
+    # Whether the alert is internal or not
+    if event.search.name == 'MDC':
+        w.add_Param(Param(name="internal", value=0,
+            Description=['Indicates that this event should be distributed to LSC/Virgo members only']))
+    else:
+        w.add_Param(Param(name="internal", value=1,
+            Description=['Indicates that this event should be distributed to LSC/Virgo members only']))
     
     # The serial number
     w.add_Param(Param(name="Pkt_Ser_Num", value=serial_number))
