@@ -50,6 +50,8 @@ LVALERT_OVERSEER_PORTS = {
     'lvalert-test.cgca.uwm.edu': 8001,
 }
 
+USE_LVALERT_OVERSEER = False
+
 EMBB_MAIL_ADDRESS = 'embb@embb-dev.ligo.caltech.edu'
 EMBB_SMTP_SERVER = 'acrux.ligo.caltech.edu'
 EMBB_MAIL_ADMINS = ['roy.williams@ligo.org',]

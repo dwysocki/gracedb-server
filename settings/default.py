@@ -30,6 +30,8 @@ ALERT_TEST_EMAIL_TO = [
 ALERT_XMPP_SERVERS = ["lvalert.cgca.uwm.edu"]
 LVALERT_SEND_EXECUTABLE = '/usr/bin/lvalert_send'
 
+USE_LVALERT_OVERSEER = False
+
 # For each lvalert server, a separate instance of the lvalert_overseer
 # must be running and listening on a distinct port. 
 LVALERT_OVERSEER_PORTS = {
