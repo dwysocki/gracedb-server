@@ -51,6 +51,12 @@ def assign_default_event_perms(event):
         assign_perm(view_codename, g, event)
         assign_perm(change_codename, g, event)
 
+    # If the event is an MDC event, then we expose it to LV-EM also
+    if event.search.name == 'MDC':
+        lvem = Group.objects.get(name='gw-astronomy:LV-EM')
+        assign_perm(view_codename, lvem, event)
+        assign_perm(change_codename, lvem, event)
+
 #-------------------------------------------------------------------------------
 # A wrapper for views that checks whether the user is internal, and if not
 # returns a 403.
