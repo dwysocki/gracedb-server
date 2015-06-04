@@ -281,8 +281,9 @@ andTheseTags = ["nevents"]
 def parseQuery(s):
     d={}
     if not s:
-        # Empty query return everything not in Test group
-        return ~Q(group__name="Test")
+        # Empty query return everything not in Test group and not in the MDC group
+        #return ~Q(group__name="Test") 
+        return ~Q(group__name="Test") & ~Q(search__name="MDC")
     for (tag, qval) in (stringStart + OneOrMore(q) + stringEnd).parseString(s).asList():
         if tag in andTheseTags:
             d[tag] = d.get(tag,Q()) & qval
@@ -295,6 +296,12 @@ def parseQuery(s):
             d["group"] &= ~Q(group__name="Test")
         else:
             d["group"] = ~Q(group__name="Test")
+    if s.lower().find("mdc") < 0 and "mid" not in d:
+        # If MDC search is not mentioned in the query, we exclude it.
+        if "search" in d:
+            d["search"] &= ~Q(search__name="MDC")
+        else:
+            d["search"] = ~Q(search__name="MDC")
     if "tid" in d:
         d["tid"] = d["tid"] & Q(group__name="Test")
     if "hid" in d:
