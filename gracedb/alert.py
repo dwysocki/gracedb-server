@@ -8,10 +8,13 @@ from django.conf import settings
 import json
 
 import logging
-#from hashlib import sha1
 
-#from ligo.overseer.client import send_to_overseer
-#from multiprocessing import Process, Manager
+# These imports can be fragile, so they should be brought in only
+# if use of the LVAlert overseer is really intended.
+if settings.USE_LVALERT_OVERSEER:
+    from hashlib import sha1
+    from ligo.overseer.client import send_to_overseer
+    from multiprocessing import Process, Manager
 
 log = logging.getLogger('gracedb.alert')
 
@@ -154,26 +157,33 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
     msg = json.dumps(lva_data)
     log.debug("issueXMPPAlert: writing message %s" % msg)
 
-#    manager = Manager()
+    if settings.USE_LVALERT_OVERSEER:
+        manager = Manager()
 
     for server in settings.ALERT_XMPP_SERVERS:
+        port = settings.LVALERT_OVERSEER_PORTS[server]
         for nodename in nodenames:
             
-#        # Calculate unique message_id and log
-#        message_id = sha1(nodename + msg).hexdigest()
-#        log.info("issueXMPPAlert: sending %s to node %s" % (message_id, nodename))
-#
-#        rdict = manager.dict()
-#        msg_dict = {'node_name': nodename, 'message': msg, 'action': 'push'}
-#        p = Process(target=send_to_overseer, args=(msg_dict, rdict, log, True))
-#        p.start()
-#        p.join()
-#
-#        if rdict.get('success', None):
-#            continue
+            if settings.USE_LVALERT_OVERSEER:
+                # Calculate unique message_id and log
+                message_id = sha1(nodename + msg).hexdigest()
+                log.info("issueXMPPAlert: sending %s to node %s on %s" % (message_id, nodename, server))
 
-            # If not success, we need to do this the old way.
-            log.info("issueXMPPAlert: failover to lvalert_send") 
+                rdict = manager.dict()
+                msg_dict = {'node_name': nodename, 'message': msg, 'action': 'push'}
+                p = Process(target=send_to_overseer, args=(msg_dict, rdict, log, True, port))
+                p.start()
+                p.join()
+
+                if rdict.get('success', None):
+                    continue
+
+                # If not success, we need to do this the old way.
+                log.info("issueXMPPAlert: failover to lvalert_send") 
+            else:
+                # Not using LVAlert overseer, so just log the node and server
+                log.info("issueXMPPAlert: sending to node %s on %s" % (nodename, server))
+
             null = open('/dev/null','w')
             p = Popen(
                 ["lvalert_send",
