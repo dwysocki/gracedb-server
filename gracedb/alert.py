@@ -86,8 +86,12 @@ def issueEmailAlert(event, event_url):
     else:
         fromaddress = settings.ALERT_EMAIL_FROM
         toaddresses = settings.ALERT_EMAIL_TO
-        bccaddresses = settings.ALERT_EMAIL_BCC
-
+        # XXX Bizarrely, this settings.ALERT_EMAIL_BCC seems to be overwritten in a 
+        # persistent way between calls, so that you can get alerts going out to the 
+        # wrong contacts. I find that it works if you just start with an empty list
+        # See: https://bugs.ligo.org/redmine/issues/2185
+        #bccaddresses = settings.ALERT_EMAIL_BCC
+        bccaddresses = []
         pipeline = event.pipeline
         triggers = pipeline.trigger_set.filter(labels=None)
         for trigger in triggers:
