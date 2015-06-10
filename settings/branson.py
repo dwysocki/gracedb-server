@@ -38,9 +38,9 @@ ALERT_TEST_EMAIL_TO = [
     "Branson Stephens <branson@gravity.phys.uwm.edu>",
     ]
 ALERT_XMPP_SERVERS = ["lvalert-test.cgca.uwm.edu",]
-LVALERT_SEND_EXECUTABLE = '/usr/bin/lvalert_send'
+LVALERT_SEND_EXECUTABLE = '/home/branson/djangoenv/bin/lvalert_send'
 
-USE_LVALERT_OVERSEER = False
+USE_LVALERT_OVERSEER = True
 
 # For each lvalert server, a separate instance of the lvalert_overseer
 # must be running and listening on a distinct port. 

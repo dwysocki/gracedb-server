@@ -13,7 +13,7 @@ import logging
 # if use of the LVAlert overseer is really intended.
 if settings.USE_LVALERT_OVERSEER:
     from hashlib import sha1
-    from ligo.overseer.client import send_to_overseer
+    from ligo.overseer.overseer_client import send_to_overseer
     from multiprocessing import Process, Manager
 
 log = logging.getLogger('gracedb.alert')

@@ -3,22 +3,14 @@ import sys
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
-# Sandbox libs here, if required.
-#
-
+# Add the source code directory 
 sys.path.insert(1,'/home/branson/gracedbdev')
-sys.path.insert(1,'/home/branson/djangoenv/lib/python2.7/site-packages')
 
-# Scott's Shib app uses loggers.
-import logging
-logging.basicConfig()
+# Activate the virtual environment
+VIRTUALENV_ACTIVATOR = "/home/branson/djangoenv/bin/activate_this.py"
+execfile(VIRTUALENV_ACTIVATOR, dict(__file__=VIRTUALENV_ACTIVATOR))
 
 os.environ['MPLCONFIGDIR']='/home/branson/logs/'
-
-#logging.basicConfig(level=logging.DEBUG,
-#                    format='%(asctime)s %(levelname)s %(message)s',
-#                    filename='/tmp/myapp.log',
-#                    filemode='w')
 
 import django.core.handlers.wsgi
 application = django.core.handlers.wsgi.WSGIHandler()
