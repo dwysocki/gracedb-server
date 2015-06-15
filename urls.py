@@ -17,6 +17,7 @@ feeds = {
 urlpatterns = patterns('',
 
     url (r'^$', 'gracedb.views.index', name="home"),
+    url (r'^navbar_only$', 'gracedb.views.navbar_only', name="navbar-only"),
     url (r'^SPInfo', 'gracedb.views.spinfo', name="spinfo"),
     url (r'^SPPrivacy', 'gracedb.views.spprivacy', name="spprivacy"),
     url (r'^DiscoveryService', 'gracedb.views.discovery', name="discovery"),

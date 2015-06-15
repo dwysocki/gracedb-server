@@ -1,4 +1,0 @@
-
-ALTER TABLE  gracedb_eventlog
-MODIFY COLUMN comment LONGTEXT NOT NULL
-;
