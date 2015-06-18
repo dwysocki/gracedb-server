@@ -11,7 +11,13 @@ http://www.ivoa.net/Documents/latest/VOEvent.html
 from VOEventLib.VOEvent import VOEvent, Who, Author, Param, How, What, Group
 from VOEventLib.VOEvent import Citations, EventIVORN
 #from VOEventLib.VOEvent import Why
-from VOEventLib.Vutil import makeWhereWhen, stringVOEvent
+#from VOEventLib.Vutil import makeWhereWhen, stringVOEvent
+from VOEventLib.Vutil import stringVOEvent
+
+from VOEventLib.VOEvent import AstroCoords, AstroCoordSystem
+from VOEventLib.VOEvent import ObservationLocation, ObservatoryLocation
+from VOEventLib.VOEvent import ObsDataLocation, WhereWhen
+from VOEventLib.VOEvent import Time, TimeInstant
 
 # XXX ER2.utils.  utils is in project directory.  ugh.
 from utils import gpsToUtc
@@ -60,7 +66,8 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     ############ VOEvent header ############################
     v = VOEvent(version="2.0")
     v.set_ivorn(ivorn)
-    if event.search.name == 'MDC':
+
+    if event.search and event.search.name == 'MDC':
         v.set_role("test")
     else:
         v.set_role("observation")
@@ -116,7 +123,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     # basically, a string that makes sense to humans about what units a value is. eg. "m/s"
 
     # Whether the alert is internal or not
-    if event.search.name == 'MDC':
+    if event.search and event.search.name == 'MDC':
         w.add_Param(Param(name="internal", value=0,
             Description=['Indicates that this event should be distributed to LSC/Virgo members only']))
     else:
@@ -369,18 +376,34 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
 
     ############ Wherewhen ############################
     if voevent_type != 'retraction':
-        wwd = {'observatory':     'LIGO Virgo',
-               'coord_system':    'UTC-FK5-GEO',
-               # XXX time format
-               'time':            str(gpsToUtc(event.gpstime).isoformat())[:-6],   #'1918-11-11T11:11:11',
-               #'timeError':       1.0,
-               'longitude':       0.0,
-               'latitude':        0.0,
-               'positionalError': 180.0,
-        }
+# The old way of making the WhereWhen section led to a pointless position
+# location.
+#        wwd = {'observatory':     'LIGO Virgo',
+#               'coord_system':    'UTC-FK5-GEO',
+#               # XXX time format
+#               'time':            str(gpsToUtc(event.gpstime).isoformat())[:-6],   #'1918-11-11T11:11:11',
+#               #'timeError':       1.0,
+#               'longitude':       0.0,
+#               'latitude':        0.0,
+#               'positionalError': 180.0,
+#        }
+#
+#        ww = makeWhereWhen(wwd)
+#        if ww: v.set_WhereWhen(ww)
 
-        ww = makeWhereWhen(wwd)
-        if ww: v.set_WhereWhen(ww)
+        coord_system_id = 'UTC-FK5-GEO'
+        event_time = str(gpsToUtc(event.gpstime).isoformat())[:-6]
+        observatory_id = 'LIGO Virgo'
+        ac =  AstroCoords(coord_system_id=coord_system_id)
+        acs = AstroCoordSystem(id=coord_system_id)
+        ac.set_Time(Time(TimeInstant = TimeInstant(event_time)))
+
+        onl = ObservationLocation(acs, ac)
+        oyl = ObservatoryLocation(id=observatory_id)
+        odl = ObsDataLocation(oyl, onl)
+        ww = WhereWhen()
+        ww.set_ObsDataLocation(odl)
+        v.set_WhereWhen(ww)
 
     ############ Citation ############################
     if voevent_type != 'preliminary':
