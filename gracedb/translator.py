@@ -3,8 +3,9 @@ import os
 
 from .models import EventLog
 from .models import SingleInspiral
+from .models import SimInspiralEvent
 
-from glue.ligolw.utils import load_filename
+from glue.ligolw.utils import load_filename, load_fileobj
 from glue.ligolw.lsctables import CoincInspiralTable, SnglInspiralTable, use_in
 from glue.ligolw.lsctables import SimInspiralTable, MultiBurstTable, CoincTable
 from glue.ligolw.ligolw import LIGOLWContentHandler
@@ -18,6 +19,7 @@ from utils import isoToGps, isoToGpsFloat
 from utils.vfile import VersionedFile
 
 import json
+import StringIO
 
 use_in(LIGOLWContentHandler)
 
@@ -45,13 +47,15 @@ def cleanData(val, field_name, table_name='gracedb_event'):
 
 def handle_uploaded_data(event, datafilename,
                          log_filename='event.log',
-                         coinc_table_filename='coinc.xml'):
+                         coinc_table_filename='coinc.xml',
+                         file_contents=None):
 
-    log = EventLog(event=event,
-                   filename=os.path.basename(datafilename),
-                   issuer=event.submitter,
-                   comment="Original Data")
-    log.save()
+    if datafilename:
+        log = EventLog(event=event,
+                       filename=os.path.basename(datafilename),
+                       issuer=event.submitter,
+                       comment="Original Data")
+        log.save()
 
     # XXX If you can manage to get rid of the MBTA .gwf parsing and
     # the Omega event parsing, you can deprecate temp_data_loc. It 
@@ -168,52 +172,65 @@ def handle_uploaded_data(event, datafilename,
 
     elif pipeline == 'HardwareInjection':
         log_comment = "Log File Created"
-        xmldoc = load_filename(datafilename, contenthandler=LIGOLWContentHandler)
+        if datafilename:
+            xmldoc = load_filename(datafilename, contenthandler=LIGOLWContentHandler)
+        elif file_contents:
+            f = StringIO.StringIO(file_contents)
+            xmldoc, digest = load_fileobj(f, contenthandler=LIGOLWContentHandler)
+        else:
+            msg = "If you wanna make an injection event, I'm gonna need a filepath or filecontents."
+            raise ValueError(msg)
 
-        # Create Log Data
-        # XXX This is messy and redundant.  All of this is also below.
-        try:
-            log_data = ["Pipeline: %s" % pipeline]
-            origdata = SimInspiralTable.get_table(xmldoc)
-            origdata = origdata[0]
-            mchirp   = origdata.mchirp
-            mass     = (origdata.mass1, origdata.mass2)
-            spin1    = (origdata.spin1x, origdata.spin1y, origdata.spin1z)
-            spin2    = (origdata.spin2x, origdata.spin2y, origdata.spin2z)
-            end_time = (origdata.geocent_end_time, origdata.geocent_end_time_ns)
-            # XXX unused
-            #waveform = origdata.waveform
-
-            if mchirp is not None:
-                log_data.append("MChirp: %0.3f" % mchirp)
-            else:
-                log_data.append("MChirp: ---")
-            log_data.append("Component Masses: %f %f" % mass)
-            log_data.append("Component 1 Spin: (%f, %f, %f)" % spin1)
-            log_data.append("Component 2 Spin: (%f, %f, %f)" % spin2)
-            log_data.append("Geocentric End Time: %d.%d" % end_time)
-        except Exception, e:
-            log_comment = "Problem Creating Log File"
-            log_data = ["Cannot create log file", "error was:", str(e)]
-
-        log_data = "\n".join(log_data)
-
-        output_dir = os.path.dirname(datafilename)
-        write_output_files(output_dir, xmldoc, log_data,
-                           xml_fname=coinc_table_filename,
-                           log_fname=log_filename)
-
-        # Create EventLog entries about these files.
-
-        #event.gpstime = end_time[0]
+        origdata = SimInspiralTable.get_table(xmldoc)
+        origdata = origdata[0]
+        end_time = (origdata.geocent_end_time, origdata.geocent_end_time_ns)
         event.gpstime = end_time[0] + float(end_time[1])/1e9
+
+#        # Create Log Data
+#        try:
+#            log_data = ["Pipeline: %s" % pipeline]
+#            mchirp   = origdata.mchirp
+#            mass     = (origdata.mass1, origdata.mass2)
+#            spin1    = (origdata.spin1x, origdata.spin1y, origdata.spin1z)
+#            spin2    = (origdata.spin2x, origdata.spin2y, origdata.spin2z)
+#            #waveform = origdata.waveform
+#
+#            if mchirp is not None:
+#                log_data.append("MChirp: %0.3f" % mchirp)
+#            else:
+#                log_data.append("MChirp: ---")
+#            log_data.append("Component Masses: %f %f" % mass)
+#            log_data.append("Component 1 Spin: (%f, %f, %f)" % spin1)
+#            log_data.append("Component 2 Spin: (%f, %f, %f)" % spin2)
+#            log_data.append("Geocentric End Time: %d.%d" % end_time)
+#        except Exception, e:
+#            log_comment = "Problem Creating Log File"
+#            log_data = ["Cannot create log file", "error was:", str(e)]
+#        log_data = "\n".join(log_data)
+
+        # Assign attributes from the SimInspiralTable
+        field_names = SimInspiralEvent.field_names()
+        for column in field_names:
+            try:
+                value = getattr(origdata, column)
+                setattr(event, column, value)
+            except:
+                pass
         event.save()
 
-        log = EventLog(event=event,
-                       filename=log_filename,
-                       issuer=event.submitter,
-                       comment=log_comment)
-        log.save()
+        # XXX Let's not write output files for the injections. There are 
+        # simply too many of them.
+        #
+        #output_dir = os.path.dirname(datafilename)
+        #write_output_files(output_dir, xmldoc, log_data,
+        #                   xml_fname=coinc_table_filename,
+        #                   log_fname=log_filename)
+        #log = EventLog(event=event,
+        #               filename=log_filename,
+        #               issuer=event.submitter,
+        #               comment=log_comment)
+        #log.save()
+
     # XXX Submitting MBTA events by frame file is now deprecated as of 19 Dec. 2014.
     # Feel free to break this after 19 Dec. 2015.
     elif pipeline == 'MBTAOnline' and '.gwf' in datafilename:

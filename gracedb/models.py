@@ -949,6 +949,76 @@ class SingleInspiral(models.Model):
         cls._field_names = model_field_names.intersection(ligolw_field_names)
         return cls._field_names
 
+# Event subclass for injections
+class SimInspiralEvent(Event):
+    mass1                = models.FloatField(null=True)
+    mass2                = models.FloatField(null=True)
+    eta                  = models.FloatField(null=True)
+    amp_order            = models.IntegerField(null=True)
+    coa_phase            = models.FloatField(null=True)
+    mchirp               = models.FloatField(null=True)
+    spin1y               = models.FloatField(null=True)
+    spin1x               = models.FloatField(null=True)
+    spin1z               = models.FloatField(null=True)
+    spin2x               = models.FloatField(null=True)
+    spin2y               = models.FloatField(null=True)
+    spin2z               = models.FloatField(null=True)
+    geocent_end_time     = models.IntegerField(null=True)
+    geocent_end_time_ns  = models.IntegerField(null=True)
+    end_time_gmst        = models.FloatField(null=True)
+    f_lower              = models.FloatField(null=True)
+    f_final              = models.FloatField(null=True)
+    distance             = models.FloatField(null=True)
+    latitude             = models.FloatField(null=True)
+    longitude            = models.FloatField(null=True)
+    polarization         = models.FloatField(null=True)
+    inclination          = models.FloatField(null=True)
+    theta0               = models.FloatField(null=True)
+    phi0                 = models.FloatField(null=True)
+    waveform             = models.CharField(max_length=50, blank=True, default="")
+    numrel_mode_min      = models.IntegerField(null=True)
+    numrel_mode_max      = models.IntegerField(null=True)
+    numrel_data          = models.CharField(max_length=50, blank=True, default="")
+    source               = models.CharField(max_length=50, blank=True, default="")
+    taper                = models.CharField(max_length=50, blank=True, default="")
+    bandpass             = models.IntegerField(null=True)
+    alpha                = models.FloatField(null=True)
+    beta                 = models.FloatField(null=True)
+    psi0                 = models.FloatField(null=True)
+    psi3                 = models.FloatField(null=True)
+    alpha1               = models.FloatField(null=True)
+    alpha2               = models.FloatField(null=True)
+    alpha3               = models.FloatField(null=True)
+    alpha4               = models.FloatField(null=True)
+    alpha5               = models.FloatField(null=True)
+    alpha6               = models.FloatField(null=True)
+    g_end_time           = models.IntegerField(null=True)
+    g_end_time_ns        = models.IntegerField(null=True)
+    h_end_time           = models.IntegerField(null=True)
+    h_end_time_ns        = models.IntegerField(null=True)
+    l_end_time           = models.IntegerField(null=True)
+    l_end_time_ns        = models.IntegerField(null=True)
+    t_end_time           = models.IntegerField(null=True)
+    t_end_time_ns        = models.IntegerField(null=True)
+    v_end_time           = models.IntegerField(null=True)
+    v_end_time_ns        = models.IntegerField(null=True)
+    eff_dist_g           = models.FloatField(null=True)
+    eff_dist_h           = models.FloatField(null=True)
+    eff_dist_l           = models.FloatField(null=True)
+    eff_dist_t           = models.FloatField(null=True)
+    eff_dist_v           = models.FloatField(null=True)
+    # Additional desired attributes that are not in the SimInspiral table
+    source_channel       = models.CharField(max_length=50, blank=True, default="")
+    destination_channel  = models.CharField(max_length=50, blank=True, default="")
+
+    @classmethod
+    def field_names(cls):
+        try:
+            return cls._field_names
+        except AttributeError: pass
+        # We only care about the model field names in this particular case.
+        cls._field_names = [ x.name for x in cls._meta.fields ]
+        return cls._field_names
 
 ## Tags (user-defined log message attributes)
 class Tag(models.Model):

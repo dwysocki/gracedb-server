@@ -218,6 +218,7 @@ tableTranslations = {
         'coincinspiral': 'coincinspiralevent',
         'multiburst': 'multiburstevent',
         'grb': 'grbevent',
+        'inj': 'siminspiralevent',
         }
 
 def buildDjangoQueryField(toks):

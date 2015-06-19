@@ -50,7 +50,10 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None):
         for recip in trigger.contacts.all():
             profileRecips.append(recip.email)
 
-    subject = "[gracedb] %s / %s / %s / %s" % (label.name, event.pipeline.name, event.search.name, event.graceid())
+    if event.search:
+        subject = "[gracedb] %s / %s / %s / %s" % (label.name, event.pipeline.name, event.search.name, event.graceid())
+    else:
+        subject = "[gracedb] %s / %s / %s" % (label.name, event.pipeline.name, event.graceid())
 
     message = "A %s event with graceid %s was labelled with %s" % \
               (event.pipeline.name, event.graceid(), label.name)
@@ -75,7 +78,7 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None):
 def issueEmailAlert(event, event_url):
 
     # XXX FIXME
-    if event.search.name == 'MDC':
+    if event.search and event.search.name == 'MDC':
         return
 
     # Gather Recipients

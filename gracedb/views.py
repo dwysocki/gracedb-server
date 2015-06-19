@@ -310,6 +310,8 @@ def view(request, event):
         templates.insert(0, 'gracedb/event_detail_GRB.html')
     elif event.pipeline.name.startswith('CWB'):
         templates.insert(0, 'gracedb/event_detail_CWB.html')
+    elif event.pipeline.name in ['HardwareInjection',]:
+        templates.insert(0, 'gracedb/event_detail_injection.html')
 
     return render_to_response(templates, context, context_instance=RequestContext(request))
 

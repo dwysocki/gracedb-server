@@ -6,6 +6,7 @@ from models import Pipeline, Search
 from models import CoincInspiralEvent
 from models import MultiBurstEvent
 from models import GrbEvent
+from models import SimInspiralEvent
 from models import EMBBEventLog, EMGroup
 from models import EMObservation, EMFootprint
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
@@ -47,6 +48,8 @@ def _createEventFromForm(request, form):
             event = GrbEvent()
         elif pipeline.name in ['CWB', 'CWB2G']:
             event = MultiBurstEvent() 
+        elif pipeline.name in ['HardwareInjection',]:
+            event = SimInspiralEvent()
         else:
             event = Event()
 
@@ -54,15 +57,20 @@ def _createEventFromForm(request, form):
         event.group = group
         event.pipeline = pipeline
         event.search = search
+
+        # If the event is an injection, look for certain attributes in the POST data.
+        # These attributes are unfortunately not found in the SimInspiralTable
+        if pipeline.name in ['HardwareInjection',]:
+            event.source_channel = request.POST.get('source_channel', None)
+            event.destination_channel = request.POST.get('destination_channel', None)
+            event.instruments = request.POST.get('instrument', None)
+
         #  ARGH.  We don't get a graceid until we save,
         #  but we don't know in advance if we can actually
         #  create all the things we need for success!
         #  What to do?!
         event.save()
         saved = True  # in case we have to undo this.
-        # Create data directory/directories
-        #    Save uploaded file.
-
         # Create permissions objects for the new event
         assign_default_event_perms(event)
  
@@ -75,22 +83,33 @@ def _createEventFromForm(request, form):
 
         event.refresh_perms()
 
+        # Create data directory/directories
+        #    Save uploaded file.
         # Write the event data file to disk. 
-        eventDir = event.datadir()
-        os.makedirs( eventDir )
+
+        # But there are way too many hardware injections to save them to disk
+
         f = request.FILES['eventFile']
-        uploadDestination = os.path.join(eventDir, f.name)
-        fdest = VersionedFile(uploadDestination, 'w')
-        for chunk in f.chunks():
-            fdest.write(chunk)
-        fdest.close()
+        if pipeline.name not in ['HardwareInjection',]:
+            eventDir = event.datadir()
+            os.makedirs( eventDir )
+            uploadDestination = os.path.join(eventDir, f.name)
+            fdest = VersionedFile(uploadDestination, 'w')
+            for chunk in f.chunks():
+                fdest.write(chunk)
+            fdest.close()
+            file_contents = None
+        else:
+            uploadDestination = None
+            file_contents = f.read()
         # Create WIKI page
 
         # Extract Info from uploaded data
         # Temp (ha!) hack to deal with
         # out of band data from Omega to LUMIN.
         try:
-            temp_data_loc, translator_warnings  = handle_uploaded_data(event, uploadDestination)
+            temp_data_loc, translator_warnings  = handle_uploaded_data(event, uploadDestination, 
+                file_contents = file_contents)
             warnings += translator_warnings
             try:
                 # Send an alert.
