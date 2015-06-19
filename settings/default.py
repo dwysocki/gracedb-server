@@ -28,7 +28,8 @@ ALERT_TEST_EMAIL_TO = [
 #ALERT_XMPP_SERVER = "lvalert.phys.uwm.edu"
 #ALERT_XMPP_SERVERS = ["lvalert.phys.uwm.edu", "lvalert.cgca.uwm.edu"]
 ALERT_XMPP_SERVERS = ["lvalert.cgca.uwm.edu"]
-LVALERT_SEND_EXECUTABLE = '/usr/bin/lvalert_send'
+#LVALERT_SEND_EXECUTABLE = '/usr/bin/lvalert_send'
+LVALERT_SEND_EXECUTABLE = '/home/gracedb/djangoenv/bin/lvalert_send'
 
 USE_LVALERT_OVERSEER = False
 
