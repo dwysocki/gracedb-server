@@ -119,7 +119,7 @@
                 {{"created"|timeselect:"utc" }}
                 Created
             </th>
-            <th></th>
+            <!-- <th></th> -->
     </tr>
 
 {% for object in objects %}
@@ -141,15 +141,16 @@
         <td>{{ object.far|scientific }}</td>
         <td style="text-align:center">{{ object.reportingLatency }}</td>
         <td>{{ object.created|multiTime:"created" }}</td>
-        <td>
-            {% for log in object.eventlog_set.iterator %}
-                {% if log.hasImage %}
+        <!-- This causes browser-busting for large numbers of figures. Getting rid of it. -->
+        <!-- <td>
+            {# for log in object.eventlog_set.iterator #}
+                {# if log.hasImage #}
                     <div class="skymap">
                         <a href="{{ log.fileurl }}" dojoType="dojox.image.LightboxNano"><img height="50" src="{{ log.fileurl }}"></a>
                     </div>
-                {% endif %}
-            {% endfor %}
-        </td>
+                {# endif #}
+            {# endfor #}
+        </td> -->
     </tr>
 
 {% endfor %}
