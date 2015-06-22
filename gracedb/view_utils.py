@@ -6,6 +6,8 @@ from django.utils.html import escape, urlize
 #from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 
+from gracedb.models import SingleInspiral
+
 from utils.vfile import VersionedFile
 
 import os
@@ -252,6 +254,13 @@ def eventToDict(event, columns=None, request=None):
               }
     except:
         pass
+
+    # Finally add extra attributes for any SingleInspiral objects associated with this event
+    # This will be a list of dictionaries.
+    si_set = event.singleinspiral_set.all()
+    if si_set.count():
+        rv['extra_attributes']['SingleInspiral'] = [ singleInspiralToDict(si) for si in si_set ]
+
     rv['links'] = {
           "neighbors" : reverse("neighbors", args=[graceid], request=request),
           "log"   : reverse("eventlog-list", args=[graceid], request=request),
@@ -502,6 +511,13 @@ def voeventToDict(voevent, request=None):
                 "created"      : voevent.created.isoformat(),
            }
 
+def singleInspiralToDict(single_inspiral):
+    rv = {}
+    for field_name in SingleInspiral.field_names():
+        value = getattr(single_inspiral, field_name, None)
+        if value:
+            rv.update({ field_name: value })
+    return rv
 
 #---------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------
