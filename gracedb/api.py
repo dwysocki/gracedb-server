@@ -797,6 +797,7 @@ class EventLogList(APIView):
             return Response("Failed to save log entry: %s" % str(e),
                     status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
+        tw_dict = {}
         if tagnames and len(tagnames):
             for tagname in tagnames:
                 n = logentry.N
@@ -804,12 +805,16 @@ class EventLogList(APIView):
                 retval = tmp.put(request, event.graceid(), n, tagname) 
                 # XXX This seems like a bizarre way of getting an error message out.
                 if retval.status_code != 201:
-                    response['tagWarning'] = 'Error creating tag %s.' % tagname
-
+                    tw_dict = {'tagWarning': 'Error creating tag %s.' % tagname }
+                    #response['tagWarning'] = 'Error creating tag %s.' % tagname
+                    
         # Serialize the event log object *after* adding tags!
         rv = eventLogToDict(logentry, request=request)
         response = Response(rv, status=status.HTTP_201_CREATED)
         response['Location'] = rv['self']
+        if 'tagWarning' in tw_dict.keys():
+            response['tagWarning'] = tw_dict['tagWarning']
+
 
         # Issue alert.
         description = "LOG: "
