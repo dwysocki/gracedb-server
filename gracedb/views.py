@@ -72,6 +72,9 @@ def index(request):
             {},
             context_instance=RequestContext(request))
 
+def navbar_only(request):
+    return render_to_response('navbar_only.html', {}, context_instance=RequestContext(request))
+
 # SP Info and Privacy pages are required for Federation with InCommon. 
 def spinfo(request):
     return render_to_response('gracedb/spinfo.html', {}, context_instance=RequestContext(request))

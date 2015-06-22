@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+{% block headcontents %}
+    <link rel="stylesheet" href="{{STATIC_URL}}css/style.css" />
+{% endblock %}
+</head>
+<div id="content">
+
+<center>
+<h1 class="docnav"> GraceDB &mdash; Gravitational Wave Candidate Event Database</h1>
+</center>
+
+{% block nav %}
+<ul id="nav">
+    <li id="nav-home"><a href="{% url "home" %}">Home</a></li>
+    <li id="nav-search"><a href="{% url "search" %}">Search</a></li>
+    {% if user_is_internal %}
+        <li id="nav-create"><a href="{% url "create" %}">Create</a></li>
+        <li id="nav-reports"><a href="{% url "reports" %}">Reports</a></li>
+        <li id="nav-feeds"><a href="{% url "feeds" %}">RSS</a></li>
+    {% endif %}
+    <li id="nav-latest"><a href="{% url "latest" %}">Latest</a></li>
+    {# if user_is_internal #}
+    <li id="nav-userprofile"><a href="{% url "userprofile-home" %}">Options</a></li>
+    {# endif #}
+    <li id="nav-docs"><a href="{% url "home" %}documentation/">Documentation</a></li>
+    {% if user %}
+        {% if user.first_name %}
+            <li id="nav-user">Authenticated as: {{ user.first_name }} {{user.last_name }}</li>
+        {% else %}
+            <li id="nav-user">Authenticated as: {{ user.username }}</li>
+        {% endif %}
+    {% else %}
+        <li id="nav-login"><a href="{{ login_url }}">Login</a></li>
+    {% endif %}
+</ul>
+<center>
+    {% if config_name %}
+      <h1 class="docnav" style="color: red;">
+          {{config_name}}
+      </h1>
+    {% endif %}
+</center>
+{% endblock %}
+
+        <p>&nbsp;</p> <!-- bad way to create vertical space -->
+
+</div>
+
+</body>
+</html>

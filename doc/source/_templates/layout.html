@@ -1,0 +1,69 @@
+{% extends "!layout.html" %}
+
+{% block extrahead %}
+
+<link rel="stylesheet" href="_static/gracedb-nav-style.css" />
+<script src="/bower-static/dojo/dojo.js" data-dojo-config="async: true"></script>
+<script>
+
+var getKeys = function(obj){
+   var keys = [];
+   for(var key in obj){
+      keys.push(key);
+   }
+   return keys;
+}
+
+require([
+    'dojo/_base/declare',
+    'dojo/query',
+    'dojo/parser',
+    'dojo/dom',
+    'dojo/dom-construct',
+    'dojo/dom-style',
+    'dojo/request',
+    'dojo/NodeList-dom',
+    'dojo/NodeList-traverse',
+    'dojo/domReady!',
+], function(declare, query, parser, dom, domConstruct, domStyle, request) {
+
+    parser.parse();
+
+    // The url will look like: base + /documentation/...
+    var loc = window.location.href;
+    var ind = loc.indexOf('documentation');
+    var url = loc.substring(0,ind);
+    url += 'navbar_only';
+    
+    var header_div = dom.byId("gracedb-nav-header");
+
+    request.get(url).then(
+        function(text) {
+            var node = domConstruct.toDom(text);
+            var nl = query('*', node);
+            var header_content = "";
+            // XXX this should not be necessary. Why can't I just query directly for the node with
+            // id == 'content'?
+            nl.forEach(function(n) {
+                if (n.tagName == 'DIV' && n.id == 'content') {
+                    header_content = n.innerHTML;
+                }
+            });
+            header_div.innerHTML = header_content;
+        },
+        function(error) {
+            console.log("failed to get navbar content.")
+        }
+    );
+
+});
+
+</script>
+
+{% endblock %}
+
+{% block header %}
+
+<div id="gracedb-nav-header"></div>
+
+{% endblock %}

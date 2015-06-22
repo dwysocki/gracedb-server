@@ -1,0 +1,144 @@
+
+
+html, body {
+  color: black;
+  background-color: white;
+  margin: 0;
+  padding: 0;
+}
+
+a.link, a, a.active {
+  color: #369;
+}
+
+h1,h2,h3,h4,h5,h6,#getting_started_steps {
+  font-family: "Century Schoolbook L", Georgia, serif;
+  font-weight: bold;
+}
+
+h1.docnav {
+    font-size: 25px;
+}
+
+#getting_started_steps li {
+  font-size: 80%;
+  margin-bottom: 0.5em;
+}
+
+#gracedb-nav-header {
+  color: black;
+  font-size: 127%;  
+  background-color: white;
+  font: x-small "Lucida Grande", "Lucida Sans Unicode", geneva, verdana, sans-serif;
+/*  width: 757px; */
+  width: 95%;
+  margin: 0 auto 0 auto;
+  border: none;
+/*  border-left: 1px solid #aaa; */
+/*  border-right: 1px solid #aaa; */
+  padding: 10px 10px 0px 10px;
+}
+
+
+/* Nav */
+#nav {
+    margin:0;
+    padding:0;
+    background:#eee;    /* Nav base color */
+    float: left;
+    width: 100%;
+    font-size: 13px;
+    border:1px solid #42432d;
+    border-width:1px 1px;
+}
+
+#nav #nav-user
+{
+    color:#000;
+    background:#eee;    /* Nav base color */
+    padding:4px 20px 4px 20px;
+    float: right;
+    width: auto;
+    text-decoration:none;
+    font:bold 1em/1em Arial, Helvetica, sans-serif;
+    text-transform:uppercase;
+    /* text-shadow: 2px 2px 2px #555; */
+}
+
+#nav #nav-login
+{
+    float: right;
+}
+
+#nav li {
+    display:inline;
+    padding:0;
+    margin:0;
+}
+/*
+#nav li:first-child a {
+    border-left:1px solid #42432d;
+}
+*/
+
+#nav a:link,
+#nav a:visited {
+    color:#000;
+    background:#eee;    /* Nav base color */
+    /* padding:20px 40px 4px 10px; */
+    padding:4px 20px 4px 20px;
+    float: left;
+    width: auto;
+    border-right:1px solid #42432d;
+
+    text-decoration:none;
+    font:bold 1em/1em Arial, Helvetica, sans-serif;
+    text-transform:uppercase;
+    /* text-shadow: 2px 2px 2px #555; */
+}
+#nav a:hover {
+    /* color:#fff;  / * Use if bg is dark */
+    background: #dce2ed;  /* Nav hover color */
+}
+
+#home #nav-home a,
+#create #nav-create a,
+#search #nav-search a,
+#doc #nav-doc a,
+#reports #nav-reports a,
+#feeds #nav-feeds a,
+#about #nav-about a,
+#archive #nav-archive a,
+#lab #nav-lab a,
+#reviews #nav-reviews a,
+#userprofile #nav-userprofile a,
+#latest #nav-latest a,
+#contact #nav-contact a {
+    background: #a9b0ba;  /* Nav selected color */
+    /* color:#fff;  / * Use if bg is dark */
+    /* text-shadow:none; */
+}
+#home #nav-home a:hover,
+#create #nav-create a,
+#search #nav-search a,
+#doc #nav-doc a,
+#reports #nav-reports a,
+#feeds #nav-feeds a,
+#about #nav-about a:hover,
+#archive #nav-archive a:hover,
+#lab #nav-lab a:hover,
+#reviews #nav-reviews a:hover,
+#userprofile #nav-userprofile a:hover,
+#latest #nav-latest a:hover,
+#contact #nav-contact a:hover {
+    /* background:#e35a00; */
+    background: #a9b0ba;  /* Nav selected color */
+}
+#nav a:active {
+    /* background:#e35a00; */
+    background: #a9b0ba;  /* Nav selected color */
+    color:#fff;
+}
+
+
+
