@@ -77,3 +77,7 @@ uploading observation records:
 
 - by email (not yet availabe, but in the works)
 
+For more on the GraceBD event page and creating EM observation records, see 
+`this <https://www.youtube.com/watch?v=oIJE4dTISs4>`_  helpful video
+by Roy Williams.  There is a companion video on the SkymapViewer 
+`here <https://www.youtube.com/watch?v=ydXUD9KIN98>`_.

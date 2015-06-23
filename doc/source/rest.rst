@@ -43,8 +43,8 @@ fully featured.
 
 .. NOTE::
     Before using the REST client, credentials for authentication must be available.
-    Run ligo-proxy-init or, if using a robot certificate, set the appropriate envronment 
-    variables (for more infomation, see :ref:`auth`).
+    Run ligo-proxy-init or, if using a robot certificate, set the appropriate environment 
+    variables (for more information, see :ref:`auth`).
 
 The REST client is typically used in the Python interpreter or in a script to 
 accomplish a specific task, such as retrieving information about events matching
@@ -97,7 +97,7 @@ Searching for events
 Suppose you are working on a script to search for all events matching a 
 specific query and retrieve a piece of information about each event in
 the search results. For example, the following code retrieves the chirp 
-mass for each gstlal event during ER5 with FAR less than 1.0E-4::
+mass for each ``gstlal`` event during ER5 with FAR less than 1.0E-4::
 
     from ligo.gracedb.rest import GraceDb
     client = GraceDb()
@@ -116,7 +116,7 @@ mass for each gstlal event during ER5 with FAR less than 1.0E-4::
 Note that the ``events`` method on the client returns an iterator on 
 event dictionaries rather than a list. The chirp mass is an attribute
 specific the inspiral event subclass, hence the difference between accessing
-the graceid and the chirp mass.
+the ``graceid`` and the chirp mass.
 
 But how did I know the structure of the event dictionary so that I could
 pull out the chirp mass? The best way is to look at the structure of an
@@ -240,7 +240,7 @@ Coding against the GraceDB REST API
 
 Some users may wish to code directly against the GraceDB REST API rather
 than use the Python or command-line clients. In order to do this, the user
-will need to know which resources are exposed by which URLS, and which HTTP
+will need to know which resources are exposed by which URLs, and which HTTP
 methods those URLs allow. Fortunately, the 
 `Django REST Framework <http://www.django-rest-framework.org>`_ (on which
 the GraceDB API is built) provides
