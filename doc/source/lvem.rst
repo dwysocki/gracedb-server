@@ -5,23 +5,116 @@ Features for EM Collaboration
 On logging in
 =============
 
-Users must be logged in for access to GraceDB events and for permission to 
-upload followup information. Please use the same identity you used when you
-registered at gw-astronomy.org.
+A successful login is required in to access GraceDB events and upload 
+followup information. The login process is the same as for the 
+`LV-EM wiki <https://gw-astronomy.org/wiki/LV_EM/WebHome>`__: namely, 
+click "LOGIN" at the upper right and then choose the login method
+according to the identity you used for registering for LV-EM membership at
+`gw-astronomy.org <https://gw-astronomy.org>`__. 
+
+.. NOTE::
+
+    Some users may have multiple identities available from the identity providers listed
+    on the login page. However, only the identity used to register for LV-EM 
+    will work for GraceDB access. For example, even though I have identities from
+    LIGO, UW-Milwaukee, and Google, only my LIGO login will work for GraceDB since that 
+    is the one I used to register for LV-EM membership. The reason is that
+    there is no way (at present) to map these different identities to the same
+    underlying user.
 
 .. _basic_auth_for_lvem:
 
 Scripted access for LV-EM members
 ============================================
 
-.. Rationale: Non-LVC collaborators may not have ready access to robot certificates or keytabs.
+Some processes need to access GraceDB in a *scripted* manner. For example,
+an observational group might set up an automated process to listen for GCN
+notices for new GW events and download the skymaps for further processing
+(see the `tutorial <http://nbviewer.ipython.org/github/lpsinger/ligo-virgo-emfollowup-tutorial/blob/master/ligo-virgo-emfollowup-tutorial.ipynb>`__). 
+As these alerts could come at any time of the day or night, it is not 
+generally possible for the user to go through the usual login sequence. Traditionally,
+GraceDB has handled scripted access with X509 robot certificates or
+robot Kerberos keytabs, but these may not be easily accessible to all 
+LV-EM group members. 
 
-Under construction.
+Thus, there is an alternative using basic auth (a simple username-and-password
+scheme). First, obtain a robotic
+access password by navigating to `this page <https://gracedb.ligo.org/options/manage_password>`__
+and clicking "Get me a password!" (or by clicking "OPTIONS" on the navigation
+menu and then "Password Manager." Each time you click the button, you
+will get a new basic auth password, and the old one will be lost. (Note 
+that these passwords only last for 1 year.) The password is a 20 character
+random sequence. 
+
+.. NOTE::
+    
+    This robotic password does not affect the way in which you login to
+    the GraceDB web interface. It is only for use with the REST interface
+    as described in the examples below. You will need to continue logging
+    into the web interface using the identity with which you registered for
+    LV-EM membership.
+
+Once you've obtained a robotic password, the best way to use it is to create
+a ``.netrc`` file containing your username and password (with permissions ``0600``
+to make sure that only you can read it). The ``.netrc`` file could look like this::
+
+    machine   gracedb.ligo.org
+    login     myself@institution.edu
+    password  abc123.....
+
+Once that's done, you should be able to access the GraceDB REST API
+using any tool that supports basic auth. 
+For example, you can use the GraceDB Python client in much the same 
+way as described in :ref:`rest_client_basic_usage`, except that the 
+client class is specially formulated for basic auth::
+
+    from ligo.gracedb.rest import GraceDbBasic, HTTPError
+ 
+    service_url = 'https://gracedb.ligo.org/apibasic/'
+    client = GraceDbBasic(service_url)
+  
+    try:
+        r = client.ping()
+    except HTTPError, e:
+        print e.message
+  
+    print "Response code: %d" % r.status
+    print "Response content: %s" % r.json() 
+
+The only real difference is that the ``GraceDbBasic`` client class is used instead
+of the ``GraceDb`` class (which assumes that X509 credentials are available).
+If you're not comfortable using Python for scripted access to GraceDB, it is
+also possible to use ``curl`` to directly make requests to the server with the
+same basic auth credentials. Some examples of using curl are available 
+`here <https://gw-astronomy.org/wiki/LV_EM/TechInfo>`__.
 
 Downloading a skymap
 ======================
 
-Under construction.
+The GraceDB Python client can be used to download
+files from Gracedb or add comments, plots, or observation records (see 
+the next section). Here, we'll
+show an example of downloading a skymap. Suppose we know that a particular
+GraceDB event (``T125738``) has a skymap file called ``bayestar.fits.gz``.
+This file can be retrieved in the following way::
+
+    from ligo.gracedb.rest import GraceDbBasic
+
+    grace_id = 'T125738'            # identifier for the event
+    filename = 'bayestar.fits.gz'  # filename of desired skymap
+
+    # Prepend with grace_id for output filename
+    out_filename = grace_id + '_' + filename
+
+    # Instantiate the GraceDB client
+    service_url = 'https://gracedb.ligo.org/apibasic/'
+    client = GraceDbBasic(service_url)
+
+    # Grab the file from the server and write it 
+    out_file = open(out_filename, "w")
+    r = client.files(grace_id, filename)
+    out_file.write(r.read())
+    out_file.close()
 
 .. _create_emobservation:
 
@@ -55,10 +148,6 @@ observation record consisting of three separate footprints::
     if r.status == 201:       # 201 means 'Created'
         print 'Success!'
 
-To use the ``GraceDbBasic`` client, the user needs to already have a basic auth
-password for scripted access, and to have put this in a protected ``.netrc`` file
-(see :ref:`basic_auth_for_lvem`).
-
 For users not familiar with Python, there are several other options available for 
 uploading observation records:
 
@@ -67,8 +156,7 @@ uploading observation records:
   by-hand data entry.  
 
 - by ``curl``-ing directly against the EM observation
-  resource in the API (for an example, see 
-  `here <https://gw-astronomy.org/wiki/LV_EM/CurlUploadFootprints>`_) 
+  resource in the API (`example <https://gw-astronomy.org/wiki/LV_EM/CurlUploadFootprints>`__) 
 
 - by coding against the GraceDB REST API 
   in one's own favorite language. If you choose to go this route, please
@@ -78,6 +166,6 @@ uploading observation records:
 - by email (not yet availabe, but in the works)
 
 For more on the GraceBD event page and creating EM observation records, see 
-`this <https://www.youtube.com/watch?v=oIJE4dTISs4>`_  helpful video
+`this <https://www.youtube.com/watch?v=oIJE4dTISs4>`__  helpful video
 by Roy Williams.  There is a companion video on the SkymapViewer 
-`here <https://www.youtube.com/watch?v=ydXUD9KIN98>`_.
+`here <https://www.youtube.com/watch?v=ydXUD9KIN98>`__.

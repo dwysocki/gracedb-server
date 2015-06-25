@@ -6,7 +6,7 @@ Introduction
 ===============================================
 
 GraceDB uses `LVAlert
-<https://www.lsc-group.phys.uwm.edu/daswg/projects/lvalert.html>`_ to send
+<https://www.lsc-group.phys.uwm.edu/daswg/projects/lvalert.html>`__ to send
 alerts to listeners within the LVC.  The content of the LVAlert message is
 designed to convey actionable information about a state change in GraceDB,
 whether it involves the creation of a new event, or the updating or labeling of
@@ -21,8 +21,8 @@ an existing one.
 Listening to specific event streams
 ==============================================
 
-When a user runs ``lvalert_listen``, she/he will receive messages over all **nodes** to 
-which she/he is subscribed. The node names consist of at least two elements::
+By running ``lvalert_listen``, you will receive messages over all **nodes** to 
+which you are subscribed. The node names consist of at least two elements::
 
     <group_name>_<pipeline_name>
 
@@ -36,8 +36,8 @@ which has the effect of narrowing down the messages to only those related to a s
 search. For example, the node ``burst_cwb_allsky`` will contain messages relating to the
 AllSky search, but not the MDC search. GraceDB tries to send a message to all applicable
 nodes. Thus, a message sent to the node ``burst_cwb_allsky`` will *also* be sent to the
-node ``burst_cwb``. This property allows the user to filter by search at the level of
-specifying LVAlert processing scripts for individual nodes.
+node ``burst_cwb``. This property allows the user to filter according to search by 
+specifying different LVAlert processing scripts for different nodes.
 
 To see the names of all available nodes, simply execute::
 
@@ -206,7 +206,7 @@ receive and respond to LVAlert messages::
     lvalert_listen -a username -b password -c /path/to/lvalert_config.ini
 
 The ``-c`` (configuration file) option allows you to specify an executable script to be called 
-each time a message arrives over a particular node. Suppose one is only interested in
+each time a message arrives over a particular node. Suppose you are only interested in
 events from the burst group, cWB pipeline, and MDC search. Then the 
 ``lvalert_config.ini`` file could look like this::
 
@@ -238,5 +238,5 @@ Further reading on LVAlert
 =====================================================
 
 Further information on using LVAlert can be found on the
-`LVAlert Project Page <https://www.lsc-group.phys.uwm.edu/daswg/projects/lvalert.html>`_
-and the `LVAlert Howto <https://www.lsc-group.phys.uwm.edu/daswg/docs/howto/lvalert-howto.html>`_.
+`LVAlert Project Page <https://www.lsc-group.phys.uwm.edu/daswg/projects/lvalert.html>`__
+and the `LVAlert Howto <https://www.lsc-group.phys.uwm.edu/daswg/docs/howto/lvalert-howto.html>`__.

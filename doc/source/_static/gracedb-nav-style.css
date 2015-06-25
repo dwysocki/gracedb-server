@@ -141,4 +141,12 @@ h1.docnav {
 }
 
 
+/* The Following is for the subclasses table. */
+table.subclasses_main {
+    width: 100%;
+}
 
+td.subclasses_row {
+    vertical-align: top;
+}
+    
