@@ -77,7 +77,9 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None):
 
 def issueEmailAlert(event, event_url):
 
-    # XXX FIXME
+    # The right way of doing this is to make the email alerts filter-able
+    # by search. But this is a low priority dev task. For now, we simply 
+    # short-circuit in case this is an MDC event.
     if event.search and event.search.name == 'MDC':
         return
 
