@@ -828,7 +828,7 @@ def embblogentry(request, event, num=None):
 def emobservation_entry(request, event, num=None):
     if request.method == "POST":
         try:
-            create_emobservation(request.POST, event, request.user)
+            create_emobservation(request, event)
         except ValueError, e:
             return HttpResponseBadRequest(str(e))
         except Exception, e:

@@ -960,7 +960,7 @@ class EMObservationList(APIView):
     @event_and_auth_required
     def post(self, request, event):
         try:
-            emo = create_emobservation(request.DATA, event, request.user)
+            emo = create_emobservation(request, event)
         except ValueError, e:
             return Response("%s" % str(e), status=status.HTTP_400_BAD_REQUEST)
         except IntegrityError, e:
@@ -973,12 +973,6 @@ class EMObservationList(APIView):
         rv = emObservationToDict(emo, request=request)
         response = Response(rv, status=status.HTTP_201_CREATED)
         response['Location'] = rv['self']
-
-        # Issue alert.
-        description = "New EMBB observation record."
-        issueAlertForUpdate(event, description, doxmpp=True,
-            filename="", serialized_object=rv)
-
         return response
 
 class EMObservationDetail(APIView):

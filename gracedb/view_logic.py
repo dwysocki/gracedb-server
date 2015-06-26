@@ -14,7 +14,7 @@ from translator import handle_uploaded_data
 
 from utils.vfile import VersionedFile
 from view_utils import _saveUploadedFile
-from view_utils import eventToDict, eventLogToDict
+from view_utils import eventToDict, eventLogToDict, emObservationToDict
 from permission_utils import assign_default_event_perms
 
 from django.contrib.contenttypes.models import ContentType
@@ -391,7 +391,16 @@ def create_eel(d, event, user):
 #
 # Create an EMBB Observaton Record
 #
-def create_emobservation(d, event, user):    
+def create_emobservation(request, event):    
+    d = getattr(request, 'DATA', None)
+    if not d:
+        d = getattr(request, 'POST', None)
+    # Still haven't got the d?
+    if not d:
+        raise ValueError('create_emobservation: got no post data from the request.')
+
+    user = request.user
+
     # create a log entry
     emo = EMObservation(event=event)
     emo.event = event
@@ -529,5 +538,16 @@ def create_emobservation(d, event, user):
     # Calculate covering region for observation
     emo.calculateCoveringRegion()
     emo.save()
+
+    # Try issuing an alert.
+    try:
+        description = "New EMBB observation record."
+        object = emObservationToDict(emo, request)
+        issueAlertForUpdate(event, description, doxmpp=True,
+            filename="", serialized_object=object)        
+    except Exception, e:
+        # XXX Should probably send back warnings, as in the other cases.
+        pass
+
     return emo
     
