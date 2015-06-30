@@ -942,10 +942,9 @@ class SingleInspiral(models.Model):
         try:
             return cls._field_names
         except AttributeError: pass
-        model_field_names = set([ x.name for x in cls._meta.fields ])
+        model_field_names = set([ x.name for x in cls._meta.get_fields(include_parents=False) ])
         ligolw_field_names = set(
                 glue.ligolw.lsctables.SnglInspiralTable.validcolumns.keys())
-
         cls._field_names = model_field_names.intersection(ligolw_field_names)
         return cls._field_names
 
@@ -1017,7 +1016,7 @@ class SimInspiralEvent(Event):
             return cls._field_names
         except AttributeError: pass
         # We only care about the model field names in this particular case.
-        cls._field_names = [ x.name for x in cls._meta.fields ]
+        cls._field_names = [ x.name for x in cls._meta.get_fields(include_parents=False) ]
         return cls._field_names
 
 ## Tags (user-defined log message attributes)
