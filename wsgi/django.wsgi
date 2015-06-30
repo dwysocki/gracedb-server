@@ -12,6 +12,10 @@ execfile(VIRTUALENV_ACTIVATOR, dict(__file__=VIRTUALENV_ACTIVATOR))
 
 os.environ['MPLCONFIGDIR']='/tmp/'
 
-import django.core.handlers.wsgi
-application = django.core.handlers.wsgi.WSGIHandler()
+# Changed for compatibility with django 1.7.8
+#import django.core.handlers.wsgi
+#application = django.core.handlers.wsgi.WSGIHandler()
+
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
 

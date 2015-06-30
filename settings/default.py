@@ -44,6 +44,9 @@ EMBB_SMTP_SERVER = 'localhost'
 EMBB_MAIL_ADMINS = ['branson@gravity.phys.uwm.edu','roy.williams@ligo.org',]
 EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@gracedb.phys.uwm.edu',]
 
+# Added for django 1.7.8
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+
 # 11/18/14. No longer checking XMPP_ALERT_CHANNELS. This is not necessary.
 # If someone sends out an event, an alert should go out. Listerers have the 
 # option to unsubscribe from nodes if so desired.
@@ -298,7 +301,6 @@ INSTALLED_APPS = (
     'userprofile',
     'ligoauth',
     'rest_framework',
-    'south',
     'guardian',
 )
 
@@ -322,7 +324,7 @@ STATICFILES_FINDERS = (
 STATICFILES_DIRS = ()
 
 # Added in order to perform data migrations on the auth app
-SOUTH_MIGRATION_MODULES = {
+MIGRATION_MODULES = {
     'auth' : 'migrations.auth',
     'guardian' : 'migrations.guardian',
 }

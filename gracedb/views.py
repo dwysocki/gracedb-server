@@ -109,13 +109,13 @@ def create(request):
             # XXX Risky.  msg should be json, not str.
             # str(x) is *often* the same as json(x), but not always.
             # It's not, because we don't reliably have json on the client side.
-            response = HttpResponse(mimetype='application/json')
+            response = HttpResponse(content_type='application/json')
             if 'graceid' in d:
                 d['output'] = "%s" % d['graceid']
                 d['graceid'] = "%s" % d['graceid']
             msg = str(d)
         else: # Old client
-            response = HttpResponse(mimetype='text/plain')
+            response = HttpResponse(content_type='text/plain')
             if 'error' in d:
                 msg = "ERROR: " + d['error']
             elif 'warning' in d:
@@ -374,7 +374,7 @@ def search(request, format=""):
                     msg = "An error occured while trying to compile LigoLw results: %s" % str(e)
                     return HttpResponseServerError(msg)
 
-                response = HttpResponse(mimetype='application/xml')
+                response = HttpResponse(content_type='application/xml')
                 response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
                 utils.write_fileobj(xmldoc, response)
                 return response

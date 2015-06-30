@@ -581,7 +581,7 @@ def jqgridResponse(request, objects):
     pass
 
 def flexigridResponse(request, objects):
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
 
     #sortname = request.POST.get('sortname', None)
     #sortorder = request.POST.get('sortorder', 'desc')

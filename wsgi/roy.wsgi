@@ -26,6 +26,10 @@ os.environ['MPLCONFIGDIR']='/tmp/'
 #                    filename='/tmp/myapp.log',
 #                    filemode='w')
 
-import django.core.handlers.wsgi
-application = django.core.handlers.wsgi.WSGIHandler()
+# Changed for compatibility with Django 1.7.8
+#import django.core.handlers.wsgi
+#application = django.core.handlers.wsgi.WSGIHandler()
+
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
 

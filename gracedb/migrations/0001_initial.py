@@ -1,284 +1,547 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+from django.conf import settings
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'User'
-        db.create_table('gracedb_user', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('email', self.gf('django.db.models.fields.EmailField')(max_length=75)),
-            ('principal', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('dn', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('unixid', self.gf('django.db.models.fields.CharField')(max_length=25)),
-        ))
-        db.send_create_signal('gracedb', ['User'])
+    dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
 
-        # Adding model 'Group'
-        db.create_table('gracedb_group', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=20)),
-        ))
-        db.send_create_signal('gracedb', ['Group'])
-
-        # Adding M2M table for field managers on 'Group'
-        db.create_table('gracedb_group_managers', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('group', models.ForeignKey(orm['gracedb.group'], null=False)),
-            ('user', models.ForeignKey(orm['gracedb.user'], null=False))
-        ))
-        db.create_unique('gracedb_group_managers', ['group_id', 'user_id'])
-
-        # Adding model 'Label'
-        db.create_table('gracedb_label', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=20)),
-            ('defaultColor', self.gf('django.db.models.fields.CharField')(default='black', max_length=20)),
-        ))
-        db.send_create_signal('gracedb', ['Label'])
-
-        # Adding model 'Event'
-        db.create_table('gracedb_event', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('submitter', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.User'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.Group'])),
-            ('uid', self.gf('django.db.models.fields.CharField')(default='', max_length=20)),
-            ('analysisType', self.gf('django.db.models.fields.CharField')(max_length=20)),
-            ('instruments', self.gf('django.db.models.fields.CharField')(default='', max_length=20)),
-            ('nevents', self.gf('django.db.models.fields.PositiveIntegerField')(null=True)),
-            ('far', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('likelihood', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('gpstime', self.gf('django.db.models.fields.PositiveIntegerField')(null=True)),
-        ))
-        db.send_create_signal('gracedb', ['Event'])
-
-        # Adding model 'EventLog'
-        db.create_table('gracedb_eventlog', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.Event'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('issuer', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.User'])),
-            ('filename', self.gf('django.db.models.fields.CharField')(default='', max_length=100)),
-            ('comment', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal('gracedb', ['EventLog'])
-
-        # Adding model 'Labelling'
-        db.create_table('gracedb_labelling', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.Event'])),
-            ('label', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.Label'])),
-            ('creator', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.User'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('gracedb', ['Labelling'])
-
-        # Adding model 'Approval'
-        db.create_table('gracedb_approval', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('approver', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.User'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('approvedEvent', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.Event'])),
-            ('approvingCollaboration', self.gf('django.db.models.fields.CharField')(max_length=1)),
-        ))
-        db.send_create_signal('gracedb', ['Approval'])
-
-        # Adding model 'CoincInspiralEvent'
-        db.create_table('gracedb_coincinspiralevent', (
-            ('event_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['gracedb.Event'], unique=True, primary_key=True)),
-            ('ifos', self.gf('django.db.models.fields.CharField')(default='', max_length=20)),
-            ('end_time', self.gf('django.db.models.fields.PositiveIntegerField')(null=True)),
-            ('end_time_ns', self.gf('django.db.models.fields.PositiveIntegerField')(null=True)),
-            ('mass', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('mchirp', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('minimum_duration', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('snr', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('false_alarm_rate', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('combined_far', self.gf('django.db.models.fields.FloatField')(null=True)),
-        ))
-        db.send_create_signal('gracedb', ['CoincInspiralEvent'])
-
-        # Adding model 'MultiBurstEvent'
-        db.create_table('gracedb_multiburstevent', (
-            ('event_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['gracedb.Event'], unique=True, primary_key=True)),
-            ('ifos', self.gf('django.db.models.fields.CharField')(default='', max_length=20)),
-            ('start_time', self.gf('django.db.models.fields.PositiveIntegerField')(null=True)),
-            ('start_time_ns', self.gf('django.db.models.fields.PositiveIntegerField')(null=True)),
-            ('duration', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('peak_time', self.gf('django.db.models.fields.PositiveIntegerField')(null=True)),
-            ('peak_time_ns', self.gf('django.db.models.fields.PositiveIntegerField')(null=True)),
-            ('central_freq', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('bandwidth', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('amplitude', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('snr', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('confidence', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('false_alarm_rate', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('ligo_axis_ra', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('ligo_axis_dec', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('ligo_angle', self.gf('django.db.models.fields.FloatField')(null=True)),
-            ('ligo_angle_sig', self.gf('django.db.models.fields.FloatField')(null=True)),
-        ))
-        db.send_create_signal('gracedb', ['MultiBurstEvent'])
-
-        # Adding model 'Slot'
-        db.create_table('gracedb_slot', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['gracedb.Event'])),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('value', self.gf('django.db.models.fields.CharField')(max_length=100)),
-        ))
-        db.send_create_signal('gracedb', ['Slot'])
-
-        # Adding unique constraint on 'Slot', fields ['event', 'name']
-        db.create_unique('gracedb_slot', ['event_id', 'name'])
-
-
-    def backwards(self, orm):
-        # Removing unique constraint on 'Slot', fields ['event', 'name']
-        db.delete_unique('gracedb_slot', ['event_id', 'name'])
-
-        # Deleting model 'User'
-        db.delete_table('gracedb_user')
-
-        # Deleting model 'Group'
-        db.delete_table('gracedb_group')
-
-        # Removing M2M table for field managers on 'Group'
-        db.delete_table('gracedb_group_managers')
-
-        # Deleting model 'Label'
-        db.delete_table('gracedb_label')
-
-        # Deleting model 'Event'
-        db.delete_table('gracedb_event')
-
-        # Deleting model 'EventLog'
-        db.delete_table('gracedb_eventlog')
-
-        # Deleting model 'Labelling'
-        db.delete_table('gracedb_labelling')
-
-        # Deleting model 'Approval'
-        db.delete_table('gracedb_approval')
-
-        # Deleting model 'CoincInspiralEvent'
-        db.delete_table('gracedb_coincinspiralevent')
-
-        # Deleting model 'MultiBurstEvent'
-        db.delete_table('gracedb_multiburstevent')
-
-        # Deleting model 'Slot'
-        db.delete_table('gracedb_slot')
-
-
-    models = {
-        'gracedb.approval': {
-            'Meta': {'object_name': 'Approval'},
-            'approvedEvent': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.Event']"}),
-            'approver': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.User']"}),
-            'approvingCollaboration': ('django.db.models.fields.CharField', [], {'max_length': '1'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
-        },
-        'gracedb.coincinspiralevent': {
-            'Meta': {'ordering': "['-id']", 'object_name': 'CoincInspiralEvent', '_ormbases': ['gracedb.Event']},
-            'combined_far': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'end_time': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'}),
-            'end_time_ns': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'}),
-            'event_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['gracedb.Event']", 'unique': 'True', 'primary_key': 'True'}),
-            'false_alarm_rate': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'ifos': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '20'}),
-            'mass': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'mchirp': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'minimum_duration': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'snr': ('django.db.models.fields.FloatField', [], {'null': 'True'})
-        },
-        'gracedb.event': {
-            'Meta': {'ordering': "['-id']", 'object_name': 'Event'},
-            'analysisType': ('django.db.models.fields.CharField', [], {'max_length': '20'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'far': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'gpstime': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'}),
-            'group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.Group']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'instruments': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '20'}),
-            'labels': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['gracedb.Label']", 'through': "orm['gracedb.Labelling']", 'symmetrical': 'False'}),
-            'likelihood': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'nevents': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'}),
-            'submitter': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.User']"}),
-            'uid': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '20'})
-        },
-        'gracedb.eventlog': {
-            'Meta': {'ordering': "['-created']", 'object_name': 'EventLog'},
-            'comment': ('django.db.models.fields.TextField', [], {}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.Event']"}),
-            'filename': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'issuer': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.User']"})
-        },
-        'gracedb.group': {
-            'Meta': {'object_name': 'Group'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'managers': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['gracedb.User']", 'symmetrical': 'False'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '20'})
-        },
-        'gracedb.label': {
-            'Meta': {'object_name': 'Label'},
-            'defaultColor': ('django.db.models.fields.CharField', [], {'default': "'black'", 'max_length': '20'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '20'})
-        },
-        'gracedb.labelling': {
-            'Meta': {'object_name': 'Labelling'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'creator': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.User']"}),
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.Event']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'label': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.Label']"})
-        },
-        'gracedb.multiburstevent': {
-            'Meta': {'ordering': "['-id']", 'object_name': 'MultiBurstEvent', '_ormbases': ['gracedb.Event']},
-            'amplitude': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'bandwidth': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'central_freq': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'confidence': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'duration': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'event_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['gracedb.Event']", 'unique': 'True', 'primary_key': 'True'}),
-            'false_alarm_rate': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'ifos': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '20'}),
-            'ligo_angle': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'ligo_angle_sig': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'ligo_axis_dec': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'ligo_axis_ra': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'peak_time': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'}),
-            'peak_time_ns': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'}),
-            'snr': ('django.db.models.fields.FloatField', [], {'null': 'True'}),
-            'start_time': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'}),
-            'start_time_ns': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'})
-        },
-        'gracedb.slot': {
-            'Meta': {'unique_together': "(('event', 'name'),)", 'object_name': 'Slot'},
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['gracedb.Event']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'value': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        'gracedb.user': {
-            'Meta': {'ordering': "['name']", 'object_name': 'User'},
-            'dn': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'principal': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'unixid': ('django.db.models.fields.CharField', [], {'max_length': '25'})
-        }
-    }
-
-    complete_apps = ['gracedb']
+    operations = [
+        migrations.CreateModel(
+            name='Approval',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('approvingCollaboration', models.CharField(max_length=1, choices=[(b'L', b'LIGO'), (b'V', b'Virgo')])),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EMBBEventLog',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('N', models.IntegerField()),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('instrument', models.CharField(max_length=200, blank=True)),
+                ('footprintID', models.TextField(blank=True)),
+                ('waveband', models.CharField(max_length=25, choices=[(b'em.gamma', b'Gamma rays part of the spectrum'), (b'em.gamma.soft', b'Soft gamma ray (120 - 500 keV)'), (b'em.gamma.hard', b'Hard gamma ray (>500 keV)'), (b'em.X-ray', b'X-ray part of the spectrum'), (b'em.X-ray.soft', b'Soft X-ray (0.12 - 2 keV)'), (b'em.X-ray.medium', b'Medium X-ray (2 - 12 keV)'), (b'em.X-ray.hard', b'Hard X-ray (12 - 120 keV)'), (b'em.UV', b'Ultraviolet part of the spectrum'), (b'em.UV.10-50nm', b'Ultraviolet between 10 and 50 nm'), (b'em.UV.50-100nm', b'Ultraviolet between 50 and 100 nm'), (b'em.UV.100-200nm', b'Ultraviolet between 100 and 200 nm'), (b'em.UV.200-300nm', b'Ultraviolet between 200 and 300 nm'), (b'em.UV.FUV', b'Far-Infrared, 30-100 microns'), (b'em.opt', b'Optical part of the spectrum'), (b'em.opt.U', b'Optical band between 300 and 400 nm'), (b'em.opt.B', b'Optical band between 400 and 500 nm'), (b'em.opt.V', b'Optical band between 500 and 600 nm'), (b'em.opt.R', b'Optical band between 600 and 750 nm'), (b'em.opt.I', b'Optical band between 750 and 1000 nm'), (b'em.IR', b'Infrared part of the spectrum'), (b'em.IR.NIR', b'Near-Infrared, 1-5 microns'), (b'em.IR.J', b'Infrared between 1.0 and 1.5 micron'), (b'em.IR.H', b'Infrared between 1.5 and 2 micron'), (b'em.IR.K', b'Infrared between 2 and 3 micron'), (b'em.IR.MIR', b'Medium-Infrared, 5-30 microns'), (b'em.IR.3-4um', b'Infrared between 3 and 4 micron'), (b'em.IR.4-8um', b'Infrared between 4 and 8 micron'), (b'em.IR.8-15um', b'Infrared between 8 and 15 micron'), (b'em.IR.15-30um', b'Infrared between 15 and 30 micron'), (b'em.IR.30-60um', b'Infrared between 30 and 60 micron'), (b'em.IR.60-100um', b'Infrared between 60 and 100 micron'), (b'em.IR.FIR', b'Far-Infrared, 30-100 microns'), (b'em.mm', b'Millimetric part of the spectrum'), (b'em.mm.1500-3000GHz', b'Millimetric between 1500 and 3000 GHz'), (b'em.mm.750-1500GHz', b'Millimetric between 750 and 1500 GHz'), (b'em.mm.400-750GHz', b'Millimetric between 400 and 750 GHz'), (b'em.mm.200-400GHz', b'Millimetric between 200 and 400 GHz'), (b'em.mm.100-200GHz', b'Millimetric between 100 and 200 GHz'), (b'em.mm.50-100GHz', b'Millimetric between 50 and 100 GHz'), (b'em.mm.30-50GHz', b'Millimetric between 30 and 50 GHz'), (b'em.radio', b'Radio part of the spectrum'), (b'em.radio.12-30GHz', b'Radio between 12 and 30 GHz'), (b'em.radio.6-12GHz', b'Radio between 6 and 12 GHz'), (b'em.radio.3-6GHz', b'Radio between 3 and 6 GHz'), (b'em.radio.1500-3000MHz', b'Radio between 1500 and 3000 MHz'), (b'em.radio.750-1500MHz', b'Radio between 750 and 1500 MHz'), (b'em.radio.400-750MHz', b'Radio between 400 and 750 MHz'), (b'em.radio.200-400MHz', b'Radio between 200 and 400 MHz'), (b'em.radio.100-200MHz', b'Radio between 100 and 200 MHz'), (b'em.radio.20-100MHz', b'Radio between 20 and 100 MHz')])),
+                ('ra', models.FloatField(null=True)),
+                ('dec', models.FloatField(null=True)),
+                ('raWidth', models.FloatField(null=True)),
+                ('decWidth', models.FloatField(null=True)),
+                ('gpstime', models.PositiveIntegerField(null=True)),
+                ('duration', models.PositiveIntegerField(null=True)),
+                ('raList', models.TextField(blank=True)),
+                ('decList', models.TextField(blank=True)),
+                ('raWidthList', models.TextField(blank=True)),
+                ('decWidthList', models.TextField(blank=True)),
+                ('gpstimeList', models.TextField(blank=True)),
+                ('durationList', models.TextField(blank=True)),
+                ('eel_status', models.CharField(max_length=2, choices=[(b'FO', b'FOOTPRINT'), (b'SO', b'SOURCE'), (b'CO', b'COMMENT'), (b'CI', b'CIRCULAR')])),
+                ('obs_status', models.CharField(max_length=2, choices=[(b'NA', b'NOT APPLICABLE'), (b'OB', b'OBSERVATION'), (b'TE', b'TEST'), (b'PR', b'PREDICTION')])),
+                ('comment', models.TextField(blank=True)),
+                ('extra_info_dict', models.TextField(blank=True)),
+            ],
+            options={
+                'ordering': ['-created', '-N'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EMFootprint',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('N', models.IntegerField()),
+                ('ra', models.FloatField()),
+                ('dec', models.FloatField()),
+                ('raWidth', models.FloatField()),
+                ('decWidth', models.FloatField()),
+                ('start_time', models.DateTimeField()),
+                ('exposure_time', models.PositiveIntegerField()),
+            ],
+            options={
+                'ordering': ['-N'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EMGroup',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=20)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='EMObservation',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('N', models.IntegerField()),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('ra', models.FloatField(null=True)),
+                ('dec', models.FloatField(null=True)),
+                ('raWidth', models.FloatField(null=True)),
+                ('decWidth', models.FloatField(null=True)),
+                ('comment', models.TextField(blank=True)),
+            ],
+            options={
+                'ordering': ['-created', '-N'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Event',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('instruments', models.CharField(default=b'', max_length=20)),
+                ('nevents', models.PositiveIntegerField(null=True)),
+                ('far', models.FloatField(null=True)),
+                ('likelihood', models.FloatField(null=True)),
+                ('gpstime', models.DecimalField(null=True, max_digits=16, decimal_places=6)),
+                ('perms', models.TextField(null=True)),
+            ],
+            options={
+                'ordering': ['-id'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='CoincInspiralEvent',
+            fields=[
+                ('event_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='gracedb.Event')),
+                ('ifos', models.CharField(default=b'', max_length=20)),
+                ('end_time', models.PositiveIntegerField(null=True)),
+                ('end_time_ns', models.PositiveIntegerField(null=True)),
+                ('mass', models.FloatField(null=True)),
+                ('mchirp', models.FloatField(null=True)),
+                ('minimum_duration', models.FloatField(null=True)),
+                ('snr', models.FloatField(null=True)),
+                ('false_alarm_rate', models.FloatField(null=True)),
+                ('combined_far', models.FloatField(null=True)),
+            ],
+            options={
+            },
+            bases=('gracedb.event',),
+        ),
+        migrations.CreateModel(
+            name='EventLog',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('filename', models.CharField(default=b'', max_length=100)),
+                ('comment', models.TextField()),
+                ('N', models.IntegerField()),
+                ('file_version', models.IntegerField(null=True)),
+            ],
+            options={
+                'ordering': ['-created', '-N'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='GrbEvent',
+            fields=[
+                ('event_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='gracedb.Event')),
+                ('ivorn', models.CharField(max_length=200, null=True)),
+                ('author_ivorn', models.CharField(max_length=200, null=True)),
+                ('author_shortname', models.CharField(max_length=200, null=True)),
+                ('observatory_location_id', models.CharField(max_length=200, null=True)),
+                ('coord_system', models.CharField(max_length=200, null=True)),
+                ('ra', models.FloatField(null=True)),
+                ('dec', models.FloatField(null=True)),
+                ('error_radius', models.FloatField(null=True)),
+                ('how_description', models.CharField(max_length=200, null=True)),
+                ('how_reference_url', models.URLField(null=True)),
+                ('trigger_duration', models.FloatField(null=True)),
+                ('t90', models.FloatField(null=True)),
+            ],
+            options={
+            },
+            bases=('gracedb.event',),
+        ),
+        migrations.CreateModel(
+            name='Group',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=20)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Label',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=20)),
+                ('defaultColor', models.CharField(default=b'black', max_length=20)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Labelling',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('creator', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='MultiBurstEvent',
+            fields=[
+                ('event_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='gracedb.Event')),
+                ('ifos', models.CharField(default=b'', max_length=20)),
+                ('start_time', models.PositiveIntegerField(null=True)),
+                ('start_time_ns', models.PositiveIntegerField(null=True)),
+                ('duration', models.FloatField(null=True)),
+                ('peak_time', models.PositiveIntegerField(null=True)),
+                ('peak_time_ns', models.PositiveIntegerField(null=True)),
+                ('central_freq', models.FloatField(null=True)),
+                ('bandwidth', models.FloatField(null=True)),
+                ('amplitude', models.FloatField(null=True)),
+                ('snr', models.FloatField(null=True)),
+                ('confidence', models.FloatField(null=True)),
+                ('false_alarm_rate', models.FloatField(null=True)),
+                ('ligo_axis_ra', models.FloatField(null=True)),
+                ('ligo_axis_dec', models.FloatField(null=True)),
+                ('ligo_angle', models.FloatField(null=True)),
+                ('ligo_angle_sig', models.FloatField(null=True)),
+            ],
+            options={
+            },
+            bases=('gracedb.event',),
+        ),
+        migrations.CreateModel(
+            name='Pipeline',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=100)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Search',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=100)),
+                ('description', models.TextField(blank=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='SimInspiralEvent',
+            fields=[
+                ('event_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='gracedb.Event')),
+                ('mass1', models.FloatField(null=True)),
+                ('mass2', models.FloatField(null=True)),
+                ('eta', models.FloatField(null=True)),
+                ('amp_order', models.IntegerField(null=True)),
+                ('coa_phase', models.FloatField(null=True)),
+                ('mchirp', models.FloatField(null=True)),
+                ('spin1y', models.FloatField(null=True)),
+                ('spin1x', models.FloatField(null=True)),
+                ('spin1z', models.FloatField(null=True)),
+                ('spin2x', models.FloatField(null=True)),
+                ('spin2y', models.FloatField(null=True)),
+                ('spin2z', models.FloatField(null=True)),
+                ('geocent_end_time', models.IntegerField(null=True)),
+                ('geocent_end_time_ns', models.IntegerField(null=True)),
+                ('end_time_gmst', models.FloatField(null=True)),
+                ('f_lower', models.FloatField(null=True)),
+                ('f_final', models.FloatField(null=True)),
+                ('distance', models.FloatField(null=True)),
+                ('latitude', models.FloatField(null=True)),
+                ('longitude', models.FloatField(null=True)),
+                ('polarization', models.FloatField(null=True)),
+                ('inclination', models.FloatField(null=True)),
+                ('theta0', models.FloatField(null=True)),
+                ('phi0', models.FloatField(null=True)),
+                ('waveform', models.CharField(default=b'', max_length=50, blank=True)),
+                ('numrel_mode_min', models.IntegerField(null=True)),
+                ('numrel_mode_max', models.IntegerField(null=True)),
+                ('numrel_data', models.CharField(default=b'', max_length=50, blank=True)),
+                ('source', models.CharField(default=b'', max_length=50, blank=True)),
+                ('taper', models.CharField(default=b'', max_length=50, blank=True)),
+                ('bandpass', models.IntegerField(null=True)),
+                ('alpha', models.FloatField(null=True)),
+                ('beta', models.FloatField(null=True)),
+                ('psi0', models.FloatField(null=True)),
+                ('psi3', models.FloatField(null=True)),
+                ('alpha1', models.FloatField(null=True)),
+                ('alpha2', models.FloatField(null=True)),
+                ('alpha3', models.FloatField(null=True)),
+                ('alpha4', models.FloatField(null=True)),
+                ('alpha5', models.FloatField(null=True)),
+                ('alpha6', models.FloatField(null=True)),
+                ('g_end_time', models.IntegerField(null=True)),
+                ('g_end_time_ns', models.IntegerField(null=True)),
+                ('h_end_time', models.IntegerField(null=True)),
+                ('h_end_time_ns', models.IntegerField(null=True)),
+                ('l_end_time', models.IntegerField(null=True)),
+                ('l_end_time_ns', models.IntegerField(null=True)),
+                ('t_end_time', models.IntegerField(null=True)),
+                ('t_end_time_ns', models.IntegerField(null=True)),
+                ('v_end_time', models.IntegerField(null=True)),
+                ('v_end_time_ns', models.IntegerField(null=True)),
+                ('eff_dist_g', models.FloatField(null=True)),
+                ('eff_dist_h', models.FloatField(null=True)),
+                ('eff_dist_l', models.FloatField(null=True)),
+                ('eff_dist_t', models.FloatField(null=True)),
+                ('eff_dist_v', models.FloatField(null=True)),
+                ('source_channel', models.CharField(default=b'', max_length=50, blank=True)),
+                ('destination_channel', models.CharField(default=b'', max_length=50, blank=True)),
+            ],
+            options={
+            },
+            bases=('gracedb.event',),
+        ),
+        migrations.CreateModel(
+            name='SingleInspiral',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('ifo', models.CharField(max_length=20, null=True)),
+                ('search', models.CharField(max_length=20, null=True)),
+                ('channel', models.CharField(max_length=20)),
+                ('end_time', models.IntegerField(null=True)),
+                ('end_time_ns', models.IntegerField(null=True)),
+                ('end_time_gmst', models.FloatField(null=True)),
+                ('impulse_time', models.IntegerField(null=True)),
+                ('impulse_time_ns', models.IntegerField(null=True)),
+                ('template_duration', models.FloatField(null=True)),
+                ('event_duration', models.FloatField(null=True)),
+                ('amplitude', models.FloatField(null=True)),
+                ('eff_distance', models.FloatField(null=True)),
+                ('coa_phase', models.FloatField(null=True)),
+                ('mass1', models.FloatField(null=True)),
+                ('mass2', models.FloatField(null=True)),
+                ('mchirp', models.FloatField(null=True)),
+                ('mtotal', models.FloatField(null=True)),
+                ('eta', models.FloatField(null=True)),
+                ('kappa', models.FloatField(null=True)),
+                ('chi', models.FloatField(null=True)),
+                ('tau0', models.FloatField(null=True)),
+                ('tau2', models.FloatField(null=True)),
+                ('tau3', models.FloatField(null=True)),
+                ('tau4', models.FloatField(null=True)),
+                ('tau5', models.FloatField(null=True)),
+                ('ttotal', models.FloatField(null=True)),
+                ('psi0', models.FloatField(null=True)),
+                ('psi3', models.FloatField(null=True)),
+                ('alpha', models.FloatField(null=True)),
+                ('alpha1', models.FloatField(null=True)),
+                ('alpha2', models.FloatField(null=True)),
+                ('alpha3', models.FloatField(null=True)),
+                ('alpha4', models.FloatField(null=True)),
+                ('alpha5', models.FloatField(null=True)),
+                ('alpha6', models.FloatField(null=True)),
+                ('beta', models.FloatField(null=True)),
+                ('f_final', models.FloatField(null=True)),
+                ('snr', models.FloatField(null=True)),
+                ('chisq', models.FloatField(null=True)),
+                ('chisq_dof', models.IntegerField(null=True)),
+                ('bank_chisq', models.FloatField(null=True)),
+                ('bank_chisq_dof', models.IntegerField(null=True)),
+                ('cont_chisq', models.FloatField(null=True)),
+                ('cont_chisq_dof', models.IntegerField(null=True)),
+                ('sigmasq', models.FloatField(null=True)),
+                ('rsqveto_duration', models.FloatField(null=True)),
+                ('Gamma0', models.FloatField(null=True)),
+                ('Gamma1', models.FloatField(null=True)),
+                ('Gamma2', models.FloatField(null=True)),
+                ('Gamma3', models.FloatField(null=True)),
+                ('Gamma4', models.FloatField(null=True)),
+                ('Gamma5', models.FloatField(null=True)),
+                ('Gamma6', models.FloatField(null=True)),
+                ('Gamma7', models.FloatField(null=True)),
+                ('Gamma8', models.FloatField(null=True)),
+                ('Gamma9', models.FloatField(null=True)),
+                ('spin1x', models.FloatField(null=True)),
+                ('spin1y', models.FloatField(null=True)),
+                ('spin1z', models.FloatField(null=True)),
+                ('spin2x', models.FloatField(null=True)),
+                ('spin2y', models.FloatField(null=True)),
+                ('spin2z', models.FloatField(null=True)),
+                ('event', models.ForeignKey(to='gracedb.Event')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Tag',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=100)),
+                ('displayName', models.CharField(max_length=200, null=True)),
+                ('eventlogs', models.ManyToManyField(to='gracedb.EventLog')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='VOEvent',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('ivorn', models.CharField(default=b'', max_length=200)),
+                ('filename', models.CharField(default=b'', max_length=100)),
+                ('file_version', models.IntegerField(null=True)),
+                ('N', models.IntegerField()),
+                ('voevent_type', models.CharField(max_length=2, choices=[(b'PR', b'preliminary'), (b'IN', b'initial'), (b'UP', b'update'), (b'RE', b'retraction')])),
+                ('event', models.ForeignKey(to='gracedb.Event')),
+                ('issuer', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'ordering': ['-created', '-N'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AlterUniqueTogether(
+            name='voevent',
+            unique_together=set([('event', 'N')]),
+        ),
+        migrations.AddField(
+            model_name='labelling',
+            name='event',
+            field=models.ForeignKey(to='gracedb.Event'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='labelling',
+            name='label',
+            field=models.ForeignKey(to='gracedb.Label'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='eventlog',
+            name='event',
+            field=models.ForeignKey(to='gracedb.Event'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='eventlog',
+            name='issuer',
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='eventlog',
+            unique_together=set([('event', 'N')]),
+        ),
+        migrations.AddField(
+            model_name='event',
+            name='group',
+            field=models.ForeignKey(to='gracedb.Group'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='event',
+            name='labels',
+            field=models.ManyToManyField(to='gracedb.Label', through='gracedb.Labelling'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='event',
+            name='pipeline',
+            field=models.ForeignKey(to='gracedb.Pipeline'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='event',
+            name='search',
+            field=models.ForeignKey(to='gracedb.Search', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='event',
+            name='submitter',
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='emobservation',
+            name='event',
+            field=models.ForeignKey(to='gracedb.Event'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='emobservation',
+            name='group',
+            field=models.ForeignKey(to='gracedb.EMGroup'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='emobservation',
+            name='submitter',
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='emobservation',
+            unique_together=set([('event', 'N')]),
+        ),
+        migrations.AddField(
+            model_name='emfootprint',
+            name='observation',
+            field=models.ForeignKey(to='gracedb.EMObservation'),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='emfootprint',
+            unique_together=set([('observation', 'N')]),
+        ),
+        migrations.AddField(
+            model_name='embbeventlog',
+            name='event',
+            field=models.ForeignKey(to='gracedb.Event'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='embbeventlog',
+            name='group',
+            field=models.ForeignKey(to='gracedb.EMGroup'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='embbeventlog',
+            name='submitter',
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='embbeventlog',
+            unique_together=set([('event', 'N')]),
+        ),
+        migrations.AddField(
+            model_name='approval',
+            name='approvedEvent',
+            field=models.ForeignKey(to='gracedb.Event'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='approval',
+            name='approver',
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            preserve_default=True,
+        ),
+    ]

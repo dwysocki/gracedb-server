@@ -148,7 +148,7 @@ INSTALLED_APPS = (
     'userprofile',
     'ligoauth',
     'rest_framework',
-    'south',
+#    'south',
     'guardian',
 )
 
