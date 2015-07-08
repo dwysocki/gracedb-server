@@ -74,6 +74,12 @@
         {% if object.t90 %}
 		<tr><th>T90</th><td colspan="2">{{object.t90}}</td></tr>
         {% endif %}
+        {% if object.redshift %}
+		<tr><th>Redshift</th><td colspan="2">{{object.redshift}}</td></tr>
+        {% endif %}
+        {% if object.designation %}
+		<tr><th>Event designation</th><td colspan="2">{{object.designation}}</td></tr>
+        {% endif %}
 		<tr><th>Location</th><th>Coord System</th><td>{{object.coord_system}}</td></tr>
 		<tr><td></td><th width="150px">RA</th><td>{{object.ra}}</td></tr>
 		<tr><td></td><th>Dec</th><td>{{object.dec}}</td></tr>
@@ -86,6 +92,14 @@
 <form action="{% url "modify_t90" object.graceid %}" method="post">
     <input type="text" name="t90" value="{{ object.t90 }}">
     <input type="submit" value="Update T90" class="t90ButtonClass">
+</form>
+<form action="{% url "modify_t90" object.graceid %}" method="post">
+    <input type="text" name="redshift" value="{{ object.redshift }}">
+    <input type="submit" value="Update redshift" class="t90ButtonClass">
+</form>
+<form action="{% url "modify_t90" object.graceid %}" method="post">
+    <input type="text" name="designation" value="{{ object.designation }}">
+    <input type="submit" value="Update designation" class="t90ButtonClass">
 </form>
 </div>
 {% endif %}

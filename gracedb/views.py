@@ -838,26 +838,38 @@ def emobservation_entry(request, event, num=None):
     else:
         return HttpResponseBadRequest("This URL only supports POST.")
 
+#
+# Despite the name, this view function will handle updates to all of the 
+# hand-entered GRB data, including t90, redshift, and event designation.
+#
 @event_and_auth_required
 def modify_t90(request, event):
     if not request.method=='POST':
-        msg = 'Modify_permissions only allows POST.'
+        msg = 'This URL only allows POST.'
         return HttpResponseBadRequest(msg)
     if not isinstance(event, GrbEvent):
-        msg = 'Modify_t90 only works on GrbEvent objects.'
+        msg = 'This method only works on GrbEvent objects.'
         return HttpResponseBadRequest(msg)
     if not request.user.has_perm('gracedb.t90_grbevent'):
-        msg = "You aren't authorized to create permission objects."
+        msg = "You aren't authorized to modify GRB attributes."
         return HttpResponseForbidden(msg)
 
-    t90 = request.POST.get('t90', None)
-    if not t90:
-        msg = 'Modify_t90 requires t90 value in POST.'
+    designation = request.POST.get('designation', None)
+    redshift    = request.POST.get('redshift', None)
+    t90         = request.POST.get('t90', None)
+
+    if not (t90 or designation or redshift):
+        msg = 'This method requires one of: designation, redshift, or t90 in POST.'
         return HttpResponseBadRequest(msg)
 
-    event.t90 = t90
+    if t90:
+        event.t90 = t90
+    elif redshift:
+        event.redshift = redshift
+    elif designation:
+        event.designation = designation
     event.save()
-
+    
     # Finished. Redirect back to the event.
     return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
 

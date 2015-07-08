@@ -788,6 +788,8 @@ class GrbEvent(Event):
     how_reference_url = models.URLField(null=True)
     trigger_duration = models.FloatField(null=True)
     t90 = models.FloatField(null=True)
+    designation = models.CharField(max_length=20, null=True)
+    redshift = models.FloatField(null=True)
 
 class CoincInspiralEvent(Event):
     ifos             = models.CharField(max_length=20, default="")
