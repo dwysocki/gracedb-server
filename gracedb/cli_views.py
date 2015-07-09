@@ -32,7 +32,7 @@ def cli_search(request):
             if objects.count() > 1000:
                 return HttpResponseBadRequest("Too many events.")
             xmldoc = assembleLigoLw(objects)
-            response = HttpResponse(mimetype='application/xml')
+            response = HttpResponse(content_type='application/xml')
             response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
             utils.write_fileobj(xmldoc, response)
             return response
@@ -66,7 +66,7 @@ def cli_search(request):
         d = {'error': ""}
         for key in form.errors:
             d['error'] += "%s: %s\n" % (key, strip_tags(form.errors[key]))
-    response = HttpResponse(mimetype='application/javascript')
+    response = HttpResponse(content_type='application/javascript')
     msg = json.dumps(d)
     response['Content-length'] = len(msg)
     response.write(msg)
@@ -85,7 +85,7 @@ def cli_label(request):
     d = create_label(event, labelName, request.user, doXMPP=doxmpp)
 
     msg = str(d)
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
     response.write(msg)
     response['Content-length'] = len(msg)
 
@@ -103,7 +103,7 @@ def cli_tag(request):
 
     event.add_tag(tagname)
     msg = str({})
-    response = HttpResponse(mimetype='application/json')
+    response = HttpResponse(content_type='application/json')
     response.write(msg)
     response['Content-length'] = len(msg)
 
@@ -116,7 +116,7 @@ def ping(request):
 
     from templatetags.timeutil import utc
     if 'cli_version' in request.POST:
-        response = HttpResponse(mimetype='application/json')
+        response = HttpResponse(content_type='application/json')
         d = {'output': ack}
         if 'extended' in request.POST:
             latest = Event.objects.order_by("-id")[0]
@@ -129,7 +129,7 @@ def ping(request):
         response['Content-length'] = len(d)
     else:
         # Old client
-        response = HttpResponse(mimetype='text/plain')
+        response = HttpResponse(content_type='text/plain')
         response.write(ack)
         response['Content-length'] = len(ack)
     return response
@@ -153,7 +153,7 @@ def upload(request):
         return _createLog(request, graceid, comment, uploadedfile)
 
     # else: old, old client
-    response = HttpResponse(mimetype='text/plain')
+    response = HttpResponse(content_type='text/plain')
     # uploadedFile.{name/chunks()}
     try:
         event = graceid and Event.getByGraceid(graceid)
@@ -189,7 +189,7 @@ def upload(request):
         except Exception, e:
             msg = "ERROR: could not save file " + fname + " " + str(e)
             log.delete()
-    response = HttpResponse(mimetype='text/plain')
+    response = HttpResponse(content_type='text/plain')
     response.write(msg)
     response['Content-length'] = len(msg)
     return response
@@ -212,7 +212,7 @@ def log(request):
         return _createLog(request, graceid, message)
 
     # old, old client only
-    response = HttpResponse(mimetype='text/plain')
+    response = HttpResponse(content_type='text/plain')
     try:
         event = graceid and Event.getByGraceid(graceid)
     except Event.DoesNotExist:
@@ -231,7 +231,7 @@ def log(request):
         except:
             msg = "ERROR: problem creating log entry"
 
-    response = HttpResponse(mimetype='text/plain')
+    response = HttpResponse(content_type='text/plain')
     response.write(msg)
     response['Content-length'] = len(msg)
     return response
