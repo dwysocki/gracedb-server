@@ -31,7 +31,7 @@ ALERT_XMPP_SERVERS = ["lvalert.cgca.uwm.edu"]
 #LVALERT_SEND_EXECUTABLE = '/usr/bin/lvalert_send'
 LVALERT_SEND_EXECUTABLE = '/home/gracedb/djangoenv/bin/lvalert_send'
 
-USE_LVALERT_OVERSEER = False
+USE_LVALERT_OVERSEER = True
 
 # For each lvalert server, a separate instance of the lvalert_overseer
 # must be running and listening on a distinct port. 
@@ -359,6 +359,13 @@ LOGGING = {
             'level':'DEBUG',
             'class':'django.utils.log.NullHandler',
         },
+        'info_file': {
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'formatter': 'simple',
+            'filename': '%s/gracedb_info.log' % LOG_ROOT,
+            'when': 'midnight',
+            'backupCount' : 10,
+        },
         'performance_file': {
             'class': 'logging.FileHandler',
             'formatter': 'simple',
@@ -370,6 +377,11 @@ LOGGING = {
             'handlers': ['null'],
             'propagate': True,
             'level': 'INFO',
+        },
+        'gracedb': {
+            'handlers': ['info_file'],
+            'propagate': True,
+            'level' : 'INFO',
         },
         'middleware': {
             'handlers': ['performance_file'],
