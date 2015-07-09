@@ -31,6 +31,8 @@ from forms import CreateEventForm
 from permission_utils import user_has_perm, filter_events_for_user
 from guardian.models import GroupObjectPermission
 
+from throttles import EventCreationThrottle, AnnotationThrottle
+
 from alert import issueAlertForUpdate
 from buildVOEvent import buildVOEvent, VOEventBuilderException
 
@@ -384,6 +386,7 @@ class EventList(APIView):
     permission_classes = (IsAuthenticated,IsAuthorizedForPipeline)
     parser_classes = (parsers.MultiPartParser,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LigoLwRenderer, TSVRenderer,)
+    throttle_classes = (EventCreationThrottle,)
 
     def get(self, request, *args, **kwargs):
 
@@ -729,6 +732,7 @@ class EventLogList(APIView):
     """
     authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
+    throttle_classes = (AnnotationThrottle,)
 
     @event_and_auth_required
     def get(self, request, event):
@@ -847,6 +851,7 @@ class EMBBEventLogList(APIView):
     """
     authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
+    throttle_classes = (AnnotationThrottle,)
 
     @event_and_auth_required
     def get(self, request, event):
@@ -917,6 +922,7 @@ class EMObservationList(APIView):
     """
     authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
+    throttle_classes = (AnnotationThrottle,)
 
     @event_and_auth_required
     def get(self, request, event):
@@ -1667,6 +1673,7 @@ class VOEventList(APIView):
     """
     authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
+    throttle_classes = (AnnotationThrottle,)
 
     @event_and_auth_required
     def get(self, request, event):

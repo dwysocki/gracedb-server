@@ -105,6 +105,13 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
+
 # SkyAlert
 
 SKYALERT_IVORN_PATTERN = "ivo://gwnet/gcn_sender#%s"
@@ -305,7 +312,11 @@ INSTALLED_APPS = (
 )
 
 REST_FRAMEWORK = {
-    'PAGINATE_BY': 10
+    'PAGINATE_BY': 10,
+    'DEFAULT_THROTTLE_RATES': {
+        'event_creation': '5/second',
+        'annotation'    : '10/second',
+    },
 }
 
 
