@@ -206,8 +206,8 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
                 #executable="/usr/bin/lvalert_send",
                 executable=settings.LVALERT_SEND_EXECUTABLE,
                 stdin=PIPE,
-                stdout=null,
-                stderr=STDOUT,
+                stdout=PIPE,
+                stderr=PIPE,
                 env=env)
 
             out, err = p.communicate(msg)
