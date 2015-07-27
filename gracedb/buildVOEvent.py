@@ -69,6 +69,8 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
 
     if event.search and event.search.name == 'MDC':
         v.set_role("test")
+    elif event.group.name == 'Test':
+        v.set_role("test")
     else:
         v.set_role("observation")
     if voevent_type != 'retraction':
