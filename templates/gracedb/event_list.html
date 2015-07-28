@@ -13,22 +13,15 @@
 <link rel="stylesheet" type="text/css" media="screen"
       href="{{STATIC_URL}}css/jqgrid/theme/ui.all.css"/>
 
-<!--
-<link rel="stylesheet" type="text/css" media="screen"
-      href="{{STATIC_URL}}css/jqgrid/ui-lightness/jquery-ui-1.7.2.custom.css"/>
--->
-
 <link rel="stylesheet" type="text/css" media="screen"
       href="{{STATIC_URL}}css/jqgrid/ui.jqgrid.css"/>
+
+<link rel="stylesheet" href="{{STATIC_URL}}css/labeltips.css">
 
 <script src="{{STATIC_URL}}js/jquery-1.3.2.min.js" type="text/javascript"></script>
 <script src="{{STATIC_URL}}js/grid.locale-en.js" type="text/javascript"></script>
 <script src="{{STATIC_URL}}js/jquery.jqGrid.min.js" type="text/javascript"></script>
 <script src="{{STATIC_URL}}js/jquery-ui-1.7.2.custom.min.js" type="text/javascript"></script>
-
-
-<script src="{{STATIC_URL}}js/labeltips.js" type="text/javascript"></script>
-<link rel="stylesheet" href="{{STATIC_URL}}css/labeltips.css">
 
     <script type="text/javascript">
     <!--
@@ -48,20 +41,24 @@
             (
             {
             sortable: true,
+            {% if get_neighbors %}
+            url: '{% url "search" %}flex?query={{rawquery|urlencode}}&get_neighbors=true',
+            {% else %}
             url: '{% url "search" %}flex?query={{rawquery|urlencode}}',
+            {% endif %}
             datatype: 'json',
             mtype: "GET",
-            colNames : ["UID", "Labels", "Neighbors (+/-5sec)", "Group", "Pipeline", "Search", "Event Time", "Instruments", "FAR (Hz)", "Links", "Submitted", "Submitted By",
+            colNames : ["UID", "Labels", {% if get_neighbors %} "Neighbors (+/-5sec)", {% endif %} "Group", "Pipeline", "Search", "Event Time", "Instruments", "FAR (Hz)", "Links", "Submitted", "Submitted By",
                        ],
             colModel : [
                {name : 'id',     index: 'id', width : 50, sortable : true, align: 'left', hidden: false},
                {name : 'labels', index: 'labels', width : 70, sortable : false, align: 'left'},
+               {% if get_neighbors %}
                {name : 'neighbors', index: 'neighbors', width : 100, sortable : false, align: 'left'},
+               {% endif %}
                {name : 'group',  index: 'group', width : 50, sortable : false, align: 'left', hidden: true},
                {name : 'pipeline',  index: 'pipeline', width : 50, sortable : false, align: 'left', hidden: true},
                {name : 'search',  index: 'search', width : 50, sortable : false, align: 'left', hidden: true},
-//               {name : 'analysisType', index: 'analysisType', width : 70, sortable : true, align: 'right', hide: false},
-
                {name : 'gpstime', index: 'gpstime', width : 90, sortable : true, align: 'right'},
                {name : 'instruments', index: 'instruments', width : 50, sortable : true, align: 'right', hidden: false},
                {name : 'far', index: 'far', width : 80, sortable : true, align: 'right', hidden: false},
@@ -99,17 +96,14 @@
     </script>
 {% endblock %}
 
-
 {% block content %}
 <p>{{ message }}</p>
-
-{% for field in form %}
-{% endfor %}
 
 {% if form %}
     <form action="{{ formAction }}" method="POST">
     <table>
         {{ form.as_table }}
+        <tr><td/><td><input type="Submit" value="Search" class="searchButtonClass"></td>
         <tr><td/>
             <td>
                 <a onClick="toggle_visibility('hints');">Hints on querying</a>
@@ -124,56 +118,7 @@
     </form>
 {% endif %}
 
-{% if false %}
-{% if object_list.count %}
-<table class="event">
-    <thead>
-    <tr>
-            <th width="100">UID</th>
-            <th width="100">Labels</th>
-            <th width="100">Group</th>
-            <th width="100">Pipeline</th>
-            <th width="100">Search</th>
-            <th width="100">
-                Event Time
-            </th>
-            <th width="100">Links</th>
-            <th width="100">
-                Submitted
-            </th>
-    </tr>
-    </thead>
-
-    <tbody>
-{% for obj in object_list %}
-    <tr class={% cycle 'odd' 'even' %}>
-        <td><a href="{% url "view" obj.graceid %}">{{ obj.graceid }}</a></td>
-        <td>
-             {% for labelling in obj.labelling_set.all %}
-                <span onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.name}}', '{{labelling.created|utc}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
-             {% endfor %}
-        </td>
-        <td>{{ obj.group.name }} </td>
-        <td>{{ obj.pipeline.name }} </td>
-        <td>{{ obj.search.name }} </td>
-        <td>{% if obj.gpstime%}
-                {{ obj.gpstime }}
-            {% endif %}
-        </td>
-	<td><a href="{{ obj.weburl }}">Data</a></td>
-        <td>{{ obj.created }}</td>
-    </tr>
-{% endfor %}
-    </tbody>
-</table>
-{% else %}
-    <h3>No Events.</h3>
-{% endif %}
-{% endif %}
-
-
 <table id="flex1"></table>
 <div id="pager1"></div>
-
 
 {% endblock %}

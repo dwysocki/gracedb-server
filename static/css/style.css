@@ -99,6 +99,17 @@ table.figures {width:300px;height:270px;border:1px solid gray; display: inline-b
     border-bottom: none;
 }
 
+.searchButtonClass {
+    border: none;
+    border-bottom: none;
+    background-image: none;
+    background-repeat: no-repeat;
+    background-color: rgb(200, 200, 200);
+    cursor: pointer;
+    font: x-small "Lucida Grande", "Lucida Sans Unicode", geneva, verdana, sans-serif;
+    font-size: 110%;
+}
+
 .t90ButtonClass {
     /* font: x-small "Lucida Grande", "Lucida Sans Unicode", geneva, verdana, sans-serif; */
     font-weight: bold;

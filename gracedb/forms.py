@@ -37,6 +37,7 @@ class GraceQueryField(forms.CharField):
 
 class SimpleSearchForm(forms.Form):
     query = GraceQueryField(required=False, widget=forms.TextInput(attrs={'size':60})) 
+    get_neighbors = forms.BooleanField(required=False)
 
 class CreateEventForm(forms.Form):
     groupChoices = [("","")]+[(g.name, g.name) for g in Group.objects.all()]
@@ -77,3 +78,4 @@ class EventSearchForm(forms.Form):
     submitter = forms.ChoiceField(choices=submitterChoices, required=False)
 
     labels = forms.MultipleChoiceField(choices=labelChoices, required=False)
+    get_neighbors = forms.BooleanField(required=False)

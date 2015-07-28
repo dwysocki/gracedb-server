@@ -6,10 +6,6 @@ from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 
-# Upgrade to Django 1.5: No more function-based generic views.
-#from django.views.generic.list_detail import object_list
-from django.views.generic.list import ListView
-
 from models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
 from models import EMGroup
 from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
@@ -340,6 +336,7 @@ def search(request, format=""):
             rawquery = request.POST['query']
         if form.is_valid():
             objects = form.cleaned_data['query']
+            get_neighbors = form.cleaned_data['get_neighbors']
 
             # Filter objects according to user permissions.
             # NOTE: This is bad. Creates a complete list of pks to which the user has 
@@ -380,44 +377,23 @@ def search(request, format=""):
                 return response
 
             else:
-                #objects = objects[:limit]
-                #if objects.count() >= limit:
-                #    request.session['flash_msg'] = \
-                #        "Number of events in results exceeds maximum (%s) allowed." % limit
+                # XXX FIXME Use this instead.
+                # count = objects.count()
                 if objects.count() == 1:
                     title = "Query Results. %s event" % objects.count()
                 else:
                     title = "Query Results. %s events" % objects.count()
-                # XXX This seems like a hacky misuse of generic views.
-                # In Django 1.3 and earlier, things were simpler:
-                #
-                # return object_list(request, objects, extra_context=context)
-                # 
-                # But with for compatibility, with Django 1.6, this becomes:
-                class EventListView(ListView):
-                    queryset = objects
-                    template_name = "gracedb/event_list.html"
 
-                    def dispatch(self, request, *args, **kwargs):
-                        # NOTE: We have to hack around the handler selector, because
-                        # the actual request might have been a POST.
-                        handler = getattr(self, 'get', self.http_method_not_allowed)
-                        return handler(request, *args, **kwargs)
-
-                    # This is how to get the extra context in, according to the django docs.
-                    def get_context_data(self, **kwargs):
-                        context = super(EventListView, self).get_context_data(**kwargs)
-                        # Insert the extra context.
-                        context.update({
-                            'title'      : title,
-                            'form'       : form,
-                            'formAction' : reverse(search),
-                            'maxCount'   : limit,
-                            'rawquery'   : rawquery,
-                        })
-                        return context
-
-                return EventListView.as_view()(request)
+                context = {
+                            'title'         : title,
+                            'form'          : form,
+                            'formAction'    : reverse(search),
+                            'maxCount'      : limit,
+                            'rawquery'      : rawquery,
+                            'get_neighbors' : get_neighbors,
+                }
+                return render_to_response('gracedb/event_list.html',
+                    context, context_instance=RequestContext(request))
 
     return render_to_response('gracedb/query.html',
             { 'form' : form,
@@ -441,6 +417,7 @@ def oldsearch(request):
             labels = form.cleaned_data['labels']
             gpsStart =  form.cleaned_data['gpsStart']
             gpsEnd =  form.cleaned_data['gpsEnd']
+            get_neighbors = form.cleaned_data['get_neighbors']
 
             textQuery = []
 
@@ -527,36 +504,15 @@ def oldsearch(request):
 
             textQuery = " ".join(textQuery)
             simple_form = SimpleSearchForm({'query': textQuery})
-
-            # XXX This seems like a hacky misuse of generic views.
-            # In Django 1.3 and earlier, things were simpler:
-            #
-            # return object_list(request, objects, extra_context=context)
-            # 
-            # But with for compatibility, with Django 1.6, this becomes:
-            class EventListView(ListView):
-                queryset = objects
-                template_name = "gracedb/event_list.html"
-
-                def dispatch(self, request, *args, **kwargs):
-                    # NOTE: We have to hack around the handler selector, because
-                    # the actual request might have been a POST.
-                    handler = getattr(self, 'get', self.http_method_not_allowed)
-                    return handler(request, *args, **kwargs)
-
-                # This is how to get the extra context in, according to the django docs.
-                def get_context_data(self, **kwargs):
-                    context = super(EventListView, self).get_context_data(**kwargs)
-                    # Insert the extra context.
-                    context.update({
-                        'title'      : title,
-                        'form'       : simple_form,
-                        'maxCount'   : MAX_QUERY_RESULTS,
-                        'rawquery'   : textQuery,
-                    })
-                    return context
-
-            return EventListView.as_view()(request)
+            context = {
+                'title'         : title,
+                'form'          : simple_form,
+                'maxCount'      : MAX_QUERY_RESULTS,
+                'rawquery'      : textQuery,
+                'get_neighbors' : get_neighbors,
+            }
+            return render_to_response('gracedb/event_list.html',
+                context, context_instance=RequestContext(request))
 
 
     return render_to_response('gracedb/query.html',

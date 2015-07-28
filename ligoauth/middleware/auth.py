@@ -160,7 +160,7 @@ class LigoAuthMiddleware:
                 return response
             return render_to_response(
                     'forbidden.html',
-                    {'error': message},
+                    {'error': message}, status=403,
                     context_instance=RequestContext(request))
 
 class RemoteUserBackend(DefaultRemoteUserBackend):

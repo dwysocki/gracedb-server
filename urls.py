@@ -55,3 +55,12 @@ urlpatterns = patterns('',
         {'document_root': settings.MEDIA_ROOT}),
 
 )
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns += patterns('',
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    )
+    urlpatterns += patterns('',
+        url(r'^__debug__/data/(?P<cache_key>\d+\.\d+)/$', 'debug_panel.views.debug_data', name='debug_data'),
+    )

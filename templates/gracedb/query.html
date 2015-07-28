@@ -5,7 +5,7 @@ onload="document.search_form.query.focus();"
 {% endblock %}
 
 {% block title %}Search{% endblock %}
-{% block heading %}Search{% endblock %}
+{% block heading %}{% endblock %} 
 {% block pageid %}search{% endblock %}
 
 {% block jscript %}
@@ -26,7 +26,27 @@ onload="document.search_form.query.focus();"
 
 <form method="POST" name="search_form">
   <table>
-    {{ form.as_table }}
+   {{ form.as_table }}
+    <tr><td/><td><input type="Submit" value="Search" class="searchButtonClass"></td>
+    <!-- XXX this is very annoying. Need the tooltip stuff if you're going to try to use this.
+    <tr>
+        <th>
+            <label for="id_query">Query:</label> 
+        </th>
+        <td>
+            <input id="id_query" name="query" size="60" type="text" />
+        </td>
+        <td>
+            <label for="id_get_neighbors"><span onmouseover="tooltip.show(tooltiptext('retrieve neighbors for each event in search results (warning: slows down queries)'));" onmouseout="tooltip.hide();">Show neighbors:</span></label>
+        </td>
+        <td>
+            <input id="id_get_neighbors" name="get_neighbors" type="checkbox" />
+        </td>
+    </tr>
+    {# if form.query.errors #}
+    <tr> <td/> <td> {{ form.query.errors.as_text|safe }} </td> </tr>
+    {# endif #}
+    -->
     <tr><td/><td><a onClick="toggle_visibility('hints');">Hints on querying</a></td>
     </tr>
     <tr><td/><td>{% include "gracedb/query_help_frag.html" %}</td></tr>

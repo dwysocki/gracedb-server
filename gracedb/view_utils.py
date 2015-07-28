@@ -593,6 +593,11 @@ def flexigridResponse(request, objects):
     page = int(request.GET.get('page', 1))      # get the requested page
     rp = int(request.GET.get('rows', 10))       # get how many rows we want to have into the grid
 
+    get_neighbors = request.GET.get('get_neighbors', False) # whether to retrieve the neighbors
+
+    # select related objects to reduce the number of queries.
+    objects = objects.select_related('group', 'pipeline', 'search', 'submitter')
+
     if sortname:
         if sortorder == "desc":
             sortname = "-" + sortname
@@ -618,19 +623,11 @@ def flexigridResponse(request, objects):
         else:
             search_name = ''
 
-        rows.append(
-            { 'id' : object.id,
-              'cell': [ '<a href="%s">%s</a>' %
+        cell_values = [ '<a href="%s">%s</a>' %
                             (django_reverse("view", args=[object.graceid()]), object.graceid()),
                          #Labels
                         " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();"  style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name)
                                 for label in object.labelling_set.all()]),
-                        # Links to neighbors
-                        ', '.join([
-                            '<a href="%s">%s</a>' %
-                            (django_reverse("view", args=[n.graceid()]), n.graceid())
-                            for n in object.neighbors()
-                        ]),
                         object.group.name,
                         object.pipeline.name,
                         search_name,
@@ -650,6 +647,15 @@ def flexigridResponse(request, objects):
                         "%s %s" % (object.submitter.first_name, object.submitter.last_name)
 
                       ]
+
+        if get_neighbors:
+            # Links to neighbors
+            cell_values.insert(2, ', '.join([ '<a href="%s">%s</a>' %
+                (django_reverse("view", args=[n.graceid()]), n.graceid()) for n in object.neighbors()]))
+
+        rows.append(
+            { 'id' : object.id,
+              'cell': cell_values,
             }
         )
     d = {

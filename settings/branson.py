@@ -2,6 +2,7 @@ CONFIG_NAME = "Branson"
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+DEBUG_TOOLBAR_PATH_SETTINGS = False
 
 DATABASES = {
     'default' : {
@@ -13,6 +14,22 @@ DATABASES = {
             'init_command' : 'SET storage_engine=MYISAM',
         },
     }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+
+    },
+    # this cache backend will be used by django-debug-panel
+    'debug-panel': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/tmp/debug-panel-cache',
+        'OPTIONS': {
+            'MAX_ENTRIES': 200
+        }
+    },
 }
 
 #MEDIA_URL = "/branson-static/"
@@ -71,8 +88,6 @@ UPTIME_REPORT_DIR = "/home/branson/new_fake_data/uptime"
 # Rate file location
 RATE_INFO_FILE = "/home/branson/new_fake_data/rate_info.json"
 
-#SITE_ID = 1
-
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
@@ -86,31 +101,30 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-#    'django.contrib.auth.middleware.AuthenticationMiddleware',
-#    'ligodjangoauth.LigoShibbolethMiddleware',
     'ligoauth.middleware.auth.LigoAuthMiddleware',
-    'maintenancemode.middleware.MaintenanceModeMiddleware',
-#    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    #'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'debug_panel.middleware.DebugPanelMiddleware',
+    'middleware.profiling.ProfileMiddleware',
 ]
 
-#INSTALLED_APPS = (
-#    'django.contrib.auth',
-#    'django.contrib.admin',
-#    'django.contrib.contenttypes',
-#    'django.contrib.sessions',
-#    'django.contrib.sites',
-#    'django.contrib.staticfiles',
-#    'gracedb',
-#    'userprofile',
-#    'ligoauth',
-#    'rest_framework',
-#    'south',
-##    'debug_toolbar',
-#)
+INSTALLED_APPS = (
+    'django.contrib.auth',
+    'django.contrib.admin',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.staticfiles',
+    'gracedb',
+    'userprofile',
+    'ligoauth',
+    'rest_framework',
+    'guardian',
+    'debug_toolbar',
+    'debug_panel',
+)
 
-#INTERNAL_IPS = (
-#    '129.89.61.55',
-#)
+INTERNAL_IPS = (
+    '129.89.57.83',
+)
 
 
 # Settings for Logging.
