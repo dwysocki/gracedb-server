@@ -9,6 +9,8 @@ import json
 
 import logging
 
+from utils import gpsToUtc
+
 # These imports can be fragile, so they should be brought in only
 # if use of the LVAlert overseer is really intended.
 if settings.USE_LVALERT_OVERSEER:
@@ -26,9 +28,20 @@ def indent(nindent, text):
     return "\n".join([(nindent*' ')+line for line in text.split('\n')])
 
 def prepareSummary(event):
-    # XXX TBD what exactly this summary is.
-    return "GPS Time: %s" % event.gpstime
-
+    gpstime = event.gpstime
+    utctime = gpsToUtc(gpstime).strftime("%Y-%m-%d %H:%M:%S")
+    instruments = getattr(event, 'instruments', "")
+    summary_template = """
+    Event Time (GPS): %s 
+    Event Time (UTC): %s
+    Instruments: %s """
+    summary = summary_template % (gpstime, utctime, instruments)
+    si_set = event.singleinspiral_set.all()
+    if si_set.count():
+        si = si_set[0]
+        summary += """
+    Component masses: %.2f, %.2f """ % (si.mass1, si.mass2)
+    return summary
 
 # The serialized object passed in here will normally be an EventLog or EMBB log entry
 def issueAlertForUpdate(event, description, doxmpp, filename="", serialized_object=None):
