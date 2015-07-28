@@ -646,10 +646,13 @@ require([
                     if (imgLogs.length) {
                         var figContainerId = tag_name + '_figure_container';
                         var figDiv = put(paneContentsNode, 'div#' + figContainerId);
-                        var figRow = put(figDiv, 'table.figure_container tr');
+                        // Instead of living in a table row, the figures will now just be placed
+                        // directly into the div, in inline blocks.
+                        //var figRow = put(figDiv, 'table.figure_container tr');
                         for (j=0; j<imgLogs.length; j++) {
                             var log = imgLogs[j];
-                            var figTabInner = put(figRow, 'td table.figures'); 
+                            //var figTabInner = put(figRow, 'td table.figures'); 
+                            var figTabInner = put(figDiv, 'table.figures'); 
                             var figA = put(figTabInner, 'tr.figrow img[height="180"][src=$]', log.file); 
                             new dojox.image.LightboxNano({href: log.file}, figA); 
                             var figComment = put(figTabInner, 'tr td');
@@ -657,9 +660,8 @@ require([
                             figComment.innerHTML += ' <a href="' + log.file + '">' + log.filename + '.</a> ';
                             figComment.innerHTML += 'Submitted by ' + log.issuer.display_name + ' on ' + log.created;
                         }
-                        // Put the figures in a scrolling pane in case there are too many to display horizontally
-                        var sp = new dojox.layout.ScrollPane({ orientation: "horizontal", style: "overflow: hidden;" },
-                            figContainerId);
+                        // XXX Have commented out the scroll pane at Patrick's request.
+                        // var sp = new dojox.layout.ScrollPane({ orientation: "horizontal", style: "overflow: hidden;" }, figContainerId); 
 
                     }
 

@@ -28,7 +28,7 @@ table.gstlalcbc th {padding:3px;border:none;vertical-align:bottom;}
 }
 
 table.figures tr.figrow  {text-align:center;} 
-table.figures {width:300px;height:270px;border:1px solid gray;}
+table.figures {width:300px;height:270px;border:1px solid gray; display: inline-block; margin: 4px;}
 
 /*  This was trying to style the title pane buttons. Doesn't work anymore.
 .tundra.eventDetail .pmTitlePaneClass .dijitOpen .dijitArrowNode {
