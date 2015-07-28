@@ -20,7 +20,7 @@ WEB_PAGE_FILE_PATH = settings.LATENCY_REPORT_WEB_PAGE_FILE_PATH
 URL_PREFIX = settings.REPORT_INFO_URL_PREFIX
 
 # XXX Branson introduced during ER6 to clean things up a bit.
-PIPELINE_EXCLUDE_LIST = ['HardwareInjection', 'X', 'Q', 'Omega', 'Ringdown', 'LIB',]
+PIPELINE_EXCLUDE_LIST = ['HardwareInjection', 'X', 'Q', 'Omega', 'Ringdown', 'LIB', 'SNEWS', 'pycbc', 'CWB2G']
 
 class Command(NoArgsCommand):
     help = "I am the HISTOGRAM MAKER!"

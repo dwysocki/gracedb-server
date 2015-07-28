@@ -99,33 +99,37 @@ function toggle(id) {
 <br/>
 <br/>
 
+<!-- XXX Commenting out the IFAR stuff 
 <a name="ifar" href="javascript:toggle('ifar');"><h3>CBC IFAR</h3></a>
 
 <div id="ifar" style="display:none;">
-{% if ifar %}
-    {% for chart in ifar %}
+{# if ifar #}
+    {# for chart in ifar #}
         <img src="{{url_prefix}}{{ chart }}"><br/>
-    {% endfor %}
-{% else %}
+    {# endfor #}
+{# else #}
      No IFAR charts.
-{% endif %}
+{# endif #}
 </div>
 
 <br/>
 <br/>
+-->
 
+<!-- XXX Commenting out the uptime stuff 
 <a name="uptime" href="javascript:toggle('uptime');"><h3>Gracedb Uptime</h3></a>
 
 <div id="uptime" style="display: none;">
-{% if uptime %}
+{# if uptime #}
     {{ uptime|safe }}
-{% else %}
+{# else #}
      No uptime charts.
-{% endif %}
+{# endif #}
 </div>
 
 <br/>
 <br/>
+-->
 
 <a name="rate" href="javascript:toggle('rate');"><h3>Submission Rates</h3></a>
 

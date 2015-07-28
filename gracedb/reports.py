@@ -1,5 +1,4 @@
 
-from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.template import RequestContext
 from django.shortcuts import render_to_response
@@ -10,11 +9,9 @@ from gracedb.permission_utils import filter_events_for_user
 from gracedb.permission_utils import internal_user_required
 from django.db.models import Q
 
-import os, json
-
 from django.core.urlresolvers import reverse
 
-from models import CoincInspiralEvent ,SingleInspiral
+from models import CoincInspiralEvent
 from forms import SimpleSearchForm
 from query import parseQuery
 
@@ -40,22 +37,23 @@ def histo(request):
     except IOError:
         table = None
 
-    # IFAR tables.
+    # XXX Getting rid of the IFAR calculation here. The dynamic CBC reports page is more
+    # relevant anyway.
+    #files = [ f for (_,_,_,f) in settings.REPORTS_IFAR ]
 
-    files = [ f for (_,_,_,f) in settings.REPORTS_IFAR ]
+    #ifar = []
+    #for name in files:
+    #    fname = os.path.join(settings.REPORT_IFAR_IMAGE_DIR, name)
+    #    if os.access(fname, os.R_OK):
+    #        ifar.append(name)
 
-    ifar = []
-    for name in files:
-        fname = os.path.join(settings.REPORT_IFAR_IMAGE_DIR, name)
-        if os.access(fname, os.R_OK):
-            ifar.append(name)
-
-    # Uptime table.
-    try:
-        uptime = open(settings.UPTIME_REPORT_DIR + "/ytd.html", "r").read()
-    except IOError:
-        uptime = None
-
+    # XXX The old nagios scraping code no longer works. It scrapes sentry anyway, instead
+    # of dashboard.ligo.org. Anyway, the reports page here isn't really the place for this
+    # kind of information.
+    #try:
+    #    uptime = open(settings.UPTIME_REPORT_DIR + "/ytd.html", "r").read()
+    #except IOError:
+    #    uptime = None
 
     # Rate information
     try:
@@ -66,8 +64,8 @@ def histo(request):
     return render_to_response(
             'gracedb/histogram.html',
             {'table': table,
-             'ifar' : ifar,
-             'uptime' : uptime,
+             #'ifar' : ifar,
+             #'uptime' : uptime,
              #'rate' : json.dumps(rate_data(request)),
              'rate' : rate_info,
              'url_prefix' : settings.REPORT_INFO_URL_PREFIX,
@@ -228,7 +226,7 @@ def cbc_report(request, format=""):
         eN = numpy.linspace(1, 1000 * len(ifars), 1000 * len(ifars)) / 1000.
         expected_ifars = lt / eN
 
-        up = eN + eN**.5
+        #up = eN + eN**.5
         down = eN - eN**.5
         down[down < 0.9] = 0.9
 
