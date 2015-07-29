@@ -645,3 +645,11 @@ def populateGrbEventFromVOEventFile(filename, event):
     except:
         pass
     event.trigger_duration = trigger_duration
+
+    # try to find a trigger_id value
+    trigger_id = None
+    try:
+        trigger_id = findParam(v, '', 'TrigID').get_value()
+    except:
+        pass
+    event.trigger_id = trigger_id

@@ -790,6 +790,7 @@ class GrbEvent(Event):
     t90 = models.FloatField(null=True)
     designation = models.CharField(max_length=20, null=True)
     redshift = models.FloatField(null=True)
+    trigger_id = models.CharField(max_length=25, null=True)
 
 class CoincInspiralEvent(Event):
     ifos             = models.CharField(max_length=20, default="")

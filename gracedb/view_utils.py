@@ -150,6 +150,9 @@ def eventToDict(event, columns=None, request=None):
               "how_reference_url" : event.how_reference_url,
               "T90" : event.t90,
               "trigger_duration": event.trigger_duration,
+              "designation": event.designation,
+              "redshift": event.redshift,
+              "trigger_id": event.trigger_id,
               }
     except:
         pass

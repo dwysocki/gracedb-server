@@ -68,6 +68,9 @@
 				{{object.how_description}}
 {% endif %}
 		</td></tr>
+        {% if object.trigger_id %}
+		<tr><th>Trigger ID</th><td colspan="2">{{object.trigger_id}}</td></tr>
+        {% endif %}
         {% if object.trigger_duration %}
 		<tr><th>Trigger duration</th><td colspan="2">{{object.trigger_duration}}</td></tr>
         {% endif %}
