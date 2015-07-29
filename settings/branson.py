@@ -103,7 +103,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'ligoauth.middleware.auth.LigoAuthMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
-    'debug_panel.middleware.DebugPanelMiddleware',
+    #'debug_panel.middleware.DebugPanelMiddleware',
     'middleware.profiling.ProfileMiddleware',
 ]
 
@@ -118,8 +118,8 @@ INSTALLED_APPS = (
     'ligoauth',
     'rest_framework',
     'guardian',
-    'debug_toolbar',
-    'debug_panel',
+    #'debug_toolbar',
+    #'debug_panel',
 )
 
 INTERNAL_IPS = (
