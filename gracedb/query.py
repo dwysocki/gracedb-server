@@ -55,7 +55,7 @@ hasfarQ = CaselessLiteral("hasfar")
 hasfarQ.setParseAction(lambda toks: ("hasfar", Q(far__isnull=False)))
 
 # GPS Times
-gpstime = Word(nums).setName("GPS time")
+gpstime = Word(nums+'.').setName("GPS time")
 gpstimeRange = (gpstime + Suppress("..") + gpstime).setName("GPS time range")
 
 gpsQ = Optional(Suppress(Keyword("gpstime:"))) + (gpstime^gpstimeRange)
