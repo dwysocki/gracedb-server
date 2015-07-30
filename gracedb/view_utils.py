@@ -1,5 +1,5 @@
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.core.urlresolvers import reverse as django_reverse
 from django.utils import dateformat
 from django.utils.html import escape, urlize
@@ -17,6 +17,10 @@ from templatetags.scientific import scientific
 
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
+
+# The maximum number of rows to be returned by flexigridResponse
+# in the event that the user asks for all of them.
+MAX_FLEXI_ROWS = 250
 
 GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 
@@ -606,19 +610,30 @@ def flexigridResponse(request, objects):
             sortname = "-" + sortname
         objects = objects.order_by(sortname)
 
-    start = (page-1) * rp
-    rows = []
     total = objects.count()
+    rows = []
+    if rp > -1:
+        start = (page-1) * rp
 
-    if total:
-        total_pages = (total / rp) + 1
+        if total:
+            total_pages = (total / rp) + 1
+        else:
+            total_pages = 0
+
+        if page > total_pages:
+            page = total_pages
+        
+        end = start+rp
     else:
-        total_pages = 0
+        start = 0
+        total_pages = 1
+        page = 1
+        end = total-1
 
-    if page > total_pages:
-        page = total_pages
+        if total > MAX_FLEXI_ROWS:
+            return HttpResponseBadRequest("Too many rows! Please try loading a smaller number.")
 
-    for object in objects[start:start+rp]:
+    for object in objects[start:end]:
         event_times = timeSelections(object.gpstime)
         created_times = timeSelections(object.created)
         if object.search:
