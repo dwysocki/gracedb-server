@@ -662,6 +662,48 @@ def file_list(request, event):
 # log messages.) If the action is 'protect', both of these
 # permissions are removed for the group in question.
 #
+
+def update_event_perms_for_group(event, group, action):
+    # Get the content type out
+    model_name = event.__class__.__name__.lower()
+    ctype = ContentType.objects.get(app_label='gracedb', model=model_name)
+
+    # Get the two relevant permissions.
+    view = Permission.objects.get(codename='view_%s' % model_name)
+    change = Permission.objects.get(codename='change_%s' % model_name)
+
+    # Decide what to do
+    if action=='expose':
+        # Create two group object permissions
+        GroupObjectPermission.objects.get_or_create(
+            content_type=ctype, group=group, permission=view,
+            object_pk=event.id)
+        GroupObjectPermission.objects.get_or_create(
+            content_type=ctype, group=group, permission=change,
+            object_pk=event.id)
+    elif action=='protect':
+        # Retrieve both group object permissions
+        # Delete them
+        try:
+            gop = GroupObjectPermission.objects.get(
+                content_type=ctype, group=group, permission=change,
+                object_pk=event.id)
+            gop.delete()
+        except GroupObjectPermission.DoesNotExist:
+            # Couldn't find it. Take no action.
+            pass
+        try:
+            gop = GroupObjectPermission.objects.get(
+                content_type=ctype, group=group, permission=view,
+                object_pk=event.id)
+            gop.delete()
+        except GroupObjectPermission.DoesNotExist:
+            # Couldn't find it. Take no action.
+            pass
+
+    # lastly 
+    event.refresh_perms()
+
 @event_and_auth_required
 def modify_permissions(request, event):
     # Get group_name and action from POST
@@ -685,6 +727,9 @@ def modify_permissions(request, event):
         if not request.user.has_perm('guardian.delete_groupobjectpermission'):
             msg = "You aren't authorized to delete permission objects."
             return HttpResponseForbidden(msg)
+    else:
+        msg = "Unknown action. Choices are 'expose' and 'protect'."
+        return HttpResponseBadRequest(msg)
 
     # Get the group
     try:
@@ -692,45 +737,13 @@ def modify_permissions(request, event):
     except Group.DoesNotExist:
         return HttpResponseNotFound('Group not found')
 
-    # Get the content type out
-    model_name = event.__class__.__name__.lower()
-    ctype = ContentType.objects.get(app_label='gracedb', model=model_name)
+    update_event_perms_for_group(event, g, action)
 
-    # Get the two relevant permissions.
-    view = Permission.objects.get(codename='view_%s' % model_name)
-    change = Permission.objects.get(codename='change_%s' % model_name)
-
-    # Decide what to do
-    if action=='expose':
-        # Create two group object permissions
-        GroupObjectPermission.objects.get_or_create(
-            content_type=ctype, group=g, permission=view,
-            object_pk=event.id)
-        GroupObjectPermission.objects.get_or_create(
-            content_type=ctype, group=g, permission=change,
-            object_pk=event.id)
-    elif action=='protect':
-        # Retrieve both group object permissions
-        # Delete them
-        try:
-            gop = GroupObjectPermission.objects.get(
-                content_type=ctype, group=g, permission=change,
-                object_pk=event.id)
-            gop.delete()
-        except GroupObjectPermission.DoesNotExist:
-            # Couldn't find it. Take no action.
-            pass
-        try:
-            gop = GroupObjectPermission.objects.get(
-                content_type=ctype, group=g, permission=view,
-                object_pk=event.id)
-            gop.delete()
-        except GroupObjectPermission.DoesNotExist:
-            # Couldn't find it. Take no action.
-            pass
-    else:
-        msg = "Unknown action. Choices are 'expose' and 'protect'."
-        return HttpResponseBadRequest(msg)
+    # In case this is a subclass, let's check and assign default
+    # perms on the underlying Event as well.
+    if not type(event) is Event:
+        underlying_event = Event.objects.get(id=event.id)
+        update_event_perms_for_group(underlying_event, g, action)
 
     # Finished. Redirect back to the event.
     return HttpResponseRedirect(reverse("view", args=[event.graceid()]))

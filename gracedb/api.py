@@ -1329,7 +1329,30 @@ class GroupEventPermissionDetail(APIView):
                 object_pk=event.id, 
                 group=group,
                 permission=permission)        
+            event.refresh_perms()
             # Add this gop to the return dictionary
+
+            # XXX if the event is a subclass, we need to create perms on the
+            # underlying event as well.
+            # XXX Is this bad? It sort of feels like a side-effect.
+            if not type(event) is Event:
+                # how to get the permission object?
+                shortname = permission.codename.split('_')[0]
+                underlying_event = Event.objects.get(id=event.id)
+                underlying_model = underlying_event.__class__.__name__.lower()
+                codename = shortname + '_' + underlying_model
+                try:
+                    underlying_permission = Permission.objects.get(codename=codename)
+                except Permission.DoesNotExist:
+                    msg = "Problem creating permission: Could not find underlying event perm."
+                    return Response(msg, status = status.HTTP_500_INTERNAL_SERVER_ERROR) 
+                ugop, ucreated = GroupObjectPermission.objects.get_or_create(
+                    content_type=getContentType(underlying_event),
+                    object_pk=underlying_event.id, 
+                    group=group,
+                    permission=underlying_permission)        
+                underlying_event.refresh_perms()
+
         except Exception, e:
             # We're gonna blame the user here.
             return Response("Problem creating permission: %" % str(e), 
@@ -1362,10 +1385,38 @@ class GroupEventPermissionDetail(APIView):
                 object_pk=event.id, 
                 group=group,
                 permission=permission)        
+            gop.delete()
+            event.refresh_perms()
+
+            # XXX if the event is a subclass, we need to delete perms on the
+            # underlying event as well.
+            # XXX Is this bad? It sort of feels like a side-effect.
+            if not type(event) is Event:
+                # how to get the permission object?
+                shortname = permission.codename.split('_')[0]
+                underlying_event = Event.objects.get(id=event.id)
+                underlying_model = underlying_event.__class__.__name__.lower()
+                codename = shortname + '_' + underlying_model
+                try:
+                    underlying_permission = Permission.objects.get(codename=codename)
+                except Permission.DoesNotExist:
+                    msg = "Problem creating permission: Could not find underlying event perm."
+                    return Response(msg, status = status.HTTP_500_INTERNAL_SERVER_ERROR) 
+                ugop = GroupObjectPermission.objects.get(
+                    content_type=getContentType(underlying_event),
+                    object_pk=underlying_event.id, 
+                    group=group,
+                    permission=underlying_permission)        
+                ugop.delete()
+                underlying_event.refresh_perms()
+           
         except GroupObjectPermission.DoesNotExist:
             return Response("GroupObjectPermission not found.", 
                 status=status.HTTP_404_NOT_FOUND)
-        gop.delete()
+        except Exception, e:
+            return Response("Problem deleting permission: %s" % str(e), 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         rv = {'message': 'Permission successfully deleted.'}
         return Response(rv, status=status.HTTP_200_OK)            
 
