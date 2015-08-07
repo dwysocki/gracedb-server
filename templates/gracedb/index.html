@@ -50,5 +50,20 @@ follow-ups. </p>
 
 </div>
 
+<!--XXX Infrastructure for human signoffs. Hopefully this will not be permanent. -->
+{% if signoff_authorized %}
+    {%if signoff_graceids|length %}
+    <div class="signoff-area">
+        <h2>Attention {{signoff_instrument}} Operator</h2>
+        <p> The following events require your sign-off: </p>
+        <ul>
+        {% for graceid in signoff_graceids %}
+            <li> <a href="{% url "view" graceid %}">{{ graceid }}</a></li> 
+        {% endfor %} 
+        </ul>
+        <p> Please click on the link(s) above and use the form at the top of the page. </p>            
+    </div>
+    {% endif %}
+{% endif %}
 
 {% endblock %}

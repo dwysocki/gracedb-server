@@ -1096,3 +1096,17 @@ class VOEvent(models.Model):
             # in the views that use it and give an informative error message.
             raise Exception("Too many attempts to save log message. Something is wrong.")
 
+INSTRUMENTS = ( ('H1', 'LHO'), ('L1', 'LLO'), ('V1', 'Virgo') )
+OPERATOR_STATUSES = ( ('OK', 'OKAY'), ('NO', 'NOT OKAY') )
+class OperatorSignoff(models.Model):
+    class Meta:
+        unique_together = ("event","instrument")
+    submitter = models.ForeignKey(DjangoUser)
+    event = models.ForeignKey(Event)
+    instrument = models.CharField(max_length=2, choices=INSTRUMENTS)
+    status = models.CharField(max_length=2, choices=OPERATOR_STATUSES, blank=False)
+    comment = models.TextField(blank=True)
+
+    def __unicode__(self):
+        return "%s | %s | %s" % (self.event.graceid(), self.instrument, self.status)
+

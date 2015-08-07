@@ -132,6 +132,18 @@ def gpsdate(gpstime, format=FORMAT):
     return dateformat.format(gpsToUtc(gpstime), format)
 
 @register.filter
+def gpsdate_tz(gpstime, label="utc"):
+    format = FORMAT
+    dt = gpsToUtc(gpstime)
+    if label=='lho':
+        dt = dt.astimezone(LHO_TZ)
+    elif label=='llo':
+        dt = dt.astimezone(LLO_TZ)
+    elif label=='virgo':
+        dt = dt.astimezone(VIRGO_TZ)
+    return dateformat.format(dt, format)
+
+@register.filter
 def gpstime(dt):
     if not dt.tzinfo:
         dt = SERVER_TZ.localize(dt)

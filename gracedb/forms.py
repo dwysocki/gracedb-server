@@ -3,9 +3,10 @@ from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from models import Event, Group, Label
-from models import Pipeline, Search
+from models import Pipeline, Search, OperatorSignoff
 from django.contrib.auth.models import User
 from django.core.exceptions import FieldError
+from django.forms import ModelForm
 
 from query import parseQuery
 from pyparsing import ParseException
@@ -79,3 +80,8 @@ class EventSearchForm(forms.Form):
 
     labels = forms.MultipleChoiceField(choices=labelChoices, required=False)
     get_neighbors = forms.BooleanField(required=False)
+
+class OperatorSignoffForm(ModelForm):
+    class Meta:
+        model = OperatorSignoff
+        fields = [ 'status', 'comment' ] 

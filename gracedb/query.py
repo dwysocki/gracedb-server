@@ -181,7 +181,7 @@ createdQ = createdQ.setParseAction(maybeRange("created"))
 
 # Labels
 # XXX should we not get these from the DB?
-labelNames = ["DQV", "INJ", "LUMIN_NO", "LUMIN_GO", "SWIFT_NO", "SWIFT_GO", "EM_READY", "cWB_r","cWB_s"]
+labelNames = ["DQV", "INJ", "LUMIN_NO", "LUMIN_GO", "SWIFT_NO", "SWIFT_GO", "EM_READY", "cWB_r","cWB_s", "H1OPS", "L1OPS", "V1OPS"]
 label = Or([CaselessLiteral(n) for n in labelNames]).\
         setParseAction( lambda toks: Q(labels__name=toks[0]) )
 

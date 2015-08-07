@@ -2,7 +2,7 @@ CONFIG_NAME = "Branson"
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
-DEBUG_TOOLBAR_PATH_SETTINGS = False
+DEBUG_TOOLBAR_PATCH_SETTINGS = False
 
 DATABASES = {
     'default' : {
@@ -45,15 +45,19 @@ GRACEDB_DATA_DIR = "/home/branson/new_fake_data"
 EMAIL_HOST = 'localhost'
 
 ALERT_EMAIL_FROM = "Dev Alert <root@moe.phys.uwm.edu>"
-ALERT_EMAIL_TO = [
-    "Branson Stephens <branson@gravity.phys.uwm.edu>",
-    ]
-ALERT_EMAIL_BCC = ["branson@gravity.phys.uwm.edu"]
-
+#ALERT_EMAIL_TO = [
+#    "Branson Stephens <branson@gravity.phys.uwm.edu>",
+#    ]
+#ALERT_EMAIL_BCC = ["branson@gravity.phys.uwm.edu"]
+#
+#ALERT_TEST_EMAIL_FROM = "Dev Test Alert <root@moe.phys.uwm.edu>"
+#ALERT_TEST_EMAIL_TO = [
+#    "Branson Stephens <branson@gravity.phys.uwm.edu>",
+#    ]
+ALERT_EMAIL_TO = []
+ALERT_EMAIL_BCC = []
 ALERT_TEST_EMAIL_FROM = "Dev Test Alert <root@moe.phys.uwm.edu>"
-ALERT_TEST_EMAIL_TO = [
-    "Branson Stephens <branson@gravity.phys.uwm.edu>",
-    ]
+ALERT_TEST_EMAIL_TO = []
 ALERT_XMPP_SERVERS = ["lvalert-test.cgca.uwm.edu",]
 LVALERT_SEND_EXECUTABLE = '/home/branson/djangoenv/bin/lvalert_send'
 
@@ -103,7 +107,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'ligoauth.middleware.auth.LigoAuthMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
-    #'debug_panel.middleware.DebugPanelMiddleware',
+    'debug_panel.middleware.DebugPanelMiddleware',
     'middleware.profiling.ProfileMiddleware',
 ]
 
@@ -118,14 +122,19 @@ INSTALLED_APPS = (
     'ligoauth',
     'rest_framework',
     'guardian',
-    #'debug_toolbar',
-    #'debug_panel',
+    'debug_toolbar',
+    'debug_panel',
 )
 
 INTERNAL_IPS = (
     '129.89.57.83',
 )
 
+CONTROL_ROOM_IPS = {
+    'H1': '108.45.69.217',
+#    'L1': '129.2.92.124',
+    'L1': '129.89.57.83',
+}
 
 # Settings for Logging.
 import logging

@@ -24,6 +24,7 @@ from view_utils import fix_old_creation_request
 from view_utils import eventToDict, eventLogToDict, labelToDict
 from view_utils import embbEventLogToDict, voeventToDict
 from view_utils import emObservationToDict, skymapViewerEMObservationToDict
+from view_utils import operatorSignoffToDict
 from view_utils import reverse
 
 from translator import handle_uploaded_data
@@ -1465,6 +1466,9 @@ class GracedbRoot(APIView):
         tag = tag.replace("0", "{n}")
         tag = tag.replace("tagname", "{tagname}")
 
+        operatorsignofflist = reverse("operatorsignoff-list", args=["G1200"], request=request)
+        operatorsignofflist = operatorsignofflist.replace("G1200", "{graceid}")
+
         # XXX Need a template for the tag list?
 
         templates = {
@@ -1478,6 +1482,7 @@ class GracedbRoot(APIView):
                 "filemeta-template" : filemeta,
                 "tag-template" : tag,
                 "taglist-template" : taglist,
+                "operatorsignoff-list-template": operatorsignofflist,
                 }
 
         return Response({
@@ -1834,4 +1839,36 @@ class VOEventDetail(APIView):
             return Response("VOEvent does not exist.",
                     status=status.HTTP_404_NOT_FOUND)
         return Response(voeventToDict(voevent, request=request))
+
+#==================================================================
+# OperatorSignoff 
+
+class OperatorSignoffList(APIView):
+    """Operator Signoff List Resource
+
+    At present, this only supports GET
+    """
+    authentication_classes = (LigoAuthentication,)
+    permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
+    throttle_classes = (AnnotationThrottle,)
+
+    @event_and_auth_required
+    def get(self, request, event):
+        operator_signoff_set = event.operatorsignoff_set.all()
+        count = operator_signoff_set.count()
+
+        operator_signoff = [ operatorSignoffToDict(os)
+                for os in operator_signoff_set.iterator() ]
+
+        rv = {
+                'start': 0,
+                'numRows' : count,
+                'links' : {
+                    'self' : request.build_absolute_uri(),
+                    'first' : request.build_absolute_uri(),
+                    'last' : request.build_absolute_uri(),
+                    },
+                'operator_signoff' : operator_signoff,
+             }
+        return Response(rv)
 

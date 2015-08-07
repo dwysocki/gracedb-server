@@ -526,6 +526,14 @@ def singleInspiralToDict(single_inspiral):
             rv.update({ field_name: value })
     return rv
 
+def operatorSignoffToDict(operator_signoff):
+    return {
+        'submitter':  operator_signoff.submitter.username,
+        'instrument': operator_signoff.instrument,
+        'status':     operator_signoff.status,
+        'comment':    operator_signoff.comment,
+    } 
+
 #---------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------
 # Miscellany

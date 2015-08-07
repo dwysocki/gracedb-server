@@ -345,6 +345,11 @@ SOUTH_TESTS_MIGRATE = False
 # passwords for LVEM scripted access expire after 365 days.
 PASSWORD_EXPIRATION_TIME = timedelta(days=365)
 
+CONTROL_ROOM_IPS = {
+    'H1': '129.89.57.83',
+    'L1': '129.2.92.124',
+}
+
 # XXX The following Log settings are for a performance metric.
 import logging
 LOG_ROOT = '/home/gracedb/logs'

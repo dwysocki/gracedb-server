@@ -21,6 +21,7 @@ from gracedb.api import EventPermissionList
 from gracedb.api import GroupEventPermissionList
 from gracedb.api import GroupEventPermissionDetail
 from gracedb.api import VOEventList, VOEventDetail
+from gracedb.api import OperatorSignoffList
 
 
 urlpatterns = patterns('gracedb.api',
@@ -103,6 +104,11 @@ urlpatterns = patterns('gracedb.api',
     # events/{graceid}/neighbors/[?delta=(N|(N,N))]
     url (r'^events/(?P<graceid>\w[\d]+)/neighbors/$',
         EventNeighbors.as_view(), name="neighbors"),
+
+    # Operator Signoff Resources
+    url (r'events/(?P<graceid>[GEHMT]\d+)/signoff/$',
+        OperatorSignoffList.as_view(), name='operatorsignoff-list'),
+
 
     # Performance stats
     url (r'^performance/$', 

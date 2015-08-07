@@ -62,6 +62,59 @@
 </div>
 {% endif %}
 
+{% if signoff_authorized and signoff_active %}
+    <div class="signoff-area">
+    <h2> {{signoff_instrument}} Operator Signoff </h2>
+    <p> You are seeing this section because you've connected from a machine that, 
+    according to our records, is in the {{signoff_instrument}} control room. 
+    {% if signoff_object %}
+    This event has already been signed off on.
+    Use the form below if you wish to edit or delete the record. </p>
+    <form action="{% url "modify_operator_signoff" object.graceid %}" method="post">
+        <table>
+        <tr><th><label for="id_status">Status:</label></th><td><select id="id_status" name="status">
+        <option value="">---------</option>
+        {% if signoff_object.status == "OK" %}
+        <option value="OK" selected="selected">OKAY</option>
+        <option value="NO">NOT OKAY</option>
+        {% else %}
+        <option value="OK">OKAY</option>
+        <option value="NO" selected="selected">NOT OKAY</option>
+        {% endif %}
+        </select></td></tr>
+        <tr><th><label for="id_comment">Comment:</label></th><td>
+        <textarea cols="40" id="id_comment" name="comment" rows="10"> {{signoff_object.comment}}
+        </textarea></td></tr>
+        <input type="hidden" name="action" value="edit">
+        <tr> <th> Delete </th> <td> <input type="checkbox" name="delete" value="true"> </td> </tr>
+        <tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
+        </table>
+    </form>
+
+    {% else %}
+    This event still requires operator signoff. </p> 
+    <p> Please answer the following (and optionally enter a comment): At the time of the 
+    {% if signoff_instrument == 'H1' %}
+        event ({{ object.gpstime|gpsdate_tz:"lho" }}),
+    {% elif signoff_instrument == 'L1' %}
+        event ({{ object.gpstime|gpsdate_tz:"llo" }}),
+    {% elif signoff_instrument == 'V1' %}
+        event ({{ object.gpstime|gpsdate_tz:"virgo" }}),
+    {% else %}
+        event,
+    {% endif %}
+    was the operating status of the detector basically okay, or not? </p>
+    <form action="{% url "modify_operator_signoff" object.graceid %}" method="post">
+        <table>
+        {{ signoff_form.as_table }}
+        <input type="hidden" name="action" value="create">
+        <tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
+        </table>
+    </form>
+    {% endif %}
+    </div>
+{% endif %}
+
 <div class="content-area">
 {% block basic_info %}
 <h2> Basic Info </h2>

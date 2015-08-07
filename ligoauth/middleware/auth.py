@@ -29,6 +29,14 @@ PUBLIC_URLS = [
     '/DiscoveryService/',
 ]
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
 def cert_dn_from_request(request):
     """Take a request, rummage through SSL_* headers, return the DN for the user."""
     certdn = request.META.get('SSL_CLIENT_S_DN')
@@ -143,6 +151,17 @@ class LigoAuthMiddleware:
 
         request.user = user
 
+        # If the user is connecting from one of the control rooms, add him/her to
+        # the appropriate control room group. But let's not do this if api
+        # is in the path.
+        if user and 'api' not in request.path_info:
+            user_ip = get_client_ip(request)
+            for ifo, ip in settings.CONTROL_ROOM_IPS.iteritems():
+                if ip == user_ip:
+                    group_name = ifo.lower() + '_control_room'
+                    group = Group.objects.get(name=group_name)
+                    group.user_set.add(user)                  
+
         # Check: Is the requested URL allowed for the PUBLIC?
         #if user is None:
         if user is None and request.path_info not in PUBLIC_URLS:
@@ -162,6 +181,19 @@ class LigoAuthMiddleware:
                     'forbidden.html',
                     {'error': message}, status=403,
                     context_instance=RequestContext(request))
+
+    def process_response(self, request, response):
+        # If the user is connecting from one of the control rooms, remove him/her from
+        # the appropriate control room group
+        user = getattr(request, 'user', None)
+        if user:
+            user_ip = get_client_ip(request)
+            for ifo, ip in settings.CONTROL_ROOM_IPS.iteritems():
+                if ip == user_ip:
+                    group_name = ifo.lower() + '_control_room'
+                    group = Group.objects.get(name=group_name)
+                    group.user_set.remove(request.user)                  
+        return response
 
 class RemoteUserBackend(DefaultRemoteUserBackend):
     create_unknown_user = False

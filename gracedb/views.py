@@ -7,8 +7,8 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 
 from models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
-from models import EMGroup
-from forms import CreateEventForm, EventSearchForm, SimpleSearchForm
+from models import EMGroup, OperatorSignoff
+from forms import CreateEventForm, EventSearchForm, SimpleSearchForm, OperatorSignoffForm
 
 from django.contrib.auth.models import User, Permission
 from django.contrib.auth.models import Group as AuthGroup
@@ -22,6 +22,7 @@ from view_logic import get_performance_info
 from view_logic import get_lvem_perm_status
 from view_logic import create_eel
 from view_logic import create_emobservation
+from view_logic import create_label
 from view_utils import assembleLigoLw, get_file
 from view_utils import flexigridResponse, jqgridResponse
 
@@ -63,9 +64,29 @@ def event_and_auth_required(view):
 
 def index(request):
 #   assert request.user
-    return render_to_response(
-            'gracedb/index.html',
-            {},
+    context = {}
+
+    signoff_authorized = False
+    signoff_instrument = None
+    # XXX Note that this may not be the best way to perform the authorization check.
+    # In particular, this assumes that the user can only be a member of one group 
+    # at a time. That should be the case, however, as the control room machines are 
+    # physically well separated and should have different IPs.
+    for group in request.user.groups.all():
+        if '_control_room' in group.name:
+            signoff_authorized = True
+            signoff_instrument = group.name[:2].upper()
+            break
+
+    context['signoff_authorized'] = signoff_authorized
+    context['signoff_instrument'] = signoff_instrument
+
+    if signoff_authorized:
+        label_name = signoff_instrument + 'OPS'
+        events = Event.objects.filter(labelling__label__name=label_name)
+        context['signoff_graceids'] = [e.graceid() for e in events]
+
+    return render_to_response('gracedb/index.html', context,
             context_instance=RequestContext(request))
 
 def navbar_only(request):
@@ -300,6 +321,30 @@ def view(request, event):
 
     if event.pipeline.name in settings.GRB_PIPELINES:
         context['can_modify_t90'] = request.user.has_perm('gracedb.t90_grbevent')
+
+    # Does the user have permission to sign off on the event?
+    signoff_authorized = False
+    # XXX Note that this may not be the best way to perform the authorization check.
+    # In particular, this assumes that the user can only be a member of one group 
+    # at a time. That should be the case, however, as the control room machines are 
+    # physically well separated and should have different IPs.
+    for group in request.user.groups.all():
+        if '_control_room' in group.name:
+            signoff_authorized = True
+            context['signoff_instrument'] = group.name[:2].upper()
+            context['signoff_form'] = OperatorSignoffForm()
+            instrument = group.name[:2].upper()
+            try:
+                context['signoff_object'] = OperatorSignoff.objects.get(event=event, instrument=instrument)
+            except:
+                context['signoff_object'] = None
+            label_name = instrument + 'OPS'
+            label_exists = label_name in [l.label.name for l in event.labelling_set.all()]
+
+            context['signoff_active'] = label_exists or context['signoff_object']
+
+            break
+    context['signoff_authorized'] = signoff_authorized
 
     # Choose your template according to the event's pipeline.
     templates = ['gracedb/event_detail.html',]
@@ -842,6 +887,153 @@ def modify_t90(request, event):
     # Finished. Redirect back to the event.
     return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
 
+# XXX So this should probably be moved into view_logic anyway.
+from alert import issueXMPPAlert
+from view_utils import operatorSignoffToDict
+
+@event_and_auth_required
+def modify_operator_signoff(request, event):
+    # Get group_name and action from POST
+    if not request.method=='POST':
+        msg = 'create_operator_signoff only allows POST.'
+        return HttpResponseBadRequest(msg)
+
+    authorized = False
+    instrument = None
+    # XXX Note that this may not be the best way to perform the authorization check.
+    # In particular, this assumes that the user can only be a member of one group 
+    # at a time. That should be the case, however, as the control room machines are 
+    # physically well separated and should have different IPs.
+    for group in request.user.groups.all():
+        if '_control_room' in group.name:
+            authorized = True
+            instrument = group.name[:2].upper()
+            break
+
+    if not authorized:
+        msg = "You do not appear to be in one of the control rooms."
+        msg += " Therefore, you are not authorized to perform the requested action."
+        return HttpResponseForbidden(msg)      
+
+    action = request.POST.get('action', 'create')
+    label_name = instrument + 'OPS'
+
+    existing = OperatorSignoff.objects.filter(event=event, instrument=instrument)
+    if existing.count() and action=='create':
+        msg = 'Cannot create multiple signoffs for the same event/instrument.'
+        return HttpResponseBadRequest(msg) 
+
+    f = OperatorSignoffForm(request.POST)
+    status = None
+    comment = None
+    if f.is_valid():
+        status = f.cleaned_data['status']
+        comment = f.cleaned_data['comment']
+
+    if action=='create':
+        if status==None:
+            msg = "Please select a valid status."
+            return HttpResponseBadRequest(msg)
+
+        # Create the OperatorSignoff object.
+        os = OperatorSignoff.objects.create(submitter = request.user,
+            event = event, instrument = instrument, 
+            status = status, comment = comment)
+
+        # Remove the signoff label.
+        for l in event.labelling_set.all():
+            if l.label.name == label_name:
+                l.delete()
+
+        # Create a new label.
+        os_label_name = instrument + status
+        create_label(event, os_label_name, request.user, doAlert=False, doXMPP=False)
+
+        # Create a log message
+        msg = "Operator certified %s status as %s" % (instrument, status)
+        if comment:
+            msg += ': %s' % comment
+        logentry = EventLog.objects.create(event=event, issuer=request.user, comment=msg)
+
+        # XXX Ugh. Hardcoding tagname here.
+        # Add a tag to the log message
+        try:
+            tag = Tag.objects.get(name='em_follow')
+            tag.eventlogs.add(logentry)
+        except:
+            pass
+
+        # Issue an alert.
+        issueXMPPAlert(event, location='', alert_type="signoff", description=status, 
+            serialized_object = operatorSignoffToDict(os))
+
+    elif action=='edit':
+        # get the existing object
+        os = None
+        if existing.count():
+            os = existing[0]
+    
+        if not os:
+            msg = 'Could not find existing OperatorSignoff for this event/instrument.'
+            return HttpResponseBadRequest(msg)
+
+        # remove the existing label
+        os_label_name = os.instrument + os.status
+        for l in event.labelling_set.all():
+            if l.label.name == os_label_name:
+                l.delete()
+
+        delete = request.POST.get('delete', None)
+        if delete:
+            # delete the operator signoff object
+            os.delete()
+
+            # also restore the label
+            create_label(event, label_name, request.user)
+
+            # Create a log message
+            msg = "%s operator deleted signoff status" % instrument
+            logentry = EventLog.objects.create(event=event, issuer=request.user, comment=msg)
+
+            # XXX Ugh. Hardcoding tagname here.
+            # Add a tag to the log message
+            try:
+                tag = Tag.objects.get(name='em_follow')
+                tag.eventlogs.add(logentry)
+            except:
+                pass
+        else:
+            if status==None:
+                msg = "Please select a valid status."
+                return HttpResponseBadRequest(msg)
+            # update the values
+            os.status = status
+            os.comment = comment
+            os.save()
+            # Issue an alert.
+            issueXMPPAlert(event, location='', alert_type="signoff", description=status, 
+                serialized_object = operatorSignoffToDict(os))
+
+            # Create a new label.
+            os_label_name = instrument + status
+            create_label(event, os_label_name, request.user, doAlert=False, doXMPP=False)
+
+            # Create a log message
+            msg = "Operator updated %s status as %s" % (instrument, status)
+            if comment:
+                msg += ': %s' % comment
+            logentry = EventLog.objects.create(event=event, issuer=request.user, comment=msg)
+
+            # XXX Ugh. Hardcoding tagname here.
+            # Add a tag to the log message
+            try:
+                tag = Tag.objects.get(name='em_follow')
+                tag.eventlogs.add(logentry)
+            except:
+                pass
+
+    # Finished. Redirect back to the event.
+    return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
 
 #------------------------------------------------------------------------------------------
 # Old Stuff
