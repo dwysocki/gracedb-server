@@ -31,11 +31,13 @@ def prepareSummary(event):
     gpstime = event.gpstime
     utctime = gpsToUtc(gpstime).strftime("%Y-%m-%d %H:%M:%S")
     instruments = getattr(event, 'instruments', "")
+    far = getattr(event, 'far', 1.0)
     summary_template = """
     Event Time (GPS): %s 
     Event Time (UTC): %s
-    Instruments: %s """
-    summary = summary_template % (gpstime, utctime, instruments)
+    Instruments: %s 
+    FAR: %.3E """
+    summary = summary_template % (gpstime, utctime, instruments, far)
     si_set = event.singleinspiral_set.all()
     if si_set.count():
         si = si_set[0]
