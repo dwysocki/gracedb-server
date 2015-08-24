@@ -8,7 +8,7 @@ GraceDB in context
 GraceDB serves as a communications hub and as a database for storing and displaying
 information about candidate events:
 
-.. image:: images/annotations_flow_white.pdf
+.. image:: images/annotations_flow_white.png
 
 The primary responsibilities of GraceDB are to:
 
