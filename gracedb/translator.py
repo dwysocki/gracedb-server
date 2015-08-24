@@ -633,7 +633,7 @@ def populateGrbEventFromVOEventFile(filename, event):
     event.how_reference_url = v.get_How().get_Reference()[0].uri
 
     # try to find a trigger_duration value
-    # Fermi uses Trig_Dur, while Swift uses Integ_Time
+    # Fermi uses Trig_Dur or Data_Integ, while Swift uses Integ_Time
     # One or the other may be present, but not both
     trigger_duration = None
     try:
@@ -642,6 +642,10 @@ def populateGrbEventFromVOEventFile(filename, event):
         pass
     try:
         trigger_duration = findParam(v, '', 'Integ_Time').get_value()
+    except:
+        pass
+    try:
+        trigger_duration = findParam(v, '', 'Data_Integ').get_value()
     except:
         pass
     event.trigger_duration = trigger_duration
