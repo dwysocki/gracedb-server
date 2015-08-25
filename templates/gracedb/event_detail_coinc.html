@@ -17,10 +17,10 @@
 <!-- 5 rows here -->
 <table style="height:364px"> 
     <!-- <tr> <th> ifos </th> <td> {{object.ifos}} </td> </tr>  -->
-    <tr> <th> End Time </th> <td> {{object|end_time:4}} </td> </tr>
+    <tr> <th> End Time (GPS) </th> <td> {{object|end_time:4}}&nbsp;s </td> </tr>
     <!--<tr> <th> end_time_ns </th> <td> {{object.end_time_ns}} </td> </tr> -->
-    <tr> <th> Total Mass </th> <td> {{object.mass|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> Chirp Mass </th> <td> {{object.mchirp|floatformat:"-4"}} </td> </tr>
+    <tr> <th> Total Mass </th> <td> {{object.mass|floatformat:"-4"}}&nbsp;M<sub>&#x2299;</sub> </td> </tr> 
+    <tr> <th> Chirp Mass </th> <td> {{object.mchirp|floatformat:"-4"}}&nbsp;M<sub>&#x2299;</sub> </td> </tr>
     <!--<tr> <th> minimum_duration </th> <td> {{object.minimum_duration|scientific}} </td> </tr>-->
     <tr> <th> SNR </th> <td> {{object.snr|floatformat:"-4"}} </td> </tr> 
     <tr> <th> False Alarm Probability </th> <td> {{object.false_alarm_rate|scientific }} </td> </tr>
@@ -60,9 +60,9 @@
 		{% endfor %}
 	</tr>
 	<tr>
-		<th>End Time</th>
+		<th>End Time (GPS)</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.end_time_full }}</td>
+		<td>{{ e.end_time_full }}&nbsp;s</td>
 		{% endfor %}
 	</tr>
 	<!-- <tr>
@@ -74,7 +74,7 @@
 	<tr>
 		<th>Template Duration</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.template_duration }}</td>
+		<td>{{ e.template_duration }}&nbsp;s</td>
 		{% endfor %}
 	</tr>
 	<!-- <tr>
@@ -92,25 +92,25 @@
 	<tr>
 		<th>Effective Distance</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.eff_distance }}</td>
+		<td>{{ e.eff_distance }}&nbsp;Mpc</td>
 		{% endfor %}
 	</tr>
 	<tr>
 		<th>COA Phase</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.coa_phase }}</td>
+		<td>{{ e.coa_phase }}&nbsp;rad</td>
 		{% endfor %}
 	</tr>
 	<tr>
 		<th>Mass 1</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.mass1 }}</td>
+		<td>{{ e.mass1 }}&nbsp;M<sub>&#x2299;</sub></td>
 		{% endfor %}
 	</tr>
 	<tr>
 		<th>Mass 2</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.mass2 }}</td>
+		<td>{{ e.mass2 }}&nbsp;M<sub>&#x2299;</sub></td>
 		{% endfor %}
 	</tr>
 	<!-- <tr>
@@ -242,7 +242,7 @@
 	<tr>
 		<th>F Final</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.f_final }}</td>
+		<td>{{ e.f_final }}&nbsp;Hz</td>
 		{% endfor %}
 	</tr>
 	<tr>
