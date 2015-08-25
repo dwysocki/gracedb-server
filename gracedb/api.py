@@ -1320,7 +1320,7 @@ class GroupEventPermissionDetail(APIView):
     @group_required
     @event_perm_object_required
     def put(self, request, event, group, permission):
-        if not request.user.has_perm("guardian.groupobjectpermission_add"):
+        if not request.user.has_perm("guardian.add_groupobjectpermission"):
             return HttpResponseForbidden("You don't have permission to change permission objects.")
 
         # Get or create the GroupObjectPermission object
@@ -1376,7 +1376,7 @@ class GroupEventPermissionDetail(APIView):
     @event_perm_object_required
     def delete(self, request, event, group, permission):
 
-        if not request.user.has_perm("guardian.groupobjectpermission_delete"):
+        if not request.user.has_perm("guardian.delete_groupobjectpermission"):
             return HttpResponseForbidden("You don't have permission to change permission objects.")
 
         # Get the GroupObjectPermission object
