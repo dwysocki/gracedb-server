@@ -72,11 +72,12 @@ def index(request):
     # In particular, this assumes that the user can only be a member of one group 
     # at a time. That should be the case, however, as the control room machines are 
     # physically well separated and should have different IPs.
-    for group in request.user.groups.all():
-        if '_control_room' in group.name:
-            signoff_authorized = True
-            signoff_instrument = group.name[:2].upper()
-            break
+    if request.user:
+        for group in request.user.groups.all():
+            if '_control_room' in group.name:
+                signoff_authorized = True
+                signoff_instrument = group.name[:2].upper()
+                break
 
     context['signoff_authorized'] = signoff_authorized
     context['signoff_instrument'] = signoff_instrument
