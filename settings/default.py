@@ -314,7 +314,7 @@ INSTALLED_APPS = (
 REST_FRAMEWORK = {
     'PAGINATE_BY': 10,
     'DEFAULT_THROTTLE_RATES': {
-        'event_creation': '5/second',
+        'event_creation': '1/second',
         'annotation'    : '10/second',
     },
 }
@@ -346,7 +346,7 @@ SOUTH_TESTS_MIGRATE = False
 PASSWORD_EXPIRATION_TIME = timedelta(days=365)
 
 CONTROL_ROOM_IPS = {
-    'H1': '129.89.57.83',
+    'H1': '206.196.186.148',
     'L1': '129.2.92.124',
 }
 
