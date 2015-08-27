@@ -105,7 +105,7 @@ def rate_data():
             series[atype].append( 
                 {
                  "x": ts.strftime("%s"),
-                 "y": Event.objects.filter(q).filter(created__range=(ts, ts+day)).exclude(group__name="Test").count(),
+                 "y": Event.objects.filter(q).filter(created__range=(ts, ts+day)).exclude(group__name="Test").exclude(search__name="MDC").count(),
                 })
         ts += ts_step
         n += 1
