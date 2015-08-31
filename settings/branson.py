@@ -106,9 +106,10 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'ligoauth.middleware.auth.LigoAuthMiddleware',
+    'middleware.performance.PerformanceMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
-    'debug_panel.middleware.DebugPanelMiddleware',
-    'middleware.profiling.ProfileMiddleware',
+    #'debug_panel.middleware.DebugPanelMiddleware',
+    #'middleware.profiling.ProfileMiddleware',
 ]
 
 INSTALLED_APPS = (
@@ -122,8 +123,8 @@ INSTALLED_APPS = (
     'ligoauth',
     'rest_framework',
     'guardian',
-    'debug_toolbar',
-    'debug_panel',
+    #'debug_toolbar',
+    #'debug_panel',
 )
 
 INTERNAL_IPS = (
@@ -131,9 +132,9 @@ INTERNAL_IPS = (
 )
 
 CONTROL_ROOM_IPS = {
-    'H1': '108.45.69.217',
-#    'L1': '129.2.92.124',
-    'L1': '129.89.57.83',
+    'H1': '206.196.186.148',
+    'L1': '129.2.92.124',
+#    'L1': '129.89.57.83',
 }
 
 # Settings for Logging.
@@ -189,23 +190,6 @@ LOGGING = {
             'datefmt': '%Y-%m-%d %H:%M:%S',
         },
     },
-#    'filters': {
-#        'debugOnly': {
-#            '()': 'settings.logSettings.debugOnlyFilter',
-#        },
-#        'infoOnly': {
-#            '()': 'settings.logSettings.infoOnlyFilter',
-#        },
-#        'debugPlusInfo': {
-#            '()': 'settings.logSettings.debugPlusInfo',
-#        },
-#        'warningOnly': {
-#            '()': 'settings.logSettings.warningOnlyFilter',
-#        },
-#        'errorOnly': {
-#            '()': 'settings.logSettings.errorOnlyFilter',
-#        },
-#    },
     'handlers': {
         'null': {
             'level':'DEBUG',
@@ -214,42 +198,19 @@ LOGGING = {
         'debug_file': {
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': LOG_FORMAT,
-#           Commented out so that the debug file will have *everything*  
-#           That should make it somewhat easier to read through.                        
-#            'filters': ['debugPlusInfo'],
             'filename': '%s/gracedb_debug.log' % LOG_ROOT,
             'maxBytes': LOG_FILE_SIZE,
             'backupCount': LOG_FILE_BAK_CT,
         },
-#        'info_file': {
-#            'class': 'logging.handlers.RotatingFileHandler',
-#            'formatter': LOG_FORMAT,
-#            'filters': ['infoOnly'],
-#            'filename': '%s/gracedb_info.log' % LOG_ROOT,
-#            'maxBytes': LOG_FILE_SIZE,
-#            'backupCount': LOG_FILE_BAK_CT,
-#        },
-#        'warning_file': {
-#            'class': 'logging.handlers.RotatingFileHandler',
-#            'formatter': LOG_FORMAT,
-#            'filters': ['warningOnly'],
-#            'filename': '%s/gracedb_warning.log' % LOG_ROOT,
-#            'maxBytes': LOG_FILE_SIZE,
-#            'backupCount': LOG_FILE_BAK_CT,
-#        },  
-#        'error_file': {
-#            'class': 'logging.handlers.RotatingFileHandler',
-#            'formatter': LOG_FORMAT,
-#            'filters': ['errorOnly'],
-#            'filename': '%s/gracedb_error.log' % LOG_ROOT,
-#            'maxBytes': LOG_FILE_SIZE,
-#            'backupCount': LOG_FILE_BAK_CT,
-#        },  
-       'performance_file': {
+        'performance_file': {
             'class': 'logging.FileHandler',
             'formatter': 'simple',
             'filename': '%s/gracedb_performance.log' % LOG_ROOT,
         },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler'
+        }
     },
     'loggers': {
         'django': {
@@ -257,8 +218,12 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
         'gracedb': {
-#            'handlers': ['debug_file', 'info_file', 'warning_file', 'error_file'],
             'handlers': ['debug_file'],
             'propagate': True,
             'level': LOG_LEVEL,
@@ -274,7 +239,6 @@ LOGGING = {
             'level': 'INFO',
         }, 
         'userprofile': {
-            #'handlers': ['debug_file', 'info_file', 'warning_file', 'error_file'],
             'handlers': ['debug_file'],
             'propagate': True,
             'level': LOG_LEVEL,

@@ -387,6 +387,10 @@ LOGGING = {
             'formatter': 'simple',
             'filename': '%s/gracedb_performance.log' % LOG_ROOT,
         },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler'
+        }
     },
     'loggers': {
         'django': {
@@ -403,6 +407,11 @@ LOGGING = {
             'handlers': ['performance_file'],
             'propagate': True,
             'level': 'INFO',
+        },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
         },
    },
 }
