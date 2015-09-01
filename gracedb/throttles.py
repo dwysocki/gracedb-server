@@ -7,6 +7,10 @@ class PostOrPutUserRateThrottle(UserRateThrottle):
         This is mostly copied from the Rest Framework's SimpleRateThrottle
         except we now pass the request to throttle_success
         """
+        # We don't want to throttle any safe methods
+        if request.method not in ['POST', 'PUT']:
+            return True
+
         if self.rate is None:
             return True
 
