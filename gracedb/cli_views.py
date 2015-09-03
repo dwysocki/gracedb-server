@@ -41,7 +41,8 @@ def cli_search(request):
             "labels" : lambda e: \
                 ",".join([labelling.label.name for labelling in e.labelling_set.all()]),
             "pipeline" : lambda e: e.pipeline.name,
-            "search"  : lambda e: e.search.name or "",
+            #"search"  : lambda e: e.search.name or "",
+            "search"  : lambda e: e.search.name if e.search else "",
             "gpstime" : lambda e: str(e.gpstime) or "",
             "created" : lambda e: e.created.isoformat(),
             "dataurl" : lambda e: e.weburl(),
