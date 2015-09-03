@@ -1133,7 +1133,9 @@ require([
 
                         dojo.xhrGet({
                             //url: embblog_json_url + "?format=json",
-                            url: emobservation_json_url + "?format=json&skymapViewer",
+                            // Removing backwards compatibility hack
+                            //url: emobservation_json_url + "?format=json&skymapViewer",
+                            url: emobservation_json_url + "?format=json",
                             async: true,
                             load: function(embblog_json) {
     
