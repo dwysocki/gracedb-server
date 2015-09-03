@@ -34,19 +34,18 @@ class PerformanceMiddleware:
         if create and annotate:
             return response
 
+        username = ''
+        if request.user:
+            username = request.user.username
+
         if create:
             # Log the status.
-            #logging.info("%d" % response.status_code)
-            logger.info("create: %d: %s" % (response.status_code, request.user.username))
+            logger.info("create: %d: %s" % (response.status_code, username))
         elif annotate:
-            logger.info("annotate: %d: %s" % (response.status_code, request.user.username))
-
+            logger.info("annotate: %d: %s" % (response.status_code, username))
         
         if response.status_code == 429:
             request_logger = logging.getLogger('django.request')
-            username = ''
-            if request.user:
-                username = request.user.username
             msg = '%s to %s limited for user: %s' % (request.method, url_name, username)
             request_logger.error(msg)
 
