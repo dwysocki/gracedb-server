@@ -15,28 +15,17 @@ import os
 ROOT_PATH = os.path.abspath( os.path.join( os.path.dirname(__file__), os.pardir ) )
 
 configs = {
-    '/home/bmoe/ER2': 'development_er2',
-    '/home/bmoe/er2box/lib/python2.6/site-packages/gracedb' : 'development_er2',
-
-    '/home/bmoe/er2box/lib/python2.6/site-packages/ER2' : 'development_er2',
-
-    '/home/bmoe/gracedb': 'development',
-    '/home/bmoe/gracedb/gracedb': 'development',
-
     '/home/gracedb/gracedb': 'production',
     '/home/gracedb/graceproj': 'production',
 
     '/home/branson/gracedbdev': 'branson',
     '/home/branson/gracedbdev/gracedb': 'branson',
 
-    '/home/fzhang/gracedb/gracedb': 'fan',
-    '/home/fzhang/gracedb/gracedb/gracedb': 'fan',
+    '/home/branson.stephens/gracedb': 'test',
+    '/home/branson.stephens/gracedb/gracedb': 'test',
 
     '/home/roywilliams/gracedbdev': 'roy',
     '/home/roywilliams/gracedbdev/gracedb': 'roy',
-
-    "/home/gracedb/gracestage" : "stage",
-
 }
 
 
