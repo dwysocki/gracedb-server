@@ -191,7 +191,7 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
             if settings.USE_LVALERT_OVERSEER:
                 # Calculate unique message_id and log
                 message_id = sha1(nodename + msg).hexdigest()
-                log.info("issueXMPPAlert: sending %s to node %s on %s" % (message_id, nodename, server))
+                log.info("issueXMPPAlert: sending %s,%s,%s to node %s" % (event.graceid(), alert_type, message_id, nodename))
 
                 rdict = manager.dict()
                 msg_dict = {'node_name': nodename, 'message': msg, 'action': 'push'}
