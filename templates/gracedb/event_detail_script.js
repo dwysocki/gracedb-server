@@ -431,7 +431,7 @@ require([
         // so we should be able to define them here.
         function getTagDelCallback(tag_name, N) {
             return function() {
-                tagUrl = tagUrlPattern.replace("000", N).replace("temp",tag_name); 
+                tagUrl = tagUrlPattern.replace("000", N).replace("temp",encodeURIComponent(tag_name)); 
                 var tagResultDialog = new Dialog({ style: "width: 300px" }); 
                 var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" }); 
                 var tbnode = domConstruct.create("div", { 
@@ -633,7 +633,7 @@ require([
                     var noImgLogs = tagLogs.filter ( function(obj) { return !hasImage(obj); }); 
 
                     // Create the title pane with a placeholder div
-                    var pane_contents_id = tag_name + '_pane';
+                    var pane_contents_id = tag_name.replace(/ /g,"_") + '_pane';
                     var tp = new TitlePane({ 
                         title: tag_display_names[tag_name],
                         content: '<div id="' + pane_contents_id + '"></div>',
@@ -644,7 +644,7 @@ require([
 
                     // Handle the log messages with images by putting them in little box.
                     if (imgLogs.length) {
-                        var figContainerId = tag_name + '_figure_container';
+                        var figContainerId = tag_name.replace(/ /g,"_")  + '_figure_container';
                         var figDiv = put(paneContentsNode, 'div#' + figContainerId);
                         // Instead of living in a table row, the figures will now just be placed
                         // directly into the div, in inline blocks.
@@ -764,7 +764,7 @@ require([
                             // to delete it.
                             object.tag_names.forEach( function(tag_name) {
                                 var delDiv = put(tagButtonContainer, 'div.tagDelButtonDivClass');
-                                var del_button_id = "del_button_" + object.N + '_' + tag_name;
+                                var del_button_id = "del_button_" + object.N + '_' + tag_name.replace(/ /g, "_");
                                 var delButton = put(delDiv, 'button.modButtonClass.left#' + del_button_id);
                                 put(delButton, '[data-dojo-type="dijit/form/Button"]');
                                 // It looks like an 'x', so people will know that this means 'delete'
@@ -856,7 +856,7 @@ require([
                             // to delete it.
                             object.tag_names.forEach( function(tag_name) {
                                 var delDiv = put(tagButtonContainer, 'div.tagDelButtonDivClass');
-                                var del_button_id = "del_button_" + object.N + '_' + tag_name;
+                                var del_button_id = "del_button_" + object.N + '_' + tag_name.replace(/ /g, "_");
                                 var delButton = put(delDiv, 'button.modButtonClass.left#' + del_button_id);
                                 put(delButton, '[data-dojo-type="dijit/form/Button"]');
                                 // It looks like an 'x', so people will know that this means 'delete'
@@ -1097,7 +1097,7 @@ require([
             logs.forEach( function(log) {
                 // Attach a delete callback for each tag.
                 log.tag_names.forEach( function(tag_name) {
-                    var del_button_id = "del_button_" + log.N + '_' + tag_name;
+                    var del_button_id = "del_button_" + log.N + '_' + tag_name.replace(/ /g,"_");
                     on(dom.byId(del_button_id), "click", getTagDelCallback(tag_name, log.N));
                     new Tooltip({ connectId: del_button_id, label: "delete this tag" });
                 });
@@ -1123,11 +1123,10 @@ require([
                 put(sVform, 'input[type="hidden"][name="embb"]');
                 put(sVform, 'input[type="submit"][value="View in skymapViewer!"]');
             
-                var sV_button = dom.byId(skymapName);
+                var sV_button = node;
                 if (sV_button) {
                     on(sV_button, "click", function(e) {
                         sjurl = skymapJsonUrl + '/' + e.target.id + '.json';
-                        console.log("You clicked the button for "+sjurl);
                         var embblog_json_url = embbEventLogListUrl;
                         var embblog_json;
                         var emobservation_json_url = emObservationListUrl;
