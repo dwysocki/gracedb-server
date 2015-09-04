@@ -29,10 +29,12 @@ import json
 import datetime
 #import dateutil
 from dateutil import parser
+import logging
 
 def _createEventFromForm(request, form):
     saved = False
     warnings = []
+    logger = logging.getLogger(__name__)
     try:
         group = Group.objects.get(name=form.cleaned_data['group'])
         pipeline = Pipeline.objects.get(name=form.cleaned_data['pipeline'])
@@ -120,9 +122,13 @@ def _createEventFromForm(request, form):
                            request.build_absolute_uri(reverse("view", args=[event.graceid()])),
                            eventToDict(event, request=request))
             except Exception, e:
-                warnings += ["Problem issuing an alert (%s)" % e]
+                message = "Problem issuing an alert (%s)" % e
+                logger.warning(message)
+                warnings += [message]
         except Exception, e:
-            warnings += ["Problem scanning data. No alert issued (%s)" % e]
+            message = "Problem scanning data. No alert issued (%s)" % e
+            logger.warning(message)
+            warnings += [message]
         #return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
     except Exception, e:
         # something went wrong.
@@ -134,7 +140,9 @@ def _createEventFromForm(request, form):
         if saved:
             # undo save.
             event.delete()
-        warnings += ["Problem creating event (%s)" % e]
+        message = "Problem creating event (%s)" % e
+        logger.warning(message)
+        warnings += [message]
         event = None
     return event, warnings
 
