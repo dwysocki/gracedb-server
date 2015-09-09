@@ -53,6 +53,7 @@ def handle_uploaded_data(event, datafilename,
     if datafilename:
         log = EventLog(event=event,
                        filename=os.path.basename(datafilename),
+                       file_version=0,
                        issuer=event.submitter,
                        comment="Original Data")
         log.save()
@@ -126,12 +127,14 @@ def handle_uploaded_data(event, datafilename,
 
         log = EventLog(event=event,
                        filename=log_filename,
+                       file_version=0,
                        issuer=event.submitter,
                        comment=log_comment)
         log.save()
 
         log = EventLog(event=event,
                        filename=coinc_table_filename,
+                       file_version=0,
                        issuer=event.submitter,
                        comment="Coinc Table Created")
         log.save()
@@ -252,12 +255,14 @@ def handle_uploaded_data(event, datafilename,
         # Create EventLog entries about these files.
         log = EventLog(event=event,
                        filename=log_filename,
+                       file_version=0,
                        issuer=event.submitter,
                        comment="Log File Created" )
         log.save()
 
         log = EventLog(event=event,
                        filename=coinc_table_filename,
+                       file_version=0,
                        issuer=event.submitter,
                        comment="Coinc Table Created")
         log.save()
@@ -304,12 +309,14 @@ def handle_uploaded_data(event, datafilename,
         # Create EventLog entries about these files.
         log = EventLog(event=event,
                        filename=log_filename,
+                       file_version=0,
                        issuer=event.submitter,
                        comment="Log File Created" )
         log.save()
 
         log = EventLog(event=event,
                        filename=coinc_table_filename,
+                       file_version=0,
                        issuer=event.submitter,
                        comment="Coinc Table Created")
         log.save()
@@ -344,6 +351,7 @@ def handle_uploaded_data(event, datafilename,
         if data.writeCoincFile( os.path.join(outputDataDir, "coinc.xml") ):
             log = EventLog(event=event,
                            filename="coinc.xml",
+                           file_version=0,
                            issuer=event.submitter,
                            comment="Coinc Table Created")
             log.save()
@@ -351,6 +359,7 @@ def handle_uploaded_data(event, datafilename,
         if data.writeLogfile( os.path.join(outputDataDir, "event.log") ):
             log = EventLog(event=event,
                            filename="event.log",
+                           file_version=0,
                            issuer=event.submitter,
                            comment="Log File Created" )
             log.save()
