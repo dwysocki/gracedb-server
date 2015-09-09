@@ -161,12 +161,14 @@
 {% endblock %}
 </div>
 
+{% if not user_is_external %}
 <div class="content-area">
 {# Analysis-specific attributes #}
 {% block analysis_specific %}
 {# This block is empty in the base event_detail template #}
 {% endblock %}
 </div>
+{% endif %}
 
 {# Neighbors #}
 <script type="text/javascript">

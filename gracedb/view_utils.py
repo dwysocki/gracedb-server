@@ -9,6 +9,7 @@ from django.utils.safestring import mark_safe
 from gracedb.models import SingleInspiral
 
 from utils.vfile import VersionedFile
+from permission_utils import is_external
 
 import os
 from django.conf import settings
@@ -138,140 +139,142 @@ def eventToDict(event, columns=None, request=None):
                   request=request))
           for labelling in event.labelling_set.all()])
     # XXX Try to produce a dictionary of analysis specific attributes.  Duck typing.
-    rv['extra_attributes'] = {}
-    try:
-        # GrbEvent
-        rv['extra_attributes']['GRB'] = {
-              "ivorn" : event.ivorn,
-              "author_ivorn" : event.author_ivorn,
-              "author_shortname" : event.author_shortname,
-              "observatory_location_id" : event.observatory_location_id,
-              "coord_system" : event.coord_system,
-              "ra" : event.ra,
-              "dec" : event.dec,
-              "error_radius" : event.error_radius,
-              "how_description" : event.how_description,
-              "how_reference_url" : event.how_reference_url,
-              "T90" : event.t90,
-              "trigger_duration": event.trigger_duration,
-              "designation": event.designation,
-              "redshift": event.redshift,
-              "trigger_id": event.trigger_id,
-              }
-    except:
-        pass
-    try:
-        # CoincInspiralEvent
-        rv['extra_attributes']['CoincInspiral'] = {
-              "ifos" : event.ifos,
-              "end_time" : event.end_time,
-              "end_time_ns" : event.end_time_ns,
-              "mass" : event.mass,
-              "mchirp" : event.mchirp,
-              "minimum_duration" : event.minimum_duration,
-              "snr" : event.snr,
-              "false_alarm_rate" : event.false_alarm_rate,
-              "combined_far" : event.combined_far,
-              }
-    except:
-        pass
-    try:
-        # SimInspiralEvent
-        rv['extra_attributes']['SimInspiral'] = {
-                "source_channel": event.source_channel,
-                "destination_channel": event.destination_channel,
-                "mass1": event.mass1,
-                "mass2": event.mass2,
-                "eta": event.eta,
-                "mchirp": event.mchirp,
-                "amp_order": event.amp_order,
-                "coa_phase": event.coa_phase,
-                "spin1y": event.spin1y,
-                "spin1x": event.spin1x,
-                "spin1z": event.spin1z,
-                "spin2x": event.spin2x,
-                "spin2y": event.spin2y,
-                "spin2z": event.spin2z,
-                "geocent_end_time": event.geocent_end_time,
-                "geocent_end_time_ns": event.geocent_end_time_ns,
-                "end_time_gmst": event.end_time_gmst,
-                "f_lower": event.f_lower,
-                "f_final": event.f_final,
-                "distance": event.distance,
-                "latitude": event.latitude,
-                "longitude": event.longitude,
-                "polarization": event.polarization,
-                "inclination": event.inclination,
-                "theta0": event.theta0,
-                "phi0": event.phi0,
-                "waveform": event.waveform,
-                "numrel_mode_min": event.numrel_mode_min,
-                "numrel_mode_max": event.numrel_mode_max,
-                "numrel_data": event.numrel_data,
-                "source": event.source,
-                "taper": event.taper,
-                "bandpass": event.bandpass,
-                "alpha": event.alpha,
-                "beta": event.beta,
-                "psi0": event.psi0,
-                "psi3": event.psi3,
-                "alpha1": event.alpha1,
-                "alpha2": event.alpha2,
-                "alpha3": event.alpha3,
-                "alpha4": event.alpha4,
-                "alpha5": event.alpha5,
-                "alpha6": event.alpha6,
-                "g_end_time": event.g_end_time,
-                "g_end_time_ns": event.g_end_time_ns,
-                "h_end_time": event.h_end_time,
-                "h_end_time_ns": event.h_end_time_ns,
-                "l_end_time": event.l_end_time,
-                "l_end_time_ns": event.l_end_time_ns,
-                "t_end_time": event.t_end_time,
-                "t_end_time_ns": event.t_end_time_ns,
-                "v_end_time": event.v_end_time,
-                "v_end_time_ns": event.v_end_time_ns,
-                "eff_dist_g": event.eff_dist_g,
-                "eff_dist_h": event.eff_dist_h,
-                "eff_dist_l": event.eff_dist_l,
-                "eff_dist_t": event.eff_dist_t,
-                "eff_dist_v": event.eff_dist_v,
-            }
-    except:
-        pass
-    try:
-        # MultiBurstEvent
-        rv['extra_attributes']['MultiBurst'] = {
-              "ifos" : event.ifos,
-              "start_time" : event.start_time,
-              "start_time_ns" : event.start_time_ns,
-              "duration" : event.duration,
-              "peak_time" : event.peak_time,
-              "peak_time_ns" : event.peak_time_ns,
-              "central_freq" : event.central_freq,
-              "bandwidth" : event.bandwidth,
-              "amplitude" : event.amplitude,
-              "snr" : event.snr,
-              "confidence" : event.confidence,
-              "false_alarm_rate" : event.false_alarm_rate,
-              "ligo_axis_ra" : event.ligo_axis_ra,
-              "ligo_axis_dec" : event.ligo_axis_dec,
-              "ligo_angle" : event.ligo_angle,
-              "ligo_angle_sig" : event.ligo_angle_sig,
-              }
-    except:
-        pass
+    # XXX These extra attributes should only be seen by internal users.
+    if request and request.user and not is_external(request.user):
+        rv['extra_attributes'] = {}
+        try:
+            # GrbEvent
+            rv['extra_attributes']['GRB'] = {
+                  "ivorn" : event.ivorn,
+                  "author_ivorn" : event.author_ivorn,
+                  "author_shortname" : event.author_shortname,
+                  "observatory_location_id" : event.observatory_location_id,
+                  "coord_system" : event.coord_system,
+                  "ra" : event.ra,
+                  "dec" : event.dec,
+                  "error_radius" : event.error_radius,
+                  "how_description" : event.how_description,
+                  "how_reference_url" : event.how_reference_url,
+                  "T90" : event.t90,
+                  "trigger_duration": event.trigger_duration,
+                  "designation": event.designation,
+                  "redshift": event.redshift,
+                  "trigger_id": event.trigger_id,
+                  }
+        except:
+            pass
+        try:
+            # CoincInspiralEvent
+            rv['extra_attributes']['CoincInspiral'] = {
+                  "ifos" : event.ifos,
+                  "end_time" : event.end_time,
+                  "end_time_ns" : event.end_time_ns,
+                  "mass" : event.mass,
+                  "mchirp" : event.mchirp,
+                  "minimum_duration" : event.minimum_duration,
+                  "snr" : event.snr,
+                  "false_alarm_rate" : event.false_alarm_rate,
+                  "combined_far" : event.combined_far,
+                  }
+        except:
+            pass
+        try:
+            # SimInspiralEvent
+            rv['extra_attributes']['SimInspiral'] = {
+                    "source_channel": event.source_channel,
+                    "destination_channel": event.destination_channel,
+                    "mass1": event.mass1,
+                    "mass2": event.mass2,
+                    "eta": event.eta,
+                    "mchirp": event.mchirp,
+                    "amp_order": event.amp_order,
+                    "coa_phase": event.coa_phase,
+                    "spin1y": event.spin1y,
+                    "spin1x": event.spin1x,
+                    "spin1z": event.spin1z,
+                    "spin2x": event.spin2x,
+                    "spin2y": event.spin2y,
+                    "spin2z": event.spin2z,
+                    "geocent_end_time": event.geocent_end_time,
+                    "geocent_end_time_ns": event.geocent_end_time_ns,
+                    "end_time_gmst": event.end_time_gmst,
+                    "f_lower": event.f_lower,
+                    "f_final": event.f_final,
+                    "distance": event.distance,
+                    "latitude": event.latitude,
+                    "longitude": event.longitude,
+                    "polarization": event.polarization,
+                    "inclination": event.inclination,
+                    "theta0": event.theta0,
+                    "phi0": event.phi0,
+                    "waveform": event.waveform,
+                    "numrel_mode_min": event.numrel_mode_min,
+                    "numrel_mode_max": event.numrel_mode_max,
+                    "numrel_data": event.numrel_data,
+                    "source": event.source,
+                    "taper": event.taper,
+                    "bandpass": event.bandpass,
+                    "alpha": event.alpha,
+                    "beta": event.beta,
+                    "psi0": event.psi0,
+                    "psi3": event.psi3,
+                    "alpha1": event.alpha1,
+                    "alpha2": event.alpha2,
+                    "alpha3": event.alpha3,
+                    "alpha4": event.alpha4,
+                    "alpha5": event.alpha5,
+                    "alpha6": event.alpha6,
+                    "g_end_time": event.g_end_time,
+                    "g_end_time_ns": event.g_end_time_ns,
+                    "h_end_time": event.h_end_time,
+                    "h_end_time_ns": event.h_end_time_ns,
+                    "l_end_time": event.l_end_time,
+                    "l_end_time_ns": event.l_end_time_ns,
+                    "t_end_time": event.t_end_time,
+                    "t_end_time_ns": event.t_end_time_ns,
+                    "v_end_time": event.v_end_time,
+                    "v_end_time_ns": event.v_end_time_ns,
+                    "eff_dist_g": event.eff_dist_g,
+                    "eff_dist_h": event.eff_dist_h,
+                    "eff_dist_l": event.eff_dist_l,
+                    "eff_dist_t": event.eff_dist_t,
+                    "eff_dist_v": event.eff_dist_v,
+                }
+        except:
+            pass
+        try:
+            # MultiBurstEvent
+            rv['extra_attributes']['MultiBurst'] = {
+                  "ifos" : event.ifos,
+                  "start_time" : event.start_time,
+                  "start_time_ns" : event.start_time_ns,
+                  "duration" : event.duration,
+                  "peak_time" : event.peak_time,
+                  "peak_time_ns" : event.peak_time_ns,
+                  "central_freq" : event.central_freq,
+                  "bandwidth" : event.bandwidth,
+                  "amplitude" : event.amplitude,
+                  "snr" : event.snr,
+                  "confidence" : event.confidence,
+                  "false_alarm_rate" : event.false_alarm_rate,
+                  "ligo_axis_ra" : event.ligo_axis_ra,
+                  "ligo_axis_dec" : event.ligo_axis_dec,
+                  "ligo_angle" : event.ligo_angle,
+                  "ligo_angle_sig" : event.ligo_angle_sig,
+                  }
+        except:
+            pass
 
-    # Finally add extra attributes for any SingleInspiral objects associated with this event
-    # This will be a list of dictionaries.
-    si_set = event.singleinspiral_set.all()
-    if si_set.count():
-        rv['extra_attributes']['SingleInspiral'] = [ singleInspiralToDict(si) for si in si_set ]
+        # Finally add extra attributes for any SingleInspiral objects associated with this event
+        # This will be a list of dictionaries.
+        si_set = event.singleinspiral_set.all()
+        if si_set.count():
+            rv['extra_attributes']['SingleInspiral'] = [ singleInspiralToDict(si) for si in si_set ]
 
     rv['links'] = {
           "neighbors" : reverse("neighbors", args=[graceid], request=request),
           "log"   : reverse("eventlog-list", args=[graceid], request=request),
-          "embb"   : reverse("embbeventlog-list", args=[graceid], request=request),
+          "emobservations"   : reverse("emobservation-list", args=[graceid], request=request),
           "files" : reverse("files", args=[graceid], request=request),
           "filemeta" : reverse("filemeta", args=[graceid], request=request),
           "labels" : reverse("labels", args=[graceid], request=request),
