@@ -170,7 +170,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                 dataType="float", 
                 ucd="arith.rate;stat.falsealarm", 
                 unit="Hz", 
-                value=float(event.far), 
+                value=float(max(event.far, settings.VOEVENT_FAR_FLOOR)), 
                 Description=["False alarm rate for GW candidates with this strength or greater"]))
 
         # Group
