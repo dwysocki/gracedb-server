@@ -296,12 +296,13 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                 value=mchirp,
                 Description=["Estimated CBC chirp mass"]))
 
-            w.add_Param(Param(name="Eta", 
-                dataType="float", 
-                ucd="phys.mass;arith.factor", 
-                unit="",
-                value=eta,
-                Description=["Estimated ratio of reduced mass to total mass"]))
+# XXX 
+#            w.add_Param(Param(name="Eta", 
+#                dataType="float", 
+#                ucd="phys.mass;arith.factor", 
+#                unit="",
+#                value=eta,
+#                Description=["Estimated ratio of reduced mass to total mass"]))
 
             # build up MaxDistance. event.singleinspiral_set.all()?
             # Each detector calculates an effective distance assuming the inspiral is 
