@@ -299,7 +299,8 @@ def view(request, event):
     context['nearby'] = [(e.gpstime - event.gpstime, e)
                             for e in event.neighbors()]
 #    context['skyalert_authorized'] = skyalert_authorized(request)
-    context['groups'] = [g.name for g in EMGroup.objects.all()]
+#    context['groups'] = [g.name for g in EMGroup.objects.all()]
+    context['groups'] = [g.name for g in EMGroup.objects.order_by('name')]
     context['blessed_tags'] = settings.BLESSED_TAGS
     context['single_inspiral_events'] = list(event.singleinspiral_set.all())
     context['neighbor_delta'] = "[%+d,%+d]" % (-5,5)
