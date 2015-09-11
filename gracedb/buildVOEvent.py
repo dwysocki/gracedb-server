@@ -289,12 +289,13 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             mass = float(event.mass)
             # calculate eta = (mchirp/total_mass)**(5/3)
             eta = pow((mchirp/mass),5.0/3.0)
-            w.add_Param(Param(name="ChirpMass", 
-                dataType="float", 
-                ucd="phys.mass", 
-                unit="solar mass",
-                value=mchirp,
-                Description=["Estimated CBC chirp mass"]))
+# XXX
+#            w.add_Param(Param(name="ChirpMass", 
+#                dataType="float", 
+#                ucd="phys.mass", 
+#                unit="solar mass",
+#                value=mchirp,
+#                Description=["Estimated CBC chirp mass"]))
 
 # XXX 
 #            w.add_Param(Param(name="Eta", 
