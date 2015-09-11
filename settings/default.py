@@ -47,6 +47,8 @@ EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@gracedb.phys.uwm.edu',]
 # Added for django 1.7.8
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
+EM_ADVOCATE_GROUP = 'em_advocates'
+
 # 11/18/14. No longer checking XMPP_ALERT_CHANNELS. This is not necessary.
 # If someone sends out an event, an alert should go out. Listerers have the 
 # option to unsubscribe from nodes if so desired.

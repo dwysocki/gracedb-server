@@ -107,7 +107,7 @@ urlpatterns = patterns('gracedb.api',
 
     # Operator Signoff Resources
     url (r'events/(?P<graceid>[GEHMT]\d+)/signoff/$',
-        OperatorSignoffList.as_view(), name='operatorsignoff-list'),
+        OperatorSignoffList.as_view(), name='signoff-list'),
 
 
     # Performance stats

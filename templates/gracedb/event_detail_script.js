@@ -9,7 +9,16 @@ var label_descriptions = {
     LUMIN_NO: "LUMIN No",
     LUMIN_GO: "LUMIN Go",
     DQV: "Data quality veto.",
-    INJ: "Injection occured near this time."
+    INJ: "Injection occured near this time.",
+    ADVREQ: "EM advocate signoff requested.",
+    ADVNO: "EM advocate says event is not okay.",
+    ADVOK: "EM advocate says event is okay.",
+    H1OPS: "H1 operator signoff requested.",
+    H1OK: "H1 operator says event is okay.",
+    H1NO: "H1 operator says event is not okay.",
+    L1OPS: "L1 operator signoff requested.",
+    L1OK: "L1 operator says event is okay.",
+    L1NO: "L1 operator says event is not okay."
 }
 function tooltiptext(name, creator, time) {
     return ( creator + " " + time + "<br/>" + label_descriptions[name] );

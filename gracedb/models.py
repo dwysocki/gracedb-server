@@ -1098,12 +1098,14 @@ class VOEvent(models.Model):
 
 INSTRUMENTS = ( ('H1', 'LHO'), ('L1', 'LLO'), ('V1', 'Virgo') )
 OPERATOR_STATUSES = ( ('OK', 'OKAY'), ('NO', 'NOT OKAY') )
-class OperatorSignoff(models.Model):
+SIGNOFF_TYPE_CHOICES = ( ('OP', 'operator'), ('ADV', 'advocate') )
+class Signoff(models.Model):
     class Meta:
         unique_together = ("event","instrument")
     submitter = models.ForeignKey(DjangoUser)
     event = models.ForeignKey(Event)
-    instrument = models.CharField(max_length=2, choices=INSTRUMENTS)
+    signoff_type = models.CharField(max_length=3, choices=SIGNOFF_TYPE_CHOICES, blank=False)
+    instrument = models.CharField(max_length=2, choices=INSTRUMENTS, blank=True)
     status = models.CharField(max_length=2, choices=OPERATOR_STATUSES, blank=False)
     comment = models.TextField(blank=True)
 

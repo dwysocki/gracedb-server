@@ -526,12 +526,13 @@ def singleInspiralToDict(single_inspiral):
             rv.update({ field_name: value })
     return rv
 
-def operatorSignoffToDict(operator_signoff):
+def signoffToDict(signoff):
     return {
-        'submitter':  operator_signoff.submitter.username,
-        'instrument': operator_signoff.instrument,
-        'status':     operator_signoff.status,
-        'comment':    operator_signoff.comment,
+        'submitter':    signoff.submitter.username,
+        'instrument':   signoff.instrument,
+        'status':       signoff.status,
+        'comment':      signoff.comment,
+        'signoff_type': signoff.signoff_type
     } 
 
 #---------------------------------------------------------------------------------------
