@@ -359,8 +359,8 @@ SOUTH_TESTS_MIGRATE = False
 PASSWORD_EXPIRATION_TIME = timedelta(days=365)
 
 CONTROL_ROOM_IPS = {
-    'H1': '206.196.186.148',
-    'L1': '129.2.92.124',
+    'H1': '198.129.208.178',
+    'L1': '208.69.128.41',
 }
 
 # XXX The following Log settings are for a performance metric.
