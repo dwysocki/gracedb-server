@@ -29,7 +29,8 @@ from view_utils import reverse
 
 from translator import handle_uploaded_data
 from forms import CreateEventForm
-from permission_utils import user_has_perm, filter_events_for_user
+from permission_utils import user_has_perm, filter_events_for_user, is_external
+from permission_utils import check_external_file_access
 from guardian.models import GroupObjectPermission
 
 from throttles import EventCreationThrottle, AnnotationThrottle
@@ -738,6 +739,11 @@ class EventLogList(APIView):
     @event_and_auth_required
     def get(self, request, event):
         logset = event.eventlog_set.order_by("created","N")
+
+        # Filter log messages for external users.
+        if is_external(request.user):
+            logset = logset.filter(tag__name=settings.EXTERNAL_ACCESS_TAGNAME)
+
         count = logset.count()
 
         log = [ eventLogToDict(log, request)
@@ -802,6 +808,12 @@ class EventLogList(APIView):
             return Response("Failed to save log entry: %s" % str(e),
                     status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
+        # XXX For external users, make sure that the new log entry is tagged so
+        # they'll be able to see it later.
+        if is_external(request.user):
+            if settings.EXTERNAL_ACCESS_TAGNAME not in tagnames:
+                tagnames.append(settings.EXTERNAL_ACCESS_TAGNAME)
+
         tw_dict = {}
         if tagnames and len(tagnames):
             for tagname in tagnames:
@@ -839,6 +851,12 @@ class EventLogDetail(APIView):
     @event_and_auth_required
     @eventlog_required
     def get(self, request, event, eventlog):
+        # XXX Access control to log messages for external users.
+        if is_external(request.user):
+            tagnames = [t.name for t in eventlog.tag_set.all()]
+            if settings.EXTERNAL_ACCESS_TAGNAME not in tagnames:
+                msg = 'You do not have permission to view this log message.'
+                return HttpResponseForbidden(msg)
         return Response(eventLogToDict(eventlog, request=request))
 
 
@@ -1000,7 +1018,7 @@ class EMObservationDetail(APIView):
 #==================================================================
 # Tags
 
-
+# XXX This serializer should be moved to view_utils along with the others.
 def tagToDict(tag, columns=None, request=None, event=None, n=None):
     """Convert a tag to a dictionary.
        Output depends on the level of specificity.
@@ -1010,6 +1028,9 @@ def tagToDict(tag, columns=None, request=None, event=None, n=None):
     rv['name'] = tag.name
     rv['displayName'] = tag.displayName
     if event:
+        # XXX Technically, this list should be filtered based on whether the
+        # user is external and has access to the logs. I don't think this is 
+        # a big deal, though.
         if n:
             # We want a link to the self only.  End of the line.
             rv['links'] = {
@@ -1092,6 +1113,9 @@ class EventTagList(APIView):
     @event_and_auth_required
     def get(self, request, event):
         # Return a list of links to all tags for this event.
+        # XXX Technically, this list should be filtered based on whether the
+        # user is external and has access to the logs. I don't think this is 
+        # a big deal, though.
         rv = {
                 'tags' : [ reverse("eventtag-detail",args=[event.graceid(),
                                    tag.name],
@@ -1166,6 +1190,11 @@ class EventLogTagDetail(APIView):
             msg = "Log already has tag %s" % unicode(tag)
             return Response(msg,status=status.HTTP_409_CONFLICT)
         except:
+            # Check authorization
+            if is_external(request.user) and tagname == settings.EXTERNAL_ACCESS_TAGNAME:
+                msg = "You do not have permission to add or remove this tag."
+                return HttpResponseForbidden(msg)            
+
             # Look for the tag.  If it doesn't already exist, create it.
             try:
                 tag = Tag.objects.filter(name=tagname)[0]
@@ -1531,6 +1560,12 @@ def download(request, graceid, filename=""):
     except Event.DoesNotExist:
         return HttpResponseNotFound("Event not found")
 
+    # If the user is external, check for authorization
+    if is_external(request.user):
+        if not check_external_file_access(event, filename):
+            msg = "You do not have permission to view this file."
+            return HttpResponseForbidden(msg)
+
     filepath = os.path.join(event.datadir(), filename)
 
     if not os.path.exists(filepath):
@@ -1601,6 +1636,12 @@ class Files(APIView):
             response = HttpResponseNotFound("File not readable")
         elif os.path.isfile(filepath):
             # get an actual file.
+            # If the user is external, check for authorization
+            if is_external(request.user):
+                if not check_external_file_access(event, filename):
+                    msg = "You do not have permission to view this file."
+                    return HttpResponseForbidden(msg)
+
             content_type, encoding = VersionedFile.guess_mimetype(filepath)
             content_type = content_type or "application/octet-stream"
             # XXX encoding should probably not be ignored.
@@ -1613,19 +1654,40 @@ class Files(APIView):
             # Get list of files w/urls.
             rv = {}
             filepath = event.datadir()
+            fnames = []
+            # Filter files for external users.
+            if is_external(request.user):
+                # XXX Note that the following snippet is repeated in views.py.
+                # Construct the file list, filtering as necessary:
+                for l in event.eventlog_set.all():
+                    filename = l.filename
+                    if len(filename):
+                        version = l.file_version
+                        tagnames = [t.name for t in l.tag_set.all()]
+                        if settings.EXTERNAL_ACCESS_TAGNAME not in tagnames:
+                            continue
+                        if version>=0:
+                            fnames.append(filename + ',' + str(version))
+                        # We only want the unadorned filename once.
+                        if filename not in fnames:
+                            fnames.append(filename)
+            else:
+                for dirname, dirnames, filenames in os.walk(filepath):
+                    dirname = dirname[len(filepath):]  # cut off base event dir path
+                    for filename in filenames:
+                        # relative path from root of event data dir
+                        filename = os.path.join(dirname, filename)
+                        fnames.append(filename)
+
             files = []
-            for dirname, dirnames, filenames in os.walk(filepath):
-                dirname = dirname[len(filepath):]  # cut off base event dir path
-                for filename in filenames:
-                    # relative path from root of event data dir
-                    filename = os.path.join(dirname, filename)
-                    rv[filename] = reverse("files", args=[graceid, filename], request=request)
-                    files.append({
-                            'name' : filename,
-                            'link' :  reverse("files",
-                                args=[graceid, filename],
-                                request=request),
-                            })
+            for filename in fnames:
+                rv[filename] = reverse("files", args=[graceid, filename], request=request)
+                files.append({
+                        'name' : filename,
+                        'link' :  reverse("files",
+                            args=[graceid, filename],
+                            request=request),
+                        })
             response = Response(rv)
         elif os.path.isdir(filepath):
             # XXX Really?
@@ -1675,6 +1737,15 @@ class Files(APIView):
             # XXX something should be done here.
             pass
 
+        # If the user is external, we need to try to tag the log entry appropriately
+        if is_external(request.user):
+            try:
+                tag = Tag.objects.get(name=settings.EXTERNAL_ACCESS_TAGNAME)
+                tag.eventlogs.add(logentry)
+            except:
+                # XXX probably should at least log a warning here.
+                pass
+
         try:
             description = "UPLOAD: {0}".format(filename)
             issueAlertForUpdate(event, description, doxmpp=True, 
@@ -1704,8 +1775,8 @@ class PerformanceInfo(APIView):
         allowed_groups = set([])
         try:
             allowed_groups = set([
-                AuthGroup.objects.get(name='Communities:LSCVirgoLIGOGroupMembers'),
-                AuthGroup.objects.get(name='executives'),
+                AuthGroup.objects.get(name=settings.LVC_GROUP),
+                AuthGroup.objects.get(name=settings.EXEC_GROUP),
             ])
         except:
             pass

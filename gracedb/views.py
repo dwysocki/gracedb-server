@@ -14,7 +14,7 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.contenttypes.models import ContentType
 from permission_utils import filter_events_for_user, user_has_perm
-from permission_utils import internal_user_required
+from permission_utils import internal_user_required, is_external
 from guardian.models import GroupObjectPermission
 
 from view_logic import _createEventFromForm
@@ -241,6 +241,22 @@ def logentry(request, event, num=None):
                 msg = msg + "\n However, the log message itself was saved."
                 return HttpResponse(msg)
 
+        # XXX If the user is external, tag the message appropriately.
+        if is_external(request.user):
+            try:
+                tag = Tag.objects.get(name=settings.EXTERNAL_ACCESS_TAGNAME)
+            except:
+                displayName = request.POST.get('displayName')
+                tag = Tag(name=tagname, displayName=displayName)
+                tag.save()
+            # I'm putting this in a try/except in case the user has already
+            # added the external access tagname somehow, and the following 
+            # would result in an IntegrityError
+            try:
+                tag.eventlogs.add(elog)
+            except:
+                pass
+
     elif request.method == "GET":
         if not user_has_perm(request.user, 'view', event):
             return HttpResponseForbidden("Forbidden")
@@ -248,6 +264,13 @@ def logentry(request, event, num=None):
             elog = event.eventlog_set.filter(N=num)[0]
         except Exception, e:
             raise Http404
+        
+        # Check authorization for this log message
+        if is_external(request.user):
+            tagnames = [t.name for t in elog.tag_set.all()]
+            if settings.EXTERNAL_ACCESS_TAGNAME not in tagnames:
+                msg = "You do not have permission to view this log message."
+                return HttpResponseForbidden(msg)
     else:
         return HttpResponseBadRequest
 
@@ -314,15 +337,14 @@ def view(request, event):
     can_expose_to_lvem, can_protect_from_lvem = get_lvem_perm_status(request,event)
     context['can_expose_to_lvem'] = can_expose_to_lvem
     context['can_protect_from_lvem'] = can_protect_from_lvem
-    lvem_group_name = ''
-    try:
-        lvem_group_name = AuthGroup.objects.get(name__contains='LV-EM').name
-    except:
-        pass
-    context['lvem_group_name'] = lvem_group_name
+    context['lvem_group_name'] = settings.LVEM_GROUP
 
     if event.pipeline.name in settings.GRB_PIPELINES:
         context['can_modify_t90'] = request.user.has_perm('gracedb.t90_grbevent')
+
+    # Is the user an external user? (I.e., not part of the LVC?) The template 
+    # needs to know that in order to decide what pieces of information to show.
+    context['user_is_external'] = is_external(request.user)
 
     # Does the user have permission to sign off on the event?
     signoff_authorized = False
@@ -610,6 +632,11 @@ def taglogentry(request, event, num, tagname):
             msg = "Log already has tag %s" % tagname
             return HttpResponse(msg, content_type="text")
         except:
+            # Check authorization
+            if is_external(request.user) and tagname == settings.EXTERNAL_ACCESS_TAGNAME:
+                msg = "You do not have permission to add or remove this tag."
+                return HttpResponseForbidden(msg)
+
             # Look for the tag.  If it doesn't already exist, create it.
             try:
                 tag = Tag.objects.filter(name=tagname)[0]
@@ -687,9 +714,24 @@ def performance(request):
 @event_and_auth_required
 def file_list(request, event):
     f = []
-    for dirname, dirnames, filenames in os.walk(event.datadir()):
-        f.extend(filenames)
-        break
+    if is_external(request.user):
+        # Construct the file list, filtering as necessary:
+        for l in event.eventlog_set.all():
+            filename = l.filename
+            if len(filename):
+                version = l.file_version
+                tagnames = [t.name for t in l.tag_set.all()]
+                if settings.EXTERNAL_ACCESS_TAGNAME not in tagnames:
+                    continue
+                if version>=0:
+                    f.append(filename + ',' + str(version))
+                # We only want the unadorned filename once.
+                if filename not in f:
+                    f.append(filename)
+    else:
+        for dirname, dirnames, filenames in os.walk(event.datadir()):
+            f.extend(filenames)
+            break
 
     context = {}
     context['file_list'] = f

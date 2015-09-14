@@ -170,7 +170,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                 dataType="float", 
                 ucd="arith.rate;stat.falsealarm", 
                 unit="Hz", 
-                value=float(event.far), 
+                value=float(max(event.far, settings.VOEVENT_FAR_FLOOR)), 
                 Description=["False alarm rate for GW candidates with this strength or greater"]))
 
         # Group
@@ -289,19 +289,21 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             mass = float(event.mass)
             # calculate eta = (mchirp/total_mass)**(5/3)
             eta = pow((mchirp/mass),5.0/3.0)
-            w.add_Param(Param(name="ChirpMass", 
-                dataType="float", 
-                ucd="phys.mass", 
-                unit="solar mass",
-                value=mchirp,
-                Description=["Estimated CBC chirp mass"]))
+# XXX
+#            w.add_Param(Param(name="ChirpMass", 
+#                dataType="float", 
+#                ucd="phys.mass", 
+#                unit="solar mass",
+#                value=mchirp,
+#                Description=["Estimated CBC chirp mass"]))
 
-            w.add_Param(Param(name="Eta", 
-                dataType="float", 
-                ucd="phys.mass;arith.factor", 
-                unit="",
-                value=eta,
-                Description=["Estimated ratio of reduced mass to total mass"]))
+# XXX 
+#            w.add_Param(Param(name="Eta", 
+#                dataType="float", 
+#                ucd="phys.mass;arith.factor", 
+#                unit="",
+#                value=eta,
+#                Description=["Estimated ratio of reduced mass to total mass"]))
 
             # build up MaxDistance. event.singleinspiral_set.all()?
             # Each detector calculates an effective distance assuming the inspiral is 
