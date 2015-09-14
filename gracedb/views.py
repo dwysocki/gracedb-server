@@ -337,7 +337,9 @@ def view(request, event):
     can_expose_to_lvem, can_protect_from_lvem = get_lvem_perm_status(request,event)
     context['can_expose_to_lvem'] = can_expose_to_lvem
     context['can_protect_from_lvem'] = can_protect_from_lvem
-    context['lvem_group_name'] = settings.LVEM_GROUP
+    # Notice that the observers group is used here. This determines which group is 
+    # given permission to access an event. We want it to be the observers group.
+    context['lvem_group_name'] = settings.LVEM_OBSERVERS_GROUP
 
     if event.pipeline.name in settings.GRB_PIPELINES:
         context['can_modify_t90'] = request.user.has_perm('gracedb.t90_grbevent')

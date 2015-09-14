@@ -50,6 +50,7 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 # Some proper names related to authorization
 LVC_GROUP = 'Communities:LSCVirgoLIGOGroupMembers'
 LVEM_GROUP = 'gw-astronomy:LV-EM'
+LVEM_OBSERVERS_GROUP = 'gw-astronomy:LV-EM:Observers'
 EXEC_GROUP = 'executives'
 EXTERNAL_ACCESS_TAGNAME = 'lvem'
 
