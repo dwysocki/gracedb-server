@@ -305,7 +305,7 @@ def get_lvem_perm_status(request, event):
     # Get the group
     # Returns a tuple: (can_expose, can_protect)
     try:
-        lv_em_group = AuthGroup.objects.get(name__contains='LV-EM')
+        lv_em_group = AuthGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
     except:
         # Something is really wrong.
         return (None, None)
