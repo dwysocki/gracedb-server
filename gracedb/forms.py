@@ -3,7 +3,7 @@ from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from models import Event, Group, Label
-from models import Pipeline, Search, OperatorSignoff
+from models import Pipeline, Search, Signoff
 from django.contrib.auth.models import User
 from django.core.exceptions import FieldError
 from django.forms import ModelForm
@@ -81,7 +81,7 @@ class EventSearchForm(forms.Form):
     labels = forms.MultipleChoiceField(choices=labelChoices, required=False)
     get_neighbors = forms.BooleanField(required=False)
 
-class OperatorSignoffForm(ModelForm):
+class SignoffForm(ModelForm):
     class Meta:
-        model = OperatorSignoff
+        model = Signoff
         fields = [ 'status', 'comment' ] 

@@ -7,8 +7,8 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response
 
 from models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
-from models import EMGroup, OperatorSignoff
-from forms import CreateEventForm, EventSearchForm, SimpleSearchForm, OperatorSignoffForm
+from models import EMGroup, Signoff
+from forms import CreateEventForm, EventSearchForm, SimpleSearchForm, SignoffForm
 
 from django.contrib.auth.models import User, Permission
 from django.contrib.auth.models import Group as AuthGroup
@@ -346,29 +346,51 @@ def view(request, event):
     # needs to know that in order to decide what pieces of information to show.
     context['user_is_external'] = is_external(request.user)
 
-    # Does the user have permission to sign off on the event?
-    signoff_authorized = False
+    # Does the user have permission to sign off on the event as the control room operator?
+    operator_signoff_authorized = False
     # XXX Note that this may not be the best way to perform the authorization check.
     # In particular, this assumes that the user can only be a member of one group 
     # at a time. That should be the case, however, as the control room machines are 
     # physically well separated and should have different IPs.
     for group in request.user.groups.all():
         if '_control_room' in group.name:
-            signoff_authorized = True
+            operator_signoff_authorized = True
             context['signoff_instrument'] = group.name[:2].upper()
-            context['signoff_form'] = OperatorSignoffForm()
+            context['signoff_form'] = SignoffForm()
             instrument = group.name[:2].upper()
             try:
-                context['signoff_object'] = OperatorSignoff.objects.get(event=event, instrument=instrument)
+                context['operator_signoff_object'] = Signoff.objects.get(event=event, 
+                    instrument=instrument, signoff_type='OP')
             except:
-                context['signoff_object'] = None
-            label_name = instrument + 'OPS'
-            label_exists = label_name in [l.label.name for l in event.labelling_set.all()]
+                context['operator_signoff_object'] = None
+            req_label = instrument + 'OPS'
+            label_exists = req_label in [l.label.name for l in event.labelling_set.all()]
 
-            context['signoff_active'] = label_exists or context['signoff_object']
+            context['operator_signoff_active'] = label_exists or context['operator_signoff_object']
 
             break
-    context['signoff_authorized'] = signoff_authorized
+    context['operator_signoff_authorized'] = operator_signoff_authorized
+
+    # XXX A lot of repetition here. Hopefully this will be fixed later.
+    # Does the user have permission to sign off on the event as an EM advocate?
+    advocate_signoff_authorized = False
+    for group in request.user.groups.all():
+        if settings.EM_ADVOCATE_GROUP==group.name:
+            advocate_signoff_authorized = True
+            context['signoff_form'] = SignoffForm()
+            instrument = ''
+            try:
+                context['advocate_signoff_object'] = Signoff.objects.get(event=event, 
+                    instrument=instrument, signoff_type='ADV')
+            except:
+                context['advocate_signoff_object'] = None
+            req_label = 'ADVREQ'
+            label_exists = req_label in [l.label.name for l in event.labelling_set.all()]
+
+            context['advocate_signoff_active'] = label_exists or context['advocate_signoff_object']
+
+            break
+    context['advocate_signoff_authorized'] = advocate_signoff_authorized
 
     # Choose your template according to the event's pipeline.
     templates = ['gracedb/event_detail.html',]
@@ -933,41 +955,67 @@ def modify_t90(request, event):
 
 # XXX So this should probably be moved into view_logic anyway.
 from alert import issueXMPPAlert
-from view_utils import operatorSignoffToDict
+from view_utils import signoffToDict
+from models import SIGNOFF_TYPE_CHOICES
+
+def get_signoff_type(stype):
+    for t in SIGNOFF_TYPE_CHOICES:
+        if stype in t:
+            return t[0]
+    return None
 
 @event_and_auth_required
-def modify_operator_signoff(request, event):
-    # Get group_name and action from POST
+def modify_signoff(request, event):
     if not request.method=='POST':
         msg = 'create_operator_signoff only allows POST.'
         return HttpResponseBadRequest(msg)
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.debug("Got POST dict: %s" % request.POST)
 
     authorized = False
-    instrument = None
-    # XXX Note that this may not be the best way to perform the authorization check.
-    # In particular, this assumes that the user can only be a member of one group 
-    # at a time. That should be the case, however, as the control room machines are 
-    # physically well separated and should have different IPs.
-    for group in request.user.groups.all():
-        if '_control_room' in group.name:
+    instrument = ''
+    action = request.POST.get('action', 'create')
+    signoff_type = request.POST.get('signoff_type', 'operator')
+
+    if signoff_type=='operator':
+        # XXX Note that this may not be the best way to perform the authorization check.
+        # In particular, this assumes that the user can only be a member of one group 
+        # at a time. That should be the case, however, as the control room machines are 
+        # physically well separated and should have different IPs.
+        for group in request.user.groups.all():
+            if '_control_room' in group.name:
+                authorized = True
+                instrument = group.name[:2].upper()
+                break
+        if not len(instrument):
+            msg = "Unknown instrument/control room for signoff."
+            return HttpResponseBadRequest(msg)
+
+        req_label = instrument + 'OPS'
+        label_stem = instrument
+    elif signoff_type=='advocate':
+        user_groups = [g.name for g in request.user.groups.all()]
+        if settings.EM_ADVOCATE_GROUP in user_groups:
             authorized = True
-            instrument = group.name[:2].upper()
-            break
+
+        req_label = 'ADVREQ'
+        label_stem = 'ADV'
+    else:
+        msg = 'Unknown signoff type.'
+        return HttpResponseBadRequest(msg)
 
     if not authorized:
-        msg = "You do not appear to be in one of the control rooms."
-        msg += " Therefore, you are not authorized to perform the requested action."
+        msg += "You are not authorized to perform the requested action."
         return HttpResponseForbidden(msg)      
 
-    action = request.POST.get('action', 'create')
-    label_name = instrument + 'OPS'
-
-    existing = OperatorSignoff.objects.filter(event=event, instrument=instrument)
+    existing = Signoff.objects.filter(event=event, instrument=instrument, 
+        signoff_type=get_signoff_type(signoff_type))
     if existing.count() and action=='create':
-        msg = 'Cannot create multiple signoffs for the same event/instrument.'
+        msg = 'Cannot create multiple signoffs for the same event.'
         return HttpResponseBadRequest(msg) 
 
-    f = OperatorSignoffForm(request.POST)
+    f = SignoffForm(request.POST)
     status = None
     comment = None
     if f.is_valid():
@@ -980,21 +1028,24 @@ def modify_operator_signoff(request, event):
             return HttpResponseBadRequest(msg)
 
         # Create the OperatorSignoff object.
-        os = OperatorSignoff.objects.create(submitter = request.user,
+        signoff = Signoff.objects.create(submitter = request.user,
             event = event, instrument = instrument, 
-            status = status, comment = comment)
+            status = status, comment = comment,
+            signoff_type = get_signoff_type(signoff_type))
 
-        # Remove the signoff label.
+        # Remove the request label.
         for l in event.labelling_set.all():
-            if l.label.name == label_name:
+            if l.label.name == req_label:
                 l.delete()
 
         # Create a new label.
-        os_label_name = instrument + status
-        create_label(event, os_label_name, request.user, doAlert=False, doXMPP=False)
+        label_name = label_stem + status
+        create_label(event, label_name, request.user, doAlert=False, doXMPP=False)
 
         # Create a log message
-        msg = "Operator certified %s status as %s" % (instrument, status)
+        msg = "%s signoff certified status as %s" % (signoff_type, status)
+        if len(instrument):
+            msg += ' for %s' % instrument        
         if comment:
             msg += ': %s' % comment
         logentry = EventLog.objects.create(event=event, issuer=request.user, comment=msg)
@@ -1009,34 +1060,39 @@ def modify_operator_signoff(request, event):
 
         # Issue an alert.
         issueXMPPAlert(event, location='', alert_type="signoff", description=status, 
-            serialized_object = operatorSignoffToDict(os))
+            serialized_object = signoffToDict(signoff))
 
     elif action=='edit':
         # get the existing object
-        os = None
-        if existing.count():
-            os = existing[0]
+        signoff = None
+        if existing.count()==1:
+            signoff = existing[0]
+        elif existing.count()>1:
+            msg = 'Found too many existing signoffs. Something is wrong.'
+            return HttpResponseServerError(msg)
     
-        if not os:
-            msg = 'Could not find existing OperatorSignoff for this event/instrument.'
+        if not signoff:
+            msg = 'Could not find existing signoff for this event/instrument.'
             return HttpResponseBadRequest(msg)
 
         # remove the existing label
-        os_label_name = os.instrument + os.status
+        label_name = label_stem + signoff.status
         for l in event.labelling_set.all():
-            if l.label.name == os_label_name:
+            if l.label.name == label_name:
                 l.delete()
 
         delete = request.POST.get('delete', None)
         if delete:
             # delete the operator signoff object
-            os.delete()
+            signoff.delete()
 
             # also restore the label
-            create_label(event, label_name, request.user)
+            create_label(event, req_label, request.user)
 
             # Create a log message
-            msg = "%s operator deleted signoff status" % instrument
+            msg = "deleted %s signoff status" % signoff_type
+            if len(instrument):
+                msg += ' for %s' % instrument
             logentry = EventLog.objects.create(event=event, issuer=request.user, comment=msg)
 
             # XXX Ugh. Hardcoding tagname here.
@@ -1051,19 +1107,21 @@ def modify_operator_signoff(request, event):
                 msg = "Please select a valid status."
                 return HttpResponseBadRequest(msg)
             # update the values
-            os.status = status
-            os.comment = comment
-            os.save()
+            signoff.status = status
+            signoff.comment = comment
+            signoff.save()
             # Issue an alert.
             issueXMPPAlert(event, location='', alert_type="signoff", description=status, 
-                serialized_object = operatorSignoffToDict(os))
+                serialized_object = signoffToDict(signoff))
 
             # Create a new label.
-            os_label_name = instrument + status
-            create_label(event, os_label_name, request.user, doAlert=False, doXMPP=False)
+            label_name = instrument + status
+            create_label(event, label_name, request.user, doAlert=False, doXMPP=False)
 
             # Create a log message
-            msg = "Operator updated %s status as %s" % (instrument, status)
+            msg = "updated %s signoff status as %s" % (signoff_type, status)
+            if len(instrument):
+                msg += ' for %s' % instrument
             if comment:
                 msg += ': %s' % comment
             logentry = EventLog.objects.create(event=event, issuer=request.user, comment=msg)
@@ -1078,160 +1136,4 @@ def modify_operator_signoff(request, event):
 
     # Finished. Redirect back to the event.
     return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
-
-#------------------------------------------------------------------------------------------
-# Old Stuff
-#------------------------------------------------------------------------------------------
-#
-# Here is the old stuff we used for the Latest page.
-# Originally, public users could see a version of this page with some
-# fields stripped out. We may still want to do something like that in the 
-# future, but for now, we're actually limiting *which* events a public user
-# can see. 
-#
-#class LimitedEvent():
-#    def __init__(self, event):
-#        self._event = event
-#    def __getattr__(self, attr):
-#        if attr == 'gpstime':
-#            return None
-#        elif attr == 'created':
-#            return self._event.created.replace(second=0)
-#        else:
-#            return getattr(self._event, attr)
-#
-#def latest_limited(request):
-#    return latest(request)
-#
-#def latest(request):
-#    context = {}
-#
-#    if request.method == "GET":
-#        form = SimpleSearchForm(request.GET)
-#    else:
-#        form = SimpleSearchForm(request.POST)
-#
-#    template = 'gracedb/latest.html'
-#    if not request.user or not request.user.is_authenticated():
-#        limit = LimitedEvent
-#        template = 'gracedb/latest_public.html'
-#    else:
-#        limit = lambda x: x
-#
-#    context['form'] = form
-#    context['rawquery'] = request.GET.get('query') or request.POST.get('query') or ""
-#
-#    if form.is_valid():
-#        objects = form.cleaned_data['query']
-#        objects = filter_events_for_user(objects, request.user, 'view')[0:50]
-#        context['objects'] = map(limit, objects)
-#        context['error'] = False
-#    else:
-#        context['error'] = True
-#
-#    return render_to_response(
-#            template,
-#            context,
-#            context_instance=RequestContext(request))
-#
-#
-# XXX This looks interesting. Apparently an old attempt by Brian to make a nice 
-# graphical timeline of events, a la SkyAlert. Or something?
-#def timeline(request):
-#    from utils import gpsToUtc
-#    from django.utils import dateformat
-#
-#    response = HttpResponse(mimetype='application/javascript')
-#    events = []
-#    for event in Event.objects.exclude(group__name="Test").all():
-#        if event.gpstime:
-#            t = dateformat.format(gpsToUtc(event.gpstime), "F j, Y h:i:s")+" UTC"
-#
-#            events.append({
-#                'start': t,
-#                'title': event.get_analysisType_display(),
-#                'description':
-#                    "%s<br/>%s" %(event.get_analysisType_display(),"GPS time:%s"%event.gpstime),
-#                'durationEvent':False,
-#              })
-#    d = {'events': events}
-#    msg = json.dumps(d)
-#    response['Content-length'] = len(msg)
-#    response.write(msg)
-#    return response
-#
-#import re
-#from django.core.mail import mail_admins
-#from buildVOEvent import submitToSkyalert
-#
-#def skyalert_authorized(request):
-#    try:
-#        return u"{0} {1}".format(request.user.first_name, request.user.last_name) in settings.SKYALERT_SUBMITTERS
-#    except:
-#        return Fals
-#
-#def skyalert(request, graceid):
-#    event = Event.getByGraceid(graceid)
-#    createLogEntry = True
-#
-#    if not event.gpstime:
-#        request.session['flash_msg'] = "No GPS time.  Event not suitable for submission to SkyAlert"
-#        return HttpResponseRedirect(reverse(view, args=[graceid]))
-#
-#    if not event.far:
-#        request.session['flash_msg'] = "No FAR.  Event not suitable for submission to SkyAlert"
-#        return HttpResponseRedirect(reverse(view, args=[graceid]))
-#
-#    if not skyalert_authorized(request):
-#        request.session['flash_msg'] = "You are not authorized for SkyAlert submission"
-#        return HttpResponseRedirect(reverse(view, args=[graceid]))
-#
-#    try:
-#        skyalert_response = submitToSkyalert(event)
-#    except Exception, e:
-#        message = "SkyAlert Submission Error"
-#        skyalert_response = ""
-#        # XXX umm.  don't we want to know if this email fails silently?
-#        mail_admins("SkyAlert Submission Error",
-#                    "Event: %s\nException: %s\n" % (graceid, e),
-#                    fail_silently=True)
-#
-#    flashmessage = None
-#    if skyalert_response.find("Success") >= 0:
-#        urlpat = re.compile('https?://[^ ]*')
-#        match = urlpat.search(skyalert_response)
-#        if match:
-#            message = "Submitted to Skyalert: %s" % match.group()
-#            url = match.group()
-#            flashmessage = 'Submitted to Skyalert: %s' % url
-#            message = 'Submitted to Skyalert: <a href="%s">%s</a>' % (url,url)
-#        else:
-#            message = "SkyAlert submission problem.  Cannot parse SkyAlert response."
-#            # XXX umm.  don't we want to know if this email fails silently?
-#            mail_admins("SkyAlert response parsing problem",
-#                        "Event: %s\nSkyAlert Response: %s\n" % (graceid, skyalert_response),
-#                        fail_silently=True)
-#    elif (skyalert_response.find('already') >= 0) or (skyalert_response.find('Duplicate') >= 0):
-#            message = "Event already submitted to SkyAlert"
-#            createLogEntry = False
-#    elif skyalert_response:
-#        message = "Skyalert Submission Failed."
-#        mail_admins("SkyAlert submission failed",
-#                    "Event: %s\nSkyAlert Response: %s\n" % (graceid, skyalert_response),
-#                    fail_silently=True)
-#
-#    request.session['flash_msg'] = flashmessage or message
-#
-#    if createLogEntry:
-#        logentry = EventLog(event=event, issuer=request.ligouser, comment=message)
-#        try:
-#            logentry.save()
-#        except:
-#            # XXX Failed to create log entry for skyalert submission.
-#            # Error message?
-#            pass
-#
-#    return HttpResponseRedirect(reverse(view, args=[graceid]))
-#
-
 

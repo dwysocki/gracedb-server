@@ -56,6 +56,9 @@ EXTERNAL_ACCESS_TAGNAME = 'lvem'
 # FAR floor for outgoing VOEvents intended for GCN
 VOEVENT_FAR_FLOOR = 3.17e-10
 
+# EM Advocate Group name
+EM_ADVOCATE_GROUP = 'em_advocates'
+
 # 11/18/14. No longer checking XMPP_ALERT_CHANNELS. This is not necessary.
 # If someone sends out an event, an alert should go out. Listerers have the 
 # option to unsubscribe from nodes if so desired.

@@ -24,7 +24,7 @@ from view_utils import fix_old_creation_request
 from view_utils import eventToDict, eventLogToDict, labelToDict
 from view_utils import embbEventLogToDict, voeventToDict
 from view_utils import emObservationToDict, skymapViewerEMObservationToDict
-from view_utils import operatorSignoffToDict
+from view_utils import signoffToDict
 from view_utils import reverse
 
 from translator import handle_uploaded_data
@@ -1495,8 +1495,8 @@ class GracedbRoot(APIView):
         tag = tag.replace("0", "{n}")
         tag = tag.replace("tagname", "{tagname}")
 
-        operatorsignofflist = reverse("operatorsignoff-list", args=["G1200"], request=request)
-        operatorsignofflist = operatorsignofflist.replace("G1200", "{graceid}")
+        signofflist = reverse("signoff-list", args=["G1200"], request=request)
+        signofflist = signofflist.replace("G1200", "{graceid}")
 
         # XXX Need a template for the tag list?
 
@@ -1511,7 +1511,7 @@ class GracedbRoot(APIView):
                 "filemeta-template" : filemeta,
                 "tag-template" : tag,
                 "taglist-template" : taglist,
-                "operatorsignoff-list-template": operatorsignofflist,
+                "signoff-list-template": signofflist,
                 }
 
         return Response({
@@ -1925,11 +1925,9 @@ class OperatorSignoffList(APIView):
 
     @event_and_auth_required
     def get(self, request, event):
-        operator_signoff_set = event.operatorsignoff_set.all()
-        count = operator_signoff_set.count()
-
-        operator_signoff = [ operatorSignoffToDict(os)
-                for os in operator_signoff_set.iterator() ]
+        signoff_set = event.signoff_set.all()
+        count = signoff_set.count()
+        signoff = [ signoffToDict(s) for s in signoff_set.iterator() ]
 
         rv = {
                 'start': 0,
@@ -1939,7 +1937,7 @@ class OperatorSignoffList(APIView):
                     'first' : request.build_absolute_uri(),
                     'last' : request.build_absolute_uri(),
                     },
-                'operator_signoff' : operator_signoff,
+                'signoff' : signoff,
              }
         return Response(rv)
 

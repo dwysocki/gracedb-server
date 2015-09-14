@@ -62,19 +62,20 @@
 </div>
 {% endif %}
 
-{% if signoff_authorized and signoff_active %}
+<!-- Here is a section for the control room operator signoff -->
+{% if operator_signoff_authorized and operator_signoff_active %}
     <div class="signoff-area">
     <h2> {{signoff_instrument}} Operator Signoff </h2>
     <p> You are seeing this section because you've connected from a machine that, 
     according to our records, is in the {{signoff_instrument}} control room. 
-    {% if signoff_object %}
+    {% if operator_signoff_object %}
     This event has already been signed off on.
     Use the form below if you wish to edit or delete the record. </p>
-    <form action="{% url "modify_operator_signoff" object.graceid %}" method="post">
+    <form action="{% url "modify_signoff" object.graceid %}" method="post">
         <table>
         <tr><th><label for="id_status">Status:</label></th><td><select id="id_status" name="status">
         <option value="">---------</option>
-        {% if signoff_object.status == "OK" %}
+        {% if operator_signoff_object.status == "OK" %}
         <option value="OK" selected="selected">OKAY</option>
         <option value="NO">NOT OKAY</option>
         {% else %}
@@ -83,8 +84,9 @@
         {% endif %}
         </select></td></tr>
         <tr><th><label for="id_comment">Comment:</label></th><td>
-        <textarea cols="40" id="id_comment" name="comment" rows="10"> {{signoff_object.comment}}
+        <textarea cols="40" id="id_comment" name="comment" rows="10"> {{operator_signoff_object.comment}}
         </textarea></td></tr>
+        <input type="hidden" name="signoff_type" value="operator">
         <input type="hidden" name="action" value="edit">
         <tr> <th> Delete </th> <td> <input type="checkbox" name="delete" value="true"> </td> </tr>
         <tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
@@ -104,9 +106,10 @@
         event,
     {% endif %}
     was the operating status of the detector basically okay, or not? </p>
-    <form action="{% url "modify_operator_signoff" object.graceid %}" method="post">
+    <form action="{% url "modify_signoff" object.graceid %}" method="post">
         <table>
         {{ signoff_form.as_table }}
+        <input type="hidden" name="signoff_type" value="operator">
         <input type="hidden" name="action" value="create">
         <tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
         </table>
@@ -114,6 +117,54 @@
     {% endif %}
     </div>
 {% endif %}
+
+
+<!-- Here is a section for the EM advocate signoffs. -->
+<!-- XXX So much ugliness here. Is there a way to do this with the JS? -->
+{% if advocate_signoff_authorized and advocate_signoff_active %}
+    <div class="signoff-area">
+    <h2> Advocate Signoff </h2>
+    <p> You are seeing this section because you're a designated EM followup 
+    advocate.
+    {% if advocate_signoff_object %}
+    This event has already been signed off on.
+    Use the form below if you wish to edit or delete the record. </p>
+    <form action="{% url "modify_signoff" object.graceid %}" method="post">
+        <table>
+        <tr><th><label for="id_status">Status:</label></th><td><select id="id_status" name="status">
+        <option value="">---------</option>
+        {% if advocate_signoff_object.status == "OK" %}
+        <option value="OK" selected="selected">OKAY</option>
+        <option value="NO">NOT OKAY</option>
+        {% else %}
+        <option value="OK">OKAY</option>
+        <option value="NO" selected="selected">NOT OKAY</option>
+        {% endif %}
+        </select></td></tr>
+        <tr><th><label for="id_comment">Comment:</label></th><td>
+        <textarea cols="40" id="id_comment" name="comment" rows="10"> {{advocate_signoff_object.comment}}
+        </textarea></td></tr>
+        <input type="hidden" name="signoff_type" value="advocate">
+        <input type="hidden" name="action" value="edit">
+        <tr> <th> Delete </th> <td> <input type="checkbox" name="delete" value="true"> </td> </tr>
+        <tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
+        </table>
+    </form>
+
+    {% else %}
+    This event still requires EM Followup advocate signoff. </p> 
+    <form action="{% url "modify_signoff" object.graceid %}" method="post">
+        <table>
+        {{ signoff_form.as_table }}
+        <input type="hidden" name="signoff_type" value="advocate">
+        <input type="hidden" name="action" value="create">
+        <tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
+        </table>
+    </form>
+    {% endif %}
+    </div>
+{% endif %}
+
 
 <div class="content-area">
 {% block basic_info %}
