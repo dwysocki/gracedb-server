@@ -253,9 +253,10 @@ class TestPerms(TestCase):
         self.assertEqual(response.status_code, 200)
 
     # Check that the search form can be accessed anonymously.
-    def test_search_form_access(self):
-        response = self.client.get('/events/search/')
-        self.assertEqual(response.status_code, 200)
+    # XXX Actually, we don't want this right now.
+#    def test_search_form_access(self):
+#        response = self.client.get('/events/search/')
+#        self.assertEqual(response.status_code, 200)
 
     # Test viewing of events by public users
     def test_public_event_access(self):
