@@ -314,13 +314,13 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             for obj in event.singleinspiral_set.all():
                 if obj.eff_distance < max_distance:
                     max_distance = obj.eff_distance
-            if max_distance < float('inf'):
-                w.add_Param(Param(name="MaxDistance", 
-                    dataType="float", 
-                    ucd="pos.distance", 
-                    unit="Mpc",
-                    value=max_distance, 
-                    Description=["Estimated maximum distance for CBC event"]))
+#            if max_distance < float('inf'):
+#                w.add_Param(Param(name="MaxDistance", 
+#                    dataType="float", 
+#                    ucd="pos.distance", 
+#                    unit="Mpc",
+#                    value=max_distance, 
+#                    Description=["Estimated maximum distance for CBC event"]))
                 
         elif isinstance(event,MultiBurstEvent):
             w.add_Param(Param(name="CentralFreq", 
