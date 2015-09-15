@@ -143,7 +143,7 @@ class Event(models.Model):
             return "T%04d" % self.id
         elif str(self.search) == str("MDC"):
             return "M%04d" % self.id
-        elif self.pipeline == "HardwareInjection":
+        elif self.pipeline.name == "HardwareInjection":
             return "H%04d" % self.id
         elif self.group.name == "External":
             return "E%04d" % self.id
