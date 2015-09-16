@@ -693,6 +693,11 @@ def taglogentry(request, event, num, tagname):
             msg = "Attempted to delete tag that doesn't exist."
             return HttpResponseBadRequest(msg)
 
+        # Check authorization
+        if is_external(request.user) and tagname == settings.EXTERNAL_ACCESS_TAGNAME:
+            msg = "You do not have permission to add or remove this tag."
+            return HttpResponseForbidden(msg)
+
         # Create a log entry to document the tag deletion.
         msg = "Removed tag %s for message %s. " % (tagname, num)
         logentry = EventLog(event=event,
