@@ -310,9 +310,14 @@ def eventLogToDict(log, request=None):
     # This is purely for convenience in working with the web interface.
     tag_names = [tag.name for tag in log.tag_set.all() ];
 
+    if len(log.issuer.last_name):
+        display_name = "%s %s" % (log.issuer.first_name, log.issuer.last_name)
+    else:
+        display_name = log.issuer.username
+
     issuer_info = {
         "username": log.issuer.username,
-        "display_name": "%s %s" % (log.issuer.first_name, log.issuer.last_name),
+        "display_name": display_name,
     }
 
     return {
