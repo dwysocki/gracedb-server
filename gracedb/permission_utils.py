@@ -101,7 +101,6 @@ def is_external(user):
         return False
     else:
         return True
-#    return True
 
 #-------------------------------------------------------------------------------
 # A utility for determining whether an external user should have access to a 

@@ -130,7 +130,8 @@ def eventToDict(event, columns=None, request=None):
     rv['gpstime'] = event.gpstime
     rv['instruments'] = event.instruments
     rv['nevents'] = event.nevents
-    rv['far'] = event.far
+    floored_far = max(event.far, settings.VOEVENT_FAR_FLOOR)
+    rv['far'] = floored_far if is_external(request.user) else event.far
     rv['likelihood'] = event.likelihood
     rv['labels'] = dict([
           (labelling.label.name,

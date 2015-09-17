@@ -204,7 +204,8 @@
                 <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
                 {{ object.gpstime|multiTime:"gps" }}
             {% endif %}</td>
-        <td>{{ object.far|scientific }}</td>
+        {# NOTE: XXX Using event_far so it can be floored for external users. #}
+        <td>{{ display_far|scientific }}</td>
         <td><a href="{{ object.weburl }}">Data</a></td>
         <td>{{ object.created|multiTime:"created" }}</td>
     </tr>
