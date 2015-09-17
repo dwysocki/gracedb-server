@@ -320,7 +320,7 @@ def view(request, event):
     context['eventdesc'] = get_file(event, "event.log")
     context['userdesc'] = get_file(event, "user.log")
     context['nearby'] = [(e.gpstime - event.gpstime, e)
-                            for e in event.neighbors()]
+                            for e in filter_events_for_user(event.neighbors(), request.user, 'view')]
 #    context['skyalert_authorized'] = skyalert_authorized(request)
 #    context['groups'] = [g.name for g in EMGroup.objects.all()]
     context['groups'] = [g.name for g in EMGroup.objects.order_by('name')]
