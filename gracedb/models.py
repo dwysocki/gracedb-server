@@ -329,7 +329,7 @@ class EventLog(models.Model):
             raise Exception("Too many attempts to save log message. Something is wrong.")
 
 class EMGroup(models.Model):
-    name = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=50, unique=True)
 
     # XXX what else? Possibly the liasons. These can be populated 
     # automatically from the gw-astronomy COManage-provisioned LDAP.
