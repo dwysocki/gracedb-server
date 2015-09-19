@@ -1126,7 +1126,7 @@ def modify_signoff(request, event):
                 serialized_object = signoffToDict(signoff))
 
             # Create a new label.
-            label_name = instrument + status
+            label_name = label_stem + status
             create_label(event, label_name, request.user, doAlert=False, doXMPP=False)
 
             # Create a log message
