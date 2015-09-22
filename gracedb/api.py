@@ -1192,8 +1192,9 @@ class EventLogTagDetail(APIView):
         except:
             # Check authorization
             if is_external(request.user) and tagname == settings.EXTERNAL_ACCESS_TAGNAME:
-                msg = "You do not have permission to add or remove this tag."
-                return HttpResponseForbidden(msg)            
+                if eventlog.issuer != request.user:
+                    msg = "You do not have permission to add or remove this tag."
+                    return HttpResponseForbidden(msg)            
 
             # Look for the tag.  If it doesn't already exist, create it.
             try:
@@ -1223,6 +1224,12 @@ class EventLogTagDetail(APIView):
     @event_and_auth_required
     @eventlog_required
     def delete(self, request, event, eventlog, tagname):
+        # Check authorization
+        if is_external(request.user) and tagname == settings.EXTERNAL_ACCESS_TAGNAME:
+            if eventlog.issuer != request.user:
+                msg = "You do not have permission to add or remove this tag."
+                return HttpResponseForbidden(msg)            
+
         try:
             tag = eventlog.tag_set.filter(name=tagname)[0]
             tag.eventlogs.remove(eventlog)

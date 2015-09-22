@@ -662,8 +662,9 @@ def taglogentry(request, event, num, tagname):
         except:
             # Check authorization
             if is_external(request.user) and tagname == settings.EXTERNAL_ACCESS_TAGNAME:
-                msg = "You do not have permission to add or remove this tag."
-                return HttpResponseForbidden(msg)
+                if request.user != eventlog.issuer:
+                    msg = "You do not have permission to add or remove this tag."
+                    return HttpResponseForbidden(msg)
 
             # Look for the tag.  If it doesn't already exist, create it.
             try:
@@ -699,8 +700,9 @@ def taglogentry(request, event, num, tagname):
 
         # Check authorization
         if is_external(request.user) and tagname == settings.EXTERNAL_ACCESS_TAGNAME:
-            msg = "You do not have permission to add or remove this tag."
-            return HttpResponseForbidden(msg)
+            if request.user != eventlog.issuer:
+                msg = "You do not have permission to add or remove this tag."
+                return HttpResponseForbidden(msg)
 
         # Create a log entry to document the tag deletion.
         msg = "Removed tag %s for message %s. " % (tagname, num)
