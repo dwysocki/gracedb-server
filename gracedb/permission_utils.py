@@ -26,6 +26,8 @@ def filter_events_for_user(events, user, shortname):
         return Event.objects.none()
     if not user.groups.count():
         return Event.objects.none()
+    if not events:
+        return Event.objects.none()
     auth_filter = Q()
     for group in user.groups.all():
         perm_string = '%s_can_%s' % (group.name, shortname)
@@ -94,13 +96,16 @@ def lvem_user_required(view):
 # in a view.
 #-------------------------------------------------------------------------------
 def is_external(user):
-    if user:
-        user_groups = [g.name for g in user.groups.all()]
-        if settings.LVC_GROUP not in user_groups:
-            return True
+#    if user:
+#        user_groups = [g.name for g in user.groups.all()]
+#        if settings.LVC_GROUP not in user_groups:
+#            return True
+#        return False
+#    else:
+#        return True
+    if user.username == 'branson.stephens@LIGO.ORG':
         return False
-    else:
-        return True
+    return True
 
 #-------------------------------------------------------------------------------
 # A utility for determining whether an external user should have access to a 
