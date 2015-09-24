@@ -62,6 +62,16 @@ function changeTime(obj, label) {
       </h1>
     {% endif %}
 </center>
+
+{% if 'lvem_view' in request.path %}
+<div id="lvem_view_message">
+<b>IMPORTANT:</b> You are viewing this page as a member of the LV-EM Observers group.
+At the end of your session, please remove the 'lvem_view/' string from the URL to 
+return to the regular GraceDB site. This will ensure that your group memberships 
+are correct the next time you log in. 
+</div>
+{% endif %}
+
 {% endblock %}
 
         <p>&nbsp;</p> <!-- bad way to create vertical space -->

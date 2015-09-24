@@ -107,14 +107,35 @@ class LigoAuthMiddleware:
                 message += "THIS SHOULD NEVER HAPPEN"
                 pass
             
-            # Add shib user to groups. This operation is idempotent, but may
-            # incur a performance hit. 
+            # Update user groups
             isMemberOf = request.META.get('isMemberOf',None)
+            user_group_names = []
             if isMemberOf:
-                for group_name in isMemberOf.split(';'):
+                user_group_names = isMemberOf.split(';')
+            user_group_names = set(user_group_names)
+
+            # The above user list is a raw list that contains many groups that are not of
+            # interest to GraceDB. We will intersect it with the known groups.
+            known_group_names = set([g.name for g in Group.objects.all()])
+            user_group_names = user_group_names & known_group_names
+            
+            # Now get the stored user groups
+            stored_user_group_names = set([g.name for g in user.groups.all()])
+
+            # Take necessary action if the group sets differ
+            if user_group_names != stored_user_group_names:
+                # If the user has acquired a new group membership, add it.
+                for group_name in user_group_names - stored_user_group_names:
                     try:
                         g = Group.objects.get(name=group_name)
                         g.user_set.add(user)
+                    except:
+                        pass
+                # If the user has lost a group membership, remove it.
+                for group_name in stored_user_group_names - user_group_names:
+                    try:
+                        g = Group.objects.get(name=group_name)
+                        g.user_set.remove(user)
                     except:
                         pass
 

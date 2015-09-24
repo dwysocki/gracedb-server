@@ -96,16 +96,16 @@ def lvem_user_required(view):
 # in a view.
 #-------------------------------------------------------------------------------
 def is_external(user):
-#    if user:
-#        user_groups = [g.name for g in user.groups.all()]
-#        if settings.LVC_GROUP not in user_groups:
-#            return True
-#        return False
-#    else:
-#        return True
-    if user.username == 'branson.stephens@LIGO.ORG':
+    if user:
+        user_groups = [g.name for g in user.groups.all()]
+        if settings.LVC_GROUP not in user_groups:
+            return True
         return False
-    return True
+    else:
+        return True
+#    if user.username == 'branson.stephens@LIGO.ORG':
+#        return False
+#    return True
 
 #-------------------------------------------------------------------------------
 # A utility for determining whether an external user should have access to a 

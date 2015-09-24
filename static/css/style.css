@@ -38,6 +38,13 @@ table.gstlalcbc th {padding:3px;border:none;vertical-align:bottom;}
     padding: 4px;
 }
 
+#lvem_view_message {
+    margin-left: 15px;
+    max-width: 600px;
+    background-color: #ffe6e6; 
+    padding: 10px;
+}
+
 .signoff-area th {
     background-color: rgb(200, 200, 200);
 }
