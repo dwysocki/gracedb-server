@@ -410,7 +410,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         v.set_WhereWhen(ww)
 
     ############ Citation ############################
-    if voevent_type != 'preliminary':
+    if event.voevent_set.count()>1 and voevent_type != 'preliminary':
         c = Citations()
         for ve in event.voevent_set.all():
             # Oh, actually we need to exclude *this* voevent.
