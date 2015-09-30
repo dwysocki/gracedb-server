@@ -83,7 +83,7 @@ def cli_label(request):
     if not user_has_perm(request.user, 'change', event):
         return HttpResponseForbidden()
 
-    d = create_label(event, labelName, request.user, doXMPP=doxmpp)
+    d = create_label(event, request, labelName, doXMPP=doxmpp)
 
     msg = str(d)
     response = HttpResponse(content_type='application/json')

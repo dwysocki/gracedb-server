@@ -52,7 +52,7 @@ def issueAlertForUpdate(event, description, doxmpp, filename="", serialized_obje
     # XXX No emails for this.  Argh.
 
 # The only kind of serialized object relevant for a Label is an event.
-def issueAlertForLabel(event, label, doxmpp, serialized_event=None):
+def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=None):
     if doxmpp:
         issueXMPPAlert(event, "", "label", label, serialized_event)
     # Email
@@ -72,6 +72,8 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None):
 
     message = "A %s event with graceid %s was labelled with %s" % \
               (event.pipeline.name, event.graceid(), label.name)
+    if event_url:
+        message += '\n\n%s' % event_url
 
     if event.group.name == "Test":
         fromaddress = settings.ALERT_TEST_EMAIL_FROM

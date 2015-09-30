@@ -146,7 +146,9 @@ def _createEventFromForm(request, form):
         event = None
     return event, warnings
 
-def create_label(event, labelName, creator, doAlert=True, doXMPP=True):
+def create_label(event, request, labelName, doAlert=True, doXMPP=True):
+    creator = request.user
+    event_url = request.build_absolute_uri(reverse('view', args=[event.graceid()]))
     d = {}
     try:
         label = Label.objects.filter(name=labelName)[0]
@@ -172,7 +174,7 @@ def create_label(event, labelName, creator, doAlert=True, doXMPP=True):
             d['error'] = str(e)
 
         try:
-            issueAlertForLabel(event, label, doXMPP)
+            issueAlertForLabel(event, label, doXMPP, event_url=event_url)
         except Exception, e:
             d['warning'] = "Problem issuing alert (%s)" % str(e)
     # XXX Strange return value.  Just warnings.  Can really be ignored, I think.

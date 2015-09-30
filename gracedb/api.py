@@ -714,7 +714,7 @@ class EventLabel(APIView):
     @event_and_auth_required
     def put(self, request, event, label):
         try:
-            rv = create_label(event, label, request.user)
+            rv = create_label(event, request, label)
         except ValueError, e:
             return Response(e.message,
                         status=status.HTTP_400_BAD_REQUEST)

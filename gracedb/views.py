@@ -1053,7 +1053,7 @@ def modify_signoff(request, event):
 
         # Create a new label.
         label_name = label_stem + status
-        create_label(event, label_name, request.user, doAlert=False, doXMPP=False)
+        create_label(event, request, label_name, doAlert=False, doXMPP=False)
 
         # Create a log message
         msg = "%s signoff certified status as %s" % (signoff_type, status)
@@ -1100,7 +1100,7 @@ def modify_signoff(request, event):
             signoff.delete()
 
             # also restore the label
-            create_label(event, req_label, request.user)
+            create_label(event, request, req_label)
 
             # Create a log message
             msg = "deleted %s signoff status" % signoff_type
@@ -1129,7 +1129,7 @@ def modify_signoff(request, event):
 
             # Create a new label.
             label_name = label_stem + status
-            create_label(event, label_name, request.user, doAlert=False, doXMPP=False)
+            create_label(event, request, label_name, doAlert=False, doXMPP=False)
 
             # Create a log message
             msg = "updated %s signoff status as %s" % (signoff_type, status)
