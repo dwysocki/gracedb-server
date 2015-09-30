@@ -1006,11 +1006,14 @@ require([
                         // toggle state of node which was clicked
                         put(node, (collapsed ? '!' : '.') + 'collapsed');
 
+                        // XXX Commenting out the following two statements has the effect of allowing
+                        // more than one of the subrows to be expanded at the same time. I think this
+                        // is the sort of behavior that people expect.
                         // if clicked row wasn't expanded, collapse any previously-expanded row
-                        collapsed && expandedNode && put(expandedNode, '.collapsed');
+                        // collapsed && expandedNode && put(expandedNode, '.collapsed');
 
                         // if the row clicked was previously expanded, nothing is expanded now
-                        expandedNode = collapsed ? node : null;
+                        // expandedNode = collapsed ? node : null;
                     });
                 } // endif on whether we have any emos or not.
             });
