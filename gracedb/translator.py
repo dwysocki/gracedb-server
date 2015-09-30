@@ -21,6 +21,8 @@ from utils.vfile import VersionedFile
 import json
 import StringIO
 
+from math import sqrt
+
 use_in(LIGOLWContentHandler)
 
 # This function checks for 'inf' in a float field, asks the database
@@ -505,7 +507,12 @@ class CwbData(Translator):
         event.duration      = data.get('duration')
         event.central_freq  = data.get('central_freq')
         event.bandwidth     = data.get('bandwidth')
-        event.snr           = data.get('snr')
+        try:
+            event.snr       = sqrt(data.get('likelihood'))
+        except:
+            event.snr       = 0.0
+        # Note that 'snr' here corresponds to 'rho' in the datafile
+        event.amplitude     = data.get('snr')
         event.ligo_axis_ra  = data.get('ligo_axis_ra')
         event.ligo_axis_dec = data.get('ligo_axis_dec')
 
