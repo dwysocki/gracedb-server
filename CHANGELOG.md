@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file.
   exposure" (#2603)
 - Removed customized wait method from throttles so that we can send an 
     x-throttle-wait-seconds header to the user (#2457)
+- Allow the internal parameter of VOEvents to be controlled by the requestor.
+    This is now taken from post data and defaults to 1 (internal only #2608).
 
 ### Fixed
 - remove user from groups that are not present in IdP shibboleth assertion
