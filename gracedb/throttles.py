@@ -40,15 +40,6 @@ class PostOrPutUserRateThrottle(UserRateThrottle):
         self.cache.set(self.key, self.history, self.duration)
         return True
 
-    def wait(self):
-        """
-        The HTTPError exception includes a little message with the recommended
-        wait time. However, this doesn't seem to work very well with fractional
-        seconds. Returning 'None' will prevent it from trying to recommend a 
-        wait time.
-        """
-        return None
-
 class EventCreationThrottle(PostOrPutUserRateThrottle):
     scope = 'event_creation'
 

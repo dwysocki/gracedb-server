@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file.
 - allow more than one EMObservation subrow to be expanded at one time (#2605)
 - Changed name of "Duration" field in EMObservation form to "On source
   exposure" (#2603)
+- Removed customized wait method from throttles so that we can send an 
+    x-throttle-wait-seconds header to the user (#2457)
 
 ### Fixed
 - remove user from groups that are not present in IdP shibboleth assertion
