@@ -42,7 +42,7 @@ def get_url(request, graceid, view_name, file_name=None):
 VOEVENT_TYPE_DICT = dict(GraceDBVOEvent.VOEVENT_TYPE_CHOICES)
 
 def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filename=None,
-    skymap_type=None, skymap_image_filename = None):
+    skymap_type=None, skymap_image_filename = None, internal=1):
 
 # XXX Branson commenting out. Reed's MDC events do not have FAR for some reason.
 #    if not event.far:
@@ -125,12 +125,8 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     # basically, a string that makes sense to humans about what units a value is. eg. "m/s"
 
     # Whether the alert is internal or not
-    if event.search and event.search.name == 'MDC':
-        w.add_Param(Param(name="internal", value=0,
-            Description=['Indicates that this event should be distributed to LSC/Virgo members only']))
-    else:
-        w.add_Param(Param(name="internal", value=1,
-            Description=['Indicates that this event should be distributed to LSC/Virgo members only']))
+    w.add_Param(Param(name="internal", value=internal,
+        Description=['Indicates that this event should be distributed to LSC/Virgo members only']))
     
     # The serial number
     w.add_Param(Param(name="Pkt_Ser_Num", value=serial_number))

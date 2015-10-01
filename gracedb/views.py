@@ -107,8 +107,9 @@ def discovery(request):
 def voevent(request, event):
     # Default VOEvent type is 'preliminary'
     voevent_type=request.GET.get('voevent_type', 'preliminary')
+    internal=request.GET.get('internal', 1)
     try:
-        voevent = buildVOEvent(event, request, voevent_type=voevent_type)
+        voevent = buildVOEvent(event, request, voevent_type=voevent_type, internal=internal)
     # Exceptions caused by user errors of some sort.
     except VOEventBuilderException, e:
         return HttpResponseBadRequest(str(e))

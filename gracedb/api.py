@@ -1835,6 +1835,8 @@ class VOEventList(APIView):
         if not voevent_type:
             msg = "You must provide a valid voevent_type."
             return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
+
+        internal = request.DATA.get('internal', 1)
             
         skymap_type = request.DATA.get('skymap_type', None)
         skymap_filename = request.DATA.get('skymap_filename', None)
@@ -1857,7 +1859,7 @@ class VOEventList(APIView):
         try:
             voevent_text, ivorn = buildVOEvent(event, voevent.N, voevent_type, request,
                 skymap_filename = skymap_filename, skymap_type = skymap_type,
-                skymap_image_filename = skymap_image_filename)
+                skymap_image_filename = skymap_image_filename, internal = internal)
         except VOEventBuilderException, e:
             msg = "Problem building VOEvent: %s" % str(e)
             return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
