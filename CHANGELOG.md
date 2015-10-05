@@ -24,3 +24,4 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - remove user from groups that are not present in IdP shibboleth assertion
   (#2600)
+- description of the 'internal' parameter in buildVOEvent.py (#2600)

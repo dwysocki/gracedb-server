@@ -126,7 +126,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
 
     # Whether the alert is internal or not
     w.add_Param(Param(name="internal", value=internal,
-        Description=['Indicates that this event should be distributed to LSC/Virgo members only']))
+        Description=['Indicates whether this event should be distributed to LSC/Virgo members only']))
     
     # The serial number
     w.add_Param(Param(name="Pkt_Ser_Num", value=serial_number))
