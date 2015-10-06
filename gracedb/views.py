@@ -632,8 +632,12 @@ def latest(request):
     context['rawquery'] = request.GET.get('query') or request.POST.get('query') or ""
 
     if form.is_valid():
-        objects = form.cleaned_data['query']
-        objects = filter_events_for_user(objects, request.user, 'view')[0:50]
+        # XXX This makes the requests much faster for internal users.
+        if is_external(request.user):
+            objects = form.cleaned_data['query']
+            objects = filter_events_for_user(objects, request.user, 'view')[0:50]
+        else:
+            objects = form.cleaned_data['query'][:50]
         context['objects'] = objects
         context['error'] = False
     else:
