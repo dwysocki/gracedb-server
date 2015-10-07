@@ -21,7 +21,7 @@ class Contact(models.Model):
 
     def __unicode__(self):
         #return "%s: %s" % (self.user.name, self.desc)
-        return "{0} {1}: {2}".format(self.user.first_name, self.user.last_name, self.desc)
+        return u"{0} {1}: {2}".format(self.user.first_name, self.user.last_name, self.desc)
 
 class Trigger(models.Model):
     TYPES = ( ("create", "create"), ("change","change"), ("label","label") )
@@ -35,7 +35,7 @@ class Trigger(models.Model):
     farThresh = models.FloatField(blank=True, null=True)
 
     def __unicode__(self):
-        return ("%s %s: %s") % (
+        return (u"%s %s: %s") % (
             self.user.first_name,
             self.user.last_name,
             self.userlessDisplay()
