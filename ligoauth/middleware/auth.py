@@ -133,6 +133,8 @@ class LigoAuthMiddleware:
                         pass
                 # If the user has lost a group membership, remove it.
                 for group_name in stored_user_group_names - user_group_names:
+                    if group_name in settings.ADMIN_MANAGED_GROUPS:
+                        continue
                     try:
                         g = Group.objects.get(name=group_name)
                         g.user_set.remove(user)
