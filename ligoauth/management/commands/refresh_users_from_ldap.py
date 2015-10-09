@@ -5,6 +5,8 @@ from ligoauth.models import LigoLdapUser, X509Cert, AlternateEmail
 
 from django.contrib.auth.models import User, Group
 
+from django.db.utils import IntegrityError
+
 import ldap
 
 baseDN = "ou=people,dc=ligo,dc=org"
@@ -57,7 +59,27 @@ class Command(NoArgsCommand):
                             'username'   : principal,
                             'is_active'  : is_active
                         }
-                        user, created = LigoLdapUser.objects.get_or_create(ldap_dn=ldap_dn, defaults=defaults)
+                        try:
+                            user, created = LigoLdapUser.objects.get_or_create(ldap_dn=ldap_dn, defaults=defaults)
+                        except IntegrityError:
+                            # The user already exists, but the LigoLdapUser object does not.
+                            # You will need to look up the user. And delete it.
+                            try:
+                                print "Problem for %s" % ldap_dn
+                                user = User.objects.get(username=principal)
+                                print "Deleting User object for %s" % principal
+                                user.delete()
+                            except:
+                                print "OMG, couldn't find user either for %s" % principal
+
+                            # XXX 
+                            # Now we're recreating the user as a LigoLdapUser. The problem with this is that,
+                            # if the user had any annotations before, then those will appear to have been 
+                            # submitted by a non-existent user.
+                            # Perhaps the best way of fixing this is to create a LigoLdapUser in the first
+                            # place if an unknown user shows up with a shib session.
+                            user, created = LigoLdapUser.objects.get_or_create(ldap_dn=ldap_dn, defaults=defaults)
+
 
                         changed = created \
                                 or (user.first_name != first_name) \
