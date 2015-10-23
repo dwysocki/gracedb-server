@@ -43,6 +43,8 @@
 
 <p>{{ message }}</p>
 
+{% if 'lvem_view' not in request.path %}
+
 <!-- XXX This next bit is super hacky. -->
 {% if can_expose_to_lvem %}
 <div class="content-area">
@@ -164,6 +166,8 @@
     {% endif %}
     </div>
 {% endif %}
+
+{% endif %} {# lvem_view not in request.path #}
 
 
 <div class="content-area">
