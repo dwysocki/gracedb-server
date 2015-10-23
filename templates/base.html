@@ -38,7 +38,7 @@ function changeTime(obj, label) {
     {% if user_is_internal %}
         <li id="nav-create"><a href="{% url "create" %}">Create</a></li>
         <li id="nav-reports"><a href="{% url "reports" %}">Reports</a></li>
-        <!-- <li id="nav-feeds"><a href="{% url "feeds" %}">RSS</a></li> -->
+        <li id="nav-feeds"><a href="{% url "feeds" %}">RSS</a></li> 
     {% endif %}
     <li id="nav-latest"><a href="{% url "latest" %}">Latest</a></li>
     {# if user_is_internal #}

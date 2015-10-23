@@ -4,7 +4,10 @@ from guardian.shortcuts import assign_perm
 from django.contrib.auth.models import Group
 from django.utils.functional import wraps
 from django.http import HttpResponseForbidden
+from django.http import HttpResponseServerError
 from gracedb.models import Event
+from django.http import HttpRequest
+from rest_framework.request import Request
 import os
 
 #-------------------------------------------------------------------------------
@@ -67,13 +70,22 @@ def assign_default_event_perms(event):
 #-------------------------------------------------------------------------------
 def internal_user_required(view):
     @wraps(view)
-    def inner(request, *args, **kwargs):
+    def inner(*args, **kwargs):
+        # Find the request
+        request = None
+        for arg in args:
+            if isinstance(arg,HttpRequest) or isinstance(arg,Request):
+                request = arg
+                break
+        if not request:
+            return HttpResponseServerError('Request missing inside auth decorator. Strange.')
+
         # XXX Should probably move this list of internal groups into settings.
         internal_groups = Group.objects.filter(
             name__in=[settings.LVC_GROUP, settings.EXEC_GROUP])
         if not set(list(internal_groups)) & set(list(request.user.groups.all())):
             return HttpResponseForbidden("Forbidden")
-        return view(request, *args, **kwargs)
+        return view(*args, **kwargs)
     return inner
 
 #-------------------------------------------------------------------------------
@@ -82,12 +94,20 @@ def internal_user_required(view):
 #-------------------------------------------------------------------------------
 def lvem_user_required(view):
     @wraps(view)
-    def inner(request, *args, **kwargs):
+    def inner(*args, **kwargs):
+        # Find the request
+        request = None
+        for arg in args:
+            if isinstance(arg,HttpRequest) or isinstance(arg,Request):
+                request = arg
+                break
+        if not request:
+            return HttpResponseServerError('Request missing inside auth decorator. Strange.')
         # XXX Should probably move this list of internal groups into settings.
         lvem_groups = [Group.objects.get(name=settings.LVEM_GROUP)]
         if not set(list(lvem_groups)) & set(list(request.user.groups.all())):
             return HttpResponseForbidden("Forbidden")
-        return view(request, *args, **kwargs)
+        return view(*args, **kwargs)
     return inner
 
 #-------------------------------------------------------------------------------
