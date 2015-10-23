@@ -357,7 +357,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                 pi = 3.14152
                 c = 2.99792E10
                 G = 6.674E-8
-                fluence = pi * pow(c,3) * pow(event.central_freq,2) * 1000.0
+                fluence = pi * pow(c,3) * pow(event.central_freq,2) 
                 fluence = fluence * pow(max_hrss,2)
                 fluence = fluence / (4.0*G)
 
