@@ -35,6 +35,8 @@ leapSeconds = map(calendar.timegm, [
 ])
 
 def gpsToPosixTime(gpsTime):
+    if gpsTime is None:
+        return None
     t = gpsEpoch + gpsTime
     for leap in leapSeconds:
         if t >= leap:
@@ -42,6 +44,8 @@ def gpsToPosixTime(gpsTime):
     return t
 
 def posixToGpsTime(posixTime):
+    if posixTime is None:
+        return None
     change = 0
     for leap in leapSeconds:
         if posixTime > leap:
@@ -49,6 +53,8 @@ def posixToGpsTime(posixTime):
     return posixTime + change - gpsEpoch
 
 def gpsToUtc(gpsTime):
+    if gpsTime is None:
+        return None
     t = gpsToPosixTime(gpsTime)
     return datetime.datetime.fromtimestamp(t, pytz.utc)
 
@@ -56,6 +62,8 @@ def isoToGps(t):
     # The input is a string in ISO time format: 2012-10-28T05:04:31.91
     # First strip out whitespace, then split off the factional 
     # second.  We'll add that back later.
+    if not t:
+        return None
     t=t.strip()
     ISOTime = t.split('.')[0]
     ISOTime = datetime.datetime.strptime(ISOTime,"%Y-%m-%dT%H:%M:%S")
@@ -73,6 +81,8 @@ def isoToGpsFloat(t):
     # The input is a string in ISO time format: 2012-10-28T05:04:31.91
     # First strip out whitespace, then split off the factional 
     # second.  We'll add that back later.
+    if not t:
+        return None
     t=t.strip()
     ISOTime = t.split('.')[0]
     ISOTime = datetime.datetime.strptime(ISOTime,"%Y-%m-%dT%H:%M:%S")
