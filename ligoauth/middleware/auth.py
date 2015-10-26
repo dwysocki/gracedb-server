@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User, AnonymousUser, Group
 from django.contrib.auth.backends import RemoteUserBackend as DefaultRemoteUserBackend
 from django.contrib.auth.backends import ModelBackend as DefaultModelBackend
-from ligoauth.models import certdn_to_user
+from ligoauth.models import certdn_to_user, LigoLdapUser
 
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -72,7 +72,7 @@ def create_user_from_request(request):
         'last_name': request.META.get('sn', ''),
         'password': 'X',
     }
-    return User.objects.create(**user_dict)
+    return LigoLdapUser.objects.create(**user_dict)
 
 class LigoAuthMiddleware:
     """This is the ultimate gatekeeper for GraceDb auth/authz.

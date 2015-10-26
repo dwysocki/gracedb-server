@@ -59,29 +59,26 @@ class Command(NoArgsCommand):
                             'username'   : principal,
                             'is_active'  : is_active
                         }
+
+                        # Sometimes the user will have been created by the auth middleware as the
+                        # result of a new user arriving with a shib session. So we must try to 
+                        # look up the user first.
                         try:
-                            user, created = LigoLdapUser.objects.get_or_create(ldap_dn=ldap_dn, defaults=defaults)
-                        except IntegrityError:
-                            # The user already exists, but the LigoLdapUser object does not.
-                            # You will need to look up the user. And delete it.
+                            user = LigoLdapUser.objects.get(username=defaults['username'])
+                            created = False
+                        except User.DoesNotExist:
                             try:
+                                user, created = LigoLdapUser.objects.get_or_create(ldap_dn=ldap_dn, defaults=defaults)
+                            except IntegrityError:
+                                # This actually should not happen. 
                                 print "Problem for %s" % ldap_dn
-                                user = User.objects.get(username=principal)
-                                print "Deleting User object for %s" % principal
-                                user.delete()
-                            except:
-                                print "OMG, couldn't find user either for %s" % principal
+                                continue
 
-                            # XXX 
-                            # Now we're recreating the user as a LigoLdapUser. The problem with this is that,
-                            # if the user had any annotations before, then those will appear to have been 
-                            # submitted by a non-existent user.
-                            # Perhaps the best way of fixing this is to create a LigoLdapUser in the first
-                            # place if an unknown user shows up with a shib session.
-                            user, created = LigoLdapUser.objects.get_or_create(ldap_dn=ldap_dn, defaults=defaults)
-
-
+                        # Now we allow for a change in the ldap_dn, since the ldap_dn will be an 
+                        # empty string if the user is created based off of a shib session (which will
+                        # not have the ldap_dn).
                         changed = created \
+                                or (user.ldap_dn != ldap_dn) \
                                 or (user.first_name != first_name) \
                                 or (user.last_name != last_name) \
                                 or (user.email != email) \
@@ -89,6 +86,7 @@ class Command(NoArgsCommand):
                                 or (user.is_active != is_active)
 
                         if changed:
+                            user.ldap_dn = ldap_dn
                             user.first_name = first_name
                             user.last_name = last_name
                             user.email = email
