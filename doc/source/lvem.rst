@@ -165,6 +165,13 @@ uploading observation records:
 
 - by email (not yet availabe, but in the works)
 
+If you discover a mistake in your observation record, the best way to correct
+it is to submit a new observation record with corrected values and request that
+the old one be deleted. Please send an email to uwm-help@cgca.uwm.edu with
+something like "delete GraceDB EMObservation" in the subject line. Tell us
+which entry you'd like deleted, and we'll take care of it.  In the future, we
+are hoping to make these observation records editable by the submitter.
+
 For more on the GraceBD event page and creating EM observation records, see 
 `this <https://www.youtube.com/watch?v=oIJE4dTISs4>`__  helpful video
 by Roy Williams.  There is a companion video on the SkymapViewer 
