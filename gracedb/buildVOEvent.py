@@ -41,6 +41,12 @@ def get_url(request, graceid, view_name, file_name=None):
 
 VOEVENT_TYPE_DICT = dict(GraceDBVOEvent.VOEVENT_TYPE_CHOICES)
 
+def get_voevent_type(short_name):
+    for t in GraceDBVOEvent.VOEVENT_TYPE_CHOICES:
+        if short_name in t:
+            return t[1]
+    return None
+
 def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filename=None,
     skymap_type=None, skymap_image_filename = None, internal=1):
 
@@ -60,7 +66,22 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     objid = event.graceid()
 
     # Now build the IVORN. 
-    event_id = "%s-%d-%s" % (objid, serial_number, voevent_type.capitalize())
+    # XXX This will have the string '-Retraction' appended if it is a retraction,
+    # and the voevent_type will refer to the type of the *previous* voevent.
+    # This is highly objectionable.
+    type_string = voevent_type.capitalize()
+    if voevent_type == 'retraction':
+        try:
+            last_voevent = event.voevent_set.order_by('-N')[1] 
+            type_string = get_voevent_type(last_voevent.voevent_type).capitalize()
+            type_string += '-Retraction'
+        except:
+            # XXX Somehow failed to get the previous VOEvent. This is a bad situation.
+            # But we can't just error out, because sending out the retraction is pretty
+            # important. 
+            type_string = 'Preliminary-Retraction'
+        
+    event_id = "%s-%d-%s" % (objid, serial_number, type_string)
     ivorn = settings.SKYALERT_IVORN_PATTERN % event_id
 
     ############ VOEvent header ############################
@@ -138,13 +159,34 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         value=objid, 
         Description=["Identifier in GraceDB"]))
 
-    # The alert type
+    # XXX if voevent_type == 'retraction' the AlertType will be the type of the
+    # last VOEvent sent out. This is highly objectionable.
+    alert_type = voevent_type
+
+    if voevent_type == 'retraction':
+        try:
+            last_voevent = event.voevent_set.order_by('-N')[1] 
+            alert_type = get_voevent_type(last_voevent.voevent_type)
+        except:
+            # XXX We have failed to obtain the last voevent for some reason, so 
+            # we don't know what the alert type should be. Let's just set it to
+            # preliminary, since we need to try not to error out of sending the
+            # retraction
+            alert_type = 'preliminary'
+
     w.add_Param(Param(name="AlertType",
         dataType="string",
         ucd="meta.version",
         unit="",
-        value = voevent_type.capitalize(),
+        value = alert_type.capitalize(),
         Description=["VOEvent alert type"]))
+
+    w.add_Param(Param(name="Retraction",
+        dataType="string",
+        ucd="meta.code",
+        unit="",
+        value= "true" if voevent_type == 'retraction' else "false",
+        Description=["Set to true if the event is retracted."]))
 
     # Shib protected event page
     w.add_Param(Param(name="EventPage",
