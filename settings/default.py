@@ -101,6 +101,7 @@ COINC_PIPELINES = [
                     'gstlal',
                     'gstlal-spiir',
                     'MBTAOnline',
+                    'pycbc',
                    ]
 
 GRB_PIPELINES = [
