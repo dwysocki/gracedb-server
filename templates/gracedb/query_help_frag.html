@@ -7,7 +7,7 @@
  Relational and range queries can be made on event attributes.
  <ul>
     <li><code>instruments = "H1,L1,V1" &amp; far &lt; 1e-7</code></li>
-    <li><code>singleinspiral.mchirp &gt;= 1.6 &amp; eff_distance in 40.5,55 </code></li>
+    <li><code>singleinspiral.mchirp &gt;= 0.5 &amp; singleinspiral.eff_distance in 0.0,55 </code></li>
     <li><code>(si.channel = "DMT-STRAIN" | si.channel = "DMT-PAIN") &amp; si.snr &lt; 5</code></li>
     <li><code>mb.snr in 1,3 &amp; mb.central_freq &gt; 1000</code></li>
  </ul>
@@ -19,8 +19,7 @@
   keyword optional.
   <ul>
      <li><code>899999000 .. 999999999</code></li>
-     <li><code>gpstime: 999999999</code></li>
-     <li><code>gpstime: 899999000 .. 999999999</code></li>
+     <li><code>gpstime: 899999000.0 .. 999999999.9</code></li>
   </ul>
 
  <h4>By Creation Time</h4>
@@ -32,7 +31,6 @@
   <ul>
      <li><code>created: 2009-10-08 .. 2009-12-04 16:00:00</code></li>
      <li><code>yesterday..now</code></li>
-     <li><code></code></li>
      <li><code>created: 1 week ago .. now</code></li>
   </ul>
 
@@ -51,19 +49,21 @@
    <li>CBC Burst</li>
 <!--   <li>Inspiral CWB</li> -->
    <li>group: Test pipeline: cwb</li>
-   <li>Burst Omega</li>
+   <li>Burst cwb</li>
   </ul>
 
  <h4>By Label</h4>
-  You may request only events that have a certain label.  The <code>label:</code> keyword
-  is optional.  Note that specifying multiple labels is an "OR" operation.  More complex
-  expressiveness is on the 'todo' list.
+  You may request only events with a particular label or set of labels.  The <code>label:</code> keyword
+  is optional. Label names can be combined with binary AND: '&amp;' or ','; or binary OR: '|'. For N labels, 
+  there must be exactly N-1 binary operators. (Parentheses are not allowed.) Additionally, any of the labels 
+  in a query string can be negated with '~' or '-'. 
   <ul>
    <li>label: INJ</li>
-   <li>DQV LUMIN_GO</li>
+   <li>EM_READY &amp; ADVOK</li>
+   <li>H1OK | L1OK &amp; ~INJ &amp; ~DQV</li>
   </ul>
-  Valid labels are:
-    cWB_s, cWB_r, EM_READY, SWIFT_NO, SWIFT_GO, LUMIN_NO, LUMIN_GO, DQV, INJ
+  Labels in current use are:
+    INJ, DQV, EM_READY, PE_READY, H1NO, H1OK, H1OPS, L1NO, L1OK, L1OPS, ADVREQ, ADVOK, ADVNO
 
 
  <h4>By Submitter</h4>
@@ -73,8 +73,8 @@
   that ought to be remedied.
   <ul>
     <li>"waveburst"
-    <li>"gstlalcbc"  "gdb-processor"
-    <li>submitter: "joss.whedon@ligo.org" submitter: "gdb_processor"
+    <li>"gstlalcbc"  "gracedb.processor"
+    <li>submitter: "joss.whedon@ligo.org" submitter: "gracedb.processor"
   </ul>
 
 </div>

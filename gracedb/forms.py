@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import FieldError
 from django.forms import ModelForm
 
-from query import parseQuery
+from query import parseQuery, filter_for_labels
 from pyparsing import ParseException
 
 htmlEntityStar = "&#9733;"
@@ -24,7 +24,10 @@ class GraceQueryField(forms.CharField):
         from django.db.models import Q
         queryString = forms.CharField.clean(self, queryString)
         try:
-            return Event.objects.filter(parseQuery(queryString)).distinct()
+            #return Event.objects.filter(parseQuery(queryString)).distinct()
+            qs = Event.objects.filter(parseQuery(queryString))
+            qs = filter_for_labels(qs, queryString)
+            return qs.distinct()
         except ParseException, e:
             err = "Error: " + escape(e.pstr[:e.loc]) + errorMarker + escape(e.pstr[e.loc:])
             raise forms.ValidationError(mark_safe(err))
