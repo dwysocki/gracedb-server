@@ -68,15 +68,15 @@ urlpatterns = patterns('gracedb.api',
     url (r'^tag/$', 
         TagList.as_view(), name='tag-list'),
     # XXX unclear what the tag detail resource should be.
-    #url (r'^tag/(?P<tagname>\w+)$', 
+    #url (r'^tag/(?P<tagname>.+)$', 
     #    TagDetail.as_view(), name='tag-detail'),
     url (r'events/(?P<graceid>[GEHMT]\d+)/tag/$',
         EventTagList.as_view(), name='eventtag-list'),
-    url (r'events/(?P<graceid>[GEHMT]\d+)/tag/(?P<tagname>\w+)$',
+    url (r'events/(?P<graceid>[GEHMT]\d+)/tag/(?P<tagname>.+)$',
         EventTagDetail.as_view(), name='eventtag-detail'),
     url (r'events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)/tag/$',
         EventLogTagList.as_view(), name='eventlogtag-list'),
-    url (r'events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)/tag/(?P<tagname>\w+)$',
+    url (r'events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)/tag/(?P<tagname>.+)$',
         EventLogTagDetail.as_view(), name='eventlogtag-detail'),
 
     # Permission Resources
