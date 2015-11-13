@@ -1,6 +1,24 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2015-11-17
+### Added
+- support for tagnames with spaces in REST URL patterns (#2730)
+- documentation about requesting changes to EM Observation entries (#2591)
+- support for more complex label queries for searches and email 
+  notifications (#2672, #2569)
+- support for file uploads through the web interface (#2543, #1367)
+
+### Changed
+- create LigoLdapUser object (instead of django User) for unknown
+  Shib users with a valid session (#2629)
+- time conversion functions handle None and empty string input (#2664)
+
+### Fixed
+- internal_user_required decorator no longer assumes HTTP request as 
+  first arg (#2524)
+- removed spurious factor of 1000 from fluence calculation (#2625)
+
 ## 2015-10-06
 ### Added
 - banner warning if the user is looking at an lvem_view page (#2600)
