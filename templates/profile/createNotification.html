@@ -12,4 +12,16 @@
     </table>
     <input type="submit" value="Submit"/>
 </form>
+
+{% if creating == 'Notification' %}
+<p> <b>NOTE:</b> 
+For the label query, label names can be combined with binary AND: '&amp;' or ','; or binary OR: '|'.
+For N labels, there must be exactly N-1 binary operators. (Parentheses are not
+allowed.) Additionally, any of the labels in a query string can be negated with
+'~' or '-'. Labels can either be selected with the select box at the top, or a query
+can be specified, <i>but not both</i>. 
+</p>
+
+{% endif %}
+
 {% endblock %}

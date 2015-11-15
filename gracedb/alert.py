@@ -11,6 +11,10 @@ import logging
 
 from utils import gpsToUtc
 
+from query import filter_for_labels
+
+from gracedb.models import Event
+
 # These imports can be fragile, so they should be brought in only
 # if use of the LVAlert overseer is really intended.
 if settings.USE_LVALERT_OVERSEER:
@@ -62,6 +66,15 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=No
     triggers = label.trigger_set.filter(pipelines=pipeline)
     triggers = triggers | label.trigger_set.filter(pipelines=None)
     for trigger in triggers:
+        if len(trigger.label_query) > 0:
+            # construct a queryset containing only this event
+            qs = Event.objects.filter(id=event.id)
+            qs = filter_for_labels(qs, trigger.label_query)
+            # If the label query cleans out our query set, we'll continue
+            # without adding the recipient.
+            if qs.count() == 0:
+                continue
+
         for recip in trigger.contacts.all():
             profileRecips.append(recip.email)
 

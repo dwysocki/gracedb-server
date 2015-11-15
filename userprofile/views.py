@@ -2,6 +2,7 @@
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.http import Http404, HttpResponseForbidden
+from django.http import HttpResponseBadRequest
 
 from django.core.urlresolvers import reverse 
 from django.contrib.auth.models import User
@@ -15,6 +16,10 @@ from forms import ContactForm, triggerFormFactory
 from gracedb.permission_utils import internal_user_required, lvem_user_required
 
 from datetime import datetime
+
+from gracedb.query import labelQuery
+from gracedb.models import Label
+from django.db.models import Q
 
 # Let's let everybody onto the index view.
 #@internal_user_required
@@ -52,6 +57,28 @@ def create(request):
             pipelines = form.cleaned_data['pipelines']
             contacts = form.cleaned_data['contacts']
             farThresh = form.cleaned_data['farThresh']
+            label_query = form.cleaned_data['label_query']
+
+
+            if len(label_query) > 0 and labels.count() > 0:
+                msg = "Cannot both select labels and define label query. Choose one or the other." 
+                return HttpResponseBadRequest(msg)
+
+            # If we've got a label query defined for this trigger, then we want 
+            # each label mentioned in the query to be listed in the events labels.
+            # It would be smarter to make sure the label isn't being negated, but 
+
+            # we can just leave that for later.
+            if len(label_query) > 0:
+                toks = labelQuery(label_query, names=True)
+                f = Q()
+                for tok in toks:
+                    # Note that all labels are being combined with OR
+                    if isinstance(tok,Q):
+                        f = f | tok
+                if len(f)==0:
+                    return HttpResponseBadRequest("Please enter a valid label query.")
+                labels = Label.objects.filter(f)
 
             if contacts and (labels or pipelines):
                 t.save() # Need an id before relations can be set.
@@ -60,6 +87,7 @@ def create(request):
                     t.pipelines = pipelines
                     t.contacts = contacts
                     t.farThresh = farThresh
+                    t.label_query = label_query
                 except:
                     t.delete()
                 t.save()

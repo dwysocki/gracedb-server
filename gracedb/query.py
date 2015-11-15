@@ -19,12 +19,13 @@ nltime = nltime_.setParseAction(lambda toks: toks["calculatedTime"])
 import datetime
 import models
 from django.db.models import Q
+from django.db.models.query import QuerySet
 
 from pyparsing import \
     Word, nums, Literal, CaselessLiteral, delimitedList, Suppress, QuotedString, \
-    Keyword, Combine, Or, Optional, OneOrMore, alphas, alphanums, Regex, \
+    Keyword, Combine, Or, Optional, OneOrMore, ZeroOrMore, alphas, alphanums, Regex, \
     opAssoc, operatorPrecedence, oneOf, \
-    stringStart, stringEnd, FollowedBy
+    stringStart, stringEnd, FollowedBy, ParseResults, ParseException
 
 def maybeRange(name, dbname=None):
     dbname = dbname or name
@@ -86,6 +87,9 @@ runQ = runQ.setParseAction(lambda toks: ("gpstime", Q(gpstime__range=runmap[toks
                           #lambda toks: ("gpstime", Q("gpstime__range": runmap[toks[0]])) )
 
 # Analysis Groups
+# XXX Querying the database at module compile time is a bad idea!
+# See: https://docs.djangoproject.com/en/1.8/topics/testing/overview/
+
 groupNames = [group.name for group in models.Group.objects.all()]
 group = Or(map(CaselessLiteral, groupNames)).setName("analysis group name")
 #groupList = delimitedList(group, delim='|').setName("analysis group list")
@@ -178,24 +182,37 @@ dtrange = dt + Suppress("..") + dt
 createdQ = Optional(Suppress(Keyword("created:"))) + (nltime^nltimeRange^dt^dtrange)
 createdQ = createdQ.setParseAction(maybeRange("created"))
 
-
 # Labels
-labelNames = [l.name for l in models.Label.objects.all()]
-label = Or([CaselessLiteral(n) for n in labelNames]).\
-        setParseAction( lambda toks: Q(labels__name=toks[0]) )
-
-andop   = oneOf(", &").suppress()
-orop    = Literal("|").suppress()
-minusop = oneOf("- ~").suppress()
-
-labelQ_ = operatorPrecedence(label,
-    [(minusop, 1, opAssoc.RIGHT, lambda a,b,toks: ~toks[0][0]),
-     (orop,    2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__or__, toks[0].asList(), Q())),
-     (andop,   2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__and__, toks[0].asList(), Q())),
-    ]).setParseAction(lambda toks: toks[0])
-
-labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
-labelQ.setParseAction(lambda toks: ("label", toks[0]))
+# NOTE: The label query has been moved inside the parseQuery call to avoid
+# database access at compile time (to get the list of label names).
+# NOTE ALSO: This is an old attempt by Brian to get a more complex label logic
+# search working. It worked for some searches, but not all. That's because, 
+# the method below creates a composite Q object that is applied to each 
+# *individiual* Event, label relationship. So if you search for
+#
+# EM_READY & ADVOK
+#
+# The search will not work correctly since it will look for an event with
+# a label such that the label is named EM_READY and ADVOK. No single label
+# will have both names. filter_for_labels below avoids this problem by applying
+# each label Q filter and combining the resulting querysets as appropriate.
+#
+#labelNames = [l.name for l in models.Label.objects.all()]
+#label = Or([CaselessLiteral(n) for n in labelNames]).\
+#        setParseAction( lambda toks: Q(labels__name=toks[0]) )
+#
+#andop   = oneOf(", &").suppress()
+#orop    = Literal("|").suppress()
+#minusop = oneOf("- ~").suppress()
+#
+#labelQ_ = operatorPrecedence(label,
+#    [(minusop, 1, opAssoc.RIGHT, lambda a,b,toks: ~toks[0][0]),
+#     (orop,    2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__or__, toks[0].asList(), Q())),
+#     (andop,   2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__and__, toks[0].asList(), Q())),
+#    ]).setParseAction(lambda toks: toks[0])
+#
+#labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
+#labelQ.setParseAction(lambda toks: ("label", toks[0]))
 
 ###########################
 # Query on event attributes
@@ -249,6 +266,10 @@ rangeTerm.setParseAction(lambda toks: Q(**{toks[0]+"__range": toks[1:]}))
 
 term = simpleTerm | rangeTerm
 
+andop   = oneOf(", &").suppress()
+orop    = Literal("|").suppress()
+minusop = oneOf("- ~").suppress()
+
 attrExpressions = operatorPrecedence(term,
     [(minusop, 1, opAssoc.RIGHT, lambda a,b,toks: ~toks[0][0]),
      (orop,    2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__or__, toks[0].asList(), Q())),
@@ -273,17 +294,40 @@ ifoQ = ifoListQ | nifoQ
 
 ###########################
 
-#q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | eidQ | labelQ | atypeQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
-q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | eidQ | midQ | labelQ | searchQ | pipelineQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
-
 #andTheseTags = ["attr"]
 andTheseTags = ["nevents"]
 
+#--------------------------------------------------------------------------
+# parseQuery now handles all search terms *except* for the labels.
+# The labels have to be handled separately, in filter_for_labels.
+#--------------------------------------------------------------------------
 def parseQuery(s):
+    # labelQ is defined inside in order to avoid a compile-time database query
+    # to get the label names.
+    # Note the parse action for lableQ: Replace all tokens with the empty
+    # string. This basically has the effect of removing any label query terms
+    # from the query string. 
+    labelNames = [l.name for l in models.Label.objects.all()]
+    label = Or([CaselessLiteral(n) for n in labelNames]).\
+            setParseAction( lambda toks: Q(labels__name=toks[0]) )
+    andop   = oneOf(", &")
+    orop    = Literal("|")
+    minusop = oneOf("- ~")
+    op = Or([andop,orop,minusop])
+    oplabel = OneOrMore(op) + label
+    labelQ_ = Optional(minusop) + label + ZeroOrMore(oplabel)
+    labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
+    labelQ.setParseAction(lambda toks: '')
+
+    # Clean the label-related parts of the query out of the query string.
+    s = labelQ.transformString(s)
+
+    # A parser for the non-label-related remainder of the query string.
+    q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | eidQ | midQ | searchQ | pipelineQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
+
     d={}
     if not s:
         # Empty query return everything not in Test group and not in the MDC group
-        #return ~Q(group__name="Test") 
         return ~Q(group__name="Test") & ~Q(search__name="MDC")
     for (tag, qval) in (stringStart + OneOrMore(q) + stringEnd).parseString(s).asList():
         if tag in andTheseTags:
@@ -318,3 +362,140 @@ def parseQuery(s):
         del d["hid"]
     return reduce(Q.__and__, d.values(), Q())
 
+
+#--------------------------------------------------------------------------
+# Given a query string, separate out the label-related part, and return it
+# as a list of Q objects and separators.
+#--------------------------------------------------------------------------
+def labelQuery(s, names=False):
+    labelNames = [l.name for l in models.Label.objects.all()]
+    label = Or([CaselessLiteral(n) for n in labelNames])
+    # If the filter objects are going to be applied to Lable 
+    # objects to retrieve labels by name, names = True.
+    # This is useful for the label query in userprofile.models.Trigger
+    if names:
+        label.setParseAction( lambda toks: Q(name=toks[0]) )
+    else:
+        label.setParseAction( lambda toks: Q(labels__name=toks[0]) )
+    andop   = oneOf(", &")
+    orop    = Literal("|")
+    minusop = oneOf("- ~")
+    op = Or([andop,orop,minusop])
+    oplabel = OneOrMore(op) + label
+    labelQ_ = Optional(minusop) + label + ZeroOrMore(oplabel)
+    labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
+    toks = labelQ.searchString(s).asList()
+    # This list will have either 1 or 0 elements.
+    if len(toks):
+        return toks[0]
+    return toks
+
+# The following version is used only for validation. Just to check that
+# the query strictly conforms to the requirements of a label query.
+def parseLabelQuery(s):
+    labelNames = [l.name for l in models.Label.objects.all()]
+    label = Or([CaselessLiteral(n) for n in labelNames])
+    andop   = oneOf(", &")
+    orop    = Literal("|")
+    minusop = oneOf("- ~")
+    op = Or([andop,orop,minusop])
+    oplabel = OneOrMore(op) + label
+    labelQ_ = Optional(minusop) + label + ZeroOrMore(oplabel)
+    labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
+    return labelQ.parseString(s).asList()
+
+#--------------------------------------------------------------------------
+# Given a list of the tokens, go through the list until you hit an AND or
+# OR operator. Then apply the operator to the two surrounding query sets
+# and send back a new list. The list will be shorter by 2 elements, since
+# 'QuerySet, op, QuerySet' has been replaced by a single QuerySet.
+#--------------------------------------------------------------------------
+def handle_binary_ops(toks, op="or"):
+
+    # Find the indices of the relevant operators.
+    if op == "or":
+        indices = [i for i, x in enumerate(toks) if x is '|']
+    elif op == "and":
+        indices = [i for i, x in enumerate(toks) if x == '&' or x==',']
+    else:
+        raise ValueError("Unknown operator")
+
+    if len(indices) > 0:
+        # Found the operator we're looking for
+        updated = True
+        i = indices[0]  # index of the first operator in the list
+        leftQS = toks[i-1]
+        rightQS = toks[i+1]
+
+        # Check. The list items surrounding our operator need to be QuerySets
+        if not isinstance(leftQS, QuerySet) or not isinstance(rightQS, QuerySet):
+            raise ValueError("problem with query. Orphaned operator?")
+
+        # Combine the two QuerySets
+        if op=="or":
+            outputQ = leftQS | rightQS
+        elif op=="and":
+            outputQ = leftQS & rightQS
+
+        # Build up the new list of tokens to return. 
+        new_toks = []
+        for j in range(len(toks)):
+            if j == i-1:
+                new_toks.append(outputQ)
+            elif j==i or j==i+1:
+                continue
+            else:
+                new_toks.append(toks[j])
+
+    else:
+        # No such operator found, return the list of tokens unmodified.
+        updated = False
+        new_toks = toks
+
+    return new_toks, updated
+
+#--------------------------------------------------------------------------
+# Given a queryset and a queryString (which may contain label search terms),
+# filter the queryset for those label terms.
+#--------------------------------------------------------------------------
+def filter_for_labels(qs, queryString):
+    import logging
+    if not queryString or len(queryString)==0:
+        return qs
+
+    # Parse the label part of the query string into its individual tokens.
+    toks = labelQuery(queryString)
+    if len(toks)==0:
+        return qs
+
+    # Handle the NOTs first.
+    not_indices = [i for i, x in enumerate(toks) if x == '~' or x=='-']
+    for i in not_indices:
+        if not isinstance(toks[i+1], Q):
+            raise ValueError("NOT operator should preceed a Label name. Bad Query.")
+
+        toks[i+1] = ~toks[i+1]
+
+    # Now that we've applied the NOTs, remove them from the list
+    toks = [x for x in toks if x not in ['-','~']]
+        
+    # Now the list of tokens consists of filter objects and separators. 
+    # So next, we replace the filters with filtered querysets.
+    toks = [ qs.filter(f) if isinstance(f,Q) else f for f in toks ]
+        
+    # Handle the ORs. We take the union of all QuerySets separated by 
+    # OR operators.
+    updated = True
+    while updated:
+        toks, updated = handle_binary_ops(toks,"or")
+
+    # Handle the ANDs. Same kinda thang.
+    updated = True
+    while updated:
+        toks, updated = handle_binary_ops(toks,"and")
+
+    # By this time, the list of tokens should be down to a single QuerySet.
+    if len(toks)>1:
+        raise ValueError("The label query didn't reduce properly.")
+
+    return toks[0]

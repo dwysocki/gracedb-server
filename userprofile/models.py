@@ -5,7 +5,6 @@ from gracedb.models import Label, Pipeline
 
 from django.contrib.auth.models import User
 
-
 #class Notification(models.Model):
 #    user = models.ForeignKey(User, null=False)
 #    onLabel = models.ManyToManyField(Label, blank=True)
@@ -33,6 +32,7 @@ class Trigger(models.Model):
     pipelines = models.ManyToManyField(Pipeline, blank=True)
     contacts = models.ManyToManyField(Contact, blank=True)
     farThresh = models.FloatField(blank=True, null=True)
+    label_query = models.CharField(max_length=100, blank=True)
 
     def __unicode__(self):
         return (u"%s %s: %s") % (
@@ -45,9 +45,16 @@ class Trigger(models.Model):
         thresh = ""
         if self.farThresh:
             thresh = " & (far < %s)" % self.farThresh
+
+        if self.label_query:
+            label_disp = self.label_query
+        else:
+            label_disp = "|".join([a.name for a in self.labels.all()]) or "creating"
+
         return ("(%s) & (%s)%s -> %s") % (
             "|".join([a.name for a in self.pipelines.all()]) or "any pipeline",
-            "|".join([a.name for a in self.labels.all()]) or "creating",
+            label_disp,
             thresh,
             ",".join([x.desc for x in self.contacts.all()])
         )
+
