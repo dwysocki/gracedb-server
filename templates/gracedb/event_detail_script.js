@@ -223,6 +223,9 @@ require([
     'dojox/editor/plugins/Save',
     'dojox/editor/plugins/Preview',
     'dojox/layout/ScrollPane',
+    'dojox/form/Uploader',
+//    'dojox/form/uploader/plugins/HTML5',
+    'dojox/form/uploader/plugins/IFrame',
     'dojox/image/LightboxNano',
     'dijit/_editor/plugins/TextColor',
     'dijit/_editor/plugins/LinkDialog',
@@ -234,7 +237,7 @@ require([
     Rest, RequestMemory, Grid, DijitRegistry, 
     put, 
     TitlePane, Form, Button, TextBox, ComboBox, Select, Tooltip, Dialog, Editor, 
-    Save, Preview, ScrollPane) {
+    Save, Preview, ScrollPane, Uploader) {
 
     parser.parse();
     //----------------------------------------------------------------------------------------
@@ -398,6 +401,16 @@ require([
     var logAddDiv = put(logContentDiv, 'div#new_log_entry_form');
     put(logAddDiv, 'div#previewer');
     put(logAddDiv, 'div#editor');
+    put(logAddDiv, 'div#upload_form_container');
+
+    // Create handlers for upload success and failture
+    var uploadSuccess = function(result) {
+        alert(result);
+    };
+    var uploadError = function(error) {
+        alert(error);
+    };
+
     createExpandingSection(logTitleDiv, logContentDiv, logAddDiv, 'Event Log Messages', true);
 
     //----------------------------------------------------------------------------------------
@@ -1071,18 +1084,23 @@ require([
                         alert("o hai " + error);
                     },
                     save: function(postdata) {
-                    var newTagName = "analyst_comments";
-                    var postArgs = {
-                                url: this.url,
-                                content: { comment: postdata, tagname: newTagName },
-                                handleAs: "json"
-                        };
-                        this.button.set("disabled", true);
-                        var deferred = dojo.xhrPost(postArgs);
-                        deferred.addCallback(dojo.hitch(this, this.onSuccess));
-                        deferred.addErrback(dojo.hitch(this, this.onError));
-                        // Call whatever function is necessary to attach the tag
-                        // or add to the postdata and handle in the django view?
+                        var newTagName = "analyst_comments";
+                        if (dom.byId('upload_input').files.length > 0) {
+                            dom.byId("hidden_comment").value = postdata;
+                            dom.byId("hidden_tagname").value = newTagName;
+                            dom.byId("file_attach_form").submit();
+                        } else { 
+                            var postArgs = {
+                                    url: this.url,
+                                    content: { comment: postdata, tagname: newTagName },
+                                    handleAs: "json"
+                            };
+                            this.button.set("disabled", true);
+                            var deferred = dojo.xhrPost(postArgs);
+                            deferred.addCallback(dojo.hitch(this, this.onSuccess));
+                            deferred.addErrback(dojo.hitch(this, this.onError));
+                        }
+
                     }
             });
 
@@ -1104,6 +1122,28 @@ require([
                                  'insertImage','fullscreen','viewsource','newpage', '|', previewbutton, savebutton] 
             }, editor_div);
             editor.startup();
+
+            //-------------------------------------------------------------------------------------
+            //-------------------------------------------------------------------------------------
+            // The following section is for file attachments
+            // The idea of this form is to allow a user to attach a file to a log entry, but
+            // still submit the log entry via the usual save button. 
+            var upload_div = dom.byId('upload_form_container');
+            put(upload_div, 'p', 'Attach a file:')
+            var f = put(upload_div, 'form[action="' + eventLogSaveUrl + '"]');
+            put(f, '[method="post"]');
+            put(f, '[enctype="multipart/form-data"]');
+            put(f, '[id="file_attach_form"]');
+            var i1 = put(f, 'input[id="upload_input"][name="uploadedFile"]');
+            put(i1, '[multiple="false"]');
+            put(i1, '[type="file"]');
+            put(i1, '[label="Attach"]');
+            put(i1, '[data-dojo-type="dojox.form.uploader"]');
+            var i2 = put(f, 'input[id="hidden_comment"][name="comment"][type="hidden"]');
+            var i3 = put(f, 'input[id="hidden_tagname"][name="tagname"][type="hidden"]');
+            put(upload_div, 'br');
+            //-------------------------------------------------------------------------------------
+            //-------------------------------------------------------------------------------------
 
             // For each log, attach callbacks for the tag delete and add buttons.
             logs.forEach( function(log) {

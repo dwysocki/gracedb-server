@@ -30,6 +30,7 @@ import os
 from django.conf import settings
 
 from buildVOEvent import buildVOEvent, VOEventBuilderException
+from utils.vfile import VersionedFile
 
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
@@ -209,6 +210,27 @@ def logentry(request, event, num=None):
         # create a log entry
         elog = EventLog(event=event, issuer=request.user)
         elog.comment = request.POST.get('comment') or request.GET.get('comment')
+        uploadedFile = request.FILES.get('uploadedFile', None) if request.FILES else None
+        filename = None
+        file_version = None
+        if uploadedFile:
+            filename = uploadedFile.name
+            filepath = os.path.join(event.datadir(), filename)
+
+            try:
+                # Open / Write the file.
+                fdest = VersionedFile(filepath, 'w')
+                for chunk in uploadedFile.chunks():
+                    fdest.write(chunk)
+                fdest.close()
+                # Ascertain the version assigned to this particular file.
+                file_version = fdest.version
+            except Exception, e:
+                return HttpResponseServerError(str(e))
+
+        elog.filename = filename
+        elog.file_version = file_version
+
         try:
             elog.save()
         except Exception as e:
@@ -241,7 +263,7 @@ def logentry(request, event, num=None):
                 msg = msg + str(e)
                 msg = msg + "\n However, the log message itself was saved."
                 return HttpResponse(msg)
-
+         
         # XXX If the user is external, tag the message appropriately.
         if is_external(request.user):
             try:
@@ -987,10 +1009,6 @@ def modify_signoff(request, event):
     if not request.method=='POST':
         msg = 'create_operator_signoff only allows POST.'
         return HttpResponseBadRequest(msg)
-    import logging
-    logger = logging.getLogger(__name__)
-    logger.debug("Got POST dict: %s" % request.POST)
-
     authorized = False
     instrument = ''
     action = request.POST.get('action', 'create')
