@@ -25,7 +25,7 @@ from pyparsing import \
     Word, nums, Literal, CaselessLiteral, delimitedList, Suppress, QuotedString, \
     Keyword, Combine, Or, Optional, OneOrMore, ZeroOrMore, alphas, alphanums, Regex, \
     opAssoc, operatorPrecedence, oneOf, \
-    stringStart, stringEnd, FollowedBy, ParseResults, ParseException
+    stringStart, stringEnd, FollowedBy, ParseResults, ParseException, CaselessKeyword
 
 def maybeRange(name, dbname=None):
     dbname = dbname or name
@@ -308,7 +308,8 @@ def parseQuery(s):
     # string. This basically has the effect of removing any label query terms
     # from the query string. 
     labelNames = [l.name for l in models.Label.objects.all()]
-    label = Or([CaselessLiteral(n) for n in labelNames]).\
+    #label = Or([CaselessLiteral(n) for n in labelNames]).\
+    label = Or([CaselessKeyword(n) for n in labelNames]).\
             setParseAction( lambda toks: Q(labels__name=toks[0]) )
     andop   = oneOf(", &")
     orop    = Literal("|")
@@ -369,7 +370,8 @@ def parseQuery(s):
 #--------------------------------------------------------------------------
 def labelQuery(s, names=False):
     labelNames = [l.name for l in models.Label.objects.all()]
-    label = Or([CaselessLiteral(n) for n in labelNames])
+    #label = Or([CaselessLiteral(n) for n in labelNames])
+    label = Or([CaselessKeyword(n) for n in labelNames])
     # If the filter objects are going to be applied to Lable 
     # objects to retrieve labels by name, names = True.
     # This is useful for the label query in userprofile.models.Trigger
@@ -394,7 +396,8 @@ def labelQuery(s, names=False):
 # the query strictly conforms to the requirements of a label query.
 def parseLabelQuery(s):
     labelNames = [l.name for l in models.Label.objects.all()]
-    label = Or([CaselessLiteral(n) for n in labelNames])
+    #label = Or([CaselessLiteral(n) for n in labelNames])
+    label = Or([CaselessKeyword(n) for n in labelNames])
     andop   = oneOf(", &")
     orop    = Literal("|")
     minusop = oneOf("- ~")
