@@ -35,8 +35,10 @@ class PerformanceMiddleware:
             return response
 
         username = ''
-        if request.user:
+        try:
             username = request.user.username
+        except:
+            pass
 
         if create:
             # Log the status.
