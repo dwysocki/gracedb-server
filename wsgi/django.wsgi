@@ -4,7 +4,7 @@ import sys
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
 # Add the source code directory
-sys.path.append('/home/gracedb/graceproj')
+sys.path.append('/home/gracedb/gracedb')
 
 # Activate the virtual environment
 VIRTUALENV_ACTIVATOR = "/home/gracedb/djangoenv/bin/activate_this.py"

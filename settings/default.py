@@ -15,14 +15,14 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-ALERT_EMAIL_FROM = "GraCEDb <gracedb@gracedb.phys.uwm.edu>"
+ALERT_EMAIL_FROM = "GraCEDb <gracedb@gracedb.cgca.uwm.edu>"
 ALERT_EMAIL_TO = [
 #                 "gracedb@listserv.ligo.org",
                  ]
 ALERT_EMAIL_BCC = [
                   ]
 
-ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@gracedb.phys.uwm.edu>"
+ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@gracedb.cgca.uwm.edu>"
 ALERT_TEST_EMAIL_TO = [
                       ]
 #ALERT_XMPP_SERVER = "lvalert.phys.uwm.edu"
@@ -42,7 +42,7 @@ LVALERT_OVERSEER_PORTS = {
 EMBB_MAIL_ADDRESS = 'embb@gracedb.ligo.org'
 EMBB_SMTP_SERVER = 'localhost'
 EMBB_MAIL_ADMINS = ['branson@gravity.phys.uwm.edu','roy.williams@ligo.org',]
-EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@gracedb.phys.uwm.edu',]
+EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@gracedb.cgca.uwm.edu',]
 
 # Added for django 1.7.8
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
@@ -114,7 +114,7 @@ DATABASES = {
         'NAME'     : 'gracedb',
         'ENGINE'   : 'django.db.backends.mysql',
         'USER'     : 'gracedb',
-        'PASSWORD' : 'redrum4x',
+        'PASSWORD' : 'thinglet',
         'OPTIONS'  : {
                          'init_command': 'SET storage_engine=MyISAM',
                      },
@@ -136,8 +136,7 @@ SKYALERT_DESCRIPTION   = "Report of a candidate gravitational wave event"
 SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
 
 
-GRACEDB_DATA_DIR = "/mnt/gracedb-web/data"
-#GRACEDB_DATA_DIR = "/mnt/gracedb-web-temp/data"
+GRACEDB_DATA_DIR = "/opt/gracedb/data"
 # First level subdirs with 2 chars, second level with 1 char
 # These DIR_DIGITS had better add up to a number less than 40 (which is
 # the length of a SHA-1 hexdigest. Actually, it should be way less than
@@ -310,7 +309,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    "/home/gracedb/graceproj/templates",
+    "/home/gracedb/gracedb/templates",
 )
 
 INSTALLED_APPS = (
@@ -337,7 +336,7 @@ REST_FRAMEWORK = {
 
 
 STATIC_URL = "/gracedb-static/"
-STATIC_ROOT = "/home/gracedb/graceproj/static/"
+STATIC_ROOT = "/home/gracedb/gracedb/static/"
 
 BOWER_URL = "/bower-static/"
 BOWER_ROOT = "/home/gracedb/bower_components/"
