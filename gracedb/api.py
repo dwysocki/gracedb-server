@@ -769,6 +769,8 @@ class EventLogList(APIView):
         # Convert tagnames from comma separated list.
         if tagnames:
             tagnames = tagnames.split(',')
+        else:
+            tagnames = []
 
         try:
             uploadedFile = request.FILES['upload'] 
