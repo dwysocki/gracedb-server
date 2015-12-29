@@ -32,33 +32,12 @@ CACHES = {
     },
 }
 
-STATIC_URL = "/gracedb-static/"
-STATIC_ROOT = "/home/branson.stephens/gracedb/static/"
-
-BOWER_URL = "/bower-static/"
-BOWER_ROOT = "/home/branson.stephens/bower_components/"
-
-GRACEDB_DATA_DIR = "/exports/gracedb/data"
-
-EMAIL_HOST = 'localhost'
-
 ALERT_EMAIL_FROM = "Dev Alert <root@gracedb-test.cgca.uwm.edu>"
-#ALERT_EMAIL_TO = [
-#    "Branson Stephens <branson@gravity.phys.uwm.edu>",
-#    ]
-#ALERT_EMAIL_BCC = ["branson@gravity.phys.uwm.edu"]
-#
-#ALERT_TEST_EMAIL_FROM = "Dev Test Alert <root@gracedb-test.cgca.uwm.edu>"
-#ALERT_TEST_EMAIL_TO = [
-#    "Branson Stephens <branson@gravity.phys.uwm.edu>",
-#    ]
 ALERT_EMAIL_TO = []
 ALERT_EMAIL_BCC = []
 ALERT_TEST_EMAIL_FROM = "Dev Test Alert <root@gracedb-test.cgca.uwm.edu>"
 ALERT_TEST_EMAIL_TO = []
 ALERT_XMPP_SERVERS = ["lvalert-test.cgca.uwm.edu",]
-
-LVALERT_SEND_EXECUTABLE = '/home/branson.stephens/djangoenv/bin/lvalert_send'
 
 USE_LVALERT_OVERSEER = True
 
@@ -68,7 +47,7 @@ LVALERT_OVERSEER_PORTS = {
     'lvalert-test.cgca.uwm.edu': 8001,
 }
 
-EMBB_MAIL_ADDRESS = 'branson.stephens@gracedb-test.cgca.uwm.edu'
+EMBB_MAIL_ADDRESS = 'gracedb@gracedb-test.cgca.uwm.edu'
 EMBB_SMTP_SERVER = 'localhost'
 EMBB_MAIL_ADMINS = ['branson@gravity.phys.uwm.edu',]
 EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@gracedb-test.cgca.uwm.edu',]
@@ -81,23 +60,6 @@ XMPP_ALERT_CHANNELS = [
                         'test_lowmass',
                       ]
  
-# Latency histograms.  Where they go and max latency to bin.
-LATENCY_REPORT_DEST_DIR = "/exports/gracedb/latency"
-LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
-
-# Uptime reporting
-UPTIME_REPORT_DIR = "/exports/gracedb/uptime"
-
-# Rate file location
-RATE_INFO_FILE = "/exports/gracedb/rate_info.json"
-
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    "/home/branson.stephens/gracedb/templates",
-)
-
 MIDDLEWARE_CLASSES = [
     'middleware.accept.AcceptMiddleware',
     'middleware.cli.CliExceptionMiddleware',
@@ -139,7 +101,7 @@ CONTROL_ROOM_IPS = {
 # Settings for Logging.
 import logging
 
-LOG_ROOT = '/home/branson.stephens/logs'
+LOG_ROOT = '/home/gracedb/logs'
 LOG_FILE_SIZE = 1024*1024 # 1 MB
 LOG_FILE_BAK_CT = 3
 LOG_FORMAT = 'verbose'

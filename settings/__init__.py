@@ -12,26 +12,23 @@ except:
     pass
 
 import os
+import socket
 ROOT_PATH = os.path.abspath( os.path.join( os.path.dirname(__file__), os.pardir ) )
 
 configs = {
     '/home/gracedb/gracedb': 'production',
     '/home/gracedb/graceproj': 'production',
 
-    '/home/branson/gracedbdev': 'branson',
-    '/home/branson/gracedbdev/gracedb': 'branson',
-
-    '/home/branson.stephens/gracedb': 'test',
-    '/home/branson.stephens/gracedb/gracedb': 'test',
-
     '/home/roywilliams/gracedbdev': 'roy',
     '/home/roywilliams/gracedbdev/gracedb': 'roy',
 }
 
-
 from default import *
 
 config = configs.get(ROOT_PATH, "production")
+
+if socket.gethostname() == 'gracedb-test':
+    config = 'test'
 
 settings_module = __import__('%s' % config, globals(), locals(), 'gracedb')
 
