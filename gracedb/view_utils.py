@@ -660,7 +660,7 @@ def flexigridResponse(request, objects):
             search_name = ''
 
         floored_far = max(object.far, settings.VOEVENT_FAR_FLOOR) if object.far != None else None
-        display_far = floored_far if is_external(request.user) else event.far
+        display_far = floored_far if is_external(request.user) else object.far
 
         cell_values = [ '<a href="%s">%s</a>' %
                             (django_reverse("view", args=[object.graceid()]), object.graceid()),
