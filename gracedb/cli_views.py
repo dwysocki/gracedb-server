@@ -10,7 +10,7 @@ from utils.vfile import VersionedFile
 
 from view_logic import create_label, _createLog
 from view_utils import assembleLigoLw
-from permission_utils import filter_events_for_user, user_has_perm
+from permission_utils import filter_events_for_user, user_has_perm, internal_user_required
 
 import os
 from django.conf import settings
@@ -20,6 +20,7 @@ MAX_QUERY_RESULTS = 1000
 
 import json
 
+@internal_user_required
 def cli_search(request):
     assert request.user
     form = SimpleSearchForm(request.POST)
@@ -73,6 +74,7 @@ def cli_search(request):
     response.write(msg)
     return response
 
+@internal_user_required
 def cli_label(request):
     graceid = request.POST.get('graceid')
     labelName = request.POST.get('label')
@@ -92,6 +94,7 @@ def cli_label(request):
 
     return response
 
+@internal_user_required
 def cli_tag(request):
     raise Exception("tag is not implemented.  Maybe you're thinking of 'label'?")
     graceid = request.POST.get('graceid')
@@ -110,6 +113,7 @@ def cli_tag(request):
 
     return response
 
+@internal_user_required
 def ping(request):
     #ack = "(%s) " % Site.objects.get_current()
     ack = "(%s/%s) " % (request.META['SERVER_NAME'], settings.CONFIG_NAME)
@@ -135,6 +139,7 @@ def ping(request):
         response['Content-length'] = len(ack)
     return response
 
+@internal_user_required
 def upload(request):
     graceid = request.POST.get('graceid', None)
     comment = request.POST.get('comment', None)
@@ -195,6 +200,7 @@ def upload(request):
     response['Content-length'] = len(msg)
     return response
 
+@internal_user_required
 def log(request):
     message = request.POST.get('message')
     graceid = request.POST.get('graceid')
