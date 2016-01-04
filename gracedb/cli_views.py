@@ -36,6 +36,7 @@ def cli_search(request):
             response = HttpResponse(content_type='application/xml')
             response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
             utils.write_fileobj(xmldoc, response)
+            response['Warning'] = '299 - "The /cli URLs are deprecated and will be removed on March 8, 2016." "2016-01-12:10:30:00.000"'
             return response
 
         accessFun = {
@@ -72,6 +73,7 @@ def cli_search(request):
     msg = json.dumps(d)
     response['Content-length'] = len(msg)
     response.write(msg)
+    response['Warning'] = '299 - "The /cli URLs are deprecated and will be removed on March 8, 2016." "2016-01-12:10:30:00.000"'
     return response
 
 @internal_user_required
@@ -92,6 +94,7 @@ def cli_label(request):
     response.write(msg)
     response['Content-length'] = len(msg)
 
+    response['Warning'] = '299 - "The /cli URLs are deprecated and will be removed on March 8, 2016." "2016-01-12:10:30:00.000"'
     return response
 
 @internal_user_required
@@ -111,6 +114,7 @@ def cli_tag(request):
     response.write(msg)
     response['Content-length'] = len(msg)
 
+    response['Warning'] = '299 - "The /cli URLs are deprecated and will be removed on March 8, 2016." "2016-01-12:10:30:00.000"'
     return response
 
 @internal_user_required
@@ -137,6 +141,7 @@ def ping(request):
         response = HttpResponse(content_type='text/plain')
         response.write(ack)
         response['Content-length'] = len(ack)
+    response['Warning'] = '299 - "The /cli URLs are deprecated and will be removed on March 8, 2016." "2016-01-12:10:30:00.000"'
     return response
 
 @internal_user_required
@@ -156,8 +161,9 @@ def upload(request):
         return HttpResponseForbidden()
 
     if 'cli_version' in request.POST:
-        return _createLog(request, graceid, comment, uploadedfile)
-
+        response = _createLog(request, graceid, comment, uploadedfile)
+        response['Warning'] = '299 - "The /cli URLs are deprecated and will be removed on March 8, 2016." "2016-01-12:10:30:00.000"'
+        return response
     # else: old, old client
     response = HttpResponse(content_type='text/plain')
     # uploadedFile.{name/chunks()}
@@ -198,6 +204,7 @@ def upload(request):
     response = HttpResponse(content_type='text/plain')
     response.write(msg)
     response['Content-length'] = len(msg)
+    response['Warning'] = '299 - "The /cli URLs are deprecated and will be removed on March 8, 2016." "2016-01-12:10:30:00.000"'
     return response
 
 @internal_user_required
@@ -216,7 +223,9 @@ def log(request):
         return HttpResponseForbidden()
 
     if 'cli_version' in request.POST:
-        return _createLog(request, graceid, message)
+        response = _createLog(request, graceid, message)
+        response['Warning'] = '299 - "The /cli URLs are deprecated and will be removed on March 8, 2016." "2016-01-12:10:30:00.000"'
+        return response
 
     # old, old client only
     response = HttpResponse(content_type='text/plain')
@@ -241,4 +250,5 @@ def log(request):
     response = HttpResponse(content_type='text/plain')
     response.write(msg)
     response['Content-length'] = len(msg)
+    response['Warning'] = '299 - "The /cli URLs are deprecated and will be removed on March 8, 2016." "2016-01-12:10:30:00.000"'
     return response
