@@ -417,7 +417,6 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     v.set_What(w)
 
     ############ Wherewhen ############################
-    if voevent_type != 'retraction':
 # The old way of making the WhereWhen section led to a pointless position
 # location.
 #        wwd = {'observatory':     'LIGO Virgo',
@@ -433,19 +432,19 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
 #        ww = makeWhereWhen(wwd)
 #        if ww: v.set_WhereWhen(ww)
 
-        coord_system_id = 'UTC-FK5-GEO'
-        event_time = str(gpsToUtc(event.gpstime).isoformat())[:-6]
-        observatory_id = 'LIGO Virgo'
-        ac =  AstroCoords(coord_system_id=coord_system_id)
-        acs = AstroCoordSystem(id=coord_system_id)
-        ac.set_Time(Time(TimeInstant = TimeInstant(event_time)))
+    coord_system_id = 'UTC-FK5-GEO'
+    event_time = str(gpsToUtc(event.gpstime).isoformat())[:-6]
+    observatory_id = 'LIGO Virgo'
+    ac =  AstroCoords(coord_system_id=coord_system_id)
+    acs = AstroCoordSystem(id=coord_system_id)
+    ac.set_Time(Time(TimeInstant = TimeInstant(event_time)))
 
-        onl = ObservationLocation(acs, ac)
-        oyl = ObservatoryLocation(id=observatory_id)
-        odl = ObsDataLocation(oyl, onl)
-        ww = WhereWhen()
-        ww.set_ObsDataLocation(odl)
-        v.set_WhereWhen(ww)
+    onl = ObservationLocation(acs, ac)
+    oyl = ObservatoryLocation(id=observatory_id)
+    odl = ObsDataLocation(oyl, onl)
+    ww = WhereWhen()
+    ww.set_ObsDataLocation(odl)
+    v.set_WhereWhen(ww)
 
     ############ Citation ############################
     if event.voevent_set.count()>1 and voevent_type != 'preliminary':
