@@ -587,6 +587,29 @@ require([
                 return total_tags.indexOf(value) >= 0;
             });
 
+            var skymap_stems = new Array();
+            logs.forEach( function(log) {
+                if (log.tag_names.indexOf('sky_loc') >= 0 && log.filename.indexOf('.fits') >= 0) {
+                    skymap_stems.push(log.filename.slice(0,log.filename.indexOf('.fits')));
+                } 
+            });
+
+            var isJsonSkymap = function(filename) {
+                var is_skymap = false;
+                if (filename.indexOf('.json') >= 0) {
+                    skymap_stems.forEach( function(stem) {
+                        if (filename.indexOf(stem) >= 0) {
+                            is_skymap = true;
+                        }
+                    });
+                }
+                return is_skymap;
+            };
+
+            skymap_stems.forEach( function(stem) {
+                console.log("Got skymap stem: " + stem);
+            });
+
             // If there are any blessed tags here, we'll do TitlePanes
             if (our_blessed_tags.length > 0) {
                 // define our columns for the topical digest panes
@@ -624,7 +647,8 @@ require([
                             // Branson, 3/3/15
                             //if (object.filename == 'skymap.json') {
                             var isItJson = object.filename.indexOf(".json");
-                            if (isItJson  > -1) {
+                            //if (isItJson  > -1) {
+                            if (isJsonSkymap(object.filename)) {
                                 var skymapName = object.filename.substring(0, isItJson);
                                 var svButton = put(commentDiv, 
                                     'button.modButtonClass.sV_button#'+skymapName, 'View in SkymapViewer!');
