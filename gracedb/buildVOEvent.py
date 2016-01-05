@@ -26,6 +26,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from models import CoincInspiralEvent, MultiBurstEvent
 from models import VOEvent as GraceDBVOEvent
+from models import LalInferenceBurstEvent
 
 import os
 
@@ -410,6 +411,34 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                     value=fluence,
                     Description=["Estimated fluence of GW burst signal"]))
             except Exception: 
+                pass
+        elif isinstance(event,LalInferenceBurstEvent):
+            w.add_Param(Param(name="frequency", 
+                dataType="float", 
+                ucd="gw.frequency", 
+                unit="Hz", 
+                value=float(event.frequency),
+                Description=["Frequency of GW burst signal"]))
+
+            # Calculate the fluence. 
+            # From Min-A Cho: fluence = pi*(c**3)*(freq**2)*(hrss_max**2)*(10**3)/(4*G)
+            # Note that hrss here actually has units of s^(-1/2)
+            # XXX obviously need to refactor here.
+            try:
+                pi = 3.14152
+                c = 2.99792E10
+                G = 6.674E-8
+                fluence = pi * pow(c,3) * pow(event.frequency,2) 
+                fluence = fluence * pow(event.hrss,2)
+                fluence = fluence / (4.0*G)
+
+                w.add_Param(Param(name="Fluence", 
+                    dataType="float", 
+                    ucd="gw.fluence", 
+                    unit="erg/cm^2", 
+                    value=fluence,
+                    Description=["Estimated fluence of GW burst signal"]))
+            except:
                 pass
         else:
             pass

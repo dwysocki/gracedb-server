@@ -822,6 +822,14 @@ class MultiBurstEvent(Event):
     ligo_angle       = models.FloatField(null=True)
     ligo_angle_sig   = models.FloatField(null=True)
 
+class LalInferenceBurstEvent(Event):
+    bci              = models.FloatField(null=True)
+    quality          = models.FloatField(null=True)
+    bsn              = models.FloatField(null=True)
+    omicron_snr      = models.FloatField(null=True)
+    hrss             = models.FloatField(null=True)
+    frequency        = models.FloatField(null=True)
+
 class SingleInspiral(models.Model):
     event             = models.ForeignKey(Event, null=False)
     ifo               = models.CharField(max_length=20, null=True)

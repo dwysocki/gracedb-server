@@ -1,0 +1,29 @@
+{% extends "gracedb/event_detail.html" %}
+
+{%load scientific %}
+
+{# Analysis-specific attributes for a cWB event#}
+{% block analysis_specific %}
+<h2>Analysis-Specific Attributes</h2>
+
+<table class="analysis_specific"> <tbody>
+    <tr>
+        <td>  <table class="event"> <tbody>
+                    <tr> <th> BCI </th> <td> {{object.bci|floatformat:"-4"}} </td> </tr>
+                    <tr> <th> BSN </th> <td> {{object.bsn|floatformat:"-4"}} </td> </tr>
+                    <tr> <th> quality </th> <td> {{object.quality|floatformat:"-4"}} </td> </tr>
+              </tbody></table>
+        </td>
+
+
+        <td>  <table class="event"> <tbody>
+                    <tr> <th> frequency </th> <td> {{object.frequency|floatformat:"-4"}} </td> </tr>
+                    <tr> <th> Omicron SNR </th> <td> {{object.omicron_snr|floatformat:"-4"}} </td> </tr>
+                    <tr> <th> hrss </th> <td> {{object.hrss|scientific}} </td> </tr>
+              </tbody></table>
+        </td>
+
+    </tr>
+</tbody> </table> 
+
+{% endblock %}

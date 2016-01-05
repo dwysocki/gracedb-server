@@ -265,6 +265,19 @@ def eventToDict(event, columns=None, request=None):
                   }
         except:
             pass
+        try:
+            # LalInferenceBurstEvent
+            rv['extra_attributes']['LalInferenceBurst'] = {
+                  "bci" : event.bci,
+                  "bsn" : event.bsn,
+                  "quality" : event.quality,
+                  "omicron_snr" : event.omicron_snr,
+                  "hrss" : event.hrss,
+                  "frequency": event.frequency,
+                  }
+        except:
+            pass
+
 
         # Finally add extra attributes for any SingleInspiral objects associated with this event
         # This will be a list of dictionaries.

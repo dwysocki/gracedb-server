@@ -231,6 +231,7 @@ tableTranslations = {
         'si': 'singleinspiral',
         'ci': 'coincinspiralevent',
         'mb': 'multiburstevent',
+        'li': 'lalinferenceburstevent',
         'coincinspiral': 'coincinspiralevent',
         'multiburst': 'multiburstevent',
         'grb': 'grbevent',

@@ -409,6 +409,14 @@ def handle_uploaded_data(event, datafilename,
         event.instruments = event_dict['instruments']
         event.nevents     = event_dict.get('nevents', 1)
         event.likelihood  = event_dict.get('likelihood', None)
+
+        # Assign analysis-specific attributes
+        event.bci         = event_dict.get('BCI', None)
+        event.quality     = event_dict.get('quality', None)
+        event.bsn         = event_dict.get('BSN', None)
+        event.omicron_snr = event_dict.get('Omicron SNR', None)
+        event.hrss        = event_dict.get('hrss', None)
+        event.frequency   = event_dict.get('frequency', None)
         event.save()
 
     else:

@@ -7,6 +7,7 @@ from models import CoincInspiralEvent
 from models import MultiBurstEvent
 from models import GrbEvent
 from models import SimInspiralEvent
+from models import LalInferenceBurstEvent
 from models import EMBBEventLog, EMGroup
 from models import EMObservation, EMFootprint
 from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
@@ -52,6 +53,8 @@ def _createEventFromForm(request, form):
             event = MultiBurstEvent() 
         elif pipeline.name in ['HardwareInjection',]:
             event = SimInspiralEvent()
+        elif pipeline.name in ['LIB',]:
+            event = LalInferenceBurstEvent()
         else:
             event = Event()
 
