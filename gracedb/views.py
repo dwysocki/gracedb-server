@@ -372,8 +372,14 @@ def view(request, event):
     context['user_is_external'] = is_external(request.user)
 
     # FAR must be floored in the same way as in the VOEvent.
-    floored_far = max(event.far, settings.VOEVENT_FAR_FLOOR) if event.far != None else None
-    context['display_far'] = floored_far if is_external(request.user) else event.far
+    far_is_upper_limit = False
+    display_far = event.far
+    if event.far and is_external(request.user):
+        if event.far < settings.VOEVENT_FAR_FLOOR:
+            display_far = settings.VOEVENT_FAR_FLOOR
+            far_is_upper_limit = True
+    context['display_far'] = display_far
+    context['far_is_upper_limit'] = far_is_upper_limit
 
     # Does the user have permission to sign off on the event as the control room operator?
     operator_signoff_authorized = False

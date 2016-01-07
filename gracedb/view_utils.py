@@ -130,8 +130,16 @@ def eventToDict(event, columns=None, request=None):
     rv['gpstime'] = event.gpstime
     rv['instruments'] = event.instruments
     rv['nevents'] = event.nevents
-    floored_far = max(event.far, settings.VOEVENT_FAR_FLOOR) if event.far != None else None
-    rv['far'] = floored_far if is_external(request.user) else event.far
+
+    far_is_upper_limit = False
+    display_far = event.far
+    if event.far and request and is_external(request.user):
+        if event.far < settings.VOEVENT_FAR_FLOOR:
+            display_far = settings.VOEVENT_FAR_FLOOR
+            far_is_upper_limit = True
+
+    rv['far'] = display_far
+    rv['far_is_upper_limit'] = far_is_upper_limit
     rv['likelihood'] = event.likelihood
     rv['labels'] = dict([
           (labelling.label.name,
@@ -672,8 +680,10 @@ def flexigridResponse(request, objects):
         else:
             search_name = ''
 
-        floored_far = max(object.far, settings.VOEVENT_FAR_FLOOR) if object.far != None else None
-        display_far = floored_far if is_external(request.user) else object.far
+        display_far = scientific(object.far)
+        if object.far and is_external(request.user):
+            if object.far < settings.VOEVENT_FAR_FLOOR:
+                display_far = "< %s" % scientific(settings.VOEVENT_FAR_FLOOR)
 
         cell_values = [ '<a href="%s">%s</a>' %
                             (django_reverse("view", args=[object.graceid()]), object.graceid()),
@@ -689,7 +699,8 @@ def flexigridResponse(request, objects):
 
                         object.instruments,
 
-                        scientific(display_far),
+                        #scientific(display_far),
+                        display_far,
 
                         '<a href="%s">Data</a>' % object.weburl(),
 
