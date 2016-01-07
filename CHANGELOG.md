@@ -1,6 +1,19 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 2016-01-07
+### Added
+- 'less than' sign in event display when FAR is an upper limit (#3105)
+- deprecation warning header for old client url endpoints (#2420)
+- event subclass for oLIB events (#3093)
+
+### Changed
+- now including WhereWhen section in retraction VOEvents (#3092)
+
+### Fixed
+- only add SkymapViewer button for json files corresponding to skymaps (#3004)
+
+
 ## 2015-11-17
 ### Added
 - support for tagnames with spaces in REST URL patterns (#2730)
