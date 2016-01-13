@@ -673,6 +673,9 @@ def latest(request):
     else:
         context['error'] = True
 
+    context['far_floor']        = settings.VOEVENT_FAR_FLOOR
+    context['user_is_external'] = is_external(request.user)
+
     return render_to_response(
             template,
             context,

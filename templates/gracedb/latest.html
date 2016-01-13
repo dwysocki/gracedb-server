@@ -138,7 +138,16 @@
                 <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
                 {{ object.gpstime|multiTimeMicroSeconds:"gps" }}
             {% endif %}</td>
+        <!-- this is a bug. The far should be floored for display purposes. --> 
+        {% if user_is_external %}
+            {% if object.far and object.far < far_floor %} 
+            <td>&lt; {{ far_floor|scientific }}</td>
+            {% else %}
+            <td>{{ object.far|scientific }}</td>
+            {% endif %}
+        {% else %}
         <td>{{ object.far|scientific }}</td>
+        {% endif %}
         <td style="text-align:center">{{ object.reportingLatency }}</td>
         <td>{{ object.created|multiTime:"created" }}</td>
         <!-- This causes browser-busting for large numbers of figures. Getting rid of it. -->
