@@ -10,6 +10,7 @@ from gracedb.models import SingleInspiral
 
 from utils.vfile import VersionedFile
 from permission_utils import is_external
+from django.db.models import Q
 
 import os
 from django.conf import settings
@@ -820,5 +821,30 @@ def fix_old_creation_request(request):
         return request
 
 
+#--------------------------------------------------------------
+# This utility should raise an exception if the FAR range query 
+# upper limit is below the VOEvent FAR floor. This should be 
+# applied to the agglomerated Q object resulting from parsing a
+# search query for external (non-LVC) users. The q object can 
+# be full of all sorts of things. We just traverse the whole 
+# thing looking for things like # Q(far__lte=#), etc., and then
+# check the upper limit of the search range.
+#--------------------------------------------------------------
+class BadFARRange(Exception):
+    pass
 
+def check_query_far_range(q, floor=settings.VOEVENT_FAR_FLOOR):
+    for c in q.children:
+        # If the child is another Q object, we send it through 
+        # the same function.
+        if isinstance(c, Q):
+            check_query_far_range(c, floor)
+        # If, on the other hand, we've made all the way down to
+        # a 'leaf' of the tree, we'll make sure that it's not a
+        # bad FAR range query.
+        elif isinstance(c, tuple):
+            if c[0] in ('far__lt', 'far__lte') and c[1] < floor:
+                raise BadFARRange
+            elif c[0] == 'far__range' and c[1][1] < floor:
+                raise BadFARRange
 

@@ -38,6 +38,12 @@ MAX_QUERY_RESULTS = 1000
 import json
 from django.utils.functional import wraps
 
+# 
+# for checking queries in the evnet that the user is external
+#
+from view_utils import BadFARRange, check_query_far_range
+from query import parseQuery
+
 #
 # A wrapper for retrieving an event and replacing graceid 
 # in the arg list with the event itself.  Also checks 
@@ -462,6 +468,15 @@ def search(request, format=""):
         else:
             form = SimpleSearchForm(request.POST)
             rawquery = request.POST['query']
+
+        # If the user is external, we must check to make sure that any query on FAR
+        # value is within the safe range.
+        if is_external(request.user):
+            try:
+                check_query_far_range(parseQuery(rawquery))
+            except BadFARRange:
+                msg = 'FAR query out of range, upper limit must be below %s' % settings.VOEVENT_FAR_FLOOR
+                return HttpResponseBadRequest(msg) 
         if form.is_valid():
             objects = form.cleaned_data['query']
             get_neighbors = form.cleaned_data['get_neighbors']
@@ -659,7 +674,17 @@ def latest(request):
 
     template = 'gracedb/latest.html'
     context['form'] = form
-    context['rawquery'] = request.GET.get('query') or request.POST.get('query') or ""
+    rawquery = request.GET.get('query') or request.POST.get('query') or ""
+    context['rawquery'] = rawquery
+
+    # If the user is external, we must check to make sure that any query on FAR
+    # value is within the safe range.
+    if is_external(request.user):
+        try:
+            check_query_far_range(parseQuery(rawquery))
+        except BadFARRange:
+            msg = 'FAR query out of range, upper limit must be below %s' % settings.VOEVENT_FAR_FLOOR
+            return HttpResponseBadRequest(msg) 
 
     if form.is_valid():
         # XXX This makes the requests much faster for internal users.
