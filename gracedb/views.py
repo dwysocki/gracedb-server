@@ -571,22 +571,35 @@ def oldsearch(request):
             else:
                 objects = Event.objects.all()
 
+            # XXX Note, the uid field doesn't exist anymore. I'm not sure why this
+            # stuff is in here. (Branson)
+#            if start:
+#                if start[0] != 'G':
+#                    # XXX This is the deprecated uid stuff. Take it out when uid is gone.
+#                    objects = objects.filter(uid__gte=start)
+#                    objects = objects.filter(uid__startswith="0")
+#                else:
+#                    objects = objects.filter(id__gte=int(start[1:]))
+#                    objects = objects.filter(uid="")
+#            if end:
+#                if end[0] != 'G':
+#                    # XXX This is the deprecated uid stuff. Take it out when uid is gone.
+#                    objects = objects.filter(uid__lte=end)
+#                    objects = objects.filter(uid__startswith="0")
+#                else:
+#                    objects = objects.filter(id__lte=int(end[1:]))
+#                    objects = objects.filter(uid="")
+
             if start:
-                if start[0] != 'G':
-                    # XXX This is the deprecated uid stuff. Take it out when uid is gone.
-                    objects = objects.filter(uid__gte=start)
-                    objects = objects.filter(uid__startswith="0")
-                else:
+                if start[0] in 'GEHMT':
                     objects = objects.filter(id__gte=int(start[1:]))
-                    objects = objects.filter(uid="")
-            if end:
-                if end[0] != 'G':
-                    # XXX This is the deprecated uid stuff. Take it out when uid is gone.
-                    objects = objects.filter(uid__lte=end)
-                    objects = objects.filter(uid__startswith="0")
                 else:
+                    return HttpResponseBadRequest("Invalid GraceID")
+            if end:
+                if end[0] in 'GEHMT':
                     objects = objects.filter(id__lte=int(end[1:]))
-                    objects = objects.filter(uid="")
+                else:
+                    return HttpResponseBadRequest("Invalid GraceID")
 
             if start and end:
                 textQuery.append("gid: %s..%s" % (start, end))
