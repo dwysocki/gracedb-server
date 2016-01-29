@@ -1672,7 +1672,9 @@ class Files(APIView):
             # XXX encoding should probably not be ignored.
             response = HttpResponse(open(filepath, "r"), content_type=content_type)
             if content_type == "application/octet-stream":
-                response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(filename)
+                # Double quotes are required to avoid MUTLIPLE_CONTENT_DISPOSITION error
+                # in Chrome when the filename contains a comma.
+                response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(filename)
             if encoding is not None:
                 response['Content-Encoding'] = encoding
         elif not filename:
