@@ -14,7 +14,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 
 proxyPattern = re.compile(r'^(.*?)(/CN=\d+)*$')
 
-from datetime import datetime
+from django.utils import timezone
 from base64 import b64decode
 import json
 
@@ -153,7 +153,7 @@ class LigoAuthMiddleware:
             # actually use 'date_joined' for it's intended purpose.
             # check: is now greater than date_joined + time_delta?
             if user:
-                if datetime.now() > user.date_joined + settings.PASSWORD_EXPIRATION_TIME:
+                if timezone.now() > user.date_joined + settings.PASSWORD_EXPIRATION_TIME:
                     msg = "Your password has expired. Please log in and request another."
                     return HttpResponseForbidden(json.dumps({'error': msg})) 
 

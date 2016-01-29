@@ -21,7 +21,7 @@ from VOEventLib.VOEvent import Time, TimeInstant
 
 # XXX ER2.utils.  utils is in project directory.  ugh.
 from utils import gpsToUtc
-from datetime import datetime
+from django.utils import timezone
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from models import CoincInspiralEvent, MultiBurstEvent
@@ -104,7 +104,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     a.add_contactName("LIGO Scientific Collaboration and Virgo Collaboration")
     #a.add_contactEmail("postmaster@ligo.org")
     w.set_Author(a)
-    w.set_Date(datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S"))
+    w.set_Date(timezone.now().strftime("%Y-%m-%dT%H:%M:%S"))
     v.set_Who(w)
 
     ############ Why ############################

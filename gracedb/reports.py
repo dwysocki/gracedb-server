@@ -24,9 +24,10 @@ import matplotlib.pyplot as plot
 import StringIO
 import base64
 import sys
-import time
-from datetime import datetime, timedelta
+import calendar
+from datetime import timedelta
 from utils import posixToGpsTime
+from django.utils import timezone
 
 @internal_user_required
 def histo(request):
@@ -76,7 +77,7 @@ def histo(request):
 def rate_data():
     # XXX there is a better way -- should be using group_by or something.
     # WAAY too many queries (~300) going on here.
-    now = datetime.now()
+    now = timezone.now()
     day = timedelta(1)
 
     ts_min = now - 60 * day
@@ -149,11 +150,12 @@ def cbc_report(request, format=""):
     if request.method == "GET":
         if "query" not in request.GET:
             # Use default query. LowMass events from the past week.
-            t_high = datetime.now()
+            t_high = timezone.now()
             dt = timedelta(days=7)
             t_low = t_high - dt
-            t_high = posixToGpsTime(time.mktime(t_high.timetuple()))
-            t_low = posixToGpsTime(time.mktime(t_low.timetuple()))
+            # Now the times are in UTC. So we can't use mktime to get posix time.
+            t_high = posixToGpsTime(calendar.timegm(t_high.timetuple()))
+            t_low = posixToGpsTime(calendar.timegm(t_low.timetuple()))
             query = 'CBC LowMass %d .. %d' % (t_low, t_high)
             rawquery = query
             form = SimpleSearchForm({'query': query})

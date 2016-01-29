@@ -1,7 +1,6 @@
 import os
 import json
 from StringIO import StringIO
-from datetime import datetime
 
 from gracedb.models import GrbEvent, Tag, Event
 from gracedb.models import MultiBurstEvent
@@ -12,6 +11,8 @@ from gracedb.models import EventLog, Labelling, SingleInspiral
 from django.core.management import call_command
 from django.core.management.base import NoArgsCommand
 from django.conf import settings
+
+from django.utils import timezone
 
 #------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------
@@ -143,7 +144,7 @@ def get_user_field_dicts(user_info):
         
         user_dict['user_permissions'] = []
         user_dict['password'] = 'X'
-        now = datetime.now().isoformat().split('.')[0]
+        now = timezone.now().isoformat().split('.')[0]
         user_dict['last_login'] = now
         user_dict['date_joined'] = now
 

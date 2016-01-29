@@ -20,6 +20,7 @@ import datetime
 import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
+import pytz
 
 from pyparsing import \
     Word, nums, Literal, CaselessLiteral, delimitedList, Suppress, QuotedString, \
@@ -170,7 +171,7 @@ nltimeRange = nltime + Suppress("..") + nltime
 
 def doTime(tok):
     x = datetime.datetime(*(map(int, tok)))
-    return x
+    return pytz.utc.localize(x)
 
 dash = Suppress('-')
 colon = Suppress(':')

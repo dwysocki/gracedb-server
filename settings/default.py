@@ -1,5 +1,13 @@
 from settings_secret import *
 
+USE_TZ = True
+
+import warnings
+warnings.filterwarnings(
+        'error', r"DateTimeField .* received a naive datetime",
+        RuntimeWarning, r'django\.db\.models\.fields')
+
+
 # Suitable for production
 ALLOWED_HOSTS = ['*']
 

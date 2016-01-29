@@ -15,7 +15,7 @@ from forms import ContactForm, triggerFormFactory
 
 from gracedb.permission_utils import internal_user_required, lvem_user_required
 
-from datetime import datetime
+from django.utils import timezone
 
 from gracedb.query import labelQuery
 from gracedb.models import Label
@@ -38,7 +38,7 @@ def managePassword(request):
         password = User.objects.make_random_password(length=20)
         d['password'] = password
         request.user.set_password(password)
-        request.user.date_joined = datetime.now()
+        request.user.date_joined = timezone.now()
         request.user.save()
     return render_to_response('profile/manage_password.html',
                               d,
