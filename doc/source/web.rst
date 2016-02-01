@@ -21,7 +21,7 @@ each other in various ways:
 - by GPS time or range 
     - ``gpstime: 999999999``
     - ``899999000..999999999``
-- by event creation time
+- by event creation time in UTC
     - ``created: 2009-10-08 .. 2009-12-04 16:00:00``
     - ``yesterday .. now``
 - by specific graceid or range

@@ -149,8 +149,9 @@ observation record consisting of three separate footprints::
     if r.status == 201:       # 201 means 'Created'
         print 'Success!'
 
-For users not familiar with Python, there are several other options available for 
-uploading observation records:
+Note that the start times are always assumed to be in UTC. For users not
+familiar with Python, there are several other options available for uploading
+observation records:
 
 - by using the webform on each event page (scroll down to the 'EM Observations'
   section and click on 'add observation record'). However, this method requires
