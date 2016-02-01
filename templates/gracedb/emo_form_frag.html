@@ -24,6 +24,7 @@ return true;
 <tr><td><a href=# onclick="alert('Group with which the LSC has signed a trust agreement, hereby providing data 
 under its trust (required).'); return false;">
 Which MOU Group provides this report?</a></td>       <td><select name="group">
+<option value=""></option>
 {% for g in groups %}
 <option value="{{ g }}">{{ g }}</option>
 {% endfor %} </select> </td> </tr>
