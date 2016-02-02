@@ -31,6 +31,7 @@ import datetime
 #import dateutil
 from dateutil import parser
 import logging
+import pytz
 
 def _createEventFromForm(request, form):
     saved = False
@@ -234,9 +235,14 @@ def get_performance_info():
     # Now parse the log file
     dateformat = '%Y-%m-%dT%H:%M:%S' # ISO format. I think.
 
-    # Lookback time is 3 days.
-    dt_now = datetime.datetime.now()
+    # Lookback time is 3 days. These are in UTC.
+    dt_now = timezone.now()
     dt_min = dt_now + datetime.timedelta(days=-3)
+    
+    # Convert to local time
+    SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
+    dt_now = dt_now.astimezone(SERVER_TZ)
+    dt_min = dt_min.astimezone(SERVER_TZ)
 
     totals_by_status = {}
     totals_by_method = {}
@@ -245,6 +251,8 @@ def get_performance_info():
         datestring = line[0:len('YYYY-MM-DDTHH:MM:SS')]
         # Check the date to see whether it's fresh enough
         dt = datetime.datetime.strptime(datestring, dateformat)
+        # Localize so we can compare with aware datetimes
+        dt = SERVER_TZ.localize(dt) 
         if dt > dt_min:
             # Get rid of the datestring and the final colon.
             line = line[len(datestring)+1:]
@@ -539,6 +547,8 @@ def create_emobservation(request, event):
 
         try:
             start_time = parser.parse(start_time)
+            if not start_time.tzinfo:
+                start_time = pytz.utc.localize(start_time)
         except:
             raise ValueError('Could not parse start time list element %d of %s'%(i, startTimeRealList))
 

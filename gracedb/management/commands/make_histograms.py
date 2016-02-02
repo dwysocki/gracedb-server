@@ -10,8 +10,8 @@ import numpy
 from gracedb.models import Event, Pipeline
 
 import os
-from datetime import datetime, timedelta
-
+from datetime import timedelta
+from django.utils import timezone
 
 DEST_DIR = settings.LATENCY_REPORT_DEST_DIR
 MAX_X = settings.LATENCY_MAXIMUM_CHARTED
@@ -27,7 +27,7 @@ class Command(NoArgsCommand):
 
     def handle_noargs(self, **options):
 
-        now = datetime.now()
+        now = timezone.now()
 
         start_day = now - timedelta(1)
         start_week = now - timedelta(7)
@@ -71,7 +71,7 @@ class Command(NoArgsCommand):
 
 def writeIndex(notes, fname):
 
-    createdDate = str(datetime.now())
+    createdDate = str(timezone.now())
     maxx = MAX_X
 
     table = '<table border="1" bgcolor="white">'

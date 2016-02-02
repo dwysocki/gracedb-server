@@ -606,10 +606,6 @@ require([
                 return is_skymap;
             };
 
-            skymap_stems.forEach( function(stem) {
-                console.log("Got skymap stem: " + stem);
-            });
-
             // If there are any blessed tags here, we'll do TitlePanes
             if (our_blessed_tags.length > 0) {
                 // define our columns for the topical digest panes

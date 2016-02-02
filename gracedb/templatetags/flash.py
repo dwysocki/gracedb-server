@@ -34,7 +34,8 @@ django.contrib.sessions.middleware.SessionMiddleware
 
 from django import template
 from django.template import resolve_variable, Context
-import datetime
+from datetime import timedelta
+from django.utils import timezone
 from django.template.loader import render_to_string
 from django.contrib.sessions.models import Session
 from django.conf import settings
@@ -59,7 +60,7 @@ def session_clear(session):
     # Save changes to session
     if(session.session_key):
         Session.objects.save(session.session_key, session._session,
-            datetime.datetime.now() + datetime.timedelta(seconds=settings.SESSION_COOKIE_AGE))
+            timezone.now() + timedelta(seconds=settings.SESSION_COOKIE_AGE))
 
 
 class RunFlashBlockNode(template.Node):

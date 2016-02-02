@@ -49,17 +49,20 @@ def get_multitime_value(t, label, autoescape, format):
         dt = t
         if not dt.tzinfo:
             dt = SERVER_TZ.localize(dt)
-        #dt = dt.astimezone(pytz.utc)
+        # XXX in order for mktime to give correct results, the time must be
+        # in the server's timezone.
+        dt = dt.astimezone(SERVER_TZ)
         posix_time = time.mktime(dt.timetuple())
         gps_time = int(posixToGpsTime(posix_time))
     elif isinstance(t, int) or isinstance(t, long):
         gps_time = t
         dt = gpsToUtc(t)
-        posix_time = time.mktime(dt.timetuple())
+        # Note: must convert to server timezone before calling mktime
+        posix_time = time.mktime(dt.astimezone(SERVER_TZ).timetuple())
     elif isinstance(t, decimal.Decimal):
         gps_time = float(t)
         dt = gpsToUtc(t)
-        posix_time = time.mktime(dt.timetuple())
+        posix_time = time.mktime(dt.astimezone(SERVER_TZ).timetuple())
     else:
         return "N/A"
         return '<time utc="%s" gps="%s" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
@@ -147,6 +150,8 @@ def gpsdate_tz(gpstime, label="utc"):
 def gpstime(dt):
     if not dt.tzinfo:
         dt = SERVER_TZ.localize(dt)
+    # convert to SERVER_TZ if not already
+    dt = dt.astimezone(SERVER_TZ)
     posix_time = time.mktime(dt.timetuple())
     gps_time = int(posixToGpsTime(posix_time))
     return gps_time
@@ -160,17 +165,17 @@ def timeSelections(t):
         dt = t
         if not dt.tzinfo:
             dt = SERVER_TZ.localize(dt)
-        #dt = dt.astimezone(pytz.utc)
+        dt = dt.astimezone(SERVER_TZ)
         posix_time = time.mktime(dt.timetuple())
         gps_time = int(posixToGpsTime(posix_time))
     elif isinstance(t, int) or isinstance(t, long):
         gps_time = t
         dt = gpsToUtc(t)
-        posix_time = time.mktime(dt.timetuple())
+        posix_time = time.mktime(dt.astimezone(SERVER_TZ).timetuple())
     elif isinstance(t, decimal.Decimal):
         gps_time = float(t)
         dt = gpsToUtc(t)
-        posix_time = time.mktime(dt.timetuple())
+        posix_time = time.mktime(dt.astimezone(SERVER_TZ).timetuple())
     else:
         raise ValueError("time must be type int, long or datetime, not '%s'" % type(t))
 

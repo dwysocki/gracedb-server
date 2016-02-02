@@ -1,3 +1,6 @@
+from settings_secret import *
+
+USE_TZ = True
 
 # Suitable for production
 ALLOWED_HOSTS = ['*']
@@ -114,7 +117,7 @@ DATABASES = {
         'NAME'     : 'gracedb',
         'ENGINE'   : 'django.db.backends.mysql',
         'USER'     : 'gracedb',
-        'PASSWORD' : 'thinglet',
+        'PASSWORD' : DEFAULT_DB_PASSWORD,
         'OPTIONS'  : {
                          'init_command': 'SET storage_engine=MyISAM',
                      },
@@ -238,7 +241,7 @@ USE_I18N = False
 ADMIN_MEDIA_PREFIX = '/media/'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '$$&hl%^_4&s0k7sbdr8ll_^gkz-j8oab0tz$t^^b-%$!83d(av'
+SECRET_KEY = DEFAULT_SECRET_KEY
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (

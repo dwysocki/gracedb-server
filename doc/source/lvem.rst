@@ -28,8 +28,8 @@ Scripted access for LV-EM members
 ============================================
 
 Some processes need to access GraceDB in a *scripted* manner. For example,
-an observational group might set up an automated process to listen for GCN
-notices for new GW events and download the skymaps for further processing
+an observational group might set up an automated process to listen for LIGO/Virgo GCN
+notices and then download the skymaps for further processing
 (see the `tutorial <http://nbviewer.ipython.org/github/lpsinger/ligo-virgo-emfollowup-tutorial/blob/master/ligo-virgo-emfollowup-tutorial.ipynb>`__). 
 As these alerts could come at any time of the day or night, it is not 
 generally possible for the user to go through the usual login sequence. Traditionally,
@@ -62,6 +62,7 @@ to make sure that only you can read it). The ``.netrc`` file could look like thi
     login     myself@institution.edu
     password  abc123.....
 
+Place the resulting ``.netrc`` file in your home directory.
 Once that's done, you should be able to access the GraceDB REST API
 using any tool that supports basic auth. 
 For example, you can use the GraceDB Python client in much the same 
@@ -148,8 +149,9 @@ observation record consisting of three separate footprints::
     if r.status == 201:       # 201 means 'Created'
         print 'Success!'
 
-For users not familiar with Python, there are several other options available for 
-uploading observation records:
+Note that the start times are always assumed to be in UTC. For users not
+familiar with Python, there are several other options available for uploading
+observation records:
 
 - by using the webform on each event page (scroll down to the 'EM Observations'
   section and click on 'add observation record'). However, this method requires

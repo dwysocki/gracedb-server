@@ -24,6 +24,7 @@ return true;
 <tr><td><a href=# onclick="alert('Group with which the LSC has signed a trust agreement, hereby providing data 
 under its trust (required).'); return false;">
 Which MOU Group provides this report?</a></td>       <td><select name="group">
+<option value=""></option>
 {% for g in groups %}
 <option value="{{ g }}">{{ g }}</option>
 {% endfor %} </select> </td> </tr>
@@ -40,7 +41,7 @@ RAwidth (decimal degrees)</a></td>        <td><input type="text" name="raWidthLi
 <tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
 Decwidth (decimal degrees)</a></td>       <td><input type="text" name="decWidthList" value=""/></td></tr>
 
-<tr><td><a href=# onclick="alert('The time at the beginning of a time interval during which the observation was taken. Or list of times. ISO 8601');return false;">
+<tr><td><a href=# onclick="alert('The time at the beginning of a time interval during which the observation was taken. Or list of times. UTC in ISO 8601 format.');return false;">
 StartTime</a></td>
 <td><input type="text" name="startTimeList" value="" size=80/></td>
 </tr>

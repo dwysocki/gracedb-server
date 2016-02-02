@@ -20,6 +20,7 @@ import datetime
 import models
 from django.db.models import Q
 from django.db.models.query import QuerySet
+import pytz
 
 from pyparsing import \
     Word, nums, Literal, CaselessLiteral, delimitedList, Suppress, QuotedString, \
@@ -64,6 +65,8 @@ gpsQ = gpsQ.setParseAction(maybeRange("gpstime"))
 
 # run ids
 runmap = {
+   "O1"  :     (1126623617, 1136649617),  # Friday, Sept 18th, 10 AM CDT - Tuesday, Jan 12th, 10:00 AM CST
+   "ER8" :     (1123858817, 1126623617),  # Monday, Aug 17th, 10 AM CDT - Friday, Sept 18th, 10 AM CDT 
    "ER7" :     (1117400416, 1118329216),  # Jun 03 21:00:00 UTC 2015 - Jun 14 15:00:00 UTC 2015
    "ER6" :     (1102089616, 1102863616),  # Dec 08 16:00:00 UTC 2014 - Dec 17 15:00:00 UTC 2014
    "ER5" :     (1073822416, 1078876816),  # Jan 15 12:00:00 UTC 2014 - Mar 15 2014 00:00:00 UTC
@@ -168,7 +171,7 @@ nltimeRange = nltime + Suppress("..") + nltime
 
 def doTime(tok):
     x = datetime.datetime(*(map(int, tok)))
-    return x
+    return pytz.utc.localize(x)
 
 dash = Suppress('-')
 colon = Suppress(':')

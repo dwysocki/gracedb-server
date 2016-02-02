@@ -6,6 +6,12 @@
 from datetime import datetime, timedelta
 from pyparsing import *
 import calendar
+from django.utils import timezone
+import pytz
+
+# Note, since the 'now' comes from django.utils.timezone, it will be in UTC.
+# We should therefore localize all of the datetime objects generated here to 
+# UTC.
  
 # string conversion parse actions
 def convertToTimedelta(toks):
@@ -25,7 +31,7 @@ def convertToTimedelta(toks):
     toks["timeOffset"] = td
  
 def convertToDay(toks):
-    now = datetime.now()
+    now = timezone.now()
     if "wkdayRef" in toks:
         todaynum = now.weekday()
         daynames = [n.lower() for n in calendar.day_name]
@@ -34,23 +40,23 @@ def convertToDay(toks):
             daydiff = (nameddaynum + 7 - todaynum) % 7
         else:
             daydiff = -((todaynum + 7 - nameddaynum) % 7)
-        toks["absTime"] = datetime(now.year, now.month, now.day)+timedelta(daydiff)
+        toks["absTime"] = pytz.utc.localize(datetime(now.year, now.month, now.day)+timedelta(daydiff))
     else:
         name = toks.name.lower()
         toks["absTime"] = {
             "now"       : now,
-            "today"     : datetime(now.year, now.month, now.day),
-            "yesterday" : datetime(now.year, now.month, now.day)+timedelta(-1),
-            "tomorrow"  : datetime(now.year, now.month, now.day)+timedelta(+1),
+            "today"     : pytz.utc.localize(datetime(now.year, now.month, now.day)),
+            "yesterday" : pytz.utc.localize(datetime(now.year, now.month, now.day)+timedelta(-1)),
+            "tomorrow"  : pytz.utc.localize(datetime(now.year, now.month, now.day)+timedelta(+1)),
             }[name]
  
 def convertToAbsTime(toks):
-    now = datetime.now()
+    now = timezone.now()
     if "dayRef" in toks:
         day = toks.dayRef.absTime
-        day = datetime(day.year, day.month, day.day)
+        day = pytz.utc.localize(datetime(day.year, day.month, day.day))
     else:
-        day = datetime(now.year, now.month, now.day)
+        day = pytz.utc.localize(datetime(now.year, now.month, now.day))
     if "timeOfDay" in toks:
         if isinstance(toks.timeOfDay,basestring):
             timeOfDay = {
@@ -78,7 +84,7 @@ def calculateTime(toks):
     if toks.absTime:
         absTime = toks.absTime
     else:
-        absTime = datetime.now()
+        absTime = timezone.now()
     if toks.timeOffset:
         absTime += toks.timeOffset
     toks["calculatedTime"] = absTime
@@ -181,7 +187,7 @@ if __name__ == "__main__":
     2009/12/22 12:13:14""".splitlines()
      
     for t in tests:
-        print t, "(relative to %s)" % datetime.now()
+        print t, "(relative to %s)" % timezone.now()
         res = nlTimeExpression.parseString(t)
         if "calculatedTime" in res:
             print res.calculatedTime

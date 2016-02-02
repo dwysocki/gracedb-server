@@ -29,8 +29,8 @@ GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 import json
 import pytz
 
-from datetime import datetime
-from time import mktime
+import time
+import calendar
 
 SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 def timeToUTC(dt):
@@ -483,12 +483,13 @@ def skymapViewerEMObservationToDict(emo, request=None):
     for t in startTimeList:
         time_count += 1
         # timetuple throws away the microsecond for some reason
-        avg_time_s += mktime(t.timetuple()) + float(t.microsecond)/1e6
+        # Note: the datetimes in the startTimeList are in UTC.
+        avg_time_s += calendar.timegm(t.timetuple()) + float(t.microsecond)/1e6
 
     if time_count > 0:
         avg_time_s /= time_count
 
-    avg_time = datetime.fromtimestamp(avg_time_s)
+    avg_time = time.gmtime(avg_time_s)
     avg_time_string = avg_time.strftime("%a %b %d %H:%M:%S UTC %Y")
           
     return {

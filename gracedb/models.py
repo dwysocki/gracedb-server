@@ -26,7 +26,8 @@ import json
 from utils import posixToGpsTime
 
 from django.conf import settings
-import pytz, time
+import pytz
+import calendar
 
 from cStringIO import StringIO
 from hashlib import sha1
@@ -175,7 +176,8 @@ class Event(models.Model):
             dt = self.created
             if not dt.tzinfo:
                 dt = SERVER_TZ.localize(dt)
-            posix_time = time.mktime(dt.timetuple())
+            dt = dt.astimezone(pytz.utc)
+            posix_time = calendar.timegm(dt.timetuple())
             gps_time = int(posixToGpsTime(posix_time))
             return gps_time - self.gpstime
 
