@@ -123,9 +123,6 @@ def is_external(user):
         return False
     else:
         return True
-#    if user.username == 'branson.stephens@LIGO.ORG':
-#        return False
-#    return True
 
 #-------------------------------------------------------------------------------
 # A utility for determining whether an external user should have access to a 

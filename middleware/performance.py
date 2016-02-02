@@ -3,8 +3,6 @@ import logging
 
 class PerformanceMiddleware:
 
-    #logging.basicConfig(filename="/home/branson/logs/performance.log",level=logging.INFO)
-
     def process_response(self, request, response):
         # Determine whether the user tried to create or replace an event.
         logger = logging.getLogger(__name__)
