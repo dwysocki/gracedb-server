@@ -25,6 +25,7 @@ from view_logic import create_emobservation
 from view_logic import create_label
 from view_utils import assembleLigoLw, get_file
 from view_utils import flexigridResponse, jqgridResponse
+from view_utils import get_recent_events_string
 
 import os
 from django.conf import settings
@@ -94,6 +95,14 @@ def index(request):
         events = Event.objects.filter(labelling__label__name=label_name)
         context['signoff_graceids'] = [e.graceid() for e in events]
 
+    recent_events = '' 
+    if request.user and not is_external(request.user) and settings.SHOW_RECENT_EVENTS_ON_HOME:
+        try:
+            recent_events = get_recent_events_string(request)
+        except Exception, e:
+            pass
+    context['recent_events'] = recent_events
+    
     return render_to_response('gracedb/index.html', context,
             context_instance=RequestContext(request))
 

@@ -4,7 +4,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.conf import settings
 
-from gracedb.models import Event
+from gracedb.models import Event, Group, Search
 from gracedb.permission_utils import filter_events_for_user
 from gracedb.permission_utils import internal_user_required
 from django.db.models import Q
@@ -25,9 +25,11 @@ import StringIO
 import base64
 import sys
 import calendar
-from datetime import timedelta
+from datetime import timedelta, datetime
 from utils import posixToGpsTime
 from django.utils import timezone
+import pytz
+import json
 
 @internal_user_required
 def histo(request):
@@ -57,10 +59,18 @@ def histo(request):
     #    uptime = None
 
     # Rate information
+    #try:
+    #    rate_info = open(settings.RATE_INFO_FILE).read()
+    #except IOError:
+    #    rate_info = None
+
+    # For the binned counts, read in the contents of the file.
     try:
-        rate_info = open(settings.RATE_INFO_FILE).read()
-    except IOError:
-        rate_info = None
+        f = open(settings.BINNED_COUNT_FILE, 'r')
+        binned_counts = f.read()
+        f.close()
+    except:
+        binned_counts = None
 
     return render_to_response(
             'gracedb/histogram.html',
@@ -68,7 +78,8 @@ def histo(request):
              #'ifar' : ifar,
              #'uptime' : uptime,
              #'rate' : json.dumps(rate_data(request)),
-             'rate' : rate_info,
+             #'rate' : rate_info,
+             'binned_counts': binned_counts,
              'url_prefix' : settings.REPORT_INFO_URL_PREFIX,
             },
             context_instance=RequestContext(request))
@@ -315,5 +326,3 @@ def cbc_report(request, format=""):
             { 'form' : form,
             },
             context_instance=RequestContext(request))
-
-

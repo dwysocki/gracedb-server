@@ -6,7 +6,7 @@ from django.utils.html import escape, urlize
 #from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 
-from gracedb.models import SingleInspiral
+from gracedb.models import SingleInspiral, Event, Search, Group
 
 from utils.vfile import VersionedFile
 from permission_utils import is_external
@@ -31,6 +31,9 @@ import pytz
 
 import time
 import calendar
+
+from django.utils import timezone
+from datetime import datetime, timedelta
 
 SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 def timeToUTC(dt):
@@ -848,4 +851,43 @@ def check_query_far_range(q, floor=settings.VOEVENT_FAR_FLOOR):
                 raise BadFARRange
             elif c[0] == 'far__range' and c[1][1] < floor:
                 raise BadFARRange
+
+#---------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
+# Get a serialized list of recent events for use with the d3 visualization of 
+# recent events.
+#---------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------
+
+def get_recent_events_string(request):
+    #t_high = datetime(2016, 1, 12, 16, 0) # End of O1
+    #t_high = pytz.utc.localize(t_high)
+    t_high = timezone.now()
+    dt = timedelta(days=7)
+    t_low = t_high - dt
+    # XXX Warning: If you open this up to non-internal users, you need
+    # to filter these events.
+    events = Event.objects.filter(created__range=(t_low, t_high))
+
+    # Explicitly filter out MDC and Test events
+    try:
+        mdc = Search.objects.get(name='MDC')
+        events = events.exclude(search=mdc)
+    except:
+        pass
+
+    try:
+        test = Group.objects.get(name='Test')
+        events = events.exclude(group=test)
+    except:
+        pass
+
+    if events.count() == 0:
+        return ''
+
+    event_list = [ {'pipeline': e.pipeline.name,
+                    'graceid': e.graceid(),
+                    'created': e.created.isoformat() } for e in events ]
+
+    return json.dumps(event_list)
 

@@ -17,87 +17,48 @@ function toggle(id) {
 }
 </script>
 
-{# http/https depending on this pages' protocol #}
-<script src="http{% if request.is_secure %}s{% endif %}://ajax.googleapis.com/ajax/libs/dojo/1.7.1/dojo/dojo.js"
-        data-dojo-config="async: true, isDebug: false, parseOnLoad: true">
-</script>
-
-<script>
-    {% if rate %}
-        timeData = {{ rate|safe }};
-    {% else %}
-        timeData = [
-            { x: 1, y: 1 },
-            { x: 2, y: 3 },
-            { x: 3, y: 2 },
-            { x: 4, y: 4 },
-            { x: 5, y: 5 },
-            { x: 6, y: 6 },
-            { x: 7, y: 7 }
-        ];
-    {% endif %}
-
-    require([
-        "dojo/parser",
-        "dojox/charting/Chart",
-        "dojox/charting/themes/Claro",   // Shrooms, Tom
-        "dojox/charting/plot2d/Lines",
-        "dojox/charting/widget/Legend",
-        "dojox/charting/axis2d/Default",
-        "dojo/domReady!"
-    ], function (parser, Chart, theme, Lines, Legend ) {
-
-            var chart = new Chart("CN");
-
-            function xlabel(n) {
-                console.log("Got: " + n);
-                var dt = new Date();
-                dt.setTime(1000*n);
-                return (dt.getMonth()+1)+"/"+dt.getDate()+"/"+dt.getFullYear();
-            };
-
-            chart.setTheme(theme);
-            chart.addPlot("default", {
-                type: Lines,
-            });
-            chart.addAxis("x", {labelFunc:xlabel});
-            chart.addAxis("y", { vertical: true });
-
-            chart.addSeries("Total / Day", timeData['total']);
-            // chart.addSeries("Low Mass", timeData['LM']);
-            // chart.addSeries("Omega", timeData['Omega']);
-            // chart.addSeries("MBTA", timeData['MBTA']);
-            // chart.addSeries("cWB", timeData['CWB']);
-
-            chart.render();
-
-            var legend = new Legend({ chart: chart }, "leg1");
-       }
-    );
-</script>
-
 
 {% endblock %}
 
 {% block content %}
+
+<!-- some style stuff for the plot -->
+<style>
+
+.axis text {
+    font: 16px sans-serif;
+    font-weight: bold;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2px;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 3px;
+}
+
+.legend {
+    font-size: 16px;
+    font-weight: bold;
+    text-anchor: start;
+    cursor: pointer;
+}
+
+</style>
+
 <br/>
 
-<a href="{% url "cbc_report" %}"><h3>Dynamic CBC Report</h3></a>
-<br/>
-<br/>
-
-<a name="latency" href="javascript:toggle('latency');"><h3>Latency</h3></a>
-
-<div id="latency" style="display:none;">
-{% if table %}
-    {{ table|safe }}
-{% else %}
-     No Latency data.
-{% endif %}
-</div>
-
-<br/>
-<br/>
 
 <!-- XXX Commenting out the IFAR stuff 
 <a name="ifar" href="javascript:toggle('ifar');"><h3>CBC IFAR</h3></a>
@@ -132,18 +93,163 @@ function toggle(id) {
 -->
 
 <a name="rate" href="javascript:toggle('rate');"><h3>Submission Rates</h3></a>
-
-<div id="rate" style="display: block;">
-{% if rate %}
-    <div id="CN" style="width: 750px; height: 450px;"></div>
-    <div id="leg1"></div>
+<div id="rate" style="display: block;"> 
+{% if binned_counts %}
+    <div id="binned_counts_plot"></div>
 {% else %}
-     No rate charts.
+    No event count information. 
 {% endif %}
 </div>
 <br/>
 <br/>
 
+<a href="{% url "cbc_report" %}"><h3>Dynamic CBC Report</h3></a>
+<br/>
+<br/>
+
+<a name="latency" href="javascript:toggle('latency');"><h3>Latency</h3></a>
+
+<div id="latency" style="display:none;">
+{% if table %}
+    {{ table|safe }}
+{% else %}
+     No Latency data.
+{% endif %}
+</div>
+
+<br/>
+<br/>
+
 <a href="{% url "performance" %}"><h3>GraceDB 3-day performance summary</h3></a>
+
+{% if binned_counts %}
+
+<!------ Script and stuff for the rates plot -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script>
+
+var margin = {top: 20, right: 150, bottom: 70, left: 50},
+    width = 950 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var x = d3.time.scale()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var color = d3.scale.category10();
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var line = d3.svg.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.nevents); });
+
+var svg = d3.select("#binned_counts_plot").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var pipelines = {};
+
+var legend = [];
+
+var data_string = '{{ binned_counts|safe }}';
+
+var data = JSON.parse(data_string);
+
+// These will be pipeline names
+var active_keys = d3.keys(data[0]);
+
+color.domain(active_keys.filter(function(key) { return key !== "time" && key !== "delta_t"; }));
+
+// Like a data validation or typing step
+data.forEach(function(d) {
+  d.date = d3.time.format.iso.parse(d.time);
+});
+
+// For each of the active keys, we'll create an array of arrays
+pipelines = color.domain().map(function(name) {
+  return {
+    name: name,
+    active: true,
+    values: data.map(function(d) {
+      return {date: d.date, nevents: +d[name]};
+    })
+  };
+});
+
+x.domain(d3.extent(data, function(d) { return d.date; }));
+
+y.domain([
+  d3.min(pipelines, function(p) { return d3.min(p.values, function(v) { return v.nevents; }); }),
+  d3.max(pipelines, function(p) { return d3.max(p.values, function(v) { return v.nevents; }); })
+]);
+
+console.log("after x and y");
+
+svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis)
+  .selectAll("text")
+    .attr("y", 6)
+    .attr("x", -12)
+    .attr("dy", ".5em")
+    .attr("transform", "rotate(315)")
+    .style("text-anchor", "end");
+
+console.log("after x axis");
+
+svg.append("g")
+  .attr("class", "y axis")
+  .call(yAxis)
+.append("text")
+  .attr("transform", "rotate(-90)")
+  .attr("y", 6)
+  .attr("dy", ".71em")
+  .style("text-anchor", "end")
+  .text("N");
+
+var pipeline = svg.selectAll(".pipeline")
+  .data(pipelines)
+.enter().append("g")
+  .attr("class", "pipeline")
+
+pipeline.append("path")
+  .attr("class", "line")
+  .attr("id", function(d) { return d.name; })
+  .attr("d", function(d) { return line(d.values); })  // whoa, line is a function....
+  .style("stroke", function(d) { return color(d.name); });
+
+legend = svg.selectAll(".legend")
+  .data(pipelines)
+.enter().append("text")
+  .attr("x", width + margin.left )
+  .attr("y", function(d, i) { return margin.top + i*20 + 10; })
+  .attr("id", function(d) { return d.name + "legend"; })
+  .attr("class", "legend")
+  .style("fill", function(d) { return color(d.name); })
+  .on("click", function(d) {
+    var active = d.active ? false : true; 
+    var newOpacity = active ? 1 : 0;
+    var newLabelOpacity = active ? 1 : 0.2;
+    d3.select("#" + d.name).transition().style("opacity", newOpacity);
+    d3.select("#" + d.name + "legend").transition().style("opacity", newLabelOpacity);
+    d.active = active;
+  })
+  .text(function(d) { return d.name; }); 
+
+</script>
+
+{% endif %}
 
 {% endblock %}

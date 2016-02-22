@@ -203,6 +203,12 @@ REPORTS_IFAR = [
     ),
 ]
 
+# Stuff for the new rates plot
+BINNED_COUNT_PIPELINES = ['gstlal', 'MBTAOnline', 'CWB', 'LIB', 'gstlal-spiir' ]
+BINNED_COUNT_FILE = "/home/gracedb/data/binned_counts.json"
+
+# Whether or not to show the recent events on the landing page
+SHOW_RECENT_EVENTS_ON_HOME = False
 
 # RSS Feed Defaults
 FEED_MAX_RESULTS = 50
