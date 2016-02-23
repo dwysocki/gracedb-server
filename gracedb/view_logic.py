@@ -30,6 +30,7 @@ import json
 import datetime
 #import dateutil
 from dateutil import parser
+from django.utils import timezone
 import logging
 import pytz
 
