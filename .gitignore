@@ -8,4 +8,6 @@ static/rest_framework/
 static/debug_toolbar/
 doc/build/*
 doc/build/.buildinfo
+admin_doc/build/*
+admin_doc/build/.buildinfo
 settings/settings_secret.py
