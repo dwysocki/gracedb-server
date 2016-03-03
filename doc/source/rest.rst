@@ -215,6 +215,42 @@ affects the sending of alerts related to potential electromagnetic followup.
 
 .. _command_line_client:
 
+Coping with request rate limits
+=====================================
+
+GraceDB limits any individual user to no more than 1 event creation request or
+10 annotation requests per second. This is to avoid situations where an
+automated data analysis pipeline malfunctions and sends huge rates of requests
+to GraceDB, crashing the server. If a user's request is *throttled* in this
+way, the server returns a response with HTTP status ``429`` and reason ``TOO
+MANY REQUESTS``. The recommended wait time is also included in the message, and
+is available through the ``retry-after`` when using the GraceDB REST client. If
+you have reason to believe that your request may be throttled, you can wrap it
+in a ``while`` loop in the following way::
+
+    from ligo.gracedb.rest import GraceDb, HTTPError
+    import time
+    import json
+
+    gracedb = GraceDb()
+    graceid = 'T123456'
+
+    success = False
+    while not success:
+        try:
+            r = gracedb.writeLog(graceid, "Hello, this is a log message.")
+            success = True
+        except HTTPError, e:
+            try:
+                rdict = json.loads(e.message)
+                if 'retry-after' in rdict.keys():
+                    time.sleep(int(rdict['retry-after']))
+                    continue
+                else:
+                    break
+            except:
+                break
+
 Using the command-line client
 =====================================
 
