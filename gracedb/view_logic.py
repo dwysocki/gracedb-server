@@ -414,10 +414,10 @@ def create_eel(d, event, user):
 # Create an EMBB Observaton Record
 #
 def create_emobservation(request, event):    
-    d = getattr(request, 'DATA', None)
+    d = getattr(request, 'data', None)
     if not d:
         d = getattr(request, 'POST', None)
-    # Still haven't got the d?
+    # Still haven't got the data?
     if not d:
         raise ValueError('create_emobservation: got no post data from the request.')
 
