@@ -20,7 +20,6 @@ from view_logic import create_label, get_performance_info
 from view_logic import _createEventFromForm
 from view_logic import create_eel
 from view_logic import create_emobservation
-from view_utils import fix_old_creation_request
 from view_utils import eventToDict, eventLogToDict, labelToDict
 from view_utils import embbEventLogToDict, voeventToDict
 from view_utils import emObservationToDict, skymapViewerEMObservationToDict
@@ -491,17 +490,10 @@ class EventList(APIView):
 
     #@pipeline_auth_required
     def post(self, request, format=None):
-        # XXX Deal with POSTs coming in from the old client.
-        # Eventually, we will want to get rid of this check and just let it fail.
         rv = {}
         rv['warnings'] = []
-        if 'type' in request.data:
-            request = fix_old_creation_request(request)
-            rv['warnings'] += ['It looks like you are using the old GraceDB client (v<=1.14). ' + \
-                             'Please update! This will eventually stop working.']
 
         # Check user authorization for pipeline. 
-        # XXX This is a temporary hack until they roll out the new client.
         group_name = request.data.get('group', None) 
         if not group_name=='Test':
             try:
@@ -1553,22 +1545,6 @@ class GracedbRoot(APIView):
             "groups"    : [group.name for group in Group.objects.all()],
             "pipelines" : [pipeline.name for pipeline in Pipeline.objects.all()],
             "searches"  : [search.name for search in Search.objects.all()],
-            # XXX Retained for compatibility with old clients (v<=1.14).
-            # Should eventually be removed.
-            "analysis-types" : dict(
-                    (
-                        ("LM",  "LowMass"),
-                        ("HM",  "HighMass"),
-                        ("GRB", "GRB"),
-                        ("RD",  "Ringdown"),
-                        ("OM",  "Omega"),
-                        ("Q",   "Q"),
-                        ("X",   "X"),
-                        ("CWB", "CWB"),
-                        ("MBTA", "MBTAOnline"), 
-                        ("HWINJ", "HardwareInjection"),
-                    ) 
-                ),
             "em-groups"  : [g.name for g in EMGroup.objects.all()],
             "wavebands"      : dict(EMSPECTRUM),
             "eel-statuses"   : dict(EMBBEventLog.EEL_STATUS_CHOICES),

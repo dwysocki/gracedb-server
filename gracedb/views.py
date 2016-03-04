@@ -139,27 +139,6 @@ def create(request):
     d = _create(request)
     if isinstance(d, HttpResponse):
         return d
-    elif 'cli' in request.POST:
-        if 'cli_version' in request.POST:
-            # XXX Risky.  msg should be json, not str.
-            # str(x) is *often* the same as json(x), but not always.
-            # It's not, because we don't reliably have json on the client side.
-            response = HttpResponse(content_type='application/json')
-            if 'graceid' in d:
-                d['output'] = "%s" % d['graceid']
-                d['graceid'] = "%s" % d['graceid']
-            msg = str(d)
-        else: # Old client
-            response = HttpResponse(content_type='text/plain')
-            if 'error' in d:
-                msg = "ERROR: " + d['error']
-            elif 'warning' in d:
-                msg = "ERROR: " + d['warning']
-            else:
-                msg = d['graceid']
-        response.write(msg)
-        response['Content-length'] = len(msg)
-        return response
     else:
         return render_to_response('gracedb/create.html',
                     d,
@@ -187,36 +166,12 @@ def _create(request):
         form = CreateEventForm(request.POST, request.FILES)
         if form.is_valid():
             event, warnings = _createEventFromForm(request, form)
-            if 'cli' not in request.POST:
-                if not event:
-                    # problem creating event...  XXX need an error page for this.
-                    raise Exception("\n".join(warnings))
-                return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
-            if event:
-                rv['graceid'] = str(event.graceid())
-                if warnings:
-                    rv['warning'] = "\n".join(warnings)
-            else:
-                rv['error'] = "\n".join(warnings)
+            if not event:
+                # problem creating event...  XXX need an error page for this.
+                raise Exception("\n".join(warnings))
+            return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
         else:
-            if 'cli' not in request.POST:
-                rv['form'] = form
-            else:
-                # Error occurred in command line client.
-                # Most likely group name is wrong.
-                # XXX the form should have info about what is wrong.
-                #groupname = request.POST.get('group', None)
-                #group = Group.objects.filter(name=groupname)
-                #if not group:
-                #    validGroups = [group.name for group in Group.objects.all()]
-                #    msg = "Group must be one of: %s" % ", ".join(validGroups)
-                #else:
-                #    msg = "Malformed request"
-                #rv['error'] = msg
-                rv['error'] = ""
-                for key in form.errors:
-                    # as_text() not str() otherwise we get HTML.
-                    rv['error'] += "%s: %s\n" % (key, form.errors[key].as_text())
+            rv['form'] = form
     return rv
 
 @event_and_auth_required
