@@ -964,8 +964,10 @@ require([
                     if (emo_tp.open) { emo_tp.toggle(); }
                 } else {
 
+                    // Notice that the +00:00 designating UTC will be stripped out since it 
+                    // is redundant.
                     var columns  = [
-                        { field: 'created', label: 'Time Created (UTC)' },
+                        { field: 'created', label: 'Time Created (UTC)', get: function(object) { return object.created.replace('+00:00', '');} },
                         { field: 'submitter', label: 'Submitter' },
                         { field: 'group', label: 'MOU Group' },
                         { field: 'footprint_count', label: 'N_regions' },
@@ -984,7 +986,7 @@ require([
                     ]; 
 
                     var subRowColumns  = [ 
-                        { field: 'start_time', label: 'Start Time (UTC)' },
+                        { field: 'start_time', label: 'Start Time (UTC)', get: function(object) { return object.start_time.replace('+00:00', '');} },
                         { field: 'exposure_time', label: 'Exposure Time (s)' },
                         { field: 'ra', label: 'ra'},
                         { field: 'raWidth', label: 'ra width'},
