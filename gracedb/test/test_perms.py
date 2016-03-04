@@ -70,11 +70,19 @@ def get_internal_coinc_event():
             break
     return e
 
+def get_isMemberOf(user):
+    return ';'.join([g.name for g in user.groups.all()])
+
+def extra_args(user):
+    if not user:
+        return {}
+    return {'REMOTE_USER': user.username, 'isMemberOf': get_isMemberOf(user) }
+
 # Given a Django test client, attempt to create a CBC, gstlal, 
 # LowMass event. 
 EVENT_FILE = os.path.join(settings.ROOT_PATH,'gracedb/fixtures/test_perms/cbc-lm.xml')
 
-def request_event_creation(client, username, test=False):
+def request_event_creation(client, user, test=False):
     event_file = open(EVENT_FILE,'r')
     url = '/events/create/'
     group = 'Test' if test else 'CBC'
@@ -84,7 +92,7 @@ def request_event_creation(client, username, test=False):
         'search'     : 'LowMass',
         'eventFile'  : event_file,
     }
-    return client.post(url, input_dict, REMOTE_USER=username)
+    return client.post(url, input_dict, **extra_args(user))
 
 # A map between test users and pipelines.
 PIPELINE_USER_MAP = {
@@ -264,7 +272,7 @@ class TestPerms(TestCase):
         pub_coinc_event = get_public_coinc_event()
         for e in CoincInspiralEvent.objects.all():
             url = '/events/view/%s' % e.graceid()
-            response = self.client.get(url,REMOTE_USER=get_user('public').username)
+            response = self.client.get(url,**extra_args(get_user('public')))
             if e.graceid()==pub_coinc_event.graceid():
                 self.assertEqual(response.status_code, 200)
             else:
@@ -276,7 +284,7 @@ class TestPerms(TestCase):
         internal_coinc_event = get_internal_coinc_event()
         for e in CoincInspiralEvent.objects.all():
             url = '/events/view/%s' % e.graceid()
-            response = self.client.get(url,REMOTE_USER=get_user('lvem').username)
+            response = self.client.get(url,**extra_args(get_user('lvem')))
             if e.graceid()==internal_coinc_event.graceid():
                 self.assertEqual(response.status_code, 403)
             else:
@@ -286,7 +294,7 @@ class TestPerms(TestCase):
     def test_internal_event_access(self):
         for e in CoincInspiralEvent.objects.all():
             url = '/events/view/%s' % e.graceid()
-            response = self.client.get(url,REMOTE_USER=get_user('internal').username)
+            response = self.client.get(url,**extra_args(get_user('internal')))
             self.assertEqual(response.status_code, 200)
 
     # Test search by public users
@@ -294,7 +302,7 @@ class TestPerms(TestCase):
         pub_coinc_event = get_public_coinc_event()
         query = 'Test LowMass'
         url = '/events/search/flex?%s' % urlencode({'query': query})
-        response = self.client.get(url, REMOTE_USER=get_user('public').username)
+        response = self.client.get(url,**extra_args(get_user('public')))
         res = json.loads(response.content)
         # You should only get one event ...
         self.assertEqual(res['records'],1)
@@ -306,7 +314,7 @@ class TestPerms(TestCase):
         internal_coinc_event = get_internal_coinc_event()
         query = 'Test LowMass'
         url = '/events/search/flex?%s' % urlencode({'query': query})
-        response = self.client.get(url, REMOTE_USER=get_user('lvem').username)
+        response = self.client.get(url,**extra_args(get_user('lvem')))
         res = json.loads(response.content)
         # You should get two events ...
         self.assertEqual(res['records'],2)
@@ -318,7 +326,7 @@ class TestPerms(TestCase):
     def test_internal_search(self):
         query = 'Test LowMass'
         url = '/events/search/flex?%s' % urlencode({'query': query})
-        response = self.client.get(url, REMOTE_USER=get_user('internal').username)
+        response = self.client.get(url,**extra_args(get_user('internal')))
         res = json.loads(response.content)
         # You should get all three events.
         self.assertEqual(res['records'],3)
@@ -350,8 +358,7 @@ class TestPerms(TestCase):
             'comment' : 'This is a test.',
             'tagname' : 'test_tag',
         }
-        response = self.client.post(url,input_dict,
-            REMOTE_USER=get_user('public').username)
+        response = self.client.post(url,input_dict,**extra_args(get_user('public')))
         self.assertEqual(response.status_code, 403)
 
     def test_public_log_tagging(self):
@@ -360,8 +367,7 @@ class TestPerms(TestCase):
         # Try to add 'test_tag' to the first log entry.
         url = '/events/%s/log/1/tag/test_tag' % event.graceid()
         input_dict = {'displayName' : None,}
-        response = self.client.post(url, input_dict,
-            REMOTE_USER=get_user('public').username)
+        response = self.client.post(url, input_dict,**extra_args(get_user('public')))
         self.assertEqual(response.status_code, 403)
 
     def test_public_eel_creation(self):
@@ -377,8 +383,7 @@ class TestPerms(TestCase):
             'comment'    : 'Test',
             'instrument' : 'Test',
         }
-        response = self.client.post(url,input_dict,
-            REMOTE_USER=get_user('public').username)
+        response = self.client.post(url,input_dict,**extra_args(get_user('pubic')))
         self.assertEqual(response.status_code, 403)
 
     # Test annotation of events by LV-EM users
@@ -391,8 +396,7 @@ class TestPerms(TestCase):
                 'comment' : 'This is a test.',
                 'tagname' : 'test_tag',
             }
-            response = self.client.post(url,input_dict,
-                REMOTE_USER=get_user('lvem').username)
+            response = self.client.post(url,input_dict,**extra_args(get_user('lvem')))
             if e.id==public_coinc_event.id:
                 # Not an AJAX call, so redirects to event page if successful. 
                 self.assertEqual(response.status_code, 302)
@@ -405,8 +409,7 @@ class TestPerms(TestCase):
             # Try to add 'test_tag' to the first log entry.
             url = '/events/%s/log/1/tag/test_tag' % e.graceid()
             input_dict = {'displayName' : None,}
-            response = self.client.post(url, input_dict,
-                REMOTE_USER=get_user('lvem').username)
+            response = self.client.post(url, input_dict,**extra_args(get_user('lvem')))
             if e.id==public_coinc_event.id:
                 self.assertEqual(response.status_code, 302)
             else:
@@ -424,8 +427,7 @@ class TestPerms(TestCase):
                 'comment'    : 'Test',
                 'instrument' : 'Test',
             }
-            response = self.client.post(url,input_dict,
-                REMOTE_USER=get_user('lvem').username)
+            response = self.client.post(url,input_dict,**extra_args(get_user('lvem')))
             if e.id==public_coinc_event.id:
                 self.assertEqual(response.status_code, 302)
             else:                    
@@ -439,8 +441,7 @@ class TestPerms(TestCase):
                 'comment' : 'This is a test.',
                 'tagname' : 'test_tag',
             }
-            response = self.client.post(url,input_dict,
-                REMOTE_USER=get_user('internal').username)
+            response = self.client.post(url,input_dict,**extra_args(get_user('internal')))
             self.assertEqual(response.status_code, 302)
 
     def test_internal_log_tagging(self):
@@ -448,8 +449,7 @@ class TestPerms(TestCase):
             # Try to add 'test_tag' to the first log entry.
             url = '/events/%s/log/1/tag/test_tag' % e.graceid()
             input_dict = {'displayName' : None,}
-            response = self.client.post(url, input_dict,
-                REMOTE_USER=get_user('internal').username)
+            response = self.client.post(url, input_dict,**extra_args(get_user('internal')))
             self.assertEqual(response.status_code, 302)
 
     def test_internal_eel_creation(self):
@@ -463,8 +463,7 @@ class TestPerms(TestCase):
                 'comment'    : 'Test',
                 'instrument' : 'Test',
             }
-            response = self.client.post(url,input_dict,
-                REMOTE_USER=get_user('internal').username)
+            response = self.client.post(url,input_dict,**extra_args(get_user('internal')))
             self.assertEqual(response.status_code, 302)
 
     #-------------------------------------------------------------------------------
@@ -477,7 +476,7 @@ class TestPerms(TestCase):
     def test_cbc_event_creation(self):
         gstlal_submitter = get_user('gstlal_submitter')
         for user in User.objects.all():
-            response = request_event_creation(self.client, user.username)
+            response = request_event_creation(self.client, user)
             if user.id==gstlal_submitter.id or user.is_superuser:
                 self.assertEqual(response.status_code, 302)
             else:
@@ -487,18 +486,18 @@ class TestPerms(TestCase):
     # Anybody should be able to create a test event.
     def test_test_event_creation(self):
         for user in User.objects.all():
-            response = request_event_creation(self.client, user.username, test=True)
+            response = request_event_creation(self.client, user, test=True)
             self.assertEqual(response.status_code, 302)
 
     # We want a test of the availability of a newly created event via search.
     @override_settings(GRACEDB_DATA_DIR=TMP_DATA_DIR)
     def test_search_on_new_event(self):
         gstlal_submitter = get_user('gstlal_submitter')
-        response = request_event_creation(self.client, gstlal_submitter.username)
+        response = request_event_creation(self.client, gstlal_submitter)
         redirect_url = response['Location']
         graceid = redirect_url.split('/')[-1]
         url = '/events/search/flex?%s' % urlencode({'query': graceid})
-        response = self.client.get(url, REMOTE_USER=get_user('internal').username)
+        response = self.client.get(url,**extra_args(get_user('internal')))
         res = json.loads(response.content)
         # You should get exactly one record.
         self.assertEqual(res['records'],1)
@@ -521,7 +520,7 @@ class TestPerms(TestCase):
             # try POST to permission creation URL
             url = '/events/%s/perms/' % event.graceid() 
             input_dict = {'action': 'expose', 'group_name': 'gw-astronomy:LV-EM'}
-            response = self.client.post(url, input_dict, REMOTE_USER=user.username)
+            response = self.client.post(url, input_dict,**extra_args(user))
             groups = [g.name for g in user.groups.all()]
             if not 'executives' in groups and not user.is_superuser:
                 self.assertEqual(response.status_code, 403)
