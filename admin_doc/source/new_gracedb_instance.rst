@@ -204,8 +204,10 @@ Reconfigure ``exim4`` as root by executing::
 
     dpkg-reconfigure exim4-config
 
-The only change you need to make is to set it to an
-"internet site; mail is sent and received directly using SMTP."
+You'll want to accept the defaults, except for two: 1) set this host to be an
+"internet site; mail is sent and received directly using SMTP." and 2) remove 
+``::1`` from the list of listening addresses. (The latter seems to be necessary,
+as I've observed that the exim4 server hangs if it tries to listen on ``::1``.)
 
 Next, set up the embedded discovery service.  Download from::
 
