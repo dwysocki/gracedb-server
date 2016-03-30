@@ -43,7 +43,7 @@ from django.utils.functional import wraps
 # for checking queries in the evnet that the user is external
 #
 from view_utils import BadFARRange, check_query_far_range
-from query import parseQuery
+from query import parseQuery, ParseException
 
 #
 # A wrapper for retrieving an event and replacing graceid 
@@ -441,6 +441,12 @@ def search(request, format=""):
             except BadFARRange:
                 msg = 'FAR query out of range, upper limit must be below %s' % settings.VOEVENT_FAR_FLOOR
                 return HttpResponseBadRequest(msg) 
+            except ParseException:
+                # If the user's query throws a parse exception, it is safe to 
+                # proceed and show the error message in the search results template (red star)
+                pass
+            except Exception, e:
+                return HttpResponseServerError(str(e))
         if form.is_valid():
             objects = form.cleaned_data['query']
             get_neighbors = form.cleaned_data['get_neighbors']

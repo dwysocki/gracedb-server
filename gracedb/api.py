@@ -48,7 +48,7 @@ from utils.vfile import VersionedFile
 # for checking queries in the evnet that the user is external
 #
 from view_utils import BadFARRange, check_query_far_range
-from query import parseQuery
+from query import parseQuery, ParseException
 
 ##################################################################
 
@@ -415,7 +415,12 @@ class EventList(APIView):
                     msg = 'FAR query out of range, upper limit must be below %s' % settings.VOEVENT_FAR_FLOOR
                     d = {'error': msg }
                     return Response(d,status=status.HTTP_400_BAD_REQUEST)
-
+                except ParseException: 
+                    d = {'error': 'Invalid query' }
+                    return Response(d,status=status.HTTP_400_BAD_REQUEST)
+                except Exception, e:
+                    d = {'error': str(e) }
+                    return Response(d,status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             form = SimpleSearchForm(request.GET)
             if form.is_valid():
                 events = form.cleaned_data['query']
