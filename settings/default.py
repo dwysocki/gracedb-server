@@ -14,6 +14,7 @@ EMAIL_HOST = 'localhost'
 
 ADMINS = (
     ('Branson Stephens', 'branson@gravity.phys.uwm.edu'),
+    ('Alexander Pace', 'aep14@psu.edu'),
 )
 
 MANAGERS = ADMINS
