@@ -34,6 +34,7 @@ CACHES = {
     },
 }
 
+SERVER_EMAIL = "GraceDB Test <gracedb@gracedb-test.cgca.uwm.edu>"
 ALERT_EMAIL_FROM = "Dev Alert <root@gracedb-test.cgca.uwm.edu>"
 ALERT_EMAIL_TO = []
 ALERT_EMAIL_BCC = []

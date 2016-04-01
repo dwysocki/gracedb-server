@@ -17,6 +17,8 @@ ADMINS = (
     ('Alexander Pace', 'aep14@psu.edu'),
 )
 
+SERVER_EMAIL = 'GraceDB <gracedb@gracedb.cgca.uwm.edu>'
+
 MANAGERS = ADMINS
 
 ALERT_EMAIL_FROM = "GraCEDb <gracedb@gracedb.cgca.uwm.edu>"
