@@ -212,6 +212,18 @@ of the label must be known::
 
 Care should be taken when applying labels to non-test events, since this
 affects the sending of alerts related to potential electromagnetic followup.
+The following labels are currently in active use:
+
+* ``INJ``: event results from an injection
+* ``DQV``: data quality veto
+* ``EM_READY``: approved for EM followup
+* ``PE_READY``: parameter estimation results available
+* ``H1OPS``, ``L1OPS``: IFO operator signoff requested
+* ``H1OK``, ``L1OK``: IFO operator certifies the detector state *okay*
+* ``H1NO``, ``L1NO``: detector state *not okay* at event time
+* ``ADVREQ``: EM followup advocate signoff requested
+* ``ADVOK``: EM followup advocate approves event
+* ``ADVNO``: EM followup advocate rejects event
 
 .. _command_line_client:
 

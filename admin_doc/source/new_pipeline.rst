@@ -1,3 +1,5 @@
+.. _new_pipeline:
+
 ================================
 Adding a new pipeline or search
 ================================

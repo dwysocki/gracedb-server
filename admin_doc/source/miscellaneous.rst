@@ -1,5 +1,5 @@
 ================================
-Miscellaneous tasks
+Miscellaneous 
 ================================
 
 Replacing the database on the test instance
@@ -63,3 +63,48 @@ copy the tarring script there. Then run the script::
 Now, you should have a new tar file ``/home/gracedb/tmp.tar``. Simply take
 this to the new machine, ``cd`` into the GraceDB data directory, and 
 un-tar the file. 
+
+Adding a parameter to the VOEvent (and other "mini" development tasks)
+======================================================================
+
+We send information about events to GCN in the 
+`VOEvent <http://www.ivoa.net/documents/VOEvent/>`__ format. It's basically
+just a big XML file.  Sometimes,
+the consumers of this information will ask you to add an additional parameter,
+or make some other small modification. This is an example of what might be
+called a "mini" development task: It doesn't involve any major code changes,
+but you still have to go through the same sequence of steps that you would
+for a true developement task. I recommend the workflow described in :ref:`new_server_feature`.
+
+In this particular case, the only necessary code change is to edit the 
+file ``gracedb/gracedb/buildVOEvent.py`` and add something like::
+
+    w.add_Param(Param(name="MyParam",
+        dataType="float",
+        value=getMyParamForEvent(event),
+        Description=["My lovely new parameter"]))
+
+working by analogy with the other parameters present. I only wanted to give
+this example here, because it seems likely that such a task will be considered
+"operational" even though it is really mini-development. The line is pretty 
+blurry.
+
+On backups
+==========
+
+Backups for GraceDB are controlled by the file::
+    ``/root/backup-scripts/gracedb.cgca.uwm.edu-filesystems`` 
+    
+on ``backup01``.  This file simply contains::
+
+    /etc
+    /opt/gracedb
+
+which means that everything under these directories on ``gracedb.cgca.uwm.edu``
+will be backed up on ``backup01``.  You can see the files under the location
+``/backup/gracedb.cgca.uwm.edu/``. This is occasionally useful for recovering
+a config file that got blown away by puppet. Notice, though, that nothing 
+under ``/home/gracedb`` is backed up. That's because the core server code and
+accompanying scripts are under version control, and thus are backed up elsewhere.
+
+I believe everything backed up on ``backup01`` is also backed up off-site at CIT.
