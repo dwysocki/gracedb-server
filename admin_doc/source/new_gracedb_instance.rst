@@ -97,6 +97,7 @@ server code using your LIGO credentials::
 
     cd
     ecp-cookie-init LIGO.ORG https://versions.ligo.org/git albert.einstein
+    git config --global http.cookiefile /tmp/ecpcookie.u`id -u`
     git clone https://versions.ligo.org/git/gracedb.git
 
 Create a new settings file by copying from one of the existing ones::
@@ -139,7 +140,7 @@ Create the virtual environment for the ``gracedb`` user in that user's
 home directory::
 
     cd
-    virtualenv djangoenv
+    virtualenv djangoenv --system-site-packages
     source djangoenv/bin/activate
     pip install mysql-python
     pip install python-ldap
@@ -153,11 +154,13 @@ home directory::
     pip install django-debug-toolbar
     pip install django-debug-panel
     pip install Django==1.8.11
-    pip install ligo-lvalert
+    pip install ligo-lvalert --pre
     pip install ligo-lvalert-overseer       
 
 You may find that you need to install additional packages during the testing
-process.  Note that we ask for specific version numbers of some packages. Also, the
+process.  Note that the ``--system-site-packages`` is necessary in order for the
+system install of ``python-glue`` to be available inside the virtual environment.
+Also note that we ask for specific version numbers of some packages. Also, the
 ordering of these commands matters, since packages such as ``django-guardian``
 will try to pull in the very latest version of Django.  So if we really want
 Django 1.8, we have to ask for that one *after* installing the third-party
@@ -171,7 +174,7 @@ sources are collected under ``gracedb/static``, where Apache will expect to
 find them::
     
     cd
-    cd graced
+    cd gracedb
     ./manage.py collectstatic
 
 Next, install the JavaScript components GraceDB uses to render web pages.
@@ -208,6 +211,7 @@ You'll want to accept the defaults, except for two: 1) set this host to be an
 "internet site; mail is sent and received directly using SMTP." and 2) remove 
 ``::1`` from the list of listening addresses. (The latter seems to be necessary,
 as I've observed that the exim4 server hangs if it tries to listen on ``::1``.)
+Also check that the system FQDN appears correctly.
 
 Next, set up the embedded discovery service.  Download from::
 
@@ -220,10 +224,13 @@ Unpack the archive into /etc/shibboleth-ds, and edit ``idpselect_config.js``::
 You may need to increase the width of the ``idpSelectIdpSelector`` element in
 ``idpselect.css``. I set this to 512.
 
-Obtain the random bin scripts used by GraceDB for various purposes::
+As the ``gracedb`` user obtain the random bin scripts used by GraceDB for various purposes::
 
     cd
-    git clone git@git.ligo.org:cgca-computing-team/gracedb-scripts.git bin
+    git clone git@git.ligo.org:gracedb/scripts.git bin
+
+If this raises an error regarding access rights, simply copy over your ssh keypair
+that you use to access ``git.ligo.org``, and add the key to your ssh-agent.
 
 Final steps
 -----------
@@ -242,6 +249,20 @@ sure it's working, and run the unit tests::
     export TEST_SERVICE='https://gracedb-new.cgca.uwm.edu/api/'
     python test.py
 
+I found it necessary to do this as the ``gracedb`` user::
+
+    cd 
+    chmod g+w -R logs
+
+Also build the docs::
+    
+    cd 
+    cd gracedb/docs
+    mkdir build
+    sphinx-build -b html source build
+    cd ../admin_docs
+    mkdir build
+    sphinx-build -b html source build
 
 Explanation of the hiera files
 ==============================
