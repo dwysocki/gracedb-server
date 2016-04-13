@@ -13,4 +13,5 @@ Contents:
    new_event_subclass
    client_release
    shibbolized_client
+   public_gracedb
 
