@@ -6,6 +6,7 @@ static-collected
 static/admin/
 static/rest_framework/
 static/debug_toolbar/
+static/guardian/
 doc/build/*
 doc/build/.buildinfo
 admin_doc/build/*
