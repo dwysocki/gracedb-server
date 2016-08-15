@@ -225,6 +225,13 @@ The following labels are currently in active use:
 * ``ADVOK``: EM followup advocate approves event
 * ``ADVNO``: EM followup advocate rejects event
 
+The following labels were added August 2016 in order to add new functionality to 
+approval_processor:
+
+* ``EM_Throttled``: event ignored due to too many submissions by corresponding pipeline
+* ``EM_Selected``: most promising candidate out of set for single physical event
+* ``EM_Superseded``: event passed over due to other more-promising candidate for same event. 
+
 .. _command_line_client:
 
 Coping with request rate limits

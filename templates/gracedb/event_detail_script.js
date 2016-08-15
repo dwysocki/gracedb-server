@@ -18,7 +18,12 @@ var label_descriptions = {
     H1NO: "H1 operator says event is not okay.",
     L1OPS: "L1 operator signoff requested.",
     L1OK: "L1 operator says event is okay.",
-    L1NO: "L1 operator says event is not okay."
+    L1NO: "L1 operator says event is not okay.",
+    EM_Throttled: "GraceID is ignored by automatic processing because the corresponding pipeline submitted too many events too quickly.",
+    EM_Selected: "GraceID automatically chosen as the most promising candidate out of a set of entries thought to correspond to the same physical event.",
+    EM_Superseded: "GraceID automatically passed over because another entry was thought to be more promising and to correspond to the same physical event."
+
+
 }
 function tooltiptext(name, creator, time) {
     return ( creator + " " + time + "<br/>" + label_descriptions[name] );
