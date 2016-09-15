@@ -21,8 +21,10 @@ var label_descriptions = {
     L1NO: "L1 operator says event is not okay.",
     EM_Throttled: "GraceID is ignored by automatic processing because the corresponding pipeline submitted too many events too quickly.",
     EM_Selected: "GraceID automatically chosen as the most promising candidate out of a set of entries thought to correspond to the same physical event.",
-    EM_Superseded: "GraceID automatically passed over because another entry was thought to be more promising and to correspond to the same physical event."
-
+    EM_Superseded: "GraceID automatically passed over because another entry was thought to be more promising and to correspond to the same physical event.",
+    EM_COINC: "Signifies that a coincidence was found between Gravitational-Wave candidates and External triggers.",
+    GRB_ONLINE: "Indicates that online triggered GRB searches found something coincident with this event.",
+    GRB_OFFLINE: "Indicates that offline triggered GRB searches found something coincident with this event."
 
 }
 function tooltiptext(name, creator, time) {
