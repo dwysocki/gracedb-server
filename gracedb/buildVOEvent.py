@@ -49,7 +49,7 @@ def get_voevent_type(short_name):
     return None
 
 def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filename=None,
-    skymap_type=None, skymap_image_filename = None, internal=1):
+    skymap_type=None, skymap_image_filename=None, internal=1, vetted=0, open_alert=0, hardware_inj=0, CoincComment=0, ProbHasNS=None, ProbHasRemnant=None):
 
 # XXX Branson commenting out. Reed's MDC events do not have FAR for some reason.
 #    if not event.far:
@@ -59,7 +59,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         raise VOEventBuilderException("Cannot build a VOEvent because event has no gpstime.")
 
     if not voevent_type in VOEVENT_TYPE_DICT.keys():
-        raise VOEventBuilderException("voevent_type must be preliminary, initial, update, or retraction")
+        raise VOEventBuilderException("voevent_type must be preliminary, initial, update, or retraction TEST")
 
     # Let's convert that voevent_type to something nicer looking
     voevent_type = VOEVENT_TYPE_DICT[voevent_type]
@@ -126,6 +126,8 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             h.add_Description("L1: LIGO Livingston 4 km gravitational wave detector")
         if 'V1' in instruments:
             h.add_Description("V1: Virgo 3 km gravitational wave detector")
+        if CoincComment==1:
+            h.add_Description("A gravitational wave trigger identified a possible counterpart GRB")
         v.set_How(h)
 
     ############ What ############################
@@ -190,6 +192,28 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         Description=["Set to true if the event is retracted."]))
 
     # Shib protected event page
+    # Whether the event is a hardware injection or not
+    w.add_Param(Param(name="HardwareInj",
+        dataType="string",
+        ucd="meta.code",
+        unit="",
+        value=hardware_inj,
+        Description=['Indicates that this event is a hardware injection if 1, no if 0']))
+
+    w.add_Param(Param(name="Vetted",
+        dataType="string",
+        ucd = "meta.code",
+        unit="",
+        value=vetted,
+        Description=['Indicates whether this candidate has undergone basic vetting by humans']))
+    
+    w.add_Param(Param(name="OpenAlert",
+        dataType="string",
+        ucd="meta.code",
+        unit="",
+        value=open_alert,
+        Description=['Indicates that this event is an open alert if 1, no if 0']))
+
     w.add_Param(Param(name="EventPage",
         ucd="meta.ref.url",
         value=get_url(request, objid, "view2"),
@@ -241,6 +265,8 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
 
         if not skymap_filename:
             raise VOEventBuilderException("Skymap filename not provided.")
+
+    if skymap_filename != None: #preliminary alerts can now include skymaps
 
         fits_name = skymap_filename
         fits_path = os.path.join(event.datadir(), fits_name)
@@ -328,6 +354,24 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             mass = float(event.mass)
             # calculate eta = (mchirp/total_mass)**(5/3)
             eta = pow((mchirp/mass),5.0/3.0)
+
+            # EM-Bright mass classifier information for CBC event candidates
+            if ProbHasNS!=None:
+                w.add_Param(Param(name="ProbHasNS",
+                    dataType="float",
+                    ucd="stat.probability",
+                    unit="",
+                    value=ProbHasNS,
+                    Description=["Probability that at least one object in the binary is less than 3 solar masses"]))
+
+            if ProbHasRemnant!=None:
+                w.add_Param(Param(name="ProbHasRemnant",
+                    dataType="float",
+                    ucd="stat.probability",
+                    unit="",
+                    value=ProbHasRemnant,
+                    Description=["Probability that there is matter in the surroundings of the central object"]))
+
 # XXX
 #            w.add_Param(Param(name="ChirpMass", 
 #                dataType="float", 
@@ -476,7 +520,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     v.set_WhereWhen(ww)
 
     ############ Citation ############################
-    if event.voevent_set.count()>1 and voevent_type != 'preliminary':
+    if event.voevent_set.count()>1:
         c = Citations()
         for ve in event.voevent_set.all():
             # Oh, actually we need to exclude *this* voevent.
@@ -535,5 +579,6 @@ def submitToSkyalert(event, validate_only=False):
     f = urllib.urlopen(url, params)
     result = f.read()
     return result
+
 
 

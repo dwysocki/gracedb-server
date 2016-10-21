@@ -1847,6 +1847,13 @@ class VOEventList(APIView):
         skymap_filename = request.data.get('skymap_filename', None)
         skymap_image_filename = request.data.get('skymap_image_filename', None)
 
+        vetted = request.data.get('vetted', 0)
+        open_alert = request.data.get('open_alert', 0)
+        hardware_inj = request.data.get('hardware_inj', 0)
+        CoincComment = request.data.get('CoincComment', None)
+        ProbHasNS = request.data.get('ProbHasNS', None)
+        ProbHasRemnant = request.data.get('ProbHasRemnant', None)
+
         if (skymap_filename and not skymap_type) or (skymap_type and not skymap_filename):
             msg = "Both or neither of skymap_time and skymap_filename must be specified."
             return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
@@ -1864,7 +1871,9 @@ class VOEventList(APIView):
         try:
             voevent_text, ivorn = buildVOEvent(event, voevent.N, voevent_type, request,
                 skymap_filename = skymap_filename, skymap_type = skymap_type,
-                skymap_image_filename = skymap_image_filename, internal = internal)
+                skymap_image_filename = skymap_image_filename, internal = internal,
+                vetted=vetted, open_alert=open_alert, hardware_inj=hardware_inj, CoincComment=CoincComment, ProbHasNS=ProbHasNS, ProbHasRemnant=ProbHasRemnant)
+
         except VOEventBuilderException, e:
             msg = "Problem building VOEvent: %s" % str(e)
             return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
