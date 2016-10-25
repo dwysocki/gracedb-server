@@ -125,7 +125,10 @@ def voevent(request, event):
     voevent_type=request.GET.get('voevent_type', 'preliminary')
     internal=request.GET.get('internal', 1)
     try:
-        voevent = buildVOEvent(event, request, voevent_type=voevent_type, internal=internal)
+        # Tanner (10/25/2016): need to modify this call to buildVOEvent,
+        # second argument should be a serial_number.
+        voevent = buildVOEvent(event, voevent_type=voevent_type,
+                               request=request, internal=internal)
     # Exceptions caused by user errors of some sort.
     except VOEventBuilderException, e:
         return HttpResponseBadRequest(str(e))
@@ -140,9 +143,8 @@ def create(request):
     if isinstance(d, HttpResponse):
         return d
     else:
-        return render_to_response('gracedb/create.html',
-                    d,
-                    context_instance=RequestContext(request))
+        return render_to_response('gracedb/create.html', d,
+                                  context_instance=RequestContext(request))
 
 def _create(request):
     assert request.user

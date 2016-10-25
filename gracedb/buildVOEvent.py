@@ -49,7 +49,9 @@ def get_voevent_type(short_name):
     return None
 
 def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filename=None,
-    skymap_type=None, skymap_image_filename=None, internal=1, vetted=0, open_alert=0, hardware_inj=0, CoincComment=0, ProbHasNS=None, ProbHasRemnant=None):
+                 skymap_type=None, skymap_image_filename=None, internal=1, vetted=0,
+                 open_alert=0, hardware_inj=0, CoincComment=0, ProbHasNS=None,
+                 ProbHasRemnant=None):
 
 # XXX Branson commenting out. Reed's MDC events do not have FAR for some reason.
 #    if not event.far:
@@ -59,7 +61,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         raise VOEventBuilderException("Cannot build a VOEvent because event has no gpstime.")
 
     if not voevent_type in VOEVENT_TYPE_DICT.keys():
-        raise VOEventBuilderException("voevent_type must be preliminary, initial, update, or retraction TEST")
+        raise VOEventBuilderException("voevent_type must be preliminary, initial, update, or retraction")
 
     # Let's convert that voevent_type to something nicer looking
     voevent_type = VOEVENT_TYPE_DICT[voevent_type]
@@ -81,7 +83,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             # But we can't just error out, because sending out the retraction is pretty
             # important. 
             type_string = 'Preliminary-Retraction'
-        
+
     event_id = "%s-%d-%s" % (objid, serial_number, type_string)
     ivorn = settings.SKYALERT_IVORN_PATTERN % event_id
 
@@ -149,7 +151,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     # basically, a string that makes sense to humans about what units a value is. eg. "m/s"
 
     # Whether the alert is internal or not
-    w.add_Param(Param(name="internal", value=internal,
+    w.add_Param(Param(name="internal", value=internal, dataType="int",
         Description=['Indicates whether this event should be distributed to LSC/Virgo members only']))
     
     # The serial number
@@ -194,22 +196,22 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     # Shib protected event page
     # Whether the event is a hardware injection or not
     w.add_Param(Param(name="HardwareInj",
-        dataType="string",
-        ucd="meta.code",
+        dataType="int",
+        ucd="meta.number",
         unit="",
         value=hardware_inj,
         Description=['Indicates that this event is a hardware injection if 1, no if 0']))
 
     w.add_Param(Param(name="Vetted",
-        dataType="string",
-        ucd = "meta.code",
+        dataType="int",
+        ucd = "meta.number",
         unit="",
         value=vetted,
         Description=['Indicates whether this candidate has undergone basic vetting by humans']))
-    
+
     w.add_Param(Param(name="OpenAlert",
-        dataType="string",
-        ucd="meta.code",
+        dataType="int",
+        ucd="meta.number",
         unit="",
         value=open_alert,
         Description=['Indicates that this event is an open alert if 1, no if 0']))
@@ -261,12 +263,13 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                 value=event.search.name,
                 Description=["Specific low-latency search"]))
 
-    if voevent_type in ["initial", "update"]:
-
+    # initial and update VOEvents must have a skymap.
+    # new feature (10/24/5/2016): preliminary VOEvents can have a skymap,
+    # but they don't have to.
+    if (voevent_type in ["initial", "update"] or 
+       (voevent_type == "preliminary" and skymap_filename != None)):
         if not skymap_filename:
             raise VOEventBuilderException("Skymap filename not provided.")
-
-    if skymap_filename != None: #preliminary alerts can now include skymaps
 
         fits_name = skymap_filename
         fits_path = os.path.join(event.datadir(), fits_name)
@@ -535,6 +538,11 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             elif voevent_type == 'retraction':
                 ei = EventIVORN('retraction', ve.ivorn)
                 c.set_Description('Determined to not be a viable GW event candidate')
+            elif voevent_type == 'preliminary':
+                # For cases when an additional preliminary VOEvent is sent
+                # in order to add a preliminary skymap.
+                ei = EventIVORN('supersedes', ve.ivorn)
+                c.set_Description('Initial localization is now available (preliminary)')
             c.add_EventIVORN(ei)
 
         v.set_Citations(c)
@@ -579,6 +587,5 @@ def submitToSkyalert(event, validate_only=False):
     f = urllib.urlopen(url, params)
     result = f.read()
     return result
-
 
 

@@ -1872,7 +1872,8 @@ class VOEventList(APIView):
             voevent_text, ivorn = buildVOEvent(event, voevent.N, voevent_type, request,
                 skymap_filename = skymap_filename, skymap_type = skymap_type,
                 skymap_image_filename = skymap_image_filename, internal = internal,
-                vetted=vetted, open_alert=open_alert, hardware_inj=hardware_inj, CoincComment=CoincComment, ProbHasNS=ProbHasNS, ProbHasRemnant=ProbHasRemnant)
+                vetted=vetted, open_alert=open_alert, hardware_inj=hardware_inj,
+                CoincComment=CoincComment, ProbHasNS=ProbHasNS, ProbHasRemnant=ProbHasRemnant)
 
         except VOEventBuilderException, e:
             msg = "Problem building VOEvent: %s" % str(e)
