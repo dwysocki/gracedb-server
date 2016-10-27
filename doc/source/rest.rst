@@ -20,7 +20,7 @@ it from the `Python Package Index <https://pypi.python.org/pypi>`__::
 installing ``pip`` if it is not already available on your machine.) Additionally,
 packages for Debian (``.deb``) and Scientific Linux (``.rpm``) are available by 
 pointing your system to the appropriate repositories as described 
-`here <https://www.lsc-group.phys.uwm.edu/daswg/download/repositories.html>`__.
+`here <https://wiki.ligo.org/DASWG/SoftwareDownloads>`__.
 Then the client tools can be installed via::
 
     apt-get install python-ligo-gracedb
@@ -31,9 +31,15 @@ or ::
 
 Alternatively, the client can be built from source. Please note, however, that
 the code at the head of the git repository may be volatile or unstable. The 
-repository may be cloned using LIGO credentials as follows::
+repository is publicly available via HTTPS::
 
-    git clone albert.einstein@ligo-vcs.phys.uwm.edu:/usr/local/git/gracedb-client.git
+    git clone https://git.ligo.org/lscsoft/gracedb-client.git
+
+It is also available through SSH::
+
+    git clone git@git.ligo.org:lscsoft/gracedb-client.git
+
+In order to submit patches, you should fork the repository, implement your changes, and submit a merge request.
 
 .. _rest_client_basic_usage:
 
