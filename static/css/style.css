@@ -11,6 +11,8 @@ table.event th {padding:3px;border:none;text-align:center;vertical-align:bottom;
 table.event {border-bottom:1px solid gray;}
 /* Branson added */
 table.event {width:100%}
+/* Tanner added - centering columns in multi-column tables */
+table.eventmulti td {text-align:center;}
 
 table.analysis_specific_lm th {padding:3px;border:none;text-align:center;vertical-align:bottom;}
 table.analysis_specific_lm {border-bottom:1px solid gray;}

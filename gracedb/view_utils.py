@@ -282,10 +282,16 @@ def eventToDict(event, columns=None, request=None):
             rv['extra_attributes']['LalInferenceBurst'] = {
                   "bci" : event.bci,
                   "bsn" : event.bsn,
-                  "quality" : event.quality,
-                  "omicron_snr" : event.omicron_snr,
-                  "hrss" : event.hrss,
-                  "frequency": event.frequency,
+                  "quality_mean" : event.quality_mean,
+                  "quality_median": event.quality_median,
+                  "omicron_snr_network" : event.omicron_snr_network,
+                  "omicron_snr_H1" : event.omicron_snr_H1,
+                  "omicron_snr_L1" : event.omicron_snr_L1,
+                  "omicron_snr_V1" : event.omicron_snr_V1,
+                  "hrss_mean" : event.hrss_mean,
+                  "hrss_median" : event.hrss_median,
+                  "frequency_mean": event.frequency_mean,
+                  "frequency_median": event.frequency_median,
                   }
         except:
             pass

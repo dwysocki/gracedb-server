@@ -412,11 +412,17 @@ def handle_uploaded_data(event, datafilename,
 
         # Assign analysis-specific attributes
         event.bci         = event_dict.get('BCI', None)
-        event.quality     = event_dict.get('quality', None)
+        event.quality_mean = event_dict.get('quality_posterior_mean', None)
+        event.quality_median = event_dict.get('quality_posterior_median', None)
         event.bsn         = event_dict.get('BSN', None)
-        event.omicron_snr = event_dict.get('Omicron SNR', None)
-        event.hrss        = event_dict.get('hrss', None)
-        event.frequency   = event_dict.get('frequency', None)
+        event.omicron_snr_network = event_dict.get('Omicron_SNR_Network', None)
+        event.omicron_snr_H1 = event_dict.get('Omicron_SNR_H1', None)
+        event.omicron_snr_L1 = event_dict.get('Omicron_SNR_L1', None)
+        event.omicron_snr_V1 = event_dict.get('Omicron_SNR_V1', None)
+        event.hrss_mean   = event_dict.get('hrss_posterior_mean', None)
+        event.hrss_median   = event_dict.get('hrss_posterior_median', None)
+        event.frequency_mean   = event_dict.get('frequency_posterior_mean', None)
+        event.frequency_median = event_dict.get('frequency_posterior_median', None)
         event.save()
 
     else:

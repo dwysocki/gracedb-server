@@ -7,19 +7,27 @@
 <h2>Analysis-Specific Attributes</h2>
 
 <table class="analysis_specific"> <tbody>
-    <tr>
+    <tr valign="top">
+        <td> <table class="event eventmulti"> <tbody>
+                <tr> <th>       </th> <th>Omicron SNR                                    </th> </tr>
+                <tr> <th>Network</th> <td>{{object.omicron_snr_network|floatformat:"-4"}}</td> </tr>
+                <tr> <th>H1     </th> <td>{{object.omicron_snr_H1|floatformat:"-4"}}     </td> </tr>
+                <tr> <th>L1     </th> <td>{{object.omicron_snr_L1|floatformat:"-4"}}     </td> </tr>
+                <tr> <th>V1     </th> <td>{{object.omicron_snr_V1|floatformat:"-4"}}     </td> </tr>
+            </tbody> </table>
+        </td>
+
+        <td> <table class="event eventmulti"> <tbody>
+                <tr> <th>         </th> <th>Posterior mean                            </th> <th>Posterior median                            </th></tr>
+                <tr> <th>frequency</th> <td>{{object.frequency_mean|floatformat:"-4"}}</td> <td>{{object.frequency_median|floatformat:"-4"}}</td> </tr>
+                <tr> <th>hrss     </th> <td>{{object.hrss_mean|scientific}}           </td> <td>{{object.hrss_median|scientific}}           </td> </tr>
+                <tr> <th>quality  </th> <td>{{object.quality_mean|floatformat:"-4"}}  </td> <td>{{object.quality_median|floatformat:"-4"}}  </td> </tr>
+            </tbody> </table>
+        </td>
+
         <td>  <table class="event"> <tbody>
                     <tr> <th> BCI </th> <td> {{object.bci|floatformat:"-4"}} </td> </tr>
                     <tr> <th> BSN </th> <td> {{object.bsn|floatformat:"-4"}} </td> </tr>
-                    <tr> <th> quality </th> <td> {{object.quality|floatformat:"-4"}} </td> </tr>
-              </tbody></table>
-        </td>
-
-
-        <td>  <table class="event"> <tbody>
-                    <tr> <th> frequency </th> <td> {{object.frequency|floatformat:"-4"}} </td> </tr>
-                    <tr> <th> Omicron SNR </th> <td> {{object.omicron_snr|floatformat:"-4"}} </td> </tr>
-                    <tr> <th> hrss </th> <td> {{object.hrss|scientific}} </td> </tr>
               </tbody></table>
         </td>
 
