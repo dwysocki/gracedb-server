@@ -6,7 +6,7 @@ Introduction
 ===============================================
 
 GraceDB uses `LVAlert
-<https://www.lsc-group.phys.uwm.edu/daswg/projects/lvalert.html>`__ to send
+<https://wiki.ligo.org/DASWG/LVAlert>`__ to send
 alerts to listeners within the LVC.  The content of the LVAlert message is
 designed to convey actionable information about a state change in GraceDB,
 whether it involves the creation of a new event, or the updating or labeling of
@@ -41,7 +41,7 @@ specifying different LVAlert processing scripts for different nodes.
 
 To see the names of all available nodes, simply execute::
 
-    lvalert_admin -a username -b password -i
+    lvalert_admin -a username -i
 
 LVAlert message contents
 ================================================
@@ -203,7 +203,7 @@ Receiving and Parsing LVAlert messages
 The LVAlert client tools include the ``lvalert_listen`` executable, which can be used to
 receive and respond to LVAlert messages::
 
-    lvalert_listen -a username -b password -c /path/to/lvalert_config.ini
+    lvalert_listen -a username -c /path/to/lvalert_config.ini
 
 The ``-c`` (configuration file) option allows you to specify an executable script to be called 
 each time a message arrives over a particular node. Suppose you are only interested in
@@ -238,5 +238,5 @@ Further reading on LVAlert
 =====================================================
 
 Further information on using LVAlert can be found on the
-`LVAlert Project Page <https://www.lsc-group.phys.uwm.edu/daswg/projects/lvalert.html>`__
-and the `LVAlert Howto <https://www.lsc-group.phys.uwm.edu/daswg/docs/howto/lvalert-howto.html>`__.
+`LVAlert Project Page <https://wiki.ligo.org/DASWG/LVAlert>`__
+and the `LVAlert Howto <https://wiki.ligo.org/DASWG/LVAlertHowto>`__.

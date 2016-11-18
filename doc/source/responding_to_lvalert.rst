@@ -53,36 +53,44 @@ those events in GraceDB.
 
 Fill out the form and follow all instructions to create an account attached to
 your "user.name". For the rest of this tutorial, I will refer to the username
-as "user.name" and the password as "passw0rd", but you should replace these
-with your own account's information.
+as "user.name", but you should replace this with your own account's information.
+You'll be prompted for your password after each command.
+
+*Note: To bypass this, create a .netrc file in your home directory and enter your
+authentication information*::
+
+    machine lvalert.cgca.uwm.edu login user.name password passw0rd
+
+*With this setup, you won't need to include the* ``-a`` *flag for your username, 
+or enter your password.*
 
 To actually subscribe to a pubsub node, we use ``lvalert_admin``
 which allows you to manage your subscriptions. This includes subscribing to new
 nodes, unsubscribing from nodes and viewing your current subscriptions. We will
 now subscribe your account to ``cbc_gstlal_lowmass``. Run::
 
-    lvalert_admin -a user.name -b passw0rd --subscribe --node cbc_gstlal_lowmass
+    lvalert_admin -a user.name --subscribe --node cbc_gstlal_lowmass
 
 You can confirm that your account is successfully subscribed to this node by
 running::
 
-    lvalert_admin -a user.name -b passw0rd --subscriptions
+    lvalert_admin -a user.name --subscriptions
 
 which will list your account's subscriptions. You should see
 ``cbc_gstlal_lowmass`` in the resulting list.  To unsubscribe from a node, use::
 
-    lvalert_admin -a user.name -b passw0rd --unsubscribe --node cbc_gstlal_lowmass
+    lvalert_admin -a user.name --unsubscribe --node cbc_gstlal_lowmass
 
 but for now we'll leave our subscription in place. If you'd like to subscribe
 to other nodes, simply repeat the subscription command and replace
 ``cbc_gstlal_lowmass`` with the name of the node to which you'd like to
 subscribe. A complete list of nodes is available by running::
 
-    lvalert_admin -a user.name -b passw0rd --get-nodes
+    lvalert_admin -a user.name --get-nodes
 
 For this tutorial, let's subscribe to another node to show how things scale.  Run::
 
-    lvalert_admin -a user.name -b passw0rd --subscribe --node cbc_gstlal_highmass
+    lvalert_admin -a user.name --subscribe --node cbc_gstlal_highmass
 
 Creating an LVAlert node
 ========================
@@ -90,23 +98,23 @@ Creating an LVAlert node
 Users can create their own LVAlert pubsub nodes as well. Unsurprisingly, this
 is also straightforward. Simply run::
 
-    lvalert_admin -a user.name -b passw0rd --create --node user.name-TestNode
+    lvalert_admin -a user.name --create --node user.name-TestNode
 
 to create a node called ``user.name-TestNode``. Of course, you'll want to change
 "user.name" to your account's name. Go ahead and create this node. If you need
 to delete it at any time, you can with::
 
-    lvalert_admin -a user.name -b passw0rd --delete --node user.name-TestNode
+    lvalert_admin -a user.name --delete --node user.name-TestNode
 
 but leave it be for the moment. You now have a node owned by your account to
 which you can publish alerts. We'll come back to this when we test our set-up.
 You will also need to subscribe to this node with::
 
-    lvalert_admin -a user.name -b passw0rd --subscribe --node user.name-TestNode
+    lvalert_admin -a user.name --subscribe --node user.name-TestNode
 
 Run::
 
-    lvalert_admin -a user.name -b passw0rd --subscriptions
+    lvalert_admin -a user.name --subscriptions
 
 and make sure you see::
 
@@ -136,14 +144,14 @@ create a file called ``myLVAlertListen.ini`` with the following as its contents:
 
 Now run::
 
-    lvalert_listen -a user.name -b passw0rd -c myLVAlertListen.ini > myLVAlertListen.out &
+    lvalert_listen -a user.name  -c myLVAlertListen.ini > myLVAlertListen.out &
 
 Congratulations! You've set up an ``lvalert_listen`` instance which reacts to
 announcements published to the ``cbc_gstlal_lowmass``, ``cbc_gstlal_highmass`` and
 ``user.name-TestNode`` nodes.
 
 Here's what's happening: ``lvalert_listen`` hears announcements made to any node to
-which the user.name/passw0rd combination is subscribed. When an alert is
+which your account is subscribed. When an alert is
 received, it looks in the config file (loaded into memory) for the associated
 section. Importantly, if there is no section in the config file corresponding
 to the pubsub node's name (an exact match is required), ``lvalert_listen`` ignores
@@ -211,26 +219,27 @@ paths.
 Now, because you have modified the ``lvalert_listen.ini`` file, you'll need to
 restart your ``lvalert_listen`` instance. Find the PID in the process table, kill
 the existing process, and restart the listener using the command from above.
-Alternatively, if you simply launch another instance of ``lvalert_listen`` with the
-same command line as before, the existing process will die and this one will
-take its place (with the new config file loading in memory). This is because
-only one listener can exist for any (user.name, passw0rd,
-resource.name) triple *anywhere in the network*. When you launch the second
-process, one of the processes is killed automatically (although which process
+
+You can also specify a resource name in your call to ``lvalert_listen``
+using the ``-r`` flag::
+
+    lvalert_listen -a user.name -c myLVAlertListen.ini -r listener1 &
+
+If you don't specify this parameter, a random UUID is generated for the resource name.
+The important point to consider is that only one listener can exist for any 
+(user.name, passw0rd, resource.name) triple *anywhere in the network*.
+If you launch a second process with matching values of this triple,
+one of the processes is killed automatically (although which process
 dies may not be deterministic). Thus, I can kill processes running at CIT by
 creating processes at UWM with the same resource name. This can be extremely
-dangerous and annoying, so please be careful. It's generally best to specify a
-resource name for each listener, even if you expect to only have one, to ensure
-that you've thought through this. If you want to have multiple processes
-running under the same (user.name, passw0rd) pair, you will need to specify
-different resource.name options for each instance with the ``-r`` command line
-option. For example::
+dangerous and annoying, so please be careful. If you want to directly specify
+resource names for all of your listener processes, you can do something like::
+ 
+    lvalert_listen -a user.name -c myLVAlertListen.ini -r oneInstance &
+    lvalert_listen -a user.name -c myLVAlertListen.ini -r twoInstance &
 
-    lvalert_listen -a user.name -b passw0rd -c myLVAlertListen.ini -r oneInstance &
-    lvalert_listen -a user.name -b passw0rd -c myLVAlertListen.ini -r twoInstance &
-
-will launch two instances of ``lvalert_listen`` (both using the same config file)
-with different resource names. They will both react to alerts and fork
+This will launch two instances of ``lvalert_listen`` (both using the same
+config file) with different resource names. They will both react to alerts and fork
 processes. If each points to a different config file, I can then get multiple
 types of follow-up processes forked for the same announcement through a single
 pubsub node.
@@ -249,7 +258,7 @@ pubsub node. Create a file called ``test.txt`` and fill it with some text like::
 
 Then run::
 
-    lvalert_send -a user.name -b passw0rd -n user.name-TestNode --file test.txt
+    lvalert_send -a user.name -n user.name-TestNode --file test.txt
 
 This publishes the contents of test.txt as a string to the node
 ``user.name-TestNode``. If your listener is running in the
@@ -307,7 +316,7 @@ Create a Python executable ``iReact.py`` and fill it with the following::
     import sys
 
     alert = json.loads(sys.stdin.read())
-    print 'uid : '+alert['uid']
+    print 'uid : ' + alert['uid']
 
 Don't forget to give this executable permissions with::
 
@@ -326,11 +335,11 @@ don't have to restart the ``lvalert_listen`` instance because that still points 
 Let's go ahead and send a test message in JSON format. Edit ``test.txt`` so it
 reads::
 
-    {'uid':'G12345'}
+    {"uid": "G12345"}
 
 and run::
 
-    lvalert_send -a user.name -b passw0rd --node user.name-TestNode --file test.txt
+    lvalert_send -a user.name --node user.name-TestNode --file test.txt
 
 You should see a new line in ``lvalert_user.name-TestNode.out`` which reads::
 
@@ -355,7 +364,7 @@ Open ``iReact.py`` and modify it so it reads::
     from ligo.gracedb.rest import GraceDb
 
     alert = json.loads(sys.stdin.read())
-    print 'uid : '+alert['uid']
+    print 'uid : ' + alert['uid']
 
     gdb = GraceDb() ### instantiate a GraceDB object which connects to the default server
 
@@ -367,7 +376,7 @@ Open ``iReact.py`` and modify it so it reads::
 
 Now, if we modify ``test.txt`` to::
 
-    {'uid':'G12345','alert_type':'new','far':1e-8}
+    {"uid": "G12345", "alert_type": "new", "far": 1e-8}
 
 and send it, ``iReact.py`` will try to write a log entry in GraceDB for event
 G12345. It's easy to see that you can filter alerts out (e.g.: only react to

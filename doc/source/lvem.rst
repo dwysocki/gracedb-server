@@ -165,7 +165,7 @@ observation records:
   consider sending us your script or posting it in the LV-EM wiki Technical Info
   page for the benefit of other users. See :ref:`coding_against_api`.  
 
-- by email (not yet availabe, but in the works)
+- by email (not yet available, but in the works)
 
 If you discover a mistake in your observation record, the best way to correct
 it is to submit a new observation record with corrected values and request that
@@ -174,7 +174,7 @@ something like "delete GraceDB EMObservation" in the subject line. Tell us
 which entry you'd like deleted, and we'll take care of it.  In the future, we
 are hoping to make these observation records editable by the submitter.
 
-For more on the GraceBD event page and creating EM observation records, see 
+For more on the GraceDB event page and creating EM observation records, see 
 `this <https://www.youtube.com/watch?v=oIJE4dTISs4>`__  helpful video
 by Roy Williams.  There is a companion video on the SkymapViewer 
 `here <https://www.youtube.com/watch?v=ydXUD9KIN98>`__.
