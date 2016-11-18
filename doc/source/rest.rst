@@ -40,6 +40,7 @@ It is also available through SSH::
     git clone git@git.ligo.org:lscsoft/gracedb-client.git
 
 In order to submit patches, you should fork the repository, implement your changes, and submit a merge request.
+Patches should also be documented on the GraceDB Redmine `page <https://bugs.ligo.org/redmine/projects/gracedb>`__.
 
 .. _rest_client_basic_usage:
 
