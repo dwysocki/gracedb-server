@@ -25,7 +25,7 @@
         <li>
             <!-- <a href="{% url "userprofile-edit-contact" contact.id %}">Edit</a> -->
             <a href="{% url "userprofile-delete-contact" contact.id %}">Delete</a>
-            {{ contact.desc }} / {{ contact.email }}
+            {{ contact.desc }} / {{ contact.email }} {{ contact.phone }}
         </li>
     </ul>
 {% endfor %}

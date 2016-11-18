@@ -87,6 +87,7 @@ INSTALLED_APPS = (
     'ligoauth',
     'rest_framework',
     'guardian',
+    'django_twilio',
     #'debug_toolbar',
     #'debug_panel',
 )

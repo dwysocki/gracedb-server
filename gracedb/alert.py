@@ -9,6 +9,8 @@ import json
 
 import logging
 
+from django_twilio.client import twilio_client
+
 from utils import gpsToUtc
 
 from query import filter_for_labels
@@ -23,6 +25,11 @@ if settings.USE_LVALERT_OVERSEER:
     from multiprocessing import Process, Manager
 
 log = logging.getLogger('gracedb.alert')
+
+def get_twilio_from():
+    for from_ in twilio_client.phone_numbers.iter():
+        return from_.phone_number
+    raise RuntimeError('Could not determine "from" Twilio phone number')
 
 def issueAlert(event, location, event_url, serialized_object=None):
     issueXMPPAlert(event, location, serialized_object=serialized_object)
@@ -61,6 +68,7 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=No
         issueXMPPAlert(event, "", "label", label, serialized_event)
     # Email
     profileRecips = []
+    phoneRecips = []
     pipeline = event.pipeline
     # Triggers on given label matching pipeline OR with no pipeline (wildcard type)
     triggers = label.trigger_set.filter(pipelines=pipeline)
@@ -76,7 +84,10 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=No
                 continue
 
         for recip in trigger.contacts.all():
-            profileRecips.append(recip.email)
+            if recip.email:
+                profileRecips.append(recip.email)
+            if recip.phone:
+                phoneRecips.append(recip.phone)
 
     if event.search:
         subject = "[gracedb] %s / %s / %s / %s" % (label.name, event.pipeline.name, event.search.name, event.graceid())
@@ -104,6 +115,35 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=No
         email = EmailMessage(subject, message, fromaddress, toaddresses, bccaddresses)
         email.send()
 
+    # twiml_base_url is the URL of a TwiML Bin
+    # (https://support.twilio.com/hc/en-us/articles/230878368)
+    # with the following content:
+    #
+    #     <?xml version="1.0" encoding="UTF-8"?>
+    #     <Response>
+    #     <Say>
+    #     A {{pipeline}} event with Grace DB ID {{graceid}} was labelled with {{label_lower}}.
+    #     </Say>
+    #     <Sms>
+    #     A {{pipeline}} event with GraceDB ID {{graceid}} was labelled with {{label}}
+    #     https://gracedb-test.ligo.org/events/view/{{graceid}}
+    #     </Sms>
+    #     </Response>
+    twiml_base_url = 'https://handler.twilio.com/twiml/EH7a2cef360c90eec301c3bf325ce1790a'
+
+    twiml_url = '{0}?pipeline={1}&graceid={2}&label={3}&label_lower={4}'.format(
+        twiml_base_url, event.pipeline.name, event.graceid(), label.name, label.name.lower())
+    log.info('phoneRecips: %s' % phoneRecips)
+    from_ = get_twilio_from()
+    log.info('from_: %s' % from_)
+    for recip in phoneRecips:
+        log.info('in for loop')
+        try:
+            log.info('issueAlertForLabel: calling %s', recip)
+            twilio_client.calls.create(recip, from_, twiml_url, method='GET')
+        except:
+            log.exception('Failed to create call')
+
 
 def issueEmailAlert(event, event_url):
 
@@ -118,6 +158,7 @@ def issueEmailAlert(event, event_url):
         fromaddress = settings.ALERT_TEST_EMAIL_FROM
         toaddresses = settings.ALERT_TEST_EMAIL_TO
         bccaddresses = []
+        twilio_recips = []
     else:
         fromaddress = settings.ALERT_EMAIL_FROM
         toaddresses = settings.ALERT_EMAIL_TO
@@ -127,15 +168,22 @@ def issueEmailAlert(event, event_url):
         # See: https://bugs.ligo.org/redmine/issues/2185
         #bccaddresses = settings.ALERT_EMAIL_BCC
         bccaddresses = []
+        twilio_recips = []
         pipeline = event.pipeline
         triggers = pipeline.trigger_set.filter(labels=None)
         for trigger in triggers:
             for recip in trigger.contacts.all():
                if not trigger.farThresh:
-                   bccaddresses.append(recip.email)
+                   if recip.email:
+                       bccaddresses.append(recip.email)
+                   if recip.phone:
+                       twilio_recips.append(recip.phone)
                else:
                    if event.far and event.far < trigger.farThresh:
-                       bccaddresses.append(recip.email)
+                       if recip.email:
+                           bccaddresses.append(recip.email)
+                       if recip.phone:
+                           twilio_recips.append(recip.phone)
     subject = "[gracedb] %s event. ID: %s" % (event.pipeline.name, event.graceid())
     message = """
 New Event
@@ -160,6 +208,32 @@ Event Summary:
     email.send()
 
     #send_mail(subject, message, fromaddress, toaddresses)
+
+    # twiml_base_url is the URL of a TwiML Bin
+    # (https://support.twilio.com/hc/en-us/articles/230878368)
+    # with the following content:
+    #
+    #     <?xml version="1.0" encoding="UTF-8"?>
+    #     <Response>
+    #     <Say>
+    #     A {{pipeline}} event with Grace DB ID {{graceid}} was created.
+    #     </Say>
+    #     <Sms>
+    #     A {{pipeline}} event with GraceDB ID {{graceid}} was created.
+    #     https://gracedb-test.ligo.org/events/view/{{graceid}}
+    #     </Sms>
+    #     </Response>
+    twiml_base_url = 'https://handler.twilio.com/twiml/EHe8ac043be47528c50558954791fb11fe'
+
+    twiml_url = '{0}?pipeline={1}&graceid={2}'.format(
+        twiml_base_url, event.pipeline.name, event.graceid())
+    from_ = get_twilio_from()
+    for recip in twilio_recips:
+        try:
+            log.info('issueEmailAlert: calling %s', recip)
+            twilio_client.calls.create(recip, from_, twiml_url, method='GET')
+        except:
+            log.exception('Failed to create call')
 
 def issueXMPPAlert(event, location, alert_type="new", description="", serialized_object=None):
     

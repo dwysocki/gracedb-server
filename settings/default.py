@@ -337,6 +337,7 @@ INSTALLED_APPS = (
     'ligoauth',
     'rest_framework',
     'guardian',
+    'django_twilio',
 )
 
 REST_FRAMEWORK = {

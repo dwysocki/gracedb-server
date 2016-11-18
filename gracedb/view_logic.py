@@ -34,10 +34,11 @@ from django.utils import timezone
 import logging
 import pytz
 
+logger = logging.getLogger('gracedb.view_logic')
+
 def _createEventFromForm(request, form):
     saved = False
     warnings = []
-    logger = logging.getLogger(__name__)
     try:
         group = Group.objects.get(name=form.cleaned_data['group'])
         pipeline = Pipeline.objects.get(name=form.cleaned_data['pipeline'])
@@ -176,11 +177,13 @@ def create_label(event, request, labelName, doAlert=True, doXMPP=True):
             log.save()
         except Exception as e:
             # XXX This looks a bit odd to me.
+            logger.exception('Problem saving log message')
             d['error'] = str(e)
 
         try:
             issueAlertForLabel(event, label, doXMPP, event_url=event_url)
-        except Exception, e:
+        except Exception as e:
+            logger.exception('Problem saving log message')
             d['warning'] = "Problem issuing alert (%s)" % str(e)
     # XXX Strange return value.  Just warnings.  Can really be ignored, I think.
     return json.dumps(d)
