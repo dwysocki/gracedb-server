@@ -149,7 +149,7 @@ user as a publisher::
 
             print "adding gracedb as publisher to node %s for server %s ..." % (node, server)
 
-            cmd = 'lvalert_admin -c {0} -j gracedb -q {1}'.format( server, node)
+            cmd = 'lvalert_admin -c {0} -j gracedb -q {1}'.format(server, node)
             p = subprocess.Popen(cmd, shell=True)
             out, err = p.communicate()
 
