@@ -128,9 +128,6 @@ user as a publisher::
         'burst_newpipeline_search2',
     ]
 
-    username = 'user.name'
-    password = 'passw0rd'
-
     servers = [
         'lvalert.cgca.uwm.edu',
         'lvalert-test.cgca.uwm.edu',
@@ -139,8 +136,7 @@ user as a publisher::
     for server in servers:
         for node in nodes:
             print "creating node %s for server %s ..." % (node, server)
-            cmd = 'lvalert_admin -a {0} -b {1} -c {2} -d -q {3}'.format(username, 
-                password, server, node)
+            cmd = 'lvalert_admin -c {0} -d -q {1}'.format(server, node)
             p = subprocess.Popen(cmd, shell=True)
             out, err = p.communicate()
 
@@ -153,10 +149,11 @@ user as a publisher::
 
             print "adding gracedb as publisher to node %s for server %s ..." % (node, server)
 
-            cmd = 'lvalert_admin -a {0} -b {1} -c {2} -j gracedb -q {3}'.format(username,
-                password, server, node)
+            cmd = 'lvalert_admin -c {0} -j gracedb -q {1}'.format( server, node)
             p = subprocess.Popen(cmd, shell=True)
             out, err = p.communicate()
 
             if err:
                 print "Error for node %s: %s" % (node, error)
+
+Note that you must have your ``.netrc`` file set up as described `here <https://gracedb.ligo.org/documentation/responding_to_lvalert.html#subscribing-to-pubsub-nodes>`__ for this to work automatically.
