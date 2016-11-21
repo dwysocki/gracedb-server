@@ -62,7 +62,8 @@ authentication information*::
     machine lvalert.cgca.uwm.edu login user.name password passw0rd
 
 *With this setup, you won't need to include the* ``-a`` *flag for your username, 
-or enter your password.*
+or enter your password. Your .netrc file should only be accessible by you, so
+be sure to do* ``chmod 600 $HOME/.netrc``.
 
 To actually subscribe to a pubsub node, we use ``lvalert_admin``
 which allows you to manage your subscriptions. This includes subscribing to new
@@ -144,7 +145,7 @@ create a file called ``myLVAlertListen.ini`` with the following as its contents:
 
 Now run::
 
-    lvalert_listen -a user.name  -c myLVAlertListen.ini > myLVAlertListen.out &
+    lvalert_listen -a user.name -c myLVAlertListen.ini > myLVAlertListen.out &
 
 Congratulations! You've set up an ``lvalert_listen`` instance which reacts to
 announcements published to the ``cbc_gstlal_lowmass``, ``cbc_gstlal_highmass`` and
@@ -191,7 +192,7 @@ which contains::
 
     #!/bin/bash
     read a
-    echo "received a test alert: ${a}" >> user.name-TestNode.out
+    echo "received a test alert: ${a}" >> lvalert_user.name-TestNode.out
 
 Once you've done that, ensure that all three shell scripts are executables (required
 by the delegation through ``subprocess.Popen``) with::
@@ -203,13 +204,13 @@ by the delegation through ``subprocess.Popen``) with::
 and edit myLVAlertListen.ini so it reads::
 
     [cbc_gstlal_lowmass]
-    executable = lvalert-run_cbc_gstlal_lowmass.sh
+    executable = ./lvalert-run_cbc_gstlal_lowmass.sh
 
     [cbc_gstlal_highmass]
-    executable = lvalert-run_cbc_gstlal_highmass.sh
+    executable = ./lvalert-run_cbc_gstlal_highmass.sh
 
     [user.name-TestNode]
-    executable = lvalert-run_user.name-TestNode.sh
+    executable = ./lvalert-run_user.name-TestNode.sh
 
 It is generally a good rule of thumb to provide the full paths to executables
 and output files in both ``myLVAlertListen.ini`` as well as these simple shell
@@ -239,7 +240,9 @@ resource names for all of your listener processes, you can do something like::
     lvalert_listen -a user.name -c myLVAlertListen.ini -r twoInstance &
 
 This will launch two instances of ``lvalert_listen`` (both using the same
-config file) with different resource names. They will both react to alerts and fork
+config file) with different resource names (note that this can also be
+achieved by not specifying the resource name at all).
+They will both react to alerts and fork
 processes. If each points to a different config file, I can then get multiple
 types of follow-up processes forked for the same announcement through a single
 pubsub node.
@@ -385,11 +388,11 @@ check that this worked, you'll need to look at the associated GraceDB page,
 expand the "full log" section and look for your log message.
 
 **IMPORTANTLY,** I've just made up 'G12345' as an example. If you really want
-to test your script you'll need to choose a real event from GraceDB. However,
-PLEASE DO NOT TEST YOUR SCRIPT WITH IMPORTANT GraceDB EVENTS like G184098 (the
-cWB entry for GW150914). Instead, please pick an event with high FAR that
-you've never heard of before. Chances are, if FAR>1e-5 no one will care about
-it and you can use it to test your script. There are also test instances of
+to test your script, you should choose a test event from GraceDB. A query for
+these events is available `here <https://gracedb.ligo.org/events/search/?query=group%3A%20Test>`__.
+*NOTE: please do* **NOT** *test your script with important events in GraceDB
+like G184098 (the cWB entry for GW150914) or others with low FAR.*
+Instead, please use a test event as described above. There are also test instances of
 GraceDB available if you'd prefer to not work with the production server right
 away. Contact uwm-help@cgca.uwm.edu with a descriptive subject line for more
 information.
