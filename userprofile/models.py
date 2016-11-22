@@ -3,7 +3,31 @@ from django.db import models
 
 from gracedb.models import Label, Pipeline
 
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
+import phonenumbers
+
+def validate_phone(value):
+    try:
+        phone = phonenumbers.parse(value, 'US')
+    except phonenumbers.NumberParseException:
+        raise ValidationError('Not a valid phone number: {0}'.format(value))
+    if not phonenumbers.is_valid_number(phone):
+        raise ValidationError('Not a valid phone number: {0}'.format(value))
+    return phonenumbers.format_number(phone, phonenumbers.PhoneNumberFormat.E164)
+
+class PhoneNumberField(models.CharField):
+
+    def __init__(self, *args, **kwargs):
+        validators = kwargs.get('validators', []) + [validate_phone]
+        kwargs = dict(kwargs, max_length=255, validators=validators)
+        super(PhoneNumberField, self).__init__(*args, **kwargs)
+
+    def get_prep_value(self, value):
+        if value:
+            return validate_phone(value)
+        else:
+            return ''
 
 #class Notification(models.Model):
 #    user = models.ForeignKey(User, null=False)
@@ -16,7 +40,8 @@ class Contact(models.Model):
     user = models.ForeignKey(User, null=False)
     #new_user = models.ForeignKey(DjangoUser, null=True)
     desc = models.CharField(max_length=20)
-    email = models.EmailField()
+    email = models.EmailField(blank=True)
+    phone = PhoneNumberField(blank=True)
 
     def __unicode__(self):
         #return "%s: %s" % (self.user.name, self.desc)

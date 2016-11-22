@@ -143,7 +143,8 @@ def createContact(request):
             c = Contact(
                     user=request.user,
                     desc = form.cleaned_data['desc'],
-                    email = form.cleaned_data['email']
+                    email = form.cleaned_data['email'],
+                    phone = form.cleaned_data['phone']
                 )
             c.save()
             request.session['flash_msg'] = "Created: %s" % c

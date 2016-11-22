@@ -46,5 +46,7 @@ class TriggerForm(forms.ModelForm):
 class ContactForm(forms.ModelForm):
     class Meta:
         model = Contact
-        exclude = ['user']
-
+        fields = ['desc','email','phone']
+        help_texts = {
+            'phone': 'Prototype service: may not be available in the future.'
+        }

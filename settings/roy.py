@@ -150,6 +150,7 @@ INSTALLED_APPS = (
     'rest_framework',
 #    'south',
     'guardian',
+    'django_twilio',
 )
 
 INTERNAL_IPS = (
