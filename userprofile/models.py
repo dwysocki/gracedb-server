@@ -47,6 +47,11 @@ class Contact(models.Model):
         #return "%s: %s" % (self.user.name, self.desc)
         return u"{0} {1}: {2}".format(self.user.first_name, self.user.last_name, self.desc)
 
+    # Require at least one contact method (e-mail or phone).
+    def clean(self):
+        if not self.email and not self.phone:
+            raise ValidationError('At least one contact method (email, phone) required')
+
 class Trigger(models.Model):
     TYPES = ( ("create", "create"), ("change","change"), ("label","label") )
     user = models.ForeignKey(User, null=False)

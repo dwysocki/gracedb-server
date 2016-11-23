@@ -141,7 +141,7 @@ def createContact(request):
         if form.is_valid():
             # Create the Contact
             c = Contact(
-                    user=request.user,
+                    user = request.user,
                     desc = form.cleaned_data['desc'],
                     email = form.cleaned_data['email'],
                     phone = form.cleaned_data['phone']
@@ -152,9 +152,9 @@ def createContact(request):
     else:
         form = ContactForm()
     return render_to_response('profile/createNotification.html',
-                              { "form" : form,
-                                "creating":"Contact",
-                               },
+                              { "form": form,
+                                "creating": "Contact",
+                              },
                               context_instance=RequestContext(request))
 
 
