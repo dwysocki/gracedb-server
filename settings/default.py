@@ -62,7 +62,8 @@ EXEC_GROUP = 'executives'
 EXTERNAL_ACCESS_TAGNAME = 'lvem'
 
 # FAR floor for outgoing VOEvents intended for GCN
-VOEVENT_FAR_FLOOR = 3.17e-10
+#VOEVENT_FAR_FLOOR = 3.17e-10 # 1/yr
+VOEVENT_FAR_FLOOR = 0
 
 # EM Advocate Group name
 EM_ADVOCATE_GROUP = 'em_advocates'

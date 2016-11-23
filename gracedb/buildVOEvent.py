@@ -461,11 +461,9 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                 pass
         elif isinstance(event,LalInferenceBurstEvent):
             w.add_Param(Param(name="frequency", 
-                dataType="float", 
-                ucd="gw.frequency", 
                 unit="Hz", 
-                value=float(event.frequency),
-                Description=["Frequency of GW burst signal"]))
+                value=float(event.frequency_mean),
+                Description=["Mean frequency of GW burst signal"]))
 
             # Calculate the fluence. 
             # From Min-A Cho: fluence = pi*(c**3)*(freq**2)*(hrss_max**2)*(10**3)/(4*G)
