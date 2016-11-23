@@ -4,7 +4,8 @@ from subprocess import Popen, PIPE, STDOUT
 
 from django.core.mail import EmailMessage
 from django.conf import settings
-from django.contrib.auth.models import Group
+
+from permission_utils import is_external
 
 import json
 
@@ -88,16 +89,13 @@ def make_twilio_calls(event, twilio_recips, alert_type, **kwargs):
     # Get "from" phone number.
     from_ = get_twilio_from()
     
-    # Get LVC user group for checks made below.
-    lvc_group = Group.objects.get(name=settings.LVC_GROUP)
-    
     # Loop over recipients and make calls.
     for recip in twilio_recips:
         try:
             # Only make calls to LVC members. Non-LVC members shouldn't
             # even be able to sign up with a phone number, but this is another
             # safety measure.
-            if lvc_group in recip.user.groups.all():
+            if not is_external(recip.user):
                 log.info('calling %s', recip.user.username)
                 twilio_client.calls.create(recip.phone, from_, twiml_url, method='GET')
             else:
