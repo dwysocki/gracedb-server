@@ -461,6 +461,8 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                 pass
         elif isinstance(event,LalInferenceBurstEvent):
             w.add_Param(Param(name="frequency", 
+                dataType="float", 
+                ucd="gw.frequency", 
                 unit="Hz", 
                 value=float(event.frequency_mean),
                 Description=["Mean frequency of GW burst signal"]))
