@@ -19,6 +19,8 @@ from query import filter_for_labels
 
 from gracedb.models import Event
 
+import socket
+
 # These imports can be fragile, so they should be brought in only
 # if use of the LVAlert overseer is really intended.
 if settings.USE_LVALERT_OVERSEER:
@@ -45,7 +47,9 @@ def make_twilio_calls(event, twilio_recips, alert_type, **kwargs):
     Note: twilio_recips is a list of users - we need phone numbers
           and group memberships for permission checks.
     """
-    
+    # Get server name.
+    hostname = socket.gethostname()
+
     if (alert_type == "create"):
         # twiml_base_url is the URL of a TwiML Bin
         # (https://support.twilio.com/hc/en-us/articles/230878368)
@@ -62,8 +66,8 @@ def make_twilio_calls(event, twilio_recips, alert_type, **kwargs):
         #     </Sms>
         #     </Response>
         twiml_base_url = 'https://handler.twilio.com/twiml/' + settings.TWILIO_CREATE_KEY
-        twiml_url = '{0}?pipeline={1}&graceid={2}'.format(
-            twiml_base_url, event.pipeline.name, event.graceid())
+        twiml_url = '{0}?pipeline={1}&graceid={2}&server={3}'.format(
+            twiml_base_url, event.pipeline.name, event.graceid(), hostname)
     elif (alert_type == "label"):
         # twiml_base_url is the URL of a TwiML Bin
         # (https://support.twilio.com/hc/en-us/articles/230878368)
@@ -81,8 +85,9 @@ def make_twilio_calls(event, twilio_recips, alert_type, **kwargs):
         #     </Response>
         twiml_base_url = 'https://handler.twilio.com/twiml/' + settings.TWILIO_LABEL_KEY
         label = kwargs['label']
-        twiml_url = '{0}?pipeline={1}&graceid={2}&label={3}&label_lower={4}'.format(
-            twiml_base_url, event.pipeline.name, event.graceid(), label.name, label.name.lower())
+        twiml_url = '{0}?pipeline={1}&graceid={2}&label={3}&label_lower={4}&server={5}'.format(
+            twiml_base_url, event.pipeline.name, event.graceid(), label.name,
+            label.name.lower(), hostname)
     else:
         log.exception('Failed to process alert_type in make_twilio_calls')
 
