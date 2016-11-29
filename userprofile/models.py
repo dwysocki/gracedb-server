@@ -50,7 +50,7 @@ class Contact(models.Model):
     # Require at least one contact method (e-mail or phone).
     def clean(self):
         if not self.email and not self.phone:
-            raise ValidationError('At least one contact method (email, phone) required')
+            raise ValidationError('At least one contact method (email, phone) is required')
 
 class Trigger(models.Model):
     TYPES = ( ("create", "create"), ("change","change"), ("label","label") )
