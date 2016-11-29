@@ -11,5 +11,6 @@ Contents:
    new_pipeline
    user_permissions
    robot_certificate
+   phone_alerts
    miscellaneous
 
