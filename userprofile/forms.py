@@ -7,17 +7,21 @@ from gracedb.pyparsing import ParseException
 def triggerFormFactory(postdata=None, user=None):
     class TF(forms.ModelForm):
         farThresh = forms.FloatField(label='FAR Threshold (Hz)', required=False,
-                help_text="Leave blank to recieve all events, regardless of FAR.")
+                help_text="Leave blank to receive all events, regardless of FAR.")
         class Meta:
             model = Trigger
-            exclude = ['user', 'triggerType']
+            fields = ['contacts', 'pipelines', 'farThresh', 'labels', 'label_query']
             widgets = {'label_query': forms.TextInput(attrs={'size': 50})} 
+
+            help_texts = {
+               'label_query': 'Label names can be combined with binary AND: \'&amp;\' or \',\'; or binary OR: \'|\'. For N labels, there must be exactly N-1 binary operators. Parentheses are not allowed. Additionally, any of the labels in a query string can be negated with \'~\' or \'-\'. Labels can either be selected with the select box at the top, or a query can be specified, <i>but not both</i>.'
+            }
 
         contacts = forms.ModelMultipleChoiceField(
                         queryset=Contact.objects.filter(user=user),
-                        required=False
-                        )
-
+                        required=False,
+                        help_text="If blank, go back and create a Contact first.")
+    
         # XXX should probably override is_valid and check for
         # truth of (atypes or labels)
         # and set field error attributes appropriately.
@@ -38,12 +42,16 @@ def triggerFormFactory(postdata=None, user=None):
     else:
         return TF()
 
+
+# 11/29/2016 (TP): pretty sure this is deprecated in favor of
+# triggerFormFactory; may remove at a later date.
 class TriggerForm(forms.ModelForm):
     class Meta:
         model = Trigger
         exclude = ['user', 'triggerType']
 
 class ContactForm(forms.ModelForm):
+    desc = forms.CharField(label='Description')
     class Meta:
         model = Contact
         fields = ['desc','email','phone']

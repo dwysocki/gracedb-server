@@ -85,6 +85,6 @@ class Trigger(models.Model):
             "|".join([a.name for a in self.pipelines.all()]) or "any pipeline",
             label_disp,
             thresh,
-            ",".join([x.desc for x in self.contacts.all()])
+            ", ".join([x.desc for x in self.contacts.all()])
         )
 
