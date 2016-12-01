@@ -43,7 +43,7 @@ Event subclasses
 Most events also have pipeline-specific attributes, and these are reflected in event
 subclasses. For example, the ``gstlal`` pipeline produces an estimate for the chirp
 mass, which is represented in the ``CoincInspiral`` event subclass. The following table 
-shows the different suclasses with selected attributes:
+shows the different subclasses with selected attributes:
 
 .. raw:: html
 
