@@ -161,7 +161,8 @@ midQ = Optional(Suppress(Keyword("mid:"))) + (mid^midRange)
 midQ = midQ.setParseAction(maybeRange("mid", dbname="id"))
 
 # Submitter
-submitter = QuotedString('"').setParseAction(lambda toks: Q(submitter__username=toks[0]))
+# 6 Dec. 2016: Tanner and Alex added icontains functionality for submitter to enable simpler search patterns. To be more specific, users will have to use more complex search patterns. Last name matching functionality is primarily for searching for robot users.
+submitter = QuotedString('"').setParseAction(lambda toks: Q(submitter__username__icontains=toks[0]) | Q(submitter__last_name__icontains=toks[0]))
 submitterQ = Optional(Suppress(Keyword("submitter:"))) + submitter
 submitterQ = submitterQ.setParseAction(lambda toks: ("submitter", toks[0]))
 
