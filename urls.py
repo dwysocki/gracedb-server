@@ -26,7 +26,6 @@ urlpatterns = patterns('',
     (r'^apiweb/', include('gracedb.urls_rest', app_name="api", namespace="shib")),
     (r'^apibasic/', include('gracedb.urls_rest', app_name="api", namespace="basic")),
     (r'^options/', include('userprofile.urls')),
-    (r'^request/', include('userrequest.urls')),
     (r'^feeds/(?P<url>.*)/$', EventFeed()),
     url (r'^feeds/$', feedview, name="feeds"),
 
