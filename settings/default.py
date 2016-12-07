@@ -257,30 +257,64 @@ ADMIN_MEDIA_PREFIX = '/media/'
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = DEFAULT_SECRET_KEY
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    #'django.template.loaders.filesystem.load_template_source',
-    # replaced by...
-    'django.template.loaders.filesystem.Loader',
-    # Upgrade to 1.4
-    #'django.template.loaders.app_directories.load_template_source',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.load_template_source',
-)
+# Upgrade template settings to 1.8
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            '/home/gracedb/gracedb/templates',
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                # Defaults
+                'django.contrib.auth.context_processors.auth',
+                'django.core.context_processors.debug',
+                'django.core.context_processors.i18n',
+                'django.core.context_processors.media',
+                'django.core.context_processors.static',
+                # Extra additions
+                'django.core.context_processors.request',
+                'gracedb.middleware.auth.LigoAuthContext',
+                'middleware.debug.LigoDebugContext',
+                'ligoauth.context_processors.shib_login_url',
+            ],
+        },
+    },
+]
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    #"django.core.context_processors.auth",
-    # replaced by...
-    "django.contrib.auth.context_processors.auth",
-    "django.core.context_processors.debug",
-    "django.core.context_processors.i18n",
-    "django.core.context_processors.media",
-    "django.core.context_processors.static",
-    "django.core.context_processors.request",
-    "gracedb.middleware.auth.LigoAuthContext",
-    'middleware.debug.LigoDebugContext',
-    'ligoauth.context_processors.shib_login_url',
-)
+# List of callables that know how to import templates from various sources.
+#TEMPLATE_LOADERS = (
+#    #'django.template.loaders.filesystem.load_template_source',
+#    # replaced by...
+#    'django.template.loaders.filesystem.Loader',
+#    # Upgrade to 1.4
+#    #'django.template.loaders.app_directories.load_template_source',
+#    'django.template.loaders.app_directories.Loader',
+##     'django.template.loaders.eggs.load_template_source',
+#)
+#
+#TEMPLATE_CONTEXT_PROCESSORS = (
+#    #"django.core.context_processors.auth",
+#    # replaced by...
+#    "django.contrib.auth.context_processors.auth",
+#    "django.core.context_processors.debug",
+#    "django.core.context_processors.i18n",
+#    "django.core.context_processors.media",
+#    "django.core.context_processors.static",
+#    "django.core.context_processors.request",
+#    "gracedb.middleware.auth.LigoAuthContext",
+#    'middleware.debug.LigoDebugContext',
+#    'ligoauth.context_processors.shib_login_url',
+#)
+#
+## Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+## Always use forward slashes, even on Windows.
+## Don't forget to use absolute paths, not relative paths.
+#TEMPLATE_DIRS = (
+#   "/home/gracedb/gracedb/templates",
+#)
+
 
 AUTHENTICATION_BACKENDS = (
 #   'gracedb.middleware.auth.LigoAuthBackend',
@@ -321,13 +355,6 @@ MIDDLEWARE_CLASSES = [
 ]
 
 ROOT_URLCONF = 'urls'
-
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    "/home/gracedb/gracedb/templates",
-)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
