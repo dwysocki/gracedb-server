@@ -21,6 +21,10 @@ function changeTime(obj, label) {
 {% endblock %}
 <!-- END TESTING -->
 {% block jscript %}{% endblock %}
+
+<!-- override other CSS templates as necessary -->
+<link rel="stylesheet" href="{{STATIC_URL}}css/override.css" />
+
 </head>
 
 <body id="{% block pageid %}{% endblock %}"{% block bodyattrs %}{% endblock %}>
