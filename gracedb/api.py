@@ -16,7 +16,7 @@ from gracedb.models import Event, Group, Search, Pipeline, EventLog, Tag
 from gracedb.models import EMGroup, EMBBEventLog, EMSPECTRUM
 #from gracedb.models import EMObservation, EMFootprint
 from gracedb.models import VOEvent
-from view_logic import create_label, get_performance_info
+from view_logic import create_label, get_performance_info, delete_label
 from view_logic import _createEventFromForm
 from view_logic import create_eel
 from view_logic import create_emobservation
@@ -739,7 +739,15 @@ class EventLabel(APIView):
         return Response(rv, status=status.HTTP_201_CREATED)
 
     def delete(self, request, graceid, label):
-        return Response("Not Implemented", status=status.HTTP_501_NOT_IMPLEMENTED)
+        #return Response("Not Implemented", status=status.HTTP_501_NOT_IMPLEMENTED)
+        try:
+            event = Event.getByGraceid(graceid)
+            rv = delete_label(event, request, label)
+        except ValueError, e:
+            return Response(e.message,
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(rv, status=status.HTTP_201_CREATED)
 
 #==================================================================
 # EventLog

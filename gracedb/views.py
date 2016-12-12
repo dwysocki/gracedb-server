@@ -22,7 +22,7 @@ from view_logic import get_performance_info
 from view_logic import get_lvem_perm_status
 from view_logic import create_eel
 from view_logic import create_emobservation
-from view_logic import create_label
+from view_logic import create_label, delete_label
 from view_utils import assembleLigoLw, get_file
 from view_utils import flexigridResponse, jqgridResponse
 from view_utils import get_recent_events_string
