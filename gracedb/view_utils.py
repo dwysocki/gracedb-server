@@ -26,6 +26,9 @@ MAX_FLEXI_ROWS = 250
 
 GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 
+import logging
+log = logging.getLogger(__name__)
+
 import json
 import pytz
 
@@ -153,7 +156,7 @@ def eventToDict(event, columns=None, request=None):
           for labelling in event.labelling_set.all()])
     # XXX Try to produce a dictionary of analysis specific attributes.  Duck typing.
     # XXX These extra attributes should only be seen by internal users.
-    if request and request.user and not is_external(request.user):
+    if request and request.user and not is_external(request.user): 
         rv['extra_attributes'] = {}
         try:
             # GrbEvent
@@ -302,14 +305,19 @@ def eventToDict(event, columns=None, request=None):
         si_set = event.singleinspiral_set.all()
         if si_set.count():
             rv['extra_attributes']['SingleInspiral'] = [ singleInspiralToDict(si) for si in si_set ]
-    elif request and request.user and is_external(request.user):
-        # Expose SingleInspiral times only for external users.
-        ext_keys = ['ifo','end_time','end_time_ns']
-        si_set = event.singleinspiral_set.all()
-        if si_set.count():
-            SingleInspiral_list = [ singleInspiralToDict(si) for si in si_set ]
-            for i, si in enumerate(SingleInspiral_list):
-                rv['extra_attributes']['SingleInspiral'] = { k: si[k] for k in ext_keys }
+    elif (request and request.user) and (is_external(request.user)):
+        try:
+            rv['extra_attributes'] = {}
+            # Only expose SingleInspiral times and ifos for external users.
+            ext_keys = ['ifo','end_time','end_time_ns']
+            si_set = event.singleinspiral_set.all()
+            if si_set.count():
+                SingleInspiral_list = [ singleInspiralToDict(si) for si in si_set ]
+                rv['extra_attributes']['SingleInspiral'] = []
+                for i, si in enumerate(SingleInspiral_list):
+                    rv['extra_attributes']['SingleInspiral'].append({ k: si[k] for k in ext_keys })
+        except:
+            pass
 
     rv['links'] = {
           "neighbors" : reverse("neighbors", args=[graceid], request=request),

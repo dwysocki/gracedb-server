@@ -125,6 +125,16 @@ def is_external(user):
         return True
 
 #-------------------------------------------------------------------------------
+# A utility for determining whether a user is accessing the API through the
+# basic auth entry point.
+#-------------------------------------------------------------------------------
+def is_basicapi_request(request):
+   if request.path.startswith("/apibasic/"):
+       return True
+   else:
+       return False
+
+#-------------------------------------------------------------------------------
 # A utility for determining whether an external user should have access to a 
 # particular file, given the event and filename. This is done by finding the
 # log message associated with that file and checking that the log message is
