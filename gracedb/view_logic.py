@@ -206,13 +206,13 @@ def delete_label(event, request, labelName):
     # error if it isn't. There might be a more elegant way of doing this.
     if label not in event.labels.all():
             d['warning'] = "No label '%s' associated with event %s" % (labelName, event.graceid())
+            raise ValueError( "No label '%s' associated with event %s" % (labelName, event.graceid()))
     else:
-        labelling = Labelling(
+        this_label = Labelling.objects.get(
                 event = event,
                 label = label,
-                creator = creator
             )
-        labelling.delete()
+        this_label.delete()
         message = "Deleted label: %s" % label.name
         log = EventLog(event=event, issuer=creator, comment=message)
         try:
