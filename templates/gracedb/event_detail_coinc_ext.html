@@ -1,0 +1,49 @@
+{% extends "gracedb/event_detail.html" %}
+{% load timeutil %}
+{% load scientific %}
+
+{# Analysis-specific attributes for an LM event#}
+{% block external_analysis_specific %}
+
+{# Test whether the object has the end_time property. Older (non CoincInspiral) events don't. #}
+{% if object.end_time %}
+
+<div id="container" style="display:table;width:100%">
+<div style="display:table-row;width:100%">
+
+<div style="display:table-cell;float:left;width:35%;">
+
+{% if single_inspiral_events %}
+<!-- Single Inspiral Data -->
+<div style="display:table-cell;float:right;width:65%">
+<h2>Single Inspiral Tables</h2>
+
+<!--<div id="single_inspiral_tables"> -->
+<!-- <div id="single_inspiral_tables"
+       	data-dojo-type="dijit/TitlePane"
+        data-dojo-props="title: 'Single Inspiral Tables', open: false"> -->
+        <!--<table class="analysis_specific_lm"> -->
+<table>
+	<tr>
+		<th>IFO</th>
+		{% for e in single_inspiral_events %}
+		<th>{{ e.ifo }}</th>
+		{% endfor %}
+	</tr>
+	<tr>
+		<th>End Time (GPS)</th>
+		{% for e in single_inspiral_events %}
+		<td>{{ e.end_time_full }}&nbsp;s</td>
+		{% endfor %}
+	</tr>
+</table>
+</div> 
+
+</div>
+</div> <!-- container -->
+
+{% endif %} <!-- if single_inspiral_events -->
+
+{% endif %} <!-- object has end_time property. -->
+
+{% endblock %}

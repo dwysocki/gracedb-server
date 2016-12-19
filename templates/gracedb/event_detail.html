@@ -217,14 +217,20 @@
 {% endblock %}
 </div>
 
-{% if not user_is_external %}
 <div class="content-area">
+<p>{{user_is_external}}</p>
+{% if user_is_external %}
+{# Analysis-specific attributes which can be exposed to external partners #}
+{% block external_analysis_specific %}
+{# Empty by default #}
+{% endblock %}
+{% else %}
 {# Analysis-specific attributes #}
 {% block analysis_specific %}
 {# This block is empty in the base event_detail template #}
 {% endblock %}
-</div>
 {% endif %}
+</div>
 
 {# Neighbors #}
 <script type="text/javascript">

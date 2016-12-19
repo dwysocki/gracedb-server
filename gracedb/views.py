@@ -399,10 +399,16 @@ def view(request, event):
             break
     context['advocate_signoff_authorized'] = advocate_signoff_authorized
 
+    
+
     # Choose your template according to the event's pipeline.
     templates = ['gracedb/event_detail.html',]
     if event.pipeline.name in settings.COINC_PIPELINES:
         templates.insert(0, 'gracedb/event_detail_coinc.html')
+        #if is_external(request.user):
+        #    templates.insert(0, 'gracedb/event_detail_coinc_ext.html')
+        #else:
+        #    templates.insert(0, 'gracedb/event_detail_coinc.html')
     elif event.pipeline.name in settings.GRB_PIPELINES:
         templates.insert(0, 'gracedb/event_detail_GRB.html')
     elif event.pipeline.name.startswith('CWB'):
