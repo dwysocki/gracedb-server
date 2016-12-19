@@ -19,14 +19,23 @@ def create_robot(apps, schema_editor):
     LocalUser = apps.get_model('ligoauth','LocalUser')
     X509Cert = apps.get_model('ligoauth','X509Cert')
     Group = apps.get_model('auth','Group')
+    Permission = apps.get_model('auth','Permission')
+
     lvc_group = Group.objects.get(name=settings.LVC_GROUP)
+    add_event_perm = Permission.objects.get(codename='add_event')
 
     # get or create user
     user, created = LocalUser.objects.get_or_create(username=ROBOT['username'])
     if created:
         for key in ROBOT.keys():
             setattr(user, key, ROBOT[key])
-        user.save()
+
+    # Give user permission to add events
+    if add_event_perm not in user.user_permissions.all():
+        user.user_permissions.add(add_event_perm)
+
+    # Save user
+    user.save()
 
     # Add user to LVC group.
     if not lvc_group in user.groups.all():
