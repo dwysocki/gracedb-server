@@ -26,9 +26,6 @@ MAX_FLEXI_ROWS = 250
 
 GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 
-import logging
-log = logging.getLogger(__name__)
-
 import json
 import pytz
 
