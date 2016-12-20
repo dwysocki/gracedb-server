@@ -188,6 +188,43 @@ def create_label(event, request, labelName, doAlert=True, doXMPP=True):
     # XXX Strange return value.  Just warnings.  Can really be ignored, I think.
     return json.dumps(d)
 
+def delete_label(event, request, labelName):
+    # This function deletes a label. It starts out a lot like the create
+    # label function. First get user and event info:
+    creator = request.user
+    event_url = request.build_absolute_uri(reverse('view', args=[event.graceid()]))
+    d = {}
+
+    # First,throw out an error if the label doesn't exist in the list of available
+    # labels.
+    try:
+        label = Label.objects.filter(name=labelName)[0]
+    except IndexError:
+        raise ValueError("No such Label '%s'" % labelName)
+
+    # Next, check if the label is in the list of labels for the event. Throw out an
+    # error if it isn't. There might be a more elegant way of doing this.
+    if label not in event.labels.all():
+            d['warning'] = "No label '%s' associated with event %s" % (labelName, event.graceid())
+            raise ValueError( "No label '%s' associated with event %s" % (labelName, event.graceid()))
+    else:
+        this_label = Labelling.objects.get(
+                event = event,
+                label = label,
+            )
+        this_label.delete()
+        message = "Deleted label: %s" % label.name
+        log = EventLog(event=event, issuer=creator, comment=message)
+        try:
+            log.save()
+        except Exception as e:
+            # XXX This looks a bit odd to me. (<-- retained this message)
+            logger.exception('Problem saving log message')
+            d['error'] = str(e)
+
+    # Return the json for some reason. I don't do any alert stuff in here.
+    return json.dumps(d)
+
 def _createLog(request, graceid, comment, uploadedFile=None):
     response = HttpResponse(mimetype='application/json')
     rdict = {}

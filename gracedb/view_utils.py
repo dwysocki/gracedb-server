@@ -302,6 +302,14 @@ def eventToDict(event, columns=None, request=None):
         si_set = event.singleinspiral_set.all()
         if si_set.count():
             rv['extra_attributes']['SingleInspiral'] = [ singleInspiralToDict(si) for si in si_set ]
+    elif request and request.user and is_external(request.user):
+        # Expose SingleInspiral times only for external users.
+        ext_keys = ['ifo','end_time','end_time_ns']
+        si_set = event.singleinspiral_set.all()
+        if si_set.count():
+            SingleInspiral_list = [ singleInspiralToDict(si) for si in si_set ]
+            for i, si in enumerate(SingleInspiral_list):
+                rv['extra_attributes']['SingleInspiral'] = { k: si[k] for k in ext_keys }
 
     rv['links'] = {
           "neighbors" : reverse("neighbors", args=[graceid], request=request),
