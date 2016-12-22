@@ -73,26 +73,11 @@ EM_ADVOCATE_GROUP = 'em_advocates'
 
 ADMIN_MANAGED_GROUPS = [EM_ADVOCATE_GROUP, 'executives',]
 
-# 11/18/14. No longer checking XMPP_ALERT_CHANNELS. This is not necessary.
-# If someone sends out an event, an alert should go out. Listerers have the 
-# option to unsubscribe from nodes if so desired.
-#XMPP_ALERT_CHANNELS = [
-#                        'burst_omega',
-#                        'test_omega',
-#                        'cbc_mbtaonline',
-#                        'test_mbtaonline',
-#                        'burst_cwb',
-#                        'test_cwb',
-#                        'cbc_lowmass',
-#                        'test_lowmass',
-#                        'cbc_highmass',
-#                        'test_highmass',
-#                        'test_grb',
-#                        'external_grb',
-#                      ]
+SKYMAP_VIEWER_SERVICE_URL =
+    "https://embb-dev.ligo.caltech.edu/skymap-viewer/aladin/skymap-viewer.cgi"
 
-SKYMAP_VIEWER_SERVICE_URL = "https://embb-dev.ligo.caltech.edu/skymap-viewer/aladin/skymap-viewer.cgi"
-
+# Log entries with these tags are displayed in
+# their own blocks in the web interface.
 BLESSED_TAGS = [
                  'analyst_comments',
                  'em_follow',
@@ -140,7 +125,6 @@ CACHES = {
 }
 
 # SkyAlert
-
 SKYALERT_IVORN_PATTERN = "ivo://gwnet/gcn_sender#%s"
 SKYALERT_ROLE          = "test"
 SKYALERT_DESCRIPTION   = "Report of a candidate gravitational wave event"
@@ -212,7 +196,7 @@ REPORTS_IFAR = [
 ]
 
 # Stuff for the new rates plot
-BINNED_COUNT_PIPELINES = ['gstlal', 'MBTAOnline', 'CWB', 'LIB', 'gstlal-spiir' ]
+BINNED_COUNT_PIPELINES = ['gstlal', 'MBTAOnline', 'CWB', 'LIB', 'gstlal-spiir']
 BINNED_COUNT_FILE = "/home/gracedb/data/binned_counts.json"
 
 # Whether or not to show the recent events on the landing page
@@ -226,7 +210,6 @@ FEED_MAX_RESULTS = 50
 # although not all choices may be available on all operating systems.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-
 TIME_ZONE = 'America/Chicago'
 GRACE_DATETIME_FORMAT = 'Y-m-d H:i:s T'
 
@@ -257,7 +240,7 @@ ADMIN_MEDIA_PREFIX = '/media/'
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = DEFAULT_SECRET_KEY
 
-# Upgrade template settings to 1.8
+# New template settings compatible with Django 1.8
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -283,38 +266,6 @@ TEMPLATES = [
     },
 ]
 
-# List of callables that know how to import templates from various sources.
-#TEMPLATE_LOADERS = (
-#    #'django.template.loaders.filesystem.load_template_source',
-#    # replaced by...
-#    'django.template.loaders.filesystem.Loader',
-#    # Upgrade to 1.4
-#    #'django.template.loaders.app_directories.load_template_source',
-#    'django.template.loaders.app_directories.Loader',
-##     'django.template.loaders.eggs.load_template_source',
-#)
-#
-#TEMPLATE_CONTEXT_PROCESSORS = (
-#    #"django.core.context_processors.auth",
-#    # replaced by...
-#    "django.contrib.auth.context_processors.auth",
-#    "django.core.context_processors.debug",
-#    "django.core.context_processors.i18n",
-#    "django.core.context_processors.media",
-#    "django.core.context_processors.static",
-#    "django.core.context_processors.request",
-#    "gracedb.middleware.auth.LigoAuthContext",
-#    'middleware.debug.LigoDebugContext',
-#    'ligoauth.context_processors.shib_login_url',
-#)
-#
-## Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-## Always use forward slashes, even on Windows.
-## Don't forget to use absolute paths, not relative paths.
-#TEMPLATE_DIRS = (
-#   "/home/gracedb/gracedb/templates",
-#)
-
 
 AUTHENTICATION_BACKENDS = (
 #   'gracedb.middleware.auth.LigoAuthBackend',
@@ -332,7 +283,8 @@ ANONYMOUS_USER_ID = -1
 GUARDIAN_RENDER_403 = True
 GUARDIAN_MONKEY_PATCH = False
 
-SHIB_AUTHENTICATION_SESSION_INITIATOR = 'https://moe.phys.uwm.edu/Shibboleth.sso/Login'
+SHIB_AUTHENTICATION_SESSION_INITIATOR = 
+    "https://moe.phys.uwm.edu/Shibboleth.sso/Login"
 LOGIN_URL = '/Shibboleth.sso/Login'
 
 # If these are left at default, when the Shibboleth middleware
