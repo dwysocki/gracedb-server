@@ -1,9 +1,14 @@
 from settings_secret import *
+# Settings for Logging.
+import logging
 
-CONFIG_NAME = "Test"
+CONFIG_NAME = "TEST"
 
+# Debug settings
 DEBUG = True
+# Template debugging help
 TEMPLATE_DEBUG = DEBUG
+# Don't let debug toolbar edit settings
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
 
 DATABASES = {
@@ -34,16 +39,18 @@ CACHES = {
     },
 }
 
+# Email settings
 SERVER_EMAIL = "GraceDB Test <gracedb@gracedb-test.cgca.uwm.edu>"
-ALERT_EMAIL_FROM = "Dev Alert <root@gracedb-test.cgca.uwm.edu>"
+ALERT_EMAIL_FROM = "GraceDB Test <gracedb@gracedb-test.cgca.uwm.edu>"
 ALERT_EMAIL_TO = []
 ALERT_EMAIL_BCC = []
-ALERT_TEST_EMAIL_FROM = "Dev Test Alert <root@gracedb-test.cgca.uwm.edu>"
+ALERT_TEST_EMAIL_FROM = \
+    "GraceDB Test TESTING <gracedb@gracedb-test.cgca.uwm.edu>"
 ALERT_TEST_EMAIL_TO = []
+
+# LVAlert and LVAlert Overseer settings
 ALERT_XMPP_SERVERS = ["lvalert-test.cgca.uwm.edu",]
-
 USE_LVALERT_OVERSEER = True
-
 # For each lvalert server, a separate instance of the lvalert_overseer
 # must be running and listening on a distinct port. 
 LVALERT_OVERSEER_PORTS = {
@@ -93,6 +100,7 @@ INSTALLED_APPS = (
 )
 
 INTERNAL_IPS = (
+    #'129.89.57.72',
     '129.89.57.83',
 )
 
@@ -102,8 +110,7 @@ CONTROL_ROOM_IPS = {
 #    'L1': '129.89.57.83',
 }
 
-# Settings for Logging.
-import logging
+# Everything below here is logging. ###########################################
 
 LOG_ROOT = '/home/gracedb/logs'
 LOG_FILE_SIZE = 1024*1024 # 1 MB

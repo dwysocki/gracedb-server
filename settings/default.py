@@ -1,4 +1,8 @@
 from settings_secret import *
+from utils import posixToGpsTime
+from datetime import datetime, timedelta
+import time
+import logging
 
 USE_TZ = True
 
@@ -7,42 +11,31 @@ ALLOWED_HOSTS = ['*']
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-MAINTENANCE_MODE= False
-
-#EMAIL_HOST = 'gravity.phys.uwm.edu'
-EMAIL_HOST = 'localhost'
+MAINTENANCE_MODE = False
 
 ADMINS = (
-    ('Branson Stephens', 'branson@gravity.phys.uwm.edu'),
     ('Alexander Pace', 'aep14@psu.edu'),
-    ('Tanner Prestegard', 'prestega@uwm.edu'),
+    ('Tanner Prestegard', 'tanner.prestegard@ligo.org'),
 )
+MANAGERS = ADMINS
 
 # Base URL for TwiML bins
 TWIML_BASE_URL = 'https://handler.twilio.com/twiml/'
 
+# Email settings.
+#EMAIL_HOST = 'gravity.phys.uwm.edu'
+EMAIL_HOST = 'localhost'
 SERVER_EMAIL = 'GraceDB <gracedb@gracedb.cgca.uwm.edu>'
+ALERT_EMAIL_FROM = "GraceDB <gracedb@gracedb.cgca.uwm.edu>"
+ALERT_EMAIL_TO = []
+ALERT_EMAIL_BCC = []
+ALERT_TEST_EMAIL_FROM = "GraceDB TEST <gracedb@gracedb.cgca.uwm.edu>"
+ALERT_TEST_EMAIL_TO = []
 
-MANAGERS = ADMINS
-
-ALERT_EMAIL_FROM = "GraCEDb <gracedb@gracedb.cgca.uwm.edu>"
-ALERT_EMAIL_TO = [
-#                 "gracedb@listserv.ligo.org",
-                 ]
-ALERT_EMAIL_BCC = [
-                  ]
-
-ALERT_TEST_EMAIL_FROM = "GraCEDb TEST <gracedb@gracedb.cgca.uwm.edu>"
-ALERT_TEST_EMAIL_TO = [
-                      ]
-#ALERT_XMPP_SERVER = "lvalert.phys.uwm.edu"
-#ALERT_XMPP_SERVERS = ["lvalert.phys.uwm.edu", "lvalert.cgca.uwm.edu"]
+# LVAlert and LVAlert Overseer settings
 ALERT_XMPP_SERVERS = ["lvalert.cgca.uwm.edu"]
-#LVALERT_SEND_EXECUTABLE = '/usr/bin/lvalert_send'
 LVALERT_SEND_EXECUTABLE = '/home/gracedb/djangoenv/bin/lvalert_send'
-
 USE_LVALERT_OVERSEER = True
-
 # For each lvalert server, a separate instance of the lvalert_overseer
 # must be running and listening on a distinct port. 
 LVALERT_OVERSEER_PORTS = {
@@ -61,19 +54,22 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 LVC_GROUP = 'Communities:LSCVirgoLIGOGroupMembers'
 LVEM_GROUP = 'gw-astronomy:LV-EM'
 LVEM_OBSERVERS_GROUP = 'gw-astronomy:LV-EM:Observers'
+# Executives
 EXEC_GROUP = 'executives'
-EXTERNAL_ACCESS_TAGNAME = 'lvem'
-
-# FAR floor for outgoing VOEvents intended for GCN
-#VOEVENT_FAR_FLOOR = 3.17e-10 # 1/yr
-VOEVENT_FAR_FLOOR = 0
-
 # EM Advocate Group name
 EM_ADVOCATE_GROUP = 'em_advocates'
 
+# Groups directly managed by GraceDB admins
 ADMIN_MANAGED_GROUPS = [EM_ADVOCATE_GROUP, 'executives',]
 
-SKYMAP_VIEWER_SERVICE_URL =
+EXTERNAL_ACCESS_TAGNAME = 'lvem'
+
+# FAR floor for outgoing VOEvents intended for GCN
+#VOEVENT_FAR_FLOOR = 3.17e-10 # 1/100 yrs
+VOEVENT_FAR_FLOOR = 0
+
+# URL for viewing skymaps
+SKYMAP_VIEWER_SERVICE_URL = \
     "https://embb-dev.ligo.caltech.edu/skymap-viewer/aladin/skymap-viewer.cgi"
 
 # Log entries with these tags are displayed in
@@ -130,7 +126,7 @@ SKYALERT_ROLE          = "test"
 SKYALERT_DESCRIPTION   = "Report of a candidate gravitational wave event"
 SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
 
-
+# Location of database
 GRACEDB_DATA_DIR = "/opt/gracedb/data"
 # First level subdirs with 2 chars, second level with 1 char
 # These DIR_DIGITS had better add up to a number less than 40 (which is
@@ -155,10 +151,6 @@ REPORT_INFO_URL_PREFIX = "/report_info/"
 # Find another way to do this.
 #
 # CBC IFAR Reports
-
-from utils import posixToGpsTime
-from datetime import datetime, timedelta
-import time
 
 now = datetime.now()
 yesterday = now - timedelta(days=1)
@@ -216,8 +208,6 @@ GRACE_DATETIME_FORMAT = 'Y-m-d H:i:s T'
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
-
-#SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -283,8 +273,7 @@ ANONYMOUS_USER_ID = -1
 GUARDIAN_RENDER_403 = True
 GUARDIAN_MONKEY_PATCH = False
 
-SHIB_AUTHENTICATION_SESSION_INITIATOR = 
-    "https://moe.phys.uwm.edu/Shibboleth.sso/Login"
+# URL of Shibboleth login page
 LOGIN_URL = '/Shibboleth.sso/Login'
 
 # If these are left at default, when the Shibboleth middleware
@@ -331,20 +320,19 @@ REST_FRAMEWORK = {
     },
 }
 
-
+# Location of static components, CSS, JS, etc.
 STATIC_URL = "/gracedb-static/"
 STATIC_ROOT = "/home/gracedb/gracedb/static/"
-
-BOWER_URL = "/bower-static/"
-BOWER_ROOT = "/home/gracedb/bower_components/"
-
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
-
 STATICFILES_DIRS = ()
+
+# Location of Bower packages.
+BOWER_URL = "/bower-static/"
+BOWER_ROOT = "/home/gracedb/bower_components/"
 
 # Added in order to perform data migrations on the auth app
 MIGRATION_MODULES = {
@@ -354,16 +342,18 @@ MIGRATION_MODULES = {
 
 SOUTH_TESTS_MIGRATE = False
 
-# passwords for LVEM scripted access expire after 365 days.
+# Passwords for LVEM scripted access expire after 365 days.
 PASSWORD_EXPIRATION_TIME = timedelta(days=365)
 
+# LIGO control room IPs
 CONTROL_ROOM_IPS = {
     'H1': '198.129.208.178',
     'L1': '208.69.128.41',
 }
 
-# XXX The following Log settings are for a performance metric.
-import logging
+# Everything below here is logging. ###########################################
+
+# The following Log settings are for a performance metric.
 LOG_ROOT = '/home/gracedb/logs'
 
 # Filter objects to separate out each level of alert.

@@ -28,6 +28,7 @@ function changeTime(obj, label) {
 </head>
 
 <body id="{% block pageid %}{% endblock %}"{% block bodyattrs %}{% endblock %}>
+<meta content="text/html">
 
 <div id="content">
 
@@ -45,13 +46,6 @@ function changeTime(obj, label) {
 {% flash %}
     <div id="status_block" class="{{ params.class }}">{{ msg }}</div>
 {% endflash %}
-
-{% if user.is_staff %}
-<!-- debug information for admins -->
-<div id="debugDiv">
-    <!--<pre>{% filter force_escape %} {% debug %} {% endfilter %}</pre> -->
-</div>
-{% endif %}
 
     <h2>{% block heading %}Title{% endblock %}</h2>
 
