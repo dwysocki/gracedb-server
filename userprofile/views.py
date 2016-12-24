@@ -1,25 +1,25 @@
 
-from django.http import HttpResponse
-from django.http import HttpResponseRedirect, HttpResponseNotFound
-from django.http import Http404, HttpResponseForbidden
-from django.http import HttpResponseBadRequest
-
+from django.http import (HttpResponse, HttpResponseRedirect, 
+    HttpResponseNotFound, Http404, HttpResponseForbidden,
+    HttpResponseBadRequest)
+from django.conf import settings
 from django.core.urlresolvers import reverse 
+from django.core.mail import EmailMessage
 from django.contrib.auth.models import User
 from django.template import RequestContext
 from django.shortcuts import render_to_response
-
-from models import Trigger, Contact
-
-from forms import ContactForm, triggerFormFactory
-
-from gracedb.permission_utils import internal_user_required, lvem_user_required
-
 from django.utils import timezone
+from django.db.models import Q
 
+from django_twilio.client import twilio_client
+import socket
+
+from .models import Trigger, Contact
+from .forms import ContactForm, triggerFormFactory
+from gracedb.permission_utils import internal_user_required, lvem_user_required
 from gracedb.query import labelQuery
 from gracedb.models import Label
-from django.db.models import Q
+from gracedb.alert import get_twilio_from
 
 # Let's let everybody onto the index view.
 #@internal_user_required
@@ -157,6 +157,43 @@ def createContact(request):
                               },
                               context_instance=RequestContext(request))
 
+@internal_user_required
+def testContact(request, id):
+    """Users can test their Contacts through the web interface"""
+    try:
+        c = Contact.objects.get(id=id)
+    except Contact.DoesNotExist:
+        raise Http404
+    if request.user != c.user:
+        return HttpResponseForbidden("NO!")
+    else:
+        flash_msg = "Testing contact %s." % c.desc
+        hostname = socket.gethostname()
+        if c.email:
+            # Send test e-mail
+            try:
+                subject = "Test of contact %s from %s" % (c.desc, hostname)
+                message = ("This is test of contact %s on server %s," 
+                           " e-mailed to %s") % (c.desc, hostname, c.email) 
+                email = EmailMessage(subject, message, settings.SERVER_EMAIL, 
+                                     [c.email], [])
+                email.send()
+            except:
+                flash_msg += " Error sending test e-mail to %s." % c.email
+        if c.phone:
+            # Send test phone alert
+            try:
+                from_ = get_twilio_from()
+                twiml_url = settings.TWIML_BASE_URL + settings.TWILIO_TEST_KEY
+                twiml_url += '?server={0}&type={1}'.format(
+                    hostname,hostname.split('-')[1])
+                twilio_client.calls.create(c.phone, from_, twiml_url,
+                                           method='GET')
+            except Exception as e:
+                flash_msg += " Error calling %s." % e
+
+        request.session['flash_msg'] = flash_msg
+        return index(request)
 
 @internal_user_required
 def editContact(request, id):
@@ -164,6 +201,8 @@ def editContact(request, id):
 
 @internal_user_required
 def deleteContact(request, id):
+    """Users can delete their Contacts through the web interface"""
+
     try:
         c = Contact.objects.get(id=id)
     except Contact.DoesNotExist:

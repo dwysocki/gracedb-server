@@ -50,6 +50,9 @@ def make_twilio_calls(event, twilio_recips, alert_type, **kwargs):
     # Get server name.
     hostname = socket.gethostname()
 
+    # Base URL for TwiML bins
+    twiml_base_url = settings.TWIML_BASE_URL
+
     if (alert_type == "create"):
         # twiml_base_url is the URL of a TwiML Bin
         # (https://support.twilio.com/hc/en-us/articles/230878368)
@@ -65,7 +68,7 @@ def make_twilio_calls(event, twilio_recips, alert_type, **kwargs):
         #     https://gracedb-test.ligo.org/events/view/{{graceid}}
         #     </Sms>
         #     </Response>
-        twiml_base_url = 'https://handler.twilio.com/twiml/' + settings.TWILIO_CREATE_KEY
+        twiml_base_url += settings.TWILIO_CREATE_KEY
         twiml_url = '{0}?pipeline={1}&graceid={2}&server={3}'.format(
             twiml_base_url, event.pipeline.name, event.graceid(), hostname)
     elif (alert_type == "label"):
@@ -83,7 +86,7 @@ def make_twilio_calls(event, twilio_recips, alert_type, **kwargs):
         #     https://gracedb-test.ligo.org/events/view/{{graceid}}
         #     </Sms>
         #     </Response>
-        twiml_base_url = 'https://handler.twilio.com/twiml/' + settings.TWILIO_LABEL_KEY
+        twiml_base_url += settings.TWILIO_LABEL_KEY
         label = kwargs['label']
         twiml_url = '{0}?pipeline={1}&graceid={2}&label={3}&label_lower={4}&server={5}'.format(
             twiml_base_url, event.pipeline.name, event.graceid(), label.name,

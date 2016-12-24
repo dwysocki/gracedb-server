@@ -18,6 +18,9 @@ ADMINS = (
     ('Tanner Prestegard', 'prestega@uwm.edu'),
 )
 
+# Base URL for TwiML bins
+TWIML_BASE_URL = 'https://handler.twilio.com/twiml/'
+
 SERVER_EMAIL = 'GraceDB <gracedb@gracedb.cgca.uwm.edu>'
 
 MANAGERS = ADMINS
