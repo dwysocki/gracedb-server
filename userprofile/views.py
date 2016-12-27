@@ -174,9 +174,8 @@ def testContact(request, id):
             try:
                 subject = 'Test of contact "{0}" from {1}' \
                           .format(c.desc, hostname)
-                message = ('This is test e-mail from https://{0}.ligo.org to'
-                           ' verify your information for contact "{1}".') \
-                          .format(hostname, c.desc)
+                message = ('This is a test of contact "{0}" from '
+                           'https://{1}.ligo.org.').format(c.desc, hostname)
                 email = EmailMessage(subject, message, settings.SERVER_EMAIL, 
                                      [c.email], [])
                 email.send()
