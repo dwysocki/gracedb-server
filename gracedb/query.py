@@ -22,11 +22,11 @@ from django.db.models import Q
 from django.db.models.query import QuerySet
 import pytz
 
-from pyparsing import \
-    Word, nums, Literal, CaselessLiteral, delimitedList, Suppress, QuotedString, \
-    Keyword, Combine, Or, Optional, OneOrMore, ZeroOrMore, alphas, alphanums, Regex, \
-    opAssoc, operatorPrecedence, oneOf, \
-    stringStart, stringEnd, FollowedBy, ParseResults, ParseException, CaselessKeyword
+from pyparsing import Word, nums, Literal, CaselessLiteral, delimitedList, \
+    Suppress, QuotedString, Keyword, Combine, Or, Optional, OneOrMore, \
+    ZeroOrMore, alphas, alphanums, Regex, opAssoc, operatorPrecedence, \
+    oneOf, stringStart,  stringEnd, FollowedBy, ParseResults, ParseException, \
+    CaselessKeyword
 
 def maybeRange(name, dbname=None):
     dbname = dbname or name
@@ -65,16 +65,24 @@ gpsQ = gpsQ.setParseAction(maybeRange("gpstime"))
 
 # run ids
 runmap = {
-   "O1"  :     (1126623617, 1136649617),  # Friday, Sept 18th, 10 AM CDT - Tuesday, Jan 12th, 10:00 AM CST
-   "ER8" :     (1123858817, 1126623617),  # Monday, Aug 17th, 10 AM CDT - Friday, Sept 18th, 10 AM CDT 
-   "ER7" :     (1117400416, 1118329216),  # Jun 03 21:00:00 UTC 2015 - Jun 14 15:00:00 UTC 2015
-   "ER6" :     (1102089616, 1102863616),  # Dec 08 16:00:00 UTC 2014 - Dec 17 15:00:00 UTC 2014
-   "ER5" :     (1073822416, 1078876816),  # Jan 15 12:00:00 UTC 2014 - Mar 15 2014 00:00:00 UTC
-   "ER4" :     (1057881616, 1061856016),  # Jul 15 00:00:00 UTC 2013 - Aug 30 2013 00:00:00 UTC
-   "ER3" :     (1044136816, 1045785616),  # Feb 5 16:00:00 CST 2013 - Mon Feb 25 00:00:00 GMT 2013
-   #"ER2" : (1026061216, 1028480416),
-   #"ER2" : (1026069984, 1028480416),  # soft start
-    "ER2" : (1026666016, 1028480416),  # Jul 18 17:00:00 GMT 2012 - Aug 8 17:00:00 GMT 2012
+    # Friday, Sept 18th, 10 AM CDT - Tuesday, Jan 12th, 10:00 AM CST
+    "O1"  :     (1126623617, 1136649617),
+    # Monday, Aug 17th, 10 AM CDT - Friday, Sept 18th, 10 AM CDT 
+    "ER8" :     (1123858817, 1126623617),
+    # Jun 03 21:00:00 UTC 2015 - Jun 14 15:00:00 UTC 2015
+    "ER7" :     (1117400416, 1118329216),
+    # Dec 08 16:00:00 UTC 2014 - Dec 17 15:00:00 UTC 2014
+    "ER6" :     (1102089616, 1102863616),
+    # Jan 15 12:00:00 UTC 2014 - Mar 15 2014 00:00:00 UTC
+    "ER5" :     (1073822416, 1078876816),
+    # Jul 15 00:00:00 UTC 2013 - Aug 30 2013 00:00:00 UTC
+    "ER4" :     (1057881616, 1061856016),
+    # Feb 5 16:00:00 CST 2013 - Mon Feb 25 00:00:00 GMT 2013
+    "ER3" :     (1044136816, 1045785616),
+    # Jul 18 17:00:00 GMT 2012 - Aug 8 17:00:00 GMT 2012
+    "ER2" : (1026666016, 1028480416),
+    #"ER2" : (1026061216, 1028480416),
+    #"ER2" : (1026069984, 1028480416),  # soft start
     "ER1":  (1011601640, 1013299215),
     "ER1test": (1010944815, 1011601640),  # Pre ER1
     "S6"  : (931035296, 971622087),
@@ -161,7 +169,10 @@ midQ = Optional(Suppress(Keyword("mid:"))) + (mid^midRange)
 midQ = midQ.setParseAction(maybeRange("mid", dbname="id"))
 
 # Submitter
-# 6 Dec. 2016: Tanner and Alex added icontains functionality for submitter to enable simpler search patterns. To be more specific, users will have to use more complex search patterns. Last name matching functionality is primarily for searching for robot users.
+# 6 Dec. 2016: Tanner and Alex added icontains functionality for submitter,
+# in order to enable simpler search patterns. For more specific searches, users
+# will have to use more complex search patterns. Last name matching
+# functionality is primarily for searching for robot users.
 submitter = QuotedString('"').setParseAction(lambda toks: Q(submitter__username__icontains=toks[0]) | Q(submitter__last_name__icontains=toks[0]))
 submitterQ = Optional(Suppress(Keyword("submitter:"))) + submitter
 submitterQ = submitterQ.setParseAction(lambda toks: ("submitter", toks[0]))
