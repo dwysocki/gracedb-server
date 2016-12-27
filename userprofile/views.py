@@ -167,30 +167,35 @@ def testContact(request, id):
     if request.user != c.user:
         return HttpResponseForbidden("NO!")
     else:
-        flash_msg = "Testing contact %s." % c.desc
+        flash_msg = 'Testing contact "{0}".'.format(c.desc)
         hostname = socket.gethostname()
         if c.email:
             # Send test e-mail
             try:
-                subject = "Test of contact %s from %s" % (c.desc, hostname)
-                message = ("This is test of contact %s on server %s," 
-                           " e-mailed to %s") % (c.desc, hostname, c.email) 
+                subject = 'Test of contact "{0}" from {1}' \
+                          .format(c.desc, hostname)
+                message = ('This is test e-mail from https://{0}.ligo.org to'
+                           ' verify your information for contact "{1}".') \
+                          .format(hostname, c.desc)
                 email = EmailMessage(subject, message, settings.SERVER_EMAIL, 
                                      [c.email], [])
                 email.send()
             except:
-                flash_msg += " Error sending test e-mail to %s." % c.email
+                flash_msg += " Error sending test e-mail to {0}." \
+                             .format(c.email)
         if c.phone:
             # Send test phone alert
             try:
+                # Get "from" phone number.
                 from_ = get_twilio_from()
+                # Construct URL of TwiML bin
                 twiml_url = settings.TWIML_BASE_URL + settings.TWILIO_TEST_KEY
-                twiml_url += '?server={0}&type={1}'.format(
-                    hostname,hostname.split('-')[1])
+                twiml_url += "?server={0}".format(hostname)
+                # Make call
                 twilio_client.calls.create(c.phone, from_, twiml_url,
                                            method='GET')
-            except Exception as e:
-                flash_msg += " Error calling %s." % e
+            except:
+                flash_msg += " Error calling {0}.".format(c.phone)
 
         request.session['flash_msg'] = flash_msg
         return index(request)
