@@ -2,7 +2,7 @@ from django import forms
 from models import Trigger, Contact
 
 from gracedb.query import parseLabelQuery
-from gracedb.pyparsing import ParseException
+from pyparsing import ParseException
 
 def triggerFormFactory(postdata=None, user=None):
     class TF(forms.ModelForm):
@@ -41,7 +41,6 @@ def triggerFormFactory(postdata=None, user=None):
         return TF(postdata)
     else:
         return TF()
-
 
 # 11/29/2016 (TP): pretty sure this is deprecated in favor of
 # triggerFormFactory; may remove at a later date.

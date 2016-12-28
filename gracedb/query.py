@@ -65,6 +65,9 @@ gpsQ = gpsQ.setParseAction(maybeRange("gpstime"))
 
 # run ids
 runmap = {
+    # Nov 30 16:00:00 UTC 2016 - ?
+    # (end date currently set to Apr 1 00:00:00 UTC 2017) (TP's guess)
+    "O2A" :     (1164556817, 1175040018),
     # Friday, Sept 18th, 10 AM CDT - Tuesday, Jan 12th, 10:00 AM CST
     "O1"  :     (1126623617, 1136649617),
     # Monday, Aug 17th, 10 AM CDT - Friday, Sept 18th, 10 AM CDT 
@@ -94,26 +97,27 @@ runmap = {
 runid = Or(map(CaselessLiteral, runmap.keys())).setName("run id")
 #runidList = OneOrMore(runid).setName("run id list")
 runQ = (Optional(Suppress(Keyword("runid:"))) + runid)
-runQ = runQ.setParseAction(lambda toks: ("gpstime", Q(gpstime__range=runmap[toks[0]])))
-                          #lambda toks: ("gpstime", Q("gpstime__range": runmap[toks[0]])) )
+runQ = runQ.setParseAction(lambda toks: ("gpstime", Q(gpstime__range=
+                                                        runmap[toks[0]])))
 
 # Analysis Groups
 # XXX Querying the database at module compile time is a bad idea!
 # See: https://docs.djangoproject.com/en/1.8/topics/testing/overview/
-
 groupNames = [group.name for group in models.Group.objects.all()]
 group = Or(map(CaselessLiteral, groupNames)).setName("analysis group name")
 #groupList = delimitedList(group, delim='|').setName("analysis group list")
 groupList = OneOrMore(group).setName("analysis group list")
 groupQ = (Optional(Suppress(Keyword("group:"))) + groupList)
-groupQ = groupQ.setParseAction(lambda toks: ("group", Q(group__name__in=toks.asList())))
+groupQ = groupQ.setParseAction(lambda toks: ("group",
+                                             Q(group__name__in=toks.asList())))
 
 # Pipeline
 pipelineNames = [pipeline.name for pipeline in models.Pipeline.objects.all()]
 pipeline = Or(map(CaselessLiteral, pipelineNames)).setName("pipeline name")
 pipelineList = OneOrMore(pipeline).setName("pipeline list")
 pipelineQ = (Optional(Suppress(Keyword("pipeline:"))) + pipelineList)
-pipelineQ = pipelineQ.setParseAction(lambda toks: ("pipeline", Q(pipeline__name__in=toks.asList())))
+pipelineQ = pipelineQ.setParseAction(lambda toks: ("pipeline",
+                                     Q(pipeline__name__in=toks.asList())))
 
 # Search
 searchNames = [search.name for search in models.Search.objects.all()]
@@ -125,45 +129,39 @@ search = Or(map(CaselessLiteral, searchNames)).setName("search name")
 # literal 'event'.
 eventLiteral = CaselessLiteral('event')
 #searchList = OneOrMore(search).setName("search list")
-searchList = OneOrMore(search + ~FollowedBy(eventLiteral)).setName("search list")
+searchList = OneOrMore(search + ~FollowedBy(eventLiteral)) \
+                      .setName("search list")
 searchQ = (Optional(Suppress(Keyword("search:"))) + searchList)
-searchQ = searchQ.setParseAction(lambda toks: ("search", Q(search__name__in=toks.asList())))
-
-# Analysis Types
-#atypeNames = encodeType.keys()
-#atype = Or(map(CaselessLiteral, atypeNames))
-#atypeList = delimitedList(atype, delim='|').\
-#            setName("analylsis type list").\
-#            setResultsName("atypes")
-#atypeQ = (Optional(Suppress(Keyword("type:"))) + atypeList).\
-#            setParseAction(doType)
+searchQ = searchQ.setParseAction(lambda toks:
+                                 ("search", Q(search__name__in=toks.asList()))
+                                )
 
 # Gracedb ID
-gid = Suppress("G")+Word("0123456789")
+gid = Suppress(Word("gG", max=1)) + Word("0123456789")
 gidRange = gid + Suppress("..") + gid
 gidQ = Optional(Suppress(Keyword("gid:"))) + (gid^gidRange)
-gidQ = gidQ.setParseAction(maybeRange("id"))
+gidQ = gidQ.setParseAction(maybeRange("gid", dbname="id"))
 
 # hardware injection id
-hid = Suppress("H")+Word("0123456789")
+hid = Suppress(Word("hH", max=1)) + Word("0123456789")
 hidRange = hid + Suppress("..") + hid
 hidQ = Optional(Suppress(Keyword("hid:"))) + (hid^hidRange)
 hidQ = hidQ.setParseAction(maybeRange("hid", dbname="id"))
 
 # test event id
-tid = Suppress("T")+Word("0123456789")
+tid = Suppress(Word("tT", max=1)) + Word("0123456789")
 tidRange = tid + Suppress("..") + tid
 tidQ = Optional(Suppress(Keyword("tid:"))) + (tid^tidRange)
 tidQ = tidQ.setParseAction(maybeRange("tid", dbname="id"))
 
 # External trigger event id
-eid = Suppress("E")+Word("0123456789")
+eid = Suppress(Word("eE", max=1)) + Word("0123456789")
 eidRange = eid + Suppress("..") + eid
 eidQ = Optional(Suppress(Keyword("eid:"))) + (eid^eidRange)
 eidQ = eidQ.setParseAction(maybeRange("eid", dbname="id"))
 
 # MDC event id
-mid = Suppress("M")+Word("0123456789")
+mid = Suppress(Word("mM", max=1)) + Word("0123456789")
 midRange = mid + Suppress("..") + mid
 midQ = Optional(Suppress(Keyword("mid:"))) + (mid^midRange)
 midQ = midQ.setParseAction(maybeRange("mid", dbname="id"))
@@ -173,7 +171,10 @@ midQ = midQ.setParseAction(maybeRange("mid", dbname="id"))
 # in order to enable simpler search patterns. For more specific searches, users
 # will have to use more complex search patterns. Last name matching
 # functionality is primarily for searching for robot users.
-submitter = QuotedString('"').setParseAction(lambda toks: Q(submitter__username__icontains=toks[0]) | Q(submitter__last_name__icontains=toks[0]))
+submitter = QuotedString('"').setParseAction(lambda toks:
+    Q(submitter__username__icontains=toks[0])
+    | Q(submitter__last_name__icontains=toks[0])
+)
 submitterQ = Optional(Suppress(Keyword("submitter:"))) + submitter
 submitterQ = submitterQ.setParseAction(lambda toks: ("submitter", toks[0]))
 
@@ -194,7 +195,8 @@ dt.setParseAction(doTime)
 
 dtrange = dt + Suppress("..") + dt
 
-createdQ = Optional(Suppress(Keyword("created:"))) + (nltime^nltimeRange^dt^dtrange)
+createdQ = Optional(Suppress(Keyword("created:"))) \
+    + (nltime^nltimeRange^dt^dtrange)
 createdQ = createdQ.setParseAction(maybeRange("created"))
 
 # Labels
@@ -222,8 +224,10 @@ createdQ = createdQ.setParseAction(maybeRange("created"))
 #
 #labelQ_ = operatorPrecedence(label,
 #    [(minusop, 1, opAssoc.RIGHT, lambda a,b,toks: ~toks[0][0]),
-#     (orop,    2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__or__, toks[0].asList(), Q())),
-#     (andop,   2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__and__, toks[0].asList(), Q())),
+#     (orop,    2, opAssoc.LEFT,
+#        lambda a,b,toks: reduce(Q.__or__, toks[0].asList(), Q())),
+#     (andop,   2, opAssoc.LEFT,
+#        lambda a,b,toks: reduce(Q.__and__, toks[0].asList(), Q())),
 #    ]).setParseAction(lambda toks: toks[0])
 #
 #labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
@@ -238,6 +242,7 @@ rparen = Suppress(')')
 exprOperators = { "<" :  "__lt",
                   "<=":  "__lte",
                   "=" :  "",
+                  ":" :  "",
                   ">" :  "__gt",
                   ">=":  "__gte",
                 }
@@ -268,7 +273,6 @@ afloat.setParseAction(lambda toks: float("".join(toks)))
 #lhs = delimitedList(Word(alphas+'_'), '.')
 lhs = delimitedList(Word(alphanums+'_'), '.')
 lhs.setParseAction(buildDjangoQueryField)
-
 rhs = afloat | QuotedString('"')
 
 op = Or(map(Literal, exprOperators.keys()))
@@ -288,8 +292,10 @@ minusop = oneOf("- ~").suppress()
 
 attrExpressions = operatorPrecedence(term,
     [(minusop, 1, opAssoc.RIGHT, lambda a,b,toks: ~toks[0][0]),
-     (orop,    2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__or__, toks[0].asList(), Q())),
-     (andop,   2, opAssoc.LEFT,  lambda a,b,toks: reduce(Q.__and__, toks[0].asList(), Q())),
+     (orop,    2, opAssoc.LEFT,
+        lambda a,b,toks: reduce(Q.__or__, toks[0].asList(), Q())),
+     (andop,   2, opAssoc.LEFT,
+        lambda a,b,toks: reduce(Q.__and__, toks[0].asList(), Q())),
     ]).setParseAction(lambda toks: toks[0])
 
 #attributeQ = lparen + attrExpressions + rparen
@@ -300,6 +306,11 @@ attributeQ.setParseAction(lambda toks: ("attr", toks[0]))
 
 ifoList = Regex(r'(L1|H1|H2|V1)(,(L1|H1|H2|V1))*')
 ifoList.setParseAction(lambda toks: ("ifos", Q(instruments__contains=toks[0])))
+
+# 12/28/2016 (TP): may be useful for future
+#ifoList = Regex(r'(L1|H1|H2|V1)(,(L1|H1|H2|V1))*')
+#ifoList.setParseAction(lambda toks: ("ifos", reduce(Q.__and__,
+#    [Q(instruments__contains=ifo) for ifo in toks[0].split(',')])))
 
 ifoListQ = Optional(Suppress(Keyword("ifos:"))) + ifoList
 
@@ -320,9 +331,9 @@ andTheseTags = ["nevents"]
 def parseQuery(s):
     # labelQ is defined inside in order to avoid a compile-time database query
     # to get the label names.
-    # Note the parse action for lableQ: Replace all tokens with the empty
+    # Note the parse action for labelQ: Replace all tokens with the empty
     # string. This basically has the effect of removing any label query terms
-    # from the query string. 
+    # from the query string.
     labelNames = [l.name for l in models.Label.objects.all()]
     #label = Or([CaselessLiteral(n) for n in labelNames]).\
     label = Or([CaselessKeyword(n) for n in labelNames]).\
@@ -340,13 +351,18 @@ def parseQuery(s):
     s = labelQ.transformString(s)
 
     # A parser for the non-label-related remainder of the query string.
-    q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | eidQ | midQ | searchQ | pipelineQ | groupQ | gpsQ | createdQ | submitterQ | runQ | attributeQ).setName("query term")
+    q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | eidQ | midQ | searchQ 
+         | pipelineQ | groupQ | gpsQ | createdQ | submitterQ | runQ
+         | attributeQ
+        ).setName("query term")
 
     d={}
     if not s:
-        # Empty query return everything not in Test group and not in the MDC group
+        # Empty query return everything not in Test group
+        # and not in the MDC group
         return ~Q(group__name="Test") & ~Q(search__name="MDC")
-    for (tag, qval) in (stringStart + OneOrMore(q) + stringEnd).parseString(s).asList():
+    for (tag, qval) in (stringStart + OneOrMore(q) + stringEnd) \
+                        .parseString(s).asList():
         if tag in andTheseTags:
             d[tag] = d.get(tag,Q()) & qval
         else:
@@ -373,12 +389,12 @@ def parseQuery(s):
     if "mid" in d:
         d["mid"] = d["mid"] & Q(search__name="MDC")
     if "id" in d:
-        d["id"] = d["id"] & ~Q(pipeline__name="HardwareInjection") & ~Q(group__name="External")
+        d["id"] = d["id"] & ~Q(pipeline__name="HardwareInjection") \
+                  & ~Q(group__name="External")
     if "id" in d and "hid" in d:
         d["id"] = d["id"] | d["hid"]
         del d["hid"]
     return reduce(Q.__and__, d.values(), Q())
-
 
 #--------------------------------------------------------------------------
 # Given a query string, separate out the label-related part, and return it
@@ -447,7 +463,8 @@ def handle_binary_ops(toks, op="or"):
         rightQS = toks[i+1]
 
         # Check. The list items surrounding our operator need to be QuerySets
-        if not isinstance(leftQS, QuerySet) or not isinstance(rightQS, QuerySet):
+        if (not isinstance(leftQS, QuerySet)
+            or not isinstance(rightQS, QuerySet)):
             raise ValueError("problem with query. Orphaned operator?")
 
         # Combine the two QuerySets
@@ -478,7 +495,6 @@ def handle_binary_ops(toks, op="or"):
 # filter the queryset for those label terms.
 #--------------------------------------------------------------------------
 def filter_for_labels(qs, queryString):
-    import logging
     if not queryString or len(queryString)==0:
         return qs
 
@@ -491,8 +507,8 @@ def filter_for_labels(qs, queryString):
     not_indices = [i for i, x in enumerate(toks) if x == '~' or x=='-']
     for i in not_indices:
         if not isinstance(toks[i+1], Q):
-            raise ValueError("NOT operator should preceed a Label name. Bad Query.")
-
+            raise ValueError("NOT operator should precede a Label name."
+                             " Bad Query.")
         toks[i+1] = ~toks[i+1]
 
     # Now that we've applied the NOTs, remove them from the list
