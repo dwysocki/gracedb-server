@@ -30,7 +30,7 @@ changes to the GraceDB server codebase. Here's how I like to go about it.
     WSGI script file, since the daemon monitors this file for any changes::
 
         cd /home/gracedb/wsgi
-        touch wsgi.py
+        touch django.wsgi
 
 #.  Iterate until the code is in a state that you like. If the process is 
     involved, you may want to make several commits along the way:: 
@@ -46,7 +46,7 @@ changes to the GraceDB server codebase. Here's how I like to go about it.
         export TEST_SERVICE='https://gracedb-test.ligo.org/api/'
         python test.py
 
-#.  If everythingg looks good, go back to gracedb-test, merge our branch into
+#.  If everything looks good, go back to gracedb-test, merge our branch into
     master, and push it::
 
         cd /home/gracedb/gracedb
@@ -64,7 +64,7 @@ changes to the GraceDB server codebase. Here's how I like to go about it.
 
 #.  As with the test machine, you'll need to touch the WSGI script as well::
 
-        touch gracedb/wsgi/wsgi.py
+        touch gracedb/wsgi/django.wsgi
 
 And now your new feature or bugfix should be live on the production machine.
 The scenario I've outlined above is more-or-less the simplest way things can 
