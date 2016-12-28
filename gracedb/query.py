@@ -137,31 +137,31 @@ searchQ = searchQ.setParseAction(lambda toks:
                                 )
 
 # Gracedb ID
-gid = Suppress(Word("gG", max=1)) + Word("0123456789")
+gid = Suppress(Word("gG", exact=1)) + Word("0123456789")
 gidRange = gid + Suppress("..") + gid
 gidQ = Optional(Suppress(Keyword("gid:"))) + (gid^gidRange)
 gidQ = gidQ.setParseAction(maybeRange("gid", dbname="id"))
 
 # hardware injection id
-hid = Suppress(Word("hH", max=1)) + Word("0123456789")
+hid = Suppress(Word("hH", exact=1)) + Word("0123456789")
 hidRange = hid + Suppress("..") + hid
 hidQ = Optional(Suppress(Keyword("hid:"))) + (hid^hidRange)
 hidQ = hidQ.setParseAction(maybeRange("hid", dbname="id"))
 
 # test event id
-tid = Suppress(Word("tT", max=1)) + Word("0123456789")
+tid = Suppress(Word("tT", exact=1)) + Word("0123456789")
 tidRange = tid + Suppress("..") + tid
 tidQ = Optional(Suppress(Keyword("tid:"))) + (tid^tidRange)
 tidQ = tidQ.setParseAction(maybeRange("tid", dbname="id"))
 
 # External trigger event id
-eid = Suppress(Word("eE", max=1)) + Word("0123456789")
+eid = Suppress(Word("eE", exact=1)) + Word("0123456789")
 eidRange = eid + Suppress("..") + eid
 eidQ = Optional(Suppress(Keyword("eid:"))) + (eid^eidRange)
 eidQ = eidQ.setParseAction(maybeRange("eid", dbname="id"))
 
 # MDC event id
-mid = Suppress(Word("mM", max=1)) + Word("0123456789")
+mid = Suppress(Word("mM", exact=1)) + Word("0123456789")
 midRange = mid + Suppress("..") + mid
 midQ = Optional(Suppress(Keyword("mid:"))) + (mid^midRange)
 midQ = midQ.setParseAction(maybeRange("mid", dbname="id"))
