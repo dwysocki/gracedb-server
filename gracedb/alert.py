@@ -10,6 +10,7 @@ from permission_utils import is_external
 import json
 
 import logging
+log = logging.getLogger(__name__)
 
 from django_twilio.client import twilio_client
 
@@ -28,7 +29,6 @@ if settings.USE_LVALERT_OVERSEER:
     from ligo.overseer.overseer_client import send_to_overseer
     from multiprocessing import Process, Manager
 
-log = logging.getLogger('gracedb.alert')
 
 def get_twilio_from():
     for from_ in twilio_client.phone_numbers.iter():
@@ -104,12 +104,16 @@ def make_twilio_calls(event, twilio_recips, alert_type, **kwargs):
             # even be able to sign up with a phone number, but this is another
             # safety measure.
             if not is_external(recip.user):
-                log.info('calling %s', recip.user.username)
-                twilio_client.calls.create(recip.phone, from_, twiml_url, method='GET')
+                log.info('calling {0} at {1}' \
+                         .format(recip.user.username, recip.phone))
+                twilio_client.calls.create(recip.phone, from_, twiml_url, 
+                                           method='GET')
             else:
-                log.info('user %s is not an LVC member, call not made' % recip.user.username)
+                log.info('user {0} is not an LVC member, call not made' \
+                         .format(recip.user.username))
         except:
-            log.exception('Failed to create call')
+            log.exception('Failed to create call to {0} at {1} ' \
+                          .format(recip.user.username, recip.phone))
 
 def issueAlert(event, location, event_url, serialized_object=None):
     issueXMPPAlert(event, location, serialized_object=serialized_object)

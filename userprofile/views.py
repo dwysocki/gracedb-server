@@ -13,6 +13,9 @@ from django.db.models import Q
 
 from django_twilio.client import twilio_client
 import socket
+# Set up logger
+import logging
+log = logging.getLogger(__name__)
 
 from .models import Trigger, Contact
 from .forms import ContactForm, triggerFormFactory
@@ -179,9 +182,12 @@ def testContact(request, id):
                 email = EmailMessage(subject, message, settings.SERVER_EMAIL, 
                                      [c.email], [])
                 email.send()
+                log.debug('Sent test e-mail to {0}'.format(c.email))
             except:
                 flash_msg += " Error sending test e-mail to {0}." \
                              .format(c.email)
+                log.exception('Error sending test e-mail to {0}'.format(c.email))
+
         if c.phone:
             # Send test phone alert
             try:
@@ -193,8 +199,10 @@ def testContact(request, id):
                 # Make call
                 twilio_client.calls.create(c.phone, from_, twiml_url,
                                            method='GET')
+                log.debug('Making test call to {0}'.format(c.phone))
             except:
-                flash_msg += " Error calling {0}.".format(c.phone)
+                flash_msg += " Error making test call to {0}.".format(c.phone)
+                log.exception('Error making test call to {0}'.format(c.phone))
 
         request.session['flash_msg'] = flash_msg
         return index(request)
