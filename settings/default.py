@@ -374,15 +374,15 @@ LOGGING = {
     },
     'handlers': {
         'null': {
-            'level':'DEBUG',
-            'class':'django.utils.log.NullHandler',
+            'level': 'DEBUG',
+            'class': 'django.utils.log.NullHandler',
         },
         'info_file': {
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'formatter': 'simple',
             'filename': '%s/gracedb_info.log' % LOG_ROOT,
             'when': 'midnight',
-            'backupCount' : 10,
+            'backupCount': 10,
         },
         'performance_file': {
             'class': 'logging.FileHandler',
@@ -403,7 +403,7 @@ LOGGING = {
         'gracedb': {
             'handlers': ['info_file'],
             'propagate': True,
-            'level' : 'INFO',
+            'level': 'INFO',
         },
         'middleware': {
             'handlers': ['performance_file'],
@@ -412,8 +412,8 @@ LOGGING = {
         },
         'django.request': {
             'handlers': ['mail_admins'],
-            'level': 'ERROR',
             'propagate': False,
+            'level': 'ERROR',
         },
    },
 }

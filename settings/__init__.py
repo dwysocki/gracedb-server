@@ -11,7 +11,10 @@ try:
     # http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=473584
     # http://bugs.python.org/setuptools/issue36
     # import MySQLdb followed by import pkg_resources complains
-    #   /usr/lib/python2.6/dist-packages/pytz/__init__.py:32: UserWarning: Module _mysql was already imported from /usr/lib/pymodules/python2.6/_mysql.so, but /usr/lib/pymodules/python2.6 is being added to sys.path
+    #   /usr/lib/python2.6/dist-packages/pytz/__init__.py:32: 
+    #     UserWarning: Module _mysql was already imported from
+    #     /usr/lib/pymodules/python2.6/_mysql.so, but
+    #     /usr/lib/pymodules/python2.6 is being added to sys.path
     import pkg_resources
 except:
     pass
@@ -36,11 +39,12 @@ configs = {
 
 
 # Get custom settings file from configs dict, but
-# default to production if key not found.
+# default to production if ROOT_PATH key not found.
 config = configs.get(ROOT_PATH, "production")
 
 # If host is gracedb-test, use custom test settings.
-if socket.gethostname() == 'gracedb-test':
+hostname = socket.gethostname()
+if (hostname == 'gracedb-test'):
     config = 'test'
 
 # Import custom settings
