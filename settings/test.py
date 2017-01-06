@@ -1,4 +1,4 @@
-from settings_secret import *
+from settings_secret import TEST_DB_PASSWORD
 import logging
 from cloghandler import ConcurrentRotatingFileHandler
 
@@ -41,7 +41,7 @@ CACHES = {
 
 # Email settings
 SERVER_EMAIL = "GraceDB Test <gracedb@gracedb-test.cgca.uwm.edu>"
-ALERT_EMAIL_FROM = "GraceDB Test <gracedb@gracedb-test.cgca.uwm.edu>"
+ALERT_EMAIL_FROM = SERVER_EMAIL
 ALERT_EMAIL_TO = []
 ALERT_EMAIL_BCC = []
 ALERT_TEST_EMAIL_FROM = \
@@ -71,13 +71,13 @@ XMPP_ALERT_CHANNELS = [
                       ]
  
 MIDDLEWARE_CLASSES = [
+    'middleware.performance.PerformanceMiddleware',
     'middleware.accept.AcceptMiddleware',
     'middleware.cli.CliExceptionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'ligoauth.middleware.auth.LigoAuthMiddleware',
-    'middleware.performance.PerformanceMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
     #'debug_panel.middleware.DebugPanelMiddleware',
     #'middleware.profiling.ProfileMiddleware',
@@ -100,114 +100,13 @@ INSTALLED_APPS = (
 )
 
 INTERNAL_IPS = (
-    #'129.89.57.72',
     '129.89.57.83',
 )
 
+# Why are these different from production?
 CONTROL_ROOM_IPS = {
     'H1': '108.45.69.217',
     'L1': '129.2.92.124',
 #    'L1': '129.89.57.83',
 }
 
-# Everything below here is logging. ###########################################
-
-LOG_ROOT = '/home/gracedb/logs'
-LOG_FILE_SIZE = 1024*1024 # 1 MB
-LOG_FILE_BAK_CT = 3
-LOG_FORMAT = 'extra_verbose'
-LOG_LEVEL = 'DEBUG'
-
-# Note that mode for log files is 'a' (append) by default
-# The 'level' specifier on the handle is optional, and we
-# don't need it since we're using custom filters.
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers' : True,
-    'formatters': {
-        'simple': {
-            'format': '%(asctime)s | %(message)s',
-            'datefmt': '%Y-%m-%d %H:%M:%S',
-        },
-        'verbose': {
-            'format': '%(asctime)s | %(name)s | %(message)s',
-            'datefmt': '%Y-%m-%d %H:%M:%S',
-        },
-        'extra_verbose': {
-            'format': '%(asctime)s.%(msecs)03d | %(name)s | %(levelname)s | ' \
-                      + '%(filename)s, line %(lineno)s:\n\t%(message)s',
-            'datefmt': '%Y-%m-%d %H:%M:%S',
-        }
-    },
-    'handlers': {
-        'null': {
-            'level': 'DEBUG',
-            'class': 'django.utils.log.NullHandler',
-        },
-        'info_file': {
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'formatter': 'simple',
-            'filename': '%s/gracedb_info.log' % LOG_ROOT,
-            'when': 'midnight',
-            'backupCount': 10,
-            'level': 'INFO',
-        },
-        'debug_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': LOG_FORMAT,
-            'filename': '%s/gracedb_debug.log' % LOG_ROOT,
-            'maxBytes': LOG_FILE_SIZE,
-            'backupCount': LOG_FILE_BAK_CT,
-            'level': 'DEBUG',
-        },
-        'test_file': {
-            'class': 'logging.handlers.ConcurrentRotatingFileHandler',
-            'formatter': LOG_FORMAT,
-            'filename': '%s/gracedb_test.log' % LOG_ROOT,
-            'maxBytes': LOG_FILE_SIZE,
-            'backupCount': LOG_FILE_BAK_CT,
-            'level': 'DEBUG',
-        },
-        'performance_file': {
-            'class': 'logging.FileHandler',
-            'formatter': 'simple',
-            'filename': '%s/gracedb_performance.log' % LOG_ROOT,
-        },
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['null'],
-            'propagate': True,
-            'level': 'INFO',
-        },
-        'gracedb': {
-            'handlers': ['debug_file','info_file','test_file'],
-            'propagate': True,
-            'level': LOG_LEVEL,
-        },
-        'ligoauth': {
-            'handlers': ['debug_file'],
-            'propagate': True,
-            'level': LOG_LEVEL,
-        },
-        'userprofile': {
-            'handlers': ['debug_file'],
-            'propagate': True,
-            'level': LOG_LEVEL,
-        },
-        'middleware': {
-            'handlers': ['performance_file'],
-            'propagate': True,
-            'level': 'INFO',
-        },
-       'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-   },
-}
