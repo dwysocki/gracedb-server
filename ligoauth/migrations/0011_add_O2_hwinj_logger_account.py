@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 from django.db import migrations, models
 from django.conf import settings
-#from django.contrib.contenttypes.models import ContentType
 
 ROBOT = {'username': 'hinj',
          'first_name': '',
