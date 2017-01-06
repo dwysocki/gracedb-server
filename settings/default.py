@@ -13,7 +13,6 @@ USE_TZ = True
 ALLOWED_HOSTS = ['*']
 
 DEBUG = False
-TEMPLATE_DEBUG = DEBUG
 MAINTENANCE_MODE = False
 
 ADMINS = (
@@ -242,15 +241,16 @@ TEMPLATES = [
         ],
         'APP_DIRS': True,
         'OPTIONS': {
+            'debug': True,
             'context_processors': [
                 # Defaults
                 'django.contrib.auth.context_processors.auth',
-                'django.core.context_processors.debug',
-                'django.core.context_processors.i18n',
-                'django.core.context_processors.media',
-                'django.core.context_processors.static',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
                 # Extra additions
-                'django.core.context_processors.request',
+                'django.template.context_processors.request',
                 'gracedb.middleware.auth.LigoAuthContext',
                 'middleware.debug.LigoDebugContext',
                 'ligoauth.context_processors.shib_login_url',

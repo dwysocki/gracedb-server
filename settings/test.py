@@ -4,8 +4,6 @@ CONFIG_NAME = "TEST"
 
 # Debug settings
 DEBUG = True
-# Template debugging help
-TEMPLATE_DEBUG = DEBUG
 # Don't let debug toolbar edit settings
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
 
