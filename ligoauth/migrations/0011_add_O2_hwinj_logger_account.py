@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 from django.db import migrations, models
 from django.conf import settings
+#from django.contrib.contenttypes.models import ContentType
 
 ROBOT = {'username': 'hinj',
          'first_name': '',
@@ -12,6 +13,7 @@ ROBOT = {'username': 'hinj',
          'is_staff': False,
          'is_superuser': False
 }
+
 # Certificate for nagios user on gracedb.
 CERT_SUBJ = '/DC=org/DC=ligo/O=LIGO/OU=Services/CN=hinj/ldas-grid.ligo.caltech.edu'
 
@@ -20,6 +22,9 @@ def create_robot(apps, schema_editor):
     X509Cert = apps.get_model('ligoauth','X509Cert')
     Group = apps.get_model('auth','Group')
     Permission = apps.get_model('auth','Permission')
+    Pipeline = apps.get_model('gracedb','Pipeline')
+    UserObjectPermission = apps.get_model('guardian','UserObjectPermission')
+    ContentType = apps.get_model('contenttypes','ContentType')
 
     lvc_group = Group.objects.get(name=settings.LVC_GROUP)
     add_event_perm = Permission.objects.get(codename='add_event')
@@ -33,6 +38,15 @@ def create_robot(apps, schema_editor):
     # Give user permission to add events
     if add_event_perm not in user.user_permissions.all():
         user.user_permissions.add(add_event_perm)
+
+    # Set up ability for user to populate for HardwareInjection pipeline.
+    p = Permission.objects.get(codename='populate_pipeline')
+    ctype = ContentType.objects.get(app_label='gracedb', model='pipeline')
+    hwinj_pipeline = Pipeline.objects.get(name='HardwareInjection')
+
+    # Create UserObjectPermission
+    UserObjectPermission.objects.create(user=user, permission=p, 
+        content_type=ctype, object_pk=hwinj_pipeline.id)
 
     # Save user
     user.save()
@@ -50,9 +64,17 @@ def create_robot(apps, schema_editor):
 def delete_robot(apps, schema_editor):
     LocalUser = apps.get_model('ligoauth','LocalUser')
     X509Cert = apps.get_model('ligoauth','X509Cert')
+    UserObjectPermission = apps.get_model('guardian','UserObjectPermission')
+
+    # Get user
+    user = LocalUser.objects.get(username=ROBOT['username'])
+
+    # Delete UserObjectPermission objects.
+    for uop in user.userobjectpermission_set.all():
+        uop.delete()
 
     # Delete user.
-    LocalUser.objects.get(username=ROBOT['username']).delete()
+    user.delete() 
 
     # Delete cert.
     X509Cert.objects.get(subject=CERT_SUBJ).delete()
