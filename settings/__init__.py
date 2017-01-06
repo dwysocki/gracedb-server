@@ -50,7 +50,7 @@ if (hostname == 'gracedb-test'):
 # Import custom settings
 settings_module = __import__('%s' % config, globals(), locals(), 'gracedb')
 
-# Load the custom config settings properties into the local scope.
+# Load custom settings for this server into the local scope.
 for setting in dir(settings_module):
     if setting == setting.upper():
         locals()[setting] = getattr(settings_module, setting)
