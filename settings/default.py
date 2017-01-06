@@ -1,8 +1,11 @@
-from settings_secret import *
 from utils import posixToGpsTime
 from datetime import datetime, timedelta
 import time
 import logging
+from cloghandler import ConcurrentRotatingFileHandler
+
+from settings_secret import *
+
 
 USE_TZ = True
 

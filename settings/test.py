@@ -1,6 +1,4 @@
 from settings_secret import TEST_DB_PASSWORD
-import logging
-from cloghandler import ConcurrentRotatingFileHandler
 
 CONFIG_NAME = "TEST"
 
