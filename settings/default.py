@@ -380,37 +380,74 @@ CONTROL_ROOM_IPS = {
     'L1': '208.69.128.41',
 }
 
+# Everything below here is logging. ###########################################
+
 # XXX The following Log settings are for a performance metric.
 import logging
-LOG_ROOT = '/home/gracedb/logs'
+from cloghandler import ConcurrentRotatingFileHandler
 
 # Filter objects to separate out each level of alert.
+# Currently unused (TP 1/6/2017)
 class infoOnlyFilter(logging.Filter):
     def filter(self,record):
         if record.levelname=='INFO':
             return 1
         return 0
 
+LOG_ROOT = '/home/gracedb/logs'
+LOG_FILE_SIZE = 1024*1024 # 1 MB
+LOG_FILE_BAK_CT = 10
+LOG_FORMAT = 'extra_verbose'
+LOG_LEVEL = 'DEBUG'
+
+# Note that mode for log files is 'a' (append) by default
+# The 'level' specifier on the handle is optional, and we
+# don't need it since we're using custom filters.
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers' : True,
+    'disable_existing_loggers': True,
     'formatters': {
         'simple': {
-            'format': '%(asctime)s: %(message)s',
-            'datefmt': '%Y-%m-%dT%H:%M:%S',
+            'format': '%(asctime)s | %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
         },
+        'verbose': {
+            'format': '%(asctime)s | %(name)s | %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+        'extra_verbose': {
+            'format': '%(asctime)s.%(msecs)03d | %(name)s | %(levelname)s | ' \
+                      + '%(filename)s, line %(lineno)s | %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        }
     },
     'handlers': {
         'null': {
-            'level':'DEBUG',
-            'class':'django.utils.log.NullHandler',
+            'level': 'DEBUG',
+            'class': 'django.utils.log.NullHandler',
+        },
+        'debug_file': {
+            'class': 'logging.handlers.ConcurrentRotatingFileHandler',
+            'formatter': LOG_FORMAT,
+            'filename': '%s/gracedb_debug.log' % LOG_ROOT,
+            'maxBytes': LOG_FILE_SIZE,
+            'backupCount': LOG_FILE_BAK_CT,
+            'level': 'DEBUG',
         },
         'info_file': {
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'formatter': 'simple',
             'filename': '%s/gracedb_info.log' % LOG_ROOT,
             'when': 'midnight',
-            'backupCount' : 10,
+            'backupCount': LOG_FILE_BAK_CT,
+        },
+        'error_file': {
+            'class': 'logging.handlers.ConcurrentRotatingFileHandler',
+            'formatter': LOG_FORMAT,
+            'filename': '%s/gracedb_error.log' % LOG_ROOT,
+            'maxBytes': LOG_FILE_SIZE,
+            'backupCount': LOG_FILE_BAK_CT,
+            'level': 'ERROR',
         },
         'performance_file': {
             'class': 'logging.FileHandler',
@@ -429,9 +466,19 @@ LOGGING = {
             'level': 'INFO',
         },
         'gracedb': {
-            'handlers': ['info_file'],
+            'handlers': ['debug_file','info_file','error_file'],
             'propagate': True,
-            'level' : 'INFO',
+            'level': LOG_LEVEL,
+        },
+        'ligoauth': {
+            'handlers': ['debug_file','info_file','error_file'],
+            'propagate': True,
+            'level': LOG_LEVEL,
+        },
+        'userprofile': {
+            'handlers': ['debug_file','info_file','error_file'],
+            'propagate': True,
+            'level': LOG_LEVEL,
         },
         'middleware': {
             'handlers': ['performance_file'],
@@ -445,3 +492,4 @@ LOGGING = {
         },
    },
 }
+
