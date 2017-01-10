@@ -440,6 +440,7 @@ LOGGING = {
             'filename': '%s/gracedb_info.log' % LOG_ROOT,
             'when': 'midnight',
             'backupCount': LOG_FILE_BAK_CT,
+            'level': 'INFO'
         },
         'error_file': {
             'class': 'logging.handlers.ConcurrentRotatingFileHandler',
