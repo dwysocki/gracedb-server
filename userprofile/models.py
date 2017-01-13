@@ -19,8 +19,9 @@ def validate_phone(value):
 class PhoneNumberField(models.CharField):
 
     def __init__(self, *args, **kwargs):
-        validators = kwargs.get('validators', []) + [validate_phone]
-        kwargs = dict(kwargs, max_length=255, validators=validators)
+        #validators = kwargs.get('validators', []) + [validate_phone]
+        #kwargs = dict(kwargs, max_length=255, 
+        #              validators=kwargs.get('validators',[]))
         super(PhoneNumberField, self).__init__(*args, **kwargs)
 
     def get_prep_value(self, value):
@@ -41,16 +42,16 @@ class Contact(models.Model):
     #new_user = models.ForeignKey(DjangoUser, null=True)
     desc = models.CharField(max_length=20)
     email = models.EmailField(blank=True)
-    phone = PhoneNumberField(blank=True)
+    phone = PhoneNumberField(blank=True, max_length=255,
+                             validators=[validate_phone])
+    # These fields specify whether alert should be a phone
+    # call or text (or both).
+    call_phone = models.BooleanField(default=True)
+    text_phone = models.BooleanField(default=True)
 
     def __unicode__(self):
         #return "%s: %s" % (self.user.name, self.desc)
         return u"{0} {1}: {2}".format(self.user.first_name, self.user.last_name, self.desc)
-
-    # Require at least one contact method (e-mail or phone).
-    def clean(self):
-        if not self.email and not self.phone:
-            raise ValidationError('At least one contact method (email, phone) is required')
 
 class Trigger(models.Model):
     TYPES = ( ("create", "create"), ("change","change"), ("label","label") )
