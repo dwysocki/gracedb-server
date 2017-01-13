@@ -54,38 +54,12 @@ def make_twilio_calls(event, twilio_recips, alert_type, **kwargs):
     twiml_base_url = settings.TWIML_BASE_URL
 
     if (alert_type == "create"):
-        # twiml_base_url is the URL of a TwiML Bin
-        # (https://support.twilio.com/hc/en-us/articles/230878368)
-        # with the following content:
-        #
-        #     <?xml version="1.0" encoding="UTF-8"?>
-        #     <Response>
-        #     <Say>
-        #     A {{pipeline}} event with Grace DB ID {{graceid}} was created.
-        #     </Say>
-        #     <Sms>
-        #     A {{pipeline}} event with GraceDB ID {{graceid}} was created.
-        #     https://gracedb-test.ligo.org/events/view/{{graceid}}
-        #     </Sms>
-        #     </Response>
+        # twiml_base_url is the URL of a TwiML Bin (see Twilio account)
         twiml_base_url += settings.TWILIO_CREATE_KEY
         twiml_url = '{0}?pipeline={1}&graceid={2}&server={3}'.format(
             twiml_base_url, event.pipeline.name, event.graceid(), hostname)
     elif (alert_type == "label"):
-        # twiml_base_url is the URL of a TwiML Bin
-        # (https://support.twilio.com/hc/en-us/articles/230878368)
-        # with the following content:
-        #
-        #     <?xml version="1.0" encoding="UTF-8"?>
-        #     <Response>
-        #     <Say>
-        #     A {{pipeline}} event with Grace DB ID {{graceid}} was labelled with {{label_lower}}.
-        #     </Say>
-        #     <Sms>
-        #     A {{pipeline}} event with GraceDB ID {{graceid}} was labelled with {{label}}
-        #     https://gracedb-test.ligo.org/events/view/{{graceid}}
-        #     </Sms>
-        #     </Response>
+        # twiml_base_url is the URL of a TwiML Bin (see Twilio account)
         twiml_base_url += settings.TWILIO_LABEL_KEY
         label = kwargs['label']
         twiml_url = '{0}?pipeline={1}&graceid={2}&label={3}&label_lower={4}&server={5}'.format(
@@ -100,14 +74,18 @@ def make_twilio_calls(event, twilio_recips, alert_type, **kwargs):
     # Loop over recipients and make calls.
     for recip in twilio_recips:
         try:
-            # Only make calls to LVC members. Non-LVC members shouldn't
-            # even be able to sign up with a phone number, but this is another
-            # safety measure.
-            if not is_external(recip.user):
-                log.info('calling %s', recip.user.username)
-                twilio_client.calls.create(recip.phone, from_, twiml_url, method='GET')
-            else:
-                log.info('user %s is not an LVC member, call not made' % recip.user.username)
+            # Phone contact signup requires either
+            # phone_call or phone_text to be true. 
+            if recip.phone_call:
+                log.info('calling {0} at {1}' \
+                         .format(recip.user.username, recip.phone))
+                twilio_client.calls.create(recip.phone, from_, twiml_url, 
+                                           method='GET')
+            if recip.phone_text:
+                log.info('textinging {0} at {1}' \
+                         .format(recip.user.username, recip.phone))
+                twilio_client.calls.create(recip.phone, from_, twiml_url, 
+                                           method='GET')
         except:
             log.exception('Failed to create call')
 
@@ -166,7 +144,10 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=No
         for recip in trigger.contacts.all():
             if recip.email:
                 profileRecips.append(recip.email)
-            if recip.phone:
+            if recip.phone and not is_external(recip.user):
+                # Only make calls to LVC members (non-LVC members
+                # shouldn't even be able to sign up for phone alerts,
+                # but this is another safety measure.
                 phoneRecips.append(recip)
 
     if event.search:
