@@ -13,12 +13,26 @@
             <!-- <a href="{% url "userprofile-edit-contact" contact.id %}">Edit</a> -->
             <a href="{% url "userprofile-test-contact" contact.id %}">Test</a>
             <a href="{% url "userprofile-delete-contact" contact.id %}">Delete</a>
-            {{ contact.desc }} / {{ contact.email }} {{ contact.phone }}
-            {% if contact.call_phone %}
-                Call
-            {% endif %}
-            {% if contact.text_phone %}
-                Text
+            {% comment %}
+            This next part is gross but necessary due to Django whitespace messiness.
+            {% endcomment %}
+            {{contact.desc}} |
+            {% if contact.email and contact.call_phone and contact.text_phone %}
+                Email {{contact.email}}, call/text {{contact.phone}}
+            {% elif contact.email and contact.call_phone %}
+                Email {{contact.email}}, call {{contact.phone}}
+            {% elif contact.email and contact.text_phone %}
+                Email {{contact.email}}, text {{contact.phone}}
+            {% elif contact.email %}
+                Email {{contact.email}}
+            {% elif contact.call_phone and contact.text_phone %}
+                Call/text {{contact.phone}}
+            {% elif contact.call_phone %}
+                Call {{contact.phone}}
+            {% elif contact.text_phone %}
+                Text {{contact.phone}}
+            {% else %}
+                ERROR: this contact has no contact method.
             {% endif %}
         </li>
     </ul>

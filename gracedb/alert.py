@@ -10,6 +10,7 @@ from permission_utils import is_external
 import json
 
 import logging
+log = logging.getLogger(__name__)
 
 from django_twilio.client import twilio_client
 
@@ -28,9 +29,25 @@ if settings.USE_LVALERT_OVERSEER:
     from ligo.overseer.overseer_client import send_to_overseer
     from multiprocessing import Process, Manager
 
-log = logging.getLogger('gracedb.alert')
+# Dict for managing TwiML bin arguments.
+# Should match structure of TWIML_BINS dict in
+# settings/secret_settings.py.
+TWIML_ARG_STR = {
+    'create': 'pipeline={0}&graceid={1}&server={2}',
+    'label': 'pipeline={0}&graceid={1}&label_lower={2}&server={3}',
+}
+
+# Dict for managing Twilio message contents.
+TWILIO_MSG_CONTENT = {
+    'create': ('A {pipeline} event with GraceDB ID {graceid} was created.'
+               ' https://{server}.ligo.org/events/view/{graceid}'),
+    'label': ('A {pipeline} event with GraceDB ID {graceid} was labeled with '
+              '{label}. https://{server}.ligo.org/events/view/{graceid}')
+}
+>>>>>>> 2c2239f... updates of templates, userprofile models, and alert code for separating voice and text alerts
 
 def get_twilio_from():
+    """Gets phone number which Twilio alerts come from."""
     for from_ in twilio_client.phone_numbers.iter():
         return from_.phone_number
     raise RuntimeError('Could not determine "from" Twilio phone number')
@@ -44,50 +61,61 @@ def make_twilio_calls(event, twilio_recips, alert_type, **kwargs):
         New label applied to event (Label is a GraceDB model):
             make_twilio_calls(event, twilio_recips, "label", label=Label)
 
-    Note: twilio_recips is a list of users - we need phone numbers
-          and group memberships for permission checks.
+    Note: twilio_recips is a list of User objects.
     """
     # Get server name.
     hostname = socket.gethostname()
 
-    # Base URL for TwiML bins
-    twiml_base_url = settings.TWIML_BASE_URL
-
-    if (alert_type == "create"):
-        # twiml_base_url is the URL of a TwiML Bin (see Twilio account)
-        twiml_base_url += settings.TWILIO_CREATE_KEY
-        twiml_url = '{0}?pipeline={1}&graceid={2}&server={3}'.format(
-            twiml_base_url, event.pipeline.name, event.graceid(), hostname)
-    elif (alert_type == "label"):
-        # twiml_base_url is the URL of a TwiML Bin (see Twilio account)
-        twiml_base_url += settings.TWILIO_LABEL_KEY
-        label = kwargs['label']
-        twiml_url = '{0}?pipeline={1}&graceid={2}&label={3}&label_lower={4}&server={5}'.format(
-            twiml_base_url, event.pipeline.name, event.graceid(), label.name,
-            label.name.lower(), hostname)
-    else:
-        log.exception('Failed to process alert_type in make_twilio_calls')
-
     # Get "from" phone number.
     from_ = get_twilio_from()
-    
-    # Loop over recipients and make calls.
+
+    # Compile voice URL and text message body for given alert type.
+    if (alert_type == "create"):
+        twiml_url = settings.TWIML_BASE_URL + \
+            settings.TWIML_BIN[alert_type] + "?" + \
+            TWIML_ARG_STR[alert_type].format(event.pipeline.name,
+                event.graceid(), hostname)
+        msg_body = TWILIO_MSG_CONTENT[alert_type].format(
+            pipeline=event.pipeline.name, graceid=event.graceid(),
+            server=hostname)
+    elif (alert_type == "label"):
+        twiml_url = settings.TWIML_BASE_URL + \
+            settings.TWIML_BIN[alert_type] + "?" + \
+            TWIML_ARG_STR[alert_type].format(event.pipeline.name,
+                event.graceid(), kwargs["label"].name.lower(), hostname)
+        msg_body = TWILIO_MSG_CONTENT[alert_type].format(
+            pipeline=event.pipeline.name, graceid=event.graceid(),
+            label=kwargs["label"].name, server=hostname)
+    else:
+        log.exception("Failed to process alert_type {0}".format(alert_type))
+
+    # Loop over recipients and make calls and/or texts.
     for recip in twilio_recips:
+        if is_external(recip.user):
+            # Only make calls to LVC members (non-LVC members
+            # shouldn't even be able to sign up for phone alerts,
+            # but this is another safety measure.
+            log.warning("External user {0} is somehow signed up for"
+                        " phone alerts".format(recip.user.username))
+            continue
+
         try:
-            # Phone contact signup requires either
-            # phone_call or phone_text to be true. 
-            if recip.phone_call:
-                log.info('calling {0} at {1}' \
-                         .format(recip.user.username, recip.phone))
-                twilio_client.calls.create(recip.phone, from_, twiml_url, 
-                                           method='GET')
-            if recip.phone_text:
-                log.info('textinging {0} at {1}' \
-                         .format(recip.user.username, recip.phone))
-                twilio_client.calls.create(recip.phone, from_, twiml_url, 
-                                           method='GET')
+            # POST to TwiML bin to make voice call.
+            if recip.call_phone:
+                log.debug("Calling {0} at {1}" \
+                          .format(recip.user.username, recip.phone))
+                twilio_client.calls.create(to=recip.phone, from_=from_,
+                    url=twiml_url, method='GET')
+
+            # Create Twilio message.
+            if recip.text_phone:
+                log.debug("Texting {0} at {1}" \
+                          .format(recip.user.username, recip.phone))
+                twilio_client.messages.create(to=recip.phone, from_=from_,
+                    body=msg_body)
         except:
-            log.exception('Failed to create call')
+            log.exception("Failed to contact {0} at {1}." \
+                          .format(recip.user.username, recip.phone))
 
 def issueAlert(event, location, event_url, serialized_object=None):
     issueXMPPAlert(event, location, serialized_object=serialized_object)
@@ -144,10 +172,7 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=No
         for recip in trigger.contacts.all():
             if recip.email:
                 profileRecips.append(recip.email)
-            if recip.phone and not is_external(recip.user):
-                # Only make calls to LVC members (non-LVC members
-                # shouldn't even be able to sign up for phone alerts,
-                # but this is another safety measure.
+            if recip.phone:
                 phoneRecips.append(recip)
 
     if event.search:
@@ -155,7 +180,7 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=No
     else:
         subject = "[gracedb] %s / %s / %s" % (label.name, event.pipeline.name, event.graceid())
 
-    message = "A %s event with graceid %s was labelled with %s" % \
+    message = "A %s event with graceid %s was labeled with %s" % \
               (event.pipeline.name, event.graceid(), label.name)
     if event_url:
         message += '\n\n%s' % event_url
@@ -192,7 +217,7 @@ def issueEmailAlert(event, event_url):
         fromaddress = settings.ALERT_TEST_EMAIL_FROM
         toaddresses = settings.ALERT_TEST_EMAIL_TO
         bccaddresses = []
-        twilio_recips = []
+        phoneRecips = []
     else:
         fromaddress = settings.ALERT_EMAIL_FROM
         toaddresses = settings.ALERT_EMAIL_TO
@@ -202,22 +227,18 @@ def issueEmailAlert(event, event_url):
         # See: https://bugs.ligo.org/redmine/issues/2185
         #bccaddresses = settings.ALERT_EMAIL_BCC
         bccaddresses = []
-        twilio_recips = []
+        phoneRecips = []
         pipeline = event.pipeline
         triggers = pipeline.trigger_set.filter(labels=None)
         for trigger in triggers:
             for recip in trigger.contacts.all():
-               if not trigger.farThresh:
-                   if recip.email:
-                       bccaddresses.append(recip.email)
-                   if recip.phone:
-                       twilio_recips.append(recip)
-               else:
-                   if event.far and event.far < trigger.farThresh:
-                       if recip.email:
-                           bccaddresses.append(recip.email)
-                       if recip.phone:
-                           twilio_recips.append(recip)
+                if ((event.far and event.far < trigger.farThresh)
+                    or not trigger.farThresh):
+                    if recip.email:
+                        bccaddresses.append(recip.email)
+                    if recip.phone:
+                        phoneRecips.append(recip)
+
     subject = "[gracedb] %s event. ID: %s" % (event.pipeline.name, event.graceid())
     message = """
 New Event
@@ -242,7 +263,7 @@ Event Summary:
     email.send()
 
     # Make phone calls.
-    make_twilio_calls(event, twilio_recips, "create")
+    make_twilio_calls(event, phoneRecips, "create")
 
 def issueXMPPAlert(event, location, alert_type="new", description="", serialized_object=None):
     
