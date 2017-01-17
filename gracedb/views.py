@@ -351,6 +351,7 @@ def view(request, event):
             display_far = settings.VOEVENT_FAR_FLOOR
             far_is_upper_limit = True
     context['display_far'] = display_far
+    context['display_far_yr'] = display_far * (86400*365.25) # yr^-1
     context['far_is_upper_limit'] = far_is_upper_limit
 
     # Does the user have permission to sign off on the event as the control room operator?
