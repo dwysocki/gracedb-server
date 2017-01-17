@@ -64,23 +64,6 @@ class ContactForm(forms.ModelForm):
             'phone': 'Prototype service: may not be available in the future.'
         }
 
-    def clean(self):
-        cleaned_data = super(ContactForm, self).clean()
-        email = cleaned_data.get('email')
-        phone = cleaned_data.get('phone')
-        call_phone = cleaned_data.get('call_phone')
-        text_phone = cleaned_data.get('text_phone')
-
-        # Make sure at least one contact method is provided.
-        if not email and not phone:
-            self.add_error(None,
-                "At least one contact method (email, phone) is required.")
-
-        # If using phone, require 'call' or 'text' (or both) to be chosen.
-        if phone and not (call_phone or text_phone):
-            self.add_error('phone',
-                'Choose "call" or "text" (or both) for phone alerts.')
-
     # Custom generator for table format.
     def as_table(self):
         row_head = '<tr><th><label for="id_{0}">{1}:</label></th>'
@@ -99,28 +82,28 @@ class ContactForm(forms.ModelForm):
         table_data['phone'] = (row_head + row_err +
             '<input id="id_{0}" name="{0}" type="text" />').format(
             'phone',self['phone'].label,force_text(self['phone'].errors))
-        #table_data['phone'] = ('<tr><th><label for="id_{0}">{1}:</label></th>'
-        #    + '<td><input id="id_{0}" name="{0}" type="text" />'
-        #    .format('phone',self['phone'].label))
         # Add call/text checkboxes.
         table_data['phone'] += '<br />'
-        for field in ['call_phone','text_phone']:
-            table_data['phone'] += ('{1}?<input id="id_{0}" name="{0}"'
+        table_data['phone'] += ('{1}?<input id="id_{0}" name="{0}"'
                            'type="checkbox" />&nbsp;&nbsp;'
-                           .format(field,self[field].label))
+                           .format('call_phone',self['call_phone'].label))
+        table_data['phone'] += ('{1}?<input id="id_{0}" name="{0}"'
+                           'type="checkbox" />'
+                           .format('text_phone',self['text_phone'].label))
+
         # Add phone help text.
         table_data['phone'] += ('<br /><span class="helptext">{0}</span>'
             '</td></tr>\n'.format(self['phone'].help_text))
 
-        # Add errors.
-        # NEED TO FIX THIS
-        test = ''.join([force_text(e) for e in self.non_field_errors()])
-        #table_data.insert(0,'<tr><td colspan="2">'
-        #                    + force_text(self.non_field_errors())
-        #                    + force_text(test))
+        # Get non-field errors.
+        nfe = ''.join([force_text(e) for e in self.non_field_errors()])
 
+        # Compile table_data dict into a list.
         td = [table_data[k] for k in ['desc','email','phone']]
-        if test:
-           td.insert(0,'<tr><td colspan="2"><ul><li>' + force_text(test) + '</li></ul></tr></td>')
+
+        # Add non-field errors to beginning.
+        if nfe:
+           td.insert(0,'<tr><td colspan="2"><ul><li>' + force_text(nfe) \
+                       + '</li></ul></td></tr>')
 
         return mark_safe('\n'.join(td))

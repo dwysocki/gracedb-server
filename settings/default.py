@@ -21,7 +21,7 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-# Base URL for TwiML bins
+# Base URL for TwiML bins (for Twilio)
 TWIML_BASE_URL = 'https://handler.twilio.com/twiml/'
 
 # Email settings.

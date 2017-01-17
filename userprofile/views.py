@@ -170,7 +170,7 @@ def testContact(request, id):
     except Contact.DoesNotExist:
         raise Http404
     if request.user != c.user:
-        return HttpResponseForbidden("NO!")
+        return HttpResponseForbidden("Can't edit a Contact that isn't yours.")
     else:
         flash_msg = 'Testing contact "{0}".'.format(c.desc)
         hostname = socket.gethostname()
@@ -196,15 +196,23 @@ def testContact(request, id):
                 # Get "from" phone number.
                 from_ = get_twilio_from()
                 # Construct URL of TwiML bin
-                twiml_url = settings.TWIML_BASE_URL + settings.TWILIO_TEST_KEY
-                twiml_url += "?server={0}".format(hostname)
-                # Make call
-                twilio_client.calls.create(c.phone, from_, twiml_url,
-                                           method='GET')
-                log.debug('Making test call to {0}'.format(c.phone))
+                if c.call_phone:
+                    twiml_url = settings.TWIML_BASE_URL \
+                                + settings.TWIML_BIN['test']
+                    twiml_url += "?server={0}".format(hostname)
+                    # Make call
+                    twilio_client.calls.create(to=c.phone, from_=from_,
+                        url=twiml_url, method='GET')
+                    log.debug('Making test call to {0}'.format(c.phone))
+
+                if c.text_phone:
+                    twilio_client.messages.create(to=c.phone, from_=from_,
+                        body=('This is a test message from https://{0}'
+                              '.ligo.org.').format(hostname))
+                    log.debug('Sending test text to {0}'.format(c.phone))
             except:
-                flash_msg += " Error making test call to {0}.".format(c.phone)
-                log.exception('Error making test call to {0}'.format(c.phone))
+                flash_msg += " Error contacting {0}.".format(c.phone)
+                log.exception('Error contacting {0}'.format(c.phone))
 
         request.session['flash_msg'] = flash_msg
         return index(request)

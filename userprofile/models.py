@@ -19,9 +19,6 @@ def validate_phone(value):
 class PhoneNumberField(models.CharField):
 
     def __init__(self, *args, **kwargs):
-        #validators = kwargs.get('validators', []) + [validate_phone]
-        #kwargs = dict(kwargs, max_length=255, 
-        #              validators=kwargs.get('validators',[]))
         super(PhoneNumberField, self).__init__(*args, **kwargs)
 
     def get_prep_value(self, value):
@@ -46,12 +43,43 @@ class Contact(models.Model):
                              validators=[validate_phone])
     # These fields specify whether alert should be a phone
     # call or text (or both).
-    call_phone = models.BooleanField(default=True)
-    text_phone = models.BooleanField(default=True)
+    call_phone = models.BooleanField(default=False)
+    text_phone = models.BooleanField(default=False)
 
     def __unicode__(self):
-        #return "%s: %s" % (self.user.name, self.desc)
-        return u"{0} {1}: {2}".format(self.user.first_name, self.user.last_name, self.desc)
+        return u"{0} {1}: {2}".format(self.user.first_name,
+            self.user.last_name, self.desc)
+
+    def clean(self):
+        # Mostly used for preventing creation of bad Contact
+        # objects through the Django interface.
+        super(Contact, self).clean()
+
+        # If a phone number is given, require either call or text to be True.
+        if self.phone and not (self.call_phone or self.text_phone):
+            raise ValidationError({'phone':
+                'Choose "call" or "text" (or both) for phone alerts.'})
+
+        if not self.phone and (self.call_phone or self.text_phone):
+            raise ValidationError({'phone':
+                '"Call" and "text" should be False for non-phone alerts.'})
+
+        # If no e-mail or phone given, raise error.
+        if not (self.email or self.phone):
+            raise ValidationError(('At least one contact method'
+                                  ' (email, phone) is required.'))
+
+    # Override save method by requiring fully_cleaned objects.
+    def save(self):
+        self.full_clean()
+        super(Contact, self).save()
+
+    def print_info(self):
+        """Prints information about Contact object; useful for debugging."""
+        print('Contact "{0}" (user {1}):'.format(self.desc,self.user.username))
+        print('\tE-mail: {0}'.format(self.email))
+        print('\tPhone: {0} (call={1}, text={2})'.format(self.phone,
+                self.call_phone, self.text_phone))
 
 class Trigger(models.Model):
     TYPES = ( ("create", "create"), ("change","change"), ("label","label") )
