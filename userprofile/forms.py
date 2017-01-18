@@ -1,6 +1,7 @@
 from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
+from django.forms.utils import ErrorList
 
 from .models import Trigger, Contact
 from gracedb.query import parseLabelQuery
@@ -52,6 +53,19 @@ class TriggerForm(forms.ModelForm):
         model = Trigger
         exclude = ['user', 'triggerType']
 
+def process_errors(err):
+    """Processes and formats errors in ContactForms."""
+    out_errs = []
+    if isinstance(err,ErrorList):
+        for e in err:
+            out_errs.append('<p class="error">{0}</p>'.format(e))
+    elif isinstance(err,str):
+        out_errs.append('<p class="error">{0}</p>'.format(err))
+    else:
+        out_errs.append(force_text(err))
+
+    return "\n".join(out_errs)
+
 class ContactForm(forms.ModelForm):
     # Adjust labels.
     desc = forms.CharField(label='Description')
@@ -77,34 +91,31 @@ class ContactForm(forms.ModelForm):
         # Description/email
         for field in ['desc','email']:
             table_data[field] = row_str.format(field,self[field].label,
-                                               force_text(self[field].errors),
-                                               "text")
+                process_errors(self[field].errors),"text")
+
         # Phone number
         table_data['phone'] = (row_head + row_err +
             '<input id="id_{0}" name="{0}" type="text" />').format(
-            'phone',self['phone'].label,force_text(self['phone'].errors))
+            'phone',self['phone'].label,process_errors(self['phone'].errors))
         # Add call/text checkboxes.
         table_data['phone'] += '<br />'
         table_data['phone'] += ('{1}?<input id="id_{0}" name="{0}"'
-                           'type="checkbox" />&nbsp;&nbsp;'
-                           .format('call_phone',self['call_phone'].label))
+            'type="checkbox" />&nbsp;&nbsp;'.format('call_phone',
+            self['call_phone'].label))
         table_data['phone'] += ('{1}?<input id="id_{0}" name="{0}"'
-                           'type="checkbox" />'
-                           .format('text_phone',self['text_phone'].label))
+            'type="checkbox" />'.format('text_phone',self['text_phone'].label))
 
         # Add phone help text.
         table_data['phone'] += ('<br /><span class="helptext">{0}</span>'
             '</td></tr>\n'.format(self['phone'].help_text))
 
-        # Get non-field errors.
-        nfe = ''.join([force_text(e) for e in self.non_field_errors()])
-
         # Compile table_data dict into a list.
         td = [table_data[k] for k in ['desc','email','phone']]
 
         # Add non-field errors to beginning.
+        nfe = self.non_field_errors()
         if nfe:
-           td.insert(0,'<tr><td colspan="2"><ul><li>' + force_text(nfe) \
-                       + '</li></ul></td></tr>')
+            td.insert(0,'<tr><td colspan="2">' \
+                + process_errors(nfe) + '</td></tr>')
 
         return mark_safe('\n'.join(td))

@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 from django.db.models import Q
 
 from django_twilio.client import twilio_client
@@ -136,6 +137,19 @@ def delete(request, id):
 
 @internal_user_required
 def createContact(request):
+
+    # Explanatory HTML block.
+    expl = ['<div style="padding: 10px;">',
+            '<h4>Instructions:</h4>',
+            '<ul><li>Description is required.</li>',
+            '<li>Choose a contact method (e-mail, phone, or both).</li>',
+            ('<li>For phone alerts, mark call, text, or both, depending on how'
+             ' you want to receive the alerts.</li>'),
+            '</ul></div>'
+           ]
+    expl = mark_safe("\n".join(expl))
+
+    # Handle form.
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
@@ -156,6 +170,7 @@ def createContact(request):
     return render_to_response('profile/createNotification.html',
                               { "form": form,
                                 "creating": "Contact",
+                                "explanation": expl,
                               },
                               context_instance=RequestContext(request))
 
