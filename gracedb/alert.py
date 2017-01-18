@@ -119,6 +119,7 @@ def make_twilio_calls(event, twilio_recips, alert_type, **kwargs):
 def issueAlert(event, location, event_url, serialized_object=None):
     issueXMPPAlert(event, location, serialized_object=serialized_object)
     issueEmailAlert(event, event_url)
+    issuePhoneAlert(event)
 
 def indent(nindent, text):
     return "\n".join([(nindent*' ')+line for line in text.split('\n')])
@@ -201,7 +202,8 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=No
         email.send()
 
     # Make phone calls.
-    make_twilio_calls(event, phoneRecips, "label", label=label)
+    if phoneRecips:
+        make_twilio_calls(event, phoneRecips, "label", label=label)
 
 def issueEmailAlert(event, event_url):
 
@@ -216,7 +218,6 @@ def issueEmailAlert(event, event_url):
         fromaddress = settings.ALERT_TEST_EMAIL_FROM
         toaddresses = settings.ALERT_TEST_EMAIL_TO
         bccaddresses = []
-        phoneRecips = []
     else:
         fromaddress = settings.ALERT_EMAIL_FROM
         toaddresses = settings.ALERT_EMAIL_TO
@@ -226,7 +227,6 @@ def issueEmailAlert(event, event_url):
         # See: https://bugs.ligo.org/redmine/issues/2185
         #bccaddresses = settings.ALERT_EMAIL_BCC
         bccaddresses = []
-        phoneRecips = []
         pipeline = event.pipeline
         triggers = pipeline.trigger_set.filter(labels=None)
         for trigger in triggers:
@@ -235,8 +235,6 @@ def issueEmailAlert(event, event_url):
                     or not trigger.farThresh):
                     if recip.email:
                         bccaddresses.append(recip.email)
-                    if recip.phone:
-                        phoneRecips.append(recip)
 
     subject = "[gracedb] %s event. ID: %s" % (event.pipeline.name, event.graceid())
     message = """
@@ -261,8 +259,29 @@ Event Summary:
     email = EmailMessage(subject, message, fromaddress, toaddresses, bccaddresses)
     email.send()
 
+def issuePhoneAlert(event):
+    # The right way of doing this is to make the email alerts filter-able
+    # by search. But this is a low priority dev task. For now, we simply 
+    # short-circuit in case this is an MDC event.
+    if event.search and event.search.name == 'MDC':
+        return
+
+    # Gather Recipients
+    phoneRecips = []
+    if event.group.name != 'Test':
+        pipeline = event.pipeline
+        triggers = pipeline.trigger_set.filter(labels=None)
+        for trigger in triggers:
+            for recip in trigger.contacts.all():
+                if ((event.far and event.far < trigger.farThresh)
+                    or not trigger.farThresh):
+                    if recip.phone:
+                        phoneRecips.append(recip)
+
+
     # Make phone calls.
-    make_twilio_calls(event, phoneRecips, "create")
+    if phoneRecips:
+        make_twilio_calls(event, phoneRecips, "create")
 
 def issueXMPPAlert(event, location, alert_type="new", description="", serialized_object=None):
     
