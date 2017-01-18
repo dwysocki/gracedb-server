@@ -11,8 +11,8 @@ def add_ATLAS(apps, schema_editor):
         atlas_grp.save()
 
 def remove_ATLAS(apps, schema_editor):
-    atlas_grp = apps.get_model('gracedb','EMGroup')
-    EMGroup.objects.get(name=atlas_grp.name).delete()
+    EMGroup = apps.get_model('gracedb','EMGroup')
+    EMGroup.objects.get(name='ATLAS').delete()
 
 class Migration(migrations.Migration):
 
