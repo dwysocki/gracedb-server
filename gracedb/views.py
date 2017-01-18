@@ -351,8 +351,16 @@ def view(request, event):
             display_far = settings.VOEVENT_FAR_FLOOR
             far_is_upper_limit = True
     context['display_far'] = display_far
-    context['display_far_yr'] = display_far * (86400*365.25) # yr^-1
     context['far_is_upper_limit'] = far_is_upper_limit
+
+    # Calculate easy-to-understand FAR for display purposes.
+    # Display as 1 per X years if X > 1 or 1/X per year if X < 1.
+    far_yr = display_far * (86400*365.25) # yr^-1
+    if (far_yr < 1):
+        display_far_yr = "1 per {0:0.5g} years".format(1.0/far_yr)
+    else:
+        display_far_yr = "{0:0.5g} per year".format(far_yr)
+    context['display_far_yr'] = display_far_yr
 
     # Does the user have permission to sign off on the event as the control room operator?
     operator_signoff_authorized = False
