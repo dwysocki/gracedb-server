@@ -1,6 +1,7 @@
 from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
+from django.utils.html import conditional_escape
 from django.forms.utils import ErrorList
 
 from .models import Trigger, Contact
@@ -58,9 +59,11 @@ def process_errors(err):
     out_errs = []
     if isinstance(err,ErrorList):
         for e in err:
-            out_errs.append('<p class="error">{0}</p>'.format(e))
+            out_errs.append('<p class="error">{0}</p>' \
+                .format(conditional_escape(e)))
     elif isinstance(err,str):
-        out_errs.append('<p class="error">{0}</p>'.format(err))
+        out_errs.append('<p class="error">{0}</p>' \
+                .format(conditional_escape(err)))
     else:
         out_errs.append(force_text(err))
 
@@ -69,8 +72,10 @@ def process_errors(err):
 class ContactForm(forms.ModelForm):
     # Adjust labels.
     desc = forms.CharField(label='Description')
-    call_phone = forms.BooleanField(label='Call', initial=False, required=False)
-    text_phone = forms.BooleanField(label='Text', initial=False, required=False)
+    call_phone = forms.BooleanField(label='Call', initial=False,
+                                    required=False)
+    text_phone = forms.BooleanField(label='Text', initial=False,
+                                    required=False)
 
     class Meta:
         model = Contact

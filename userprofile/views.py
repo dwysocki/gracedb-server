@@ -141,10 +141,9 @@ def createContact(request):
     # Explanatory HTML block.
     expl = ['<div style="padding: 10px;">',
             '<h4>Instructions:</h4>',
-            '<ul><li>Description is required.</li>',
+            '<ul><li>A description of your contact is required.</li>',
             '<li>Choose a contact method (e-mail, phone, or both).</li>',
-            ('<li>For phone alerts, mark call, text, or both, depending on how'
-             ' you want to receive the alerts.</li>'),
+            ('<li>For phone alerts, choose call, text, or both.</li>'),
             '</ul></div>'
            ]
     expl = mark_safe("\n".join(expl))
