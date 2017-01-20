@@ -203,7 +203,7 @@
         <td>{{ object.pipeline.name }} </td>
         <td>{{ object.search.name }} </td>
         <td>{{ object.instruments }}</td>
-        <td>{% if object.gpstime%}
+        <td>{% if object.gpstime %}
                 <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
                 {{ object.gpstime|multiTime:"gps" }}
             {% endif %}</td>
