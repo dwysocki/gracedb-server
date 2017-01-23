@@ -44,7 +44,6 @@ TWILIO_MSG_CONTENT = {
     'label': ('A {pipeline} event with GraceDB ID {graceid} was labeled with '
               '{label}. https://{server}.ligo.org/events/view/{graceid}')
 }
->>>>>>> 2c2239f... updates of templates, userprofile models, and alert code for separating voice and text alerts
 
 def get_twilio_from():
     """Gets phone number which Twilio alerts come from."""

@@ -14,6 +14,9 @@ from django.db.models import Q
 
 from django_twilio.client import twilio_client
 import socket
+# Set up logger
+import logging
+log = logging.getLogger(__name__)
 
 from .models import Trigger, Contact
 from .forms import ContactForm, triggerFormFactory
