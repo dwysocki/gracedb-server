@@ -355,11 +355,14 @@ def view(request, event):
 
     # Calculate easy-to-understand FAR for display purposes.
     # Display as 1 per X years if X > 1 or 1/X per year if X <= 1.
-    far_yr = display_far * (86400*365.25) # yr^-1
-    if (far_yr < 1):
-        display_far_yr = "1 per {0:0.5g} years".format(1.0/far_yr)
-    else:
-        display_far_yr = "{0:0.5g} per year".format(far_yr)
+    display_far_yr = display_far
+    # Make sure far is not None (handle case of External events)
+    if display_far:
+        far_yr = display_far * (86400*365.25) # yr^-1
+        if (far_yr < 1):
+            display_far_yr = "1 per {0:0.5g} years".format(1.0/far_yr)
+        else:
+            display_far_yr = "{0:0.5g} per year".format(far_yr)
     context['display_far_yr'] = display_far_yr
 
     # Does the user have permission to sign off on the event as the control room operator?
