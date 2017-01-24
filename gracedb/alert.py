@@ -189,7 +189,10 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=No
         fromaddress = settings.ALERT_TEST_EMAIL_FROM
         toaddresses = settings.ALERT_TEST_EMAIL_TO
         bccaddresses = []
-        message += "\n\nWould have send email to: %s" % str(profileRecips)
+        message += "\n\nWould have sent email to: %s" % str(profileRecips)
+        message += "\n\nWould have called/texted: {0}" \
+            .format(str([c.phone for c in phoneRecips]))
+        phoneRecips = []
     else:
         fromaddress = settings.ALERT_EMAIL_FROM
         toaddresses =  []
@@ -277,7 +280,6 @@ def issuePhoneAlert(event):
                     or not trigger.farThresh):
                     if recip.phone:
                         phoneRecips.append(recip)
-
 
     # Make phone calls.
     if phoneRecips:
