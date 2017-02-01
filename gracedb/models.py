@@ -823,6 +823,7 @@ class MultiBurstEvent(Event):
     ligo_axis_dec    = models.FloatField(null=True)
     ligo_angle       = models.FloatField(null=True)
     ligo_angle_sig   = models.FloatField(null=True)
+    single_ifo_times = models.CharField(max_length=255, default="")
 
 class LalInferenceBurstEvent(Event):
     bci                 = models.FloatField(null=True)
