@@ -515,12 +515,16 @@ class CwbData(Translator):
 
         # MultiBurst table attributes
         data = self.getData()
-        event.ifo           = data.get('ifo')
+        event.ifos          = data.get('ifo')
         event.start_time    = data.get('start_time')
         event.start_time_ns = data.get('start_time_ns')
         event.duration      = data.get('duration')
         event.central_freq  = data.get('central_freq')
         event.bandwidth     = data.get('bandwidth')
+        # Single IFO times are cast as a comma-separated string,
+        # in same order as the 'ifos' field.
+        event.single_ifo_times = data.get('single_ifo_times')
+
         try:
             event.snr       = sqrt(data.get('likelihood'))
         except:
@@ -565,7 +569,6 @@ class CwbData(Translator):
             rawdata[key] = val.split()
 
         datafile.seek(0)
-
         # scan down for FAR
         next_line_is_far = False
         for line in datafile:
@@ -590,9 +593,16 @@ class CwbData(Translator):
         data['likelihood'] = rawdata.get('likelihood',[None])[0]
         data['far']        = rawdata.get('far',[None])[0]
 
+
+        # Get ifos and corresponding GPS times.
         ifos = rawdata.get('ifo',[])
+        single_ifo_times = rawdata.get('time',[])
+        # Sort both by ifo.
+        single_ifo_times = [x for (y,x) in sorted(zip(ifos,single_ifo_times), 
+                                                  key=lambda pair: pair[0])]
         ifos.sort()
         data['instruments'] = ','.join(ifos)
+        data['single_ifo_times'] = ','.join(single_ifo_times)
 
         # MultiBurst table attributes
         start =  rawdata.get('start',[None])[0]

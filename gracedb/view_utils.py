@@ -259,6 +259,7 @@ def eventToDict(event, columns=None, request=None):
             # MultiBurstEvent
             rv['extra_attributes']['MultiBurst'] = {
                   "ifos" : event.ifos,
+                  "single_ifo_times": event.single_ifo_times,
                   "start_time" : event.start_time,
                   "start_time_ns" : event.start_time_ns,
                   "duration" : event.duration,
@@ -303,6 +304,8 @@ def eventToDict(event, columns=None, request=None):
         if si_set.count():
             rv['extra_attributes']['SingleInspiral'] = [ singleInspiralToDict(si) for si in si_set ]
     elif (request and request.user) and (is_external(request.user)):
+        # adding extra attributes for external users.
+        # CBC events
         try:
             rv['extra_attributes'] = {}
             # Only expose SingleInspiral times and ifos for external users.
@@ -313,6 +316,14 @@ def eventToDict(event, columns=None, request=None):
                 rv['extra_attributes']['SingleInspiral'] = []
                 for i, si in enumerate(SingleInspiral_list):
                     rv['extra_attributes']['SingleInspiral'].append({ k: si[k] for k in ext_keys })
+        except:
+            pass
+        # MultiBurst events
+        try:
+            rv['extra_attributes']['MultiBurst'] = {
+                  "ifos" : event.ifos,
+                  "single_ifo_times": event.single_ifo_times,
+            }
         except:
             pass
 
