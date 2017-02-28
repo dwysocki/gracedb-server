@@ -465,23 +465,28 @@ require([
                 var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" }); 
                 var tbnode = domConstruct.create("div", { 
                         style: "margin: 0px auto 0px auto; text-align: center;" 
-                }, actionBar); 
+                }, actionBar);
+                var reload_page = false;
                 var tagButton = new Button({ 
                     label: "Ok", 
                     onClick: function(){ 
-                    tagResultDialog.hide(); 
+                    tagResultDialog.hide();
+                    if (reload_page) { location.reload(true); }
                 }}).placeAt(tbnode); 
                 request.del(tagUrl).then( 
                     function(text){ 
                         tagResultDialog.set("content", text); 
                         domConstruct.place(actionBar, tagResultDialog.containerNode); 
-                        tagResultDialog.show(); 
-                        location.reload(true); 
+                        tagResultDialog.show();
+                        reload_page = true;
                     }, 
-                    function(error){ 
-                        tagResultDialog.set("content", "Error: " + error); 
+                    function(error){
+                        var err_msg = error;
+                        if (error.response.text) { err_msg = error.response.text; }
+                        tagResultDialog.set("content", "Error: " + err_msg);
                         domConstruct.place(actionBar, tagResultDialog.containerNode); 
-                        tagResultDialog.show();  
+                        tagResultDialog.show();
+                        reload_page = false;
                     });
                 } 
         }
@@ -493,11 +498,13 @@ require([
                 var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" }); 
                 var tbnode = domConstruct.create("div", { 
                         style: "margin: 0px auto 0px auto; text-align: center;" 
-                }, actionBar); 
+                }, actionBar);
+                var reload_page = false;
                 var tagButton = new Button({ 
                     label: "Ok", 
                     onClick: function(){ 
                     tagResultDialog.hide();
+                    if (reload_page) { location.reload(true); }
                     }
                 }).placeAt(tbnode); 
 
@@ -548,12 +555,15 @@ require([
                             tagResultDialog.set("content", text);
                             domConstruct.place(actionBar, tagResultDialog.containerNode);
                             tagResultDialog.show();
-                            location.reload(true);
+                            reload_page = true;
                         },
                         function(error){
-                            tagResultDialog.set("content", "Error: " + error);
+                            var err_msg = error;
+                            if (error.response.text) { err_msg = error.response.text; }
+                            tagResultDialog.set("content", "Error: " + err_msg);
                             domConstruct.place(actionBar, tagResultDialog.containerNode);
-                            tagResultDialog.show(); 
+                            tagResultDialog.show();
+                            reload_page = false;
                         }
                    );
                    addTagDialog.hide();

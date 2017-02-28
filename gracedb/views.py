@@ -717,64 +717,77 @@ def latest(request):
 
 @event_and_auth_required
 def taglogentry(request, event, num, tagname):
+    # Note: this code is intertwined with the javascript in
+    # gracedb/templates/gracedb/event_detail_script.js,
+    # specifically lines 461-575, as of 2017/02/28.
+
+    # Get relevant log entry
     eventlog = event.eventlog_set.filter(N=num)[0]
 
     if request.method == "POST":
-        try:
-            # Has this tag-eventlog relationship already been created? 
-            tag = eventlog.tag_set.filter(name=tagname)[0]
-            msg = "Log already has tag %s" % tagname
-            return HttpResponse(msg, content_type="text")
-        except:
-            # Check authorization
-            if is_external(request.user) and tagname == settings.EXTERNAL_ACCESS_TAGNAME:
-                if request.user != eventlog.issuer:
-                    msg = "You do not have permission to add or remove this tag."
-                    return HttpResponseForbidden(msg)
+        # Handle cases where a user leaves the tagname blank.
+        if not tagname:
+            return HttpResponseBadRequest("Must specify a tagname.")
 
-            # Look for the tag.  If it doesn't already exist, create it.
-            try:
-                tag = Tag.objects.filter(name=tagname)[0]
-            except:
-                displayName = request.POST['displayName']
-                tag = Tag(name=tagname, displayName=displayName)
-                tag.save()
-
-            # Now add the log message to this tag.
-            tag.eventlogs.add(eventlog)
-
-            # Create a log entry to document the tag creation.
-            msg = "Tagged message %s: %s " % (num, tagname)
-            logentry = EventLog(event=event,
-                               issuer=request.user,
-                               comment=msg)
-            try:
-                logentry.save()
-            except Exception as e:
-                msg = "Failed to save log entry documenting tag:  "
-                msg = msg + str(e) + '\n'
-                msg = "The tag itself, however, is saved."
-                return HttpResponse(msg, content_type="text")
-    elif request.method == "DELETE":
-        try:
-            # Has this tag-eventlog relationship already been created? 
-            tag = eventlog.tag_set.filter(name=tagname)[0]
-            tag.eventlogs.remove(eventlog)
-        except:
-            msg = "Attempted to delete tag that doesn't exist."
-            return HttpResponseBadRequest(msg)
-
-        # Check authorization
-        if is_external(request.user) and tagname == settings.EXTERNAL_ACCESS_TAGNAME:
+        # Check authorization - not allowed to touch 'lvem' tag on other
+        # users' entries. May want to restrict this more in the future.
+        if (is_external(request.user) and
+            tagname == settings.EXTERNAL_ACCESS_TAGNAME):
             if request.user != eventlog.issuer:
                 msg = "You do not have permission to add or remove this tag."
                 return HttpResponseForbidden(msg)
 
+        # Check if tag is already applied to this log entry.
+        tag_matches = eventlog.tag_set.filter(name=tagname)
+        if tag_matches:
+            msg = "Log already has tag %s." % tagname
+            return HttpResponse(msg, content_type="text")
+
+        # Check if tag already exists in the database. If not, create it.
+        db_tags = Tag.objects.filter(name=tagname)
+        if not db_tags:
+            displayName = request.POST['displayName']
+            tag = Tag(name=tagname, displayName=displayName)
+            tag.save()
+        else:
+            tag = db_tags[0]
+
+        # Now add the log message to this tag.
+        tag.eventlogs.add(eventlog)
+
+        # Create a log entry to document the tag creation.
+        msg = "Tagged message %s: %s " % (num, tagname)
+        logentry = EventLog(event=event,
+                            issuer=request.user,
+                            comment=msg)
+        try:
+            logentry.save()
+        except Exception as e:
+            msg = "Failed to save log entry documenting tag:  "
+            msg = msg + str(e) + '\n'
+            msg = "The tag itself, however, is saved."
+            return HttpResponse(msg, content_type="text")
+    elif request.method == "DELETE":
+        # STEP 1: Check authorization
+        if (is_external(request.user) and
+            tagname == settings.EXTERNAL_ACCESS_TAGNAME):
+            if request.user != eventlog.issuer:
+                msg = "You do not have permission to add or remove this tag."
+                return HttpResponseForbidden(msg)
+        # Check if tag is applied to this log entry.
+        tags = eventlog.tag_set.filter(name=tagname)
+        if tags:
+            tag = tags[0]
+            tag.eventlogs.remove(eventlog)
+        else:
+            msg = "Attempted to delete tag that doesn't exist."
+            return HttpResponseBadRequest(msg)
+
         # Create a log entry to document the tag deletion.
         msg = "Removed tag %s for message %s. " % (tagname, num)
         logentry = EventLog(event=event,
-                           issuer=request.user,
-                           comment=msg)
+                            issuer=request.user,
+                            comment=msg)
         try:
             logentry.save()
         except Exception as e:
@@ -786,7 +799,7 @@ def taglogentry(request, event, num, tagname):
     else:
         return HttpResponseBadRequest
 
-    # Hopefully, this will only ever be called form inside a script.  Just in case...
+    # Hopefully, this will only ever be called from inside a script.  Just in case...
     if not request.is_ajax():
         return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
 
