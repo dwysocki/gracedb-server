@@ -27,7 +27,9 @@ from default import *
 
 config = configs.get(ROOT_PATH, "production")
 
-if socket.gethostname() == 'gracedb-test':
+# If host is NOT gracedb, use test settings.
+hostname = socket.gethostname()
+if (hostname != 'gracedb'):
     config = 'test'
 
 settings_module = __import__('%s' % config, globals(), locals(), 'gracedb')
