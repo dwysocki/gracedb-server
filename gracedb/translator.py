@@ -14,7 +14,7 @@ from gracedb.serialize import populate_inspiral_tables, \
                                populate_omega_tables,    \
                                write_output_files
 
-from VOEventLib.Vutil import parse, getWhereWhen, findParam
+from VOEventLib.Vutil import parse, getWhereWhen, findParam, getParamNames
 from utils import isoToGps, isoToGpsFloat
 from utils.vfile import VersionedFile
 
@@ -675,20 +675,20 @@ def populateGrbEventFromVOEventFile(filename, event):
     # try to find a trigger_duration value
     # Fermi uses Trig_Dur or Data_Integ, while Swift uses Integ_Time
     # One or the other may be present, but not both
+    VOEvent_params = [pn[1] for pn in getParamNames(v)]
+    trig_dur_params = ["Trig_Dur","Data_Integ","Integ_Time"]
     trigger_duration = None
-    try:
-        trigger_duration = findParam(v, '', 'Trig_Dur').get_value()
-    except:
-        pass
-    try:
-        trigger_duration = findParam(v, '', 'Integ_Time').get_value()
-    except:
-        pass
-    try:
-        trigger_duration = findParam(v, '', 'Data_Integ').get_value()
-    except:
-        pass
-    event.trigger_duration = trigger_duration
+    for param in trig_dur_params:
+        if (param in VOEvent_params):
+            trigger_duration = float(findParam(v, "", param).get_value())
+            break
+    
+    # Fermi GCNs (after the first one) often set Trig_Dur or Data_Integ
+    # to 0.000 (not sure why). We don't want to overwrite the currently
+    # existing value in the database with 0.000 if this has happened, so
+    # we only update the value if trigger_duration is non-zero.
+    if trigger_duration:
+        event.trigger_duration = trigger_duration
 
     # try to find a trigger_id value
     trigger_id = None
