@@ -40,16 +40,6 @@ def histo(request):
     except IOError:
         table = None
 
-    # XXX Getting rid of the IFAR calculation here. The dynamic CBC reports page is more
-    # relevant anyway.
-    #files = [ f for (_,_,_,f) in settings.REPORTS_IFAR ]
-
-    #ifar = []
-    #for name in files:
-    #    fname = os.path.join(settings.REPORT_IFAR_IMAGE_DIR, name)
-    #    if os.access(fname, os.R_OK):
-    #        ifar.append(name)
-
     # XXX The old nagios scraping code no longer works. It scrapes sentry anyway, instead
     # of dashboard.ligo.org. Anyway, the reports page here isn't really the place for this
     # kind of information.

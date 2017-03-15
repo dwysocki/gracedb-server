@@ -1,76 +1,100 @@
-from utils import posixToGpsTime
+import os, time, socket, logging
 from datetime import datetime, timedelta
-import time
-import logging
 from cloghandler import ConcurrentRotatingFileHandler
+from utils import posixToGpsTime
 
+# Get local settings:
+# SERVER_HOSTNAME, SERVER_FQDN, IS_PRODUCTION_SERVER, ADMINS, GRACEDB_PATHS
+from .local import *
+# Get secret settings:
+# DEFAULT_DB_PASSWORD, DEFAULT_SECRET_EKY, TWILIO_ACCOUNT_SID,
+# TWILIO_AUTH_TOKEN, TWIML_BIN
 from .secret import *
 
-
-USE_TZ = True
-
-# Suitable for production
-ALLOWED_HOSTS = ['*']
-
+# Miscellaneous settings ------------------------------------------------------
+# Debug mode is off by default
 DEBUG = False
+
+# Maintenance mode: used by django-maintenancemode package.
+# Set to off by default
 MAINTENANCE_MODE = False
 
-ADMINS = (
-    ('Alexander Pace', 'aep14@psu.edu'),
-    ('Tanner Prestegard', 'tanner.prestegard@ligo.org'),
-)
+# Used for running unit tests
+TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+
+# ADMINS defines who gets code error notifications.
+# MANAGERS defines who gets broken link notifications when
+# BrokenLinkEmailsMiddleware is enabled
 MANAGERS = ADMINS
 
-# Base URL for TwiML bins (for Twilio)
+# Base URL for TwiML bins (for Twilio phone/text alerts)
 TWIML_BASE_URL = 'https://handler.twilio.com/twiml/'
 
-# Email settings.
-#EMAIL_HOST = 'gravity.phys.uwm.edu'
+# Use timezone-aware datetimes internally
+USE_TZ = True
+
+# Allow this site to be served on localhost, the FQDN of this server, and
+# hostname.ligo.org. Security measure for preventing cache poisoning and
+# stopping requests submitted with a fake HTTP Host header.
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', SERVER_FQDN,
+    '{0}.ligo.org'.format(socket.gethostname())]
+
+# LVAlert and LVAlert Overseer settings ---------------------------------------
+# Set to False to prevent XMPP alerts from being sent out.
+SEND_XMPP_ALERTS = True
+# Use LVAlert Overseer?
+USE_LVALERT_OVERSEER = True
+# LVAlert servers
+ALERT_XMPP_SERVERS = ["lvalert-test.cgca.uwm.edu"]
+# For each LVAlert server, a separate instance of LVAlert Overseer
+# must be running and listening on a distinct port.
+LVALERT_OVERSEER_PORTS = {
+    "lvalert-test.cgca.uwm.edu": 8001,
+}
+# Path to lvalert_send executable, for failover in case
+# LVAlert Overseer is not running.
+LVALERT_SEND_EXECUTABLE = os.path.join(GRACEDB_PATHS["virtualenv"],
+    os.path.join("bin", "lvalert_send"))
+
+# Email settings --------------------------------------------------------------
 EMAIL_HOST = 'localhost'
-SERVER_EMAIL = 'GraceDB <gracedb@gracedb.cgca.uwm.edu>'
+SERVER_EMAIL = 'GraceDB <gracedb@{fqdn}>'.format(fqdn=SERVER_FQDN)
 ALERT_EMAIL_FROM = SERVER_EMAIL
 ALERT_EMAIL_TO = []
 ALERT_EMAIL_BCC = []
-ALERT_TEST_EMAIL_FROM = "GraceDB TESTING <gracedb@gracedb.cgca.uwm.edu>"
+ALERT_TEST_EMAIL_FROM = SERVER_EMAIL
 ALERT_TEST_EMAIL_TO = []
-
-# LVAlert and LVAlert Overseer settings
-LVALERT_SEND_EXECUTABLE = '/home/gracedb/djangoenv/bin/lvalert_send'
-ALERT_XMPP_SERVERS = ["lvalert.cgca.uwm.edu"]
-USE_LVALERT_OVERSEER = True
-# For each lvalert server, a separate instance of the lvalert_overseer
-# must be running and listening on a distinct port. 
-LVALERT_OVERSEER_PORTS = {
-    'lvalert.cgca.uwm.edu': 8000,
-}
-# Set to false to prevent XMPP alerts from being sent out
-SEND_XMPP_ALERTS = True
-
-EMBB_MAIL_ADDRESS = 'embb@gracedb.ligo.org'
+# EMBB email settings
+EMBB_MAIL_ADDRESS = 'embb@{fqdn}.ligo.org'.format(fqdn=SERVER_FQDN)
 EMBB_SMTP_SERVER = 'localhost'
-EMBB_MAIL_ADMINS = ['branson@gravity.phys.uwm.edu','roy.williams@ligo.org',]
-EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@gracedb.cgca.uwm.edu',]
+EMBB_MAIL_ADMINS = [admin[1] for admin in ADMINS]
+EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@{fqdn}'.format(fqdn=SERVER_FQDN)]
 
-# Added for django 1.7.8
-TEST_RUNNER = 'django.test.runner.DiscoverRunner'
-
+# Access and authorization ----------------------------------------------------
 # Some proper names related to authorization
 LVC_GROUP = 'Communities:LSCVirgoLIGOGroupMembers'
 LVEM_GROUP = 'gw-astronomy:LV-EM'
 LVEM_OBSERVERS_GROUP = 'gw-astronomy:LV-EM:Observers'
-# Executives
+# Executives group name
 EXEC_GROUP = 'executives'
-# EM Advocate Group name
+# EM Advocate group name
 EM_ADVOCATE_GROUP = 'em_advocates'
 
 # Groups directly managed by GraceDB admins
-ADMIN_MANAGED_GROUPS = [EM_ADVOCATE_GROUP, 'executives',]
+ADMIN_MANAGED_GROUPS = [EM_ADVOCATE_GROUP, 'executives']
 
+# Tag to apply to log messages to allow EM partners to view
 EXTERNAL_ACCESS_TAGNAME = 'lvem'
 
 # FAR floor for outgoing VOEvents intended for GCN
-#VOEVENT_FAR_FLOOR = 3.17e-10 # 1/100 yrs
-VOEVENT_FAR_FLOOR = 0
+VOEVENT_FAR_FLOOR = 0 # Hz
+
+# Web interface settings ------------------------------------------------------
+
+# Whether or not to show the recent events on the  page
+# Note that this does NOT filter events based on user view permissions,
+# so be careful if you turn it on!
+SHOW_RECENT_EVENTS_ON_HOME = False
 
 # URL for viewing skymaps
 SKYMAP_VIEWER_SERVICE_URL = \
@@ -93,18 +117,56 @@ BLESSED_TAGS = [
                  'audio',
                ]
 
+# Lists of pipelines used for selecting templates to serve
 COINC_PIPELINES = [
                     'gstlal',
                     'gstlal-spiir',
                     'MBTAOnline',
                     'pycbc',
                    ]
-
 GRB_PIPELINES = [
                     'Fermi',
                     'Swift',
                 ]
 
+# SkyAlert stuff - used for VOEvents (?) --------------------------------------
+SKYALERT_IVORN_PATTERN = "ivo://gwnet/gcn_sender#%s"
+SKYALERT_ROLE          = "test"
+SKYALERT_DESCRIPTION   = "Report of a candidate gravitational wave event"
+SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
+
+# Stuff related to report/plot generation -------------------------------------
+
+# Latency histograms.  Where they go and max latency to bin.
+LATENCY_REPORT_DEST_DIR = GRACEDB_PATHS["latency"]
+LATENCY_MAXIMUM_CHARTED = 1800
+LATENCY_REPORT_WEB_PAGE_FILE_PATH = os.path.join(LATENCY_REPORT_DEST_DIR,
+    "latency.inc")
+
+# Uptime reporting
+UPTIME_REPORT_DIR = GRACEDB_PATHS["uptime"]
+
+# Rate file location
+RATE_INFO_FILE = os.path.join(GRACEDB_PATHS["data"], "rate_info.json")
+
+# URL prefix for serving report information (usually plots and tables)
+# This is aliased to GRACEDB_PATHS["latency"] in the Apache virtualhost
+# configuration.  If you change this, you will need to change that.
+REPORT_INFO_URL_PREFIX = "{sep}report_info{sep}".format(sep=os.path.sep)
+
+# Directory for CBC IFAR Reports
+REPORT_IFAR_IMAGE_DIR = GRACEDB_PATHS["latency"]
+
+# Stuff for the new rates plot
+BINNED_COUNT_PIPELINES = ['gstlal', 'MBTAOnline', 'CWB', 'LIB', 'gstlal-spiir']
+BINNED_COUNT_FILE = os.path.join(GRACEDB_PATHS["data"], "binned_counts.json")
+
+# Defaults for RSS feed
+FEED_MAX_RESULTS = 50
+
+# Django and server settings --------------------------------------------------
+
+# Nested dict of settings for all databases
 DATABASES = {
     'default' : {
         'NAME'     : 'gracedb',
@@ -117,6 +179,16 @@ DATABASES = {
     }
 }
 
+# Location of database
+GRACEDB_DATA_DIR = GRACEDB_PATHS["database_data"]
+# First level subdirs with 2 chars, second level with 1 char
+# These DIR_DIGITS had better add up to a number less than 40 (which is
+# the length of a SHA-1 hexdigest. Actually, it should be way less than
+# 40--or you're a crazy person.
+GRACEDB_DIR_DIGITS = [2, 1,]
+
+# Cache settings - nested dictionary where each element maps
+# cache aliases to a dictionary of options for an individual cache
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
@@ -124,126 +196,20 @@ CACHES = {
     }
 }
 
-# SkyAlert
-SKYALERT_IVORN_PATTERN = "ivo://gwnet/gcn_sender#%s"
-SKYALERT_ROLE          = "test"
-SKYALERT_DESCRIPTION   = "Report of a candidate gravitational wave event"
-SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
-
-# Location of database
-GRACEDB_DATA_DIR = "/opt/gracedb/data"
-# First level subdirs with 2 chars, second level with 1 char
-# These DIR_DIGITS had better add up to a number less than 40 (which is
-# the length of a SHA-1 hexdigest. Actually, it should be way less than
-# 40--or you're a crazy person.
-GRACEDB_DIR_DIGITS = [2, 1,]
-
-# Latency histograms.  Where they go and max latency to bin.
-LATENCY_REPORT_DEST_DIR = "/home/gracedb/data/latency"
-LATENCY_MAXIMUM_CHARTED = 1800
-LATENCY_REPORT_WEB_PAGE_FILE_PATH = LATENCY_REPORT_DEST_DIR + "/latency.inc"
-
-# Uptime reporting
-UPTIME_REPORT_DIR = "/home/gracedb/data/uptime"
-
-# Rate file location
-RATE_INFO_FILE = "/home/gracedb/data/rate_info.json"
-
-# URL prefix for serving report information (usually plots and tables)
-REPORT_INFO_URL_PREFIX = "/report_info/"
-
-# Find another way to do this.
-#
-# CBC IFAR Reports
-
-now = datetime.now()
-yesterday = now - timedelta(days=1)
-lastweek = now - timedelta(days=7)
-now = posixToGpsTime(time.mktime(now.timetuple()))
-yesterday = posixToGpsTime(time.mktime(yesterday.timetuple()))
-lastweek = posixToGpsTime(time.mktime(lastweek.timetuple()))
-
-REPORT_IFAR_IMAGE_DIR = LATENCY_REPORT_DEST_DIR
-#REPORTS_IFAR = [
-#    #(query, axis_label, title, fname),
-#    ("LowMass %d..%d" % (yesterday, now),
-#     "GraceDB CBC LowMass ER1 events",
-#     "ER1 FARs from gstlal_ll_inspiral - last day",
-#     "ifar_day.png"
-#    ),
-#    ("LowMass %d..%d" % (lastweek, now),
-#     "GraceDB CBC LowMass ER1 events",
-#     "ER1 FARs from gstlal_ll_inspiral - last week",
-#     "ifar_week.png"
-#    ),
-#]
-REPORTS_IFAR = [
-    #(query, axis_label, title, fname),
-    ("gstlal %d .. %d" % (yesterday, now),
-     "GraceDB gstlal events",
-     "FARs from gstlal - last day",
-     "ifar_day.png"
-    ),
-    ("gstlal %d .. %d" % (lastweek, now),
-     "GraceDB gstlal events",
-     "FARs from gstlal - last week",
-     "ifar_week.png"
-    ),
-]
-
-# Stuff for the new rates plot
-BINNED_COUNT_PIPELINES = ['gstlal', 'MBTAOnline', 'CWB', 'LIB', 'gstlal-spiir']
-BINNED_COUNT_FILE = "/home/gracedb/data/binned_counts.json"
-
-# Whether or not to show the recent events on the landing page
-SHOW_RECENT_EVENTS_ON_HOME = False
-
-# RSS Feed Defaults
-FEED_MAX_RESULTS = 50
-
-# Local time zone for this installation. Choices can be found here:
-# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
-# If running in a Windows environment this must be set to the same as your
-# system time zone.
-TIME_ZONE = 'America/Chicago'
-GRACE_DATETIME_FORMAT = 'Y-m-d H:i:s T'
-
-# Language code for this installation. All choices can be found here:
-# http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
-
-# If you set this to False, Django will make some optimizations so as not
-# to load the internationalization machinery.
-USE_I18N = False
-
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
-#MEDIA_ROOT = ''
-
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash if there is a path component (optional in other cases).
-# Examples: "http://media.lawrence.com", "http://example.com/media/"
-#MEDIA_URL = '/gracedb-static/'
-
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
-
+# Secret key for a Django installation
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = DEFAULT_SECRET_KEY
 
-# New template settings compatible with Django 1.8
+# List of settings for all template engines. Each item is a dict
+# containing options for an individual engine
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            '/home/gracedb/gracedb/templates',
+            os.path.join(GRACEDB_PATHS["code"], "templates"),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
-            'debug': True,
             'context_processors': [
                 # Defaults
                 'django.contrib.auth.context_processors.auth',
@@ -261,7 +227,8 @@ TEMPLATES = [
     },
 ]
 
-
+# List of authentication backends to use when attempting to authenticate
+# a user.  Will be used in this order until one works
 AUTHENTICATION_BACKENDS = (
 #   'gracedb.middleware.auth.LigoAuthBackend',
     'ligoauth.middleware.auth.LigoX509Backend',
@@ -274,18 +241,8 @@ AUTHENTICATION_BACKENDS = (
     'guardian.backends.ObjectPermissionBackend',
 )
 
-ANONYMOUS_USER_ID = -1
-GUARDIAN_RENDER_403 = True
-GUARDIAN_MONKEY_PATCH = False
-
-# URL of Shibboleth login page
-LOGIN_URL = '/Shibboleth.sso/Login'
-
-# If these are left at default, when the Shibboleth middleware
-# creates a new auth_user, they will get admin privs.
-ADMIN_GROUP_HEADER = None
-ADMIN_GROUP = None
-
+# List of middleware classes to use.
+# Note: style has changed in Django 1.10+
 MIDDLEWARE_CLASSES = [
     'middleware.performance.PerformanceMiddleware',
     'middleware.accept.AcceptMiddleware',
@@ -300,8 +257,11 @@ MIDDLEWARE_CLASSES = [
     'maintenancemode.middleware.MaintenanceModeMiddleware',
 ]
 
+# Path to root URLconf
 ROOT_URLCONF = 'urls'
 
+# List of string designating all applications which are enabled.
+# Note: changed from a tuple to a list in Django 1.9+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.admin',
@@ -317,6 +277,7 @@ INSTALLED_APPS = (
     'django_twilio',
 )
 
+# Details used by REST API
 REST_FRAMEWORK = {
     'PAGINATE_BY': 10,
     'DEFAULT_THROTTLE_RATES': {
@@ -326,8 +287,8 @@ REST_FRAMEWORK = {
 }
 
 # Location of static components, CSS, JS, etc.
-STATIC_URL = "/gracedb-static/"
-STATIC_ROOT = "/home/gracedb/gracedb/static/"
+STATIC_ROOT = os.path.join(GRACEDB_PATHS["code"], "static") + os.path.sep
+STATIC_URL = "{sep}gracedb-static{sep}".format(sep=os.path.sep)
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -336,8 +297,9 @@ STATICFILES_FINDERS = (
 STATICFILES_DIRS = ()
 
 # Location of Bower packages.
-BOWER_URL = "/bower-static/"
-BOWER_ROOT = "/home/gracedb/bower_components/"
+BOWER_URL = "{sep}bower-static{sep}".format(sep=os.path.sep)
+BOWER_ROOT = os.path.join(GRACEDB_PATHS["home"], "bower_components") + \
+    os.path.sep
 
 # Added in order to perform data migrations on the auth app
 MIGRATION_MODULES = {
@@ -345,35 +307,65 @@ MIGRATION_MODULES = {
     'guardian' : 'migrations.guardian',
 }
 
+# Forces test database to be created with syncdb rather than via
+# migrations in South.
+# TP (8 Aug 2017): not sure this is used anymore
 SOUTH_TESTS_MIGRATE = False
 
-# Passwords for LVEM scripted access expire after 365 days.
+# Local time zone for this installation. Choices can be found here:
+# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
+# although not all choices may be available on all operating systems.
+# If running in a Windows environment, this must be set to the same as your
+# system time zone.
+TIME_ZONE = 'America/Chicago'
+GRACE_DATETIME_FORMAT = 'Y-m-d H:i:s T'
+
+# Language code for this installation. All choices can be found here:
+# http://www.i18nguy.com/unicode/language-identifiers.html
+LANGUAGE_CODE = 'en-us'
+
+# If you set this to False, Django will make some optimizations so as not
+# to load the internationalization machinery.
+USE_I18N = False
+
+# django-guardian configuration
+# Note for upgrading: ANONYMOUS_USER_ID becomes ANONYMOUS_DEFAULT_USERNAME
+# and USERNAME_FIELD in django-guardian 1.4.2
+ANONYMOUS_USER_ID = -1
+# Have guardian try to render a 403 response rather than return
+# a contentless django.http.HttpResponseForbidden. Should set
+# GUARDIAN_TEMPLATE_403 to a template to be used by this.
+GUARDIAN_RENDER_403 = True
+# Used by guardian for dealing with errors related to the user model
+# See http://django-guardian.readthedocs.io/en/latest/userguide/custom-user-model.html
+GUARDIAN_MONKEY_PATCH = False
+
+# URL of Shibboleth login page
+LOGIN_URL = '/Shibboleth.sso/Login'
+
+# If these are left at default, when the Shibboleth middleware
+# creates a new auth_user, they will get admin privs.
+# TP (4 Aug 2017): can't find where these are used anywhere in the code.
+# But I'll leave them in for now (may want to ask Scott K. about it)
+ADMIN_GROUP_HEADER = None
+ADMIN_GROUP = None
+
+# Basic auth passwords for LVEM scripted access expire after 365 days.
 PASSWORD_EXPIRATION_TIME = timedelta(days=365)
 
 # IP addresses of IFO control rooms
-# Used to display signoff pages
-# for operators
+# Used to display signoff pages for operators
+# TP (10 Apr 2017): Virgo IP received from Florent Robinet, Franco Carbognani, 
+# and Sarah Antier. Corresponds to ctrl1.virgo.infn.it.
 CONTROL_ROOM_IPS = {
     'H1': '198.129.208.178',
     'L1': '208.69.128.41',
     'V1': '90.147.136.220',
 }
-# 10 Apr 2017 (TP):
-# Virgo IP received from Florent Robinet,
-# Franco Carbognani, Sarah Antier. Corresponds
-# to ctrl1.virgo.infn.it.
 
-# Everything below here is logging. ###########################################
+# Everything below here is logging --------------------------------------------
 
-# Filter objects to separate out each level of alert.
-# Currently unused (TP 1/6/2017)
-class infoOnlyFilter(logging.Filter):
-    def filter(self,record):
-        if record.levelname=='INFO':
-            return 1
-        return 0
-
-LOG_ROOT = '/home/gracedb/logs'
+# Base logging settings
 LOG_FILE_SIZE = 1024*1024 # 1 MB
 LOG_FILE_BAK_CT = 10
 LOG_FORMAT = 'extra_verbose'
@@ -409,7 +401,8 @@ LOGGING = {
         'debug_file': {
             'class': 'logging.handlers.ConcurrentRotatingFileHandler',
             'formatter': LOG_FORMAT,
-            'filename': '%s/gracedb_debug.log' % LOG_ROOT,
+            'filename': os.path.join(GRACEDB_PATHS["logs"],
+                        "gracedb_debug.log"),
             'maxBytes': (20*1024*1024),
             'backupCount': LOG_FILE_BAK_CT,
             'level': 'DEBUG',
@@ -417,7 +410,8 @@ LOGGING = {
         'error_file': {
             'class': 'logging.handlers.ConcurrentRotatingFileHandler',
             'formatter': LOG_FORMAT,
-            'filename': '%s/gracedb_error.log' % LOG_ROOT,
+            'filename': os.path.join(GRACEDB_PATHS["logs"],
+                        "gracedb_error.log"),
             'maxBytes': LOG_FILE_SIZE,
             'backupCount': LOG_FILE_BAK_CT,
             'level': 'ERROR',
@@ -427,7 +421,8 @@ LOGGING = {
             'maxBytes': 1024*1024,
             'backupCount': 1,
             'formatter': 'simple',
-            'filename': '%s/gracedb_performance.log' % LOG_ROOT,
+            'filename': os.path.join(GRACEDB_PATHS["logs"],
+                        "gracedb_performance.log"),
         },
         'mail_admins': {
             'level': 'ERROR',
@@ -467,4 +462,3 @@ LOGGING = {
         },
    },
 }
- 
