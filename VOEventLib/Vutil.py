@@ -208,7 +208,7 @@ def getParamNames(v):
         list.append(('', p.get_name()))
     for g in v.get_What().get_Group():
         for p in v.get_What().get_Param():
-            list.append((g.get_Name(), p.get_Name()))
+            list.append((g.get_name(), p.get_name()))
     return list
 
 def findParam(event, groupName, paramName):
@@ -226,7 +226,7 @@ def findParam(event, groupName, paramName):
                 return p
     else:
         for g in event.get_What().get_Group():
-            if g.get_Name == groupName:
+            if g.get_name() == groupName:
                 for p in event.get_What().get_Param():
                     if p.get_name() == paramName:
                         return p
