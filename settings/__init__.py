@@ -42,9 +42,9 @@ configs = {
 # default to production if ROOT_PATH key not found.
 config = configs.get(ROOT_PATH, "production")
 
-# If host is gracedb-test, use custom test settings.
+# If host is NOT gracedb, use test settings.
 hostname = socket.gethostname()
-if (hostname == 'gracedb-test'):
+if (hostname != 'gracedb'):
     config = 'test'
 
 # Import custom settings
