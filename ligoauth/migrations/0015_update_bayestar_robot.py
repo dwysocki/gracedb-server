@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 from django.conf import settings
 
-ROBOTS = [{'username': 'bayeswave',
-           'newcert': '/DC=org/DC=ligo/O=LIGO/OU=Services/CN=bayeswave_online/ldas-grid.ligo.caltech.edu',
-           'oldcert': '/DC=org/DC=ligo/O=LIGO/OU=Services/CN=bayeswave/ldas-grid.ligo.caltech.edu',
-           'newemail': 'margaret.millhouse@montana.edu',
-           'oldemail': 'jkanner@caltech.edu',
+ROBOTS = [{'username': 'bayestar-mic',
+           'newcert': '/DC=org/DC=ligo/O=LIGO/OU=Services/CN=Online_CBC_BAYESTAR_O3_Preview/node746.cluster.ldas.cit',
+           'oldcert': '/DC=org/DC=ligo/O=LIGO/OU=Services/CN=bayestar-mic/node529.cluster.ldas.cit',
+           'newemail': 'leo.singer@ligo.org',
+           'oldemail': 'lsinger@caltech.edu',
           },
 ]
 
@@ -18,7 +18,7 @@ def create_robots(apps, schema_editor):
 
     # Get/create new user, get/create new cert, associate user with cert.
     for entry in ROBOTS:
-        # get user
+        # get user, update email
         user = LocalUser.objects.get(username=entry['username'])
         user.email = entry['newemail']
         user.save()
@@ -39,8 +39,8 @@ def delete_robots(apps, schema_editor):
     LocalUser = apps.get_model('ligoauth','LocalUser')
     X509Cert = apps.get_model('ligoauth','X509Cert')
 
-    # Delete users.
     for entry in ROBOTS:
+        # revert email
         user = LocalUser.objects.get(username=entry['username'])
         user.email = entry['oldemail']
         user.save()
@@ -52,14 +52,14 @@ def delete_robots(apps, schema_editor):
 
         # Delete newcert.
         try:
-           X509Cert.objects.get(subject=entry['newcert']).delete()
+            X509Cert.objects.get(subject=entry['newcert']).delete()
         except:
             pass
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ligoauth', '0012_update_iDQ_robot'),
+        ('ligoauth', '0014_update_lib_robot'),
     ]
 
     operations = [
