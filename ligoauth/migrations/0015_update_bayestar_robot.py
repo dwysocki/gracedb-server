@@ -5,6 +5,8 @@ from django.db import migrations, models
 from django.conf import settings
 
 ROBOTS = [{'username': 'bayestar-mic',
+           'old_lastname': 'BAYESTAR MIC',
+           'new_lastname': 'BAYESTAR O3 Preview',
            'newcert': '/DC=org/DC=ligo/O=LIGO/OU=Services/CN=Online_CBC_BAYESTAR_O3_Preview/node746.cluster.ldas.cit',
            'oldcert': '/DC=org/DC=ligo/O=LIGO/OU=Services/CN=bayestar-mic/node529.cluster.ldas.cit',
            'newemail': 'leo.singer@ligo.org',
@@ -21,6 +23,7 @@ def create_robots(apps, schema_editor):
         # get user, update email
         user = LocalUser.objects.get(username=entry['username'])
         user.email = entry['newemail']
+        user.last_name = entry['new_lastname']
         user.save()
 
         # get or create certificate, add user
@@ -43,6 +46,7 @@ def delete_robots(apps, schema_editor):
         # revert email
         user = LocalUser.objects.get(username=entry['username'])
         user.email = entry['oldemail']
+        user.last_name = entry['old_lastname']
         user.save()
 
         # Create oldcerts, add to user
