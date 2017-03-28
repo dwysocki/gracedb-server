@@ -11,7 +11,7 @@ DATABASES = {
         'NAME'     : 'gracedb',
         'ENGINE'   : 'django.db.backends.mysql',
         'USER'     : 'gracedb',
-        'PASSWORD' : TEST_DB_PASSWORD,
+        'PASSWORD' : DEFAULT_DB_PASSWORD,
         'OPTIONS'  : {
             'init_command' : 'SET storage_engine=MYISAM',
         },
