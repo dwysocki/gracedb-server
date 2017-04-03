@@ -378,10 +378,18 @@ SOUTH_TESTS_MIGRATE = False
 # passwords for LVEM scripted access expire after 365 days.
 PASSWORD_EXPIRATION_TIME = timedelta(days=365)
 
+# IP addresses of IFO control rooms
+# Used to display signoff pages
+# for operators
 CONTROL_ROOM_IPS = {
     'H1': '198.129.208.178',
     'L1': '208.69.128.41',
+    'V1': '90.147.136.225',
 }
+# 10 Apr 2017 (TP):
+# Virgo IP received from Florent Robinet,
+# Franco Carbognani, Sarah Antier. Corresponds
+# to ctrl1.virgo.infn.it.
 
 # Everything below here is logging. ###########################################
 

@@ -84,9 +84,11 @@ INTERNAL_IPS = (
     '129.89.57.83',
 )
 
+# Use these to test operator signoffs
+# Change to your own IP.
 CONTROL_ROOM_IPS = {
     'H1': '108.45.69.217',
     'L1': '129.2.92.124',
-#    'L1': '129.89.57.83',
+    'V1': '90.147.136.225',
 }
 
