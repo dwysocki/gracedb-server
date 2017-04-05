@@ -4,6 +4,7 @@ var label_descriptions = {
     cWB_s: "cWB_s",
     cWB_r: "cWB_r",
     EM_READY: "Has been processed by GDB Processor.<br/>Skymaps have been produced.",
+    EM_SENT: "Has been sent to MOU partners.",
     SWIFT_NO: "Do not send notification to SWIFT telescope.",
     SWIFT_GO: "Send notification to SWIFT telescope.",
     LUMIN_NO: "LUMIN No",
