@@ -7,18 +7,6 @@ DEBUG = True
 # Don't let debug toolbar edit settings
 DEBUG_TOOLBAR_PATCH_SETTINGS = False
 
-DATABASES = {
-    'default' : {
-        'NAME'     : 'gracedb',
-        'ENGINE'   : 'django.db.backends.mysql',
-        'USER'     : 'gracedb',
-        'PASSWORD' : DEFAULT_DB_PASSWORD,
-        'OPTIONS'  : {
-            'init_command' : 'SET storage_engine=MYISAM',
-        },
-    }
-}
-
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
