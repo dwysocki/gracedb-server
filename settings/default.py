@@ -354,7 +354,7 @@ PASSWORD_EXPIRATION_TIME = timedelta(days=365)
 CONTROL_ROOM_IPS = {
     'H1': '198.129.208.178',
     'L1': '208.69.128.41',
-    'V1': '90.147.136.225',
+    'V1': '90.147.136.220',
 }
 # 10 Apr 2017 (TP):
 # Virgo IP received from Florent Robinet,
