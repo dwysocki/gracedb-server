@@ -843,7 +843,7 @@ class SingleInspiral(models.Model):
     event             = models.ForeignKey(Event, null=False)
     ifo               = models.CharField(max_length=20, null=True)
     search            = models.CharField(max_length=20, null=True)
-    channel           = models.CharField(max_length=20)
+    channel           = models.CharField(max_length=20, blank=True)
     end_time          = models.IntegerField(null=True)
     end_time_ns       = models.IntegerField(null=True)
     end_time_gmst     = models.FloatField(null=True)
@@ -914,7 +914,6 @@ class SingleInspiral(models.Model):
     def create_events_from_ligolw_table(cls, table, event):
         """For an Event, given a table (loaded by ligolw.utils.load_filename or similar) create SingleEvent tables for the event"""
 
-        field_names = cls.field_names()
         created_events = []
 
         #log.debug("Single/create from table/fields: " + str(field_names))
@@ -922,14 +921,15 @@ class SingleInspiral(models.Model):
         for row in table:
             e = cls(event=event)
             #log.debug("Single/creating event")
-            for column in field_names:
-                try:
-                    value = getattr(row, column)
-                except:
-                    # We don't want to fail if the value is not present.
-                    value = None
-                #log.debug("Setting column '%s' with value '%s'" % (column, value))
-                setattr(e, column, value)
+            for f in [cls._meta.get_field(f) for f in cls.field_names()]:
+                value = getattr(row, f.attname, f.default)
+                # Only set value of class instance member if
+                # value is not None or if field is nullable.
+                # Otherwise we could overwrite non-nullable fields
+                # which have default values with None.
+                if value is not None or f.null:
+                    #log.debug("Setting column '%s' with value '%s'" % (column, value))
+                    setattr(e, f.attname, value)
             e.save()
             created_events.append(e)
 
