@@ -6,21 +6,20 @@ from model_utils.managers import InheritanceManager
 from django.contrib.auth.models import User as DjangoUser
 #from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
-from guardian.models import GroupObjectPermission
 
+from guardian.models import GroupObjectPermission
+import logging; log = logging.getLogger(__name__)
 
 import os
-
 import glue
 import glue.ligolw
 import glue.ligolw.utils
 import glue.ligolw.table
 import glue.ligolw.lsctables
 from glue.ligolw.ligolw import LIGOLWContentHandler
-
 from glue.lal import LIGOTimeGPS
 
-import json
+import json, re
 
 # XXX ER2.utils.  utils is in project directory.  ugh.
 from utils import posixToGpsTime
@@ -277,11 +276,105 @@ class Event(models.Model):
         # Fool! Save yourself!
         self.save()
 
+class AutoIncrementModel(models.Model):
+    """
+    An abstract class used as a base for classes which need the
+    autoincrementing save method described below.
+    """
 
-class EventLog(models.Model):
+    class Meta:
+        abstract = True
+
+    def save(self, auto_field, auto_fk, *args, **kwargs):
+        """
+        This custom save method does a SELECT and INSERT in a single raw SQL
+        query in order to properly handle a quasi-autoincrementing field, which
+        is used to identify instances associated with a ForeignKey. With this
+        method, concurrency issues are handled by the database backend.
+        Ex: EventLog instances associated with an Event should be numbered 1-N.
+
+        This has been tested with the following classes:
+            EventLog, EMObservation, EMFootprint, EMBBEventLog
+
+        Thorough testing is needed to use this method for a new model. Note
+        that this method may not work properly for non-MySQL backends.
+
+        Arguments:
+            auto_field: name of field which acts as an autoincrement field.
+            auto_fk:    name of ForeignKey to which the auto_field is relative.
+        """
+
+        # Do normal save if this is not an insert (i.e., the instance has a
+        # primary key already).
+        meta = self.__class__._meta
+        pk_set = self._get_pk_val(meta) is not None
+        if pk_set:
+            super(AutoIncrementModel, self).save(*args, **kwargs)
+            return
+
+        # Otherwise, we'll generate some raw SQL to do the
+        # insert and auto-increment.
+
+        # Get model fields, except for primary key field.
+        fields = meta.local_concrete_fields
+        if not pk_set:
+            fields = [f for f in fields if not
+                isinstance(f, models.fields.AutoField)]
+
+        # Setup for generating base SQL query for doing an INSERT.
+        query = models.sql.InsertQuery(self.__class__._base_manager.model)
+        query.insert_values(fields, objs=[self])
+        compiler = query.get_compiler(using=self.__class__._base_manager.db)
+        compiler.return_id = meta.has_auto_field and not pk_set
+
+        fk_name = meta.get_field(auto_fk).column
+        with compiler.connection.cursor() as cursor:
+            # Get base SQL query as string.
+            for sql, params in compiler.as_sql():
+                # Modify SQL string to do an INSERT with SELECT.
+                # NOTE: it's unlikely that the following will generate
+                # a functional database query for non-MySQL backends.
+
+                # Replace VALUES (%s, %s, ..., %s) with
+                # SELECT %s, %s, ..., %s
+                sql = re.sub(r"VALUES \((.*)\)", r"SELECT \1", sql)
+
+                # Add table to SELECT from and ForeignKey id corresponding to
+                # our autoincrement field.
+                sql += " FROM `{tbl_name}` WHERE `{fk_name}`={fk_id}".format(
+                    tbl_name=meta.db_table,
+                    fk_name=fk_name,
+                    fk_id=getattr(self, fk_name)
+                    )
+
+                # Get index corresponding to auto_field.
+                af_idx = [f.name for f in fields].index(auto_field)
+                # Put this directly in the SQL; cursor.execute quotes it
+                # as a literal, which causes the SQL command to fail.
+                # We shouldn't have issues with SQL injection because
+                # auto_field should never be a user-defined parameter.
+                del params[af_idx]
+                sql = re.sub(r"((%s, ){{{0}}})%s".format(af_idx),
+                    r"\1IFNULL(MAX({af}),0)+1", sql, 1).format(af=auto_field)
+
+                # Execute SQL command.
+                cursor.execute(sql, params)
+
+            # Get primary key from database and set it in memory.
+            if compiler.connection.features.can_return_id_from_insert:
+                id = compiler.connection.ops.fetch_returned_insert_id(cursor)
+            else:
+                id = compiler.connection.ops.last_insert_id(cursor,
+                    meta.db_table, meta.pk.column)
+            self._set_pk_val(id)
+
+            # Refresh object in memory in order to get auto_field value.
+            self.refresh_from_db()
+            
+class EventLog(AutoIncrementModel):
     class Meta:
         ordering = ['-created','-N']
-        unique_together = ("event","N")
+        unique_together = ('event','N')
     event = models.ForeignKey(Event, null=False)
     created = models.DateTimeField(auto_now_add=True)
     issuer = models.ForeignKey(DjangoUser)
@@ -305,30 +398,13 @@ class EventLog(models.Model):
         return self.filename and self.filename[-3:].lower() in ['png','gif','jpg']
 
     def save(self, *args, **kwargs):
-        success = False
         # XXX filename must not be 'None' because null=False for the filename
         # field above.
         self.filename = self.filename or ""
-        attempts = 0
-        while (not success and attempts < 5):
-            attempts = attempts + 1
-            if self.event.eventlog_set.count():
-                self.N = int(self.event.eventlog_set.aggregate(models.Max('N'))['N__max']) + 1
-            else:
-                self.N = 1
-            try:
-                super(EventLog, self).save(*args, **kwargs)
-                success = True
-            except IntegrityError:
-                # IntegrityError means an attempt to insert a duplicate
-                # key or to violate a foreignkey constraint.
-                # We are under race conditions.  Let's try again.
-                pass
 
-        if not success:
-            # XXX Should this be a custom exception?  That way we could catch it
-            # in the views that use it and give an informative error message.
-            raise Exception("Too many attempts to save log message. Something is wrong.")
+        # Set up to call save method of the base class (AutoIncrementModel)
+        kwargs.update({'auto_field': 'N', 'auto_fk': 'event'})
+        super(EventLog, self).save(*args, **kwargs)
 
 class EMGroup(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -398,7 +474,7 @@ EMSPECTRUM = (
 ('em.radio.20-100MHz',  'Radio between 20 and 100 MHz'),
 )
 
-class EMObservation(models.Model):
+class EMObservation(AutoIncrementModel):
     """
     EMObservation:  An observation record for EM followup.  
     """
@@ -431,31 +507,10 @@ class EMObservation(models.Model):
 
     comment = models.TextField(blank=True)
 
-    # We overload the 'save' method to avoid race conditions, since the Eels are numbered. 
     def save(self, *args, **kwargs):
-        success = False
-        attempts = 0
-        while (not success and attempts < 5):
-            attempts = attempts + 1
-            # If I've already got an N assigned, let's not assign another.
-            if not self.N:
-                if self.event.emobservation_set.count():
-                    self.N = int(self.event.emobservation_set.aggregate(models.Max('N'))['N__max']) + 1
-                else:
-                    self.N = 1
-            try:
-                super(EMObservation, self).save(*args, **kwargs)
-                success = True
-            except IntegrityError:
-                # IntegrityError means an attempt to insert a duplicate
-                # key or to violate a foreignkey constraint.
-                # We are under race conditions.  Let's try again.
-                pass
-
-        if not success:
-            # XXX Should this be a custom exception?  That way we could catch it
-            # in the views that use it and give an informative error message.
-            raise Exception("Too many attempts to save EMObservation entry. Something is wrong.")
+        # Set up to call save method of the base class (AutoIncrementModel)
+        kwargs.update({'auto_field': 'N', 'auto_fk': 'event'})
+        super(EMObservation, self).save(*args, **kwargs)
 
     def calculateCoveringRegion(self):
         # How to access the related footprint objects?
@@ -491,7 +546,7 @@ class EMObservation(models.Model):
         self.raWidth  = ramax-ramin
         self.decWidth = decmax-decmin
 
-class EMFootprint(models.Model):
+class EMFootprint(AutoIncrementModel):
     """
     A single footprint associated with an observation.
     Each EMObservation can have many footprints underneath.
@@ -521,33 +576,12 @@ class EMFootprint(models.Model):
     # The exposure time in seconds for this footprint
     exposure_time = models.PositiveIntegerField()
 
-    # We overload the 'save' method to avoid race conditions, since the Eels are numbered. 
     def save(self, *args, **kwargs):
-        success = False
-        attempts = 0
-        while (not success and attempts < 5):
-            attempts = attempts + 1
-            # If I've already got an N assigned, let's not assign another.
-            if not self.N:
-                if self.observation.emfootprint_set.count():
-                    self.N = int(self.observation.emfootprint_set.aggregate(models.Max('N'))['N__max']) + 1
-                else:
-                    self.N = 1
-            try:
-                super(EMFootprint, self).save(*args, **kwargs)
-                success = True
-            except IntegrityError:
-                # IntegrityError means an attempt to insert a duplicate
-                # key or to violate a foreignkey constraint.
-                # We are under race conditions.  Let's try again.
-                pass
+        # Set up to call save method of the base class (AutoIncrementModel)
+        kwargs.update({'auto_field': 'N', 'auto_fk': 'observation'})
+        super(EMFootprint, self).save(*args, **kwargs)
 
-        if not success:
-            # XXX Should this be a custom exception?  That way we could catch it
-            # in the views that use it and give an informative error message.
-            raise Exception("Too many attempts to save Footprint. Something is wrong.")
-
-class EMBBEventLog(models.Model):
+class EMBBEventLog(AutoIncrementModel):
     """EMBB EventLog:  A multi-purpose annotation for EM followup.
      
     A rectangle on the sky, equatorially aligned,
@@ -736,29 +770,10 @@ class EMBBEventLog(models.Model):
             self.duration = gpsmax-gpsmin
         return True
 
-    # We overload the 'save' method to avoid race conditions, since the Eels are numbered. 
     def save(self, *args, **kwargs):
-        success = False
-        attempts = 0
-        while (not success and attempts < 5):
-            attempts = attempts + 1
-            if self.event.embbeventlog_set.count():
-                self.N = int(self.event.embbeventlog_set.aggregate(models.Max('N'))['N__max']) + 1
-            else:
-                self.N = 1
-            try:
-                super(EMBBEventLog, self).save(*args, **kwargs)
-                success = True
-            except IntegrityError:
-                # IntegrityError means an attempt to insert a duplicate
-                # key or to violate a foreignkey constraint.
-                # We are under race conditions.  Let's try again.
-                pass
-
-        if not success:
-            # XXX Should this be a custom exception?  That way we could catch it
-            # in the views that use it and give an informative error message.
-            raise Exception("Too many attempts to save EMBB entry. Something is wrong.")
+        # Set up for calling save method of the base class (AutoIncrementModel)
+        kwargs.update({'auto_field': 'N', 'auto_fk': 'event'})
+        super(EMBBEventLog, self).save(*args, **kwargs)
 
 class Labelling(models.Model):
     event = models.ForeignKey(Event)
