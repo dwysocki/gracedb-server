@@ -711,7 +711,7 @@ class EventLabel(APIView):
         if label is not None:
             theLabel = event.labelling_set.filter(label__name=label).all()
             if len(theLabel) < 1:
-                return Response("Label Not %s Found" % label,
+                return Response("Label %s Not Found" % label,
                         status=status.HTTP_404_NOT_FOUND)
             theLabel = theLabel[0]
             return Response(labelToDict(theLabel, request=request))
@@ -731,15 +731,18 @@ class EventLabel(APIView):
     @event_and_auth_required
     def put(self, request, event, label):
         try:
-            rv = create_label(event, request, label)
+            rv, label_created = create_label(event, request, label)
         except ValueError, e:
             return Response(e.message,
                         status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(rv, status=status.HTTP_201_CREATED)
+        # Return response and status code
+        if label_created:
+            return Response(rv, status=status.HTTP_201_CREATED)
+        else:
+            return Response(rv, status=status.HTTP_200_OK)
 
     def delete(self, request, graceid, label):
-        #return Response("Not Implemented", status=status.HTTP_501_NOT_IMPLEMENTED)
         try:
             event = Event.getByGraceid(graceid)
             rv = delete_label(event, request, label)
@@ -747,7 +750,7 @@ class EventLabel(APIView):
             return Response(e.message,
                         status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(rv, status=status.HTTP_201_CREATED)
+        return Response(rv, status=status.HTTP_200_OK)
 
 #==================================================================
 # EventLog

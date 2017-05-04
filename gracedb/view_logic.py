@@ -162,8 +162,11 @@ def create_label(event, request, labelName, doAlert=True, doXMPP=True):
         raise ValueError("No such Label '%s'" % labelName)
 
     # Don't add a label more than once.
+    # track whether label is actually created so as to
+    # send the correct HTTP response code
+    label_created = False
     if label in event.labels.all():
-            d['warning'] = "Event %s already labeled with '%s'" % (event.graceid(), labelName)
+        d['warning'] = "Event %s already labeled with '%s'" % (event.graceid(), labelName)
     else:
         labelling = Labelling(
                 event = event,
@@ -171,22 +174,25 @@ def create_label(event, request, labelName, doAlert=True, doXMPP=True):
                 creator = creator
             )
         labelling.save()
+        label_created = True
         message = "Label: %s" % label.name
         log = EventLog(event=event, issuer=creator, comment=message)
         try:       
             log.save()
         except Exception as e:
             # XXX This looks a bit odd to me.
-            logger.exception('Problem saving log message')
+            logger.exception('Problem saving log message (%s)' % str(e))
             d['error'] = str(e)
 
         try:
             issueAlertForLabel(event, label, doXMPP, event_url=event_url)
         except Exception as e:
-            logger.exception('Problem saving log message')
+            logger.exception('Problem issuing alert (%s)' % str(e))
             d['warning'] = "Problem issuing alert (%s)" % str(e)
-    # XXX Strange return value.  Just warnings.  Can really be ignored, I think.
-    return json.dumps(d)
+
+    # Return warning/error messages (for passing back to client)
+    # and label_created bool
+    return json.dumps(d), label_created
 
 def delete_label(event, request, labelName):
     # This function deletes a label. It starts out a lot like the create
@@ -206,7 +212,7 @@ def delete_label(event, request, labelName):
     # error if it isn't. There might be a more elegant way of doing this.
     if label not in event.labels.all():
             d['warning'] = "No label '%s' associated with event %s" % (labelName, event.graceid())
-            raise ValueError( "No label '%s' associated with event %s" % (labelName, event.graceid()))
+            raise ValueError("No label '%s' associated with event %s" % (labelName, event.graceid()))
     else:
         this_label = Labelling.objects.get(
                 event = event,
@@ -219,7 +225,7 @@ def delete_label(event, request, labelName):
             log.save()
         except Exception as e:
             # XXX This looks a bit odd to me. (<-- retained this message)
-            logger.exception('Problem saving log message')
+            logger.exception('Problem saving log message (%s)' % str(e))
             d['error'] = str(e)
 
     # Return the json for some reason. I don't do any alert stuff in here.
