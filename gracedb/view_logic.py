@@ -225,6 +225,7 @@ def delete_label(event, request, labelName):
     # Return the json for some reason. I don't do any alert stuff in here.
     return json.dumps(d)
 
+# 8 May 2017 (TP): this function doesn't appear to be used anywhere
 def _createLog(request, graceid, comment, uploadedFile=None):
     response = HttpResponse(mimetype='application/json')
     rdict = {}

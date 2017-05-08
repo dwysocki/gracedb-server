@@ -314,6 +314,7 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
         # The following string cast is necessary because sometimes 
         # description is a label object!
         'description': str(description),
+        'labels': [label.name for label in event.labels.all()]
     }
     if serialized_object:
         lva_data['object'] = serialized_object
