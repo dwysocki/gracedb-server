@@ -65,10 +65,9 @@ gpsQ = gpsQ.setParseAction(maybeRange("gpstime"))
 
 # run ids
 runmap = {
-    # Nov 30 16:00:00 UTC 2016 - ?
-    # (end date currently set to Apr 1 00:00:00 UTC 2017) (TP's guess)
-    "O2A" :     (1164556817, 1175040018),
-    # Friday, Sept 18th, 10 AM CDT - Tuesday, Jan 12th, 10:00 AM CST
+    # 30 Nov 2016 16:00:00 UTC - 25 Aug 2017 22:00:00 UTC
+    "O2"  :     (1164556817, 1187733618),
+    # Friday, Sept 18th, 10 AM CDT 2015 - Tuesday, Jan 12th, 10:00 AM CST 2016
     "O1"  :     (1126623617, 1136649617),
     # Monday, Aug 17th, 10 AM CDT - Friday, Sept 18th, 10 AM CDT 
     "ER8" :     (1123858817, 1126623617),
