@@ -10,7 +10,8 @@ from models import SimInspiralEvent
 from models import LalInferenceBurstEvent
 from models import EMBBEventLog, EMGroup
 from models import EMObservation, EMFootprint
-from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate
+from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate, \
+    issueXMPPAlert
 from translator import handle_uploaded_data
 
 from utils.vfile import VersionedFile
@@ -194,7 +195,7 @@ def create_label(event, request, labelName, doAlert=True, doXMPP=True):
     # and label_created bool
     return json.dumps(d), label_created
 
-def delete_label(event, request, labelName):
+def delete_label(event, request, labelName, doXMPP=True):
     # This function deletes a label. It starts out a lot like the create
     # label function. First get user and event info:
     creator = request.user
@@ -227,6 +228,15 @@ def delete_label(event, request, labelName):
             # XXX This looks a bit odd to me. (<-- retained this message)
             logger.exception('Problem saving log message (%s)' % str(e))
             d['error'] = str(e)
+
+        # send an XMPP alert, no email or phone alerts
+        try:
+            if doXMPP:
+                issueXMPPAlert(event, "", alert_type="label",
+                    description="Label {0} removed".format(label.name))
+        except Exception as e:
+            logger.exception('Problem issuing alert (%s)' % str(e))
+            d['warning'] = "Problem issuing alert (%s)" % str(e)
 
     # Return the json for some reason. I don't do any alert stuff in here.
     return json.dumps(d)

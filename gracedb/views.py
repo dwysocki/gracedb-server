@@ -26,6 +26,12 @@ from view_logic import create_label, delete_label
 from view_utils import assembleLigoLw, get_file
 from view_utils import flexigridResponse, jqgridResponse
 from view_utils import get_recent_events_string
+from view_utils import eventLogToDict
+from alert import issueAlertForUpdate
+
+# Set up logging
+import logging
+log = logging.getLogger(__name__)
 
 import os
 from django.conf import settings
@@ -178,6 +184,8 @@ def _create(request):
 
 @event_and_auth_required
 def logentry(request, event, num=None):
+    """Creates an EventLog from the web interface"""
+
     if request.method == "POST":
         # create a log entry
         elog = EventLog(event=event, issuer=request.user)
@@ -251,6 +259,22 @@ def logentry(request, event, num=None):
                 tag.eventlogs.add(elog)
             except:
                 pass
+
+        # Send XMPP alert message
+        try:
+            if uploadedFile:
+                desc = "UPLOAD: '{0}' ".format(uploadedFile.name)
+                fname = uploadedFile.name
+            else:
+                desc = "LOG: "
+                fname = ""
+            issueAlertForUpdate(event, desc+elog.comment, doxmpp=True,
+                filename=fname,
+                serialized_object=eventLogToDict(elog, request=request))
+        except Exception as e:
+            log.error('Error issuing alert: %s' % str(e))
+            return HttpResponse("Failed to send alert for log message: %s" \
+                .format(e))
 
     elif request.method == "GET":
         if not user_has_perm(request.user, 'view', event):
