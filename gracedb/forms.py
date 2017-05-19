@@ -48,11 +48,13 @@ class CreateEventForm(forms.Form):
     #typeChoices= [("","")]+list(Event.ANALYSIS_TYPE_CHOICES)
     pipelineChoices = [("","")]+[(p.name, p.name) for p in Pipeline.objects.all()]
     searchChoices = [("","")]+[(s.name, s.name) for s in Search.objects.all()]
-    
-    eventFile  = forms.FileField()
+
+    eventFile = forms.FileField()
     group = forms.ChoiceField(groupChoices)
     pipeline = forms.ChoiceField(pipelineChoices)
     search = forms.ChoiceField(searchChoices, required=False)
+    # List of labels as a comma-separated string
+    labels = forms.CharField(required=False)
     #type = forms.ChoiceField(choices=typeChoices)
 
 

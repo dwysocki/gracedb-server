@@ -35,7 +35,7 @@ from django.utils import timezone
 import logging
 import pytz
 
-logger = logging.getLogger('gracedb.view_logic')
+logger = logging.getLogger(__name__)
 
 def _createEventFromForm(request, form):
     saved = False
@@ -44,6 +44,7 @@ def _createEventFromForm(request, form):
         group = Group.objects.get(name=form.cleaned_data['group'])
         pipeline = Pipeline.objects.get(name=form.cleaned_data['pipeline'])
         search_name = form.cleaned_data['search']
+        label_str = form.cleaned_data['labels']
         if search_name:
             search = Search.objects.get(name=form.cleaned_data['search'])
         else:
@@ -120,6 +121,40 @@ def _createEventFromForm(request, form):
             temp_data_loc, translator_warnings  = handle_uploaded_data(event, uploadDestination, 
                 file_contents = file_contents)
             warnings += translator_warnings
+
+            # Add labels here - need event to have been saved already
+            for label in label_str.split(","):
+                # Handle case where no labels are sent (labels=[] in
+                # gracedb-client), here label_str.split(",") will be [""]
+                if not label:
+                    break
+
+                # Try to get label from database. gracedb-client has a test for
+                # this, but we should have a safeguard on the server.
+                try:
+                    label_obj = Label.objects.get(name=label)
+                except Label.DoesNotExist:
+                    msg = "Label {0} does not exist and was not applied" \
+                        .format(label)
+                    warnings.append(msg)
+                    continue
+
+                # If event already has this label, don't do anything.
+                # Append a warning message.
+                if label_obj in event.labels.all():
+                    warnings.append("Event {0} already labeled with '{1}'" \
+                        .format(event.graceid(), label))
+                else:
+                    # Otherwise, create label
+                    labelling = Labelling(event=event, label=label_obj,
+                        creator=event.submitter)
+                    labelling.save()
+                    # Create log message about label
+                    message = "Event created with label: {0}".format(label)
+                    log = EventLog(event=event, issuer=event.submitter,
+                        comment=message)
+                    log.save()
+
             try:
                 # Send an alert.
                 # XXX This reverse will give the web-interface URL, not the REST URL.

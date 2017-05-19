@@ -12,7 +12,7 @@ import json
 from django.contrib.auth.models import User, Permission
 from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.contenttypes.models import ContentType
-from gracedb.models import Event, Group, Search, Pipeline, EventLog, Tag
+from gracedb.models import Event, Group, Search, Pipeline, EventLog, Tag, Label
 from gracedb.models import EMGroup, EMBBEventLog, EMSPECTRUM
 #from gracedb.models import EMObservation, EMFootprint
 from gracedb.models import VOEvent
@@ -508,7 +508,7 @@ class EventList(APIView):
                     status = status.HTTP_400_BAD_REQUEST)
             if not user_has_perm(request.user, "populate", pipeline):
                 return HttpResponseForbidden("You don't have permission on this pipeline.")
-        
+
         # The following looks a bit funny but it is actually necessary. The 
         # django form expects a dict containing the POST data as the first
         # arg, and a dict containing the FILE data as the second. In the 
@@ -1561,6 +1561,7 @@ class GracedbRoot(APIView):
             "groups"    : [group.name for group in Group.objects.all()],
             "pipelines" : [pipeline.name for pipeline in Pipeline.objects.all()],
             "searches"  : [search.name for search in Search.objects.all()],
+            "labels"    : [label.name for label in Label.objects.all()],
             "em-groups"  : [g.name for g in EMGroup.objects.all()],
             "wavebands"      : dict(EMSPECTRUM),
             "eel-statuses"   : dict(EMBBEventLog.EEL_STATUS_CHOICES),
