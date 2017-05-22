@@ -4,6 +4,7 @@ from gracedb.models import Event, Search, Group
 from gracedb.models import CoincInspiralEvent, MultiBurstEvent
 from guardian.models import GroupObjectPermission
 from django.contrib.contenttypes.models import ContentType
+import datetime
 
 class Command(NoArgsCommand):
     help = "I kill the MDC events."
@@ -66,3 +67,6 @@ class Command(NoArgsCommand):
             # Now, say goodbye to the database entry
             e.delete()
 
+        # Print information if no events found
+        if not events:
+            print "No MDC events found ({0})".format(datetime.datetime.now())
