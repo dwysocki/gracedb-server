@@ -135,6 +135,13 @@ class Event(models.Model):
     # searches quite considerably.
     perms = models.TextField(null=True)
 
+    # Boolean which determines whether the event was submitted by an offline
+    # analysis (True) or an online/low-latency analysis (False). Because this
+    # is being implemented during a run (O2), we use a default value of False
+    # so as to ensure backwards-compatibility; i.e., all events treated as
+    # "online" by default.
+    offline = models.BooleanField(default=False)
+
     class Meta:
         ordering = ["-id"]
 

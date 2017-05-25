@@ -57,6 +57,11 @@ class CreateEventForm(forms.Form):
     labels = forms.CharField(required=False)
     #type = forms.ChoiceField(choices=typeChoices)
 
+    # Offline boolean. required=False means that if the user
+    # doesn't provide a value, we use the default defined in models.py.
+    # This ensures backwards-compatibility for client versions which
+    # don't specify this parameter.
+    offline = forms.BooleanField(required=False)
 
 class EventSearchForm(forms.Form):
     groupChoices = [("","")]+[(g.name, g.name) for g in Group.objects.all()]
