@@ -134,6 +134,7 @@ def eventToDict(event, columns=None, request=None):
     rv['gpstime'] = event.gpstime
     rv['instruments'] = event.instruments
     rv['nevents'] = event.nevents
+    rv['offline'] = event.offline
 
     far_is_upper_limit = False
     display_far = event.far

@@ -45,6 +45,7 @@ def _createEventFromForm(request, form):
         pipeline = Pipeline.objects.get(name=form.cleaned_data['pipeline'])
         search_name = form.cleaned_data['search']
         label_str = form.cleaned_data['labels']
+        offline = form.cleaned_data['offline']
         if search_name:
             search = Search.objects.get(name=form.cleaned_data['search'])
         else:
@@ -67,6 +68,7 @@ def _createEventFromForm(request, form):
         event.group = group
         event.pipeline = pipeline
         event.search = search
+        event.offline = offline
 
         # If the event is an injection, look for certain attributes in the POST data.
         # These attributes are unfortunately not found in the SimInspiralTable

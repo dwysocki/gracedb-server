@@ -119,6 +119,11 @@
     </div>
 {% endif %}
 
+{% if object.offline %}
+<div style="text-align: center;">
+    <h2 style="color: red;">OFFLINE EVENT</h2>
+</div>
+{% endif %}
 
 <!-- Here is a section for the EM advocate signoffs. -->
 <!-- XXX So much ugliness here. Is there a way to do this with the JS? -->
