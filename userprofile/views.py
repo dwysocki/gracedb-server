@@ -50,7 +50,30 @@ def managePassword(request):
 
 @internal_user_required
 def create(request):
-    explanation = ""
+    # Explanatory HTML block.
+    expl = ['<div style="padding: 10px;">',
+            '<h4>Instructions:</h4>',
+            '<ul><li>Select a contact to receive the notification.</li>',
+            ('<li>Select a pipeline to receive alerts for events created '
+             'by that pipeline. Select all pipelines to receive alerts, '
+             'regardless of pipeline.</li>'),
+            ('<li>Enter a FAR threshold if you want to only receive alerts '
+             'about events more significant than the threshold. Leave blank '
+             ' to receive all events, regardless of FAR.</li>'),
+            ('<li>Select a label or enter a label query to receive alerts '
+             'only when a specific label or set of labels is applied. Don\'t '
+             'select any labels to receive all events, regardless of labels.'
+             '</li>'),
+            ('<li>To set up a notification based only on FAR, select a '
+             'contact, select all pipelines, enter a FAR threshold, and '
+             'do not select any labels or enter a label query.</li>'),
+            ('<li>You may select multiple contacts, pipelines, and/or labels '
+             'by holding SHIFT and clicking or using CTRL + A to select all.'
+             '</li>'),
+            '</ul></div>'
+           ]
+    expl = mark_safe("\n".join(expl))
+
     message = ""
     if request.method == "POST":
         form = triggerFormFactory(request.POST, user=request.user)
@@ -114,7 +137,7 @@ def create(request):
     return render_to_response('profile/createNotification.html',
                               { "form" : form,
                                 "creating":"Notification",
-                                "explanation": explanation,
+                                "explanation": expl,
                               },
                               context_instance=RequestContext(request))
 

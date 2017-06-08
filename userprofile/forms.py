@@ -10,15 +10,23 @@ from pyparsing import ParseException
 
 def triggerFormFactory(postdata=None, user=None):
     class TF(forms.ModelForm):
-        farThresh = forms.FloatField(label='FAR Threshold (Hz)', required=False,
-                help_text="Leave blank to receive all events, regardless of FAR.")
+        farThresh = forms.FloatField(label='FAR Threshold (Hz)',
+            required=False)
         class Meta:
             model = Trigger
             fields = ['contacts', 'pipelines', 'farThresh', 'labels', 'label_query']
             widgets = {'label_query': forms.TextInput(attrs={'size': 50})} 
 
             help_texts = {
-               'label_query': 'Label names can be combined with binary AND: \'&amp;\' or \',\'; or binary OR: \'|\'. For N labels, there must be exactly N-1 binary operators. Parentheses are not allowed. Additionally, any of the labels in a query string can be negated with \'~\' or \'-\'. Labels can either be selected with the select box at the top, or a query can be specified, <i>but not both</i>.'
+                'label_query': ("Label names can be combined with binary AND: "
+                                "'&amp;' or ','; or binary OR: '|'. For N "
+                                "labels, there must be exactly N-1 binary "
+                                "operators. Parentheses are not allowed. "
+                                "Additionally, any of the labels in a query "
+                                "string can be negated with '~' or '-'. "
+                                "Labels can either be selected with the select"
+                                " box at the top, or a query can be specified,"
+                                " <i>but not both</i>."),
             }
 
         contacts = forms.ModelMultipleChoiceField(
