@@ -47,8 +47,7 @@ class Contact(models.Model):
     text_phone = models.BooleanField(default=False)
 
     def __unicode__(self):
-        return u"{0} {1}: {2}".format(self.user.first_name,
-            self.user.last_name, self.desc)
+        return u"{0}: {1}".format(self.user.username, self.desc)
 
     def clean(self):
         # Mostly used for preventing creation of bad Contact
@@ -94,9 +93,8 @@ class Trigger(models.Model):
     label_query = models.CharField(max_length=100, blank=True)
 
     def __unicode__(self):
-        return (u"%s %s: %s") % (
-            self.user.first_name,
-            self.user.last_name,
+        return (u"%s: %s") % (
+            self.user.username,
             self.userlessDisplay()
         )
 
