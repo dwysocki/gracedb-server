@@ -43,6 +43,8 @@ USE_LVALERT_OVERSEER = True
 LVALERT_OVERSEER_PORTS = {
     'lvalert.cgca.uwm.edu': 8000,
 }
+# Set to false to prevent XMPP alerts from being sent out
+SEND_XMPP_ALERTS = True
 
 EMBB_MAIL_ADDRESS = 'embb@gracedb.ligo.org'
 EMBB_SMTP_SERVER = 'localhost'

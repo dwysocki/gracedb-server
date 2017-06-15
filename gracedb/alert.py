@@ -287,6 +287,13 @@ def issuePhoneAlert(event):
 
 def issueXMPPAlert(event, location, alert_type="new", description="", serialized_object=None):
     
+    # Check settings switch for turning off XMPP alerts
+    if not settings.SEND_XMPP_ALERTS:
+        log.debug(("XMPP alert type '{atype}' for event {gid} not sent "
+            "because XMPP alerts are turned off").format(
+            atype=alert_type, gid=event.graceid()))
+        return
+
     nodename = "%s_%s" % (event.group.name, event.pipeline.name)
     nodename = nodename.lower()
     nodenames = [ nodename, ]
