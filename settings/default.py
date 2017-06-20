@@ -179,12 +179,12 @@ REPORT_IFAR_IMAGE_DIR = LATENCY_REPORT_DEST_DIR
 #]
 REPORTS_IFAR = [
     #(query, axis_label, title, fname),
-    ("gstlal %d..%d" % (yesterday, now),
+    ("gstlal %d .. %d" % (yesterday, now),
      "GraceDB gstlal events",
      "FARs from gstlal - last day",
      "ifar_day.png"
     ),
-    ("gstlal %d..%d" % (lastweek, now),
+    ("gstlal %d .. %d" % (lastweek, now),
      "GraceDB gstlal events",
      "FARs from gstlal - last week",
      "ifar_week.png"
