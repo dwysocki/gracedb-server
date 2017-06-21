@@ -378,6 +378,7 @@ LOG_FILE_SIZE = 1024*1024 # 1 MB
 LOG_FILE_BAK_CT = 10
 LOG_FORMAT = 'extra_verbose'
 LOG_LEVEL = 'DEBUG'
+LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
 
 # Note that mode for log files is 'a' (append) by default
 # The 'level' specifier on the handle is optional, and we
@@ -388,16 +389,16 @@ LOGGING = {
     'formatters': {
         'simple': {
             'format': '%(asctime)s | %(message)s',
-            'datefmt': '%Y-%m-%d %H:%M:%S',
+            'datefmt': LOG_DATEFMT,
         },
         'verbose': {
             'format': '%(asctime)s | %(name)s | %(message)s',
-            'datefmt': '%Y-%m-%d %H:%M:%S',
+            'datefmt': LOG_DATEFMT,
         },
         'extra_verbose': {
             'format': '%(asctime)s.%(msecs)03d | %(name)s | %(levelname)s | ' \
                       + '%(filename)s, line %(lineno)s | %(message)s',
-            'datefmt': '%Y-%m-%d %H:%M:%S',
+            'datefmt': LOG_DATEFMT,
         }
     },
     'handlers': {
@@ -422,7 +423,9 @@ LOGGING = {
             'level': 'ERROR',
         },
         'performance_file': {
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.ConcurrentRotatingFileHandler',
+            'maxBytes': 1024*1024,
+            'backupCount': 1,
             'formatter': 'simple',
             'filename': '%s/gracedb_performance.log' % LOG_ROOT,
         },

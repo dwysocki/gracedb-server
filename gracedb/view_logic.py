@@ -34,6 +34,7 @@ from dateutil import parser
 from django.utils import timezone
 import logging
 import pytz
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -327,9 +328,6 @@ def get_performance_info():
     logfilepath = settings.LOGGING['handlers']['performance_file']['filename']
     logfile = open(logfilepath, "r")
    
-    # Now parse the log file
-    dateformat = '%Y-%m-%dT%H:%M:%S' # ISO format. I think.
-
     # Lookback time is 3 days. These are in UTC.
     dt_now = timezone.now()
     dt_min = dt_now + datetime.timedelta(days=-3)
@@ -343,20 +341,17 @@ def get_performance_info():
     totals_by_method = {}
 
     for line in logfile:
-        datestring = line[0:len('YYYY-MM-DDTHH:MM:SS')]
-        # Check the date to see whether it's fresh enough
-        dt = datetime.datetime.strptime(datestring, dateformat)
-        # Localize so we can compare with aware datetimes
-        dt = SERVER_TZ.localize(dt) 
-        if dt > dt_min:
-            # Get rid of the datestring and the final colon.
-            line = line[len(datestring)+1:]
-            # Parse
-            method, status, username = line.split(':')
-            method = method.strip()
-            status = int(status.strip())
-            username = username.strip()
+        try:
+            match = re.search(r'^(.*) \| (\w+): (\d+): (\S+)$', line)
+            datestring, method, status, username = match.groups()
+        except:
+            continue
 
+        # Check the date to see whether it's fresh enough
+        dt = datetime.datetime.strptime(datestring, settings.LOG_DATEFMT)
+        # Localize so we can compare with aware datetimes
+        dt = SERVER_TZ.localize(dt)
+        if dt > dt_min:
             if method not in totals_by_method.keys():
                 totals_by_method[method] = 1
                 totals_by_status[method] = {status: 1}
@@ -387,8 +382,8 @@ def get_performance_info():
             'totals_by_status' : totals_by_status,
             'totals_by_method' : totals_by_method,
     }
-    return context
 
+    return context
 
 # 
 # A utility to be used with the gracedb.views.view to determine whether 
