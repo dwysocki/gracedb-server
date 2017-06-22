@@ -1,4 +1,5 @@
 
+import os
 import sys
 from subprocess import Popen, PIPE, STDOUT
 
@@ -303,16 +304,6 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
 
     log.debug('issueXMPPAlert: %s' % event.graceid())
 
-# XXX We no longer check the XMPP_ALERT_CHANNELS list.
-# If somebody sends an event, there should always be an alert.
-# It is up to the end users to filter these out as desired.
-#
-#    if nodename not in settings.XMPP_ALERT_CHANNELS:
-#        log.debug("issueXMPPAlert: did not send alert")
-#        return
-
-    env = {}
-    env["PYTHONPATH"] = ":".join(sys.path)
     # Create the output dictionary and serialize as JSON.
     lva_data = {
         'file': location,
@@ -355,27 +346,26 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
                 # Not using LVAlert overseer, so just log the node and server
                 log.info("issueXMPPAlert: sending to node %s on %s" % (nodename, server))
 
-            null = open('/dev/null','w')
+            # Set up environment for running lvalert_send script
+            env = os.environ.copy()
+
+            # Construct lvalert_send command
             p = Popen(
                 ["lvalert_send",
-                 #"--server=%s" % settings.ALERT_XMPP_SERVER,
                  "--server=%s" % server,
-                 "--username=gracedb",
-                 "--password=w4k3upal1ve",
                  "--file=-",
                  "--node=%s" % nodename,
                 ],
-                #executable="/usr/bin/lvalert_send",
-                executable=settings.LVALERT_SEND_EXECUTABLE,
                 stdin=PIPE,
                 stdout=PIPE,
                 stderr=PIPE,
                 env=env)
 
+            # Send lvalert message to subprocess
             out, err = p.communicate(msg)
 
-            log.debug("issueXMPPAlert: return code %s" % p.returncode)
+            log.debug("issueXMPPAlert: lvalert_send: return code %s" % p.returncode)
             if p.returncode > 0:
                 # XXX This should probably raise an exception.
-                log.debug("issueXMPPAlert: ERROR: %s" % err)
+                log.error("issueXMPPAlert: ERROR: %s" % err)
 
