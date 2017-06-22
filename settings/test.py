@@ -1,4 +1,4 @@
-from settings_secret import DEFAULT_DB_PASSWORD
+from .secret import DEFAULT_DB_PASSWORD
 
 CONFIG_NAME = "TEST"
 

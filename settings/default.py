@@ -4,7 +4,7 @@ import time
 import logging
 from cloghandler import ConcurrentRotatingFileHandler
 
-from settings_secret import *
+from .secret import *
 
 
 USE_TZ = True

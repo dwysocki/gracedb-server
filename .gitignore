@@ -11,5 +11,5 @@ doc/build/*
 doc/build/.buildinfo
 admin_doc/build/*
 admin_doc/build/.buildinfo
-settings/settings_secret.py
+settings/secret.py
 settings/local.py
