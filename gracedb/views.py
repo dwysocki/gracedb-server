@@ -98,7 +98,8 @@ def index(request):
 
     if signoff_authorized:
         label_name = signoff_instrument + 'OPS'
-        events = Event.objects.filter(labelling__label__name=label_name)
+        events = Event.objects.filter(labelling__label__name=label_name) \
+            .exclude(group__name='Test')
         context['signoff_graceids'] = [e.graceid() for e in events]
 
     recent_events = '' 
