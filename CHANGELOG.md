@@ -1,5 +1,106 @@
-# Change Log
+# Changelog
 All notable changes to this project will be documented in this file.
+
+## 2017-07-05 (gracedb-1.0.10) <tanner.prestegard@ligo.org>
+### Added
+- global setting for turning off LVAlerts (SEND_XMPP_ALERTS)
+- instructions to the web page for creating notifications
+
+### Fixed
+- logging and display of performance information
+- failover to lvalert_send when lvalert_overseer is not working
+
+## 2017-05-30 (gracedb-1.0.9) <tanner.prestegard@ligo.org>
+### Added
+- list of labels for an event is now included in all LVAlert messages
+- available labels now exposed via the REST API
+- ability to create events with labels attached
+- 'offline' parameter
+
+### Fixed
+- cleanup of label and event creation code, use of proper HTTP response codes
+- LVAlert messages now sent when a label is removed and when a log entry is added via the web interface
+
+## 2017-05-08 (gracedb-1.0.8) <tanner.prestegard@ligo.org>
+### Added
+- case-insensitive search queries
+
+### Changed
+- removed gracedb/pyparsing.py in favor of the pip-installed version
+- overall reorganization and cleanup of Django settings
+
+## 2017-04-25 (gracedb-1.0.7) <tanner.prestegard@ligo.org>
+### Added
+- V1OPS label and access to signoff pages from Virgo control room
+- EM_SENT label
+- new save method for EventLog, EMBBEventLog, EMObservation, EMFootprint to generate log number and save in a single SQL query
+
+### Fixed
+- typo in an MOU group's name (CTA)
+
+## 2017-03-21 (gracedb-1.0.6) <tanner.prestegard@ligo.org>
+### Changed
+- modify handling of Fermi GCNs so as to not overwrite trigger durations
+- change settings so gracedb servers use 'test' settings by default
+
+## 2017-03-07 (gracedb-1.0.5) <tanner.prestegard@ligo.org>
+### Added
+- extraction of single IFO times from CWB event files, saving them in the database, and exposing them to MOU partners
+
+### Changed
+- increased size of 'debug' Django logs
+
+## 2017-02-28 (gracedb-1.0.4) <tanner.prestegard@ligo.org>
+### Changed
+- added new LIB robot certificate
+
+### Fixed
+- issue where non-LVC members could remove the lv-em tag on log messages
+
+## 2017-01-24 (gracedb-1.0.3) <tanner.prestegard@ligo.org>
+### Added
+- several MOU groups
+- human-readable FAR to event pages
+- leap second from 31 Dec 2016
+- test button for contacts
+
+### Changed
+- separated phone alerts into voice and text options
+
+## 2017-01-10 (gracedb-1.0.2) <tanner.prestegard@ligo.org>
+
+### Changed
+- increased Django logging verbosity and clarity
+- modernized Django template structure to Django 1.8 standard
+- reorganized settings
+
+## 2016-12-20 (gracedb-1.0.1) <tanner.prestegard@ligo.org>
+### Added
+- capability for removing labels via gracedb-client
+
+### Changed
+- expose singleInspiral times and IFOs for EM partners
+
+## 2016-11-22 <tanner.prestegard@ligo.org>
+### Added
+- capability for sending phone/SMS alerts via Twilio
+
+### Changed
+- updated admin documentation
+
+## 2016-11-11 <tanner.prestegard@ligo.org>
+### Added
+- AllSkyLong search and updated LVAlert nodes
+
+### Changed
+- event file structure for LIB events
+
+## 2016-10-20 <tanner.prestegard@ligo.org>
+### Added
+- README.md file
+
+### Changed
+- Repository moved from versions.ligo.org to git.ligo.org
 
 ## 2016-01-07
 ### Added
