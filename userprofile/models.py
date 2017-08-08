@@ -6,6 +6,8 @@ from gracedb.models import Label, Pipeline
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 import phonenumbers
+import logging
+log = logging.getLogger(__name__)
 
 def validate_phone(value):
     try:
@@ -81,14 +83,14 @@ class Contact(models.Model):
                 self.call_phone, self.text_phone))
 
 class Trigger(models.Model):
+    # TP 6 Jul 2017: TYPES and triggerType don't seem to be used anywhere...
     TYPES = ( ("create", "create"), ("change","change"), ("label","label") )
-    user = models.ForeignKey(User, null=False)
-    #new_user = models.ForeignKey(DjangoUser, null=True)
     triggerType = models.CharField(max_length=20, choices=TYPES, blank=True)
+
+    user = models.ForeignKey(User, null=False)
     labels = models.ManyToManyField(Label, blank=True)
-    #atypes = models.ManyToManyField(AnalysisType, blank=True, verbose_name="Analysis Types")
     pipelines = models.ManyToManyField(Pipeline, blank=True)
-    contacts = models.ManyToManyField(Contact, blank=True)
+    contacts = models.ManyToManyField(Contact, blank=False)
     farThresh = models.FloatField(blank=True, null=True)
     label_query = models.CharField(max_length=100, blank=True)
 

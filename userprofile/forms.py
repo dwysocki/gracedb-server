@@ -31,8 +31,9 @@ def triggerFormFactory(postdata=None, user=None):
 
         contacts = forms.ModelMultipleChoiceField(
                         queryset=Contact.objects.filter(user=user),
-                        required=False,
-                        help_text="If blank, go back and create a Contact first.")
+                        required=True,
+                        help_text="If this box is empty, go back and create a contact first.",
+                        error_messages={'required': 'You must specify at least one contact.'})
     
         # XXX should probably override is_valid and check for
         # truth of (atypes or labels)
@@ -41,12 +42,21 @@ def triggerFormFactory(postdata=None, user=None):
         def clean(self):
             cleaned_data = super(TF, self).clean()
             label_query = self.cleaned_data['label_query']
+
+            if (self.cleaned_data['label_query'] and
+                self.cleaned_data['labels']):
+                raise forms.ValidationError('Cannot specify labels and label query, choose one or the other.')
+
+            if not (self.cleaned_data['labels'] or
+                    self.cleaned_data['pipelines']):
+                raise forms.ValidationError('Choose labels and/or pipelines for this notification.')
+
             if len(label_query) > 0:
                 # now try parsing it
                 try:
                     parseLabelQuery(label_query)
                 except ParseException:
-                    raise forms.ValidationError("Invalid label query.")
+                    raise forms.ValidationError({'label_query': 'Invalid label query.'})
             return cleaned_data
 
     if postdata is not None:

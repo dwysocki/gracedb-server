@@ -19,7 +19,7 @@ import logging
 log = logging.getLogger(__name__)
 
 from .models import Trigger, Contact
-from .forms import ContactForm, triggerFormFactory
+from .forms import ContactForm, triggerFormFactory, TriggerForm
 from gracedb.permission_utils import internal_user_required, lvem_user_required
 from gracedb.query import labelQuery
 from gracedb.models import Label
@@ -86,15 +86,9 @@ def create(request):
             farThresh = form.cleaned_data['farThresh']
             label_query = form.cleaned_data['label_query']
 
-
-            if len(label_query) > 0 and labels.count() > 0:
-                msg = "Cannot both select labels and define label query. Choose one or the other." 
-                return HttpResponseBadRequest(msg)
-
             # If we've got a label query defined for this trigger, then we want 
             # each label mentioned in the query to be listed in the events labels.
             # It would be smarter to make sure the label isn't being negated, but 
-
             # we can just leave that for later.
             if len(label_query) > 0:
                 toks = labelQuery(label_query, names=True)
@@ -121,15 +115,12 @@ def create(request):
                 request.session['flash_msg'] = "Created: %s" % t.userlessDisplay()
                 return HttpResponseRedirect(reverse(index))
         # Data was bad
-        try:
-            if not contacts:
-                message += "You must specify at least one contact. "
-            if not (labels or pipelines):
-                message += "You need to indicate label(s) and/or pipeline(s)."
-        except NameError:
-            # form is not valid, so labels, contacts and pipelines were not set.
-            # hopefully, there are error messages in the form.
-            pass
+        else:
+            # Get non-field errors and display them in the message box.
+            # Remove them from the form so they don't display in the table too.
+            while form.errors['__all__']:
+                message += form.errors['__all__'].pop().message
+
     else:
         form = triggerFormFactory(user=request.user)
     if message:
