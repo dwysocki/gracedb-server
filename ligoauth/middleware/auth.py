@@ -18,6 +18,9 @@ from django.utils import timezone
 from base64 import b64decode
 import json
 
+import logging
+logger = logging.getLogger(__name__)
+
 # XXX Hack. This will go away when we get the new perms infrastructure in place.
 PUBLIC_URLS = [
     '/',
@@ -72,7 +75,7 @@ def create_user_from_request(request):
         'last_name': request.META.get('sn', ''),
         'password': 'X',
     }
-    return LigoLdapUser.objects.create(**user_dict)
+    return User.objects.create(**user_dict)
 
 class LigoAuthMiddleware:
     """This is the ultimate gatekeeper for GraceDb auth/authz.
@@ -98,10 +101,14 @@ class LigoAuthMiddleware:
                 # We have a remote user who was not found in the database, but 
                 # *does* have a valid shib session. So we'll create the user.
                 try:
+                    logger.debug('Creating user {0} in middleware' \
+                        .format(remote_user))
                     user = create_user_from_request(request)
-                except Exception, e:
-                    # XXX This error message could use some work.
-                    return HttpResponseForbidden("{ 'error': '%s'  }" % str(e)) 
+                except Exception as e:
+                    err_msg = 'Error creating user {0} in middleware: {1}' \
+                        .format(remote_user, str(e))
+                    logger.error(err_msg)
+                    return HttpResponseForbidden(err_msg)
 
             if not (user and user.is_authenticated()):
                 message += "THIS SHOULD NEVER HAPPEN"
