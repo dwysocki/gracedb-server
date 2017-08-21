@@ -1,7 +1,7 @@
 
 from django.http import HttpResponseForbidden
 from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.conf import settings
 
 from gracedb.models import Event, Group, Search
@@ -9,7 +9,7 @@ from gracedb.permission_utils import filter_events_for_user
 from gracedb.permission_utils import internal_user_required
 from django.db.models import Q
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from models import CoincInspiralEvent
 from forms import SimpleSearchForm
@@ -62,8 +62,8 @@ def histo(request):
     except:
         binned_counts = None
 
-    return render_to_response(
-            'gracedb/histogram.html',
+    return render(request, 'gracedb/histogram.html',
+        context=
             {'table': table,
              #'ifar' : ifar,
              #'uptime' : uptime,
@@ -71,8 +71,8 @@ def histo(request):
              #'rate' : rate_info,
              'binned_counts': binned_counts,
              'url_prefix' : settings.REPORT_INFO_URL_PREFIX,
-            },
-            context_instance=RequestContext(request))
+            }
+        )
 
 #def rate_data(request):
 def rate_data():
@@ -180,9 +180,8 @@ def cbc_report(request, format=""):
                 errormsg = 'Your query returned items that are not CoincInspiral Events. '
                 errormsg += 'Please try again.'
                 form = SimpleSearchForm()
-                return render_to_response('gracedb/cbc_report.html', 
-                        { 'form':form, 'message':errormsg}, 
-                        context_instance=RequestContext(request))
+                return render(request, 'gracedb/cbc_report.html',
+                    context={'form': form, 'message': errormsg})
 
         # Check that we have a well-defined GPS time range.
         # Find the gpstime limits of the query by diving into the query object.
@@ -198,25 +197,23 @@ def cbc_report(request, format=""):
             # Bounce back to the user with an error message
             errormsg = 'Your query does not have a gpstime range. Please try again.'
             form = SimpleSearchForm()
-            return render_to_response('gracedb/cbc_report.html', 
-                    { 'form':form, 'message':errormsg}, 
-                    context_instance=RequestContext(request))
+            return render(request, 'gracedb/cbc_report.html', context=
+                {'form': form, 'message': errormsg})
+
         lt = int(gpsrange[1]) - int(gpsrange[0])
 
         # Check that there aren't too many objects.
         # XXX Hardcoded limit
         if objects.count() > 2000:
             errormsg = 'Your query returned too many events. Please try again.'
-            return render_to_response('gracedb/cbc_report.html', 
-                    { 'form':form, 'message':errormsg}, 
-                    context_instance=RequestContext(request))
+            return render(request, 'gracedb/cbc_report.html', context=
+                {'form': form, 'message': errormsg})
 
         # Zero events will break the min/max over masses below. 
         if objects.count() < 1:
             errormsg = 'Your query returned no events. Please try again.'
-            return render_to_response('gracedb/cbc_report.html', 
-                    { 'form':form, 'message':errormsg}, 
-                    context_instance=RequestContext(request))
+            return render(request, 'gracedb/cbc_report.html', context=
+                {'form': form, 'message': errormsg}) 
 
         #clustered_events = cluster(objects)
         clustered_events = cluster(object_list)
@@ -309,10 +306,6 @@ def cbc_report(request, format=""):
             'ifar_plot' : ifar_plot,
             'clustered_events' : clustered_events,
         }
-        return render_to_response('gracedb/cbc_report.html', context,
-                context_instance=RequestContext(request))
+        return render(request, 'gracedb/cbc_report.html', context=context)
 
-    return render_to_response('gracedb/cbc_report.html',
-            { 'form' : form,
-            },
-            context_instance=RequestContext(request))
+    return render(request, 'gracedb/cbc_report.html', context={'form': form})

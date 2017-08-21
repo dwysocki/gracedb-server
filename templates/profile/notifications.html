@@ -6,6 +6,12 @@
 
 {% block content %}
 
+{% if flash_msg %}
+<div class="flash">
+<p>{{ flash_msg }}</p>
+</div>
+{% endif %}
+
 <h2>Contacts (LVC Users)</h2>
 {% for contact in contacts %}
     <ul>

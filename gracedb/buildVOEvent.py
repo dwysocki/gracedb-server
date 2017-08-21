@@ -23,7 +23,7 @@ from VOEventLib.VOEvent import Time, TimeInstant
 from utils import gpsToUtc
 from django.utils import timezone
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from models import CoincInspiralEvent, MultiBurstEvent
 from models import VOEvent as GraceDBVOEvent
 from models import LalInferenceBurstEvent

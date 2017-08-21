@@ -1,7 +1,7 @@
-
+from django.utils.deprecation import MiddlewareMixin
 from django.http import HttpResponse
 
-class CliExceptionMiddleware(object):
+class CliExceptionMiddleware(MiddlewareMixin):
     def process_exception(self, request, exception):
         if 'cli_version' in request.POST:
             response = HttpResponse(mimetype='application/json')

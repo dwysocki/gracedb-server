@@ -1,11 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Options | Create {{ creating }}{% endblock %}
-{% block heading %}Create {{ creating }}{% endblock %}
+{% block title %}Options | Create Notification{% endblock %}
+{% block heading %}Create Notification{% endblock %}
 {% block pageid %}userprofile{% endblock %}
 
 {% block content %}
-{{ explanation }}
+
+<br />
+<div style="padding: 10px;">
+<h3>Instructions</h3>
+<ul>
+    <li>Select a contact to receive the notification.</li>
+    <li>Select a pipeline to receive alerts for events created by that pipeline. Select all pipelines to receive alerts, regardless of pipeline.</li>
+    <li>Enter a FAR threshold if you want to only receive alerts about events more significant than the threshold. Leave blank to receive all events, regardless of FAR.</li>
+    <li>Select a label (or labels) or enter a label query to receive alerts when a specific label or set of labels is applied to an event. Don't select any labels to receive alerts when events are created.</li>
+    <li>To set up a notification based only on FAR, select a contact, select all pipelines, enter a FAR threshold, and do not select any labels or enter a label query.</li>
+    <li>You may select multiple contacts, pipelines, and/or labels by holding SHIFT and clicking, or by using CTRL + A to select all.</li>
+</ul>
+</div>
+
 <form method="POST">
     <table>
         {{ form.as_table }}

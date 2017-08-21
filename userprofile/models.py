@@ -1,10 +1,10 @@
-
 from django.db import models
+from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
+from django.contrib.auth.models import User
 
 from gracedb.models import Label, Pipeline
 
-from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
+from collections import defaultdict
 import phonenumbers
 import logging
 log = logging.getLogger(__name__)
@@ -56,19 +56,23 @@ class Contact(models.Model):
         # objects through the Django interface.
         super(Contact, self).clean()
 
+        err_dict = defaultdict(list)
         # If a phone number is given, require either call or text to be True.
         if self.phone and not (self.call_phone or self.text_phone):
-            raise ValidationError({'phone':
-                'Choose "call" or "text" (or both) for phone alerts.'})
+            err_msg = 'Choose "call" or "text" (or both) for phone alerts.'
+            err_dict['phone'].append(err_msg)
 
         if not self.phone and (self.call_phone or self.text_phone):
-            raise ValidationError({'phone':
-                '"Call" and "text" should be False for non-phone alerts.'})
+            err_msg = '"Call" and "text" should be False for non-phone alerts.'
+            err_dict['phone'].append(err_msg)
 
         # If no e-mail or phone given, raise error.
         if not (self.email or self.phone):
-            raise ValidationError(('At least one contact method'
-                                  ' (email, phone) is required.'))
+            err_msg = 'At least one contact method (email, phone) is required.'
+            err_dict[NON_FIELD_ERRORS].append(err_msg)
+
+        if err_dict:
+            raise ValidationError(err_dict)
 
     # Override save method by requiring fully_cleaned objects.
     def save(self):

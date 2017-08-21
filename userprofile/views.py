@@ -3,11 +3,11 @@ from django.http import (HttpResponse, HttpResponseRedirect,
     HttpResponseNotFound, Http404, HttpResponseForbidden,
     HttpResponseBadRequest)
 from django.conf import settings
-from django.core.urlresolvers import reverse 
+from django.urls import reverse 
 from django.core.mail import EmailMessage
 from django.contrib.auth.models import User
 from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.db.models import Q
@@ -30,10 +30,15 @@ from gracedb.alert import get_twilio_from
 def index(request):
     triggers = Trigger.objects.filter(user=request.user)
     contacts = Contact.objects.filter(user=request.user)
-    d = { 'triggers' : triggers, 'contacts': contacts }
-    return render_to_response('profile/notifications.html',
-                              d,
-                              context_instance=RequestContext(request))
+    d = { 'triggers': triggers, 'contacts': contacts }
+
+    # Add flash message content in session to context for template,
+    # then clear the session's flash message.
+    if request.session.has_key('flash_msg') and request.session['flash_msg']:
+        d['flash_msg'] = request.session['flash_msg']
+        request.session['flash_msg'] = None
+
+    return render(request, 'profile/notifications.html', context=d)
 
 @lvem_user_required
 def managePassword(request):
@@ -44,37 +49,12 @@ def managePassword(request):
         request.user.set_password(password)
         request.user.date_joined = timezone.now()
         request.user.save()
-    return render_to_response('profile/manage_password.html',
-                              d,
-                              context_instance=RequestContext(request))
+    return render(request, 'profile/manage_password.html', context=d)
 
 @internal_user_required
 def create(request):
-    # Explanatory HTML block.
-    expl = ['<div style="padding: 10px;">',
-            '<h4>Instructions:</h4>',
-            '<ul><li>Select a contact to receive the notification.</li>',
-            ('<li>Select a pipeline to receive alerts for events created '
-             'by that pipeline. Select all pipelines to receive alerts, '
-             'regardless of pipeline.</li>'),
-            ('<li>Enter a FAR threshold if you want to only receive alerts '
-             'about events more significant than the threshold. Leave blank '
-             ' to receive all events, regardless of FAR.</li>'),
-            ('<li>Select a label or enter a label query to receive alerts '
-             'only when a specific label or set of labels is applied. Don\'t '
-             'select any labels to receive all events, regardless of labels.'
-             '</li>'),
-            ('<li>To set up a notification based only on FAR, select a '
-             'contact, select all pipelines, enter a FAR threshold, and '
-             'do not select any labels or enter a label query.</li>'),
-            ('<li>You may select multiple contacts, pipelines, and/or labels '
-             'by holding SHIFT and clicking or using CTRL + A to select all.'
-             '</li>'),
-            '</ul></div>'
-           ]
-    expl = mark_safe("\n".join(expl))
+    """Create a notification (Trigger) via the web interface"""
 
-    message = ""
     if request.method == "POST":
         form = triggerFormFactory(request.POST, user=request.user)
         if form.is_valid():
@@ -86,10 +66,10 @@ def create(request):
             farThresh = form.cleaned_data['farThresh']
             label_query = form.cleaned_data['label_query']
 
-            # If we've got a label query defined for this trigger, then we want 
-            # each label mentioned in the query to be listed in the events labels.
-            # It would be smarter to make sure the label isn't being negated, but 
-            # we can just leave that for later.
+            # If we've got a label query defined for this trigger, then we want
+            # each label mentioned in the query to be listed in the event's
+            # labels. It would be smarter to make sure the label isn't being
+            # negated, but we can just leave that for later.
             if len(label_query) > 0:
                 toks = labelQuery(label_query, names=True)
                 f = Q()
@@ -101,36 +81,33 @@ def create(request):
                     return HttpResponseBadRequest("Please enter a valid label query.")
                 labels = Label.objects.filter(f)
 
-            if contacts and (labels or pipelines):
-                t.save() # Need an id before relations can be set.
-                try:
-                    t.labels = labels
-                    t.pipelines = pipelines
-                    t.contacts = contacts
-                    t.farThresh = farThresh
-                    t.label_query = label_query
-                except:
-                    t.delete()
-                t.save()
-                request.session['flash_msg'] = "Created: %s" % t.userlessDisplay()
-                return HttpResponseRedirect(reverse(index))
-        # Data was bad
-        else:
-            # Get non-field errors and display them in the message box.
-            # Remove them from the form so they don't display in the table too.
-            while form.errors['__all__']:
-                message += form.errors['__all__'].pop().message
+            # If the form is valid, then we have at least one contact and
+            # either a label or pipeline.
+            # So let's create the contact object.
 
+            # Can't access many-to-many relationships before object is saved
+            t.save()
+
+            # Now populate fields
+            try:
+                t.labels = labels
+                t.pipelines = pipelines
+                t.contacts = contacts
+                t.farThresh = farThresh
+                t.label_query = label_query
+                t.save()
+                request.session['flash_msg'] = ('Created notification: '
+                    '{n}.').format(n=t.userlessDisplay())
+            except Exception as e:
+                request.session['flash_msg'] = ('Error creating notification '
+                    '{n}: {e}.').format(n=t.userlessDisplay(), e=e)
+                t.delete()
+
+            return HttpResponseRedirect(reverse(index))
     else:
         form = triggerFormFactory(user=request.user)
-    if message:
-        request.session['flash_msg'] = message
-    return render_to_response('profile/createNotification.html',
-                              { "form" : form,
-                                "creating":"Notification",
-                                "explanation": expl,
-                              },
-                              context_instance=RequestContext(request))
+    return render(request, 'profile/createNotification.html',
+        context={"form": form})
 
 @internal_user_required
 def edit(request, id):
@@ -143,10 +120,12 @@ def delete(request, id):
     except Trigger.DoesNotExist:
         raise Http404
     if request.user != t.user:
-        return HttpResponseForbidden("NO!")
-    request.session['flash_msg'] = "Notification Deleted: %s" % t.userlessDisplay()
+        return HttpResponseForbidden(("You are not allowed to modify another "
+            "user's notifications."))
+    request.session['flash_msg'] = 'Notification "{nname}" has been deleted.' \
+        .format(nname=t.userlessDisplay())
     t.delete()
-    return index(request)
+    return HttpResponseRedirect(reverse(index))
 
 #--------------
 #-- Contacts --
@@ -154,16 +133,6 @@ def delete(request, id):
 
 @internal_user_required
 def createContact(request):
-
-    # Explanatory HTML block.
-    expl = ['<div style="padding: 10px;">',
-            '<h4>Instructions:</h4>',
-            '<ul><li>A description of your contact is required.</li>',
-            '<li>Choose a contact method (e-mail, phone, or both).</li>',
-            ('<li>For phone alerts, choose call, text, or both.</li>'),
-            '</ul></div>'
-           ]
-    expl = mark_safe("\n".join(expl))
 
     # Handle form.
     if request.method == "POST":
@@ -179,16 +148,13 @@ def createContact(request):
                     text_phone = form.cleaned_data['text_phone'],
                 )
             c.save()
-            request.session['flash_msg'] = "Created: %s" % c
+            request.session['flash_msg'] = 'Created contact "{cname}".'.format(
+                cname=c.desc)
             return HttpResponseRedirect(reverse(index))
     else:
         form = ContactForm()
-    return render_to_response('profile/createNotification.html',
-                              { "form": form,
-                                "creating": "Contact",
-                                "explanation": expl,
-                              },
-                              context_instance=RequestContext(request))
+    return render(request, 'profile/createContact.html',
+        context={"form": form})
 
 @internal_user_required
 def testContact(request, id):
@@ -198,7 +164,7 @@ def testContact(request, id):
     except Contact.DoesNotExist:
         raise Http404
     if request.user != c.user:
-        return HttpResponseForbidden("Can't edit a Contact that isn't yours.")
+        return HttpResponseForbidden("Can't test a Contact that isn't yours.")
     else:
         flash_msg = 'Testing contact "{0}".'.format(c.desc)
         hostname = socket.gethostname()
@@ -243,7 +209,7 @@ def testContact(request, id):
                 log.exception('Error contacting {0}'.format(c.phone))
 
         request.session['flash_msg'] = flash_msg
-        return index(request)
+        return HttpResponseRedirect(reverse(index))
 
 @internal_user_required
 def editContact(request, id):
@@ -252,14 +218,15 @@ def editContact(request, id):
 @internal_user_required
 def deleteContact(request, id):
     """Users can delete their Contacts through the web interface"""
-
     try:
         c = Contact.objects.get(id=id)
     except Contact.DoesNotExist:
         raise Http404
     if request.user != c.user:
-        return HttpResponseForbidden("NO!")
-    request.session['flash_msg'] = "Notification Deleted: %s" % c
+        return HttpResponseForbidden(("You are not authorized to modify "
+            "another user's Contacts."))
+    request.session['flash_msg'] = 'Contact "{cname}" has been deleted.' \
+        .format(cname=c.desc)
     c.delete()
-    return index(request)
+    return HttpResponseRedirect(reverse(index))
 

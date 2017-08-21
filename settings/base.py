@@ -7,7 +7,7 @@ from utils import posixToGpsTime
 # SERVER_HOSTNAME, SERVER_FQDN, IS_PRODUCTION_SERVER, ADMINS, GRACEDB_PATHS
 from .local import *
 # Get secret settings:
-# DEFAULT_DB_PASSWORD, DEFAULT_SECRET_EKY, TWILIO_ACCOUNT_SID,
+# DEFAULT_DB_PASSWORD, DEFAULT_SECRET_KEY, TWILIO_ACCOUNT_SID,
 # TWILIO_AUTH_TOKEN, TWIML_BIN
 from .secret import *
 
@@ -230,7 +230,7 @@ TEMPLATES = [
 ]
 
 # List of authentication backends to use when attempting to authenticate
-# a user.  Will be used in this order until one works
+# a user.  Will be used in this order
 AUTHENTICATION_BACKENDS = (
 #   'gracedb.middleware.auth.LigoAuthBackend',
     'ligoauth.middleware.auth.LigoX509Backend',
@@ -244,27 +244,22 @@ AUTHENTICATION_BACKENDS = (
 )
 
 # List of middleware classes to use.
-# Note: style has changed in Django 1.10+
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'middleware.performance.PerformanceMiddleware',
     'middleware.accept.AcceptMiddleware',
     'middleware.cli.CliExceptionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-#   'django.contrib.auth.middleware.AuthenticationMiddleware',
-#   'ligodjangoauth.LigoShibbolethMiddleware',
     'ligoauth.middleware.auth.LigoAuthMiddleware',
-#   'django.contrib.auth.middleware.RemoteUserMiddleware',
-    'maintenancemode.middleware.MaintenanceModeMiddleware',
+#    'maintenancemode.middleware.MaintenanceModeMiddleware',
 ]
 
 # Path to root URLconf
 ROOT_URLCONF = 'urls'
 
 # List of string designating all applications which are enabled.
-# Note: changed from a tuple to a list in Django 1.9+
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.admin',
     'django.contrib.contenttypes',
@@ -277,7 +272,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'guardian',
     'django_twilio',
-)
+]
 
 # Details used by REST API
 REST_FRAMEWORK = {
@@ -291,12 +286,12 @@ REST_FRAMEWORK = {
 # Location of static components, CSS, JS, etc.
 STATIC_ROOT = os.path.join(GRACEDB_PATHS["code"], "static") + os.path.sep
 STATIC_URL = "{sep}gracedb-static{sep}".format(sep=os.path.sep)
-STATICFILES_FINDERS = (
+STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
-)
-STATICFILES_DIRS = ()
+]
+STATICFILES_DIRS = []
 
 # Location of Bower packages.
 BOWER_URL = "{sep}bower-static{sep}".format(sep=os.path.sep)
@@ -398,7 +393,7 @@ LOGGING = {
     'handlers': {
         'null': {
             'level': 'DEBUG',
-            'class': 'django.utils.log.NullHandler',
+            'class': 'logging.NullHandler',
         },
         'debug_file': {
             'class': 'logging.handlers.ConcurrentRotatingFileHandler',

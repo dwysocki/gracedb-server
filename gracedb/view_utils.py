@@ -1,6 +1,6 @@
 
 from django.http import HttpResponse, HttpResponseBadRequest
-from django.core.urlresolvers import reverse as django_reverse
+from django.urls import reverse as django_reverse
 from django.utils import dateformat
 from django.utils.html import escape, urlize
 #from django.utils.http import urlquote
@@ -48,12 +48,12 @@ def timeToUTC(dt):
 #---------------------------------------------------------------------------------------
 
 from rest_framework.reverse import reverse as rest_framework_reverse
-from django.core.urlresolvers import resolve, get_script_prefix
+from django.urls import resolve, get_script_prefix
 
 # Note about reverse() in this file -- there are THREE versions of it here.
   #
   # SOURCE                               LOCAL NAME
-  # django.core.urlresolvers.reverse ==> django_reverse
+  # django.urls.reverse ==> django_reverse
   # rest_framework.reverse.reverse   ==> rest_framework_reverse
   # reverse defined below            ==> reverse
   #
@@ -70,11 +70,11 @@ def reverse(name, *args, **kw):
   
       Allow for a set of URLs to have been include()-ed on multiple URL paths.
   
-      eg  urlpatterns = (
-          (r'^api1/', include('someapp.urls', app_name="api", namespace="x509")),
-          (r'^api2/', include('someapp.urls', app_name="api", namespace="shib")),
-          ...)
-  
+      eg urlpatterns = [
+            (r'^api1/', include('someapp.urls', app_name="api", namespace="x509")),
+            (r'^api2/', include('someapp.urls', app_name="api", namespace="shib")),
+            ...
+         ]
       then reverse("api:root", request=self.request) will give the obviously
       correct full URL for the URL named "root" in someapp/urls.py.  Django's
       reverse will pick one URL path and use it no matter what path the
