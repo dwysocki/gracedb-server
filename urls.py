@@ -54,9 +54,6 @@ urlpatterns = [
 
 if settings.DEBUG:
     import debug_toolbar
-    import debug_panel.views
     urlpatterns = [
         url(r'^__debug__/', include(debug_toolbar.urls)),
-        url(r'^__debug__/data/(?P<cache_key>\d+\.\d+)/$',
-            debug_panel.views.debug_data, name='debug_data'),
     ] + urlpatterns
