@@ -91,16 +91,28 @@ follow-ups. </p>
 
 <!--XXX Infrastructure for human signoffs. Hopefully this will not be permanent. -->
 {% if signoff_authorized %}
-    {%if signoff_graceids|length %}
+    {% if new_signoff_graceids|length or older_signoff_graceids|length %}
     <div class="signoff-area">
         <h2>Attention {{signoff_instrument}} Operator</h2>
-        <p> The following events require your sign-off: </p>
+        <br />
+        <h3>The following events require your sign-off:</h3>
+        <p>Events submitted within the last 24 hours:</p>
+        {% if new_signoff_graceids|length %}
         <ul>
-        {% for graceid in signoff_graceids %}
-            <li> <a href="{% url "view" graceid %}">{{ graceid }}</a></li> 
+        {% for graceid in new_signoff_graceids %}
+            <li><a href="{% url "view" graceid %}">{{ graceid }}</a></li>
         {% endfor %} 
         </ul>
-        <p> Please click on the link(s) above and use the form at the top of the page. </p>            
+        {% endif %}
+        {% if older_signoff_graceids|length %}
+        <p>Events older than 24 hours:</p>
+        <ul>
+        {% for graceid in older_signoff_graceids %}
+            <li><a href="{% url "view" graceid %}">{{ graceid }}</a></li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+        <p>Please click on the link(s) above and use the form at the top of the page.</p>
     </div>
     {% endif %}
 {% endif %}

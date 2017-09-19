@@ -42,6 +42,7 @@ from utils.vfile import VersionedFile
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
 
+import datetime, pytz
 import json
 from django.utils.functional import wraps
 
@@ -98,9 +99,20 @@ def index(request):
 
     if signoff_authorized:
         label_name = signoff_instrument + 'OPS'
+
+        # Get full list of non-Test events with **OPS label
         events = Event.objects.filter(labelling__label__name=label_name) \
             .exclude(group__name='Test')
-        context['signoff_graceids'] = [e.graceid() for e in events]
+
+        # Split into groups more recent than 1 day and older than 1 day
+        one_day_ago = datetime.datetime.utcnow().replace(
+            tzinfo=pytz.utc) - datetime.timedelta(days=1)
+        new_events = events.filter(created__gte=one_day_ago)
+        older_events = events.filter(created__lt=one_day_ago)
+
+        # Put into context dict for template rendering
+        context['new_signoff_graceids'] = [e.graceid() for e in new_events]
+        context['older_signoff_graceids'] = [e.graceid() for e in older_events]
 
     recent_events = '' 
     if request.user and not is_external(request.user) and settings.SHOW_RECENT_EVENTS_ON_HOME:
