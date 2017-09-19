@@ -70,10 +70,14 @@ class Search(models.Model):
     def __unicode__(self):
         return self.name
 
+# Label color will be used in CSS, see
+# https://www.w3schools.com/colors/colors_names.asp for
+# allowed color choices
 class Label(models.Model):
     name = models.CharField(max_length=20, unique=True)
     # XXX really, does this belong here? probably not.
     defaultColor = models.CharField(max_length=20, unique=False, default="black")
+    description = models.TextField(blank=False)
     def __unicode__(self):
         return self.name
 

@@ -1,38 +1,9 @@
 // Ugh. Why do I have to pull the stuff in here?
-// Tooltip pop-ups for labels.
-var label_descriptions = {
-    cWB_s: "cWB_s",
-    cWB_r: "cWB_r",
-    EM_READY: "Has been processed by GDB Processor.<br/>Skymaps have been produced.",
-    EM_SENT: "Has been sent to MOU partners.",
-    SWIFT_NO: "Do not send notification to SWIFT telescope.",
-    SWIFT_GO: "Send notification to SWIFT telescope.",
-    LUMIN_NO: "LUMIN No",
-    LUMIN_GO: "LUMIN Go",
-    DQV: "Data quality veto.",
-    INJ: "Injection occured near this time.",
-    ADVREQ: "EM advocate signoff requested.",
-    ADVNO: "EM advocate says event is not okay.",
-    ADVOK: "EM advocate says event is okay.",
-    H1OPS: "H1 operator signoff requested.",
-    H1OK: "H1 operator says event is okay.",
-    H1NO: "H1 operator says event is not okay.",
-    L1OPS: "L1 operator signoff requested.",
-    L1OK: "L1 operator says event is okay.",
-    L1NO: "L1 operator says event is not okay.",
-    V1OPS: "V1 operator signoff requested.",
-    V1OK: "V1 operator says event is okay.",
-    V1NO: "V1 operator says event is not okay.",
-    EM_Throttled: "GraceID is ignored by automatic processing because the corresponding pipeline submitted too many events too quickly.",
-    EM_Selected: "GraceID automatically chosen as the most promising candidate out of a set of entries thought to correspond to the same physical event.",
-    EM_Superseded: "GraceID automatically passed over because another entry was thought to be more promising and to correspond to the same physical event.",
-    EM_COINC: "Signifies that a coincidence was found between Gravitational-Wave candidates and External triggers.",
-    GRB_ONLINE: "Indicates that online triggered GRB searches found something coincident with this event.",
-    GRB_OFFLINE: "Indicates that offline triggered GRB searches found something coincident with this event."
 
-}
-function tooltiptext(name, creator, time) {
-    return ( creator + " " + time + "<br/>" + label_descriptions[name] );
+// Constructs text for label tooltips
+function tooltiptext(name, creator, time, description) {
+    //return ( creator + " " + time + "<br/>" + label_descriptions[name] );
+    return ( creator + " (" + time + "): " + description );
 };
 var tooltip=function(){
  var id = 'tt';
