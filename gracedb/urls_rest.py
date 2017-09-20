@@ -24,7 +24,7 @@ from gracedb.api import OperatorSignoffList
 from gracedb.api import download as download_view
 
 urlpatterns = [
-    url(r'^/?$', GracedbRoot.as_view(), name="api-root"),
+    url(r'^$', GracedbRoot.as_view(), name="api-root"),
 
     # Event Resources
     # events/[{graceid}[/{version}]]
