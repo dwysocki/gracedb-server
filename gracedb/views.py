@@ -499,8 +499,9 @@ def search(request, format=""):
                 msg = 'FAR query out of range, upper limit must be below %s' % settings.VOEVENT_FAR_FLOOR
                 return HttpResponseBadRequest(msg) 
             except ParseException:
-                # If the user's query throws a parse exception, it is safe to 
-                # proceed and show the error message in the search results template (red star)
+                # If the user's query throws a parse exception, it is safe to
+                # proceed and show the error message in the search results
+                # template (red star)
                 pass
             except Exception, e:
                 return HttpResponseServerError(str(e))
@@ -725,6 +726,11 @@ def latest(request):
         except BadFARRange:
             msg = 'FAR query out of range, upper limit must be below %s' % settings.VOEVENT_FAR_FLOOR
             return HttpResponseBadRequest(msg) 
+        except ParseException:
+            # If the user's query throws a parse exception, it is safe to
+            # proceed and show the error message in the search results template
+            # (red star)
+            pass
 
     if form.is_valid():
         # XXX This makes the requests much faster for internal users.
