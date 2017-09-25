@@ -8,6 +8,7 @@ import re
 import hotshot, hotshot.stats
 import tempfile
 import StringIO
+from django.utils.deprecation import MiddlewareMixin
  
 from django.conf import settings
  
@@ -19,7 +20,7 @@ group_prefix_re = [
     re.compile( ".*" ),           # catch strange entries
 ]
  
-class ProfileMiddleware(object):
+class ProfileMiddleware(MiddlewareMixin):
     """
     Displays hotshot profiling for any view.
     http://yoursite.com/yourview/?prof

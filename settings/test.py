@@ -27,6 +27,6 @@ INSTALLED_APPS += [
 # Tuple of IPs which are marked as internal, useful for debugging
 # Changed to a list in Django 1.9+
 INTERNAL_IPS = [
-    #'129.89.57.164',
+    '129.89.57.164',
 ]
 
