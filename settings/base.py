@@ -40,8 +40,10 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', SERVER_FQDN,
     '{0}.ligo.org'.format(socket.gethostname())]
 
 # LVAlert and LVAlert Overseer settings ---------------------------------------
-# Set to False to prevent XMPP alerts from being sent out.
-SEND_XMPP_ALERTS = True
+# Switches which control whether alerts are sent out
+SEND_XMPP_ALERTS = False
+SEND_PHONE_ALERTS = False
+SEND_EMAIL_ALERTS = False
 # Use LVAlert Overseer?
 USE_LVALERT_OVERSEER = True
 # LVAlert servers

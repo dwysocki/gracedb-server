@@ -147,7 +147,7 @@ def prepareSummary(event):
 def issueAlertForUpdate(event, description, doxmpp, filename="", serialized_object=None):
     if doxmpp:
         issueXMPPAlert(event, filename, "update", description, serialized_object)
-    # XXX No emails for this.  Argh.
+    # XXX No emails or phone calls for this.  Argh.
 
 # The only kind of serialized object relevant for a Label is an event.
 def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=None):
@@ -199,17 +199,23 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=No
         toaddresses =  []
         bccaddresses = profileRecips
 
-    if toaddresses or bccaddresses:
+    if settings.SEND_EMAIL_ALERTS and (toaddresses or bccaddresses):
         if not toaddresses:
             toaddresses = ["(undisclosed recipients)"]
         email = EmailMessage(subject, message, fromaddress, toaddresses, bccaddresses)
         email.send()
 
     # Make phone calls.
-    if phoneRecips:
+    if settings.SEND_PHONE_ALERTS and phoneRecips:
         make_twilio_calls(event, phoneRecips, "label", label=label)
 
 def issueEmailAlert(event, event_url):
+
+    # Check settings switch for turning off email alerts
+    if not settings.SEND_EMAIL_ALERTS:
+        log.debug(("Email alert for event {gid} not sent because email alerts "
+            "are turned off").format(gid=event.graceid()))
+        return
 
     # The right way of doing this is to make the email alerts filter-able
     # by search. But this is a low priority dev task. For now, we simply 
@@ -264,13 +270,20 @@ Event Summary:
     email.send()
 
 def issuePhoneAlert(event):
+
+    # Check settings switch for turning off phone alerts
+    if not settings.SEND_PHONE_ALERTS:
+        log.debug(("Phone alert for event {gid} not sent because phone alerts "
+            "are turned off").format(gid=event.graceid()))
+        return
+
     # The right way of doing this is to make the email alerts filter-able
     # by search. But this is a low priority dev task. For now, we simply 
     # short-circuit in case this is an MDC event.
     if event.search and event.search.name == 'MDC':
         return
 
-    # Gather Recipients
+    # Gather recipients
     phoneRecips = []
     if event.group.name != 'Test':
         pipeline = event.pipeline
