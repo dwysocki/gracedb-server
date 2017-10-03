@@ -3,8 +3,8 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, Http404
 from django.http import HttpResponseForbidden, HttpResponseServerError
 from django.template import RequestContext
-from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response
+from django.urls import reverse
+from django.shortcuts import render
 
 from models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
 from models import EMGroup, Signoff
@@ -78,7 +78,7 @@ def event_and_auth_required(view):
     return inner
 
 def index(request):
-#   assert request.user
+    #assert request.user
     context = {}
 
     signoff_authorized = False
@@ -122,21 +122,20 @@ def index(request):
             pass
     context['recent_events'] = recent_events
     
-    return render_to_response('gracedb/index.html', context,
-            context_instance=RequestContext(request))
+    return render(request, 'gracedb/index.html', context=context)
 
 def navbar_only(request):
-    return render_to_response('navbar_only.html', {}, context_instance=RequestContext(request))
+    return render(request, 'navbar_only.html')
 
 # SP Info and Privacy pages are required for Federation with InCommon. 
 def spinfo(request):
-    return render_to_response('gracedb/spinfo.html', {}, context_instance=RequestContext(request))
+    return render(request, 'gracedb/spinfo.html')
 
 def spprivacy(request):
-    return render_to_response('gracedb/spprivacy.html', {}, context_instance=RequestContext(request))
+    return render(request, 'gracedb/spprivacy.html')
 
 def discovery(request):
-    return render_to_response('discovery.html', {}, context_instance=RequestContext(request))
+    return render(request, 'discovery.html')
 
 @event_and_auth_required
 def voevent(request, event):
@@ -162,8 +161,7 @@ def create(request):
     if isinstance(d, HttpResponse):
         return d
     else:
-        return render_to_response('gracedb/create.html', d,
-                                  context_instance=RequestContext(request))
+        return render(request, 'gracedb/create.html', context=d)
 
 def _create(request):
     assert request.user
@@ -340,10 +338,7 @@ def neighbors(request, event, delta1, delta2=None):
 
     context['nearby'] = [(e.gpstime - event.gpstime, e) for e in neighbor_qs]
     context['neighbor_delta'] = "[%+d,%+d]" % (delta1, delta2)
-    return render_to_response(
-        'gracedb/neighbors_frag.html',
-        context,
-        context_instance=RequestContext(request))
+    return render(request, 'gracedb/neighbors_frag.html', context=context)
 
 @event_and_auth_required
 def view(request, event):
@@ -467,7 +462,7 @@ def view(request, event):
     elif event.pipeline.name in ['LIB',]:
         templates.insert(0, 'gracedb/event_detail_LIB.html')
 
-    return render_to_response(templates, context, context_instance=RequestContext(request))
+    return render(request, templates, context=context)
 
 def search(request, format=""):
     if not request.user or not request.user.is_authenticated():
@@ -563,14 +558,11 @@ def search(request, format=""):
                             'rawquery'      : rawquery,
                             'get_neighbors' : get_neighbors,
                 }
-                return render_to_response('gracedb/event_list.html',
-                    context, context_instance=RequestContext(request))
+                return render(request, 'gracedb/event_list.html',
+                    context=context)
 
-    return render_to_response('gracedb/query.html',
-            { 'form' : form,
-              'form2' : form2,
-            },
-            context_instance=RequestContext(request))
+    return render(request, 'gracedb/query.html', context={'form': form,
+        'form2': form2})
 
 def oldsearch(request):
     assert request.user
@@ -695,13 +687,10 @@ def oldsearch(request):
                 'rawquery'      : textQuery,
                 'get_neighbors' : get_neighbors,
             }
-            return render_to_response('gracedb/event_list.html',
-                context, context_instance=RequestContext(request))
+            return render(request, 'gracedb/event_list.html', context=context)
 
 
-    return render_to_response('gracedb/query.html',
-            { 'form' : form },
-            context_instance=RequestContext(request))
+    return render(request, 'gracedb/query.html', context={'form': form})
 
 def latest(request):
     if not request.user or not request.user.is_authenticated():
@@ -747,10 +736,7 @@ def latest(request):
     context['far_floor']        = settings.VOEVENT_FAR_FLOOR
     context['user_is_external'] = is_external(request.user)
 
-    return render_to_response(
-            template,
-            context,
-            context_instance=RequestContext(request))
+    return render(request, template, context=context)
 
 #-----------------------------------------------------------------------------------
 # For tags.  A new view function.  We need this because the API one would want users
@@ -859,10 +845,7 @@ def performance(request):
     except Exception, e:
         return HttpResponseServerError(str(e))
 
-    return render_to_response(
-            'gracedb/performance.html',
-            context,
-            context_instance=RequestContext(request))
+    return render(request, 'gracedb/performance.html', context=context)
 
 #
 # A view for the list of files associated with an event.
@@ -895,12 +878,8 @@ def file_list(request, event):
     context['title'] = 'Files for %s' % event.graceid() 
     context['graceid'] = event.graceid() 
         
-    return render_to_response(
-        'gracedb/event_filelist.html',
-        context,
-        context_instance=RequestContext(request)) 
+    return render(request, 'gracedb/event_filelist.html', context=context)
 
-#
 # A view to modify the GroupObjectPermissions for an event.
 # This is very non-RESTful. If the action is 'expose', you
 # give the group both view and change permissions on the event.

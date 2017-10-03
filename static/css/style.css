@@ -7,6 +7,24 @@ html, body {
   padding: 0;
 }
 
+/* div style for flash messages */
+div.flash {
+    text-align: center;
+    width: 20%;
+    min-width: 200px;
+    margin: auto;
+    color: black;
+    border-radius: 8px;
+    box-shadow: 2px 2px 4px #ADD8E6;
+    background-color: #EEEEEE;
+    border: 2px solid;
+    border-color: #DDDDDD;
+    padding: 10px;
+    font-size: large;
+    word-wrap: break-word;
+}
+div.flash p {padding: 0; margin: 0;}
+
 table.event th {padding:3px;border:none;text-align:center;vertical-align:bottom;}
 table.event {border-bottom:1px solid gray;}
 /* Branson added */

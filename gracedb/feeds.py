@@ -2,9 +2,9 @@
 from django.contrib.syndication.views import FeedDoesNotExist
 from django.contrib.syndication.views import Feed
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 
 from models import Event, Group, Pipeline
 #from views import view, search, index
@@ -79,7 +79,4 @@ class EventFeed(Feed):
 
 @internal_user_required
 def feedview(request):
-    return render_to_response(
-            'feeds/index.html',
-            {},
-            context_instance=RequestContext(request))
+    return render(request, 'feeds/index.html')

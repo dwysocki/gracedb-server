@@ -3,10 +3,15 @@ from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
 from django.utils.html import conditional_escape
 from django.forms.utils import ErrorList
+from django.core.exceptions import NON_FIELD_ERRORS
 
 from .models import Trigger, Contact
 from gracedb.query import parseLabelQuery
+
 from pyparsing import ParseException
+from collections import defaultdict
+import logging
+log = logging.getLogger(__name__)
 
 def triggerFormFactory(postdata=None, user=None):
     class TF(forms.ModelForm):
@@ -39,25 +44,58 @@ def triggerFormFactory(postdata=None, user=None):
         # truth of (atypes or labels)
         # and set field error attributes appropriately.
 
-        def clean(self):
-            cleaned_data = super(TF, self).clean()
-            label_query = self.cleaned_data['label_query']
+        def clean(self, *args, **kwargs):
+            cleaned_data = super(TF, self).clean(*args, **kwargs)
 
-            if (self.cleaned_data['label_query'] and
-                self.cleaned_data['labels']):
-                raise forms.ValidationError('Cannot specify labels and label query, choose one or the other.')
+            # Dict for holding errors. Keys are class members,
+            # values are lists of error messages
+            err_dict = defaultdict(list)
 
-            if not (self.cleaned_data['labels'] or
-                    self.cleaned_data['pipelines']):
-                raise forms.ValidationError('Choose labels and/or pipelines for this notification.')
+            # Can't specify a label from the list and a label query
+            if (cleaned_data['label_query'] and cleaned_data['labels']):
+                err_msg = ('Cannot specify both labels and label query, '
+                    'choose one or the other.')
+                err_dict[NON_FIELD_ERRORS].append(err_msg)
 
-            if len(label_query) > 0:
+            # Notifications currently require a label or a pipeline to be
+            # specified. In the future, we should also allow the cases which
+            # have only a FAR threshold or a label query
+            if not (cleaned_data['labels'] or cleaned_data['pipelines']):
+                err_msg = ('Choose labels and/or pipelines for this '
+                    'notification.')
+                err_dict[NON_FIELD_ERRORS].append(err_msg)
+
+            # Make sure the label query is valid
+            if cleaned_data['label_query']:
                 # now try parsing it
                 try:
-                    parseLabelQuery(label_query)
+                    parseLabelQuery(cleaned_data['label_query'])
                 except ParseException:
-                    raise forms.ValidationError({'label_query': 'Invalid label query.'})
+                    err_dict['label_query'].append('Invalid label query')
+
+            # Raise errors, if any
+            if err_dict:
+                raise forms.ValidationError(err_dict)
+
             return cleaned_data
+
+        def as_table(self, *args, **kwargs):
+            """
+            Overriding default as_table method to put non-field errors
+            at the top of the table. Allows removal of "flash message box".
+            """
+
+            # Get non-field errors and remove them from the error list
+            # to prevent duplicates.
+            nfe = self.non_field_errors()
+            self.errors[NON_FIELD_ERRORS] = []
+
+            # Generate table HTML and add non-field errors to beginning row
+            table_data = super(TF, self).as_table(*args, **kwargs)
+            if nfe:
+                table_data = '\n<tr><td colspan="2">\n' + \
+                    process_errors(nfe) + '\n</td></tr>\n' + table_data
+            return mark_safe(table_data)
 
     if postdata is not None:
         return TF(postdata)
@@ -88,7 +126,7 @@ def process_errors(err):
 
 class ContactForm(forms.ModelForm):
     # Adjust labels.
-    desc = forms.CharField(label='Description')
+    desc = forms.CharField(label='Description', required=True)
     call_phone = forms.BooleanField(label='Call', initial=False,
                                     required=False)
     text_phone = forms.BooleanField(label='Text', initial=False,

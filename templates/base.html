@@ -41,11 +41,6 @@ function changeTime(obj, label) {
 
     <p>&nbsp;</p> <!-- bad way to create vertical space -->
 
-{% load flash %}
-{% flash %}
-    <div id="status_block" class="{{ params.class }}">{{ msg }}</div>
-{% endflash %}
-
     <h2>{% block heading %}Title{% endblock %}</h2>
 
         {% block content %}{% endblock %}

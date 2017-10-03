@@ -1,7 +1,7 @@
 
 from django.http import HttpResponse, HttpResponseNotFound
 from django.http import HttpResponseForbidden, HttpResponseServerError
-from django.core.urlresolvers import reverse as django_reverse
+from django.urls import reverse as django_reverse
 
 from django.conf import settings
 from django.utils.functional import wraps

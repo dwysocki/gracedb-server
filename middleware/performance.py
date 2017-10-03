@@ -1,11 +1,12 @@
-from django.core.urlresolvers import resolve
+from django.urls import resolve
+from django.utils.deprecation import MiddlewareMixin
 import logging
+logger = logging.getLogger(__name__)
 
-class PerformanceMiddleware:
+class PerformanceMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         # Determine whether the user tried to create or replace an event.
-        logger = logging.getLogger(__name__)
         # If the URL isn't among the URLs known to Django, we just return the response.
         try:
             url_name = resolve(request.path_info).url_name

@@ -5,9 +5,10 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User, AnonymousUser, Group
 from django.contrib.auth.backends import RemoteUserBackend as DefaultRemoteUserBackend
 from django.contrib.auth.backends import ModelBackend as DefaultModelBackend
+from django.utils.deprecation import MiddlewareMixin
 from ligoauth.models import certdn_to_user, LigoLdapUser
 
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 
 from django.http import HttpResponse, HttpResponseForbidden
@@ -77,7 +78,7 @@ def create_user_from_request(request):
     }
     return User.objects.create(**user_dict)
 
-class LigoAuthMiddleware:
+class LigoAuthMiddleware(MiddlewareMixin):
     """This is the ultimate gatekeeper for GraceDb auth/authz.
     Ideally, Apache will do all authentication and the GraceDb
     Django code will do authorization.  That is for the future.
@@ -207,10 +208,7 @@ class LigoAuthMiddleware:
                 response = HttpResponse(json.dumps({'error': msg}), status=401)
                 response['WWW-Authenticate'] = 'Basic realm="/apibasic/"'
                 return response
-            return render_to_response(
-                    'forbidden.html',
-                    {'error': message}, status=403,
-                    context_instance=RequestContext(request))
+            return render('forbidden.html', {'error': message}, status=403)
 
     def process_response(self, request, response):
         # If the user is connecting from one of the control rooms, remove him/her from

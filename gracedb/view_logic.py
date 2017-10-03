@@ -1,6 +1,6 @@
 
 from django.http import HttpResponse
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from models import Event, Group, EventLog, Labelling, Label
 from models import Pipeline, Search
 from models import CoincInspiralEvent
