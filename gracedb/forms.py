@@ -2,8 +2,8 @@
 from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
-from models import Event, Group, Label
-from models import Pipeline, Search, Signoff
+from .models import Event, Group, Label
+from .models import Pipeline, Search, Signoff
 from django.contrib.auth.models import User
 from django.core.exceptions import FieldError
 from django.forms import ModelForm
@@ -44,18 +44,14 @@ class SimpleSearchForm(forms.Form):
     get_neighbors = forms.BooleanField(required=False)
 
 class CreateEventForm(forms.Form):
-    groupChoices = [("","")]+[(g.name, g.name) for g in Group.objects.all()]
-    #typeChoices= [("","")]+list(Event.ANALYSIS_TYPE_CHOICES)
-    pipelineChoices = [("","")]+[(p.name, p.name) for p in Pipeline.objects.all()]
-    searchChoices = [("","")]+[(s.name, s.name) for s in Search.objects.all()]
-
     eventFile = forms.FileField()
-    group = forms.ChoiceField(groupChoices)
-    pipeline = forms.ChoiceField(pipelineChoices)
-    search = forms.ChoiceField(searchChoices, required=False)
+    group = forms.ModelChoiceField(queryset=Group.objects.all(), to_field_name='name')
+    pipeline = forms.ModelChoiceField(queryset=Pipeline.objects.all(), to_field_name='name')
+    search = forms.ModelChoiceField(queryset=Search.objects.all(), to_field_name='name',
+        required=False)
     # List of labels as a comma-separated string
-    labels = forms.CharField(required=False)
-    #type = forms.ChoiceField(choices=typeChoices)
+    labels = forms.ModelMultipleChoiceField(queryset=Label.objects.all(),
+        required=False, to_field_name='name')
 
     # Offline boolean. required=False means that if the user
     # doesn't provide a value, we use the default defined in models.py.
@@ -64,31 +60,23 @@ class CreateEventForm(forms.Form):
     offline = forms.BooleanField(required=False)
 
 class EventSearchForm(forms.Form):
-    groupChoices = [("","")]+[(g.name, g.name) for g in Group.objects.all()]
-    pipelineChoices = [("","")]+[(p.name, p.name) for p in Pipeline.objects.all()]
-    searchChoices = [("","")]+[(s.name, s.name) for s in Search.objects.all()]
-
-    #typeChoices= [("","")]+list(Event.ANALYSIS_TYPE_CHOICES)
-
-    submitterIds = Event.objects.values_list('submitter',flat=True).distinct()
-    submitterList = User.objects.filter(id__in=submitterIds).order_by('last_name', 'first_name')
-    submitterChoices = [("","")]+ \
-            [ (u.id, u"{0} {1}".format(u.first_name, u.last_name)) for u in submitterList]
-
-    labelChoices = [ ("hi%d"%n,"bye%d"%n) for n in [1,2,3]]
-    labelChoices = [ (label.id, label.name) for label in Label.objects.all() ]
 
     graceidStart = forms.CharField(required=False)
     graceidEnd = forms.CharField(required=False)
-    group = forms.ChoiceField(choices=groupChoices, required=False)
-    #type = forms.ChoiceField(choices=typeChoices, required=False)
-    pipeline = forms.ChoiceField(choices=pipelineChoices, required=False)
-    search = forms.ChoiceField(choices=searchChoices, required=False)
+    group = forms.ModelChoiceField(queryset=Group.objects.all(),
+        required=False)
+    pipeline = forms.ModelChoiceField(queryset=Pipeline.objects.all(),
+        required=False)
+    search = forms.ModelChoiceField(queryset=Search.objects.all(),
+        required=False)
     gpsStart = forms.IntegerField(min_value=0, required=False, label="GPS Start")
     gpsEnd = forms.IntegerField(min_value=0, required=False, label="GPS End")
-    submitter = forms.ChoiceField(choices=submitterChoices, required=False)
+    submitter = forms.ModelChoiceField(required=False,
+        queryset=User.objects.exclude(event__isnull=True) \
+        .order_by('last_name', 'first_name'))
 
-    labels = forms.MultipleChoiceField(choices=labelChoices, required=False)
+    labels = forms.ModelMultipleChoiceField(queryset=Label.objects.all(),
+        required=False)
     get_neighbors = forms.BooleanField(required=False)
 
 class SignoffForm(ModelForm):

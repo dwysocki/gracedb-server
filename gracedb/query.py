@@ -17,7 +17,7 @@ nltime = nltime_.setParseAction(lambda toks: toks["calculatedTime"])
 
 #import time, datetime
 import datetime
-import models
+from .models import Group, Pipeline, Search, Label
 from django.db.models import Q
 from django.db.models.query import QuerySet
 import pytz
@@ -35,14 +35,6 @@ def maybeRange(name, dbname=None):
             return name, Q(**{dbname: toks[0]})
         return name, Q(**{dbname+"__range": toks.asList()})
     return f
-
-#encodeType = dict(
-#    [(x[1],x[0]) for x in models.Event.ANALYSIS_TYPE_CHOICES] +
-#    [(x[0],x[0]) for x in models.Event.ANALYSIS_TYPE_CHOICES]
-#    )
-
-#def doType(toks):
-#    return ("type", Q(analysisType__in=[encodeType[tok] for tok in toks]))
 
 def convertToGps(dateStr):
     return 12
@@ -98,42 +90,6 @@ runid = Or(map(CaselessLiteral, runmap.keys())).setName("run id")
 runQ = (Optional(Suppress(Keyword("runid:"))) + runid)
 runQ = runQ.setParseAction(lambda toks: ("gpstime", Q(gpstime__range=
                                                         runmap[toks[0]])))
-
-# Analysis Groups
-# XXX Querying the database at module compile time is a bad idea!
-# See: https://docs.djangoproject.com/en/1.8/topics/testing/overview/
-groupNames = [group.name for group in models.Group.objects.all()]
-group = Or(map(CaselessLiteral, groupNames)).setName("analysis group name")
-#groupList = delimitedList(group, delim='|').setName("analysis group list")
-groupList = OneOrMore(group).setName("analysis group list")
-groupQ = (Optional(Suppress(Keyword("group:"))) + groupList)
-groupQ = groupQ.setParseAction(lambda toks: ("group",
-                                             Q(group__name__in=toks.asList())))
-
-# Pipeline
-pipelineNames = [pipeline.name for pipeline in models.Pipeline.objects.all()]
-pipeline = Or(map(CaselessLiteral, pipelineNames)).setName("pipeline name")
-pipelineList = OneOrMore(pipeline).setName("pipeline list")
-pipelineQ = (Optional(Suppress(Keyword("pipeline:"))) + pipelineList)
-pipelineQ = pipelineQ.setParseAction(lambda toks: ("pipeline",
-                                     Q(pipeline__name__in=toks.asList())))
-
-# Search
-searchNames = [search.name for search in models.Search.objects.all()]
-search = Or(map(CaselessLiteral, searchNames)).setName("search name")
-# XXX Branson: The change below was made 2/17/15 to fix a bug in which 
-# searches like 'grbevent.ra > 0' failed due to the 'grb' being peeled off
-# and assumed to be part of a 'Search' query. So we don't consume a token
-# for the search query if it is immediately followed by the caseless 
-# literal 'event'.
-eventLiteral = CaselessLiteral('event')
-#searchList = OneOrMore(search).setName("search list")
-searchList = OneOrMore(search + ~FollowedBy(eventLiteral)) \
-                      .setName("search list")
-searchQ = (Optional(Suppress(Keyword("search:"))) + searchList)
-searchQ = searchQ.setParseAction(lambda toks:
-                                 ("search", Q(search__name__in=toks.asList()))
-                                )
 
 # Gracedb ID
 gid = Suppress(Word("gG", exact=1)) + Word("0123456789")
@@ -213,7 +169,7 @@ createdQ = createdQ.setParseAction(maybeRange("created"))
 # will have both names. filter_for_labels below avoids this problem by applying
 # each label Q filter and combining the resulting querysets as appropriate.
 #
-#labelNames = [l.name for l in models.Label.objects.all()]
+#labelNames = [l.name for l in Label.objects.all()]
 #label = Or([CaselessLiteral(n) for n in labelNames]).\
 #        setParseAction( lambda toks: Q(labels__name=toks[0]) )
 #
@@ -328,12 +284,47 @@ andTheseTags = ["nevents"]
 # The labels have to be handled separately, in filter_for_labels.
 #--------------------------------------------------------------------------
 def parseQuery(s):
+    # Analysis Groups
+    # XXX Querying the database at module compile time is a bad idea!
+    # See: https://docs.djangoproject.com/en/1.8/topics/testing/overview/
+    groupNames = [group.name for group in Group.objects.all()]
+    group = Or(map(CaselessLiteral, groupNames)).setName("analysis group name")
+    #groupList = delimitedList(group, delim='|').setName("analysis group list")
+    groupList = OneOrMore(group).setName("analysis group list")
+    groupQ = (Optional(Suppress(Keyword("group:"))) + groupList)
+    groupQ = groupQ.setParseAction(lambda toks: ("group",
+        Q(group__name__in=toks.asList())))
+
+    # Pipeline
+    pipelineNames = [pipeline.name for pipeline in Pipeline.objects.all()]
+    pipeline = Or(map(CaselessLiteral, pipelineNames)).setName("pipeline name")
+    pipelineList = OneOrMore(pipeline).setName("pipeline list")
+    pipelineQ = (Optional(Suppress(Keyword("pipeline:"))) + pipelineList)
+    pipelineQ = pipelineQ.setParseAction(lambda toks: ("pipeline",
+        Q(pipeline__name__in=toks.asList())))
+
+    # Search
+    searchNames = [search.name for search in Search.objects.all()]
+    search = Or(map(CaselessLiteral, searchNames)).setName("search name")
+    # XXX Branson: The change below was made 2/17/15 to fix a bug in which 
+    # searches like 'grbevent.ra > 0' failed due to the 'grb' being peeled off
+    # and assumed to be part of a 'Search' query. So we don't consume a token
+    # for the search query if it is immediately followed by the caseless 
+    # literal 'event'.
+    eventLiteral = CaselessLiteral('event')
+    #searchList = OneOrMore(search).setName("search list")
+    searchList = OneOrMore(search + ~FollowedBy(eventLiteral)) \
+        .setName("search list")
+    searchQ = (Optional(Suppress(Keyword("search:"))) + searchList)
+    searchQ = searchQ.setParseAction(lambda toks:
+        ("search", Q(search__name__in=toks.asList())))
+
     # labelQ is defined inside in order to avoid a compile-time database query
     # to get the label names.
     # Note the parse action for labelQ: Replace all tokens with the empty
     # string. This basically has the effect of removing any label query terms
     # from the query string.
-    labelNames = [l.name for l in models.Label.objects.all()]
+    labelNames = [l.name for l in Label.objects.all()]
     #label = Or([CaselessLiteral(n) for n in labelNames]).\
     label = Or([CaselessKeyword(n) for n in labelNames]).\
             setParseAction( lambda toks: Q(labels__name=toks[0]) )
@@ -400,7 +391,7 @@ def parseQuery(s):
 # as a list of Q objects and separators.
 #--------------------------------------------------------------------------
 def labelQuery(s, names=False):
-    labelNames = [l.name for l in models.Label.objects.all()]
+    labelNames = [l.name for l in Label.objects.all()]
     #label = Or([CaselessLiteral(n) for n in labelNames])
     label = Or([CaselessKeyword(n) for n in labelNames])
     # If the filter objects are going to be applied to Lable 
@@ -426,7 +417,7 @@ def labelQuery(s, names=False):
 # The following version is used only for validation. Just to check that
 # the query strictly conforms to the requirements of a label query.
 def parseLabelQuery(s):
-    labelNames = [l.name for l in models.Label.objects.all()]
+    labelNames = [l.name for l in Label.objects.all()]
     #label = Or([CaselessLiteral(n) for n in labelNames])
     label = Or([CaselessKeyword(n) for n in labelNames])
     andop   = oneOf(", &")

@@ -45,7 +45,7 @@ def _createEventFromForm(request, form):
         group = Group.objects.get(name=form.cleaned_data['group'])
         pipeline = Pipeline.objects.get(name=form.cleaned_data['pipeline'])
         search_name = form.cleaned_data['search']
-        label_str = form.cleaned_data['labels']
+        label_list = form.cleaned_data['labels']
         offline = form.cleaned_data['offline']
         if search_name:
             search = Search.objects.get(name=form.cleaned_data['search'])
@@ -126,30 +126,16 @@ def _createEventFromForm(request, form):
             warnings += translator_warnings
 
             # Add labels here - need event to have been saved already
-            for label in label_str.split(","):
-                # Handle case where no labels are sent (labels=[] in
-                # gracedb-client), here label_str.split(",") will be [""]
-                if not label:
-                    break
-
-                # Try to get label from database. gracedb-client has a test for
-                # this, but we should have a safeguard on the server.
-                try:
-                    label_obj = Label.objects.get(name=label)
-                except Label.DoesNotExist:
-                    msg = "Label {0} does not exist and was not applied" \
-                        .format(label)
-                    warnings.append(msg)
-                    continue
+            for label in label_list:
 
                 # If event already has this label, don't do anything.
                 # Append a warning message.
-                if label_obj in event.labels.all():
+                if label in event.labels.all():
                     warnings.append("Event {0} already labeled with '{1}'" \
                         .format(event.graceid(), label))
                 else:
                     # Otherwise, create label
-                    labelling = Labelling(event=event, label=label_obj,
+                    labelling = Labelling(event=event, label=label,
                         creator=event.submitter)
                     labelling.save()
                     # Create log message about label

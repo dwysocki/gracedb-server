@@ -664,8 +664,7 @@ def oldsearch(request):
 
             if labels:
                 objects = objects.filter(labels__in=labels)
-                textQuery.append("label: %s" % " ".join([
-                    Label.objects.filter(id=l)[0].name for l in labels]))
+                textQuery.append("label: %s" % " ".join([l.name for l in labels]))
 
             # Need this because events with multiple labels can appear multiple times!
             objects = objects.distinct()
@@ -688,7 +687,6 @@ def oldsearch(request):
                 'get_neighbors' : get_neighbors,
             }
             return render(request, 'gracedb/event_list.html', context=context)
-
 
     return render(request, 'gracedb/query.html', context={'form': form})
 
