@@ -6,8 +6,6 @@ CONFIG_NAME = "TEST"
 
 # Debug settings
 DEBUG = True
-# Don't let django-debug-toolbar edit settings
-DEBUG_TOOLBAR_PATCH_SETTINGS = False
 
 # Override EMBB email address
 # TP (8 Aug 2017): not sure why?
@@ -22,11 +20,17 @@ MIDDLEWARE += [
 # Add to installed apps
 INSTALLED_APPS += [
     'debug_toolbar',
+    'django_extensions',
 ]
 
 # Tuple of IPs which are marked as internal, useful for debugging
 # Changed to a list in Django 1.9+
 INTERNAL_IPS = [
-    '129.89.57.164',
+    '129.89.57.200',
 ]
 
+# Aliases for django-extensions shell_plus
+# We have two 'Group' models - auth.Group and gracedb.Group
+SHELL_PLUS_MODEL_ALIASES = {
+    'auth': {'Group': 'AuthGroup'},
+}
