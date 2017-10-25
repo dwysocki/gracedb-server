@@ -15,7 +15,7 @@ from .secret import *
 # Debug mode is off by default
 DEBUG = False
 
-# Maintenance mode: used by django-maintenancemode package.
+# Maintenance mode: used by django-maintenance-mode package.
 # Set to off by default
 MAINTENANCE_MODE = False
 
@@ -252,7 +252,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'ligoauth.middleware.auth.LigoAuthMiddleware',
-#    'maintenancemode.middleware.MaintenanceModeMiddleware',
+    'maintenance_mode.middleware.MaintenanceModeMiddleware',
 ]
 
 # Path to root URLconf
@@ -266,6 +266,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
 #    'django.contrib.sites',
     'django.contrib.staticfiles',
+    'maintenance_mode',
     'gracedb',
     'userprofile',
     'ligoauth',
