@@ -29,6 +29,12 @@ try:
         settings_file = 'test'
 except NameError:
     settings_file = 'test'
+
+# Addition for simdb
+import socket
+if (socket.gethostname() == 'simdb'):
+    settings_file = 'simdb'
+
 settings_module = __import__(settings_file, globals(), locals())
 
 # Put these settings into the local scope
