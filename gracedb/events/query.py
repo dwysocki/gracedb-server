@@ -91,8 +91,9 @@ runQ = (Optional(Suppress(Keyword("runid:"))) + runid)
 runQ = runQ.setParseAction(lambda toks: ("gpstime", Q(gpstime__range=
                                                         runmap[toks[0]])))
 
-# Gracedb ID
-gid = Suppress(Word("gG", exact=1)) + Word("0123456789")
+# Gracedb ID - changed to S for SimDB
+#gid = Suppress(Word("gG", exact=1)) + Word("0123456789")
+gid = Suppress(Word("sS", exact=1)) + Word("0123456789")
 gidRange = gid + Suppress("..") + gid
 gidQ = Optional(Suppress(Keyword("gid:"))) + (gid^gidRange)
 gidQ = gidQ.setParseAction(maybeRange("gid", dbname="id"))

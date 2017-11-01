@@ -158,7 +158,7 @@ class Event(models.Model):
             return "H%04d" % self.id
         elif self.group.name == "External":
             return "E%04d" % self.id
-        return "G%04d" % self.id
+        return "S%04d" % self.id
 
     def weburl(self):
         # XXX Not good.  But then, it never was.
@@ -228,7 +228,7 @@ class Event(models.Model):
             return e
         if (id[0] == "M") and (e.search.name == "MDC"):
             return e
-        if (id[0] == "G"):
+        if (id[0] == "S"):
             return e
         raise cls.DoesNotExist("Event matching query does not exist")
 

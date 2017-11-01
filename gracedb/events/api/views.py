@@ -864,7 +864,6 @@ class EventLogList(APIView):
         if 'tagWarning' in tw_dict.keys():
             response['tagWarning'] = tw_dict['tagWarning']
 
-
         # Issue alert.
         description = "LOG: "
         fname = ""
@@ -1501,35 +1500,35 @@ class GracedbRoot(APIView):
     def get(self, request):
         # XXX This seems like a scummy way to get a URI template.
         # Is there better?
-        detail = reverse("event-detail", args=["G1200"], request=request)
-        detail = detail.replace("G1200", "{graceid}")
-        log = reverse("eventlog-list", args=["G1200"], request=request)
-        log = log.replace("G1200", "{graceid}")
-        voevent = reverse("voevent-list", args=["G1200"], request=request)
-        voevent = voevent.replace("G1200", "{graceid}")
-        embb = reverse("embbeventlog-list", args=["G1200"], request=request)
-        embb = embb.replace("G1200", "{graceid}")
-        emo = reverse("emobservation-list", args=["G1200"], request=request)
-        emo = emo.replace("G1200", "{graceid}")
+        detail = reverse("event-detail", args=["S1200"], request=request)
+        detail = detail.replace("S1200", "{graceid}")
+        log = reverse("eventlog-list", args=["S1200"], request=request)
+        log = log.replace("S1200", "{graceid}")
+        voevent = reverse("voevent-list", args=["S1200"], request=request)
+        voevent = voevent.replace("S1200", "{graceid}")
+        embb = reverse("embbeventlog-list", args=["S1200"], request=request)
+        embb = embb.replace("S1200", "{graceid}")
+        emo = reverse("emobservation-list", args=["S1200"], request=request)
+        emo = emo.replace("S1200", "{graceid}")
 
-        files = reverse("files", args=["G1200", "filename"], request=request)
-        files = files.replace("G1200", "{graceid}")
+        files = reverse("files", args=["S1200", "filename"], request=request)
+        files = files.replace("S1200", "{graceid}")
         files = files.replace("filename", "{filename}")
 
-        filemeta = reverse('filemeta', args=["G1200", "filename"], request=request)
-        filemeta = filemeta.replace("G1200", "{graceid}")
+        filemeta = reverse('filemeta', args=["S1200", "filename"], request=request)
+        filemeta = filemeta.replace("S1200", "{graceid}")
         filemeta = filemeta.replace("filename", "{filename}")
 
-        labels = reverse('labels', args=["G1200", "thelabel"], request=request)
-        labels = labels.replace("G1200", "{graceid}")
+        labels = reverse('labels', args=["S1200", "thelabel"], request=request)
+        labels = labels.replace("S1200", "{graceid}")
         labels = labels.replace("thelabel", "{label}")
 
-        taglist = reverse("eventlogtag-list", args=["G1200", "0"], request=request)
-        taglist = taglist.replace("G1200", "{graceid}")
+        taglist = reverse("eventlogtag-list", args=["S1200", "0"], request=request)
+        taglist = taglist.replace("S1200", "{graceid}")
         taglist = taglist.replace("0", "{n}")
 
-        tag = reverse("eventlogtag-detail", args=["G1200", "0", "tagname"], request=request)
-        tag = tag.replace("G1200", "{graceid}")
+        tag = reverse("eventlogtag-detail", args=["S1200", "0", "tagname"], request=request)
+        tag = tag.replace("S1200", "{graceid}")
         tag = tag.replace("0", "{n}")
         tag = tag.replace("tagname", "{tagname}")
 
