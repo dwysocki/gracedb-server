@@ -5,7 +5,7 @@
 {% load static %}
 {% block headcontents %}
     <link rel="stylesheet" href="{% static "css/style.css" %}" />
-    <title>GraceDb | {% block title %}{% endblock %}</title>
+    <title>SimDB | {% block title %}{% endblock %}</title>
 <!-- START TESTING -->
 <script type="text/javascript">
 function changeTime(obj, label) {
@@ -33,7 +33,7 @@ function changeTime(obj, label) {
 <div id="content">
 
 <center>
-<h1>GraceDB &mdash; Gravitational Wave Candidate Event Database</h1>
+<h1>SimDB &mdash; Simulated Gravitational Wave Candidate Event Database</h1>
 </center>
 
 {% block nav %}
@@ -64,12 +64,14 @@ function changeTime(obj, label) {
 
    <td align="center">
     {% if user and user.username == "chad.hanna@LIGO.ORG" %}
-        <img width="194" height="37" src="{% static "images/PI_Logo-anim.gif" %}" />
-    {% else %}{% if user and user.username == "kipp.cannon@LIGO.ORG" %}
-        <img width="194" height="37" src="{% static "images/CITA_logo-anim.gif" %}" />
+        <img width="194" height="37" src="{% static "images/PI_Logo-anim.gif" %}">
     {% else %}
-       <!-- <img width="107" height="37" src="{% static "images/anim2.gif" %}" /> -->
-    {% endif %}{% endif %}
+        {% if user and user.username == "kipp.cannon@LIGO.ORG" %}
+            <img width="194" height="37" src="{% static "images/CITA_logo-anim.gif" %}">
+        {% else %}
+            <img width="107" height="37" src="{% static "images/anim2.gif" %}">
+        {% endif %}
+    {% endif %}
     <!-- 287px 101px -->
    </td>
 
