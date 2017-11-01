@@ -221,6 +221,9 @@ def issueEmailAlert(event, event_url):
     if event.search and event.search.name == 'MDC':
         return
 
+    if event.pipeline.name == 'HardwareInjection':
+        return
+
     # Gather Recipients
     if event.group.name == 'Test':
         fromaddress = settings.ALERT_TEST_EMAIL_FROM
@@ -296,6 +299,10 @@ def issuePhoneAlert(event):
         make_twilio_calls(event, phoneRecips, "create")
 
 def issueXMPPAlert(event, location, alert_type="new", description="", serialized_object=None):
+
+    # XXX Let's bail if this is a hardware injection.
+    if event.pipeline.name == 'HardwareInjection':
+        return
     
     # Check settings switch for turning off XMPP alerts
     if not settings.SEND_XMPP_ALERTS:
@@ -360,6 +367,7 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
                 ["lvalert_send",
                  "--server=%s" % server,
                  "--file=-",
+                 "--resource=simdb_sender",
                  "--node=%s" % nodename,
                 ],
                 stdin=PIPE,
