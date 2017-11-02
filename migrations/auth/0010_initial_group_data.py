@@ -40,7 +40,7 @@ def remove_groups(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('auth', '0008_auto_20171020_1045'),
+        ('auth', '0009_set_auth_user_charset'),
     ]
 
     operations = [
