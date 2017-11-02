@@ -213,8 +213,6 @@ def issueEmailAlert(event, event_url):
 
     # Check settings switch for turning off email alerts
     if not settings.SEND_EMAIL_ALERTS:
-        log.debug(("Email alert for event {gid} not sent because email alerts "
-            "are turned off").format(gid=event.graceid()))
         return
 
     # The right way of doing this is to make the email alerts filter-able
@@ -273,8 +271,6 @@ def issuePhoneAlert(event):
 
     # Check settings switch for turning off phone alerts
     if not settings.SEND_PHONE_ALERTS:
-        log.debug(("Phone alert for event {gid} not sent because phone alerts "
-            "are turned off").format(gid=event.graceid()))
         return
 
     # The right way of doing this is to make the email alerts filter-able
@@ -303,9 +299,6 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
     
     # Check settings switch for turning off XMPP alerts
     if not settings.SEND_XMPP_ALERTS:
-        log.debug(("XMPP alert type '{atype}' for event {gid} not sent "
-            "because XMPP alerts are turned off").format(
-            atype=alert_type, gid=event.graceid()))
         return
 
     nodename = "%s_%s" % (event.group.name, event.pipeline.name)
