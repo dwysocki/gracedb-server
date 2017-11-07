@@ -581,8 +581,13 @@ def oldsearch(request):
             gpsStart =  form.cleaned_data['gpsStart']
             gpsEnd =  form.cleaned_data['gpsEnd']
             get_neighbors = form.cleaned_data['get_neighbors']
+            offline = form.cleaned_data['offline']
 
             textQuery = []
+
+            # XXX: this whole thing could be redone by defining Q objects
+            # and doing a single query. I think that might simplify the
+            # database queries. (Tanner)
 
             if not groupname:
                 # don't show test events unless explicitly requested
@@ -590,25 +595,6 @@ def oldsearch(request):
                 objects = Event.objects.exclude(group__name='Test')
             else:
                 objects = Event.objects.all()
-
-            # XXX Note, the uid field doesn't exist anymore. I'm not sure why this
-            # stuff is in here. (Branson)
-#            if start:
-#                if start[0] != 'G':
-#                    # XXX This is the deprecated uid stuff. Take it out when uid is gone.
-#                    objects = objects.filter(uid__gte=start)
-#                    objects = objects.filter(uid__startswith="0")
-#                else:
-#                    objects = objects.filter(id__gte=int(start[1:]))
-#                    objects = objects.filter(uid="")
-#            if end:
-#                if end[0] != 'G':
-#                    # XXX This is the deprecated uid stuff. Take it out when uid is gone.
-#                    objects = objects.filter(uid__lte=end)
-#                    objects = objects.filter(uid__startswith="0")
-#                else:
-#                    objects = objects.filter(id__lte=int(end[1:]))
-#                    objects = objects.filter(uid="")
 
             if start:
                 if start[0] in 'GEHMT':
@@ -668,6 +654,11 @@ def oldsearch(request):
 
             # Need this because events with multiple labels can appear multiple times!
             objects = objects.distinct()
+
+            # Offline
+            if offline is not None:
+                objects = objects.filter(offline=offline)
+                textQuery.append("offline: \"{0}\"".format(offline))
 
             # Filter for user.
             objects = filter_events_for_user(objects, request.user, 'view')

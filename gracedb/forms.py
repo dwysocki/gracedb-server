@@ -79,6 +79,12 @@ class EventSearchForm(forms.Form):
         required=False)
     get_neighbors = forms.BooleanField(required=False)
 
+    offline = forms.NullBooleanField(
+        required=False,
+        help_text=("Select \"Unknown\" to search for both online and offline "
+            "events.")
+    )
+
 class SignoffForm(ModelForm):
     class Meta:
         model = Signoff
