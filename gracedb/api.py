@@ -44,6 +44,7 @@ import exceptions
 
 from utils.vfile import VersionedFile
 
+import logging; logger = logging.getLogger(__name__)
 # 
 # for checking queries in the evnet that the user is external
 #
@@ -513,6 +514,13 @@ class EventList(APIView):
         # django form expects a dict containing the POST data as the first
         # arg, and a dict containing the FILE data as the second. In the 
         # django-restframework, however, both are in request.data
+
+        # TP (21 Nov 2017): Hack to allow basic event submission without
+        # labels to function with versions of gracedb-client before 1.26.
+        # Should be removed eventually.
+        if (request.data.has_key('labels') and request.data['labels'] == ''):
+            request.data.pop('labels', None)
+
         form = CreateEventForm(request.data, request.data)
         if form.is_valid():
             event, warnings = _createEventFromForm(request, form)
