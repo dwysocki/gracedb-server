@@ -4,7 +4,7 @@
     "model": "gracedb.labelling", 
     "fields": {
         "creator": 460, 
-        "created": "2014-03-10T12:01:03", 
+        "created": "2014-03-10T12:01:03-06:00",
         "event": 100906, 
         "label": 7
     }
@@ -14,7 +14,7 @@
     "model": "gracedb.labelling", 
     "fields": {
         "creator": 460, 
-        "created": "2014-03-12T10:35:20", 
+        "created": "2014-03-12T10:35:20-06:00",
         "event": 101383, 
         "label": 1
     }
@@ -24,7 +24,7 @@
     "model": "gracedb.labelling", 
     "fields": {
         "creator": 460, 
-        "created": "2014-03-12T10:39:44", 
+        "created": "2014-03-12T10:39:44-06:00",
         "event": 101383, 
         "label": 7
     }
@@ -34,7 +34,7 @@
     "model": "gracedb.labelling", 
     "fields": {
         "creator": 460, 
-        "created": "2014-03-14T18:20:07", 
+        "created": "2014-03-14T18:20:07-06:00",
         "event": 101399, 
         "label": 7
     }

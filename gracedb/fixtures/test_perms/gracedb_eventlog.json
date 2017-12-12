@@ -4,7 +4,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-03-10T11:55:49", 
+        "created": "2014-03-10T11:55:49-06:00",
         "file_version": null, 
         "filename": "HLV-H1L1V1_2_328_Test_LowMass-1078505718-0.xml", 
         "N": 1, 
@@ -17,7 +17,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Log File Created", 
-        "created": "2014-03-10T11:55:49", 
+        "created": "2014-03-10T11:55:49-06:00",
         "file_version": null, 
         "filename": "event.log", 
         "N": 2, 
@@ -30,7 +30,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Coinc Table Created", 
-        "created": "2014-03-10T11:55:49", 
+        "created": "2014-03-10T11:55:49-06:00",
         "file_version": null, 
         "filename": "coinc.xml", 
         "N": 3, 
@@ -43,7 +43,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "strain spectral densities", 
-        "created": "2014-03-10T11:56:02", 
+        "created": "2014-03-10T11:56:02-06:00",
         "file_version": 0, 
         "filename": "psd.xml.gz", 
         "N": 4, 
@@ -56,7 +56,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 4: psd ", 
-        "created": "2014-03-10T11:56:02", 
+        "created": "2014-03-10T11:56:02-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 5, 
@@ -69,7 +69,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "SNR vs time", 
-        "created": "2014-03-10T11:56:20", 
+        "created": "2014-03-10T11:56:20-06:00",
         "file_version": 0, 
         "filename": "T100906_snrtime.png", 
         "N": 6, 
@@ -82,7 +82,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 6: background ", 
-        "created": "2014-03-10T11:56:20", 
+        "created": "2014-03-10T11:56:20-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 7, 
@@ -95,7 +95,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:by your command...</div>\n", 
-        "created": "2014-03-10T11:56:23", 
+        "created": "2014-03-10T11:56:23-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 8, 
@@ -108,7 +108,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:warming up Xeon Phi coprocessors</div>\n", 
-        "created": "2014-03-10T11:56:23", 
+        "created": "2014-03-10T11:56:23-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 9, 
@@ -121,7 +121,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:starting sky localization</div>\n", 
-        "created": "2014-03-10T11:56:28", 
+        "created": "2014-03-10T11:56:28-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 10, 
@@ -134,7 +134,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "H1 SNR/Chisq", 
-        "created": "2014-03-10T11:56:32", 
+        "created": "2014-03-10T11:56:32-06:00",
         "file_version": 0, 
         "filename": "T100906_H1_snrchi.png", 
         "N": 11, 
@@ -147,7 +147,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 11: background ", 
-        "created": "2014-03-10T11:56:32", 
+        "created": "2014-03-10T11:56:32-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 12, 
@@ -160,7 +160,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:sky localization complete</div>\n", 
-        "created": "2014-03-10T11:56:42", 
+        "created": "2014-03-10T11:56:42-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 13, 
@@ -173,7 +173,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "INFO:BAYESTAR:uploaded sky map", 
-        "created": "2014-03-10T11:56:42", 
+        "created": "2014-03-10T11:56:42-06:00",
         "file_version": 0, 
         "filename": "skymap-mic.fits.gz", 
         "N": 14, 
@@ -186,7 +186,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 14: sky_loc ", 
-        "created": "2014-03-10T11:56:42", 
+        "created": "2014-03-10T11:56:42-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 15, 
@@ -199,7 +199,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "L1 SNR/Chisq", 
-        "created": "2014-03-10T11:56:46", 
+        "created": "2014-03-10T11:56:46-06:00",
         "file_version": 0, 
         "filename": "T100906_L1_snrchi.png", 
         "N": 16, 
@@ -212,7 +212,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 16: background ", 
-        "created": "2014-03-10T11:56:46", 
+        "created": "2014-03-10T11:56:46-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 17, 
@@ -225,7 +225,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:by your command...</div>\n", 
-        "created": "2014-03-10T11:56:49", 
+        "created": "2014-03-10T11:56:49-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 18, 
@@ -238,7 +238,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:starting sky localization</div>\n", 
-        "created": "2014-03-10T11:57:02", 
+        "created": "2014-03-10T11:57:02-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 19, 
@@ -251,7 +251,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No unblind injections in window [-5,+5] seconds", 
-        "created": "2014-03-10T11:57:20", 
+        "created": "2014-03-10T11:57:20-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 20, 
@@ -264,7 +264,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 20: analyst_comments ", 
-        "created": "2014-03-10T11:57:20", 
+        "created": "2014-03-10T11:57:20-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 21, 
@@ -277,7 +277,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "strain spectral densities", 
-        "created": "2014-03-10T11:57:23", 
+        "created": "2014-03-10T11:57:23-06:00",
         "file_version": 0, 
         "filename": "psd.png", 
         "N": 22, 
@@ -290,7 +290,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 22: psd ", 
-        "created": "2014-03-10T11:57:23", 
+        "created": "2014-03-10T11:57:23-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 23, 
@@ -303,7 +303,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "", 
-        "created": "2014-03-10T11:57:27", 
+        "created": "2014-03-10T11:57:27-06:00",
         "file_version": 0, 
         "filename": "skymap-mic.png", 
         "N": 24, 
@@ -316,7 +316,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 24: sky_loc ", 
-        "created": "2014-03-10T11:57:27", 
+        "created": "2014-03-10T11:57:27-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 25, 
@@ -329,7 +329,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Initiating coincidence search", 
-        "created": "2014-03-10T11:58:03", 
+        "created": "2014-03-10T11:58:03-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 26, 
@@ -342,7 +342,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No external triggers in window [-1,+5] seconds", 
-        "created": "2014-03-10T11:58:12", 
+        "created": "2014-03-10T11:58:12-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 27, 
@@ -355,7 +355,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 27: ext_coinc ", 
-        "created": "2014-03-10T11:58:12", 
+        "created": "2014-03-10T11:58:12-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 28, 
@@ -368,7 +368,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No unblind injections in window [-5,+5] seconds", 
-        "created": "2014-03-10T11:58:13", 
+        "created": "2014-03-10T11:58:13-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 29, 
@@ -381,7 +381,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 29: analyst_comments ", 
-        "created": "2014-03-10T11:58:13", 
+        "created": "2014-03-10T11:58:13-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 30, 
@@ -394,7 +394,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No external triggers in window [-60,+120] seconds", 
-        "created": "2014-03-10T11:58:23", 
+        "created": "2014-03-10T11:58:23-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 31, 
@@ -407,7 +407,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 31: ext_coinc ", 
-        "created": "2014-03-10T11:58:23", 
+        "created": "2014-03-10T11:58:23-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 32, 
@@ -420,7 +420,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Coincidence search complete", 
-        "created": "2014-03-10T11:58:27", 
+        "created": "2014-03-10T11:58:27-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 33, 
@@ -433,7 +433,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:sky localization complete</div>\n", 
-        "created": "2014-03-10T12:00:41", 
+        "created": "2014-03-10T12:00:41-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 34, 
@@ -446,7 +446,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "INFO:BAYESTAR:uploaded sky map", 
-        "created": "2014-03-10T12:00:43", 
+        "created": "2014-03-10T12:00:43-06:00",
         "file_version": 0, 
         "filename": "skymap.fits.gz", 
         "N": 35, 
@@ -459,7 +459,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 35: sky_loc ", 
-        "created": "2014-03-10T12:00:43", 
+        "created": "2014-03-10T12:00:43-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 36, 
@@ -472,7 +472,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Label: EM_READY", 
-        "created": "2014-03-10T12:01:03", 
+        "created": "2014-03-10T12:01:03-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 37, 
@@ -485,7 +485,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "", 
-        "created": "2014-03-10T12:01:17", 
+        "created": "2014-03-10T12:01:17-06:00",
         "file_version": 0, 
         "filename": "skymap.png", 
         "N": 38, 
@@ -498,7 +498,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 38: sky_loc ", 
-        "created": "2014-03-10T12:01:17", 
+        "created": "2014-03-10T12:01:17-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 39, 
@@ -511,7 +511,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Initiating coincidence search", 
-        "created": "2014-03-10T12:01:48", 
+        "created": "2014-03-10T12:01:48-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 40, 
@@ -524,7 +524,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No external triggers in window [-1,+5] seconds", 
-        "created": "2014-03-10T12:01:55", 
+        "created": "2014-03-10T12:01:55-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 41, 
@@ -537,7 +537,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 41: ext_coinc ", 
-        "created": "2014-03-10T12:01:55", 
+        "created": "2014-03-10T12:01:55-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 42, 
@@ -550,7 +550,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No unblind injections in window [-5,+5] seconds", 
-        "created": "2014-03-10T12:01:57", 
+        "created": "2014-03-10T12:01:57-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 43, 
@@ -563,7 +563,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 43: analyst_comments ", 
-        "created": "2014-03-10T12:01:57", 
+        "created": "2014-03-10T12:01:57-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 44, 
@@ -576,7 +576,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No external triggers in window [-60,+120] seconds", 
-        "created": "2014-03-10T12:02:02", 
+        "created": "2014-03-10T12:02:02-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 45, 
@@ -589,7 +589,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 45: ext_coinc ", 
-        "created": "2014-03-10T12:02:02", 
+        "created": "2014-03-10T12:02:02-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 46, 
@@ -602,7 +602,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Coincidence search complete", 
-        "created": "2014-03-10T12:02:04", 
+        "created": "2014-03-10T12:02:04-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 47, 
@@ -615,7 +615,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-03-12T10:34:21", 
+        "created": "2014-03-12T10:34:21-06:00",
         "file_version": null, 
         "filename": "HLV-H1L1V1_2_2_Test_LowMass-1078673637-0.xml", 
         "N": 1, 
@@ -628,7 +628,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Log File Created", 
-        "created": "2014-03-12T10:34:21", 
+        "created": "2014-03-12T10:34:21-06:00",
         "file_version": null, 
         "filename": "event.log", 
         "N": 2, 
@@ -641,7 +641,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Coinc Table Created", 
-        "created": "2014-03-12T10:34:21", 
+        "created": "2014-03-12T10:34:21-06:00",
         "file_version": null, 
         "filename": "coinc.xml", 
         "N": 3, 
@@ -654,7 +654,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "strain spectral densities", 
-        "created": "2014-03-12T10:34:30", 
+        "created": "2014-03-12T10:34:30-06:00",
         "file_version": 0, 
         "filename": "psd.xml.gz", 
         "N": 4, 
@@ -667,7 +667,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 4: psd ", 
-        "created": "2014-03-12T10:34:30", 
+        "created": "2014-03-12T10:34:30-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 5, 
@@ -680,7 +680,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:warming up Xeon Phi coprocessors</div>\n", 
-        "created": "2014-03-12T10:34:41", 
+        "created": "2014-03-12T10:34:41-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 6, 
@@ -693,7 +693,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:by your command...</div>\n", 
-        "created": "2014-03-12T10:34:42", 
+        "created": "2014-03-12T10:34:42-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 7, 
@@ -706,7 +706,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "SNR vs time", 
-        "created": "2014-03-12T10:34:43", 
+        "created": "2014-03-12T10:34:43-06:00",
         "file_version": 0, 
         "filename": "T101383_snrtime.png", 
         "N": 8, 
@@ -719,7 +719,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 8: background ", 
-        "created": "2014-03-12T10:34:43", 
+        "created": "2014-03-12T10:34:43-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 9, 
@@ -732,7 +732,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:starting sky localization</div>\n", 
-        "created": "2014-03-12T10:34:44", 
+        "created": "2014-03-12T10:34:44-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 10, 
@@ -745,7 +745,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "H1 SNR/Chisq", 
-        "created": "2014-03-12T10:34:52", 
+        "created": "2014-03-12T10:34:52-06:00",
         "file_version": 0, 
         "filename": "T101383_H1_snrchi.png", 
         "N": 11, 
@@ -758,7 +758,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 11: background ", 
-        "created": "2014-03-12T10:34:52", 
+        "created": "2014-03-12T10:34:52-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 12, 
@@ -771,7 +771,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "INFO:BAYESTAR:uploaded sky map", 
-        "created": "2014-03-12T10:34:57", 
+        "created": "2014-03-12T10:34:57-06:00",
         "file_version": 0, 
         "filename": "skymap-mic.fits.gz", 
         "N": 13, 
@@ -784,7 +784,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 13: sky_loc ", 
-        "created": "2014-03-12T10:34:58", 
+        "created": "2014-03-12T10:34:58-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 14, 
@@ -797,7 +797,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR-MIC:sky localization complete</div>\n", 
-        "created": "2014-03-12T10:34:58", 
+        "created": "2014-03-12T10:34:58-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 15, 
@@ -810,7 +810,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "V1 SNR/Chisq", 
-        "created": "2014-03-12T10:35:01", 
+        "created": "2014-03-12T10:35:01-06:00",
         "file_version": 0, 
         "filename": "T101383_V1_snrchi.png", 
         "N": 16, 
@@ -823,7 +823,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 16: background ", 
-        "created": "2014-03-12T10:35:01", 
+        "created": "2014-03-12T10:35:01-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 17, 
@@ -836,7 +836,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:by your command...</div>\n", 
-        "created": "2014-03-12T10:35:06", 
+        "created": "2014-03-12T10:35:06-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 18, 
@@ -849,7 +849,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:starting sky localization</div>\n", 
-        "created": "2014-03-12T10:35:10", 
+        "created": "2014-03-12T10:35:10-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 19, 
@@ -862,7 +862,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Unblind injection <a href='http://gracedb.ligo.org/events/H87481'>H87481</a> within window [-5,+5] seconds", 
-        "created": "2014-03-12T10:35:16", 
+        "created": "2014-03-12T10:35:16-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 20, 
@@ -875,7 +875,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 20: analyst_comments ", 
-        "created": "2014-03-12T10:35:16", 
+        "created": "2014-03-12T10:35:16-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 21, 
@@ -888,7 +888,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Label: INJ", 
-        "created": "2014-03-12T10:35:20", 
+        "created": "2014-03-12T10:35:20-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 22, 
@@ -901,7 +901,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "strain spectral densities", 
-        "created": "2014-03-12T10:35:23", 
+        "created": "2014-03-12T10:35:23-06:00",
         "file_version": 0, 
         "filename": "psd.png", 
         "N": 23, 
@@ -914,7 +914,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 23: psd ", 
-        "created": "2014-03-12T10:35:23", 
+        "created": "2014-03-12T10:35:23-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 24, 
@@ -927,7 +927,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "", 
-        "created": "2014-03-12T10:35:32", 
+        "created": "2014-03-12T10:35:32-06:00",
         "file_version": 0, 
         "filename": "skymap-mic.png", 
         "N": 25, 
@@ -940,7 +940,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 25: sky_loc ", 
-        "created": "2014-03-12T10:35:32", 
+        "created": "2014-03-12T10:35:32-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 26, 
@@ -953,7 +953,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Initiating coincidence search", 
-        "created": "2014-03-12T10:35:55", 
+        "created": "2014-03-12T10:35:55-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 27, 
@@ -966,7 +966,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No external triggers in window [-1,+5] seconds", 
-        "created": "2014-03-12T10:36:00", 
+        "created": "2014-03-12T10:36:00-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 28, 
@@ -979,7 +979,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 28: ext_coinc ", 
-        "created": "2014-03-12T10:36:00", 
+        "created": "2014-03-12T10:36:00-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 29, 
@@ -992,7 +992,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Unblind injection <a href='http://gracedb.ligo.org/events/H87481'>H87481</a> within window [-5,+5] seconds", 
-        "created": "2014-03-12T10:36:06", 
+        "created": "2014-03-12T10:36:06-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 30, 
@@ -1005,7 +1005,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 30: analyst_comments ", 
-        "created": "2014-03-12T10:36:06", 
+        "created": "2014-03-12T10:36:06-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 31, 
@@ -1018,7 +1018,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No external triggers in window [-60,+120] seconds", 
-        "created": "2014-03-12T10:36:07", 
+        "created": "2014-03-12T10:36:07-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 32, 
@@ -1031,7 +1031,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 32: ext_coinc ", 
-        "created": "2014-03-12T10:36:07", 
+        "created": "2014-03-12T10:36:07-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 33, 
@@ -1044,7 +1044,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Coincidence search complete", 
-        "created": "2014-03-12T10:36:10", 
+        "created": "2014-03-12T10:36:10-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 34, 
@@ -1057,7 +1057,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "", 
-        "created": "2014-03-12T10:36:18", 
+        "created": "2014-03-12T10:36:18-06:00",
         "file_version": 0, 
         "filename": "skymap-mic_with_unblind_injs.png", 
         "N": 35, 
@@ -1070,7 +1070,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 35: sky_loc ", 
-        "created": "2014-03-12T10:36:18", 
+        "created": "2014-03-12T10:36:18-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 36, 
@@ -1083,7 +1083,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:sky localization complete</div>\n", 
-        "created": "2014-03-12T10:39:22", 
+        "created": "2014-03-12T10:39:22-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 37, 
@@ -1096,7 +1096,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "INFO:BAYESTAR:uploaded sky map", 
-        "created": "2014-03-12T10:39:24", 
+        "created": "2014-03-12T10:39:24-06:00",
         "file_version": 0, 
         "filename": "skymap.fits.gz", 
         "N": 38, 
@@ -1109,7 +1109,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 38: sky_loc ", 
-        "created": "2014-03-12T10:39:24", 
+        "created": "2014-03-12T10:39:24-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 39, 
@@ -1122,7 +1122,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Label: EM_READY", 
-        "created": "2014-03-12T10:39:44", 
+        "created": "2014-03-12T10:39:44-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 40, 
@@ -1135,7 +1135,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "", 
-        "created": "2014-03-12T10:39:56", 
+        "created": "2014-03-12T10:39:56-06:00",
         "file_version": 0, 
         "filename": "skymap.png", 
         "N": 41, 
@@ -1148,7 +1148,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 41: sky_loc ", 
-        "created": "2014-03-12T10:39:56", 
+        "created": "2014-03-12T10:39:56-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 42, 
@@ -1161,7 +1161,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Initiating coincidence search", 
-        "created": "2014-03-12T10:40:24", 
+        "created": "2014-03-12T10:40:24-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 43, 
@@ -1174,7 +1174,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No external triggers in window [-1,+5] seconds", 
-        "created": "2014-03-12T10:40:29", 
+        "created": "2014-03-12T10:40:29-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 44, 
@@ -1187,7 +1187,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 44: ext_coinc ", 
-        "created": "2014-03-12T10:40:29", 
+        "created": "2014-03-12T10:40:29-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 45, 
@@ -1200,7 +1200,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Unblind injection <a href='http://gracedb.ligo.org/events/H87481'>H87481</a> within window [-5,+5] seconds", 
-        "created": "2014-03-12T10:40:34", 
+        "created": "2014-03-12T10:40:34-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 46, 
@@ -1213,7 +1213,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 46: analyst_comments ", 
-        "created": "2014-03-12T10:40:34", 
+        "created": "2014-03-12T10:40:34-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 47, 
@@ -1226,7 +1226,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No external triggers in window [-60,+120] seconds", 
-        "created": "2014-03-12T10:40:35", 
+        "created": "2014-03-12T10:40:35-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 48, 
@@ -1239,7 +1239,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 48: ext_coinc ", 
-        "created": "2014-03-12T10:40:35", 
+        "created": "2014-03-12T10:40:35-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 49, 
@@ -1252,7 +1252,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Coincidence search complete", 
-        "created": "2014-03-12T10:40:37", 
+        "created": "2014-03-12T10:40:37-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 50, 
@@ -1265,7 +1265,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "", 
-        "created": "2014-03-12T10:40:45", 
+        "created": "2014-03-12T10:40:45-06:00",
         "file_version": 0, 
         "filename": "skymap_with_unblind_injs.png", 
         "N": 51, 
@@ -1278,7 +1278,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 51: sky_loc ", 
-        "created": "2014-03-12T10:40:45", 
+        "created": "2014-03-12T10:40:45-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 52, 
@@ -1291,7 +1291,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "JSON contours for skymapViewer", 
-        "created": "2014-03-13T13:15:59", 
+        "created": "2014-03-13T13:15:59-06:00",
         "file_version": 0, 
         "filename": "skymap.json", 
         "N": 53, 
@@ -1304,7 +1304,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 53: sky_loc ", 
-        "created": "2014-03-13T13:15:59", 
+        "created": "2014-03-13T13:15:59-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 54, 
@@ -1317,7 +1317,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-03-14T18:11:13", 
+        "created": "2014-03-14T18:11:13-06:00",
         "file_version": null, 
         "filename": "HLV-H1L1V1_3_538_Test_LowMass-1078873849-0.xml", 
         "N": 1, 
@@ -1330,7 +1330,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Log File Created", 
-        "created": "2014-03-14T18:11:13", 
+        "created": "2014-03-14T18:11:13-06:00",
         "file_version": null, 
         "filename": "event.log", 
         "N": 2, 
@@ -1343,7 +1343,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Coinc Table Created", 
-        "created": "2014-03-14T18:11:13", 
+        "created": "2014-03-14T18:11:13-06:00",
         "file_version": null, 
         "filename": "coinc.xml", 
         "N": 3, 
@@ -1356,7 +1356,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "strain spectral densities", 
-        "created": "2014-03-14T18:11:22", 
+        "created": "2014-03-14T18:11:22-06:00",
         "file_version": 0, 
         "filename": "psd.xml.gz", 
         "N": 4, 
@@ -1369,7 +1369,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 4: psd ", 
-        "created": "2014-03-14T18:11:22", 
+        "created": "2014-03-14T18:11:22-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 5, 
@@ -1382,7 +1382,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "SNR vs time", 
-        "created": "2014-03-14T18:11:31", 
+        "created": "2014-03-14T18:11:31-06:00",
         "file_version": 0, 
         "filename": "T101399_snrtime.png", 
         "N": 6, 
@@ -1395,7 +1395,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 6: background ", 
-        "created": "2014-03-14T18:11:31", 
+        "created": "2014-03-14T18:11:31-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 7, 
@@ -1408,7 +1408,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "H1 SNR/Chisq", 
-        "created": "2014-03-14T18:11:41", 
+        "created": "2014-03-14T18:11:41-06:00",
         "file_version": 0, 
         "filename": "T101399_H1_snrchi.png", 
         "N": 8, 
@@ -1421,7 +1421,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 8: background ", 
-        "created": "2014-03-14T18:11:41", 
+        "created": "2014-03-14T18:11:41-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 9, 
@@ -1434,7 +1434,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "V1 SNR/Chisq", 
-        "created": "2014-03-14T18:11:52", 
+        "created": "2014-03-14T18:11:52-06:00",
         "file_version": 0, 
         "filename": "T101399_V1_snrchi.png", 
         "N": 10, 
@@ -1447,7 +1447,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 10: background ", 
-        "created": "2014-03-14T18:11:52", 
+        "created": "2014-03-14T18:11:52-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 11, 
@@ -1460,7 +1460,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:by your command...</div>\n", 
-        "created": "2014-03-14T18:11:54", 
+        "created": "2014-03-14T18:11:54-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 12, 
@@ -1473,7 +1473,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:starting sky localization</div>\n", 
-        "created": "2014-03-14T18:11:58", 
+        "created": "2014-03-14T18:11:58-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 13, 
@@ -1486,7 +1486,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No unblind injections in window [-5,+5] seconds", 
-        "created": "2014-03-14T18:12:01", 
+        "created": "2014-03-14T18:12:01-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 14, 
@@ -1499,7 +1499,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 14: analyst_comments ", 
-        "created": "2014-03-14T18:12:01", 
+        "created": "2014-03-14T18:12:01-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 15, 
@@ -1512,7 +1512,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "strain spectral densities", 
-        "created": "2014-03-14T18:12:17", 
+        "created": "2014-03-14T18:12:17-06:00",
         "file_version": 0, 
         "filename": "psd.png", 
         "N": 16, 
@@ -1525,7 +1525,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 16: psd ", 
-        "created": "2014-03-14T18:12:17", 
+        "created": "2014-03-14T18:12:17-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 17, 
@@ -1538,7 +1538,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "<div style=\"white-space:pre-wrap\">INFO:BAYESTAR:sky localization complete</div>\n", 
-        "created": "2014-03-14T18:19:46", 
+        "created": "2014-03-14T18:19:46-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 18, 
@@ -1551,7 +1551,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "INFO:BAYESTAR:uploaded sky map", 
-        "created": "2014-03-14T18:19:47", 
+        "created": "2014-03-14T18:19:47-06:00",
         "file_version": 0, 
         "filename": "skymap.fits.gz", 
         "N": 19, 
@@ -1564,7 +1564,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 19: sky_loc ", 
-        "created": "2014-03-14T18:19:48", 
+        "created": "2014-03-14T18:19:48-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 20, 
@@ -1577,7 +1577,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Label: EM_READY", 
-        "created": "2014-03-14T18:20:07", 
+        "created": "2014-03-14T18:20:07-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 21, 
@@ -1590,7 +1590,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "", 
-        "created": "2014-03-14T18:20:20", 
+        "created": "2014-03-14T18:20:20-06:00",
         "file_version": 0, 
         "filename": "skymap.png", 
         "N": 22, 
@@ -1603,7 +1603,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 22: sky_loc ", 
-        "created": "2014-03-14T18:20:20", 
+        "created": "2014-03-14T18:20:20-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 23, 
@@ -1616,7 +1616,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Initiating coincidence search", 
-        "created": "2014-03-14T18:20:48", 
+        "created": "2014-03-14T18:20:48-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 24, 
@@ -1629,7 +1629,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No external triggers in window [-1,+5] seconds", 
-        "created": "2014-03-14T18:20:53", 
+        "created": "2014-03-14T18:20:53-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 25, 
@@ -1642,7 +1642,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 25: ext_coinc ", 
-        "created": "2014-03-14T18:20:53", 
+        "created": "2014-03-14T18:20:53-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 26, 
@@ -1655,7 +1655,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No unblind injections in window [-5,+5] seconds", 
-        "created": "2014-03-14T18:20:55", 
+        "created": "2014-03-14T18:20:55-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 27, 
@@ -1668,7 +1668,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 27: analyst_comments ", 
-        "created": "2014-03-14T18:20:55", 
+        "created": "2014-03-14T18:20:55-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 28, 
@@ -1681,7 +1681,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No external triggers in window [-60,+120] seconds", 
-        "created": "2014-03-14T18:20:59", 
+        "created": "2014-03-14T18:20:59-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 29, 
@@ -1694,7 +1694,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 29: ext_coinc ", 
-        "created": "2014-03-14T18:20:59", 
+        "created": "2014-03-14T18:20:59-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 30, 
@@ -1707,7 +1707,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Coincidence search complete", 
-        "created": "2014-03-14T18:21:01", 
+        "created": "2014-03-14T18:21:01-06:00",
         "file_version": null, 
         "filename": "", 
         "N": 31, 
@@ -1720,7 +1720,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-23T00:22:05", 
+        "created": "2014-06-23T00:22:05-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Alert_2014-06-23T05:22:06.60_425193729_1-283.xml", 
         "N": 1, 
@@ -1733,7 +1733,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "This event detected by Fermi Satellite, GBM Instrument", 
-        "created": "2014-06-23T00:22:14", 
+        "created": "2014-06-23T00:22:14-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 2, 
@@ -1746,7 +1746,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 2: analyst_comments ", 
-        "created": "2014-06-23T00:22:15", 
+        "created": "2014-06-23T00:22:15-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 3, 
@@ -1759,7 +1759,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-23T00:22:19", 
+        "created": "2014-06-23T00:22:19-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Alert_2014-06-23T05:22:06.60_425193729_1-283.xml", 
         "N": 4, 
@@ -1772,7 +1772,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-23T00:22:24", 
+        "created": "2014-06-23T00:22:24-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Flt_Pos_2014-06-23T05:22:06.60_425193729_45-284.xml", 
         "N": 5, 
@@ -1785,7 +1785,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-23T00:22:28", 
+        "created": "2014-06-23T00:22:28-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Flt_Pos_2014-06-23T05:22:06.60_425193729_45-284.xml", 
         "N": 6, 
@@ -1798,7 +1798,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Initiating coincidence search", 
-        "created": "2014-06-23T00:22:32", 
+        "created": "2014-06-23T00:22:32-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 7, 
@@ -1811,7 +1811,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No GW candidates in window [-5,+1] seconds", 
-        "created": "2014-06-23T00:22:37", 
+        "created": "2014-06-23T00:22:37-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 8, 
@@ -1824,7 +1824,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 8: ext_coinc ", 
-        "created": "2014-06-23T00:22:37", 
+        "created": "2014-06-23T00:22:37-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 9, 
@@ -1837,7 +1837,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No GW candidates in window [-120,+60] seconds", 
-        "created": "2014-06-23T00:22:43", 
+        "created": "2014-06-23T00:22:43-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 10, 
@@ -1850,7 +1850,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 10: ext_coinc ", 
-        "created": "2014-06-23T00:22:43", 
+        "created": "2014-06-23T00:22:43-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 11, 
@@ -1863,7 +1863,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Coincidence search complete", 
-        "created": "2014-06-23T00:22:45", 
+        "created": "2014-06-23T00:22:45-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 12, 
@@ -1876,7 +1876,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-23T02:58:02", 
+        "created": "2014-06-23T02:58:02-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Fin_Pos2014-06-23T05:22:06.60_425193729_0-090.xml", 
         "N": 13, 
@@ -1889,7 +1889,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-23T02:58:06", 
+        "created": "2014-06-23T02:58:06-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Fin_Pos2014-06-23T05:22:06.60_425193729_0-090.xml", 
         "N": 14, 
@@ -1902,7 +1902,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-23T16:15:17", 
+        "created": "2014-06-23T16:15:17-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Alert_2014-06-23T21:14:21.47_425250864_1-120.xml", 
         "N": 1, 
@@ -1915,7 +1915,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "This event detected by Fermi Satellite, GBM Instrument", 
-        "created": "2014-06-23T16:15:26", 
+        "created": "2014-06-23T16:15:26-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 2, 
@@ -1928,7 +1928,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 2: analyst_comments ", 
-        "created": "2014-06-23T16:15:26", 
+        "created": "2014-06-23T16:15:26-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 3, 
@@ -1941,7 +1941,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-23T16:16:29", 
+        "created": "2014-06-23T16:16:29-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Alert_2014-06-23T21:14:21.47_425250864_1-120.xml", 
         "N": 4, 
@@ -1954,7 +1954,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-23T16:17:26", 
+        "created": "2014-06-23T16:17:26-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Flt_Pos_2014-06-23T21:14:21.47_425250864_46-121.xml", 
         "N": 5, 
@@ -1967,7 +1967,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-23T16:18:29", 
+        "created": "2014-06-23T16:18:29-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Flt_Pos_2014-06-23T21:14:21.47_425250864_46-121.xml", 
         "N": 6, 
@@ -1980,7 +1980,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-23T16:19:35", 
+        "created": "2014-06-23T16:19:35-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Flt_Pos_2014-06-23T21:14:21.47_425250864_87-126.xml", 
         "N": 7, 
@@ -1993,7 +1993,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-23T16:20:56", 
+        "created": "2014-06-23T16:20:56-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Flt_Pos_2014-06-23T21:14:21.47_425250864_87-126.xml", 
         "N": 8, 
@@ -2006,7 +2006,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-24T02:00:58", 
+        "created": "2014-06-24T02:00:58-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Alert_2014-06-24T07:01:00.76_425286063_1-235.xml", 
         "N": 1, 
@@ -2019,7 +2019,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "This event detected by Fermi Satellite, GBM Instrument", 
-        "created": "2014-06-24T02:01:06", 
+        "created": "2014-06-24T02:01:06-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 2, 
@@ -2032,7 +2032,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 2: analyst_comments ", 
-        "created": "2014-06-24T02:01:06", 
+        "created": "2014-06-24T02:01:06-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 3, 
@@ -2045,7 +2045,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-24T02:01:10", 
+        "created": "2014-06-24T02:01:10-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Alert_2014-06-24T07:01:00.76_425286063_1-235.xml", 
         "N": 4, 
@@ -2058,7 +2058,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-24T02:01:16", 
+        "created": "2014-06-24T02:01:16-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Flt_Pos_2014-06-24T07:01:00.76_425286063_49-243.xml", 
         "N": 5, 
@@ -2071,7 +2071,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-24T02:01:20", 
+        "created": "2014-06-24T02:01:20-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Flt_Pos_2014-06-24T07:01:00.76_425286063_49-243.xml", 
         "N": 6, 
@@ -2084,7 +2084,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Initiating coincidence search", 
-        "created": "2014-06-24T02:01:51", 
+        "created": "2014-06-24T02:01:51-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 7, 
@@ -2097,7 +2097,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No GW candidates in window [-5,+1] seconds", 
-        "created": "2014-06-24T02:01:55", 
+        "created": "2014-06-24T02:01:55-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 8, 
@@ -2110,7 +2110,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 8: ext_coinc ", 
-        "created": "2014-06-24T02:01:55", 
+        "created": "2014-06-24T02:01:55-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 9, 
@@ -2123,7 +2123,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "No GW candidates in window [-120,+60] seconds", 
-        "created": "2014-06-24T02:02:01", 
+        "created": "2014-06-24T02:02:01-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 10, 
@@ -2136,7 +2136,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 10: ext_coinc ", 
-        "created": "2014-06-24T02:02:01", 
+        "created": "2014-06-24T02:02:01-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 11, 
@@ -2149,7 +2149,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Coincidence search complete", 
-        "created": "2014-06-24T02:02:03", 
+        "created": "2014-06-24T02:02:03-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 12, 
@@ -2162,7 +2162,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-24T02:02:33", 
+        "created": "2014-06-24T02:02:33-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Flt_Pos_2014-06-24T07:01:00.76_425286063_123-276.xml", 
         "N": 13, 
@@ -2175,7 +2175,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-06-24T02:02:37", 
+        "created": "2014-06-24T02:02:37-05:00",
         "file_version": null, 
         "filename": "nasa.gsfc.gcn_Fermi#GBM_Flt_Pos_2014-06-24T07:01:00.76_425286063_123-276.xml", 
         "N": 14, 
@@ -2188,7 +2188,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "\u00a0This is a new event.", 
-        "created": "2014-07-19T19:10:13", 
+        "created": "2014-07-19T19:10:13-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 15, 
@@ -2201,7 +2201,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Tagged message 15: analyst_comments ", 
-        "created": "2014-07-19T19:10:13", 
+        "created": "2014-07-19T19:10:13-05:00",
         "file_version": null, 
         "filename": "", 
         "N": 16, 
@@ -2214,7 +2214,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-08-07T17:02:44", 
+        "created": "2014-08-07T17:02:44-05:00",
         "file_version": null, 
         "filename": "burst-cwb.txt", 
         "N": 1, 
@@ -2227,7 +2227,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Log File Created", 
-        "created": "2014-08-07T17:02:44", 
+        "created": "2014-08-07T17:02:44-05:00",
         "file_version": null, 
         "filename": "event.log", 
         "N": 2, 
@@ -2240,7 +2240,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-08-07T17:04:32", 
+        "created": "2014-08-07T17:04:32-05:00",
         "file_version": null, 
         "filename": "burst-cwb.txt", 
         "N": 1, 
@@ -2253,7 +2253,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Log File Created", 
-        "created": "2014-08-07T17:04:32", 
+        "created": "2014-08-07T17:04:32-05:00",
         "file_version": null, 
         "filename": "event.log", 
         "N": 2, 
@@ -2266,7 +2266,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Original Data", 
-        "created": "2014-08-07T17:13:29", 
+        "created": "2014-08-07T17:13:29-05:00",
         "file_version": null, 
         "filename": "burst-cwb.txt", 
         "N": 1, 
@@ -2279,7 +2279,7 @@
     "model": "gracedb.eventlog", 
     "fields": {
         "comment": "Log File Created", 
-        "created": "2014-08-07T17:13:29", 
+        "created": "2014-08-07T17:13:29-05:00",
         "file_version": null, 
         "filename": "event.log", 
         "N": 2, 
