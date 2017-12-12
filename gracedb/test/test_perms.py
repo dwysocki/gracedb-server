@@ -80,7 +80,8 @@ def extra_args(user):
 
 # Given a Django test client, attempt to create a CBC, gstlal, 
 # LowMass event. 
-EVENT_FILE = os.path.join(settings.ROOT_PATH,'gracedb/fixtures/test_perms/cbc-lm.xml')
+EVENT_FILE = os.path.join(settings.GRACEDB_PATHS["code"],
+    'gracedb/fixtures/test_perms/cbc-lm.xml')
 
 def request_event_creation(client, user, test=False):
     event_file = open(EVENT_FILE,'r')
@@ -383,7 +384,7 @@ class TestPerms(TestCase):
             'comment'    : 'Test',
             'instrument' : 'Test',
         }
-        response = self.client.post(url,input_dict,**extra_args(get_user('pubic')))
+        response = self.client.post(url,input_dict,**extra_args(get_user('public')))
         self.assertEqual(response.status_code, 403)
 
     # Test annotation of events by LV-EM users
