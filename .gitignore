@@ -1,7 +1,6 @@
 *.swp
 *~
 *.pyc
-django-*.wsgi
 docs/user_docs/build/*
 docs/admin_docs/build/*
 settings/secret.py
