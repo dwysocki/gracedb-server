@@ -1,10 +1,10 @@
 *.swp
 *~
 *.pyc
+config/settings/secret.py
+config/settings/local.py
 docs/user_docs/build/*
 docs/admin_docs/build/*
-settings/secret.py
-settings/local.py
 static-collected
 static/admin/
 static/rest_framework/

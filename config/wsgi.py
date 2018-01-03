@@ -1,7 +1,7 @@
 import os
 import sys
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'config.settings'
 
 # Add the source code directory
 sys.path.append('/home/gracedb/gracedb')
