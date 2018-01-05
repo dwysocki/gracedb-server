@@ -256,7 +256,7 @@ MIDDLEWARE = [
 ]
 
 # Path to root URLconf
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'config.urls'
 
 # List of string designating all applications which are enabled.
 INSTALLED_APPS = [
