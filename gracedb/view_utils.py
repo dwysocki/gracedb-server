@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 
 from gracedb.models import SingleInspiral, Event, Search, Group
 
-from utils.vfile import VersionedFile
+from core.vfile import VersionedFile
 from permission_utils import is_external
 from django.db.models import Q
 

@@ -15,8 +15,8 @@ from gracedb.serialize import populate_inspiral_tables, \
                                write_output_files
 
 from VOEventLib.Vutil import parse, getWhereWhen, findParam, getParamNames
-from utils import isoToGps, isoToGpsFloat
-from utils.vfile import VersionedFile
+from core.time_utils import isoToGps, isoToGpsFloat
+from core.vfile import VersionedFile
 
 import json
 import StringIO

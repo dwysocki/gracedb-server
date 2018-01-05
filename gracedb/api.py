@@ -42,7 +42,7 @@ import urllib
 import shutil
 import exceptions
 
-from utils.vfile import VersionedFile
+from core.vfile import VersionedFile
 
 import logging; logger = logging.getLogger(__name__)
 # 

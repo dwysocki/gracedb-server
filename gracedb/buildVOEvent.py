@@ -19,8 +19,7 @@ from VOEventLib.VOEvent import ObservationLocation, ObservatoryLocation
 from VOEventLib.VOEvent import ObsDataLocation, WhereWhen
 from VOEventLib.VOEvent import Time, TimeInstant
 
-# XXX ER2.utils.  utils is in project directory.  ugh.
-from utils import gpsToUtc
+from core.time_utils import gpsToUtc
 from django.utils import timezone
 from django.conf import settings
 from django.urls import reverse

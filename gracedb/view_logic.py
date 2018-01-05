@@ -14,7 +14,7 @@ from alert import issueAlert, issueAlertForLabel, issueAlertForUpdate, \
     issueXMPPAlert
 from translator import handle_uploaded_data
 
-from utils.vfile import VersionedFile
+from core.vfile import VersionedFile
 from view_utils import _saveUploadedFile
 from view_utils import eventToDict, eventLogToDict, emObservationToDict
 from permission_utils import assign_default_event_perms

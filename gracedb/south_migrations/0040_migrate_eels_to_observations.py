@@ -4,7 +4,7 @@ from south.db import db
 from south.v2 import DataMigration
 from django.db import models
 import json
-from utils import gpsToUtc
+from core.time_utils import gpsToUtc
 
 class Migration(DataMigration):
 

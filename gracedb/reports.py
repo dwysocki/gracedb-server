@@ -26,7 +26,7 @@ import base64
 import sys
 import calendar
 from datetime import timedelta, datetime
-from utils import posixToGpsTime
+from core.time_utils import posixToGpsTime
 from django.utils import timezone
 import pytz
 import json

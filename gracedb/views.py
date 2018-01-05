@@ -37,7 +37,7 @@ import os
 from django.conf import settings
 
 from buildVOEvent import buildVOEvent, VOEventBuilderException
-from utils.vfile import VersionedFile
+from core.vfile import VersionedFile
 
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000

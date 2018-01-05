@@ -21,8 +21,7 @@ from glue.lal import LIGOTimeGPS
 
 import json, re
 
-# XXX ER2.utils.  utils is in project directory.  ugh.
-from utils import posixToGpsTime
+from core.time_utils import posixToGpsTime
 
 from django.conf import settings
 import pytz

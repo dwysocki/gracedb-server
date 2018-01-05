@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 from django_twilio.client import twilio_client
 
-from utils import gpsToUtc
+from core.time_utils import gpsToUtc
 
 from query import filter_for_labels
 

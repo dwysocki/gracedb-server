@@ -6,8 +6,7 @@ from django.utils import dateformat
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 
-# XXX utils is in the project root.  this is not right. ER2.utils
-from utils import posixToGpsTime, gpsToUtc
+from core.time_utils import posixToGpsTime, gpsToUtc
 
 import pytz
 import time
