@@ -12,30 +12,30 @@ import json
 from django.contrib.auth.models import User, Permission
 from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.contenttypes.models import ContentType
-from gracedb.models import Event, Group, Search, Pipeline, EventLog, Tag, Label
-from gracedb.models import EMGroup, EMBBEventLog, EMSPECTRUM
-#from gracedb.models import EMObservation, EMFootprint
-from gracedb.models import VOEvent
-from view_logic import create_label, get_performance_info, delete_label
-from view_logic import _createEventFromForm
-from view_logic import create_eel
-from view_logic import create_emobservation
-from view_utils import eventToDict, eventLogToDict, labelToDict
-from view_utils import embbEventLogToDict, voeventToDict
-from view_utils import emObservationToDict, skymapViewerEMObservationToDict
-from view_utils import signoffToDict
-from view_utils import reverse
+from .models import Event, Group, Search, Pipeline, EventLog, Tag, Label
+from .models import EMGroup, EMBBEventLog, EMSPECTRUM
+#from .models import EMObservation, EMFootprint
+from .models import VOEvent
+from .view_logic import create_label, get_performance_info, delete_label
+from .view_logic import _createEventFromForm
+from .view_logic import create_eel
+from .view_logic import create_emobservation
+from .view_utils import eventToDict, eventLogToDict, labelToDict
+from .view_utils import embbEventLogToDict, voeventToDict
+from .view_utils import emObservationToDict, skymapViewerEMObservationToDict
+from .view_utils import signoffToDict
+from .view_utils import reverse
 
-from translator import handle_uploaded_data
-from forms import CreateEventForm
-from permission_utils import user_has_perm, filter_events_for_user, is_external
-from permission_utils import check_external_file_access
+from .translator import handle_uploaded_data
+from .forms import CreateEventForm
+from .permission_utils import user_has_perm, filter_events_for_user, is_external
+from .permission_utils import check_external_file_access
 from guardian.models import GroupObjectPermission
 
-from throttles import EventCreationThrottle, AnnotationThrottle
+from .throttles import EventCreationThrottle, AnnotationThrottle
 
-from alert import issueAlertForUpdate
-from buildVOEvent import buildVOEvent, VOEventBuilderException
+from .alert import issueAlertForUpdate
+from .buildVOEvent import buildVOEvent, VOEventBuilderException
 
 import os
 import urllib
@@ -48,8 +48,8 @@ import logging; logger = logging.getLogger(__name__)
 # 
 # for checking queries in the evnet that the user is external
 #
-from view_utils import BadFARRange, check_query_far_range
-from query import parseQuery, ParseException
+from .view_utils import BadFARRange, check_query_far_range
+from .query import parseQuery, ParseException
 
 ##################################################################
 
@@ -73,7 +73,7 @@ from rest_framework.views import APIView
 
 MAX_FAILED_OPEN_ATTEMPTS = 5
 
-from forms import SimpleSearchForm
+from .forms import SimpleSearchForm
 
 
 ##################################################################

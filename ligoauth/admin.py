@@ -1,6 +1,6 @@
 
 from django.contrib import admin
-from models import LocalUser, LigoLdapUser, X509Cert
+from .models import LocalUser, LigoLdapUser, X509Cert
 
 class LigoLdapUserAdmin(admin.ModelAdmin):
     list_display = ['username', 'first_name', 'last_name']

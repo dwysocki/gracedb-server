@@ -1,5 +1,5 @@
 
-from models import Contact, Trigger
+from .models import Contact, Trigger
 
 from django.contrib import admin
 

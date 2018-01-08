@@ -6,7 +6,7 @@ from django.contrib.auth.models import User, AnonymousUser, Group
 from django.contrib.auth.backends import RemoteUserBackend as DefaultRemoteUserBackend
 from django.contrib.auth.backends import ModelBackend as DefaultModelBackend
 from django.utils.deprecation import MiddlewareMixin
-from ligoauth.models import certdn_to_user, LigoLdapUser
+from ..models import certdn_to_user, LigoLdapUser
 
 from django.shortcuts import render
 from django.template import RequestContext

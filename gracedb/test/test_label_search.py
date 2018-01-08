@@ -1,9 +1,9 @@
 from django.test import TestCase
 from django.db.models import Q
-from gracedb.models import Event, Label, Labelling
-from gracedb.models import Group, Pipeline
+from ..models import Event, Label, Labelling
+from ..models import Group, Pipeline
 from django.contrib.auth.models import User
-from gracedb.query import parseQuery, filter_for_labels
+from ..query import parseQuery, filter_for_labels
 
 QUERY_CASES = {
     'all_ors'             : { 'query': 'A_LABEL | B_LABEL | C_LABEL',    'pk_list': [2,3,4,5,6,7,8] },

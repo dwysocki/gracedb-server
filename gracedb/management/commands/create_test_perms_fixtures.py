@@ -2,11 +2,11 @@ import os
 import json
 from StringIO import StringIO
 
-from gracedb.models import GrbEvent, Tag, Event
-from gracedb.models import MultiBurstEvent
+from ...models import GrbEvent, Tag, Event
+from ...models import MultiBurstEvent
 from django.contrib.auth.models import Group
-#from gracedb.models import CoincInspiralEvent
-from gracedb.models import EventLog, Labelling, SingleInspiral
+#from ...models import CoincInspiralEvent
+from ...models import EventLog, Labelling, SingleInspiral
 
 from django.core.management import call_command
 from django.core.management.base import NoArgsCommand

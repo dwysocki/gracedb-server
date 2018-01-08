@@ -12,7 +12,7 @@
 #import pyparsing as p
 
 # (weak) natural language time parsing.
-from nltime import nlTimeExpression as nltime_
+from .nltime import nlTimeExpression as nltime_
 nltime = nltime_.setParseAction(lambda toks: toks["calculatedTime"])
 
 #import time, datetime

@@ -4,8 +4,8 @@ from django.test.utils import override_settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission, Group, User
 from guardian.models import GroupObjectPermission, UserObjectPermission
-from gracedb.models import Event, GrbEvent, CoincInspiralEvent
-from gracedb.models import MultiBurstEvent, Pipeline
+from ..models import Event, GrbEvent, CoincInspiralEvent
+from ..models import MultiBurstEvent, Pipeline
 
 from django.conf import settings
 

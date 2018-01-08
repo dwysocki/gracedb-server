@@ -6,7 +6,7 @@ from django.conf.urls import url
 from . import views
 #import django.views.generic.list_detail
 
-from gracedb.api import download
+from .api import download
 
 urlpatterns = [
     url(r'^$', views.index, name="home-events"),
@@ -37,14 +37,4 @@ urlpatterns = [
     url(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>\d+)/tag/(?P<tagname>.*)$',
         views.taglogentry, name="taglogentry"),
 
-# RDW Aug 2014
-#(r'^admin/', include(admin.site.urls)),
-
-#   (r'^view/(?P<uid>[\w\d]+)', 'view'),
-#   (r'^edit/(?P<uid>[\w\d]+)', 'edit'),
-#   (r'^request_archive/(?P<uid>[\w\d]+)(?P<rescind>/rescind)?', 'request_archive'),
-#   (r'^approve_archive/(?P<uid>[\w\d]+)(?P<rescind>/rescind)?', 'approve_archive'),
-#   url(r'^query', 'query', name="search"),
-#   url(r'^mine/$', 'mine', name="mine"),
-#   url(r'^myapprovals/$', 'myapprovals', name="myapprovals"),
 ]

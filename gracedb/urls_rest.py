@@ -3,25 +3,25 @@
 from django.conf.urls import url
 
 # rest_framework
-from gracedb.api import GracedbRoot
-from gracedb.api import EventList, EventDetail
-from gracedb.api import EventLogList, EventLogDetail
-from gracedb.api import EMBBEventLogList, EMBBEventLogDetail
-from gracedb.api import EMObservationList, EMObservationDetail
-#from gracedb.api import EMFootprintList, EMFootprintDetail
-from gracedb.api import TagList
-# from gracedb.api import TagDetail
-from gracedb.api import EventTagList, EventTagDetail
-from gracedb.api import EventLogTagList, EventLogTagDetail
-from gracedb.api import Files, FileMeta
-from gracedb.api import EventNeighbors, EventLabel
-from gracedb.api import PerformanceInfo
-from gracedb.api import EventPermissionList
-from gracedb.api import GroupEventPermissionList
-from gracedb.api import GroupEventPermissionDetail
-from gracedb.api import VOEventList, VOEventDetail
-from gracedb.api import OperatorSignoffList
-from gracedb.api import download as download_view
+from .api import GracedbRoot
+from .api import EventList, EventDetail
+from .api import EventLogList, EventLogDetail
+from .api import EMBBEventLogList, EMBBEventLogDetail
+from .api import EMObservationList, EMObservationDetail
+#from .api import EMFootprintList, EMFootprintDetail
+from .api import TagList
+# from .api import TagDetail
+from .api import EventTagList, EventTagDetail
+from .api import EventLogTagList, EventLogTagDetail
+from .api import Files, FileMeta
+from .api import EventNeighbors, EventLabel
+from .api import PerformanceInfo
+from .api import EventPermissionList
+from .api import GroupEventPermissionList
+from .api import GroupEventPermissionDetail
+from .api import VOEventList, VOEventDetail
+from .api import OperatorSignoffList
+from .api import download as download_view
 
 urlpatterns = [
     url(r'^$', GracedbRoot.as_view(), name="api-root"),

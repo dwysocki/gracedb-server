@@ -10,9 +10,8 @@ from glue.ligolw.lsctables import CoincInspiralTable, SnglInspiralTable, use_in
 from glue.ligolw.lsctables import SimInspiralTable, MultiBurstTable, CoincTable
 from glue.ligolw.ligolw import LIGOLWContentHandler
 
-from gracedb.serialize import populate_inspiral_tables, \
-                               populate_omega_tables,    \
-                               write_output_files
+from .serialize import populate_inspiral_tables, populate_omega_tables, \
+    write_output_files
 
 from VOEventLib.Vutil import parse, getWhereWhen, findParam, getParamNames
 from core.time_utils import isoToGps, isoToGpsFloat

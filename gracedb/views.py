@@ -6,28 +6,30 @@ from django.template import RequestContext
 from django.urls import reverse
 from django.shortcuts import render
 
-from models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
-from models import EMGroup, Signoff
-from forms import CreateEventForm, EventSearchForm, SimpleSearchForm, SignoffForm
+from .models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
+from .models import EMGroup, Signoff
+from .forms import CreateEventForm, EventSearchForm, SimpleSearchForm, SignoffForm
 
 from django.contrib.auth.models import User, Permission
 from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.contenttypes.models import ContentType
-from permission_utils import filter_events_for_user, user_has_perm
-from permission_utils import internal_user_required, is_external
+from .permission_utils import filter_events_for_user, user_has_perm
+from .permission_utils import internal_user_required, is_external
 from guardian.models import GroupObjectPermission
 
-from view_logic import _createEventFromForm
-from view_logic import get_performance_info
-from view_logic import get_lvem_perm_status
-from view_logic import create_eel
-from view_logic import create_emobservation
-from view_logic import create_label, delete_label
-from view_utils import assembleLigoLw, get_file
-from view_utils import flexigridResponse, jqgridResponse
-from view_utils import get_recent_events_string
-from view_utils import eventLogToDict
-from alert import issueAlertForUpdate
+from .view_logic import _createEventFromForm
+from .view_logic import get_performance_info
+from .view_logic import get_lvem_perm_status
+from .view_logic import create_eel
+from .view_logic import create_emobservation
+from .view_logic import create_label, delete_label
+from .view_utils import assembleLigoLw, get_file
+from .view_utils import flexigridResponse, jqgridResponse
+from .view_utils import get_recent_events_string
+from .view_utils import eventLogToDict
+from .view_utils import signoffToDict
+from .alert import issueAlertForUpdate, issueXMPPAlert
+from .models import SIGNOFF_TYPE_CHOICES
 
 # Set up logging
 import logging
@@ -36,7 +38,7 @@ log = logging.getLogger(__name__)
 import os
 from django.conf import settings
 
-from buildVOEvent import buildVOEvent, VOEventBuilderException
+from .buildVOEvent import buildVOEvent, VOEventBuilderException
 from core.vfile import VersionedFile
 
 # XXX This should be configurable / moddable or something
@@ -49,8 +51,8 @@ from django.utils.functional import wraps
 # 
 # for checking queries in the evnet that the user is external
 #
-from view_utils import BadFARRange, check_query_far_range
-from query import parseQuery, ParseException
+from .view_utils import BadFARRange, check_query_far_range
+from .query import parseQuery, ParseException
 
 #
 # A wrapper for retrieving an event and replacing graceid 
@@ -1056,10 +1058,6 @@ def modify_t90(request, event):
     # Finished. Redirect back to the event.
     return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
 
-# XXX So this should probably be moved into view_logic anyway.
-from alert import issueXMPPAlert
-from view_utils import signoffToDict
-from models import SIGNOFF_TYPE_CHOICES
 
 def get_signoff_type(stype):
     for t in SIGNOFF_TYPE_CHOICES:

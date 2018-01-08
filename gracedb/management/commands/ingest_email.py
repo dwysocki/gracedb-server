@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
-from gracedb.models import Event, EMBBEventLog
-from gracedb.models import EMGroup
-from ligoauth.models import AlternateEmail
+from ...models import Event, EMBBEventLog
+from ...models import EMGroup
+from ...models import AlternateEmail
 from django.conf import settings
 from django.contrib.auth.models import User
 import json

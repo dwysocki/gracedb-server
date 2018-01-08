@@ -1,6 +1,6 @@
 
-from models import Event, EventLog, EMBBEventLog, EMGroup, Group
-from models import Label, Labelling, Tag
+from .models import Event, EventLog, EMBBEventLog, EMGroup, Group
+from .models import Label, Labelling, Tag
 from django.contrib import admin
 
 class EventAdmin(admin.ModelAdmin):

@@ -6,11 +6,11 @@ from django.urls import reverse
 from django.template import RequestContext
 from django.shortcuts import render
 
-from models import Event, Group, Pipeline
-#from views import view, search, index
-from views import view
+from .models import Event, Group, Pipeline
+#from .views import view, search, index
+from .views import view
 
-from gracedb.permission_utils import internal_user_required
+from .permission_utils import internal_user_required
 
 from django.conf import settings
 FEED_MAX_RESULTS = getattr(settings, 'FEED_MAX_RESULTS', 20)

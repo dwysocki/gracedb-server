@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import FieldError
 from django.forms import ModelForm
 
-from query import parseQuery, filter_for_labels
+from .query import parseQuery, filter_for_labels
 from pyparsing import ParseException
 
 htmlEntityStar = "&#9733;"

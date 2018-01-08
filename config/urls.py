@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib import admin
 admin.autodiscover()
 
+# Import feeds
 from gracedb.feeds import EventFeed, feedview
 
 # After Django 1.10, have to import views directly, rather
@@ -47,9 +48,6 @@ urlpatterns = [
 
     url(r'^admin/', admin.site.urls),
 
-    # For development only.  And only for old Django versions (like 1.2)
-    #(r'^gracedb-static/(?P<path>.*)$', 'django.views.static.serve',
-    #    {'document_root': settings.MEDIA_ROOT}),
 ]
 
 if settings.DEBUG:

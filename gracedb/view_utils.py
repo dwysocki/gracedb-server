@@ -6,16 +6,16 @@ from django.utils.html import escape, urlize
 #from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 
-from gracedb.models import SingleInspiral, Event, Search, Group
+from .models import SingleInspiral, Event, Search, Group
 
 from core.vfile import VersionedFile
-from permission_utils import is_external
+from .permission_utils import is_external
 from django.db.models import Q
 
 import os
 from django.conf import settings
 
-from templatetags.scientific import scientific
+from .templatetags.scientific import scientific
 
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
@@ -656,7 +656,7 @@ def sanitize_html(data):
     s = serializer.htmlserializer.HTMLSerializer(omit_optional_tags=False)
     return "".join(s.serialize(stream))
 
-from templatetags.timeutil import timeSelections
+from .templatetags.timeutil import timeSelections
 
 def jqgridResponse(request, objects):
     # "GET /data?_search=false&nd=1266350238476&rows=10&page=1&sidx=invid&sord=asc HTTP/1.1"

@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group
 from django.utils.functional import wraps
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseServerError
-from gracedb.models import Event
+from .models import Event
 from django.http import HttpRequest
 from rest_framework.request import Request
 import os

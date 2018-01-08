@@ -6,7 +6,7 @@ from subprocess import Popen, PIPE, STDOUT
 from django.core.mail import EmailMessage
 from django.conf import settings
 
-from permission_utils import is_external
+from .permission_utils import is_external
 
 import json
 
@@ -17,9 +17,9 @@ from django_twilio.client import twilio_client
 
 from core.time_utils import gpsToUtc
 
-from query import filter_for_labels
+from .query import filter_for_labels
 
-from gracedb.models import Event
+from .models import Event
 
 import socket
 

@@ -4,16 +4,16 @@ from django.template import RequestContext
 from django.shortcuts import render
 from django.conf import settings
 
-from gracedb.models import Event, Group, Search
-from gracedb.permission_utils import filter_events_for_user
-from gracedb.permission_utils import internal_user_required
+from .models import Event, Group, Search
+from .permission_utils import filter_events_for_user
+from .permission_utils import internal_user_required
 from django.db.models import Q
 
 from django.urls import reverse
 
-from models import CoincInspiralEvent
-from forms import SimpleSearchForm
-from query import parseQuery
+from .models import CoincInspiralEvent
+from .forms import SimpleSearchForm
+from .query import parseQuery
 
 
 from django.db.models import Max, Min
