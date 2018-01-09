@@ -1,4 +1,5 @@
 import os, time, socket, logging
+from os.path import abspath, dirname, join
 from datetime import datetime, timedelta
 from cloghandler import ConcurrentRotatingFileHandler
 from core.time_utils import posixToGpsTime
@@ -10,6 +11,11 @@ from .local import *
 # DEFAULT_DB_PASSWORD, DEFAULT_SECRET_KEY, TWILIO_ACCOUNT_SID,
 # TWILIO_AUTH_TOKEN, TWIML_BIN
 from .secret import *
+
+# Set up path to root of project
+BASE_DIR = abspath(join(dirname(__file__), "..", ".."))
+CONFIG_ROOT = join(BASE_DIR, "config")
+PROJECT_ROOT = join(BASE_DIR, "apps")
 
 # Miscellaneous settings ------------------------------------------------------
 # Debug mode is off by default
@@ -55,8 +61,8 @@ LVALERT_OVERSEER_PORTS = {
 }
 # Path to lvalert_send executable, for failover in case
 # LVAlert Overseer is not running.
-LVALERT_SEND_EXECUTABLE = os.path.join(GRACEDB_PATHS["virtualenv"],
-    os.path.join("bin", "lvalert_send"))
+LVALERT_SEND_EXECUTABLE = join(GRACEDB_PATHS["virtualenv"], "bin",
+    "lvalert_send")
 
 # Email settings --------------------------------------------------------------
 EMAIL_HOST = 'localhost'
@@ -142,26 +148,26 @@ SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
 # Latency histograms.  Where they go and max latency to bin.
 LATENCY_REPORT_DEST_DIR = GRACEDB_PATHS["latency"]
 LATENCY_MAXIMUM_CHARTED = 1800
-LATENCY_REPORT_WEB_PAGE_FILE_PATH = os.path.join(LATENCY_REPORT_DEST_DIR,
+LATENCY_REPORT_WEB_PAGE_FILE_PATH = join(LATENCY_REPORT_DEST_DIR,
     "latency.inc")
 
 # Uptime reporting
 UPTIME_REPORT_DIR = GRACEDB_PATHS["uptime"]
 
 # Rate file location
-RATE_INFO_FILE = os.path.join(GRACEDB_PATHS["data"], "rate_info.json")
+RATE_INFO_FILE = join(GRACEDB_PATHS["data"], "rate_info.json")
 
 # URL prefix for serving report information (usually plots and tables)
 # This is aliased to GRACEDB_PATHS["latency"] in the Apache virtualhost
 # configuration.  If you change this, you will need to change that.
-REPORT_INFO_URL_PREFIX = "{sep}report_info{sep}".format(sep=os.path.sep)
+REPORT_INFO_URL_PREFIX = "/report_info/"
 
 # Directory for CBC IFAR Reports
 REPORT_IFAR_IMAGE_DIR = GRACEDB_PATHS["latency"]
 
 # Stuff for the new rates plot
 BINNED_COUNT_PIPELINES = ['gstlal', 'MBTAOnline', 'CWB', 'LIB', 'gstlal-spiir']
-BINNED_COUNT_FILE = os.path.join(GRACEDB_PATHS["data"], "binned_counts.json")
+BINNED_COUNT_FILE = join(GRACEDB_PATHS["data"], "binned_counts.json")
 
 # Defaults for RSS feed
 FEED_MAX_RESULTS = 50
@@ -208,7 +214,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(GRACEDB_PATHS["code"], "templates"),
+            join(PROJECT_ROOT, "templates"),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -221,8 +227,8 @@ TEMPLATES = [
                 'django.template.context_processors.static',
                 # Extra additions
                 'django.template.context_processors.request',
-                'gracedb.middleware.auth.LigoAuthContext',
-                'middleware.debug.LigoDebugContext',
+                'gracedb.context_processors.LigoAuthContext',
+                'core.context_processors.LigoDebugContext',
                 'ligoauth.context_processors.shib_login_url',
             ],
         },
@@ -245,9 +251,9 @@ AUTHENTICATION_BACKENDS = (
 
 # List of middleware classes to use.
 MIDDLEWARE = [
-    'middleware.performance.PerformanceMiddleware',
-    'middleware.accept.AcceptMiddleware',
-    'middleware.cli.CliExceptionMiddleware',
+    'gracedb.middleware.PerformanceMiddleware',
+    'core.middleware.accept.AcceptMiddleware',
+    'core.middleware.cli.CliExceptionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -256,7 +262,7 @@ MIDDLEWARE = [
 ]
 
 # Path to root URLconf
-ROOT_URLCONF = 'config.urls'
+ROOT_URLCONF = '{module}.urls'.format(module=os.path.basename(CONFIG_ROOT))
 
 # List of string designating all applications which are enabled.
 INSTALLED_APPS = [
@@ -285,8 +291,8 @@ REST_FRAMEWORK = {
 }
 
 # Location of static components, CSS, JS, etc.
-STATIC_ROOT = os.path.join(GRACEDB_PATHS["code"], "static") + os.path.sep
-STATIC_URL = "{sep}gracedb-static{sep}".format(sep=os.path.sep)
+STATIC_ROOT = join(CONFIG_ROOT, "static/")
+STATIC_URL = "/gracedb-static/"
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -295,14 +301,13 @@ STATICFILES_FINDERS = [
 STATICFILES_DIRS = []
 
 # Location of Bower packages.
-BOWER_URL = "{sep}bower-static{sep}".format(sep=os.path.sep)
-BOWER_ROOT = os.path.join(GRACEDB_PATHS["home"], "bower_components") + \
-    os.path.sep
+BOWER_URL = "bower-static"
+BOWER_ROOT = join(GRACEDB_PATHS["home"], "bower_components/")
 
-# Added in order to perform data migrations on the auth app
+# Added in order to perform data migrations on the auth and guardian apps
 MIGRATION_MODULES = {
-    'auth' : 'migrations.auth',
-    'guardian' : 'migrations.guardian',
+    'auth': 'migrations.auth',
+    'guardian': 'migrations.guardian',
 }
 
 # Forces test database to be created with syncdb rather than via
@@ -399,8 +404,7 @@ LOGGING = {
         'debug_file': {
             'class': 'logging.handlers.ConcurrentRotatingFileHandler',
             'formatter': LOG_FORMAT,
-            'filename': os.path.join(GRACEDB_PATHS["logs"],
-                        "gracedb_debug.log"),
+            'filename': join(GRACEDB_PATHS["logs"], "gracedb_debug.log"),
             'maxBytes': (20*1024*1024),
             'backupCount': LOG_FILE_BAK_CT,
             'level': 'DEBUG',
@@ -408,8 +412,7 @@ LOGGING = {
         'error_file': {
             'class': 'logging.handlers.ConcurrentRotatingFileHandler',
             'formatter': LOG_FORMAT,
-            'filename': os.path.join(GRACEDB_PATHS["logs"],
-                        "gracedb_error.log"),
+            'filename': join(GRACEDB_PATHS["logs"], "gracedb_error.log"),
             'maxBytes': LOG_FILE_SIZE,
             'backupCount': LOG_FILE_BAK_CT,
             'level': 'ERROR',
@@ -419,8 +422,7 @@ LOGGING = {
             'maxBytes': 1024*1024,
             'backupCount': 1,
             'formatter': 'simple',
-            'filename': os.path.join(GRACEDB_PATHS["logs"],
-                        "gracedb_performance.log"),
+            'filename': join(GRACEDB_PATHS["logs"], "gracedb_performance.log"),
         },
         'mail_admins': {
             'level': 'ERROR',

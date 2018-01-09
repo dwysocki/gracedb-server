@@ -4,8 +4,8 @@ from django.test.utils import override_settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission, Group, User
 from guardian.models import GroupObjectPermission, UserObjectPermission
-from ..models import Event, GrbEvent, CoincInspiralEvent
-from ..models import MultiBurstEvent, Pipeline
+from gracedb.models import Event, GrbEvent, CoincInspiralEvent
+from gracedb.models import MultiBurstEvent, Pipeline
 
 from django.conf import settings
 
@@ -78,10 +78,9 @@ def extra_args(user):
         return {}
     return {'REMOTE_USER': user.username, 'isMemberOf': get_isMemberOf(user) }
 
-# Given a Django test client, attempt to create a CBC, gstlal, 
-# LowMass event. 
-EVENT_FILE = os.path.join(settings.GRACEDB_PATHS["code"],
-    'gracedb/fixtures/test_perms/cbc-lm.xml')
+# Given a Django test client, attempt to create a CBC, gstlal, LowMass event. 
+EVENT_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__),
+    "../fixtures/test_perms/cbc-lm.xml"))
 
 def request_event_creation(client, user, test=False):
     event_file = open(EVENT_FILE,'r')

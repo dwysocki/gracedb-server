@@ -14,7 +14,7 @@ EMBB_MAIL_ADDRESS = 'gracedb@{fqdn}'.format(fqdn=SERVER_FQDN)
 # Add middleware
 MIDDLEWARE += [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
-    #'middleware.profiling.ProfileMiddleware',
+    #'core.middleware.profiling.ProfileMiddleware',
 ]
 
 # Add to installed apps
