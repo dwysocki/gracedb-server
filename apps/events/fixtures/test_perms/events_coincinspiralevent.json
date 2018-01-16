@@ -1,0 +1,47 @@
+[
+{
+    "pk": 101399,
+    "model": "events.coincinspiralevent",
+    "fields": {
+        "false_alarm_rate": 1.0,
+        "mchirp": 1.3975738286972101,
+        "minimum_duration": 35.60996242,
+        "combined_far": 4.06806937667425e-05,
+        "mass": 3.53781998157501,
+        "end_time": 1078873849,
+        "snr": 8.65423157301774,
+        "end_time_ns": 390037580,
+        "ifos": "H1,V1"
+    }
+},
+{
+    "pk": 101383,
+    "model": "events.coincinspiralevent",
+    "fields": {
+        "false_alarm_rate": 6.94460842116427e-06,
+        "mchirp": 0.9576179981231691,
+        "minimum_duration": 35.848202424,
+        "combined_far": 2.7348245243324996e-12,
+        "mass": 2.2004480361938503,
+        "end_time": 1078673637,
+        "snr": 15.5551316246618,
+        "end_time_ns": 151797576,
+        "ifos": "H1,V1"
+    }
+},
+{
+    "pk": 100906,
+    "model": "events.coincinspiralevent",
+    "fields": {
+        "false_alarm_rate": 0.9999999999553241,
+        "mchirp": 0.995805203914642,
+        "minimum_duration": 34.205108201,
+        "combined_far": 9.99754187903519e-06,
+        "mass": 2.32825064659119,
+        "end_time": 1078505718,
+        "snr": 9.57757138320204,
+        "end_time_ns": 794891799,
+        "ifos": "H1,L1"
+    }
+}
+]

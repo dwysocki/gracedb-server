@@ -2,7 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
 from django.contrib.auth.models import User
 
-from gracedb.models import Label, Pipeline
+from events.models import Label, Pipeline
 
 from collections import defaultdict
 import phonenumbers

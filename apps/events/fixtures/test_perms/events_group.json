@@ -1,0 +1,44 @@
+[
+{
+    "pk": 1,
+    "model": "events.group",
+    "fields": {
+        "name": "CBC"
+    }
+},
+{
+    "pk": 2,
+    "model": "events.group",
+    "fields": {
+        "name": "Stochastic"
+    }
+},
+{
+    "pk": 3,
+    "model": "events.group",
+    "fields": {
+        "name": "Burst"
+    }
+},
+{
+    "pk": 4,
+    "model": "events.group",
+    "fields": {
+        "name": "Coherent"
+    }
+},
+{
+    "pk": 5,
+    "model": "events.group",
+    "fields": {
+        "name": "Test"
+    }
+},
+{
+    "pk": 6,
+    "model": "events.group",
+    "fields": {
+        "name": "External"
+    }
+}
+]

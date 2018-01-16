@@ -8,36 +8,36 @@ from django.contrib import admin
 admin.autodiscover()
 
 # Import feeds
-from gracedb.feeds import EventFeed, feedview
+from events.feeds import EventFeed, feedview
 
 # After Django 1.10, have to import views directly, rather
 # than just using a string
-import gracedb.views
-import gracedb.reports
+import events.views
+import events.reports
 
 feeds = {
     'latest' : EventFeed
 }
 
 urlpatterns = [
-    url(r'^$', gracedb.views.index, name="home"),
-    url(r'^navbar_only$', gracedb.views.navbar_only, name="navbar-only"),
-    url(r'^SPInfo', gracedb.views.spinfo, name="spinfo"),
-    url(r'^SPPrivacy', gracedb.views.spprivacy, name="spprivacy"),
-    url(r'^DiscoveryService', gracedb.views.discovery, name="discovery"),
-    url(r'^events/', include('gracedb.urls')),
-    url(r'^api/',    include('gracedb.urls_rest', app_name="api", namespace="x509")),
-    url(r'^apiweb/', include('gracedb.urls_rest', app_name="api", namespace="shib")),
-    url(r'^apibasic/', include('gracedb.urls_rest', app_name="api", namespace="basic")),
+    url(r'^$', events.views.index, name="home"),
+    url(r'^navbar_only$', events.views.navbar_only, name="navbar-only"),
+    url(r'^SPInfo', events.views.spinfo, name="spinfo"),
+    url(r'^SPPrivacy', events.views.spprivacy, name="spprivacy"),
+    url(r'^DiscoveryService', events.views.discovery, name="discovery"),
+    url(r'^events/', include('events.urls')),
+    url(r'^api/',    include('events.urls_rest', app_name="api", namespace="x509")),
+    url(r'^apiweb/', include('events.urls_rest', app_name="api", namespace="shib")),
+    url(r'^apibasic/', include('events.urls_rest', app_name="api", namespace="basic")),
     url(r'^options/', include('userprofile.urls')),
     url(r'^feeds/(?P<url>.*)/$', EventFeed()),
     url(r'^feeds/$', feedview, name="feeds"),
 
-    url(r'^performance/$', gracedb.views.performance, name="performance"),
-    url(r'^reports/$', gracedb.reports.histo, name="reports"),
+    url(r'^performance/$', events.views.performance, name="performance"),
+    url(r'^reports/$', events.reports.histo, name="reports"),
     url(r'^reports/cbc_report/(?P<format>(json|flex))?$',
-        gracedb.reports.cbc_report, name="cbc_report"),
-    url(r'^latest', gracedb.views.latest, name="latest"),
+        events.reports.cbc_report, name="cbc_report"),
+    url(r'^latest', events.views.latest, name="latest"),
     #(r'^reports/(?P<path>.+)$', 'django.views.static.serve',
     #        {'document_root': settings.LATENCY_REPORT_DEST_DIR}),
 

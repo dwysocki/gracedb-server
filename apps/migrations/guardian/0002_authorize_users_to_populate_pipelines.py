@@ -135,7 +135,7 @@ def add_permissions(apps, schema_editor):
     User = apps.get_model('auth', 'User')
     Permission = apps.get_model('auth', 'Permission')
     UserObjectPermission = apps.get_model('guardian', 'UserObjectPermission')
-    Pipeline = apps.get_model('gracedb', 'Pipeline')
+    Pipeline = apps.get_model('events', 'Pipeline')
     ContentType = apps.get_model('contenttypes', 'ContentType')
 
     perm = Permission.objects.get(codename='populate_pipeline')
@@ -161,7 +161,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('ligoauth', '0003_initial_localuser_and_x509cert_data'),
-        ('gracedb', '0003_initial_pipeline_data'),
+        ('events', '0003_initial_pipeline_data'),
         ('guardian', '0001_initial'),
     ]
 

@@ -1,0 +1,74 @@
+[
+{
+    "pk": 1,
+    "model": "events.label",
+    "fields": {
+        "defaultColor": "purple",
+        "name": "INJ"
+    }
+},
+{
+    "pk": 2,
+    "model": "events.label",
+    "fields": {
+        "defaultColor": "red",
+        "name": "DQV"
+    }
+},
+{
+    "pk": 3,
+    "model": "events.label",
+    "fields": {
+        "defaultColor": "green",
+        "name": "LUMIN_GO"
+    }
+},
+{
+    "pk": 4,
+    "model": "events.label",
+    "fields": {
+        "defaultColor": "red",
+        "name": "LUMIN_NO"
+    }
+},
+{
+    "pk": 5,
+    "model": "events.label",
+    "fields": {
+        "defaultColor": "green",
+        "name": "SWIFT_GO"
+    }
+},
+{
+    "pk": 6,
+    "model": "events.label",
+    "fields": {
+        "defaultColor": "red",
+        "name": "SWIFT_NO"
+    }
+},
+{
+    "pk": 7,
+    "model": "events.label",
+    "fields": {
+        "defaultColor": "green",
+        "name": "EM_READY"
+    }
+},
+{
+    "pk": 8,
+    "model": "events.label",
+    "fields": {
+        "defaultColor": "black",
+        "name": "cWB_r"
+    }
+},
+{
+    "pk": 9,
+    "model": "events.label",
+    "fields": {
+        "defaultColor": "black",
+        "name": "cWB_s"
+    }
+}
+]

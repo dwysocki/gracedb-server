@@ -227,7 +227,7 @@ TEMPLATES = [
                 'django.template.context_processors.static',
                 # Extra additions
                 'django.template.context_processors.request',
-                'gracedb.context_processors.LigoAuthContext',
+                'events.context_processors.LigoAuthContext',
                 'core.context_processors.LigoDebugContext',
                 'ligoauth.context_processors.shib_login_url',
             ],
@@ -238,7 +238,7 @@ TEMPLATES = [
 # List of authentication backends to use when attempting to authenticate
 # a user.  Will be used in this order
 AUTHENTICATION_BACKENDS = (
-#   'gracedb.middleware.auth.LigoAuthBackend',
+#   'events.middleware.auth.LigoAuthBackend',
     'ligoauth.middleware.auth.LigoX509Backend',
     'ligoauth.middleware.auth.LigoShibBackend',
     'ligoauth.middleware.auth.LigoBasicBackend',
@@ -251,7 +251,7 @@ AUTHENTICATION_BACKENDS = (
 
 # List of middleware classes to use.
 MIDDLEWARE = [
-    'gracedb.middleware.PerformanceMiddleware',
+    'events.middleware.PerformanceMiddleware',
     'core.middleware.accept.AcceptMiddleware',
     'core.middleware.cli.CliExceptionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -273,7 +273,7 @@ INSTALLED_APPS = [
 #    'django.contrib.sites',
     'django.contrib.staticfiles',
     'maintenance_mode',
-    'gracedb',
+    'events',
     'userprofile',
     'ligoauth',
     'rest_framework',
@@ -435,7 +435,12 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
-        'gracedb': {
+        'core': {
+            'handlers': ['debug_file','error_file'],
+            'propagate': True,
+            'level': LOG_LEVEL,
+        },
+        'events': {
             'handlers': ['debug_file','error_file'],
             'propagate': True,
             'level': LOG_LEVEL,
@@ -449,11 +454,6 @@ LOGGING = {
             'handlers': ['debug_file','error_file'],
             'propagate': True,
             'level': LOG_LEVEL,
-        },
-        'middleware': {
-            'handlers': ['performance_file'],
-            'propagate': True,
-            'level': 'INFO',
         },
        'django.request': {
             'handlers': ['mail_admins'],

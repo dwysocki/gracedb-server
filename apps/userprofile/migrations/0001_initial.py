@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('gracedb', '0001_initial'),
+        ('events', '0001_initial'),
     ]
 
     operations = [
@@ -32,8 +32,8 @@ class Migration(migrations.Migration):
                 ('triggerType', models.CharField(blank=True, max_length=20, choices=[(b'create', b'create'), (b'change', b'change'), (b'label', b'label')])),
                 ('farThresh', models.FloatField(null=True, blank=True)),
                 ('contacts', models.ManyToManyField(to='userprofile.Contact', blank=True)),
-                ('labels', models.ManyToManyField(to='gracedb.Label', blank=True)),
-                ('pipelines', models.ManyToManyField(to='gracedb.Pipeline', blank=True)),
+                ('labels', models.ManyToManyField(to='events.Label', blank=True)),
+                ('pipelines', models.ManyToManyField(to='events.Pipeline', blank=True)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
             options={

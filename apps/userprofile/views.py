@@ -20,10 +20,10 @@ log = logging.getLogger(__name__)
 
 from .models import Trigger, Contact
 from .forms import ContactForm, triggerFormFactory, TriggerForm
-from gracedb.permission_utils import internal_user_required, lvem_user_required
-from gracedb.query import labelQuery
-from gracedb.models import Label
-from gracedb.alert import get_twilio_from
+from events.permission_utils import internal_user_required, lvem_user_required
+from events.query import labelQuery
+from events.models import Label
+from events.alert import get_twilio_from
 
 # Let's let everybody onto the index view.
 #@internal_user_required

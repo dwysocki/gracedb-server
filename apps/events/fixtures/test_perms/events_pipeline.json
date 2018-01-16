@@ -1,0 +1,86 @@
+[
+{
+    "pk": 1,
+    "model": "events.pipeline",
+    "fields": {
+        "name": "MBTAOnline"
+    }
+},
+{
+    "pk": 2,
+    "model": "events.pipeline",
+    "fields": {
+        "name": "CWB2G"
+    }
+},
+{
+    "pk": 3,
+    "model": "events.pipeline",
+    "fields": {
+        "name": "gstlal"
+    }
+},
+{
+    "pk": 4,
+    "model": "events.pipeline",
+    "fields": {
+        "name": "gstlal-spiir"
+    }
+},
+{
+    "pk": 5,
+    "model": "events.pipeline",
+    "fields": {
+        "name": "HardwareInjection"
+    }
+},
+{
+    "pk": 6,
+    "model": "events.pipeline",
+    "fields": {
+        "name": "X"
+    }
+},
+{
+    "pk": 7,
+    "model": "events.pipeline",
+    "fields": {
+        "name": "Q"
+    }
+},
+{
+    "pk": 8,
+    "model": "events.pipeline",
+    "fields": {
+        "name": "Omega"
+    }
+},
+{
+    "pk": 9,
+    "model": "events.pipeline",
+    "fields": {
+        "name": "Ringdown"
+    }
+},
+{
+    "pk": 10,
+    "model": "events.pipeline",
+    "fields": {
+        "name": "Fermi"
+    }
+},
+{
+    "pk": 11,
+    "model": "events.pipeline",
+    "fields": {
+        "name": "Swift"
+    }
+},
+{
+    "pk": 12,
+    "model": "events.pipeline",
+    "fields": {
+        "name": "CWB"
+    }
+}
+]

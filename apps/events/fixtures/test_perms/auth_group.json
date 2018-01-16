@@ -1,0 +1,34 @@
+[
+{
+    "pk": 1,
+    "model": "auth.group",
+    "fields": {
+        "name": "executives",
+        "permissions": []
+    }
+},
+{
+    "pk": 2,
+    "model": "auth.group",
+    "fields": {
+        "name": "Communities:LSCVirgoLIGOGroupMembers",
+        "permissions": []
+    }
+},
+{
+    "pk": 3,
+    "model": "auth.group",
+    "fields": {
+        "name": "gw-astronomy:LV-EM",
+        "permissions": []
+    }
+},
+{
+    "pk": 4,
+    "model": "auth.group",
+    "fields": {
+        "name": "public_users",
+        "permissions": []
+    }
+}
+]

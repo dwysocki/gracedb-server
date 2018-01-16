@@ -12,42 +12,42 @@ PERMISSIONS = [
     {
         'name': 'Can view event',
         'codename': 'view_event',
-        'content_type': {'app': 'gracedb', 'model': 'event'},
+        'content_type': {'app': 'events', 'model': 'event'},
     },
     {
         'name': 'Can view grbevent',
         'codename': 'view_grbevent',
-        'content_type': {'app': 'gracedb', 'model': 'GrbEvent'},
+        'content_type': {'app': 'events', 'model': 'GrbEvent'},
     },
     {
         'name': 'Can view coincinspiralevent',
         'codename': 'view_coincinspiralevent',
-        'content_type': {'app': 'gracedb', 'model': 'CoincInspiralEvent'},
+        'content_type': {'app': 'events', 'model': 'CoincInspiralEvent'},
     },
     {
         'name': 'Can view multiburstevent',
         'codename': 'view_multiburstevent',
-        'content_type': {'app': 'gracedb', 'model': 'MultiBurstEvent'},
+        'content_type': {'app': 'events', 'model': 'MultiBurstEvent'},
     },
     {
         'name': 'Can view siminspiral',
         'codename': 'view_siminspiralevent',
-        'content_type': {'app': 'gracedb', 'model': 'SimInspiralEvent'},
+        'content_type': {'app': 'events', 'model': 'SimInspiralEvent'},
     },
     {
         'name': 'Can view lalinferenceburstevent',
         'codename': 'view_lalinferenceburstevent',
-        'content_type': {'app': 'gracedb', 'model': 'LalInferenceBurstEvent'},
+        'content_type': {'app': 'events', 'model': 'LalInferenceBurstEvent'},
     },
     {
         'name': 'Can populate pipeline',
         'codename': 'populate_pipeline',
-        'content_type': {'app': 'gracedb', 'model': 'Pipeline'},
+        'content_type': {'app': 'events', 'model': 'Pipeline'},
     },
     {
         'name': 'Can t90 grbevent',
         'codename': 't90_grbevent',
-        'content_type': {'app': 'gracedb', 'model': 'GrbEvent'},
+        'content_type': {'app': 'events', 'model': 'GrbEvent'},
     },
 ]
 
@@ -87,7 +87,7 @@ def delete_permissions(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('gracedb', '0001_initial'),
+        ('events', '0001_initial'),
         ('auth', '0011_add_executives_group_permissions'),
     ]
 
