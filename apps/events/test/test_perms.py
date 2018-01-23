@@ -1,98 +1,65 @@
 from django.test import TestCase
 from django.test.utils import override_settings
-
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission, Group, User
-from guardian.models import GroupObjectPermission, UserObjectPermission
-from events.models import Event, GrbEvent, CoincInspiralEvent
-from events.models import MultiBurstEvent, Pipeline
-
 from django.conf import settings
+from django.urls import reverse
+
+from guardian.models import GroupObjectPermission, UserObjectPermission
+from guardian.shortcuts import assign_perm
+
+from events.models import Event, GrbEvent, CoincInspiralEvent, MultiBurstEvent
+from events.models import Pipeline, Search, EMGroup
+from events.models import Group as SGroup
+from events.permission_utils import assign_default_event_perms
 
 import json
 import os
 import shutil
 from urllib import urlencode
     
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Some utilities
-#-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 TMP_DATA_DIR = '/tmp/test_perms_data'
-
-def get_user(category):
-    if category=='public':
-        return User.objects.get(first_name='John', last_name='Public')
-    elif category=='lvem':
-        return User.objects.get(first_name='Claudius', last_name='Ptolemy')
-    elif category=='internal':
-        return User.objects.get(first_name='Albert', last_name='Einstein')
-    elif category=='exec':
-        return User.objects.get(first_name='Spokesy', last_name='McSpokesperson')
-    elif category=='gstlal_submitter':
-        return User.objects.get(last_name='GstLal CBC')
-    else:
-        return None
-    
-def get_public_coinc_event():
-    ctype = ContentType.objects.get(model='CoincInspiralEvent')
-    perm  = Permission.objects.get(codename='view_coincinspiralevent')
-    group = Group.objects.get(name='public_users')
-
-    perms = GroupObjectPermission.objects.filter(permission=perm,
-        group=group, content_type=ctype)
-    perms = list(perms)
-
-    if len(perms) > 1:
-        print "Something is wrong. Got more than one public coinc event."
-        exit(1)
-
-    if len(perms) == 0:
-        print "Something is wrong. Got no public coinc events."
-        exit(1)
-    
-    return Event.objects.get(id=perms[0].object_pk)
-
-def get_internal_coinc_event():
-    ctype = ContentType.objects.get(model='CoincInspiralEvent')
-    perm  = Permission.objects.get(codename='view_coincinspiralevent')
-    executives = Group.objects.get(name='executives')
-    internal   = Group.objects.get(name='Communities:LSCVirgoLIGOGroupMembers')
-
-    # Find a GroupObjectPermission object such that the only groups allowed 
-    # to view are execs and internal
-    for e in CoincInspiralEvent.objects.all():
-        perms = GroupObjectPermission.objects.filter(permission=perm,
-            object_pk=e.id, content_type=ctype)
-        groups = [p.group for p in perms]
-        if set(groups)==set([internal, executives]):
-            break
-    return e
-
-def get_isMemberOf(user):
-    return ';'.join([g.name for g in user.groups.all()])
+TEST_NAMES = {
+    'group': 'GWGroup',
+    'testgroup': 'Test',
+    'pipeline': 'GWPipeline',
+    'search': 'GWSearch',
+    'emgroup': 'EMGroup',
+}
 
 def extra_args(user):
+    """Utility for passing user details to request"""
     if not user:
         return {}
-    return {'REMOTE_USER': user.username, 'isMemberOf': get_isMemberOf(user) }
-
-# Given a Django test client, attempt to create a CBC, gstlal, LowMass event. 
-EVENT_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__),
-    "../fixtures/test_perms/cbc-lm.xml"))
+    return {
+        'REMOTE_USER': user.username,
+        'isMemberOf': ';'.join([g.name for g in user.groups.all()])
+    }
 
 def request_event_creation(client, user, test=False):
+    """
+    Given a Django test client, attempt to create a CBC, gstlal,
+    LowMass event.
+    """
+    EVENT_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__),
+        "data/cbc-lm.xml"))
+
     event_file = open(EVENT_FILE, 'r')
-    url = '/events/create/'
-    group = 'Test' if test else 'CBC'
+    url = reverse('create')
+    group = TEST_NAMES['testgroup'] if test else TEST_NAMES['group']
     input_dict = {
-        'group'      : group,
-        'pipeline'   : 'gstlal',
-        'search'     : 'LowMass',
-        'eventFile'  : event_file,
+        'group': group,
+        'pipeline': TEST_NAMES['pipeline'],
+        'search': TEST_NAMES['search'],
+        'eventFile': event_file,
     }
-    return client.post(url, input_dict, **extra_args(user))
+    response = client.post(url, input_dict, **extra_args(user))
+    return response
 
 # A map between test users and pipelines.
 PIPELINE_USER_MAP = {
@@ -101,241 +68,320 @@ PIPELINE_USER_MAP = {
     'Swift': ['gdb',],
 }
 
+
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # Test Perms Class
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-class TestPerms(TestCase): 
-    # I wonder if the order of loading the fixtures will matter?
-    fixtures = [
-        'test_perms/auth_user.json',
-        'test_perms/auth_group.json',
-        'test_perms/events_group.json',
-        'test_perms/events_pipeline.json',
-        'test_perms/events_search.json',
-        'test_perms/events_label.json',
-        'test_perms/events_emgroup.json',
-        'test_perms/events_event.json',
-        'test_perms/events_grbevent.json',
-        'test_perms/events_multiburstevent.json',
-        'test_perms/events_coincinspiralevent.json',
-        'test_perms/events_singleinspiral.json',
-        'test_perms/events_eventlog.json',
-        'test_perms/events_tag.json',
-    ] 
+class TestPerms(TestCase):
+    """Class for testing event view permissions"""
 
-    def setUp(self):
-        # Create custom permissions
+    @classmethod
+    def setUpTestData(cls):
+        """Overhead for running all permissions tests"""
+
+        # Public group name
+        PUBLIC_GROUP = 'public_users'
+
+        # Get or create auth groups
+        cls.internal_group, _ = Group.objects.get_or_create(
+            name=settings.LVC_GROUP)
+        cls.lvem_group, _ = Group.objects.get_or_create(
+            name=settings.LVEM_GROUP)
+        cls.public_group, _ = Group.objects.get_or_create(name=PUBLIC_GROUP)
+        cls.execs_group, _ = Group.objects.get_or_create(
+            name=settings.EXEC_GROUP)
+
+        # Get or create users
+        cls.internal_user, _ = User.objects.get_or_create(
+            username='internal.user')
+        cls.lvem_user, _ = User.objects.get_or_create(username='lvem.user')
+        cls.public_user, _ = User.objects.get_or_create(username='public.user')
+        cls.exec_user, _ = User.objects.get_or_create(username='exec.user')
+        cls.pipeline_user, _ = User.objects.get_or_create(
+            username='pipeline.user')
+
+        # Add users to groups
+        cls.internal_group.user_set.add(cls.internal_user)
+        cls.internal_group.user_set.add(cls.pipeline_user)
+        cls.lvem_group.user_set.add(cls.lvem_user)
+        cls.public_group.user_set.add(cls.public_user)
+        cls.execs_group.user_set.add(cls.exec_user)
+
+        # Get or create custom view permissions
         for model in [Event, GrbEvent, CoincInspiralEvent, MultiBurstEvent]:
-            content_type = ContentType.objects.get(app_label='events', model=model.__name__)
+            content_type = ContentType.objects.get(app_label='events',
+                model=model.__name__)
             name = 'Can view %s' % model.__name__.lower()
             codename = 'view_%s' % model.__name__.lower()
-            Permission.objects.create(codename=codename, name=name, content_type=content_type)
+            p, _ = Permission.objects.get_or_create(codename=codename,
+                name=name, content_type=content_type)
 
-        content_type = ContentType.objects.get(app_label='events', model='pipeline')
-        Permission.objects.create(codename="populate_pipeline", name="Can populate pipeline",
-            content_type=content_type)            
-            
-        # Find the content type and permissions for the parent Event class.
-        Event_ctype = ContentType.objects.get(model='Event')
-        Event_view = Permission.objects.get(content_type=Event_ctype, 
-                    codename__startswith='view')
-        Event_change = Permission.objects.get(content_type=Event_ctype, 
-                    codename__startswith='change')
+        # Create search group, pipeline, search. Also create a test group
+        ev_group = SGroup.objects.create(name=TEST_NAMES['group'])
+        test_group = SGroup.objects.create(name=TEST_NAMES['testgroup'])
+        ev_pipeline = Pipeline.objects.create(name=TEST_NAMES['pipeline'])
+        ev_search = Search.objects.create(name=TEST_NAMES['search'])
+        
+        # Create events - 1 internal, 1 lvem/internal, 1 public/lvem/internal
+        # event 0: public can view, lvem can view/change, plus defaults
+        # event 1: lvem can view/change, plus defaults
+        # event 2: defaults
+        # defaults: internal and execs can view and change
+        for ev_type in ['internal_event', 'lvem_event', 'public_event']:
+            ev = Event.objects.create(group=ev_group, pipeline=ev_pipeline,
+                search=ev_search, gpstime=0, submitter=cls.internal_user)
 
-        # Create group object permissions
-        for model in [GrbEvent, CoincInspiralEvent, MultiBurstEvent]:
-            # Find the content and permissions for this subclass
-            content_type = ContentType.objects.get(model=model.__name__)
-            view = Permission.objects.get(content_type=content_type, 
-                    codename__startswith='view')
-            change = Permission.objects.get(content_type=content_type, 
-                    codename__startswith='change')
+            # Attach event instances to class object
+            setattr(cls, ev_type, ev)
 
-            # Get groups.
-            public     = Group.objects.get(name='public_users')
-            internal   = Group.objects.get(name='Communities:LSCVirgoLIGOGroupMembers')
-            lvem       = Group.objects.get(name='gw-astronomy:LV-EM')
-            executives = Group.objects.get(name='executives')
+            # Add event log message
+            ev.eventlog_set.create(issuer=cls.internal_user, comment="test")
 
-            # Each event subclass has 3 events. How to assign permissions on them?
-            # event 0: public can view, lvem can view/change, plus defaults
-            # event 1: lvem can view, plus defaults
-            # event 2: defaults
-            # defaults: internal, exec can view and change
+            # Permissions
+            assign_default_event_perms(ev)
+            if (ev_type == 'public_event'):
+                assign_perm('view_event', cls.lvem_group, ev)
+                assign_perm('change_event', cls.lvem_group, ev)
+                assign_perm('view_event', cls.public_group, ev)
+            elif (ev_type == 'lvem_event'):
+                assign_perm('view_event', cls.lvem_group, ev)
+                assign_perm('change_event', cls.lvem_group, ev)
 
-            events = model.objects.all()
+            # Refresh perms attached to event
+            ev.refresh_perms()
 
-            # Add defaults for each event
-            for event in events:
-                GroupObjectPermission.objects.create(permission=view, group=internal,
-                    object_pk=event.id, content_type = content_type)
-                GroupObjectPermission.objects.create(permission=change, group=internal,
-                    object_pk=event.id, content_type = content_type)
-                GroupObjectPermission.objects.create(permission=view, group=executives,
-                    object_pk=event.id, content_type = content_type)
-                GroupObjectPermission.objects.create(permission=change, group=executives,
-                    object_pk=event.id, content_type = content_type)
+        # Create an EMGroup for EEL testing
+        EMGroup.objects.get_or_create(name=TEST_NAMES['emgroup'])
 
-            # Add additional perms for event 0
-            event = events[0]
-            GroupObjectPermission.objects.create(permission=view, group=lvem, 
-                object_pk=event.id, content_type = content_type)
-            GroupObjectPermission.objects.create(permission=change, group=lvem,
-                object_pk=event.id, content_type = content_type)
-            GroupObjectPermission.objects.create(permission=view, group=public,
-                object_pk=event.id, content_type = content_type)
+        # Create a permission for populating pipelines
+        #content_type = ContentType.objects.get(app_label='events', model='pipeline')
+        #Permission.objects.create(codename="populate_pipeline", name="Can populate pipeline",
+        #    content_type=content_type)            
+        #    
+        ## Find the content type and permissions for the parent Event class.
+        #Event_ctype = ContentType.objects.get(model='Event')
+        #Event_view = Permission.objects.get(content_type=Event_ctype, 
+        #            codename__startswith='view')
+        #Event_change = Permission.objects.get(content_type=Event_ctype, 
+        #            codename__startswith='change')
 
-            # Add additional perms for event 1
-            event = events[1]
-            GroupObjectPermission.objects.create(permission=view, group=lvem, 
-                object_pk=event.id, content_type = content_type)
+        ## Create group object permissions
+        #for model in [GrbEvent, CoincInspiralEvent, MultiBurstEvent]:
+        #    # Find the content and permissions for this subclass
+        #    content_type = ContentType.objects.get(model=model.__name__)
+        #    view = Permission.objects.get(content_type=content_type, 
+        #            codename__startswith='view')
+        #    change = Permission.objects.get(content_type=content_type, 
+        #            codename__startswith='change')
 
-            # Apply the same permissions on the underlying Event
-            # XXX This is rather hacky. Is there a better way?
-            for event in events:
-                perms = GroupObjectPermission.objects.filter(object_pk=event.id,
-                    content_type=content_type)
-                for perm in perms:
-                    if perm.permission.codename.startswith('view'):
-                        p = Event_view
-                    else:
-                        p = Event_change
-                    GroupObjectPermission.objects.create(permission = p,
-                        group = perm.group,
-                        object_pk = perm.object_pk, 
-                        content_type = Event_ctype)
+        #    # Get groups.
+        #    public     = Group.objects.get(name='public_users')
+        #    internal   = Group.objects.get(name='Communities:LSCVirgoLIGOGroupMembers')
+        #    lvem       = Group.objects.get(name='gw-astronomy:LV-EM')
+        #    executives = Group.objects.get(name='executives')
 
-        # Need to refresh the perm strings on all event objects. That way we can
-        # test the searches.
-        for e in Event.objects.all():
-            e.refresh_perms()
+        #    # Each event subclass has 3 events. How to assign permissions on them?
+        #    # event 0: public can view, lvem can view/change, plus defaults
+        #    # event 1: lvem can view, plus defaults
+        #    # event 2: defaults
+        #    # defaults: internal, exec can view and change
+
+        #    events = model.objects.all()
+
+        #    # Add defaults for each event
+        #    for event in events:
+        #        GroupObjectPermission.objects.create(permission=view, group=internal,
+        #            object_pk=event.id, content_type = content_type)
+        #        GroupObjectPermission.objects.create(permission=change, group=internal,
+        #            object_pk=event.id, content_type = content_type)
+        #        GroupObjectPermission.objects.create(permission=view, group=executives,
+        #            object_pk=event.id, content_type = content_type)
+        #        GroupObjectPermission.objects.create(permission=change, group=executives,
+        #            object_pk=event.id, content_type = content_type)
+
+        #    # Add additional perms for event 0
+        #    event = events[0]
+        #    GroupObjectPermission.objects.create(permission=view, group=lvem, 
+        #        object_pk=event.id, content_type = content_type)
+        #    GroupObjectPermission.objects.create(permission=change, group=lvem,
+        #        object_pk=event.id, content_type = content_type)
+        #    GroupObjectPermission.objects.create(permission=view, group=public,
+        #        object_pk=event.id, content_type = content_type)
+
+        #    # Add additional perms for event 1
+        #    event = events[1]
+        #    GroupObjectPermission.objects.create(permission=view, group=lvem, 
+        #        object_pk=event.id, content_type = content_type)
+
+        #    # Apply the same permissions on the underlying Event
+        #    # XXX This is rather hacky. Is there a better way?
+        #    for event in events:
+        #        perms = GroupObjectPermission.objects.filter(object_pk=event.id,
+        #            content_type=content_type)
+        #        for perm in perms:
+        #            if perm.permission.codename.startswith('view'):
+        #                p = Event_view
+        #            else:
+        #                p = Event_change
+        #            GroupObjectPermission.objects.create(permission = p,
+        #                group = perm.group,
+        #                object_pk = perm.object_pk, 
+        #                content_type = Event_ctype)
+
+        ## Need to refresh the perm strings on all event objects. That way we can
+        ## test the searches.
+        #for e in Event.objects.all():
+        #    e.refresh_perms()
 
         # Create user object permissions for pipeline population
-        content_type = ContentType.objects.get(app_label='events',model='pipeline')
-        populate = Permission.objects.get(codename='populate_pipeline')
+        content_type = ContentType.objects.get(app_label='events',
+            model='pipeline')
+        populate, _ = Permission.objects.get_or_create(
+            codename='populate_pipeline', name="Can populate pipeline",
+            content_type=content_type)
+        pipeline = Pipeline.objects.get(name=TEST_NAMES['pipeline'])
+        UserObjectPermission.objects.create(permission=populate,
+            user=cls.pipeline_user, object_pk=pipeline.id,
+            content_type=content_type)
 
-        for p in Pipeline.objects.all():
-            if p.name in PIPELINE_USER_MAP.keys():
-                for username in PIPELINE_USER_MAP[p.name]:
-                    user = User.objects.get(username=username)
-                    UserObjectPermission.objects.create(permission=populate, user=user,
-                        object_pk=p.id, content_type=content_type)        
+        #for p in Pipeline.objects.all():
+        #    if p.name in PIPELINE_USER_MAP.keys():
+        #        for username in PIPELINE_USER_MAP[p.name]:
+        #            user = User.objects.get(username=username)
+        #            UserObjectPermission.objects.create(permission=populate, user=user,
+        #                object_pk=p.id, content_type=content_type)        
 
         # Create group permission for exposing/protecting events
-        content_type = ContentType.objects.get(app_label='guardian',model='GroupObjectPermission')
+        content_type = ContentType.objects.get(app_label='guardian',
+            model='GroupObjectPermission')
         add_gop = Permission.objects.get(codename='add_groupobjectpermission')
-        delete_gop = Permission.objects.get(codename='delete_groupobjectpermission')
-        executives.permissions.add(add_gop)
-        executives.permissions.add(delete_gop) 
+        delete_gop = Permission.objects.get(
+            codename='delete_groupobjectpermission')
+        cls.execs_group.permissions.add(add_gop)
+        cls.execs_group.permissions.add(delete_gop) 
 
-        # Lastly, let's create a temporary data dir. 
+    # Need to create and destroy a temporary data directory for each test
+    # since events created during tests don't persist in the database, but if
+    # they were created from a file, the file still persists and causes errors
+    # since the next event creation from a file uses the same id and thus, the
+    # same path for its data directory.
+    @classmethod
+    def setUp(cls):
+        # Create a temporary data dir. 
         if not os.path.isdir(TMP_DATA_DIR):
             os.mkdir(TMP_DATA_DIR)
 
-    def tearDown(self):
+    @classmethod
+    def tearDown(cls):
         # Get rid of that temporary data dir.
         shutil.rmtree(TMP_DATA_DIR)
 
-    #-------------------------------------------------------------------------------
-    #-------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
+    # Helper functions
+    #--------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
+
+    def search_helper(self, query, user):
+        """Helper function for search tests"""
+        url = '{baseurl}?{query}'.format(baseurl=reverse('search',
+            args=['flex']), query=urlencode({'query': query}))
+        response = self.client.get(url, **extra_args(user))
+        res = json.loads(response.content)
+        return res
+
+    #--------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
     # Tests of view access
-    #-------------------------------------------------------------------------------
-    #-------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
 
-    # Check that the landing page can be accessed anonymously.
     def test_index_access(self):
-        response = self.client.get('/')
+        """Check that the landing page can be accessed anonymously"""
+        response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
 
-    # Check that the SPInfo page can be accessed anonymously.
     def test_spinfo_access(self):
-        response = self.client.get('/SPInfo')
+        """Check that the SPInfo page can be accessed anonymously"""
+        response = self.client.get(reverse('spinfo'))
         self.assertEqual(response.status_code, 200)
 
-    # Check that the SPPrivacy page can be accessed anonymously.
     def test_spprivacy_access(self):
-        response = self.client.get('/SPPrivacy')
+        """Check that the SPPrivacy page can be accessed anonymously"""
+        response = self.client.get(reverse('spprivacy'))
         self.assertEqual(response.status_code, 200)
 
-    # Check that the search form can be accessed anonymously.
-    # XXX Actually, we don't want this right now.
-#    def test_search_form_access(self):
-#        response = self.client.get('/events/search/')
-#        self.assertEqual(response.status_code, 200)
-
-    # Test viewing of events by public users
-    def test_public_event_access(self):
-        # Of the three CBC events, only one should be publicly viewable.
-        pub_coinc_event = get_public_coinc_event()
-        for e in CoincInspiralEvent.objects.all():
-            url = '/events/view/%s' % e.graceid()
-            response = self.client.get(url,**extra_args(get_user('public')))
-            if e.graceid()==pub_coinc_event.graceid():
-                self.assertEqual(response.status_code, 200)
-            else:
-                self.assertEqual(response.status_code, 403)
-
-    # Test viewing of events by LV-EM users
-    def test_lvem_event_access(self):
-        # Of the three CBC events, two should be lvem-viewable.
-        internal_coinc_event = get_internal_coinc_event()
-        for e in CoincInspiralEvent.objects.all():
-            url = '/events/view/%s' % e.graceid()
-            response = self.client.get(url,**extra_args(get_user('lvem')))
-            if e.graceid()==internal_coinc_event.graceid():
-                self.assertEqual(response.status_code, 403)
-            else:
-                self.assertEqual(response.status_code, 200)
-   
-    # Test viewing of events by LIGO users
     def test_internal_event_access(self):
-        for e in CoincInspiralEvent.objects.all():
-            url = '/events/view/%s' % e.graceid()
-            response = self.client.get(url,**extra_args(get_user('internal')))
+        """Test viewing of events by LIGO users"""
+        for e in Event.objects.all():
+            url = reverse('view', args=[e.graceid()])
+            response = self.client.get(url, **extra_args(self.internal_user))
             self.assertEqual(response.status_code, 200)
 
-    # Test search by public users
-    def test_public_search(self):
-        pub_coinc_event = get_public_coinc_event()
-        query = 'Test LowMass'
-        url = '/events/search/flex?%s' % urlencode({'query': query})
-        response = self.client.get(url,**extra_args(get_user('public')))
-        res = json.loads(response.content)
-        # You should only get one event ...
-        self.assertEqual(res['records'],1)
-        # ... and that event should be the public one.
-        self.assertEqual(res['rows'][0]['id'],pub_coinc_event.id)
+    def test_lvem_event_access(self):
+        """Test viewing of events by LV-EM users"""
 
-    # Test search by LV-EM users
+        # Only the internal event should not be viewable for LV-EM
+        for e in Event.objects.all():
+            url = reverse('view', args=[e.graceid()])
+            response = self.client.get(url, **extra_args(self.lvem_user))
+            if (e.graceid() != self.internal_event.graceid()):
+                self.assertEqual(response.status_code, 200)
+            else:
+                self.assertEqual(response.status_code, 403)
+
+    def test_public_event_access(self):
+        """Test viewing of events by public users"""
+
+        # Only the public event should be viewable for public users
+        for e in Event.objects.all():
+            url = reverse('view', args=[e.graceid()])
+            response = self.client.get(url, **extra_args(self.public_user))
+            if (e.graceid() == self.public_event.graceid()):
+                self.assertEqual(response.status_code, 200)
+            else:
+                self.assertEqual(response.status_code, 403)
+
+    def test_internal_search(self):
+        """Test search by LIGO users"""
+        query = '{group} {search}'.format(group=TEST_NAMES['group'],
+            search=TEST_NAMES['search'])
+        res = self.search_helper(query, self.internal_user)
+
+        # You should get all three events.
+        self.assertEqual(res['records'], 3)
+
     def test_lvem_search(self):
-        internal_coinc_event = get_internal_coinc_event()
-        query = 'Test LowMass'
-        url = '/events/search/flex?%s' % urlencode({'query': query})
-        response = self.client.get(url,**extra_args(get_user('lvem')))
-        res = json.loads(response.content)
+        """Test search by LV-EM users"""
+        query = '{group} {search}'.format(group=TEST_NAMES['group'],
+            search=TEST_NAMES['search'])
+        res = self.search_helper(query, self.lvem_user)
+        
         # You should get two events ...
         self.assertEqual(res['records'],2)
         # ... and the missing event should be the internal one.
         ids = [r['id'] for r in res['rows']]
-        self.assertTrue(internal_coinc_event.id not in ids)
+        self.assertTrue(self.internal_event.id not in ids)
 
-    # Test search by LIGO users
-    def test_internal_search(self):
-        query = 'Test LowMass'
-        url = '/events/search/flex?%s' % urlencode({'query': query})
-        response = self.client.get(url,**extra_args(get_user('internal')))
-        res = json.loads(response.content)
-        # You should get all three events.
-        self.assertEqual(res['records'],3)
+    def test_public_search(self):
+        """Test search by public users"""
+        query = '{group} {search}'.format(group=TEST_NAMES['group'],
+            search=TEST_NAMES['search'])
+        res = self.search_helper(query, self.public_user)
 
-    #-------------------------------------------------------------------------------
-    #-------------------------------------------------------------------------------
+        # You should only get one event ...
+        self.assertEqual(res['records'], 1)
+        # ... and that event should be the public one.
+        self.assertEqual(res['rows'][0]['id'], self.public_event.id)
+
+    #--------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
     # Tests of event annotation
-    #-------------------------------------------------------------------------------
-    #-------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
 
     # What annotation activities need to be tested?
     # - EventLog creation
@@ -349,181 +395,209 @@ class TestPerms(TestCase):
     #   but no way to do this through the web interface
     # - EEL creation
 
-    # Test annotation of events user.
-    def test_public_log_creation(self):
-        # Choose any event. The public coinc one will do.
-        event = get_public_coinc_event()
-        url = '/events/%s/log/' % event.graceid()
-        input_dict = {
-            'comment' : 'This is a test.',
-            'tagname' : 'test_tag',
-        }
-        response = self.client.post(url,input_dict,**extra_args(get_user('public')))
-        self.assertEqual(response.status_code, 403)
-
-    def test_public_log_tagging(self):
-        # Choose any event. The public coinc one will do.
-        event = get_public_coinc_event()
-        # Try to add 'test_tag' to the first log entry.
-        url = '/events/%s/log/1/tag/test_tag' % event.graceid()
-        input_dict = {'displayName' : None,}
-        response = self.client.post(url, input_dict,**extra_args(get_user('public')))
-        self.assertEqual(response.status_code, 403)
-
-    def test_public_eel_creation(self):
-        # Choose any event. The public coinc one will do.
-        event = get_public_coinc_event()
-        url = '/events/%s/embblog/' % event.graceid()
-        # Test, em.gamma, FO, TE, instrument='Test', comment='Test'
-        input_dict = {
-            'group'      : 'Test',
-            'waveband'   : 'em.gamma',
-            'eel_status' : 'FO',
-            'obs_status' : 'TE',
-            'comment'    : 'Test',
-            'instrument' : 'Test',
-        }
-        response = self.client.post(url,input_dict,**extra_args(get_user('public')))
-        self.assertEqual(response.status_code, 403)
-
-    # Test annotation of events by LV-EM users
-    def test_lvem_log_creation(self):
-        # Should be able to annotate the public event, but no others
-        public_coinc_event = get_public_coinc_event()
-        for e in CoincInspiralEvent.objects.all():
-            url = '/events/%s/log/' % e.graceid()
+    def test_internal_log_creation(self):
+        """Test annotation of events by LIGO users"""
+        for e in Event.objects.all():
+            url = reverse('logentry', args=[e.graceid(), ''])
             input_dict = {
                 'comment' : 'This is a test.',
                 'tagname' : 'test_tag',
             }
-            response = self.client.post(url,input_dict,**extra_args(get_user('lvem')))
-            if e.id==public_coinc_event.id:
+            response = self.client.post(url, input_dict,
+                **extra_args(self.internal_user))
+            # Expect 302 because user is redirected to event page
+            # if successful
+            self.assertEqual(response.status_code, 302)
+
+    def test_lvem_log_creation(self):
+        """Test annotation of events by LV-EM users"""
+        # Should be able to annotate the LV-EM and public events
+        for e in Event.objects.all():
+            url = reverse('logentry', args=[e.graceid(), ''])
+            input_dict = {
+                'comment' : 'This is a test.',
+                'tagname' : 'test_tag',
+            }
+            response = self.client.post(url,input_dict,
+                **extra_args(self.lvem_user))
+
+            if (e.id != self.internal_event.id):
                 # Not an AJAX call, so redirects to event page if successful. 
                 self.assertEqual(response.status_code, 302)
             else:
                 self.assertEqual(response.status_code, 403)
 
-    def test_lvem_log_tagging(self):
-        public_coinc_event = get_public_coinc_event()
-        for e in CoincInspiralEvent.objects.all():
+    def test_public_log_creation(self):
+        """Test annotation of event by public user"""
+        # Public user should not be able to annotate any events,
+        # even publicly viewable ones
+        event = self.public_event
+        url = reverse('logentry', args=[event.graceid(), ''])
+        input_dict = {
+            'comment': 'This is a test.',
+            'tagname': 'test_tag',
+        }
+        response = self.client.post(url, input_dict,
+            **extra_args(self.public_user))
+        self.assertEqual(response.status_code, 403)
+
+    def test_internal_log_tagging(self):
+        """Test event log tagging by internal user"""
+        for e in Event.objects.all():
             # Try to add 'test_tag' to the first log entry.
-            url = '/events/%s/log/1/tag/test_tag' % e.graceid()
-            input_dict = {'displayName' : None,}
-            response = self.client.post(url, input_dict,**extra_args(get_user('lvem')))
-            if e.id==public_coinc_event.id:
+            url = reverse('taglogentry', args=[e.graceid(), 1, 'test_tag'])
+            input_dict = {'displayName': 'test_tag',}
+            response = self.client.post(url, input_dict,
+                **extra_args(self.internal_user))
+            # Should give 302 on success due to redirect in view function
+            self.assertEqual(response.status_code, 302)
+
+    def test_lvem_log_tagging(self):
+        """Test event log tagging by LV-EM user"""
+        # Should be able to tag the LV-EM and public event's logs.
+        for e in Event.objects.all():
+            # Try to add 'test_tag' to the first log entry.
+            url = reverse('taglogentry', args=[e.graceid(), 1, 'test_tag'])
+            input_dict = {'displayName': 'test_tag',}
+            response = self.client.post(url, input_dict,
+                **extra_args(self.lvem_user))
+
+            if (e.id != self.internal_event.id):
+                # Not an AJAX call, so redirects to event page if successful.
                 self.assertEqual(response.status_code, 302)
             else:
                 self.assertEqual(response.status_code, 403)
 
-    def test_lvem_eel_creation(self):
-        public_coinc_event = get_public_coinc_event()
-        for e in CoincInspiralEvent.objects.all():
-            url = '/events/%s/embblog/' % e.graceid()
+    def test_public_log_tagging(self):
+        """Test event log tagging by public user"""
+        # Public user should not be able to tag event logs, even for
+        # publicly viewable events
+        for e in Event.objects.all():
+            # Try to add 'test_tag' to the first log entry.
+            url = reverse('taglogentry', args=[e.graceid(), 1, 'test_tag'])
+            input_dict = {'displayName': 'test_tag',}
+            response = self.client.post(url, input_dict,
+                **extra_args(self.public_user))
+            self.assertEqual(response.status_code, 403)
+
+    def test_internal_eel_creation(self):
+        """Test EEL creation by internal user"""
+        # Internal user should be able to create EELs for all events
+        for e in Event.objects.all():
+            url = reverse('embblogentry', args=[e.graceid(), ''])
             input_dict = {
-                'group'      : 'Test',
-                'waveband'   : 'em.gamma',
-                'eel_status' : 'FO',
-                'obs_status' : 'TE',
-                'comment'    : 'Test',
-                'instrument' : 'Test',
+                'group': TEST_NAMES['emgroup'],
+                'waveband': 'em.gamma',
+                'eel_status': 'FO',
+                'obs_status': 'TE',
+                'comment': 'Test',
+                'instrument': 'Test',
             }
-            response = self.client.post(url,input_dict,**extra_args(get_user('lvem')))
-            if e.id==public_coinc_event.id:
+            response = self.client.post(url, input_dict,
+                **extra_args(self.internal_user))
+
+            # Should get a 302 since the view redirects to the
+            # event page on success
+            self.assertEqual(response.status_code, 302)
+
+    def test_lvem_eel_creation(self):
+        """Test EEL creation by LV-EM user"""
+        # LV-EM user should be able to create EELs for LV-EM and public events
+        for e in Event.objects.all():
+            url = reverse('embblogentry', args=[e.graceid(), ''])
+            input_dict = {
+                'group': TEST_NAMES['emgroup'],
+                'waveband': 'em.gamma',
+                'eel_status': 'FO',
+                'obs_status': 'TE',
+                'comment': 'Test',
+                'instrument': 'Test',
+            }
+            response = self.client.post(url, input_dict,
+                **extra_args(self.lvem_user))
+            if (e.id != self.internal_event.id):
                 self.assertEqual(response.status_code, 302)
             else:                    
                 self.assertEqual(response.status_code, 403)
 
-    # Test annotation of events by LIGO users
-    def test_internal_log_creation(self):
-        for e in CoincInspiralEvent.objects.all():
-            url = '/events/%s/log/' % e.graceid()
-            input_dict = {
-                'comment' : 'This is a test.',
-                'tagname' : 'test_tag',
-            }
-            response = self.client.post(url,input_dict,**extra_args(get_user('internal')))
-            self.assertEqual(response.status_code, 302)
+    def test_public_eel_creation(self):
+        """Test EEL creation by public user"""
+        # Public user should not be able to create EELs
+        event = self.public_event
+        url = reverse('embblogentry', args=[event.graceid(), ''])
+        # Test, em.gamma, FO, TE, instrument='Test', comment='Test'
+        input_dict = {
+            'group': TEST_NAMES['emgroup'],
+            'waveband': 'em.gamma',
+            'eel_status': 'FO',
+            'obs_status': 'TE',
+            'comment': 'Test',
+            'instrument': 'Test',
+        }
+        response = self.client.post(url, input_dict,
+            **extra_args(self.public_user))
+        self.assertEqual(response.status_code, 403)
 
-    def test_internal_log_tagging(self):
-        for e in CoincInspiralEvent.objects.all():
-            # Try to add 'test_tag' to the first log entry.
-            url = '/events/%s/log/1/tag/test_tag' % e.graceid()
-            input_dict = {'displayName' : None,}
-            response = self.client.post(url, input_dict,**extra_args(get_user('internal')))
-            self.assertEqual(response.status_code, 302)
-
-    def test_internal_eel_creation(self):
-        for e in CoincInspiralEvent.objects.all():
-            url = '/events/%s/embblog/' % e.graceid()
-            input_dict = {
-                'group'      : 'Test',
-                'waveband'   : 'em.gamma',
-                'eel_status' : 'FO',
-                'obs_status' : 'TE',
-                'comment'    : 'Test',
-                'instrument' : 'Test',
-            }
-            response = self.client.post(url,input_dict,**extra_args(get_user('internal')))
-            self.assertEqual(response.status_code, 302)
-
-    #-------------------------------------------------------------------------------
-    #-------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
     # Tests of event creation/replacement
-    #-------------------------------------------------------------------------------
-    #-------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
 
     @override_settings(GRACEDB_DATA_DIR=TMP_DATA_DIR)
-    def test_cbc_event_creation(self):
-        gstlal_submitter = get_user('gstlal_submitter')
+    def test_gw_event_creation(self):
+        """Only specific users should be able to create non-Test events"""
         for user in User.objects.all():
             response = request_event_creation(self.client, user)
-            if user.id==gstlal_submitter.id or user.is_superuser:
+            if (user.id == self.pipeline_user.id or user.is_superuser):
                 self.assertEqual(response.status_code, 302)
             else:
                 self.assertEqual(response.status_code, 403)
 
     @override_settings(GRACEDB_DATA_DIR=TMP_DATA_DIR)
-    # Anybody should be able to create a test event.
     def test_test_event_creation(self):
+        """Anybody should be able to create a Test event"""
         for user in User.objects.all():
             response = request_event_creation(self.client, user, test=True)
             self.assertEqual(response.status_code, 302)
 
-    # We want a test of the availability of a newly created event via search.
     @override_settings(GRACEDB_DATA_DIR=TMP_DATA_DIR)
     def test_search_on_new_event(self):
-        gstlal_submitter = get_user('gstlal_submitter')
-        response = request_event_creation(self.client, gstlal_submitter)
+        """Test the availability of a newly created event via search"""
+        response = request_event_creation(self.client, self.pipeline_user)
         redirect_url = response['Location']
         graceid = redirect_url.split('/')[-1]
-        url = '/events/search/flex?%s' % urlencode({'query': graceid})
-        response = self.client.get(url,**extra_args(get_user('internal')))
-        res = json.loads(response.content)
+        res = self.search_helper(graceid, self.internal_user)
         # You should get exactly one record.
         self.assertEqual(res['records'],1)
 
-#    # Actually, you can only replace an event that you yourself created.
-#    # Thus, not sure if we really need this.
-#    def test_event_replacement(self):
-#        pass
+    # Actually, you can only replace an event that you yourself created.
+    # Thus, not sure if we really need this.
+    # def test_event_replacement(self):
+    #     pass
 
-    #-------------------------------------------------------------------------------
-    #-------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
     # Test changes to permissions
-    #-------------------------------------------------------------------------------
-    #-------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
+    #--------------------------------------------------------------------------
    
     def test_perm_creation(self):
+        """Test permission creation for events"""
         for user in User.objects.all():
             # choose any event
-            event = CoincInspiralEvent.objects.all()[0]
+            event = self.internal_event
             # try POST to permission creation URL
-            url = '/events/%s/perms/' % event.graceid() 
-            input_dict = {'action': 'expose', 'group_name': 'gw-astronomy:LV-EM'}
-            response = self.client.post(url, input_dict,**extra_args(user))
-            groups = [g.name for g in user.groups.all()]
-            if not 'executives' in groups and not user.is_superuser:
+            url = reverse('modify_permissions', args=[event.graceid()])
+            input_dict = {
+                'action': 'expose',
+                'group_name': settings.LVEM_GROUP,
+            }
+            response = self.client.post(url, input_dict, **extra_args(user))
+            if (not self.execs_group in user.groups.all()
+                and not user.is_superuser):
                 self.assertEqual(response.status_code, 403)
             else:
                 # 302 because it redirects you back to the event
                 self.assertEqual(response.status_code, 302)
+            event.refresh_perms()
