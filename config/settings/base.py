@@ -15,7 +15,7 @@ from .secret import *
 # Set up path to root of project
 BASE_DIR = abspath(join(dirname(__file__), "..", ".."))
 CONFIG_ROOT = join(BASE_DIR, "config")
-PROJECT_ROOT = join(BASE_DIR, "apps")
+PROJECT_ROOT = join(BASE_DIR, "gracedb")
 
 # Miscellaneous settings ------------------------------------------------------
 # Debug mode is off by default

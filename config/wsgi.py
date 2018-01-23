@@ -9,7 +9,7 @@ BASE_DIR = abspath(join(dirname(__file__), ".."))
 
 # Add the source code directory and project root
 sys.path.append(BASE_DIR)
-sys.path.append(join(BASE_DIR, "apps"))
+sys.path.append(join(BASE_DIR, "gracedb"))
 
 # Activate the virtual environment
 VIRTUALENV_ACTIVATOR = "/home/gracedb/djangoenv/bin/activate_this.py"

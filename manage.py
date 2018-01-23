@@ -6,11 +6,10 @@ import sys
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
-    # Add the apps directory to Python's path. In production it will
-    # be necessary to add the apps directory to the path, too.
+    # Add the project root to the python path.
     from os.path import abspath, dirname, join
     BASE_DIR = abspath(dirname(__file__))
-    sys.path.append(join(BASE_DIR, "apps"))
+    sys.path.append(join(BASE_DIR, "gracedb"))
 
     try:
         from django.core.management import execute_from_command_line
