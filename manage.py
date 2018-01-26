@@ -1,15 +1,26 @@
 #!/usr/bin/env python
 
 import os
+from os.path import abspath, dirname, join
 import sys
 
-if __name__ == "__main__":
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+# Parameters
+SETTINGS_MODULE = 'config.settings'
+PROJECT_ROOT_NAME = 'gracedb'
+VENV_NAME = 'djangoenv'
+
+if __name__ == '__main__':
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', SETTINGS_MODULE)
 
     # Add the project root to the python path.
-    from os.path import abspath, dirname, join
     BASE_DIR = abspath(dirname(__file__))
-    sys.path.append(join(BASE_DIR, "gracedb"))
+    sys.path.append(join(BASE_DIR, PROJECT_ROOT_NAME))
+
+    # Set up virtualenv if not active
+    if ('VIRTUAL_ENV' not in os.environ):
+        VIRTUALENV_ACTIVATOR = abspath(join(BASE_DIR, '..', VENV_NAME, 'bin',
+            'activate_this.py'))
+        execfile(VIRTUALENV_ACTIVATOR, dict(__file__=VIRTUALENV_ACTIVATOR))
 
     try:
         from django.core.management import execute_from_command_line
