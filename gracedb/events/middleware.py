@@ -1,11 +1,25 @@
 from django.urls import resolve
-from django.utils.deprecation import MiddlewareMixin
 import logging
 logger = logging.getLogger(__name__)
 
-class PerformanceMiddleware(MiddlewareMixin):
+class PerformanceMiddleware(object):
 
-    def process_response(self, request, response):
+    def __init__(self, get_response):
+        # Custom logger for this middleware 
+        self.logger = logging.getLogger('performance')
+
+        self.get_response = get_response
+        super(PerformanceMiddleware, self).__init__()
+
+    def __call__(self, request):
+
+        # Request processing code ---------------------------------------------
+
+        # Get response --------------------------------------------------------
+        response = self.get_response(request)
+
+        # Response processing code --------------------------------------------
+
         # Determine whether the user tried to create or replace an event.
         # If the URL isn't among the URLs known to Django, we just return the response.
         try:
@@ -41,9 +55,9 @@ class PerformanceMiddleware(MiddlewareMixin):
 
         if create:
             # Log the status.
-            logger.info("create: %d: %s" % (response.status_code, username))
+            self.logger.info("create: %d: %s" % (response.status_code, username))
         elif annotate:
-            logger.info("annotate: %d: %s" % (response.status_code, username))
+            self.logger.info("annotate: %d: %s" % (response.status_code, username))
         
         if response.status_code == 429:
             request_logger = logging.getLogger('django.request')

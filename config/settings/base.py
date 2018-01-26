@@ -445,6 +445,11 @@ LOGGING = {
             'propagate': True,
             'level': LOG_LEVEL,
         },
+        'performance': {
+            'handlers': ['performance_file'],
+            'propagate': True,
+            'level': 'INFO',
+        },
         'ligoauth': {
             'handlers': ['debug_file','error_file'],
             'propagate': True,
