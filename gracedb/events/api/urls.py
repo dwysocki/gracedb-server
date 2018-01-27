@@ -2,55 +2,35 @@
 # Changed for Django 1.11
 from django.conf.urls import url
 
-# rest_framework
-from .api import GracedbRoot
-from .api import EventList, EventDetail
-from .api import EventLogList, EventLogDetail
-from .api import EMBBEventLogList, EMBBEventLogDetail
-from .api import EMObservationList, EMObservationDetail
-#from .api import EMFootprintList, EMFootprintDetail
-from .api import TagList
-# from .api import TagDetail
-from .api import EventTagList, EventTagDetail
-from .api import EventLogTagList, EventLogTagDetail
-from .api import Files, FileMeta
-from .api import EventNeighbors, EventLabel
-from .api import PerformanceInfo
-from .api import EventPermissionList
-from .api import GroupEventPermissionList
-from .api import GroupEventPermissionDetail
-from .api import VOEventList, VOEventDetail
-from .api import OperatorSignoffList
-from .api import download as download_view
+from .views import * 
 
 urlpatterns = [
     url(r'^$', GracedbRoot.as_view(), name="api-root"),
 
     # Event Resources
     # events/[{graceid}[/{version}]]
-    url(r'events/$',
-        EventList.as_view(), name='event-list'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)$',
-        EventDetail.as_view(), name='event-detail'),
+    url(r'events/$', EventList.as_view(), name='event-list'),
+    url(r'events/(?P<graceid>[GEHMT]\d+)$', EventDetail.as_view(),
+        name='event-detail'),
 
     # Event Log Resources
     # events/{graceid}/logs/[{logid}]
-    url(r'events/(?P<graceid>[GEHMT]\d+)/log/$',
-        EventLogList.as_view(), name='eventlog-list'),
+    url(r'events/(?P<graceid>[GEHMT]\d+)/log/$', EventLogList.as_view(),
+        name='eventlog-list'),
     url(r'events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)$',
         EventLogDetail.as_view(), name='eventlog-detail'),
 
     # VOEvent Resources
     # events/{graceid}/voevent/[{serial_number}]
-    url(r'events/(?P<graceid>[GEHMT]\d+)/voevent/$',
-        VOEventList.as_view(), name='voevent-list'),
+    url(r'events/(?P<graceid>[GEHMT]\d+)/voevent/$', VOEventList.as_view(),
+        name='voevent-list'),
     url(r'events/(?P<graceid>[GEHMT]\d+)/voevent/(?P<n>\d+)$',
         VOEventDetail.as_view(), name='voevent-detail'),
 
     # EMBB Resources
     # events/{graceid}/logs/[{logid}]
-    url(r'events/(?P<graceid>[GEHMT]\d+)/embb/$',
-        EMBBEventLogList.as_view(), name='embbeventlog-list'),
+    url(r'events/(?P<graceid>[GEHMT]\d+)/embb/$', EMBBEventLogList.as_view(),
+        name='embbeventlog-list'),
     url(r'events/(?P<graceid>[GEHMT]\d+)/embb/(?P<n>\d+)$',
         EMBBEventLogDetail.as_view(), name='embbeventlog-detail'),
     url(r'events/(?P<graceid>[GEHMT]\d+)/emobservation/$',
@@ -65,10 +45,9 @@ urlpatterns = [
     # Tag Resources
     url(r'^tag/$', TagList.as_view(), name='tag-list'),
     # XXX unclear what the tag detail resource should be.
-    #url(r'^tag/(?P<tagname>.+)$', 
-    #    TagDetail.as_view(), name='tag-detail'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)/tag/$',
-        EventTagList.as_view(), name='eventtag-list'),
+    #url(r'^tag/(?P<tagname>.+)$', TagDetail.as_view(), name='tag-detail'),
+    url(r'events/(?P<graceid>[GEHMT]\d+)/tag/$', EventTagList.as_view(),
+        name='eventtag-list'),
     url(r'events/(?P<graceid>[GEHMT]\d+)/tag/(?P<tagname>.+)$',
         EventTagDetail.as_view(), name='eventtag-detail'),
     url(r'events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)/tag/$',
@@ -99,19 +78,17 @@ urlpatterns = [
 
     # Event Neighbors
     # events/{graceid}/neighbors/[?delta=(N|(N,N))]
-    url(r'^events/(?P<graceid>\w[\d]+)/neighbors/$',
-        EventNeighbors.as_view(), name="neighbors"),
+    url(r'^events/(?P<graceid>\w[\d]+)/neighbors/$', EventNeighbors.as_view(),
+        name="neighbors"),
 
     # Operator Signoff Resources
     url(r'events/(?P<graceid>[GEHMT]\d+)/signoff/$',
         OperatorSignoffList.as_view(), name='signoff-list'),
 
-
     # Performance stats
-    url(r'^performance/$', 
-        PerformanceInfo.as_view(), name='performance-info'),
+    url(r'^performance/$', PerformanceInfo.as_view(), name='performance-info'),
 
     # Legacy
-    #url(r'^events/(?P<graceid>\w[\d]+)/files/(?P<filename>.+)?$', 'download', name="files"),
-    url(r'^event/(?P<graceid>\w[\d]+)/files/(?P<filename>.+)?$', download_view, name="download2"),
+    url(r'^event/(?P<graceid>\w[\d]+)/files/(?P<filename>.+)?$', download,
+        name="download2"),
 ]

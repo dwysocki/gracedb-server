@@ -6,7 +6,7 @@ from django.conf.urls import url
 from . import views
 #import django.views.generic.list_detail
 
-from .api import download
+from .api.views import download
 
 urlpatterns = [
     url(r'^$', views.index, name="home-events"),
