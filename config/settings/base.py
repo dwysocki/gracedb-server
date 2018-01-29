@@ -1,4 +1,4 @@
-import os, time, socket, logging
+import os, time, logging
 from os.path import abspath, dirname, join
 from datetime import datetime, timedelta
 from cloghandler import ConcurrentRotatingFileHandler
@@ -43,7 +43,7 @@ USE_TZ = True
 # hostname.ligo.org. Security measure for preventing cache poisoning and
 # stopping requests submitted with a fake HTTP Host header.
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', SERVER_FQDN,
-    '{0}.ligo.org'.format(socket.gethostname())]
+    '{0}.ligo.org'.format(SERVER_HOSTNAME)]
 
 # LVAlert and LVAlert Overseer settings ---------------------------------------
 # Switches which control whether alerts are sent out

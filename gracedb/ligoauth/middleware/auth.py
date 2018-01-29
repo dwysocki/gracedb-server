@@ -43,8 +43,13 @@ def get_client_ip(request):
 
 def cert_dn_from_request(request):
     """Take a request, rummage through SSL_* headers, return the DN for the user."""
-    certdn = request.META.get('SSL_CLIENT_S_DN')
-    issuer = request.META.get('SSL_CLIENT_I_DN')
+
+    if request.META.get('HTTP_X_FORWARDED_FOR'):
+        certdn = request.META.get('HTTP_SSL_CLIENT_S_DN')
+        issuer = request.META.get('HTTP_SSL_CLIENT_I_DN')
+    else:
+        certdn = request.META.get('SSL_CLIENT_S_DN')
+        issuer = request.META.get('SSL_CLIENT_I_DN')
 
     if not certdn:
         try:
@@ -70,10 +75,10 @@ def cert_dn_from_request(request):
 
 def create_user_from_request(request):
     user_dict = {
-        'username': request.META.get('REMOTE_USER'),
-        'email': request.META.get('mail', ''),
-        'first_name': request.META.get('givenName', ''),
-        'last_name': request.META.get('sn', ''),
+        'username': request.META.get('HTTP_REMOTE_USER'),
+        'email': request.META.get('HTTP_MAIL', ''),
+        'first_name': request.META.get('HTTP_GIVENNAME', ''),
+        'last_name': request.META.get('HTTP_SN', ''),
         'password': 'X',
     }
     return User.objects.create(**user_dict)
@@ -88,8 +93,7 @@ class LigoAuthMiddleware(MiddlewareMixin):
         user = None
 
         # An authenticated LIGO user will have one of these set.
-
-        remote_user = request.META.get('REMOTE_USER')
+        remote_user = request.META.get('HTTP_REMOTE_USER')
         message = remote_user
         dn = cert_dn_from_request(request)
 
@@ -116,7 +120,7 @@ class LigoAuthMiddleware(MiddlewareMixin):
                 pass
             
             # Update user groups
-            isMemberOf = request.META.get('isMemberOf',None)
+            isMemberOf = request.META.get('HTTP_ISMEMBEROF',None)
             user_group_names = []
             if isMemberOf:
                 user_group_names = isMemberOf.split(';')
@@ -208,7 +212,8 @@ class LigoAuthMiddleware(MiddlewareMixin):
                 response = HttpResponse(json.dumps({'error': msg}), status=401)
                 response['WWW-Authenticate'] = 'Basic realm="/apibasic/"'
                 return response
-            return render('forbidden.html', {'error': message}, status=403)
+            return render(request, 'forbidden.html', status=403,
+                context={'error': message})
 
     def process_response(self, request, response):
         # If the user is connecting from one of the control rooms, remove him/her from

@@ -27,3 +27,4 @@ pysqlite
 service_identity
 flake8
 django-extensions
+gunicorn

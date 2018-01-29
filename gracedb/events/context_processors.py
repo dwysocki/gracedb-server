@@ -1,7 +1,6 @@
 from django.contrib.auth.models import Group
 
 def LigoAuthContext(request):
-    #return { 'ligouser' : request.ligouser, 'user' : request.user }
 
     internal_groups = Group.objects.filter(name__in=['Communities:LSCVirgoLIGOGroupMembers', 'executives'])
 
@@ -11,4 +10,3 @@ def LigoAuthContext(request):
             user_is_internal = True
 
     return { 'user' : request.user, 'user_is_internal' : user_is_internal }
-    return { 'ligouser' : request.user, 'user' : request.user }
