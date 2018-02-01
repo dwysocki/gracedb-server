@@ -1,12 +1,12 @@
 *.swp
 *~
 *.pyc
-apps/static/admin/
-apps/static/rest_framework/
-apps/static/debug_toolbar/
-apps/static/django_extensions/
-apps/static/guardian/
 config/settings/secret.py
 config/settings/local.py
 docs/user_docs/build/*
 docs/admin_docs/build/*
+gracedb/static/admin/
+gracedb/static/rest_framework/
+gracedb/static/debug_toolbar/
+gracedb/static/django_extensions/
+gracedb/static/guardian/

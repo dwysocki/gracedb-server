@@ -33,6 +33,10 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 # BrokenLinkEmailsMiddleware is enabled
 MANAGERS = ADMINS
 
+# Use forwarded host header for Apache -> Gunicorn reverse proxy configuration
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # Base URL for TwiML bins (for Twilio phone/text alerts)
 TWIML_BASE_URL = 'https://handler.twilio.com/twiml/'
 
@@ -291,7 +295,7 @@ REST_FRAMEWORK = {
 }
 
 # Location of static components, CSS, JS, etc.
-STATIC_ROOT = join(CONFIG_ROOT, "static/")
+STATIC_ROOT = join(PROJECT_ROOT, "static/")
 STATIC_URL = "/gracedb-static/"
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -301,7 +305,7 @@ STATICFILES_FINDERS = [
 STATICFILES_DIRS = []
 
 # Location of Bower packages.
-BOWER_URL = "bower-static"
+BOWER_URL = "/bower-static/"
 BOWER_ROOT = join(GRACEDB_PATHS["home"], "bower_components/")
 
 # Added in order to perform data migrations on the auth and guardian apps

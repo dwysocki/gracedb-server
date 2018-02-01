@@ -29,7 +29,7 @@ INSTALLED_APPS += [
 # if debug_toolbar is enabled and DEBUG is True.
 if DEBUG and debug_middleware in MIDDLEWARE:
     MIDDLEWARE.insert(MIDDLEWARE.index(debug_middleware),
-        'middleware.proxy.XForwardedForMiddleware')
+        'core.middleware.proxy.XForwardedForMiddleware')
 
 # Tuple of IPs which are marked as internal, useful for debugging.
 # Tanner (5 Dec. 2017): DON'T CHANGE THIS! Django Debug Toolbar exposes

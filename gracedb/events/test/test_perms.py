@@ -33,13 +33,27 @@ TEST_NAMES = {
 }
 
 def extra_args(user):
-    """Utility for passing user details to request"""
+    """
+    Utility for passing user details to request. Needed because the web server
+    does some of the authentication work with Shibboleth
+    """
+
     if not user:
         return {}
-    return {
+
+    # Information needed from webserver
+    AUTH_DICT = {
         'REMOTE_USER': user.username,
-        'isMemberOf': ';'.join([g.name for g in user.groups.all()])
+        'isMemberOf': ';'.join([g.name for g in user.groups.all()]),
     }
+
+    # Need to handle reverse proxy case where headers are used
+    # instead of Apache environment variables.
+    if settings.USE_X_FORWARDED_HOST:
+        for k in AUTH_DICT.keys():
+            AUTH_DICT['HTTP_' + k.upper()] = AUTH_DICT.pop(k)
+
+    return AUTH_DICT
 
 def request_event_creation(client, user, test=False):
     """
