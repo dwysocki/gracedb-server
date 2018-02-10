@@ -1,16 +1,15 @@
-.. _managing_user_permissions: 
+.. _user_permissions: 
 
 ================================
 Managing user permissions
 ================================
 
-.. NOTE::
-    The examples here show how to work with permissions in the Django console.
-    I believe it is also possible to do the same thing through the admin
-    browser interface.  I personally don't like it, though, so I never use it.
+*Last updated 18 Sept 2017*
 
 .. NOTE::
-    This is a sample edit in order to prove editing functionality. 
+    The examples here show how to work with permissions in the Django console.
+    Please adapt these examples and use a database migration to implement
+    any changes to permissions.
 
 Background on the permissions infrastructure
 ============================================
@@ -49,7 +48,7 @@ of the infinitive and object, lower-cased and separated by an underscore,
 such as ``add_event``. This code name makes for a very convenient way of looking up
 permissions in the database. The ``content_type`` specifies
 exactly which model the permission refers to (e.g., the ``Event`` model
-from the ``gracedb`` app).  
+from the ``events`` app).  
 (The content type entry contains both the model name *and* the app to which 
 the model belongs because both are necessary to fully specify the model. It
 is not uncommon to have the same model name in multiple apps.)
@@ -72,7 +71,7 @@ make this easier::
 
     >>> u = User.objects.get(username='albert.einstein@LIGO.ORG')
 
-    >>> if u.has_perm('gracedb.add_event'):
+    >>> if u.has_perm('events.add_event'):
     ...:    print "Albert can add events!"
 
 Again, notice that the ``has_perm`` function needs the codename to be scoped by
@@ -163,7 +162,7 @@ The row-level extension
 The permissions described above apply at the Django model level, or
 equivalently, to entire database tables.  Thus, a user with the permission
 ``change_event`` in his or her permission set is able to change *any* entry in
-the ``gracedb_event`` table. However, GraceDB requires finer grained access
+the ``events_event`` table. However, GraceDB requires finer grained access
 controls: we need to be able to grant individual users or groups permissions
 on *individual objects*, or equivalently, individual rows of the database.
 Thus these are sometimes called *row-level* (or object-level) permissions, as opposed to the 
@@ -220,8 +219,8 @@ group of users, such as the LV-EM observers group
 *revoke* the view permissions on an event. Because releasing event information
 to non-LVC users is a sensitive matter, only the ``executives`` group is
 authorized to do this. Thus, we are using table-level permissions to authorize
-the addition and deletion of row-level permissions. Turtles all the way down
-(well, not *really*). 
+the addition and deletion of row-level permissions.
+Turtles all the way down (well, not *really*). 
 
 On permissions and searching for events
 ---------------------------------------
@@ -237,13 +236,13 @@ either an individual or group permission to view the event. There is a
 provided to do this from the guardian package::
 
     from django.contrib.auth.models import User
-    from gracedb.models import Event, Pipeline
+    from events.models import Event, Pipeline
     from guardian.shortcuts import get_objects_for_user
 
     user = User.objects.get(username='albert.einstein@LIGO.ORG')
     events = Event.objects.filter(pipeline=Pipeline.objects.get(name='gstlal'))
 
-    filtered_events = get_objects_for_user(user, 'gracedb.view_event', events)
+    filtered_events = get_objects_for_user(user, 'events.view_event', events)
 
 However, behind the scenes, this requires creating a complex join query over
 several tables, and the process is rather slow. Thus, I added a field to the
@@ -278,7 +277,7 @@ on some anecdotal testing.
 There is also a method on the ``Event`` object to refresh this permissions
 string::
 
-    from gracedb.models import Event
+    from events.models import Event
     e = Event.getByGraceid('G184098')
     e.refresh_perms()
 

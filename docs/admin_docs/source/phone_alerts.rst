@@ -1,6 +1,8 @@
-================================
+.. _phone_alerts:
+
+========================
 Phone alerts with Twilio
-================================
+========================
 
 *Last updated 1 December 2016*
 
@@ -72,7 +74,7 @@ You'll need the Account SID, Auth Token, and TwiML bin SIDs for the next step.
 
 Configuration on GraceDB server
 ===============================
-Most of the relevant code is in ``gracedb/alerts.py``, including the following functions:
+Most of the relevant code is in ``events/alerts.py``, including the following functions:
 
 - ``get_twilio_from``
 - ``make_twilio_calls``
@@ -83,11 +85,10 @@ There is also some relevant code in ``userprofile/models.py``, which defines a `
 
 The TwiML bin SIDs are used in ``make_twilio_calls`` to generate the URLs and make the POST request.
 These SIDs, along with the Account SID and Auth Token should **NOT** be saved in the git repository.
-As a result, they are saved in ``settings/secret_settings.py``, which is not part of the git repository, but is created by Puppet and encrypted in the GraceDB eyaml `file <https://git.ligo.org/cgca-computing-team/cgca-config/blob/production/production/hieradata/gracedb.cgca.uwm.edu.eyaml>`__ in the `cgca-config repository <https://git.ligo.org/cgca-computing-team/cgca-config>`__.
+As a result, they are saved in ``settings/secret.py``, which is not part of the git repository, but is created by Puppet and encrypted in the GraceDB eyaml `file <https://git.ligo.org/cgca-computing-team/cgca-config/blob/production/production/hieradata/gracedb.cgca.uwm.edu.eyaml>`__ in the `cgca-config repository <https://git.ligo.org/cgca-computing-team/cgca-config>`__.
 If you need to edit this, you'll have to follow the instructions `here <https://git.ligo.org/cgca-computing-team/cgca-config/blob/production/EncryptedYaml.md>`__ for working with eyaml files.
 
 *Note: currently, the code for determining the phone call recipients is coupled with the code that determines e-mail recipients.
 This may be the most efficient way of doing it, but we may want to consider separating it in the future for ease of understanding and modularity.*
-
 
 Finally, phone calls are only made to LVC members at present.

@@ -69,3 +69,34 @@ changes to the GraceDB server codebase. Here's how I like to go about it.
 And now your new feature or bugfix should be live on the production machine.
 The scenario I've outlined above is more-or-less the simplest way things can 
 go. Things are more complicated if you need to do a database migration...
+
+To add:
+
+* Information about doing migrations
+* Information about django-debug-toolbar
+* Tips for checking things in the logs
+* Information about what each of the servers is used for and has (incommon, cirrus, etc.)
+
+Using Django Debug Toolbar
+==========================
+Django Debug Toolbar (DJDT) is a useful tool for inspecting request objects, headers, SQL calls, etc. made by your web views.
+One limitation is that it doesn't track Javascript or AJAX requests.
+It's used by turning on the relevant middleware in the ``MIDDLEWARE`` setting and app in ``INSTALLED_APPS``.
+The toolbar is shown to users whose IP address is included in the ``INTERNAL_IPS`` setting.
+However, DJDT reveals certain headers which are to be kept secret, so to keep things extra-safe, we only allow the GraceDB server's IP address to be included in ``INTERNAL_IPS``.
+As a result, you'll have to set up a SOCKS proxy to use DJDT.
+
+Set up an SSH tunnel to the GraceDB server in question::
+
+    ssh -D 8080 -f -C -q -N albert.einstein@gracedb-test.ligo.org
+
+This process runs in the background, so once you're done, you'll have to kill it.
+
+Mozilla Firefox
+---------------
+Go to Preferences, then under the "Network Proxy" heading, go to "Settings".
+Use a manual proxy configuration, use SOCKS v5, use port 8080, and set ``127.0.0.1`` as the SOCKS host.
+
+Google Chrome
+-------------
+Start Chrome from the command line with ``google-chrome --proxy-server="socks5://localhost:8080" --host-resolver-rules="MAP * ~NOTFOUND , EXCLUDE localhost"``.

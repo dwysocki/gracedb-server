@@ -1,302 +1,280 @@
+.. _new_gracedb_instance:
+
 ==================================
 Standing up a new GraceDB instance
 ==================================
 
+*Last updated 14 December 2017*
+
 Disclaimer
 ==========
+Certain parts of these instructions may not work.
+Please edit when you find something that fails. 
 
-These instructions will almost certainly not work. Please edit when you find
-something that fails. 
+Also note that setup of a GraceDB server relies heavily on Puppet.
+You may attempt a Puppet-less setup at your own risk!
 
-Recipe
-======
+Initial steps
+========================
+The first step is to pick the FQDN for your new server.
+As of spring 2017, it's preferred to use the ``.ligo.uwm.edu`` domain.
+For this exercise, we'll assume that a server name ``gracedb-new.ligo.uwm.edu``.
+You should also decide whether you will need a LIGO.ORG domain name (i.e., ``gracedb-new.ligo.org``).
+This is not absolutely necessary for test instances, but is recommended in order to simulate the production environment as closely as possible.
 
-Machine and certificates
-------------------------
+Virtual machine setup
+---------------------
+You'll need to either have one of the VMWare tools (VMWare Workstation for Linux or VMWare Fusion for OS X) installed on your machine, access to ``headroom.cgca.uwm.edu`` (a Windows machine that has VMWare vSphere), or access to the `web interface <http://vc5.ad.uwm.edu>`__.
+Currently, the web interface is the preferred method for setting up a new VM, so the following instructions will be for this method.
 
-I'll assume that the new instance will have the FQDN ``gracedb-new.cgca.uwm.edu``.
-Follow the 
-`instructions <https://www.lsc-group.phys.uwm.edu/wiki/Computing/ManagingVirtualMachines>`__ 
-for setting up a new Debian stock VM managed by puppet. 
-You are going to need an InCommon SSL certificate for Apache, so I recommend
-requesting this first. Instructions are found 
-`here <https://www.lsc-group.phys.uwm.edu/wiki/CertificateRequestUWM>`__. Store the 
-cert and key with correct file permissions somewhere for safe keeping.
+Find the VM template you want to use (click on a VM host (left panel), then "VMs" (middle frame), then "VM Templates in Folders").
+Currently, the Debian templates are on ``vmhost05``, but you may have to check all of the VM hosts if you don't find it there.
+We are currently using Debian 8, but in the process of moving to Debian 9. 
+Left-click on the template and then choose "New VM from This Template" (above the list of templates).
+Enter ``gracedb-new`` for the virtual machine's name and hit "Next".
+Then, choose the VM host you want to put the VM on and hit "Next".
+You can probably skip the next two steps and hit "Finish".
 
-.. NOTE::
-    If this new instance will have a FQDN ending in ``.ligo.org``, you will
-    need to get the cert from Caltech instead. Some instructions are found
-    `here <https://wiki.ligo.org/AuthProject/ComodoInCommonCert>`__.
+At this point, you can modify the VM's settings:
 
-Puppet configuration
+- CPU: 2 is fine for testing, use only 1 socket total (not 1 per core).
+- RAM: something like 2 GB should be fine for testing.
+- Storage space: add a second hard drive of about 100 GB (for testing). You may want a larger disk if this is a production server or if you intend to copy the entire production database for testing purposes.
+- Network adapter: use public VLAN 61.
+
+The instructions on the CGCA computing `wiki <https://www.lsc-group.phys.uwm.edu/wiki/Computing/ManagingVirtualMachines>`__ provide more detailed information that may be helpful.
+
+Getting certificates
 --------------------
+It's best to submit your requests for any certificates as soon as possible, as waiting for these will most likely be the biggest bottleneck in this process.
 
-On your workstation, clone the ``cgca-hiera`` git repository::
+- In all cases, you'll need an InCommon SSL certificate for your ligo.uwm.edu domain name. Follow the instructions on the CGCA computing wiki `here <https://www.lsc-group.phys.uwm.edu/wiki/CertificateRequestUWM>`__.  Note that the "short hostname" for our server is ``gracedb-new``.
+- If you decided that you want a LIGO.ORG domain name, you'll need an InCommon SSL certificate for this, as well.  Follow the instructions `here <https://wiki.ligo.org/AuthProject/ComodoInCommonCert>`__.
+- Finally, you may want an IGTF certificate to provide gsissh access.  It depends whether you want non-UWM people to potentially have access via the command line without SSH keys.  You can do this for either the UWM or LIGO domain names; Tom prefers that we use the UWM one.  The instructions for the UWM SSL certificate also contain information about obtaining an IGTF certificate.
 
-    git clone git@git.ligo.org:cgca-computing-team/cgca-hiera.git
+In all cases, you'll generate a key and a certificate request, and will send the certificate request to the proper authorities for it to be signed.
+Once your certificate is ready, you'll receive an e-mail with instructions for downloading your certificate.
+You will usually want the certificate labeled as "X509 Certificate only, Base64 encoded".
 
-Create the necessary YAML files by copying from one of the existing
-instances.  This will get you pretty far::
+DNS configuration
+-----------------
 
-    cd cgca-hiera
-    cp gracedb-test.cgca.uwm.edu.yaml gracedb-new.cgca.uwm.edu.yaml
-    cp gracedb-test.cgca.uwm.edu.eyaml gracedb-new.cgca.uwm.edu.eyaml
+UWM
+___
+In the web interface, you should be able to find the MAC address of the network adapter under the adapter's settings.
+If you need to generate a new MAC address, I'm not sure how to do that through the web interface.
+However, you can do this with VMWare Workstation by right-clicking on your VM to access "Settings", then "Network adapter", and then "Advanced."
+Follow the `instructions <https://www.lsc-group.phys.uwm.edu/wiki/Computing/ManagingVirtualMachines#Create_a_DNS_entry_for_the_guest>`__ on the CGCA wiki for setting up a DNS entry through ``dns.uwm.edu``.
+Note that you will have to click on the "Data Management" tab in the top middle to get to the "Network" settings specified in these instructions.
 
-Edit the latter file until you are satisfied. Here are some things you
-will definitely want to change
+After this is complete, you can boot up the VM.
 
-- instances of the FQDN
-- SSH key for the gracedb@gracedb-new.cgca.uwm.edu user
-- user entry for yourself, to map your InCommon cert DN to the gracedb user account
+LIGO DNS
+________
+This section is only relevant if you are using a LIGO.ORG domain name.
+Email Larry Wallace (larry.wallace@ligo.org) and ask him to configure ``gracedb-new.ligo.org`` as a CNAME that points to ``gracedb-new.ligo.uwm.edu``.
 
-You may also need to add the ``webserver3`` and ``gracedb`` modules to the 
-list, as these handle much of the work, but are sometimes left off of the 
-list in order to prevent changes being made to the server without the 
-maintainer's knowledge.
+VM configuration
+================
 
-Next, edit the EYAML file, which has the secret information in it.
-At the time of writing, the best way of editing an EYAML file has not
-been settled upon. (My favorite way to
-do this is to use ``eyaml edit``. But at the time of writing, that is only
-available as root on the ``puppet.cgca.uwm.edu`` machine, and you have to
-explicitly provide paths to the PKCS7 public and private keys. In the 
-intervening time, it is likely that a better way to edit eyaml files will
-have been devised.) Change the mysql root and gracedb
-user passwords, noting that these occur in multiple locations. Add in the 
-naturally occurring shib cert and key, as well
-as the apache cert and key.  Importantly, you should comment out the 
-lines associated with the file ``settings_secret``. We don't want Puppet
-to try to create this file yet, since our server code directories that 
-contain it don't exist yet.
+Standard CGCA server configuration
+----------------------------------
+Log on to your server through VMWare Workstation, using the standard root password (note that the hostname is initially set to ``server``).
+Download and run the Debian setup script (as shown on the CGCA wiki)::
 
-Commit the new files and push. Then log into the new machine as root and 
-run the puppet agent::
+    curl -s http://omen.phys.uwm.edu/setup_debian.sh | bash -s -- gracedb-new.ligo.uwm.edu
 
-    puppet agent -t 
+Reboot the VM.
+The hostname should now be ``gracedb-new.ligo.uwm.edu``.
+Change the root password to match the new hostname using the standard root password formula (use the ``passwd`` command).
+Note: the root password formula may change/be removed in late 2017.
 
-This may initially produce errors, so some iteration is to be expected.
+The setup script has generated and sent a Puppet certificate request to the puppetmaster server.
+Log in to ``puppet.cgca.uwm.edu`` and sign the certificate (see instructions `here <https://www.lsc-group.phys.uwm.edu/wiki/Computing/AddingPuppet>`__).
+
+Running Puppet
+--------------
+GraceDB servers use the standard CGCA configuration for a webserver, with several customizations implemented by a gracedb module.
+More information about how to use this module is in its README file.
+You can find the module `here <https://git.ligo.org/cgca-computing-team/cgca-config/tree/production/localmodules/gracedb>`__ (for now, it may move to its own repo in the near future).
+
+First, you'll need to generate hiera files for this server for use with Puppet.
+In the cgca-config repository, create ``data/nodes/gracedb-new.ligo.uwm.edu.yaml`` and ``data/nodes/gracedb-new.ligo.uwm.eyaml``.
+I suggest copying another GraceDB server's files and customizing them as needed.
+Things you will likely need to change include:
+
+- The database password: ``gracedb::mysql::database::password``
+- The root MySQL password: ``mysql::server::root_password``)
+- Accounts for LVAlert servers (if this is a test server, use only ``lvalert-test.cgca.uwm.edu``): create the new account on the LVAlert server (current best method is the online Openfire interface). You'll need to add an entry to ``gracedb::config::netrc`` for this account.
+- Set ``shibboleth::certificate::useHiera`` to false. This will cause a new Shibboleth key and certificate to be generate on the first Puppet run.  After that, you'll copy the generated certificate and key into your server's .eyaml file and set this variable to true.  Then re-run Puppet.
+- If you have SSL certificates already, add them to the .eyaml file.  If not, remove these lines for now and add them back in once you have the certificates.
+- Add this server to the gracedb hostgroup (contains base setup for all GraceDB servers) in the `puppet_node_classifier <https://git.ligo.org/cgca-computing-team/cgca-config/blob/production/site/profile/files/puppetmaster/puppet_node_classifier>`__.
+
+Push your changes to the repository (use a branch and ``r10k`` if you want to be cautious).
+Then, run Puppet on your new server.
+Note that it may take a few minutes for the changes to propagate to the puppetmaster machine, so you may have to wait before running Puppet.
 
 Shibboleth SP registration
 --------------------------
+Once you have your Shibboleth key and certificate set up in the Puppet configuration, with ``shibboleth::certificate::useHiera`` set to true, you need to register your SP.
+Send an email to ``rt-auth@ligo.org`` and ask that a service provider with your FQDN be added to the LIGO shibboleth metadata (generally, use the LIGO.org FQDN, if available).
+You will need to attach the cert you find at ``/etc/shibboleth/sp-cert.pem``.
 
-At this point, the ``shibboleth`` package should be installed, along with its
-self-signed certificates. Send email to ``rt-auth`` and ask that a service provider
-with your FQDN be added to the LIGO shibboleth metatadata. You will need to
-attach the cert you find at ``/etc/shibboleth/sp-cert.pem``.  The rest of the
-Shibboleth SP configuration should already have been taken care of by Puppet,
-so it should "just work" once it is added to the LIGO metadata.  If it doesn't,
-there is more detail about setting up a new Shibboleth SP 
-`here <https://wiki.ligo.org/AuthProject/DeployLIGOShibbolethDebianSqueeze>`__.
+Shibboleth discovery service
+----------------------------
+Next, set up the embedded discovery service for Shibboleth.
+Go to the "latest" Shibboleth downloads `page <http://shibboleth.net/downloads/embedded-discovery-service/latest/>`__ and determine the version.
+Then you can do::
 
-Application code
-----------------
+    wget http://shibboleth.net/downloads/embedded-discovery-service/latest/shibboleth-embedded-ds-1.2.0.tar.gz
 
-Next, we'll pull down the repo containing the source code. Log in to the 
-new machine as the ``gracedb`` user, and clone the 
-server code using your LIGO credentials::
+Unpack the archive into ``/etc/shibboleth-ds`` (create the directory if it doesn't exist), and edit ``idpselect_config.js``.
 
-    cd
-    ecp-cookie-init LIGO.ORG https://versions.ligo.org/git albert.einstein
-    git config --global http.cookiefile /tmp/ecpcookie.u`id -u`
-    git clone https://versions.ligo.org/git/gracedb.git
+Change the line starting with ``this.preferredIdP`` to::
 
-Create a new settings file by copying from one of the existing ones::
+    this.preferredIdP = ['https://login.ligo.org/idp/shibboleth', 'https://login.guest.ligo.org/idp/shibboleth', 'https://google.cirrusidentity.com/gateway'];
 
-    cd gracedb/settings
-    cp test.py new.py
-
-or some other appropriate name. (Copy from ``default.py`` if you'd rather
-have a production-like instead of testing-like instance.) Edit this new 
-settings module as desired. You will at least want to change the
-``CONFIG_NAME`` and all instances of the FQDN.  Now edit
-``settings/__init__.py`` to make sure this new settings module will
-be invoked::
-
-    from default import *
-
-    config = configs.get(ROOT_PATH, "production")
-
-    if socket.gethostname() == 'gracedb-test':
-        config = 'test'
-    elif socket.gethostname() == 'gracedb-new':
-        config = 'new'
-
-    settings_module = __import__('%s' % config, globals(), locals(), 'gracedb')
-
-Note that the behavior here is that we first import everything from default.
-Then we'll overwrite those settings with fhe module specified by ``config``.
-Also uncomment the ``settings_secret`` file in the EYAML for this machine,
-and run the puppet agent again. This will install our secret settings file
-that is pulled in by the default settings.
-
-Required packages
------------------
-
-GraceDB relies on several packages that are best installed in a virtual environment
-rather than at the system level. This is important, because we don't want 
-our regular package updates to suprise us with, say, a new version of Django
-that our code hasn't yet been ported to.
-Create the virtual environment for the ``gracedb`` user in that user's
-home directory::
-
-    cd
-    virtualenv djangoenv --system-site-packages
-    source djangoenv/bin/activate
-    pip install mysql-python
-    pip install python-ldap
-    pip install html5lib
-    pip install requests
-    pip install Sphinx
-    pip install python-memcached
-    pip install django-model-utils
-    pip install djangorestframework==3.3.2
-    pip install django-guardian==1.4.1
-    pip install django-debug-toolbar
-    pip install django-debug-panel
-    pip install Django==1.8.11
-    pip install ligo-lvalert --pre
-    pip install ligo-lvalert-overseer       
-
-You may find that you need to install additional packages during the testing
-process.  Note that the ``--system-site-packages`` is necessary in order for the
-system install of ``python-glue`` to be available inside the virtual environment.
-Also note that we ask for specific version numbers of some packages. Also, the
-ordering of these commands matters, since packages such as ``django-guardian``
-will try to pull in the very latest version of Django.  So if we really want
-Django 1.8, we have to ask for that one *after* installing the third-party
-packages.  I decided to stick with Django 1.8 for the time being, since it is
-one of the designated LTS releases. Version 1.9, by contrast, is not and will
-be supported for a shorter period of time. Successive releases of Django often
-contain breaking API changes, so be prepared if you decide to update. 
-
-Run ``collectstatic`` so that all of the static files from the various Python
-sources are collected under ``gracedb/static``, where Apache will expect to 
-find them::
-    
-    cd
-    cd gracedb
-    ./manage.py collectstatic
-
-Next, install the JavaScript components GraceDB uses to render web pages.
-As root::
-
-    update-alternatives --install /usr/bin/node nodejs /usr/bin/nodejs 100
-    which node
-    curl https://www.npmjs.com/install.sh | sh
-    which npm
-    npm install -g bower
-
-Then, as the ``gracedb`` user::
-
-    cd
-    bower install dgrid#0.4.0
-    bower install dijit#1.10.4
-    bower install dojox#1.10.4
-    bower install moment#2.11.1
-    bower install moment-timezone#0.5.0
-
-These particular versions may be required in order for the web pages to render
-correctly.
-
-Miscellaneous
--------------
-
-GraceDB relies on the ability to send email--both for alerts to users who
-request them, and to the maintainer/developer in case of unhandled exceptions.
-Reconfigure ``exim4`` as root by executing::
-
-    dpkg-reconfigure exim4-config
-
-You'll want to accept the defaults, except for two: 1) set this host to be an
-"internet site; mail is sent and received directly using SMTP." and 2) remove 
-``::1`` from the list of listening addresses. (The latter seems to be necessary,
-as I've observed that the exim4 server hangs if it tries to listen on ``::1``.)
-Also check that the system FQDN appears correctly.
-
-Next, set up the embedded discovery service.  Download from::
-
-    http://shibboleth.net/downloads/embedded-discovery-service/latest/shibboleth-embedded-ds-1.1.0.tar.gz
-
-Unpack the archive into /etc/shibboleth-ds, and edit ``idpselect_config.js``::
-
-    this.preferredIdP = ['https://login.ligo.org/idp/shibboleth', 'https://login.guest.ligo.org/idp/shibboleth', 'https://google.cirrusidentity.com/gateway'];        // Array of entityIds to always show
+This determines the identity providers which will be shown on the discovery service login page.
+For test deployments, you may not need to include the Google IdP (depends if your server is set up to use the Cirrus Google gateway or not), but it doesn't hurt anything to include it.
 
 You may need to increase the width of the ``idpSelectIdpSelector`` element in
-``idpselect.css``. I set this to 512.
+``idpselect.css`` (set to ~512 px for 3 IdPs).
+You may need to edit ``this.maxPreferredIdPs`` if you have more than the default number (3).
 
-As the ``gracedb`` user obtain the random bin scripts used by GraceDB for various purposes::
+Check if the link provided in ``this.helpURL`` is functional or not; it has not worked for me in the past several versions of ``shibboleth-ds``.
+I suggest using this `link <https://wiki.shibboleth.net/confluence/display/SHIB2/DiscoveryService>`__ instead (if functional).
 
-    cd
-    git clone git@git.ligo.org:gracedb/scripts.git bin
+Finally, if you are confused about parts (or all) of this section, I suggest looking at other GraceDB servers and emulating their configuration.
 
-If this raises an error regarding access rights, simply copy over your ssh keypair
-that you use to access ``git.ligo.org``, and add the key to your ssh-agent.
+Populating the database
+=======================
 
-Final steps
------------
+"Fresh" database
+----------------
+To construct a "fresh" database from migrations, just run::
 
-As the ``gracedb`` user, fill up the database::
+    cd $HOME/gracedb
+    python manage.py migrate
 
-    cd 
-    scp gracedb@gracedb.cgca.uwm.edu:/opt/gracedb/sql_backups/gracedb.sql.gz .
+Copying production database
+---------------------------
+First, as yourself, copy the database from a test server to your new server::
+
+    sudo cp /opt/gracedb/sql_backups/gracedb.sql.gz $HOME
+    scp gracedb.sql.gz $(whoami)@gracedb-new.ligo.uwm.edu:~
+
+On the new server, as yourself, import the database using the ``gracedb`` user's credentials::
+
     gunzip gracedb.sql.gz
     mysql -u gracedb -p gracedb < gracedb.sql
 
-From your workstation, test the web interface of your new instance to make
-sure it's working, and run the unit tests::
+Note that files related to the events aren't part of the database and won't exist on the new server unless you copy them over, too (see :ref:`copying_event_data` for more information).
 
-    cd gracedb-client/ligo/gracedb/test
-    export TEST_SERVICE='https://gracedb-new.cgca.uwm.edu/api/'
-    python test.py
+Next, become the ``gracedb`` user, enter the Django manager shell, and delete all Contacts and Triggers so that people don't get phone or email alerts from this instance without signing up for them::
 
-I found it necessary to do this as the ``gracedb`` user::
+    from userprofile.models import Contact, Trigger
+    for c in Contacts.objects.iterator():
+        c.delete()
+    for t in Trigger.objects.iterator():
+        t.delete()
 
-    cd 
-    chmod g+w -R logs
+You might want to delete the Events, too, especially if you copy the production database.
 
-Also build the docs::
-    
-    cd 
-    cd gracedb/docs
-    mkdir build
+Extra steps
+===========
+
+As root
+-------
+- Upgrade ``nodejs`` version (also installs ``npm``)::
+
+    curl -sL https://deb.nodesource.com/setup_8.x | bash -
+    apt-get install nodejs
+
+  - Note: you may want to check for a newer version than 8.x.
+- Install ``bower`` for managing JavaScript packages: ``npm install -g bower``
+- Reconfigure ``exim4`` package for sending e-mail: ``dpkg-reconfigure exim4-config``. Accept the defaults, except for:
+    - Set the host to be an "internet site"; mail is sent and received directly using SMTP.
+    - Remove ``::`` from the list of listening addresses; seems to cause the server to hang.
+    - Set "system mail name" to ``gracedb-new.ligo.uwm.edu``.
+    - Set the IP address to listen to for incoming connections to be ``127.0.0.1``.
+    - Set "other destinations for which mail is accepted" to ``gracedb-new.ligo.uwm.edu``; can optionally add ``gracedb-new.ligo.org`` if desired.
+    - Once you're done, restart the ``exim4`` process: ``systemctl restart exim4``
+- Build and mount the secondary file system for holding data files:
+    - Build the filesystem: ``mkfs.ext4 /dev/sdb``
+    - Add the following line to ``/etc/fstab``: ``/dev/sdb /opt/gracedb ext4 errors=remount-ro 0 1``
+        - A safer option is to find the UUID for your drive (``ls -lh /dev/disk/by-uuid``) and use that in place of ``/dev/sdb`` (see other entries in the file for examples).
+    - If there are subdirectories currently in ``/opt/gracedb``, move them somewhere else temporarily.
+    - Mount the filesystem: ``mount -a``
+    - Move back any subdirectories that you may have temporarily moved.
+
+As the ``gracedb`` user
+-----------------------
+- Activate the virtualenv: ``source $HOME/djangoenv/bin/activate``
+
+- Build the GraceDB documentation::
+
+    cd $HOME/gracedb/doc
     sphinx-build -b html source build
     cd ../admin_docs
-    mkdir build
     sphinx-build -b html source build
 
-Explanation of the hiera files
-==============================
+- Clone the GraceDB admin scripts repo into the gracedb user's ``$HOME``::
 
-The ``hiera`` YAML and EYAML files attempt to describe the GraceDB server
-as it *should* be.  They contain the build of the configuration necessary for
-setting up a GraceDB instance, though there are some stray bits that have
-to be done by hand.
+    git clone https://git.ligo.org/gracedb/scripts.git $HOME/bin
 
-.. NOTE::
-    You may find yourself in the situation of needing to stand up an instance
-    that is *not* managed by puppet--for example if you are setting up an 
-    instance at a different data center. In that case, you will need to take
-    care of the above tasks by hand. I recommend copying the Apache virtual
-    host configuration and ``shibboleth2.xml`` from a working GraceDB 
-    instance and modifying as needed.
+  - Note that the server code repo has already been cloned by Puppet, since it's publicly available. We clone this repo by hand since it's private and dealing with deploy keys is too annoying.
+  - You can call the directory whatever you want (instead of ``bin``), but then you should change the corresponding parameter (``gracedb::config::script_dir``) in the server's Puppet configuration file.
 
+- Run the setup script in this repository (``initial_server_setup.py``) to pull user accounts from the LIGO LDAP, set up admin/superuser accounts, add users to the executives group, and add users to the EM advocates group.
+
+- Collect static files::
+
+    cd $HOME/gracedb
+    python manage.py collectstatic
+
+- Use bower to install packages::
+
+    cd $HOME
+    bower install dgrid#0.4.0 dijit#1.10.4 dojox#1.10.4 moment#2.11.1 moment-timezone#0.5.0
+    bower install jquery#3.2.1
+
+  - Note that many of these packages may no longer be needed after the upcoming web UI update (expected in 2018).
+
+- Instantiate the database backups (``logrotate`` will fail if there isn't an initial file)::
+
+    touch /opt/gracedb/sql_backups/gracedb.sql.gz
+
+Allowing access
+===============
+
+Outside networks
+----------------
+As configured, your new VM is only accessible from the UWM campus network (or from outside if you are on the VPN).
+If you'd like to allow access from the outside world, email ``noc@uwm.edu``, specify the FQDN and IP address of your new server, and ask them to add openings to the entire world for SSH, HTTP, and HTTPS.
+
+In either case, you'll need to update the firewall policy document, which is used to track the accessibility of all of the CGCA servers.
+It's hosted in the CGCA Computing SharePoint, accessible through your UWM Microsoft Online account.
+The file is called ``cgca-firewall-policy.xlsx``; add a new entry and follow the syntax of the other GraceDB servers.
+
+Non-LVC users
+-------------
+For non-internal users to be able to access this server, you'll need to register the server with InCommon.
+This provides access via federated identity login (through their university or organization).
+Talk to Scott K. about how to set this up.
+
+If you want to allow Google account access, you'll need to set it up through the Cirrus gateway in addition to registering with InCommon.
+Go `here <https://apps.cirrusidentity.com/console/auth/index>`__ to login, look at the other GraceDB servers to see how they are configured, and follow the directions.
+Make sure to set the Google service up with your LIGO.ORG credentials rather than a personal Gmail account.
+Note that you'll need to be an admin in the Cirrus console to make these changes; talk to Warren A. about setting that up.
+
+If you use either of these services, users will need to register through gw-astronomy in order to get the proper attributes added to their session.
+Ask Mike Manske to "add the server to the attribute filter for the attribute authority IdP" (his words).
+This is necessary so that gw-astronomy will send information about LV-EM group memberships.
 
 Why isn't everything managed by Puppet?
 =======================================
 
-Ideally, the entire process of standing up a GraceDB instance should be
-automated.  This would be very useful (perhaps necessary?) for moving GraceDB
-to the cloud, and also for disaster recovery.  There are gaps in the puppet
-config for ``gracedb`` and ``gracedb-test`` however, as I could not find
-suitable existing puppet modules.  For example, there is a `python module
-<https://forge.puppetlabs.com/stankevich/python>`__ in the Puppet forge that
-manages virtul environments, but it does not handle dependencies well. You
-would have to engineer a ``requirements.txt`` file that lists exact packages
-and versions in a strict dependency order in order for that module to work. I
-experimented with creating my own process based on a file resource for the
-``requirements.txt`` and exec resources to create and update the virtual
-environment based on changes to the file. However, this seemed fragile, and I
-decided that it would be better to manage the virtual environment by hand.
-That being said, I would recommend gradually finding ways to Puppet-ize the
-rest of the install process, especially if improved modules become available.
-
+Ideally, the entire process of standing up a GraceDB instance should be automated.
+This would be very useful (perhaps necessary?) for moving GraceDB to the cloud, and also for disaster recovery.
+However, there do not exist suitable Puppet modules for certain portions of the configuration (i.e., the parts that you just did manually in `Extra steps`_).
+As new modules become available (or you develop them yourself), it may be possible to Puppetize more (or all) of this process.

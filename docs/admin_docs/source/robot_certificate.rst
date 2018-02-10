@@ -1,17 +1,14 @@
+.. _robot_certificate:
+
 ================================
 Creating a robot account
 ================================
 
-.. NOTE::
-    You could also do the database operations through the Django admin
-    interface. Instead, I show how to do it with a database migration
-    since that seems easier to me and leaves more of a paper trail. 
-
-General information or robot accounts
+General information on robot accounts
 =====================================
 
 The flagship data analysis pipelines are usually operated by groups of 
-users. Thus, it doesn't make much since if the events are submitted to GraceDB
+users. Thus, it doesn't make much sense for the events to be submitted to GraceDB
 via a single user's account. This is also impractical, as an individual
 user's auth tokens expire often, but the pipeline process needs to be running
 all the time. 
@@ -155,8 +152,9 @@ Edit the migration to do what you want it to do. You could use this as a templat
         ]
               
 
-The above could definitely be refactored in some nice way. I'll leave that as
-an exercise for the reader :-) Now apply the migration::
+The above could definitely be refactored in some nice way.
+I'll leave that as an exercise for the reader :-).
+Now apply the migration::
     
     python manage.py migrate ligoauth
     

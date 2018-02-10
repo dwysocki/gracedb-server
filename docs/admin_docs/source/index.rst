@@ -11,8 +11,10 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   introduction
    ops
    dev
+   client
 
 Indices and tables
 ==================

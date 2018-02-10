@@ -1,4 +1,4 @@
-.. GraceDB operation (admin) tasks
+.. GraceDB operational (admin) tasks
 
 Operational Tasks
 =================
@@ -6,11 +6,14 @@ Operational Tasks
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   new_pipeline
-   user_permissions
-   robot_certificate
-   phone_alerts
-   miscellaneous
+    server_maintenance
+    new_pipeline
+    user_permissions
+    robot_certificate
+    phone_alerts
+    lvalert_management
+    sql_tips
+    miscellaneous
 

@@ -4,6 +4,8 @@
 Adding a new pipeline or search
 ================================
 
+*Last updated 18 Sept 2017*
+
 Sometimes, users will request that a new ``Pipeline`` be added. Creating
 the pipeline object itself is the easy part. The hard part is figuring out
 what kind of data file the group will be uploading, and how to ingest the values.
@@ -16,18 +18,9 @@ Adding a new ``Search`` is simpler, but the steps relating to LVAlert are simila
 
 
 .. NOTE::
-    The following suggests performing the necessary database operations
-    in the django console (i.e., a Python interpreter running with the correct
-    environment). These operations could also be done in the web-based django
-    admin interface. However, I never use it myself, so that's not the method
-    I'll show in this documentation. One could also issue raw SQL commands
-    if preferred.
-
-.. NOTE::
-    The database operations here could also be done with 'data migrations'. 
-    This leaves more of a paper trail, and as such might be considered 
-    'the right thing to do.' However, it seems like overkill for relatively
-    small tasks like this.
+    **PLEASE** use a database migration to perform this work, for the purposes
+    of leaving a clear paper trail and making it easily and reproducibly
+    portable to other GraceDB servers (e.g., test and development servers).
 
 GraceDB server side steps
 =========================
@@ -36,17 +29,17 @@ First, create the new pipeline object. Since the only field in the Pipeline mode
 is the name, it's pretty simple. Suppose we are creating a new pipeline called 
 ``newpipeline``. We fire up the Django console:: 
 
-    cd /home/gracedb
+    cd /home/gracedb/gracedb_project
     ./manage.py shell
 
 Now we create the pipeline object itself::
 
-    from gracedb.models import Pipeline
+    from events.models import Pipeline
     newpipeline = Pipeline.objects.create(name='newpipeline')
 
 Now that the pipeline exists, one or more users will need to be given
 permission to *populate* the pipeline (i.e., to create new events for that
-pipeline). For more info on permissions, see :ref:`managing_user_permissions`.
+pipeline). For more info on permissions, see :ref:`user_permissions`.
 By default, all internal users will have permission to create ``Test``
 events for our new pipeline, but only specific users will be allowed to create
 non-``Test`` events. Let's suppose we want to give access to a human user
@@ -58,7 +51,7 @@ non-``Test`` events. Let's suppose we want to give access to a human user
 
     # Retrieve the objects we will need
     p = Permission.objects.get(codename='populate_pipeline')
-    ctype = ContentType.objects.get(app_label='gracedb', model='pipeline')
+    ctype = ContentType.objects.get(app_label='events', model='pipeline')
     einstein = User.objects.get(username='albert.einstein@LIGO.ORG')
     robot = User.objects.get(username='newpipeline_robot')
 
@@ -78,13 +71,13 @@ adequately represent it. If the latter, see :ref:`new_event_subclass`.
 For now, let's assume that the attributes of the new pipeline match up
 exactly with those of an existing pipeline, and that the data file can be
 parsed in the same way. Then all we need to do is to edit the utility function
-``_createEventFromForm`` in ``gracedb/view_logic.py`` so that our 
+``_createEventFromForm`` in ``events/view_logic.py`` so that our 
 new pipeline's name appears in the correct list, resulting in the correct
 event class being created. For example, if the events
 of the new pipeline match up with those from Fermi, then we can add it to
 the same list as Fermi, Swift, and SNEWS. 
 
-Next, edit the function ``handle_uploaded_data`` in ``gracedb/translator.py``
+Next, edit the function ``handle_uploaded_data`` in ``events/translator.py``
 so that, when an event is created for our new pipeline, the data file is
 parsed in the correct way. This function is basically just a huge ``if``
 statement on the pipeline name. So if we want the data file to be parsed
@@ -110,50 +103,10 @@ created as well::
     test_newpipeline_search2
     burst_newpipeline_search2
 
-where the names of the searches are ``search1`` and ``search2``. I typically
-use a script such as the one below to create the nodes and add the ``gracedb``
-user as a publisher::
+where the names of the searches are ``search1`` and ``search2``.
 
-    #!/usr/bin/env python
-
-    import subprocess
-    import time
-
-    nodes = [
-        'test_newpipeline',
-        'burst_newpipeline',
-        'test_newpipeline_search1',
-        'burst_newpipeline_search1',
-        'test_newpipeline_search2',
-        'burst_newpipeline_search2',
-    ]
-
-    servers = [
-        'lvalert.cgca.uwm.edu',
-        'lvalert-test.cgca.uwm.edu',
-    ]
-
-    for server in servers:
-        for node in nodes:
-            print "creating node %s for server %s ..." % (node, server)
-            cmd = 'lvalert_admin -c {0} -d -q {1}'.format(server, node)
-            p = subprocess.Popen(cmd, shell=True)
-            out, err = p.communicate()
-
-            if err:
-                print "Error for node %s: %s" % (node, error)
-
-            # add gracedb as publisher
-            # Also serves as a check to whether the node exists if not creating
-            time.sleep(2)
-
-            print "adding gracedb as publisher to node %s for server %s ..." % (node, server)
-
-            cmd = 'lvalert_admin -c {0} -j gracedb -q {1}'.format(server, node)
-            p = subprocess.Popen(cmd, shell=True)
-            out, err = p.communicate()
-
-            if err:
-                print "Error for node %s: %s" % (node, error)
-
-Note that you must have your ``.netrc`` file set up as described `here <https://gracedb.ligo.org/documentation/responding_to_lvalert.html#subscribing-to-pubsub-nodes>`__ for this to work automatically.
+There is a script (`add_lvalert_nodes.py <https://git.ligo.org/gracedb/scripts/blob/master/add_lvalert_nodes.py>`__) in the "GraceDB scripts" repository
+which can be used to create LVAlert nodes and manage publishers. In general,
+we create the nodes on both the lvalert and lvalert-test servers from the
+"gracedb" LVAlert account, and add other test servers (gracedb-test,
+gracedb-dev1, etc.) as publishers to the new nodes on lvalert-test.

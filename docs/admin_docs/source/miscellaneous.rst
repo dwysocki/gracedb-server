@@ -1,6 +1,10 @@
+.. _miscellaneous:
+
 ================================
 Miscellaneous 
 ================================
+
+*Last updated 17 October 2017*
 
 Replacing the database on the test instance
 ===========================================
@@ -24,8 +28,9 @@ the ``gracedb`` user. Then::
     mysql -u gracedb -p gracedb < gracedb.sql
 
 The latter step requires entering the MySQL password for the ``gracedb``
-testing user. This can be found in ``/home/gracedb/settings/settings_secrets.py``.    
+testing user. This can be found in ``/home/gracedb/config/settings/secret.py``.    
 
+.. _copying_event_data:
 
 Getting data for particular events onto the test instance
 =========================================================
@@ -43,8 +48,8 @@ of the events that you want to move data for. I would do this in the Django
 console (i.e., ``./manage.py shell``). Suppose I want to move the data
 for all gstlal events during O1::
 
-    from gracedb.models import Event
-    from gracedb.forms import SimpleSearchForm
+    from events.models import Event
+    from events.forms import SimpleSearchForm
     f = SimpleSearchForm({'query': 'gstlal O1'})
     outfile = open('/home/gracedb/query_graceids.txt', 'w')
     if f.is_valid():
@@ -77,7 +82,7 @@ but you still have to go through the same sequence of steps that you would
 for a true developement task. I recommend the workflow described in :ref:`new_server_feature`.
 
 In this particular case, the only necessary code change is to edit the 
-file ``gracedb/gracedb/buildVOEvent.py`` and add something like::
+file ``events/buildVOEvent.py`` and add something like::
 
     w.add_Param(Param(name="MyParam",
         dataType="float",
@@ -89,20 +94,47 @@ this example here, because it seems likely that such a task will be considered
 "operational" even though it is really mini-development. The line is pretty 
 blurry.
 
+Adding an interferometer
+========================
+Note that these directions may change in the near future since we plan to add an instruments table to the database.
+
+A good starting point is to search the GraceDB server code for "L1" to see where interferometers directly come into play.
+
+Specifics (assume X1 is the IFO code):
+
+1. Add X1OPS, X1OK, X1NO labels, update ``templates/gracedb/event_detail_script.js`` with description, and update ``templates/gracedb/query_help_frag.html``
+2. Add to instruments in ``events/buildVOEvent.py``
+3. Update ifoList in ``events/query.py``
+4. Add entry to ``CONTROL_ROOM_IPS`` in ``config/settings/base.py``
+5. Add signoff option for X1 in ``templates/gracedb/event_detail.html``
+6. Update INSTRUMENTS in ``events/models.py``.
+7. Update any event objects which need it (currently only LIB events)
+8. Update lots of things in ``events/serialize.py``
+
+See an example (Virgo) `here <https://git.ligo.org/lscsoft/gracedb/commit/65a4c08e25d7a472e1f995072d166b4c8dc611df>`__, but note that a lot of the Virgo-related stuff was already in the code.
+
+Leap seconds
+============
+GraceDB does its own conversion between UTC and GPS time, but unfortunately, we have to track leap seconds.
+This is done in ``gracedb/core/time_utils.py``.
+You'll have to update this whenever a new leap second is announced (preferably in advance of its implementation).
+
+There is probably a better way to do this.
+
 On backups
 ==========
 
 Backups for GraceDB are controlled by the file::
-    ``/root/backup-scripts/gracedb.cgca.uwm.edu-filesystems`` 
+    ``/root/backup-scripts/gracedb.ligo.uwm.edu-filesystems`` 
     
-on ``backup01``.  This file simply contains::
+on ``backup01.nemo.uwm.edu``.  This file simply contains::
 
     /etc
     /opt/gracedb
 
-which means that everything under these directories on ``gracedb.cgca.uwm.edu``
-will be backed up on ``backup01``.  You can see the files under the location
-``/backup/gracedb.cgca.uwm.edu/``. This is occasionally useful for recovering
+which means that everything under these directories on ``gracedb.ligo.uwm.edu``
+will be backed up on ``backup00``.  You can see the files under the location
+``/backup/gracedb.ligo.uwm.edu/``. This is occasionally useful for recovering
 a config file that got blown away by puppet. Notice, though, that nothing 
 under ``/home/gracedb`` is backed up. That's because the core server code and
 accompanying scripts are under version control, and thus are backed up elsewhere.
