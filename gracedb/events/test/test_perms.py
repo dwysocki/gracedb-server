@@ -170,85 +170,6 @@ class TestPerms(TestCase):
         # Create an EMGroup for EEL testing
         EMGroup.objects.get_or_create(name=TEST_NAMES['emgroup'])
 
-        # Create a permission for populating pipelines
-        #content_type = ContentType.objects.get(app_label='events', model='pipeline')
-        #Permission.objects.create(codename="populate_pipeline", name="Can populate pipeline",
-        #    content_type=content_type)            
-        #    
-        ## Find the content type and permissions for the parent Event class.
-        #Event_ctype = ContentType.objects.get(model='Event')
-        #Event_view = Permission.objects.get(content_type=Event_ctype, 
-        #            codename__startswith='view')
-        #Event_change = Permission.objects.get(content_type=Event_ctype, 
-        #            codename__startswith='change')
-
-        ## Create group object permissions
-        #for model in [GrbEvent, CoincInspiralEvent, MultiBurstEvent]:
-        #    # Find the content and permissions for this subclass
-        #    content_type = ContentType.objects.get(model=model.__name__)
-        #    view = Permission.objects.get(content_type=content_type, 
-        #            codename__startswith='view')
-        #    change = Permission.objects.get(content_type=content_type, 
-        #            codename__startswith='change')
-
-        #    # Get groups.
-        #    public     = Group.objects.get(name='public_users')
-        #    internal   = Group.objects.get(name='Communities:LSCVirgoLIGOGroupMembers')
-        #    lvem       = Group.objects.get(name='gw-astronomy:LV-EM')
-        #    executives = Group.objects.get(name='executives')
-
-        #    # Each event subclass has 3 events. How to assign permissions on them?
-        #    # event 0: public can view, lvem can view/change, plus defaults
-        #    # event 1: lvem can view, plus defaults
-        #    # event 2: defaults
-        #    # defaults: internal, exec can view and change
-
-        #    events = model.objects.all()
-
-        #    # Add defaults for each event
-        #    for event in events:
-        #        GroupObjectPermission.objects.create(permission=view, group=internal,
-        #            object_pk=event.id, content_type = content_type)
-        #        GroupObjectPermission.objects.create(permission=change, group=internal,
-        #            object_pk=event.id, content_type = content_type)
-        #        GroupObjectPermission.objects.create(permission=view, group=executives,
-        #            object_pk=event.id, content_type = content_type)
-        #        GroupObjectPermission.objects.create(permission=change, group=executives,
-        #            object_pk=event.id, content_type = content_type)
-
-        #    # Add additional perms for event 0
-        #    event = events[0]
-        #    GroupObjectPermission.objects.create(permission=view, group=lvem, 
-        #        object_pk=event.id, content_type = content_type)
-        #    GroupObjectPermission.objects.create(permission=change, group=lvem,
-        #        object_pk=event.id, content_type = content_type)
-        #    GroupObjectPermission.objects.create(permission=view, group=public,
-        #        object_pk=event.id, content_type = content_type)
-
-        #    # Add additional perms for event 1
-        #    event = events[1]
-        #    GroupObjectPermission.objects.create(permission=view, group=lvem, 
-        #        object_pk=event.id, content_type = content_type)
-
-        #    # Apply the same permissions on the underlying Event
-        #    # XXX This is rather hacky. Is there a better way?
-        #    for event in events:
-        #        perms = GroupObjectPermission.objects.filter(object_pk=event.id,
-        #            content_type=content_type)
-        #        for perm in perms:
-        #            if perm.permission.codename.startswith('view'):
-        #                p = Event_view
-        #            else:
-        #                p = Event_change
-        #            GroupObjectPermission.objects.create(permission = p,
-        #                group = perm.group,
-        #                object_pk = perm.object_pk, 
-        #                content_type = Event_ctype)
-
-        ## Need to refresh the perm strings on all event objects. That way we can
-        ## test the searches.
-        #for e in Event.objects.all():
-        #    e.refresh_perms()
 
         # Create user object permissions for pipeline population
         content_type = ContentType.objects.get(app_label='events',
@@ -260,13 +181,6 @@ class TestPerms(TestCase):
         UserObjectPermission.objects.create(permission=populate,
             user=cls.pipeline_user, object_pk=pipeline.id,
             content_type=content_type)
-
-        #for p in Pipeline.objects.all():
-        #    if p.name in PIPELINE_USER_MAP.keys():
-        #        for username in PIPELINE_USER_MAP[p.name]:
-        #            user = User.objects.get(username=username)
-        #            UserObjectPermission.objects.create(permission=populate, user=user,
-        #                object_pk=p.id, content_type=content_type)        
 
         # Create group permission for exposing/protecting events
         content_type = ContentType.objects.get(app_label='guardian',
