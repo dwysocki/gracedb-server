@@ -49,7 +49,7 @@ TWILIO_MSG_CONTENT = {
 
 def get_twilio_from():
     """Gets phone number which Twilio alerts come from."""
-    for from_ in twilio_client.phone_numbers.iter():
+    for from_ in twilio_client.incoming_phone_numbers.list():
         return from_.phone_number
     raise RuntimeError('Could not determine "from" Twilio phone number')
 

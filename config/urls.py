@@ -44,7 +44,7 @@ urlpatterns = [
     #        {'document_root': settings.LATENCY_REPORT_DEST_DIR}),
 
 
-    # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
+    # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
     # to INSTALLED_APPS to enable admin documentation:
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
@@ -52,7 +52,18 @@ urlpatterns = [
 
 ]
 
-if settings.DEBUG:
+# We don't require settings.DEBUG for django-silk since running unit tests
+# by default setings settings.DEBUG to False, unless you use the
+# --debug-mode flag
+if settings.DEBUG or ('silk' in settings.INSTALLED_APPS and
+   ['silk' in m for m in settings.MIDDLEWARE]):
+    # Add django-silk
+    urlpatterns = [
+        url(r'^silk/', include('silk.urls', namespace='silk'))
+    ] + urlpatterns
+
+# Add django-debug-toolbar
+if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
     import debug_toolbar
     urlpatterns = [
         url(r'^__debug__/', include(debug_toolbar.urls)),

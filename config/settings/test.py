@@ -16,16 +16,27 @@ EMBB_MAIL_ADDRESS = 'gracedb@{fqdn}'.format(fqdn=SERVER_FQDN)
 debug_middleware = 'debug_toolbar.middleware.DebugToolbarMiddleware'
 MIDDLEWARE += [
     debug_middleware,
+    'silk.middleware.SilkyMiddleware',
     #'core.middleware.profiling.ProfileMiddleware',
 ]
 
 # Add to installed apps
 INSTALLED_APPS += [
     'debug_toolbar',
+    'silk'
 ]
 
 # Add testserver to ALLOWED_HOSTS
 ALLOWED_HOSTS += ['testserver']
+
+# Settings for django-silk profiler
+SILKY_AUTHENTICATION = True
+SILKY_AUTHORISATION = True
+if 'silk' in INSTALLED_APPS:
+    # Needed to prevent RequestDataTooBig for files > 2.5 MB
+    # when silk is being used. This setting is typically used to
+    # prevent DOS attacks, so should not be changed in production.
+    DATA_UPLOAD_MAX_MEMORY_SIZE = 20*(1024**2)
 
 # Add XForwardedFor middleware directly before debug_toolbar middleware
 # if debug_toolbar is enabled and DEBUG is True.
