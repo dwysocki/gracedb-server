@@ -7,28 +7,29 @@
 {% block bodyattrs %}class="tundra eventDetail"{% endblock %}
 
 {% block jscript %}
-<link rel="stylesheet" href="{{STATIC_URL}}css/labeltips.css">
-<script src="{{BOWER_URL}}moment/moment.js"></script>
-<script src="{{BOWER_URL}}moment-timezone/builds/moment-timezone-with-data.min.js"></script>
-<script src="{{BOWER_URL}}dojo/dojo.js" data-dojo-config="async: true"></script>
+{% load static %}
+<link rel="stylesheet" href="{% static "css/labeltips.css" %}" />
+<script src="{% static "moment/moment.js" %}"></script>
+<script src="{% static "moment-timezone/builds/moment-timezone-with-data.min.js" %}"></script>
+<script src="{% static "dojo/dojo.js" %}" data-dojo-config="async: true"></script>
 <!-- Styles for dgrid -->
-<!-- <link rel="stylesheet" href="{{BOWER_URL}}dgrid/css/dgrid.css" /> -->
+<!-- <link rel="stylesheet" href="{% static "dgrid/css/dgrid.css" %}" /> -->
 <!-- Styles for the editor components -->
-<link rel="stylesheet" href="{{BOWER_URL}}dojox/editor/plugins/resources/css/PageBreak.css" />
-<link rel="stylesheet" href="{{BOWER_URL}}dojox/editor/plugins/resources/css/ShowBlockNodes.css" />
-<link rel="stylesheet" href="{{BOWER_URL}}dojox/editor/plugins/resources/css/Preview.css" />
-<link rel="stylesheet" href="{{BOWER_URL}}dojox/editor/plugins/resources/css/Save.css" />
-<link rel="stylesheet" href="{{BOWER_URL}}dojox/editor/plugins/resources/css/Breadcrumb.css" />
-<link rel="stylesheet" href="{{BOWER_URL}}dojox/editor/plugins/resources/css/FindReplace.css" />
-<link rel="stylesheet" href="{{BOWER_URL}}dojox/editor/plugins/resources/css/PasteFromWord.css" />
-<link rel="stylesheet" href="{{BOWER_URL}}dojox/editor/plugins/resources/css/InsertAnchor.css" />
-<link rel="stylesheet" href="{{BOWER_URL}}dojox/editor/plugins/resources/css/CollapsibleToolbar.css" />
-<link rel="stylesheet" href="{{BOWER_URL}}dojox/editor/plugins/resources/css/Blockquote.css" />
-<link rel="stylesheet" href="{{BOWER_URL}}dojox/editor/plugins/resources/css/Smiley.css" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/PageBreak.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/ShowBlockNodes.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Preview.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Save.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Breadcrumb.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/FindReplace.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/PasteFromWord.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/InsertAnchor.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/CollapsibleToolbar.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Blockquote.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Smiley.css" %}" />
 <!-- Styles for the lightboxes. --> 
-<link rel="stylesheet" href="{{BOWER_URL}}dojox/image/resources/LightboxNano.css" />
+<link rel="stylesheet" href="{% static "dojox/image/resources/LightboxNano.css" %}" />
 <!-- Local style declarations -->
-<link rel="stylesheet" href="{{BOWER_URL}}dijit/themes/tundra/tundra.css" />
+<link rel="stylesheet" href="{% static "dijit/themes/tundra/tundra.css" %}" />
 
 <!-- the main JavaScript block is pulled in with an include -->
 <script>

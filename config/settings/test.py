@@ -25,6 +25,9 @@ INSTALLED_APPS += [
     'django_extensions',
 ]
 
+# Add testserver to ALLOWED_HOSTS
+ALLOWED_HOSTS += ['testserver']
+
 # Add XForwardedFor middleware directly before debug_toolbar middleware
 # if debug_toolbar is enabled and DEBUG is True.
 if DEBUG and debug_middleware in MIDDLEWARE:

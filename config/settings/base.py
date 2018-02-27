@@ -294,19 +294,21 @@ REST_FRAMEWORK = {
     },
 }
 
+# Location of packages installed by bower
+BOWER_DIR = join(BASE_DIR, "..", "bower_components")
+
 # Location of static components, CSS, JS, etc.
-STATIC_ROOT = join(PROJECT_ROOT, "static/")
-STATIC_URL = "/gracedb-static/"
+STATIC_ROOT = join(BASE_DIR, "static_root")
+STATIC_URL = "/static/"
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 ]
-STATICFILES_DIRS = []
-
-# Location of Bower packages.
-BOWER_URL = "/bower-static/"
-BOWER_ROOT = join(GRACEDB_PATHS["home"], "bower_components/")
+STATICFILES_DIRS = [
+    join(PROJECT_ROOT, "static"),
+    BOWER_DIR,
+]
 
 # Added in order to perform data migrations on the auth and guardian apps
 MIGRATION_MODULES = {

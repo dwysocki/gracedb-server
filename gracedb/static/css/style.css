@@ -447,8 +447,7 @@ table thead th.descending a { background:url('../images/arrow-up.gif') right .4e
 
 
 /* Stuff added for dgrid */
-/* XXX FIXME. Note how this assumes the bower stuff will be in your home directory. Not cool. */
-@import "~/bower_components/dgrid/css/dgrid.css";
+@import url('/static/dgrid/css/dgrid.css')
 
 .collapsed .expando {
     display: none;
@@ -516,7 +515,7 @@ div.expandFormButton {
 }
 
 div.expandGlyph {
-    background-image: url('/bower-static/dijit/themes/tundra/images/spriteArrows.png');
+    background-image: url('/static/dijit/themes/tundra/images/spriteArrows.png');
     background-repeat: no-repeat;
     background-position: 0px 0px; 
     vertical-align: middle;

@@ -1,8 +1,9 @@
 {% extends "admin/base.html" %}
 {% load i18n %}
+{% load static %}
 
 {% block extrastyle %}
-    <link rel="stylesheet" href="{{STATIC_URL}}css/admin-nav.css" />
+    <link rel="stylesheet" href="{% static "css/admin-nav.css" %}" />
 {% endblock %}
 
 
