@@ -164,7 +164,7 @@ LOCALUSERS = [
     },
     {
 		'username': 'gstlal-spiir-gpu',
-		'last_name': 'GSTLAL SPIIR GPU Analysis ',
+		'last_name': 'GSTLAL SPIIR GPU Analysis',
 		'email': 'qi.chu@ligo.org',
 		'x509certs': [
 			'/DC=org/DC=ligo/O=LIGO/OU=Services/CN=gstlal-spiir-gpu/ldas-pcdev1.ligo.caltech.edu'
@@ -349,7 +349,7 @@ def add_localusers_and_x509certs(apps, schema_editor):
     for l_dict in LOCALUSERS:
         localuser, created = LocalUser.objects.get_or_create(username=l_dict['username'])
         localuser.last_name = l_dict['last_name']
-        localuser.email = l_dict['last_name']
+        localuser.email = l_dict['email']
         localuser.save()
 
         # Add user to LSC group
