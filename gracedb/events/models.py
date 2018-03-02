@@ -29,6 +29,7 @@ import calendar
 
 from cStringIO import StringIO
 from hashlib import sha1
+import shutil
 
 SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 
@@ -269,12 +270,12 @@ class Event(models.Model):
                     loglist.append(log)
         return loglist
 
-    # A method to update the permissions according to the permission objects in 
+    # A method to update the permissions according to the permission objects in
     # the database. 
     def refresh_perms(self):
         # Content type is 'Event', obvs.
         content_type = ContentType.objects.get(app_label='events', model='event')
-        # Get all of the GroupObjectPermissions for this object id and content type 
+        # Get all of the GroupObjectPermissions for this object id and content type
         group_object_perms = GroupObjectPermission.objects.filter(object_pk=self.id,
             content_type=content_type)
         perm_strings = []
@@ -285,6 +286,41 @@ class Event(models.Model):
         self.perms = json.dumps(perm_strings)
         # Fool! Save yourself!
         self.save()
+
+    def delete(self, purge=False, *args, **kwargs):
+        """
+        Optionally override the delete method for Event models.
+        By default, deleting an Event deletes corresponding subclasses
+        (GrbEvent, CoincInspiralEvent, etc.) and EventLogs, EMObserverations,
+        etc., but does not remove the data directory or the
+        GroupObjectPermissions corresponding to the Event or its subclasses.
+
+        Usage:
+            event.delete() will do the basic delete, just as before
+            event.delete(purge=True) will also remove the data directory
+                and GroupObjectPermissions for the Event and its subclasses
+        """
+
+        if purge:
+            # Delete data directory
+            datadir = self.datadir()
+            if os.path.isdir(datadir):
+                shutil.rmtree(datadir)
+
+            # Delete any GroupObjectPermissions for this event and its
+            # subclasses (MultiBurstEvent, CoincInspiralEvent, etc.)
+            cls = self.__class__
+            subclasses = [f.related_model for f in cls._meta.get_fields()
+                if (f.one_to_one and f.auto_created and not f.concrete and
+                    cls in f.related_model.__bases__)]
+            for m in subclasses + [cls]:
+                ctype = ContentType.objects.get_for_model(m)
+                gops = GroupObjectPermission.objects.filter(object_pk=self.id,
+                    content_type=ctype)
+                gops.delete()
+
+        # Call base class delete
+        super(Event, self).delete(*args, **kwargs)
 
 class AutoIncrementModel(models.Model):
     """
