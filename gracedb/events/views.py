@@ -630,12 +630,8 @@ def oldsearch(request):
                         textQuery.append("gpstime: 0..%s" % gpsEnd)
 
             if submitter:
-                try:
-                    submitter_name = User.objects.get(id=submitter)
-                except User.DoesNotExist:
-                    submitter_name = "Error looking up user"
                 objects = objects.filter(submitter=submitter)
-                textQuery.append('submitter: "%s"' % submitter_name)
+                textQuery.append('submitter: "%s"' % submitter.username)
             if groupname:
                 group = Group.objects.filter(name=groupname)[0]
                 objects = objects.filter(group=group)
