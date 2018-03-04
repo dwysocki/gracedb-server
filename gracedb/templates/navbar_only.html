@@ -1,0 +1,25 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+{% load static %}
+{% block headcontents %}
+    <link rel="stylesheet" href="{% static "css/style.css" %}" />
+{% endblock %}
+</head>
+<div id="content">
+
+<center>
+<h1 class="docnav"> GraceDB &mdash; Gravitational Wave Candidate Event Database</h1>
+</center>
+
+{% block nav %}
+    {% include "navbar_frag.html" %}
+{% endblock %}
+
+        <p>&nbsp;</p> <!-- bad way to create vertical space -->
+
+</div>
+
+</body>
+</html>

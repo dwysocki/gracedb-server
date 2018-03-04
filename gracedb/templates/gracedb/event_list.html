@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load timeutil %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block heading %}{{ title }}{% endblock %}
+{% block pageid %}search{% endblock %}
+
+{% block jscript %}
+{% load static %}
+<link rel="stylesheet" type="text/css" media="screen"
+      href="{% static "css/jqgrid/theme/jquery-ui.css" %}" />
+
+<link rel="stylesheet" type="text/css" media="screen"
+      href="{% static "css/jqgrid/theme/ui.all.css" %}" />
+
+<link rel="stylesheet" type="text/css" media="screen"
+      href="{% static "css/jqgrid/ui.jqgrid.css" %}" />
+
+<link rel="stylesheet" href="{% static "css/labeltips.css" %}" />
+
+<script src="{% static "js/jquery-1.3.2.min.js" %}" type="text/javascript"></script>
+<script src="{% static "js/grid.locale-en.js" %}" type="text/javascript"></script>
+<script src="{% static "js/jquery.jqGrid.min.js" %}" type="text/javascript"></script>
+<script src="{% static "js/jquery-ui-1.7.2.custom.min.js" %}" type="text/javascript"></script>
+
+<!-- This is an attempt to get updated jqGrind stuff from a CDN --> 
+<!--
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqgrid/4.6.0/css/ui.jqgrid.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqgrid/4.6.0/js/i18n/grid.locale-en.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqgrid/4.6.0/js/jquery.jqGrid.min.js"></script>
+-->
+
+    <script type="text/javascript">
+    <!--
+        function toggle_visibility(id) {
+           var e = document.getElementById(id);
+           if(e.style.display == 'block')
+              e.style.display = 'none';
+           else
+              e.style.display = 'block';
+        }
+    //-->
+    </script>
+    <script type="text/javascript">
+    <!--
+        $(document).ready(function(){
+          $("#flex1").jqGrid
+            (
+            {
+            sortable: true,
+            {% if get_neighbors %}
+            url: '{% url "search" %}flex?query={{rawquery|urlencode}}&get_neighbors=true',
+            {% else %}
+            url: '{% url "search" %}flex?query={{rawquery|urlencode}}',
+            {% endif %}
+            datatype: 'json',
+            mtype: "GET",
+            colNames : ["UID", "Labels", {% if get_neighbors %} "Neighbors (+/-5sec)", {% endif %} "Group", "Pipeline", "Search", "Event Time", "Instruments", "FAR (Hz)", "Links", "Submitted", "Submitted By",
+                       ],
+            colModel : [
+               {name : 'id',     index: 'id', width : 50, sortable : true, align: 'left', hidden: false},
+               {name : 'labels', index: 'labels', width : 70, sortable : false, align: 'left'},
+               {% if get_neighbors %}
+               {name : 'neighbors', index: 'neighbors', width : 100, sortable : false, align: 'left'},
+               {% endif %}
+               {name : 'group',  index: 'group', width : 50, sortable : false, align: 'left', hidden: true},
+               {name : 'pipeline',  index: 'pipeline', width : 50, sortable : false, align: 'left', hidden: true},
+               {name : 'search',  index: 'search', width : 50, sortable : false, align: 'left', hidden: true},
+               {name : 'gpstime', index: 'gpstime', width : 90, sortable : true, align: 'right'},
+               {name : 'instruments', index: 'instruments', width : 50, sortable : true, align: 'right', hidden: false},
+               {name : 'far', index: 'far', width : 80, sortable : true, align: 'right', hidden: false},
+               {name : 'links',   index: 'links', width : 80, sortable : false, align: 'center'},
+               {name : 'created', index: 'created', width : 100, sortable : true, align: 'right'},
+               {name : 'submitter', index: 'submitter', width : 80, sortable : true, align: 'right'},
+
+                ],
+            pager: '#pager1',
+            rowNum:20,
+            rowList:[10,20,30,40,50,75,100,-1],
+            sortname: 'id',
+            sortorder: "desc",
+            viewrecords: true,
+            caption: 'Query Results',
+            //forceFit: true,
+            //height: '150px',
+            height: 'auto',
+            //loadui: 'enable',  // block, disable
+            toolbar: [true, "top"],
+            autowidth: true,
+            loadError: function (jqXHR, textStatus, errorThrown) {
+                alert('Error, ' + jqXHR.status + ': ' + jqXHR.responseText);
+                },
+            }
+            );   
+
+          //$("#flex1").jqGrid('gridResize',{});
+          //$("#flex1").jqGrid('gridResize',{ minWidth:350,maxWidth:800,minHeight:80, maxHeight:350 });
+          $("#flex1").jqGrid('navGrid','#pager1',{search: false, edit:false,add:false,del:false});
+          $("#t_flex1").append("<input type='button' value='Select Columns' style='height:20px;font-size:-3'/>");
+          $("input","#t_flex1").click(function(){
+            $("#flex1").jqGrid('setColumns');
+            });
+
+        });
+    -->
+    </script>
+{% endblock %}
+
+{% block content %}
+<p>{{ message }}</p>
+
+{% if form %}
+    <form action="{{ formAction }}" method="POST">
+    <table>
+        {{ form.as_table }}
+        <tr><td/><td><input type="Submit" value="Search" class="searchButtonClass"></td>
+        <tr><td/>
+            <td>
+                <a onClick="toggle_visibility('hints');">Hints on querying</a>
+                {% if rawquery %}
+                    | <a href="{% url "search" %}?query={{rawquery|urlencode}}">Link to current query</a>
+                    | <a href="{% url "search" %}?query={{rawquery|urlencode}}&ligolw">Download LIGOLW File</a>
+                {% endif %}
+            </td>
+        </tr>
+        <tr><td/><td>{% include "gracedb/query_help_frag.html" %}</td></tr>
+    </table>
+    </form>
+{% endif %}
+
+<table id="flex1"></table>
+<div id="pager1"></div>
+
+{% endblock %}

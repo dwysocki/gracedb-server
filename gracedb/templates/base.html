@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+{% load static %}
+{% block headcontents %}
+    <link rel="stylesheet" href="{% static "css/style.css" %}" />
+    <title>GraceDb | {% block title %}{% endblock %}</title>
+<!-- START TESTING -->
+<script type="text/javascript">
+function changeTime(obj, label) {
+    //var timetype = obj.get("value");
+    var timetype = obj.value;
+    if (timetype=="") { return; }
+    var times = document.getElementsByName("time-"+label);
+    for (i=0; i<times.length; i++) {
+        newtime =  times[i].getAttribute(timetype);
+        times[i].innerHTML = newtime;
+    }
+}
+</script>
+{% endblock %}
+<!-- END TESTING -->
+{% block jscript %}{% endblock %}
+
+<!-- override other CSS templates as necessary -->
+<link rel="stylesheet" href="{% static "css/override.css" %}" />
+
+</head>
+
+<body id="{% block pageid %}{% endblock %}"{% block bodyattrs %}{% endblock %}>
+
+<div id="content">
+
+<center>
+<h1>GraceDB &mdash; Gravitational Wave Candidate Event Database</h1>
+</center>
+
+{% block nav %}
+    {% include "navbar_frag.html" %}
+{% endblock %}
+
+    <p>&nbsp;</p> <!-- bad way to create vertical space -->
+
+    <h2>{% block heading %}Title{% endblock %}</h2>
+
+        {% block content %}{% endblock %}
+
+    </div>
+
+<div id="header">
+<!-- Header. Yea, this is actually a footer.  It *was* as header once, though. -->
+ <table align="center" width="90%%">
+  <tr>
+   <td align="center">
+    <img width="52" height="36" src="{% static "images/ligo-blue.gif" %}" />
+    <!-- 673px 487px -->
+   </td>
+
+   <td align="center">
+    <img width="164" height="30" src="{% static "images/Virgo_logo50.png" %}" />
+    <!-- 4,829px 884px -->
+   </td>
+
+   <td align="center">
+    {% if user and user.username == "chad.hanna@LIGO.ORG" %}
+        <img width="194" height="37" src="{% static "images/PI_Logo-anim.gif" %}" />
+    {% else %}{% if user and user.username == "kipp.cannon@LIGO.ORG" %}
+        <img width="194" height="37" src="{% static "images/CITA_logo-anim.gif" %}" />
+    {% else %}
+       <!-- <img width="107" height="37" src="{% static "images/anim2.gif" %}" /> -->
+    {% endif %}{% endif %}
+    <!-- 287px 101px -->
+   </td>
+
+   <td align="center">
+    <img width="87" height="37" src="{% static "images/LSC_logo50.png" %}" />
+    <!-- 6,261px 2,652px -->
+   </td>
+  </tr>
+ </table>
+<!-- End Header -->
+</div>
+
+</body>
+</html>
