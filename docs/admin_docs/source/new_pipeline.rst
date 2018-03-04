@@ -4,7 +4,7 @@
 Adding a new pipeline or search
 ================================
 
-*Last updated 18 Sept 2017*
+*Last updated 3 March 2018*
 
 Sometimes, users will request that a new ``Pipeline`` be added. Creating
 the pipeline object itself is the easy part. The hard part is figuring out
@@ -16,11 +16,17 @@ the same type of data file as the ``gstlal`` group, and this made adding the
 ``gstlal-spiir`` pipeline relatively easy.)
 Adding a new ``Search`` is simpler, but the steps relating to LVAlert are similar.
 
-
 .. NOTE::
-    **PLEASE** use a database migration to perform this work, for the purposes
-    of leaving a clear paper trail and making it easily and reproducibly
-    portable to other GraceDB servers (e.g., test and development servers).
+    The following examples just show the Python code needed to add a new
+    pipeline in the Django console, but **PLEASE** use a database migration
+    to perform this work, for the purposes of leaving a clear paper trail and
+    making it easily and reproducibly portable to other GraceDB servers (e.g.,
+    test and development servers).
+
+    See gracedb/events/migrations/0003_initial_pipeline_data.py and
+    gracedb/events/migrations/0004_initial_search_data.py for some examples of
+    how to add pipelines and searches via migrations.
+
 
 GraceDB server side steps
 =========================
@@ -61,6 +67,12 @@ non-``Test`` events. Let's suppose we want to give access to a human user
     UserObjectPermission.objects.create(user=robot, permission=p, 
         content_type=ctype, object_pk=newpipeline.id)
 
+.. NOTE::
+
+    Again, **please** use a migration to modify user permissions. See
+    gracedb/migrations/guardian/0002_authorize_users_to_populate_pipelines.py
+    for an example.
+
 The next step is to figure out how events from the 
 new pipeline will be represented in the database. If the base ``Event`` class
 is is sufficient, or if one of the existing subclasses can be used, then 
@@ -71,13 +83,13 @@ adequately represent it. If the latter, see :ref:`new_event_subclass`.
 For now, let's assume that the attributes of the new pipeline match up
 exactly with those of an existing pipeline, and that the data file can be
 parsed in the same way. Then all we need to do is to edit the utility function
-``_createEventFromForm`` in ``events/view_logic.py`` so that our 
+``_createEventFromForm`` in ``gracedb/events/view_logic.py`` so that our 
 new pipeline's name appears in the correct list, resulting in the correct
 event class being created. For example, if the events
 of the new pipeline match up with those from Fermi, then we can add it to
 the same list as Fermi, Swift, and SNEWS. 
 
-Next, edit the function ``handle_uploaded_data`` in ``events/translator.py``
+Next, edit the function ``handle_uploaded_data`` in ``gracedb/events/translator.py``
 so that, when an event is created for our new pipeline, the data file is
 parsed in the correct way. This function is basically just a huge ``if``
 statement on the pipeline name. So if we want the data file to be parsed

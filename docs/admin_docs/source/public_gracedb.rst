@@ -75,15 +75,15 @@ locations, such as the admin docs and the reports page.  That way, instead of
 having Apache handle the ACLs, more of it will be pushed off onto the app. But
 that is actually a good thing::
 
-    Alias /documentation/ "/home/gracedb/gracedb/doc/build/"
-    <Directory "/home/gracedb/gracedb/doc/build/">
+    Alias /documentation/ "/home/gracedb/gracedb_project/docs/user_docs/build/"
+    <Directory "/home/gracedb/gracedb_project/docs/user_docs/build/">
          AuthType shibboleth
          ShibRequestSetting requireSession false
          Require shibboleth
     </Directory>
 
-    Alias /admin_docs/ "/home/gracedb/gracedb/admin_doc/build/"
-    <Directory "/home/gracedb/gracedb/admin_doc/build/">
+    Alias /admin_docs/ "/home/gracedb/gracedb_project/docs/admin_docs/build/"
+    <Directory "/home/gracedb/gracedb_project/docs/admin_docs/build/">
          AuthType shibboleth
          ShibRequestSetting requireSession 1
          Require user branson.stephens@ligo.org alexander.pace@ligo.org patrick.brady@ligo.org

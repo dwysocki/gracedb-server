@@ -10,6 +10,8 @@ This section documents procedures for performing server maintenance and upgradin
 
 Routine maintenance
 ===================
+A few days in advance, send an e-mail to the DASWG and ldg-announce mailing lists, detailing the date, time, and expected duration of the maintenance.
+
 You should upgrade the system packages on at least a bi-weekly basis.
 Do the following on a test server first, then if everything seems OK, repeat for the production server:
 
@@ -33,7 +35,7 @@ First, develop and test your new features on one of the test servers.
 
 SCCB approval
 -------------
-Once you are ready to move the new features into production, you'll need to get approval from the SCCB.
+Once you are ready to move the new features into production, you'll need to get approval from the SCCB (at least, during observational periods).
 Create a new issue on the `SCCB project page <https://bugs.ligo.org/redmine/projects/sccb>`__.
 The title should be something like "GraceDB server code update (1.0.10), 4 July 2017".
 Note that you should submit these requests by Thursday at the latest if you want to implement the changes during maintenance the next Tuesday.
@@ -41,7 +43,7 @@ Note that you should submit these requests by Thursday at the latest if you want
 In the issue, you should describe the features/changes/bugfixes you've implemented, along with why they are necessary and what you've done to test them.
 It's really helpful if you can get someone else with GraceDB experience to look over them in advance and approve them, too; this goes a long way with the SCCB reviewers.
 The description should also include a link to a diff of the code changes from the server code git repository - this can be master vs. the old tag or a new tag vs. the old tag, depending on if you tag the code in advance.
-I often wait to tag the new code until it's fully in place on the production server, in case any small changes become necessary.
+I often wait to tag the new code until it's fully in place on the production server, in case any small changes become necessary due to suggestions from the reviewers.
 
 Leave the status as 'New' and set the the category to 'Requested'.
 After approval, an SCCB member will change the category to 'Approved' and the status to 'In Progress'.
@@ -51,14 +53,23 @@ After you've successfully updated the server code (see next subsection), post a 
 Updating the production server
 ------------------------------
 First, take a snapshot of the VM in case you somehow catastrophically break something.
-Pull the changes into the local master branch:
+It usually works best to shut the VM down while you do this.
+
+After booting up again, I usually turn off Apache first to prevent users from submitting anything::
+
+    # As root
+    systemctl stop apache2
+
+
+Next, ull the changes into the local master branch:
 
 .. code-block:: bash
 
     git checkout master
     git pull
 
-Run any database migrations (as gracedb user):
+If you have any database migrations to run, first back up the database (see :ref:`sql_tips`).
+Then, run the migrations (as the gracedb user):
 
 .. code-block:: bash
 
@@ -84,7 +95,7 @@ Check out the tag (the production server should **always** be on a tag):
 
     git checkout gracedb-1.0.11
 
-Build this documentation:
+Build this documentation (if affected by the patch):
 
 .. code-block:: bash
 
@@ -93,6 +104,8 @@ Build this documentation:
 At this point, you can run the client code unit tests (pointing to the production server), since they only create Test events.
 It always makes me a bit nervous to do this on the production server, so you can do some manual tests instead, like creating Test events, annotating with log messages, etc.
 Basically, do whatever it takes for you to feel confident that the changes are in place and the server is working properly.
+
+Send an all-clear e-mail the DASWG and ldg-announce mailing lists once everything is ready to go.
 
 Memory management
 =================

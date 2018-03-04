@@ -16,11 +16,11 @@ Components of the service
 =========================
 We can divide the GraceDB service into five main components:
 
-- Django app
+- Django application
+- Database backend (MariaDB)
 - Backend webserver (Gunicorn)
 - Frontend webserver (Apache)
 - Primary authentication (Shibboleth)
-- Database backend (MariaDB)
 
 Django
 ------
@@ -36,7 +36,7 @@ The settings are managed with a config file and the service is started via syste
 Apache
 ------
 `Apache <https://httpd.apache.org/>`__ is one of the longest-running open source webservers.
-We still use Apache in concert with Gunicorn because Shibboleth seems to work best with it.
+We still use Apache in concert with Gunicorn because it's necessary for Shibboleth.
 It is configured as a reverse proxy which gets authentication information from Shibboleth, sets that information in the headers, and then passes it on to Gunicorn.
 
 Shibboleth
@@ -47,7 +47,7 @@ These attributes are then available to the relevant service providers which are 
 
 Metadata providers used by GraceDB:
 
-- LIGO attribute authority
+- LIGO metadata provider
 - InCommon - provides access via institutional accounts registered on gw-astronomy.org
 - Cirrus Gateway - provides access via Google accounts registered on gw-astronomy.org
 
@@ -55,10 +55,10 @@ MariaDB
 -------
 Currently, we use MariaDB 10.1 with the MyISAM table engine.
 Note that the table engine is set within the Django settings, not directly in the database.
-May want to look into other table engines in the future.
+We may want to look into other table engines in the future.
 
-Servers
-=======
+Description of current servers
+==============================
 Here's a short overview of the currently available GraceDB servers:
 
 - Production:
@@ -73,12 +73,13 @@ Here's a short overview of the currently available GraceDB servers:
   - gracedb-dev2.ligo.org
 - Other:
 
+  - gracedb-playground.ligo.org: for pipeline and follow-up testing. Uses the gracedb-playground branch of the server code repository.  Maintained very closely to production.
   - simdb.ligo.org: for gstlal testing.  May be retired in the near future.
 
 See :ref:`new_gracedb_instance` for information on setting up new servers.
 
-Useful repositories
-===================
+Available tools
+===============
 The `scripts <https://git.ligo.org/gracedb/scripts>`__ repository contains a set of scripts for running cron jobs and performing useful tasks on a GraceDB server.
 Examples include:
 

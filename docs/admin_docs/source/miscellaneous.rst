@@ -19,16 +19,21 @@ updated with new events and annotations.
     especially when one is working on database schema migrations to
     try out on the test box.
 
-Here is how I recommend doing it. First gsissh into the test instance as
-the ``gracedb`` user. Then::
+There are no longer SSH keys tied to the gracedb user account, so here is what I consider to be teh simplest strategy for copying the database to a new server::
 
-    cd 
-    scp gracedb@gracedb.cgca.uwm.edu:/opt/gracedb/sql_backups/gracedb.sql.gz .
+    # On production
+    sudo -i
+    cp /opt/gracedb/sql_backups/gracedb.sql.gz /home/albert.einstein
+    chown albert.einstein:uwmlsc /home/albert.einstein/gracedb.sql.gz
+    logout
+    scp $HOME/gracedb.sql.gz albert.einstein@gracedb-test.ligo.org:~
+
+    # Log into gracedb-test
     gunzip gracedb.sql.gz
     mysql -u gracedb -p gracedb < gracedb.sql
 
 The latter step requires entering the MySQL password for the ``gracedb``
-testing user. This can be found in ``/home/gracedb/config/settings/secret.py``.    
+testing user. This can be found in ``config/settings/secret.py``.    
 
 .. _copying_event_data:
 
@@ -82,7 +87,7 @@ but you still have to go through the same sequence of steps that you would
 for a true developement task. I recommend the workflow described in :ref:`new_server_feature`.
 
 In this particular case, the only necessary code change is to edit the 
-file ``events/buildVOEvent.py`` and add something like::
+file ``gracedb/events/buildVOEvent.py`` and add something like::
 
     w.add_Param(Param(name="MyParam",
         dataType="float",
@@ -102,14 +107,14 @@ A good starting point is to search the GraceDB server code for "L1" to see where
 
 Specifics (assume X1 is the IFO code):
 
-1. Add X1OPS, X1OK, X1NO labels, update ``templates/gracedb/event_detail_script.js`` with description, and update ``templates/gracedb/query_help_frag.html``
-2. Add to instruments in ``events/buildVOEvent.py``
-3. Update ifoList in ``events/query.py``
-4. Add entry to ``CONTROL_ROOM_IPS`` in ``config/settings/base.py``
-5. Add signoff option for X1 in ``templates/gracedb/event_detail.html``
-6. Update INSTRUMENTS in ``events/models.py``.
+1. Add X1OPS, X1OK, X1NO labels, update ``gracedb/templates/gracedb/event_detail_script.js`` with description, and update ``gracedb/templates/gracedb/query_help_frag.html``
+2. Add to instruments in ``gracedb/events/buildVOEvent.py``
+3. Update ifoList in ``gracedb/events/query.py``
+4. Add entry to ``CONTROL_ROOM_IPS`` in ``gracedb/config/settings/base.py``
+5. Add signoff option for X1 in ``gracedb/templates/gracedb/event_detail.html``
+6. Update INSTRUMENTS in ``gracedb/events/models.py``.
 7. Update any event objects which need it (currently only LIB events)
-8. Update lots of things in ``events/serialize.py``
+8. Update lots of things in ``gracedb/events/serialize.py``
 
 See an example (Virgo) `here <https://git.ligo.org/lscsoft/gracedb/commit/65a4c08e25d7a472e1f995072d166b4c8dc611df>`__, but note that a lot of the Virgo-related stuff was already in the code.
 
@@ -139,4 +144,4 @@ a config file that got blown away by puppet. Notice, though, that nothing
 under ``/home/gracedb`` is backed up. That's because the core server code and
 accompanying scripts are under version control, and thus are backed up elsewhere.
 
-I believe everything backed up on ``backup01`` is also backed up off-site at CIT.
+I believe that everything backed up on ``backup01`` is also backed up off-site at CIT.

@@ -153,7 +153,7 @@ Populating the database
 ----------------
 To construct a "fresh" database from migrations, just run::
 
-    cd $HOME/gracedb
+    cd $HOME/gracedb_project
     python manage.py migrate
 
 Copying production database
@@ -213,7 +213,7 @@ As the ``gracedb`` user
 
 - Build the GraceDB documentation::
 
-    cd $HOME/gracedb/doc
+    cd $HOME/gracedb_project/docs/user_docs
     sphinx-build -b html source build
     cd ../admin_docs
     sphinx-build -b html source build
@@ -229,16 +229,13 @@ As the ``gracedb`` user
 
 - Collect static files::
 
-    cd $HOME/gracedb
+    cd $HOME/gracedb_project
     python manage.py collectstatic
 
-- Use bower to install packages::
+- Use bower to install Javascript and CSCS packages (the ``bower.json`` file contains all of the package details)::
 
-    cd $HOME
-    bower install dgrid#0.4.0 dijit#1.10.4 dojox#1.10.4 moment#2.11.1 moment-timezone#0.5.0
-    bower install jquery#3.2.1
-
-  - Note that many of these packages may no longer be needed after the upcoming web UI update (expected in 2018).
+    cd $HOME/gracedb_project
+    bower install
 
 - Instantiate the database backups (``logrotate`` will fail if there isn't an initial file)::
 
