@@ -7,7 +7,7 @@ import sys
 import multiprocessing
 
 # Parameters
-GUNICORN_PORT = 8000
+GUNICORN_PORT = 8080
 LOG_DIR = abspath(join(dirname(__file__), "..", "..", "logs"))
 
 # Gunicorn configuration ------------------------------------------------------
