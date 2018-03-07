@@ -1308,8 +1308,7 @@ def groupeventpermissionToDict(gop, event, request=None):
     return rv
 
 def getContentType(event):
-    model_name = event.__class__.__name__.lower()
-    return ContentType.objects.get(app_label='gracedb', model=model_name)
+    return ContentType.objects.get_for_model(event)
 
 class EventPermissionList(APIView):
     """Event Permission List Resource
