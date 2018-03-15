@@ -12,6 +12,8 @@ from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.db.models import Q
 
+from django.contrib import messages
+
 from django_twilio.client import twilio_client
 import socket
 # Set up logger
@@ -31,12 +33,6 @@ def index(request):
     triggers = Trigger.objects.filter(user=request.user)
     contacts = Contact.objects.filter(user=request.user)
     d = { 'triggers': triggers, 'contacts': contacts }
-
-    # Add flash message content in session to context for template,
-    # then clear the session's flash message.
-    if request.session.has_key('flash_msg') and request.session['flash_msg']:
-        d['flash_msg'] = request.session['flash_msg']
-        request.session['flash_msg'] = None
 
     return render(request, 'profile/notifications.html', context=d)
 
@@ -96,11 +92,11 @@ def create(request):
                 t.farThresh = farThresh
                 t.label_query = label_query
                 t.save()
-                request.session['flash_msg'] = ('Created notification: '
-                    '{n}.').format(n=t.userlessDisplay())
+                messages.info(request, 'Created notification: {n}.'.format(
+                    n=t.userlessDisplay()))
             except Exception as e:
-                request.session['flash_msg'] = ('Error creating notification '
-                    '{n}: {e}.').format(n=t.userlessDisplay(), e=e)
+                messages.error(request, ('Error creating notification {n}: '
+                    '{e}.').format(n=t.userlessDisplay(), e=e))
                 t.delete()
 
             return HttpResponseRedirect(reverse(index))
@@ -122,8 +118,8 @@ def delete(request, id):
     if request.user != t.user:
         return HttpResponseForbidden(("You are not allowed to modify another "
             "user's notifications."))
-    request.session['flash_msg'] = 'Notification "{nname}" has been deleted.' \
-        .format(nname=t.userlessDisplay())
+    messages.info(request,'Notification "{nname}" has been deleted.' \
+        .format(nname=t.userlessDisplay()))
     t.delete()
     return HttpResponseRedirect(reverse(index))
 
@@ -148,8 +144,8 @@ def createContact(request):
                     text_phone = form.cleaned_data['text_phone'],
                 )
             c.save()
-            request.session['flash_msg'] = 'Created contact "{cname}".'.format(
-                cname=c.desc)
+            messages.info(request, 'Created contact "{cname}".'.format(
+                cname=c.desc))
             return HttpResponseRedirect(reverse(index))
     else:
         form = ContactForm()
@@ -166,22 +162,23 @@ def testContact(request, id):
     if request.user != c.user:
         return HttpResponseForbidden("Can't test a Contact that isn't yours.")
     else:
-        flash_msg = 'Testing contact "{0}".'.format(c.desc)
+        messages.info(request, 'Testing contact "{0}".'.format(c.desc))
         hostname = socket.gethostname()
         if c.email:
             # Send test e-mail
             try:
                 subject = 'Test of contact "{0}" from {1}' \
-                          .format(c.desc, hostname)
-                message = ('This is a test of contact "{0}" from '
-                           'https://{1}.ligo.org.').format(c.desc, hostname)
-                email = EmailMessage(subject, message, settings.SERVER_EMAIL, 
-                                     [c.email], [])
+                    .format(c.desc, hostname)
+                msg = ('This is a test of contact "{0}" from '
+                    'https://{1}.ligo.org.').format(c.desc, hostname)
+                email = EmailMessage(subject, msg, settings.SERVER_EMAIL,
+                    [c.email], [])
                 email.send()
                 log.debug('Sent test e-mail to {0}'.format(c.email))
-            except:
-                flash_msg += " Error sending test e-mail to {0}." \
-                             .format(c.email)
+                zzzz
+            except Exception as e:
+                messages.error(request, ("Error sending test e-mail to {0}: "
+                    "{1}.").format(c.email, e))
                 log.exception('Error sending test e-mail to {0}'.format(c.email))
 
         if c.phone:
@@ -204,11 +201,11 @@ def testContact(request, id):
                         body=('This is a test message from https://{0}'
                               '.ligo.org.').format(hostname))
                     log.debug('Sending test text to {0}'.format(c.phone))
-            except:
-                flash_msg += " Error contacting {0}.".format(c.phone)
-                log.exception('Error contacting {0}'.format(c.phone))
+            except Exception as e:
+                messages.error(request, "Error contacting {0}: {1}." \
+                    .format(c.phone, e))
+                log.exception('Error contacting {0}: {1}'.format(c.phone, e))
 
-        request.session['flash_msg'] = flash_msg
         return HttpResponseRedirect(reverse(index))
 
 @internal_user_required
@@ -225,8 +222,8 @@ def deleteContact(request, id):
     if request.user != c.user:
         return HttpResponseForbidden(("You are not authorized to modify "
             "another user's Contacts."))
-    request.session['flash_msg'] = 'Contact "{cname}" has been deleted.' \
-        .format(cname=c.desc)
+    messages.info(request, 'Contact "{cname}" has been deleted.' \
+        .format(cname=c.desc))
     c.delete()
     return HttpResponseRedirect(reverse(index))
 

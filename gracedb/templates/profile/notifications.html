@@ -6,9 +6,11 @@
 
 {% block content %}
 
-{% if flash_msg %}
+{% if messages %}
 <div class="flash">
-<p>{{ flash_msg }}</p>
+    {% for m in messages %}
+        <p>{{ m }}</p>
+    {% endfor %}
 </div>
 {% endif %}
 
