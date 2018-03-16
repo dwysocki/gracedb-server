@@ -38,13 +38,31 @@ def index(request):
 
 @lvem_user_required
 def managePassword(request):
+    # Set up context dictionary
     d = { 'username': request.user.username }
+
     if request.method == "POST":
         password = User.objects.make_random_password(length=20)
         d['password'] = password
         request.user.set_password(password)
         request.user.date_joined = timezone.now()
         request.user.save()
+
+    if request.user.has_usable_password():
+        d['has_password'] = True
+        # Check if password is expired
+        # NOTE: This is super hacky because we are using date_joined to store
+        # the date when the password was set.
+        password_expiry = request.user.date_joined + \
+            settings.PASSWORD_EXPIRATION_TIME - timezone.now()
+        if (password_expiry.total_seconds() < 0):
+            d['expired'] = True
+        else:
+            d['expired'] = False
+            d['expiration_days'] = password_expiry.days
+    else:
+        d['has_password'] = False
+
     return render(request, 'profile/manage_password.html', context=d)
 
 @internal_user_required
