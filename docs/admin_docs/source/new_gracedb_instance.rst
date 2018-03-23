@@ -185,6 +185,11 @@ Extra steps
 
 As root
 -------
+- Add time zone information to the database::
+
+    mysql_tzinfo_to_sql /usr/share/zoneinfo/ | mysql -u root mysql
+    systemctl restart mariadb
+
 - Upgrade ``nodejs`` version (also installs ``npm``)::
 
     curl -sL https://deb.nodesource.com/setup_8.x | bash -
