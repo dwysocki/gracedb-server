@@ -181,6 +181,7 @@ class Event(models.Model):
         # XXX Not good.  But then, it never was.
         return reverse('file_list', args=[self.graceid()])
 
+    @property
     def datadir(self):
         # Create a file-like object which is the SHA-1 hexdigest of the Event's primary key
         hdf = StringIO(sha1(str(self.id)).hexdigest())
@@ -320,7 +321,7 @@ class Event(models.Model):
 
         if purge:
             # Delete data directory
-            datadir = self.datadir()
+            datadir = self.datadir
             if os.path.isdir(datadir):
                 shutil.rmtree(datadir)
 
@@ -696,7 +697,7 @@ class SingleInspiral(models.Model):
         """Given an Event (and optional location of coinc.xml) update SingleInspiral data"""
         # XXX Need a better way to find original data.
         if datafile is None:
-            datafile = os.path.join(event.datadir(), 'coinc.xml')
+            datafile = os.path.join(event.datadir, 'coinc.xml')
 
         try:
             xmldoc = glue.ligolw.utils.load_filename(datafile, contenthandler=LIGOLWContentHandler)

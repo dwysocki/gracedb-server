@@ -104,7 +104,7 @@ def _createEventFromForm(request, form):
 
         f = request.FILES['eventFile']
         if pipeline.name not in ['HardwareInjection',]:
-            eventDir = event.datadir()
+            eventDir = event.datadir
             os.makedirs( eventDir )
             uploadDestination = os.path.join(eventDir, f.name)
             fdest = VersionedFile(uploadDestination, 'w')

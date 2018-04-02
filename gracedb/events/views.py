@@ -209,7 +209,7 @@ def logentry(request, event, num=None):
         file_version = None
         if uploadedFile:
             filename = uploadedFile.name
-            filepath = os.path.join(event.datadir(), filename)
+            filepath = os.path.join(event.datadir, filename)
 
             try:
                 # Open / Write the file.
@@ -856,7 +856,7 @@ def file_list(request, event):
                 if filename not in f:
                     f.append(filename)
     else:
-        for dirname, dirnames, filenames in os.walk(event.datadir()):
+        for dirname, dirnames, filenames in os.walk(event.datadir):
             f.extend(filenames)
             break
 
@@ -877,7 +877,7 @@ def file_download(request, event, filename):
             msg = "You do not have permission to view this file."
             return HttpResponseForbidden(msg)
 
-    file_path = os.path.join(event.datadir(), filename)
+    file_path = os.path.join(event.datadir, filename)
     return check_and_serve_file(request, file_path,
         ResponseClass=HttpResponse)
 

@@ -158,7 +158,7 @@ def check_external_file_access(event, filename):
     filename, version = get_file_version(filename)
     if version is None:
         # Figure out the version by following the link
-        filepath = os.path.join(event.datadir(), filename)
+        filepath = os.path.join(event.datadir, filename)
         if os.path.islink(filepath):
             target_file = os.path.realpath(filepath)
             target_basename = os.path.basename(target_file)

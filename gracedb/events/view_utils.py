@@ -567,7 +567,7 @@ def voeventToDict(voevent, request=None):
     }
 
     # Read in the filecontents
-    filepath = os.path.join(voevent.event.datadir(), voevent.filename)
+    filepath = os.path.join(voevent.event.datadir, voevent.filename)
     text = None
     try: 
         text = open(filepath, 'r').read()
@@ -622,7 +622,7 @@ def assembleLigoLw(objects):
 
     xmldoc = ligolw.Document()
     for obj in objects:
-        fname = os.path.join(obj.datadir(), "coinc.xml")
+        fname = os.path.join(obj.datadir, "coinc.xml")
         utils.load_filename(fname, xmldoc=xmldoc, contenthandler=LIGOLWContentHandler)
 
     ligolw_add.reassign_ids(xmldoc)
@@ -631,7 +631,7 @@ def assembleLigoLw(objects):
     return xmldoc
 
 def _saveUploadedFile(event, uploadedFile):
-    fname = os.path.join(event.datadir(), uploadedFile.name)
+    fname = os.path.join(event.datadir, uploadedFile.name)
     f = VersionedFile(fname, "w")
     for chunk in uploadedFile.chunks():
         f.write(chunk)
@@ -779,7 +779,7 @@ def flexigridResponse(request, objects):
     return response
 
 def get_file(event, filename="event.log"):
-    logfilename = os.path.join(event.datadir(), filename)
+    logfilename = os.path.join(event.datadir, filename)
     contents = ""
     try:
         lines = open(logfilename, "r").readlines()

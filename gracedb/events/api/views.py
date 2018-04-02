@@ -282,7 +282,7 @@ def assembleLigoLw(data):
         eventDictList = [data,]
     xmldoc = ligolw.Document()
     for e in eventDictList:
-        fname = os.path.join(e.datadir(), "coinc.xml")
+        fname = os.path.join(e.datadir, "coinc.xml")
         if not os.path.exists(fname):
             raise MissingCoinc
         elif not os.access(fname, os.R_OK):
@@ -630,7 +630,7 @@ class EventDetail(APIView):
 
         # XXX handle duplicate file names.
         f = request.data['eventFile']
-        uploadDestination = os.path.join(event.datadir(), f.name)
+        uploadDestination = os.path.join(event.datadir, f.name)
         fdest = VersionedFile(uploadDestination, 'w')
         #for chunk in f.chunks():
         #    fdest.write(chunk)
@@ -813,7 +813,7 @@ class EventLogList(APIView):
         file_version = None
         if uploadedFile:
             filename = uploadedFile.name 
-            filepath = os.path.join(event.datadir(), filename)
+            filepath = os.path.join(event.datadir, filename)
 
             try:
                 # Open / Write the file.
@@ -1586,7 +1586,7 @@ class Files(APIView):
         filename = filename or ""
         graceid = event.graceid()
 
-        filepath = os.path.join(event.datadir(), filename)
+        filepath = os.path.join(event.datadir, filename)
 
         # Check permissions for external users
         if filename and os.path.isdir(filepath):
@@ -1602,7 +1602,7 @@ class Files(APIView):
         elif not filename:
             # Get list of files w/urls.
             rv = {}
-            filepath = event.datadir()
+            filepath = event.datadir
             fnames = []
             # Filter files for external users.
             if is_external(request.user):
@@ -1647,7 +1647,7 @@ class Files(APIView):
     def put(self, request, event, filename=""):
         """ File uploader.  Implements file versioning. """
         filename = filename or ""
-        filepath = os.path.join(event.datadir(), filename)
+        filepath = os.path.join(event.datadir, filename)
 
         try:
             # Open / Write the file.
@@ -1815,7 +1815,7 @@ class VOEventList(APIView):
 
         voevent_display_type = dict(VOEvent.VOEVENT_TYPE_CHOICES)[voevent_type].capitalize()
         filename = "%s-%d-%s.xml" % (event.graceid(), voevent.N, voevent_display_type)
-        filepath = os.path.join(event.datadir(), filename)
+        filepath = os.path.join(event.datadir, filename)
         fdest = VersionedFile(filepath, 'w')
         fdest.write(voevent_text)
         fdest.close()

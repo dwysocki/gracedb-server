@@ -271,7 +271,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             raise VOEventBuilderException("Skymap filename not provided.")
 
         fits_name = skymap_filename
-        fits_path = os.path.join(event.datadir(), fits_name)
+        fits_path = os.path.join(event.datadir, fits_name)
         if not os.path.exists(fits_path):
             raise VOEventBuilderException("Skymap file does not exist: %s" % skymap_filename)
 
@@ -280,7 +280,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         if not img_name:
             stem = '.'.join(fits_name.split('.')[:-1])
             img_name = stem + '.png'
-            img_path = os.path.join(event.datadir(), img_name)
+            img_path = os.path.join(event.datadir, img_name)
             if not os.path.exists(img_path):
                 img_name = None
 
@@ -429,7 +429,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                 # Go find the data file.
                 log = event.eventlog_set.filter(comment__startswith="Original Data").all()[0]
                 filename = log.filename
-                filepath = os.path.join(event.datadir(),filename)
+                filepath = os.path.join(event.datadir,filename)
                 if os.path.isfile(filepath):
                     datafile = open(filepath,"r")
                 else:
