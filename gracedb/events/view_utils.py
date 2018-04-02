@@ -336,7 +336,6 @@ def eventToDict(event, columns=None, request=None):
           "log"   : reverse("eventlog-list", args=[graceid], request=request),
           "emobservations"   : reverse("emobservation-list", args=[graceid], request=request),
           "files" : reverse("files", args=[graceid], request=request),
-          "filemeta" : reverse("filemeta", args=[graceid], request=request),
           "labels" : reverse("labels", args=[graceid], request=request),
           "self"  : reverse("event-detail", args=[graceid], request=request),
           "tags"  : reverse("eventtag-list", args=[graceid], request=request),

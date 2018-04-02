@@ -92,7 +92,6 @@ New event::
         "likelihood": 8.33784842725385e+44, 
         "links": {
           "embb": "https://gracedb.ligo.org/api/events/T129911/embb/", 
-          "filemeta": "https://gracedb.ligo.org/api/events/T129911/filemeta/", 
           "files": "https://gracedb.ligo.org/api/events/T129911/files/", 
           "labels": "https://gracedb.ligo.org/api/events/T129911/labels/", 
           "log": "https://gracedb.ligo.org/api/events/T129911/log/", 

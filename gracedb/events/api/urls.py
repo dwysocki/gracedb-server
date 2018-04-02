@@ -46,30 +46,27 @@ urlpatterns = [
     url(r'^tag/$', TagList.as_view(), name='tag-list'),
     # XXX unclear what the tag detail resource should be.
     #url(r'^tag/(?P<tagname>.+)$', TagDetail.as_view(), name='tag-detail'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)/tag/$', EventTagList.as_view(),
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/tag/$', EventTagList.as_view(),
         name='eventtag-list'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)/tag/(?P<tagname>.+)$',
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/tag/(?P<tagname>.+)$',
         EventTagDetail.as_view(), name='eventtag-detail'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)/tag/$',
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)/tag/$',
         EventLogTagList.as_view(), name='eventlogtag-list'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)/tag/(?P<tagname>.+)$',
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)/tag/(?P<tagname>.+)$',
         EventLogTagDetail.as_view(), name='eventlogtag-detail'),
 
     # Permission Resources
-    url(r'events/(?P<graceid>[GEHMT]\d+)/perms/$',
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/perms/$',
         EventPermissionList.as_view(), name='eventpermission-list'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)/perms/(?P<group_name>.+)/$', 
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/perms/(?P<group_name>.+)/$', 
         GroupEventPermissionList.as_view(), name='groupeventpermission-list'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)/perms/(?P<group_name>.+)/(?P<perm_shortname>\w+)$', 
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/perms/(?P<group_name>.+)/(?P<perm_shortname>\w+)$', 
         GroupEventPermissionDetail.as_view(), name='groupeventpermission-detail'),
 
     # Event File Resources
     # events/{graceid}/files/[{filename}[/{version}]]
     url(r'^events/(?P<graceid>\w[\d]+)/files/(?P<filename>.+)?$',
         Files.as_view(), name="files"),
-    # events/{graceid}/filemeta/[{filename}]
-    url(r'^events/(?P<graceid>\w[\d]+)/filemeta/(?P<filename>.+)?$',
-        FileMeta.as_view(), name="filemeta"),
 
     # Event Labels
     # events/{graceid}/labels/[{label}]

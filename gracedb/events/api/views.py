@@ -243,7 +243,6 @@ def event_perm_object_required(view):
 #            "neighbors" : reverse("neighbors", args=[graceid], request=request),
 #            "log"   : reverse("eventlog-list", args=[graceid], request=request),
 #            "files" : reverse("files", args=[graceid], request=request),
-#            "filemeta" : reverse("filemeta", args=[graceid], request=request),
 #            "labels" : reverse("labels", args=[graceid], request=request),
 #            "self"  : reverse("event-detail", args=[graceid], request=request),
 #            "tags"  : reverse("eventtag-list", args=[graceid], request=request),
@@ -1517,10 +1516,6 @@ class GracedbRoot(APIView):
         files = files.replace("G1200", "{graceid}")
         files = files.replace("filename", "{filename}")
 
-        filemeta = reverse('filemeta', args=["G1200", "filename"], request=request)
-        filemeta = filemeta.replace("G1200", "{graceid}")
-        filemeta = filemeta.replace("filename", "{filename}")
-
         labels = reverse('labels', args=["G1200", "thelabel"], request=request)
         labels = labels.replace("G1200", "{graceid}")
         labels = labels.replace("thelabel", "{label}")
@@ -1547,7 +1542,6 @@ class GracedbRoot(APIView):
                 "embb-event-log-template" : embb,
                 "event-label-template" : labels,
                 "files-template" : files,
-                "filemeta-template" : filemeta,
                 "tag-template" : tag,
                 "taglist-template" : taglist,
                 "signoff-list-template": signofflist,
@@ -1701,12 +1695,6 @@ class Files(APIView):
             pass
 
         return response
-
-class FileMeta(APIView):
-    """File Metadata Resource"""
-    authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
-    pass
 
 class PerformanceInfo(APIView):
     """
