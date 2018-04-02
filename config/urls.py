@@ -26,11 +26,6 @@ urlpatterns = [
     url(r'^SPPrivacy', events.views.spprivacy, name="spprivacy"),
     url(r'^DiscoveryService', events.views.discovery, name="discovery"),
     url(r'^events/', include('events.urls')),
-    url(r'^apiweb/', include('events.api.urls', app_name="api",
-        namespace="shib")),
-    url(r'^api/', include('events.api.urls', app_name="api", namespace="x509")),
-    url(r'^apibasic/', include('events.api.urls', app_name="api",
-        namespace="basic")),
     url(r'^options/', include('userprofile.urls')),
     url(r'^feeds/(?P<url>.*)/$', EventFeed()),
     url(r'^feeds/$', feedview, name="feeds"),
@@ -43,6 +38,13 @@ urlpatterns = [
     #(r'^reports/(?P<path>.+)$', 'django.views.static.serve',
     #        {'document_root': settings.LATENCY_REPORT_DEST_DIR}),
 
+    # API URLs
+    url(r'^apiweb/', include('events.api.urls', app_name="api",
+        namespace="shib")),
+    url(r'^api/', include('events.api.urls', app_name="api",
+        namespace="x509")),
+    url(r'^apibasic/', include('events.api.urls', app_name="api",
+        namespace="basic")),
 
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
     # to INSTALLED_APPS to enable admin documentation:
