@@ -9,33 +9,33 @@ urlpatterns = [
 
     # Event Resources
     # events/[{graceid}[/{version}]]
-    url(r'events/$', EventList.as_view(), name='event-list'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)$', EventDetail.as_view(),
+    url(r'^events/$', EventList.as_view(), name='event-list'),
+    url(r'^events/(?P<graceid>[GEHMT]\d+)$', EventDetail.as_view(),
         name='event-detail'),
 
     # Event Log Resources
     # events/{graceid}/logs/[{logid}]
-    url(r'events/(?P<graceid>[GEHMT]\d+)/log/$', EventLogList.as_view(),
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/log/$', EventLogList.as_view(),
         name='eventlog-list'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)$',
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)$',
         EventLogDetail.as_view(), name='eventlog-detail'),
 
     # VOEvent Resources
     # events/{graceid}/voevent/[{serial_number}]
-    url(r'events/(?P<graceid>[GEHMT]\d+)/voevent/$', VOEventList.as_view(),
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/voevent/$', VOEventList.as_view(),
         name='voevent-list'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)/voevent/(?P<n>\d+)$',
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/voevent/(?P<n>\d+)$',
         VOEventDetail.as_view(), name='voevent-detail'),
 
     # EMBB Resources
     # events/{graceid}/logs/[{logid}]
-    url(r'events/(?P<graceid>[GEHMT]\d+)/embb/$', EMBBEventLogList.as_view(),
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/embb/$', EMBBEventLogList.as_view(),
         name='embbeventlog-list'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)/embb/(?P<n>\d+)$',
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/embb/(?P<n>\d+)$',
         EMBBEventLogDetail.as_view(), name='embbeventlog-detail'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)/emobservation/$',
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/emobservation/$',
         EMObservationList.as_view(), name='emobservation-list'),
-    url(r'events/(?P<graceid>[GEHMT]\d+)/emobservation/(?P<n>\d+)$',
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/emobservation/(?P<n>\d+)$',
         EMObservationDetail.as_view(), name='emobservation-detail'),
 #    url(r'events/(?P<graceid>[GEHMT]\d+)/emobservation/(?P<n>\d+)/emfootprint/$',
 #        EMFootprintList.as_view(), name='emfootprint-list'),
@@ -79,7 +79,7 @@ urlpatterns = [
         name="neighbors"),
 
     # Operator Signoff Resources
-    url(r'events/(?P<graceid>[GEHMT]\d+)/signoff/$',
+    url(r'^events/(?P<graceid>[GEHMT]\d+)/signoff/$',
         OperatorSignoffList.as_view(), name='signoff-list'),
 
     # Performance stats
