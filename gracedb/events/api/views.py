@@ -357,7 +357,7 @@ class TSVRenderer(BaseRenderer):
 
 class EventList(APIView):
     """
-    This resource represents the collection of  all candidate events in GraceDB.
+    This resource represents the collection of all candidate events in GraceDB.
 
     ### GET
     Retrieve events. You may use the following parameters:
@@ -1238,7 +1238,7 @@ class EventLogTagDetail(APIView):
                 tag.save()
 
             # Now add the log message to this tag.
-            tag.eventlogs.add(eventlog)
+            tag.event_logs.add(eventlog)
 
             # Create a log entry to document the tag creation.
             msg = "Tagged message %s: %s " % (eventlog.N, tagname)
@@ -1265,10 +1265,10 @@ class EventLogTagDetail(APIView):
 
         try:
             tag = eventlog.tags.filter(name=tagname)[0]
-            tag.eventlogs.remove(eventlog)
+            tag.event_logs.remove(eventlog)
 
             # Is the tag empty now?  If so we can delete it.
-            if not tag.eventlogs.all():
+            if not tag.event_logs.all():
                 tag.delete()
 
             # Create a log entry to document the tag creation.
@@ -1687,7 +1687,7 @@ class Files(APIView):
         if is_external(request.user):
             try:
                 tag = Tag.objects.get(name=settings.EXTERNAL_ACCESS_TAGNAME)
-                tag.eventlogs.add(logentry)
+                tag.event_logs.add(logentry)
             except:
                 # XXX probably should at least log a warning here.
                 pass
@@ -1899,3 +1899,20 @@ class OperatorSignoffList(APIView):
              }
         return Response(rv)
 
+#==================================================================
+# Superevent
+
+class SupereventList(APIView):
+    """Superevent list resource"""
+
+    def get(self, request):
+        pass
+
+    def post(self, request):
+        pass
+
+class SupereventDetail(APIView):
+    """Superevent detail resource"""
+
+    def get(self, request):
+        pass

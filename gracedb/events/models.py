@@ -3,11 +3,14 @@ import numbers
 
 from django.db import models, IntegrityError
 from django.urls import reverse
+from django.core.exceptions import ValidationError
+from django.utils.translation import ugettext_lazy as _
 
 from model_utils.managers import InheritanceManager
 
-from django.contrib.auth.models import User as DjangoUser
+#from django.contrib.auth.models import User as DjangoUser
 #from django.contrib.auth.models import Group
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 
 from guardian.models import GroupObjectPermission
@@ -24,6 +27,8 @@ from glue.lal import LIGOTimeGPS
 
 import json, re
 
+from core.models import AutoIncrementModel, CleanSaveModel
+from core.models import LogBase, m2mThroughBase
 from core.time_utils import posixToGpsTime
 
 from django.conf import settings
@@ -33,6 +38,8 @@ import calendar
 from cStringIO import StringIO
 from hashlib import sha1
 import shutil
+
+UserModel = get_user_model()
 
 SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 
@@ -79,8 +86,10 @@ class Search(models.Model):
 class Label(models.Model):
     name = models.CharField(max_length=20, unique=True)
     # XXX really, does this belong here? probably not.
-    defaultColor = models.CharField(max_length=20, unique=False, default="black")
+    defaultColor = models.CharField(max_length=20, unique=False,
+        default="black")
     description = models.TextField(blank=False)
+
     def __unicode__(self):
         return self.name
 
@@ -104,11 +113,16 @@ class Event(models.Model):
 #    )
     DEFAULT_EVENT_NEIGHBORHOOD = (-5,5)
 
-    submitter = models.ForeignKey(DjangoUser)
+    submitter = models.ForeignKey(UserModel)
     created = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Group)
     #uid = models.CharField(max_length=20, default="")  # XXX deprecated.  should be removed.
     #analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
+
+    # Events aren't required to be part of a superevent. If the superevent is
+    # deleted, don't delete the event; just set this FK to null.
+    #superevent = models.ForeignKey('superevents.Superevent', null=True,
+    #    related_name='events', on_delete=models.SET_NULL)
 
     # Note: a default value is needed only during the schema migration
     # that creates this column. After that, we can safely remove it.
@@ -294,7 +308,7 @@ class Event(models.Model):
         """
         Optionally override the delete method for Event models.
         By default, deleting an Event deletes corresponding subclasses
-        (GrbEvent, CoincInspiralEvent, etc.) and EventLogs, EMObserverations,
+        (GrbEvent, CoincInspiralEvent, etc.) and EventLogs, EMObservations,
         etc., but does not remove the data directory or the
         GroupObjectPermissions corresponding to the Event or its subclasses.
 
@@ -325,114 +339,20 @@ class Event(models.Model):
         # Call base class delete
         super(Event, self).delete(*args, **kwargs)
 
-class AutoIncrementModel(models.Model):
+class EventLog(CleanSaveModel, LogBase, AutoIncrementModel):
     """
-    An abstract class used as a base for classes which need the
-    autoincrementing save method described below.
+    Log message object attached to an Event. Uses the AutoIncrementModel
+    to handle log enumeration on a per-Event basis.
     """
+    AUTO_FIELD = 'N'
+    AUTO_FK = 'event'
 
-    class Meta:
-        abstract = True
-
-    def save(self, auto_field, auto_fk, *args, **kwargs):
-        """
-        This custom save method does a SELECT and INSERT in a single raw SQL
-        query in order to properly handle a quasi-autoincrementing field, which
-        is used to identify instances associated with a ForeignKey. With this
-        method, concurrency issues are handled by the database backend.
-        Ex: EventLog instances associated with an Event should be numbered 1-N.
-
-        This has been tested with the following classes:
-            EventLog, EMObservation, EMFootprint, EMBBEventLog
-
-        Thorough testing is needed to use this method for a new model. Note
-        that this method may not work properly for non-MySQL backends.
-
-        Arguments:
-            auto_field: name of field which acts as an autoincrement field.
-            auto_fk:    name of ForeignKey to which the auto_field is relative.
-        """
-
-        # Do normal save if this is not an insert (i.e., the instance has a
-        # primary key already).
-        meta = self.__class__._meta
-        pk_set = self._get_pk_val(meta) is not None
-        if pk_set:
-            super(AutoIncrementModel, self).save(*args, **kwargs)
-            return
-
-        # Otherwise, we'll generate some raw SQL to do the
-        # insert and auto-increment.
-
-        # Get model fields, except for primary key field.
-        fields = meta.local_concrete_fields
-        if not pk_set:
-            fields = [f for f in fields if not
-                isinstance(f, models.fields.AutoField)]
-
-        # Setup for generating base SQL query for doing an INSERT.
-        query = models.sql.InsertQuery(self.__class__._base_manager.model)
-        query.insert_values(fields, objs=[self])
-        compiler = query.get_compiler(using=self.__class__._base_manager.db)
-        compiler.return_id = meta.has_auto_field and not pk_set
-
-        fk_name = meta.get_field(auto_fk).column
-        with compiler.connection.cursor() as cursor:
-            # Get base SQL query as string.
-            for sql, params in compiler.as_sql():
-                # Modify SQL string to do an INSERT with SELECT.
-                # NOTE: it's unlikely that the following will generate
-                # a functional database query for non-MySQL backends.
-
-                # Replace VALUES (%s, %s, ..., %s) with
-                # SELECT %s, %s, ..., %s
-                sql = re.sub(r"VALUES \((.*)\)", r"SELECT \1", sql)
-
-                # Add table to SELECT from and ForeignKey id corresponding to
-                # our autoincrement field.
-                sql += " FROM `{tbl_name}` WHERE `{fk_name}`={fk_id}".format(
-                    tbl_name=meta.db_table,
-                    fk_name=fk_name,
-                    fk_id=getattr(self, fk_name)
-                    )
-
-                # Get index corresponding to auto_field.
-                af_idx = [f.name for f in fields].index(auto_field)
-                # Put this directly in the SQL; cursor.execute quotes it
-                # as a literal, which causes the SQL command to fail.
-                # We shouldn't have issues with SQL injection because
-                # auto_field should never be a user-defined parameter.
-                del params[af_idx]
-                sql = re.sub(r"((%s, ){{{0}}})%s".format(af_idx),
-                    r"\1IFNULL(MAX({af}),0)+1", sql, 1).format(af=auto_field)
-
-                # Execute SQL command.
-                cursor.execute(sql, params)
-
-            # Get primary key from database and set it in memory.
-            if compiler.connection.features.can_return_id_from_insert:
-                id = compiler.connection.ops.fetch_returned_insert_id(cursor)
-            else:
-                id = compiler.connection.ops.last_insert_id(cursor,
-                    meta.db_table, meta.pk.column)
-            self._set_pk_val(id)
-
-            # Refresh object in memory in order to get auto_field value.
-            self.refresh_from_db()
-            
-class EventLog(AutoIncrementModel):
-    class Meta:
-        ordering = ['-created','-N']
-        unique_together = ('event','N')
+    # Extra fields
     event = models.ForeignKey(Event, null=False)
-    tags = models.ManyToManyField('Tag', related_name='eventlogs')
-    created = models.DateTimeField(auto_now_add=True)
-    issuer = models.ForeignKey(DjangoUser)
-    filename = models.CharField(max_length=100, default="")
-    comment = models.TextField(null=False)
-    #XXX Does this need to be indexed for better performance?
-    N = models.IntegerField(null=False)
-    file_version = models.IntegerField(null=True)
+    tags = models.ManyToManyField('Tag', related_name='event_logs')
+
+    class Meta(LogBase.Meta):
+        unique_together = (('event', 'N'),)
 
     def fileurl(self):
         if self.filename:
@@ -444,18 +364,6 @@ class EventLog(AutoIncrementModel):
         else:
             return None
 
-    def hasImage(self):
-        # XXX hacky
-        return self.filename and self.filename[-3:].lower() in ['png','gif','jpg']
-
-    def save(self, *args, **kwargs):
-        # XXX filename must not be 'None' because null=False for the filename
-        # field above.
-        self.filename = self.filename or ""
-
-        # Set up to call save method of the base class (AutoIncrementModel)
-        kwargs.update({'auto_field': 'N', 'auto_fk': 'event'})
-        super(EventLog, self).save(*args, **kwargs)
 
 class EMGroup(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -465,107 +373,45 @@ class EMGroup(models.Model):
     # Let's leave this out for now. The submitter will be stored in 
     # the EMBB log record, and that should be enough for audit/blame
     # purposes.
-    #liasons = models.ManyToManyField(DjangoUser)
-
-    # XXX Characteristics needed to produce pointings?
+    #liasons = models.ManyToManyField(UserModel)
 
     def __unicode__(self):
         return self.name
 
-EMSPECTRUM = (
-('em.gamma',            'Gamma rays part of the spectrum'),
-('em.gamma.soft',       'Soft gamma ray (120 - 500 keV)'),
-('em.gamma.hard',       'Hard gamma ray (>500 keV)'),
-('em.X-ray',            'X-ray part of the spectrum'),
-('em.X-ray.soft',       'Soft X-ray (0.12 - 2 keV)'),
-('em.X-ray.medium',     'Medium X-ray (2 - 12 keV)'),
-('em.X-ray.hard',       'Hard X-ray (12 - 120 keV)'),
-('em.UV',               'Ultraviolet part of the spectrum'),
-('em.UV.10-50nm',       'Ultraviolet between 10 and 50 nm'),
-('em.UV.50-100nm',      'Ultraviolet between 50 and 100 nm'),
-('em.UV.100-200nm',     'Ultraviolet between 100 and 200 nm'),
-('em.UV.200-300nm',     'Ultraviolet between 200 and 300 nm'),
-('em.UV.FUV',           'Far-Infrared, 30-100 microns'),
-('em.opt',              'Optical part of the spectrum'),
-('em.opt.U',            'Optical band between 300 and 400 nm'),
-('em.opt.B',            'Optical band between 400 and 500 nm'),
-('em.opt.V',            'Optical band between 500 and 600 nm'),
-('em.opt.R',            'Optical band between 600 and 750 nm'),
-('em.opt.I',            'Optical band between 750 and 1000 nm'),
-('em.IR',               'Infrared part of the spectrum'),
-('em.IR.NIR',           'Near-Infrared, 1-5 microns'),
-('em.IR.J',             'Infrared between 1.0 and 1.5 micron'),
-('em.IR.H',             'Infrared between 1.5 and 2 micron'),
-('em.IR.K',             'Infrared between 2 and 3 micron'),
-('em.IR.MIR',           'Medium-Infrared, 5-30 microns'),
-('em.IR.3-4um',         'Infrared between 3 and 4 micron'),
-('em.IR.4-8um',         'Infrared between 4 and 8 micron'),
-('em.IR.8-15um',        'Infrared between 8 and 15 micron'),
-('em.IR.15-30um',       'Infrared between 15 and 30 micron'),
-('em.IR.30-60um',       'Infrared between 30 and 60 micron'),
-('em.IR.60-100um',      'Infrared between 60 and 100 micron'),
-('em.IR.FIR',           'Far-Infrared, 30-100 microns'),
-('em.mm',               'Millimetric part of the spectrum'),
-('em.mm.1500-3000GHz',  'Millimetric between 1500 and 3000 GHz'),
-('em.mm.750-1500GHz',   'Millimetric between 750 and 1500 GHz'),
-('em.mm.400-750GHz',    'Millimetric between 400 and 750 GHz'),
-('em.mm.200-400GHz',    'Millimetric between 200 and 400 GHz'),
-('em.mm.100-200GHz',    'Millimetric between 100 and 200 GHz'),
-('em.mm.50-100GHz',     'Millimetric between 50 and 100 GHz'),
-('em.mm.30-50GHz',      'Millimetric between 30 and 50 GHz'),
-('em.radio',            'Radio part of the spectrum'),
-('em.radio.12-30GHz',   'Radio between 12 and 30 GHz'),
-('em.radio.6-12GHz',    'Radio between 6 and 12 GHz'),
-('em.radio.3-6GHz',     'Radio between 3 and 6 GHz'),
-('em.radio.1500-3000MHz','Radio between 1500 and 3000 MHz'),
-('em.radio.750-1500MHz','Radio between 750 and 1500 MHz'),
-('em.radio.400-750MHz', 'Radio between 400 and 750 MHz'),
-('em.radio.200-400MHz', 'Radio between 200 and 400 MHz'),
-('em.radio.100-200MHz', 'Radio between 100 and 200 MHz'),
-('em.radio.20-100MHz',  'Radio between 20 and 100 MHz'),
-)
 
-class EMObservation(AutoIncrementModel):
-    """
-    EMObservation:  An observation record for EM followup.  
-    """
+class EMObservationBase(models.Model):
+    """Abstract base class for EM follow-up observation records"""
     class Meta:
+        abstract = True
         ordering = ['-created', '-N']
-        unique_together = ("event","N")
-
-    def __unicode__(self):
-        return "%s-%s-%d" % (self.event.graceid(), self.group.name, self.N)
 
     N = models.IntegerField(null=False)
     created = models.DateTimeField(auto_now_add=True)
-    event = models.ForeignKey(Event)
-    submitter  = models.ForeignKey(DjangoUser)  
+    submitter  = models.ForeignKey(UserModel, null=False,
+        related_name='%(app_label)s_%(class)s_set')
 
     # The MOU group responsible 
-    group = models.ForeignKey(EMGroup)       # from a table of facilities
+    group = models.ForeignKey(EMGroup, null=False,
+        related_name='%(app_label)s_%(class)s_set')
 
-    # The following fields should be calculated from the footprint info provided
-    # by the user. These fields are just for convenience and fast searching
+    # The following fields should be calculated from the footprint info
+    # provided by the user. These fields are just for convenience and
+    # fast searching
 
     # The center of the bounding box of the rectangular footprints ra,dec
     # in J2000 in decimal degrees
     ra         = models.FloatField(null=True)
-    dec        = models.FloatField(null=True)    
+    dec        = models.FloatField(null=True)
 
     # The width and height (RA range and Dec range) in decimal degrees 
     raWidth    = models.FloatField(null=True)
-    decWidth   = models.FloatField(null=True)    
+    decWidth   = models.FloatField(null=True)
 
     comment = models.TextField(blank=True)
 
-    def save(self, *args, **kwargs):
-        # Set up to call save method of the base class (AutoIncrementModel)
-        kwargs.update({'auto_field': 'N', 'auto_fk': 'event'})
-        super(EMObservation, self).save(*args, **kwargs)
-
-    def calculateCoveringRegion(self):
-        # How to access the related footprint objects?
-        footprints = self.emfootprint_set.all()
+    def calculateCoveringRegion(self, footprints=None):
+        # Implement most of the logic in the abstract class' method
+        # without needing to specify the footprints field
         if not footprints:
             return
 
@@ -597,246 +443,81 @@ class EMObservation(AutoIncrementModel):
         self.raWidth  = ramax-ramin
         self.decWidth = decmax-decmin
 
-class EMFootprint(AutoIncrementModel):
-    """
-    A single footprint associated with an observation.
-    Each EMObservation can have many footprints underneath.
 
-    None of the fields are optional here.
-    """
-    class Meta:
-        ordering = ['-N']
-        unique_together = ("observation","N")
+class EMObservation(EMObservationBase, AutoIncrementModel):
+    """EMObservation class for events"""
+    AUTO_FIELD = 'N'
+    AUTO_FK = 'event'
+    event = models.ForeignKey(Event, null=False, on_delete=models.CASCADE)
 
-    N = models.IntegerField(null=False)
+    class Meta(EMObservationBase.Meta):
+        unique_together = (('event', 'N'),)
 
-    observation = models.ForeignKey(EMObservation, null = False)
-
-    # The center of the rectangular footprint, right ascension and declination
-    # in J2000 in decimal degrees
-    ra         = models.FloatField()
-    dec        = models.FloatField()    
-
-    # The width and height (RA range and Dec range) in decimal degrees 
-    raWidth    = models.FloatField()
-    decWidth   = models.FloatField()    
-
-    # The start time of the observation for this footprint
-    start_time = models.DateTimeField()
-
-    # The exposure time in seconds for this footprint
-    exposure_time = models.PositiveIntegerField()
-
-    def save(self, *args, **kwargs):
-        # Set up to call save method of the base class (AutoIncrementModel)
-        kwargs.update({'auto_field': 'N', 'auto_fk': 'observation'})
-        super(EMFootprint, self).save(*args, **kwargs)
-
-class EMBBEventLog(AutoIncrementModel):
-    """EMBB EventLog:  A multi-purpose annotation for EM followup.
-     
-    A rectangle on the sky, equatorially aligned,
-    that has or will be imaged that is related to an event"""
-
-    class Meta:
-        ordering = ['-created', '-N']
-        unique_together = ("event","N")
+    def __unicode__(self):
+        return "{event_id} | {group} | {N}".format(
+            event_id=self.event.graceid(), group=self.group.name, N=self.N)
 
     def __unicode__(self):
         return "%s-%s-%d" % (self.event.graceid(), self.group.name, self.N)
 
-    # A counter for Eels associated with a given event. This is 
-    # important for addressibility.
-    N = models.IntegerField(null=False)
-    
-    # The time at which this Eel was created. Important for event auditing.
-    created = models.DateTimeField(auto_now_add=True)
+    def calculateCoveringRegion(self):
+        footprints = self.emfootprint_set.all()
+        super(EMObservation, self).calculateCoveringRegion(footprints)
 
-    # The gracedb event that this Eel relates to
-    event = models.ForeignKey(Event)
 
-    # The responsible author of this communication
-    submitter  = models.ForeignKey(DjangoUser)  # from a table of people
+class EMFootprintBase(models.Model):
+    """
+    Abstract base class for EM footprints:
+    Each EMObservation can have many footprints underneath.
 
-    # The MOU group responsible 
-    group = models.ForeignKey(EMGroup)       # from a table of facilities
+    None of the fields are optional here.
+    """
+    N = models.IntegerField(null=False, editable=False)
 
-    # The instrument used or intended for the imaging implied by this footprint
-    instrument = models.CharField(max_length=200, blank=True)
-
-    # Facility-local identifier for this footprint
-    footprintID= models.TextField(blank=True)
-
-    # Now the global ID is a concatenation: facilityName#footprintID
-
-    # the EM waveband used for the imaging as below
-    waveband   = models.CharField(max_length=25, choices=EMSPECTRUM)
-
-    # The center of the bounding box of the rectangular footprints, right ascension and declination
+    # The center of the rectangular footprint, right ascension and declination
     # in J2000 in decimal degrees
-    ra         = models.FloatField(null=True)
-    dec        = models.FloatField(null=True)
+    ra         = models.FloatField(null=False, blank=False)
+    dec        = models.FloatField(null=False, blank=False)
 
-    # The width and height (RA range and Dec range) in decimal degrees of each image
-    raWidth    = models.FloatField(null=True)
-    decWidth   = models.FloatField(null=True)
+    # The width and height (RA range and Dec range) in decimal degrees 
+    raWidth    = models.FloatField(null=False, blank=False)
+    decWidth   = models.FloatField(null=False, blank=False)
 
-    # The GPS time of the middle of the bounding box of the imaging time
-    gpstime    = models.PositiveIntegerField(null=True)
+    # The start time of the observation for this footprint
+    start_time = models.DateTimeField(null=False, blank=False)
 
-    # The duration of each image in seconds
-    duration   = models.PositiveIntegerField(null=True)
+    # The exposure time in seconds for this footprint
+    exposure_time = models.PositiveIntegerField(null=False, blank=False)
 
-    # The lists of RA and Dec of the centers of the images
-    raList         = models.TextField(blank=True)
-    decList        = models.TextField(blank=True)
+    class Meta:
+        abstract = True
+        ordering = ['-N']
 
-    # The width and height of each individual image
-    raWidthList    = models.TextField(blank=True)
-    decWidthList   = models.TextField(blank=True)
 
-    # The list of GPS times of the images
-    gpstimeList        = models.TextField(blank=True)
+class EMFootprint(EMFootprintBase, AutoIncrementModel):
+    """EMFootprint class for event EMObservations"""
+    # For AutoIncrementModel save
+    AUTO_FIELD = 'N'
+    AUTO_FK = 'observation'
+    observation = models.ForeignKey(EMObservation, null=False,
+        on_delete=models.CASCADE)
 
-    # The duration of each individual image
-    durationList   = models.TextField(blank=True)
+    class Meta(EMFootprintBase.Meta):
+        unique_together = (('observation', 'N'),)
 
-    # Event Log status
-    EEL_STATUS_CHOICES = (('FO','FOOTPRINT'), ('SO','SOURCE'), ('CO','COMMENT'), ('CI','CIRCULAR'))
-    eel_status     = models.CharField(max_length=2, choices=EEL_STATUS_CHOICES)
 
-    # Observation status. If OBSERVATION, then there is a good chance of good image
-    OBS_STATUS_CHOICES = (('NA', 'NOT APPLICABLE'), ('OB','OBSERVATION'), ('TE','TEST'), ('PR','PREDICTION'))
-    obs_status     = models.CharField(max_length=2, choices=OBS_STATUS_CHOICES)
-
-    # This field is natural language for human
-    comment = models.TextField(blank=True)
-
-    # This field is formal struct by a syntax TBD
-    # for example  {"phot.mag.limit": 22.3}
-    extra_info_dict = models.TextField(blank=True)
-
-    # Validates the input and builds  bounding box in RA/Dec/GPS
-    def validateMakeRects(self):
-        # get all the list based position and times and their widths
-        raRealList = []
-        rawRealList = []
-        # add a [ and ] to convert the input csv list to a json parsable text
-
-        if self.raList:        raRealList = json.loads('['+self.raList+']')
-        if self.raWidthList:   rawRealList = json.loads('['+self.raWidthList+']')
-
-        if self.decList:       decRealList = json.loads('['+self.decList+']')
-        if self.decWidthList:  decwRealList = json.loads('['+self.decWidthList+']')
-
-        if self.gpstimeList:   gpstimeRealList = json.loads('['+self.gpstimeList+']')
-        if self.durationList:  durationRealList = json.loads('['+self.durationList+']')
-
-        # is there anything in the ra list? 
-        nList = len(raRealList)
-        if nList > 0: 
-            if decRealList and len(decRealList) != nList:
-                raise ValueError('RA and Dec lists are different lengths.')
-            if gpstimeRealList and len(gpstimeRealList) != nList:
-                raise ValueError('RA and GPS lists are different lengths.')
-
-        # is there anything in the raWidth list? 
-        mList = len(rawRealList)
-        if mList > 0:
-            if decwRealList and len(decwRealList) != mList:
-                raise ValueError('RAwidth and Decwidth lists are different lengths.')
-            if durationRealList and len(durationRealList) != mList:
-                raise ValueError('RAwidth and Duration lists are different lengths.')
-
-            # There can be 1 width for the whole list, or one for each ra/dec/gps 
-            if mList != 1 and mList != nList:
-                raise ValueError('Width and duration lists must be length 1 or same length as coordinate lists')
-        else:
-            mList = 0
-    
-        ramin = 360.0
-        ramax = 0.0
-        decmin = 90.0
-        decmax = -90.0
-        gpsmin = 100000000000
-        gpsmax = 0
-        for i in range(nList):
-            try:
-                ra = float(raRealList[i])
-            except:
-                raise ValueError('Cannot read RA list element %d of %s'%(i, self.raList))
-            try:
-                dec = float(decRealList[i])
-            except:
-                raise ValueError('Cannot read Dec list element %d of %s'%(i, self.decList))
-            try:
-                gps = int(gpstimeRealList[i])
-            except:
-                raise ValueError('Cannot read GPStime list element %d of %s'%(i, self.gpstimeList))
-
-            # the widths list can have 1 member to cover all, or one for each
-            if mList==1: j=0
-            else       : j=i
-    
-            try:
-                w = float(rawRealList[j])/2
-            except:
-                raise ValueError('Cannot read raWidth list element %d of %s'%(i, self.raWidthList))
-
-            # evaluate bounding box
-            if ra-w < ramin: ramin = ra-w
-            if ra+w > ramax: ramax = ra+w
-    
-            try:
-                w = float(decwRealList[j])/2
-            except:
-                raise ValueError('Cannot read raWidth list element %d of %s'%(i, self.decWidthList))
-
-            # evaluate bounding box
-            if dec-w < decmin: decmin = dec-w
-            if dec+w > decmax: decmax = dec+w
-    
-            try:
-                w = int(durationRealList[j])/2
-            except:
-                raise ValueError('Cannot read duration list element %d of %s'%(i, self.durationList))
-
-            # evaluate bounding box
-            if gps-w < gpsmin: gpsmin = gps-w
-            if gps+w > gpsmax: gpsmax = gps+w
-
-        # Make sure the min/max ra and dec are within bounds:
-        ramin  = max(0.0,   ramin)
-        ramax  = min(360.0, ramax)
-        decmin = max(-90.0, decmin)
-        decmax = min(90.0,  decmax)            
- 
-        if nList>0:
-            self.ra       = (ramin + ramax)/2
-            self.dec      = (decmin + decmax)/2
-            self.gpstime  = (gpsmin+gpsmax)/2
-        if mList>0:
-            self.raWidth  = ramax-ramin
-            self.decWidth = decmax-decmin
-            self.duration = gpsmax-gpsmin
-        return True
-
-    def save(self, *args, **kwargs):
-        # Set up for calling save method of the base class (AutoIncrementModel)
-        kwargs.update({'auto_field': 'N', 'auto_fk': 'event'})
-        super(EMBBEventLog, self).save(*args, **kwargs)
-
-class Labelling(models.Model):
+class Labelling(m2mThroughBase):
+    """
+    Model which provides the "through" relationship between Events and Labels.
+    """
     event = models.ForeignKey(Event)
     label = models.ForeignKey(Label)
-    creator = models.ForeignKey(DjangoUser)
-    created = models.DateTimeField(auto_now_add=True)
 
 # XXX Deprecated?  Is this used *anywhere*?
 # Appears to only be used in models.py.  Here and Event class as approval_set
 class Approval(models.Model):
     COLLABORATION_CHOICES = ( ('L','LIGO'), ('V','Virgo'), )
-    approver = models.ForeignKey(DjangoUser)
+    approver = models.ForeignKey(UserModel)
     created = models.DateTimeField(auto_now_add=True)
     approvedEvent = models.ForeignKey(Event, null=False)
     approvingCollaboration = models.CharField(max_length=1, choices=COLLABORATION_CHOICES)
@@ -1114,42 +795,66 @@ class SimInspiralEvent(Event):
         cls._field_names = [ x.name for x in cls._meta.get_fields(include_parents=False) ]
         return cls._field_names
 
-## Tags (user-defined log message attributes)
-class Tag(models.Model):
-    """Tag Model"""
-    # XXX Does the tag need to have a submitter column?
-    # No, because creating a tag will generate a log message.
-    # For the same reason, a timstamp is not necessary.
-    name        = models.CharField(max_length=100)
-    displayName = models.CharField(max_length=200,null=True)
+# Tags (user-defined log message attributes)
+class Tag(CleanSaveModel):
+    """
+    Model for tags attached to EventLogs.
+
+    We don't use an explicit through model to track relationship creators and
+    time of relationship creation since we generally create a log message
+    whenever another log is tagged.  Not sure that it's good to make the
+    assumption that this will always be done.  But is it really important to
+    track those things?  Doesn't seem like it.
+    """
+    name = models.CharField(max_length=100, null=False, blank=False)
+    displayName = models.CharField(max_length=200, null=True, blank=True)
 
     def __unicode__(self):
-        if self.displayName:
-            return self.displayName
-        else:
-            return self.name
+        return self.displayName if self.displayName else self.name
 
-#     def getEvents(self):
-#         # XXX Any way of doing this with filters?
-#         # We would need to filter for a non-null intersection of the 
-#         # set of log messages in the event with the set of log 
-#         # messages in the tag.
-#         eventlist = [log.event for log in self.eventlogs.all()]
 
-class VOEvent(models.Model):
+class VOEventBase(models.Model):
+    """Abstract base model for VOEvents"""
+
     class Meta:
-        ordering = ['-created','-N']
-        unique_together = ("event","N")
-    # Now N will be the serial number.
-    event = models.ForeignKey(Event, null=False)
+        abstract = True
+        ordering = ['-created', '-N']
+
+    # VOEvent type choices
+    VOEVENT_TYPE_PRELIMINARY = 'PR'
+    VOEVENT_TYPE_INITIAL = 'IN'
+    VOEVENT_TYPE_UPDATE = 'UP'
+    VOEVENT_TYPE_RETRACTION = 'RE'
+    VOEVENT_TYPE_CHOICES = (
+        (VOEVENT_TYPE_PRELIMINARY, 'preliminary'),
+        (VOEVENT_TYPE_INITIAL, 'initial'),
+        (VOEVENT_TYPE_UPDATE, 'update'),
+        (VOEVENT_TYPE_RETRACTION, 'retraction'),
+    )
+
+    # Fields
     created = models.DateTimeField(auto_now_add=True)
-    issuer = models.ForeignKey(DjangoUser)
-    ivorn = models.CharField(max_length=200, default="")
-    filename = models.CharField(max_length=100, default="")
-    file_version = models.IntegerField(null=True)
-    N = models.IntegerField(null=False)
-    VOEVENT_TYPE_CHOICES = (('PR','preliminary'), ('IN','initial'), ('UP','update'), ('RE', 'retraction'),)
+    issuer = models.ForeignKey(UserModel, null=False,
+        related_name='%(app_label)s_%(class)s_set')
+    ivorn = models.CharField(max_length=200, default="", blank=True)
+    filename = models.CharField(max_length=100, default="", blank=True)
+    file_version = models.IntegerField(null=True, default=None, blank=True)
+    N = models.IntegerField(null=False, editable=False)
     voevent_type = models.CharField(max_length=2, choices=VOEVENT_TYPE_CHOICES)
+
+    def fileurl(self):
+        # Override this method on derived classes
+        return NotImplemented
+
+
+class VOEvent(VOEventBase, AutoIncrementModel):
+    """VOEvent class for events"""
+    AUTO_FIELD = 'N'
+    AUTO_FK = 'event'
+    event = models.ForeignKey(Event, null=False, on_delete=models.CASCADE)
+
+    class Meta(VOEventBase.Meta):
+        unique_together = (('event', 'N'),)
 
     def fileurl(self):
         if self.filename:
@@ -1161,46 +866,319 @@ class VOEvent(models.Model):
         else:
             return None
 
-    def save(self, *args, **kwargs):
-        success = False
-        # XXX filename must not be 'None' because null=False for the filename
-        # field above.
-        self.filename = self.filename or ""
-        attempts = 0
-        while (not success and attempts < 5):
-            attempts = attempts + 1
-            if not self.N:
-                if self.event.voevent_set.count():
-                    self.N = int(self.event.voevent_set.aggregate(models.Max('N'))['N__max']) + 1
-                else:
-                    self.N = 1
-            try:
-                super(VOEvent, self).save(*args, **kwargs)
-                success = True
-            except IntegrityError:
-                # IntegrityError means an attempt to insert a duplicate
-                # key or to violate a foreignkey constraint.
-                # We are under race conditions.  Let's try again.
-                pass
 
-        if not success:
-            # XXX Should this be a custom exception?  That way we could catch it
-            # in the views that use it and give an informative error message.
-            raise Exception("Too many attempts to save log message. Something is wrong.")
+class SignoffBase(models.Model):
+    """Abstract base model for operator and advocate signoffs"""
 
-INSTRUMENTS = ( ('H1', 'LHO'), ('L1', 'LLO'), ('V1', 'Virgo') )
-OPERATOR_STATUSES = ( ('OK', 'OKAY'), ('NO', 'NOT OKAY') )
-SIGNOFF_TYPE_CHOICES = ( ('OP', 'operator'), ('ADV', 'advocate') )
-class Signoff(models.Model):
-    class Meta:
-        unique_together = ("event","instrument")
-    submitter = models.ForeignKey(DjangoUser)
-    event = models.ForeignKey(Event)
-    signoff_type = models.CharField(max_length=3, choices=SIGNOFF_TYPE_CHOICES, blank=False)
-    instrument = models.CharField(max_length=2, choices=INSTRUMENTS, blank=True)
-    status = models.CharField(max_length=2, choices=OPERATOR_STATUSES, blank=False)
+    # Instrument choices
+    INSTRUMENT_H1 = 'H1'
+    INSTRUMENT_L1 = 'L1'
+    INSTRUMENT_V1 = 'V1'
+    INSTRUMENT_CHOICES = (
+        (INSTRUMENT_H1, 'LHO'),
+        (INSTRUMENT_L1, 'LLO'),
+        (INSTRUMENT_V1, 'Virgo'),
+    )
+
+    # Operator status choices
+    OPERATOR_STATUS_OK = 'OK'
+    OPERATOR_STATUS_NOTOK = 'NO'
+    OPERATOR_STATUS_CHOICES = (
+        (OPERATOR_STATUS_OK, 'OKAY'),
+        (OPERATOR_STATUS_NOTOK, 'NOT OKAY'),
+    )
+
+    # Signoff type choices
+    SIGNOFF_TYPE_OPERATOR = 'OP'
+    SIGNOFF_TYPE_ADVOCATE = 'ADV'
+    SIGNOFF_TYPE_CHOICES = (
+        (SIGNOFF_TYPE_OPERATOR, 'operator'),
+        (SIGNOFF_TYPE_ADVOCATE, 'advocate'),
+    )
+
+    # Field definitions
+    submitter = models.ForeignKey(UserModel, related_name=
+        '%(app_label)s_%(class)s_set')
     comment = models.TextField(blank=True)
+    instrument = models.CharField(max_length=2, blank=True,
+        choices=INSTRUMENT_CHOICES)
+    status = models.CharField(max_length=2, blank=False,
+        choices=OPERATOR_STATUS_CHOICES)
+    signoff_type = models.CharField(max_length=3, blank=False,
+        choices=SIGNOFF_TYPE_CHOICES)
+
+    class Meta:
+        abstract = True
+
+    def clean(self, *args, **kwargs):
+        """Custom clean method for signoffs"""
+
+        # Make sure instrument is non-blank if this is an operator signoff
+        if (signoff_type == self.SIGNOFF_TYPE_OPERATOR and
+            not self.instrument):
+
+            raise ValidationError({'instrument':
+                _('Instrument must be specified for operator signoff')})
+
+        super(SignoffBase, self).clean(*args, **kwargs)
+
+
+class Signoff(SignoffBase):
+    """Class for Event signoffs"""
+
+    event = models.ForeignKey(Event)
+
+    class Meta:
+        unique_together = ('event', 'instrument')
 
     def __unicode__(self):
-        return "%s | %s | %s" % (self.event.graceid(), self.instrument, self.status)
+        return "%s | %s | %s" % (self.event.graceid(), self.instrument,
+            self.status)
 
+EMSPECTRUM = (
+('em.gamma',            'Gamma rays part of the spectrum'),
+('em.gamma.soft',       'Soft gamma ray (120 - 500 keV)'),
+('em.gamma.hard',       'Hard gamma ray (>500 keV)'),
+('em.X-ray',            'X-ray part of the spectrum'),
+('em.X-ray.soft',       'Soft X-ray (0.12 - 2 keV)'),
+('em.X-ray.medium',     'Medium X-ray (2 - 12 keV)'),
+('em.X-ray.hard',       'Hard X-ray (12 - 120 keV)'),
+('em.UV',               'Ultraviolet part of the spectrum'),
+('em.UV.10-50nm',       'Ultraviolet between 10 and 50 nm'),
+('em.UV.50-100nm',      'Ultraviolet between 50 and 100 nm'),
+('em.UV.100-200nm',     'Ultraviolet between 100 and 200 nm'),
+('em.UV.200-300nm',     'Ultraviolet between 200 and 300 nm'),
+('em.UV.FUV',           'Far-Infrared, 30-100 microns'),
+('em.opt',              'Optical part of the spectrum'),
+('em.opt.U',            'Optical band between 300 and 400 nm'),
+('em.opt.B',            'Optical band between 400 and 500 nm'),
+('em.opt.V',            'Optical band between 500 and 600 nm'),
+('em.opt.R',            'Optical band between 600 and 750 nm'),
+('em.opt.I',            'Optical band between 750 and 1000 nm'),
+('em.IR',               'Infrared part of the spectrum'),
+('em.IR.NIR',           'Near-Infrared, 1-5 microns'),
+('em.IR.J',             'Infrared between 1.0 and 1.5 micron'),
+('em.IR.H',             'Infrared between 1.5 and 2 micron'),
+('em.IR.K',             'Infrared between 2 and 3 micron'),
+('em.IR.MIR',           'Medium-Infrared, 5-30 microns'),
+('em.IR.3-4um',         'Infrared between 3 and 4 micron'),
+('em.IR.4-8um',         'Infrared between 4 and 8 micron'),
+('em.IR.8-15um',        'Infrared between 8 and 15 micron'),
+('em.IR.15-30um',       'Infrared between 15 and 30 micron'),
+('em.IR.30-60um',       'Infrared between 30 and 60 micron'),
+('em.IR.60-100um',      'Infrared between 60 and 100 micron'),
+('em.IR.FIR',           'Far-Infrared, 30-100 microns'),
+('em.mm',               'Millimetric part of the spectrum'),
+('em.mm.1500-3000GHz',  'Millimetric between 1500 and 3000 GHz'),
+('em.mm.750-1500GHz',   'Millimetric between 750 and 1500 GHz'),
+('em.mm.400-750GHz',    'Millimetric between 400 and 750 GHz'),
+('em.mm.200-400GHz',    'Millimetric between 200 and 400 GHz'),
+('em.mm.100-200GHz',    'Millimetric between 100 and 200 GHz'),
+('em.mm.50-100GHz',     'Millimetric between 50 and 100 GHz'),
+('em.mm.30-50GHz',      'Millimetric between 30 and 50 GHz'),
+('em.radio',            'Radio part of the spectrum'),
+('em.radio.12-30GHz',   'Radio between 12 and 30 GHz'),
+('em.radio.6-12GHz',    'Radio between 6 and 12 GHz'),
+('em.radio.3-6GHz',     'Radio between 3 and 6 GHz'),
+('em.radio.1500-3000MHz','Radio between 1500 and 3000 MHz'),
+('em.radio.750-1500MHz','Radio between 750 and 1500 MHz'),
+('em.radio.400-750MHz', 'Radio between 400 and 750 MHz'),
+('em.radio.200-400MHz', 'Radio between 200 and 400 MHz'),
+('em.radio.100-200MHz', 'Radio between 100 and 200 MHz'),
+('em.radio.20-100MHz',  'Radio between 20 and 100 MHz'),
+)
+
+# TP (2 Apr 2018): pretty sure this class is deprecated - most recent
+# production use is T137114 = April 2015.
+class EMBBEventLog(AutoIncrementModel):
+    """EMBB EventLog:  A multi-purpose annotation for EM followup.
+
+    A rectangle on the sky, equatorially aligned,
+    that has or will be imaged that is related to an event"""
+
+    class Meta:
+        ordering = ['-created', '-N']
+        unique_together = ("event","N")
+
+    def __unicode__(self):
+        return "%s-%s-%d" % (self.event.graceid(), self.group.name, self.N)
+
+    # A counter for Eels associated with a given event. This is 
+    # important for addressibility.
+    N = models.IntegerField(null=False)
+
+    # The time at which this Eel was created. Important for event auditing.
+    created = models.DateTimeField(auto_now_add=True)
+
+    # The gracedb event that this Eel relates to
+    event = models.ForeignKey(Event)
+
+    # The responsible author of this communication
+    submitter  = models.ForeignKey(UserModel)  # from a table of people
+
+    # The MOU group responsible 
+    group = models.ForeignKey(EMGroup)       # from a table of facilities
+
+    # The instrument used or intended for the imaging implied by this footprint
+    instrument = models.CharField(max_length=200, blank=True)
+
+    # Facility-local identifier for this footprint
+    footprintID= models.TextField(blank=True)
+
+    # Now the global ID is a concatenation: facilityName#footprintID
+
+    # the EM waveband used for the imaging as below
+    waveband   = models.CharField(max_length=25, choices=EMSPECTRUM)
+
+    # The center of the bounding box of the rectangular footprints, right ascension and declination
+    # in J2000 in decimal degrees
+    ra         = models.FloatField(null=True)
+    dec        = models.FloatField(null=True)
+
+    # The width and height (RA range and Dec range) in decimal degrees of each image
+    raWidth    = models.FloatField(null=True)
+    decWidth   = models.FloatField(null=True)
+
+    # The GPS time of the middle of the bounding box of the imaging time
+    gpstime    = models.PositiveIntegerField(null=True)
+
+    # The duration of each image in seconds
+    duration   = models.PositiveIntegerField(null=True)
+
+    # The lists of RA and Dec of the centers of the images
+    raList         = models.TextField(blank=True)
+    decList        = models.TextField(blank=True)
+
+    # The width and height of each individual image
+    raWidthList    = models.TextField(blank=True)
+    decWidthList   = models.TextField(blank=True)
+
+    # The list of GPS times of the images
+    gpstimeList        = models.TextField(blank=True)
+
+    # The duration of each individual image
+    durationList   = models.TextField(blank=True)
+
+    # Event Log status
+    EEL_STATUS_CHOICES = (('FO','FOOTPRINT'), ('SO','SOURCE'), ('CO','COMMENT'), ('CI','CIRCULAR'))
+    eel_status     = models.CharField(max_length=2, choices=EEL_STATUS_CHOICES)
+
+    # Observation status. If OBSERVATION, then there is a good chance of good image
+    OBS_STATUS_CHOICES = (('NA', 'NOT APPLICABLE'), ('OB','OBSERVATION'), ('TE','TEST'), ('PR','PREDICTION'))
+    obs_status     = models.CharField(max_length=2, choices=OBS_STATUS_CHOICES)
+
+    # This field is natural language for human
+    comment = models.TextField(blank=True)
+
+    # This field is formal struct by a syntax TBD
+    # for example  {"phot.mag.limit": 22.3}
+    extra_info_dict = models.TextField(blank=True)
+
+    # For AutoIncrementModel save
+    AUTO_FIELD = 'N'
+    AUTO_FK = 'event'
+
+    # Validates the input and builds  bounding box in RA/Dec/GPS
+    def validateMakeRects(self):
+        # get all the list based position and times and their widths
+        raRealList = []
+        rawRealList = []
+        # add a [ and ] to convert the input csv list to a json parsable text
+
+        if self.raList:        raRealList = json.loads('['+self.raList+']')
+        if self.raWidthList:   rawRealList = json.loads('['+self.raWidthList+']')
+
+        if self.decList:       decRealList = json.loads('['+self.decList+']')
+        if self.decWidthList:  decwRealList = json.loads('['+self.decWidthList+']')
+
+        if self.gpstimeList:   gpstimeRealList = json.loads('['+self.gpstimeList+']')
+        if self.durationList:  durationRealList = json.loads('['+self.durationList+']')
+
+        # is there anything in the ra list? 
+        nList = len(raRealList)
+        if nList > 0: 
+            if decRealList and len(decRealList) != nList:
+                raise ValueError('RA and Dec lists are different lengths.')
+            if gpstimeRealList and len(gpstimeRealList) != nList:
+                raise ValueError('RA and GPS lists are different lengths.')
+
+        # is there anything in the raWidth list? 
+        mList = len(rawRealList)
+        if mList > 0:
+            if decwRealList and len(decwRealList) != mList:
+                raise ValueError('RAwidth and Decwidth lists are different lengths.')
+            if durationRealList and len(durationRealList) != mList:
+                raise ValueError('RAwidth and Duration lists are different lengths.')
+
+            # There can be 1 width for the whole list, or one for each ra/dec/gps 
+            if mList != 1 and mList != nList:
+                raise ValueError('Width and duration lists must be length 1 or same length as coordinate lists')
+        else:
+            mList = 0
+
+        ramin = 360.0
+        ramax = 0.0
+        decmin = 90.0
+        decmax = -90.0
+        gpsmin = 100000000000
+        gpsmax = 0
+        for i in range(nList):
+            try:
+                ra = float(raRealList[i])
+            except:
+                raise ValueError('Cannot read RA list element %d of %s'%(i, self.raList))
+            try:
+                dec = float(decRealList[i])
+            except:
+                raise ValueError('Cannot read Dec list element %d of %s'%(i, self.decList))
+            try:
+                gps = int(gpstimeRealList[i])
+            except:
+                raise ValueError('Cannot read GPStime list element %d of %s'%(i, self.gpstimeList))
+
+            # the widths list can have 1 member to cover all, or one for each
+            if mList==1: j=0
+            else       : j=i
+
+            try:
+                w = float(rawRealList[j])/2
+            except:
+                raise ValueError('Cannot read raWidth list element %d of %s'%(i, self.raWidthList))
+
+            # evaluate bounding box
+            if ra-w < ramin: ramin = ra-w
+            if ra+w > ramax: ramax = ra+w
+
+            try:
+                w = float(decwRealList[j])/2
+            except:
+                raise ValueError('Cannot read raWidth list element %d of %s'%(i, self.decWidthList))
+
+            # evaluate bounding box
+            if dec-w < decmin: decmin = dec-w
+            if dec+w > decmax: decmax = dec+w
+
+            try:
+                w = int(durationRealList[j])/2
+            except:
+                raise ValueError('Cannot read duration list element %d of %s'%(i, self.durationList))
+
+            # evaluate bounding box
+            if gps-w < gpsmin: gpsmin = gps-w
+            if gps+w > gpsmax: gpsmax = gps+w
+
+        # Make sure the min/max ra and dec are within bounds:
+        ramin  = max(0.0,   ramin)
+        ramax  = min(360.0, ramax)
+        decmin = max(-90.0, decmin)
+        decmax = min(90.0,  decmax)
+
+        if nList>0:
+            self.ra       = (ramin + ramax)/2
+            self.dec      = (decmin + decmax)/2
+            self.gpstime  = (gpsmin+gpsmax)/2
+        if mList>0:
+            self.raWidth  = ramax-ramin
+            self.decWidth = decmax-decmin
+            self.duration = gpsmax-gpsmin
+        return True

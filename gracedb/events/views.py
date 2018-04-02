@@ -24,14 +24,13 @@ from .view_logic import get_performance_info
 from .view_logic import get_lvem_perm_status
 from .view_logic import create_eel
 from .view_logic import create_emobservation
-from .view_logic import create_label, delete_label
+from .view_logic import create_label
 from .view_utils import assembleLigoLw, get_file
 from .view_utils import flexigridResponse, jqgridResponse
 from .view_utils import get_recent_events_string
 from .view_utils import eventLogToDict
 from .view_utils import signoffToDict
 from .alert import issueAlertForUpdate, issueXMPPAlert
-from .models import SIGNOFF_TYPE_CHOICES
 
 # Set up logging
 import logging
@@ -242,7 +241,7 @@ def logentry(request, event, num=None):
                 tag = Tag(name=tagname, displayName=displayName)
                 tag.save()
 
-            tag.eventlogs.add(elog)
+            tag.event_logs.add(elog)
             # Create a log entry to document the tag creation.
             num = elog.N
             msg = "Tagged message %s: %s " % (num, tagname)
@@ -271,7 +270,7 @@ def logentry(request, event, num=None):
             # added the external access tagname somehow, and the following 
             # would result in an IntegrityError
             try:
-                tag.eventlogs.add(elog)
+                tag.event_logs.add(elog)
             except:
                 pass
 
@@ -770,7 +769,7 @@ def taglogentry(request, event, num, tagname):
             tag = db_tags[0]
 
         # Now add the log message to this tag.
-        tag.eventlogs.add(eventlog)
+        tag.event_logs.add(eventlog)
 
         # Create a log entry to document the tag creation.
         msg = "Tagged message %s: %s " % (num, tagname)
@@ -795,7 +794,7 @@ def taglogentry(request, event, num, tagname):
         tags = eventlog.tags.filter(name=tagname)
         if tags:
             tag = tags[0]
-            tag.eventlogs.remove(eventlog)
+            tag.event_logs.remove(eventlog)
         else:
             msg = "Attempted to delete tag that doesn't exist."
             return HttpResponseBadRequest(msg)
@@ -1072,7 +1071,7 @@ def modify_t90(request, event):
 
 
 def get_signoff_type(stype):
-    for t in SIGNOFF_TYPE_CHOICES:
+    for t in Signoff.SIGNOFF_TYPE_CHOICES:
         if stype in t:
             return t[0]
     return None
@@ -1163,7 +1162,7 @@ def modify_signoff(request, event):
         # Add a tag to the log message
         try:
             tag = Tag.objects.get(name='em_follow')
-            tag.eventlogs.add(logentry)
+            tag.event_logs.add(logentry)
         except:
             pass
 
@@ -1208,7 +1207,7 @@ def modify_signoff(request, event):
             # Add a tag to the log message
             try:
                 tag = Tag.objects.get(name='em_follow')
-                tag.eventlogs.add(logentry)
+                tag.event_logs.add(logentry)
             except:
                 pass
         else:
@@ -1239,7 +1238,7 @@ def modify_signoff(request, event):
             # Add a tag to the log message
             try:
                 tag = Tag.objects.get(name='em_follow')
-                tag.eventlogs.add(logentry)
+                tag.event_logs.add(logentry)
             except:
                 pass
 

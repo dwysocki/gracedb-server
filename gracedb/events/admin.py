@@ -29,7 +29,7 @@ class LabellingAdmin(admin.ModelAdmin):
 
 class TagAdmin(admin.ModelAdmin):
     list_display = [ 'name', 'displayName' ]
-    exclude = [ 'eventlogs' ]
+    exclude = [ 'event_logs' ]
 
 admin.site.register(Event, EventAdmin)
 admin.site.register(EventLog, EventLogAdmin)

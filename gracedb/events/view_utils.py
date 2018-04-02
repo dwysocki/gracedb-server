@@ -601,7 +601,7 @@ def signoffToDict(signoff):
         'instrument':   signoff.instrument,
         'status':       signoff.status,
         'comment':      signoff.comment,
-        'signoff_type': signoff.signoff_type
+        'signoff_type': signoff.signoff_type,
     } 
 
 #---------------------------------------------------------------------------------------
