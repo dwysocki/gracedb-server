@@ -104,7 +104,7 @@ def reverse(name, *args, **kw):
       # This probably only works if you give app_names which are the same
       # and namespaces that are different.
   
-      if 'request' in kw and 'current_app' not in kw:
+      if kw.get('request', None) is not None and 'current_app' not in kw:
           request = kw['request']
           # For some reason, resolve() does not seem to like the script_prefix.
           # So, remove it.
