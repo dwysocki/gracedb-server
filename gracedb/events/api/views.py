@@ -1484,8 +1484,16 @@ class GracedbRoot(APIView):
         detail = detail.replace("G1200", "{graceid}")
         log = reverse("eventlog-list", args=["G1200"], request=request)
         log = log.replace("G1200", "{graceid}")
+        log_detail = reverse("eventlog-detail", args=["G1200", "3333"],
+            request=request)
+        log_detail = log_detail.replace("G1200", "{graceid}")
+        log_detail = log_detail.replace("3333", "{N}")
         voevent = reverse("voevent-list", args=["G1200"], request=request)
         voevent = voevent.replace("G1200", "{graceid}")
+        voevent_detail = reverse("voevent-detail", args=["G1200", "3333"],
+            request=request)
+        voevent_detail = voevent_detail.replace("G1200", "{graceid}")
+        voevent_detail = voevent_detail.replace("3333", "{N}")
         embb = reverse("embbeventlog-list", args=["G1200"], request=request)
         embb = embb.replace("G1200", "{graceid}")
         emo = reverse("emobservation-list", args=["G1200"], request=request)
@@ -1501,12 +1509,12 @@ class GracedbRoot(APIView):
 
         taglist = reverse("eventlogtag-list", args=["G1200", "0"], request=request)
         taglist = taglist.replace("G1200", "{graceid}")
-        taglist = taglist.replace("0", "{n}")
+        taglist = taglist.replace("0", "{N}")
 
         tag = reverse("eventlogtag-detail", args=["G1200", "0", "tagname"], request=request)
         tag = tag.replace("G1200", "{graceid}")
-        tag = tag.replace("0", "{n}")
-        tag = tag.replace("tagname", "{tagname}")
+        tag = tag.replace("0", "{N}")
+        tag = tag.replace("tagname", "{tag_name}")
 
         signofflist = reverse("signoff-list", args=["G1200"], request=request)
         signofflist = signofflist.replace("G1200", "{graceid}")
@@ -1516,7 +1524,9 @@ class GracedbRoot(APIView):
         templates = {
                 "event-detail-template" : detail,
                 "voevent-list-template" : voevent,
+                "voevent-detail-template" : voevent_detail,
                 "event-log-template" : log,
+                "event-log-detail-template" : log_detail,
                 "emobservation-list-template": emo,
                 "embb-event-log-template" : embb,
                 "event-label-template" : labels,
