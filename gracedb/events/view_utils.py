@@ -17,6 +17,9 @@ from django.conf import settings
 
 from .templatetags.scientific import scientific
 
+import logging
+logger = logging.getLogger(__name__)
+
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
 
