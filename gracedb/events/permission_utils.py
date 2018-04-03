@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group
 from django.utils.functional import wraps
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseServerError
+from django.contrib.contenttypes.models import ContentType
 from .models import Event
 from django.http import HttpRequest
 from rest_framework.request import Request
@@ -63,6 +64,24 @@ def assign_default_event_perms(event):
         lvem = Group.objects.get(name=settings.LVEM_GROUP)
         assign_perm(view_codename, lvem, event)
         assign_perm(change_codename, lvem, event)
+
+
+def assign_default_perms(obj,
+    groups=[settings.LVC_GROUP, settings.EXEC_GROUP],
+    perms=['view', 'change']
+    ):
+    """
+    Assigns default permissions. Mostly used for events and superevents,
+    but can be used for any object (make sure to manually specify permissions
+    for objects without a 'view' permission.
+    """
+
+    model_name = obj.__class__.__name__.lower()
+    for g in groups:
+        group = Group.objects.get(name=g)
+        for p in perms:
+            perm_codename = '{0}_{1}'.format(p, model_name)
+            assign_perm(perm_codename, group, obj)
 
 #-------------------------------------------------------------------------------
 # A wrapper for views that checks whether the user is internal, and if not
