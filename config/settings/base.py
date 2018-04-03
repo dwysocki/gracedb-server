@@ -309,6 +309,9 @@ REST_FRAMEWORK = {
         'event_creation': '1/second',
         'annotation'    : '10/second',
     },
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'events.api.backends.LigoAuthentication',
+    ),
 }
 
 # Location of packages installed by bower

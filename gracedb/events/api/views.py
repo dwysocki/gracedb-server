@@ -28,6 +28,7 @@ from ..forms import CreateEventForm
 from ..permission_utils import user_has_perm, filter_events_for_user, \
     is_external, check_external_file_access
 
+from .backends import LigoAuthentication
 from .throttles import EventCreationThrottle, AnnotationThrottle
 
 from core.vfile import VersionedFile
@@ -82,28 +83,6 @@ from glue.ligolw.lsctables import use_in
 import StringIO
 
 use_in(LIGOLWContentHandler)
-
-# 
-# We do not want to handle authentication here because it has already
-# been taken care of by Apache/Shib or Apache/mod_ssl. Moreover the 
-# auth middleware has already added a user to the request object. To
-# play well with the django rest framework, we need to pretend like we
-# authenticated the user. Remember that the request object here is a 
-# *wrapped* version of the Django request, so we have to dig inside it
-# for the user.
-#
-class LigoAuthentication(authentication.BaseAuthentication):
-    def authenticate(self, request):
-        user = None
-        try: 
-            user = request._request.user
-        except:
-            pass                    
-
-        if isinstance(user, User):
-            return (user, None)
-        else:
-            raise exceptions.AuthenticationFailed("Bad user")
 
 #
 # A custom permission class for the EventDetail view. 
