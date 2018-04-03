@@ -1,7 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.db import models, connection
+from django.utils.translation import ugettext_lazy as _
+from django.forms.models import model_to_dict
+from django.db.models import QuerySet
 
 import re
+from collections import OrderedDict
 
 UserModel = get_user_model()
 
@@ -166,3 +170,86 @@ class m2mThroughBase(models.Model):
 
     class Meta:
         abstract = True
+
+
+class ModelToDictMixin(object):
+    """
+    Defines a to_dict() method which deserializes a model object to
+    a dictionary. Allows the addition of keys which are not directly attached
+    to the model and whose values are customizable.
+
+    Default configuration for the dict is provided by the
+    default_dict_mapping() method.
+
+    The update_dict_mapping() method is used to override parts of the
+    default mapping. Should not need to be customized, since to_dict() passes
+    kwargs to it which it should be able to handle.
+    """
+    QS_KEY = 'queryset'
+    QS_PROP_KEY = 'object_property'
+
+    def to_dict(self, **kwargs):
+        """
+        Usage:
+            object.to_dict()
+            object.to_dict(**{'creator': object.creator.pk})
+            object.to_dict(**{'comments': {'object_property': 'pk'}})
+        """
+        dict_mapping = self.default_dict_mapping()
+        dict_mapping = self._update_dict_mapping(dict_mapping, **kwargs)
+        if not dict_mapping:
+            return model_to_dict(self)
+
+        out_dict = OrderedDict()
+        for k,v in dict_mapping.iteritems():
+            if isinstance(v, dict):
+                if not (v.has_key(self.QS_KEY) and 
+                        v.has_key(self.QS_PROP_KEY)):
+                    raise KeyError(_('Must specify {qs_key} and {qs_prop_key} '
+                        'when mapping model queryset "fields" to dict'))
+
+                queryset = v[self.QS_KEY]
+                prop = v[self.QS_PROP_KEY]
+                if prop.endswith('()'):
+                    prop = prop[:-2]
+                if callable(getattr(queryset.model, prop)):
+                    value = [getattr(obj, prop)() for obj in queryset]
+                else: 
+                    value = [getattr(obj, prop) for obj in queryset]
+            else:
+                value = v
+            out_dict[k] = value
+
+        return out_dict
+
+    def _update_dict_mapping(self, dict_mapping, **kwargs):
+        for k,v in kwargs.iteritems():
+            if isinstance(v, dict):
+                if not dict_mapping.has_key(kw):
+                    dict_mapping[kw] = {}
+                for k2,v2 in v.iteritems():
+                    dict_mapping[k][k2] = v2
+            else:
+                dict_mapping[k] = v
+
+        return dict_mapping
+
+    def default_dict_mapping(self):
+        """
+        Defines a schema for mapping model fields or related object fields
+        to a dictionary.  Cases where a field returns multiple objects (like
+        m2m or reverse foreign key relationships) should be provided as a dict
+        which has the 'queryset' and 'object_property' (REQUIRED).
+
+        Example:
+            mapping = {
+                'creator': self.creator.username,
+                'comments': {
+                    self.QS_KEY: self.comment_set.all(),
+                    self.QS_PROP_KEY: 'message',
+                },
+            }
+
+        This method should be overridden by classes which use this mixin.
+        """
+        return {}
