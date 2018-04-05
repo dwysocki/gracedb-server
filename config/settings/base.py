@@ -98,6 +98,8 @@ LVEM_OBSERVERS_GROUP = 'gw-astronomy:LV-EM:Observers'
 EXEC_GROUP = 'executives'
 # EM Advocate group name
 EM_ADVOCATE_GROUP = 'em_advocates'
+# Analysis group name for non-GW events
+EXTERNAL_ANALYSIS_GROUP = 'External'
 
 # Groups directly managed by GraceDB admins
 ADMIN_MANAGED_GROUPS = [EM_ADVOCATE_GROUP, 'executives']
@@ -288,6 +290,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'maintenance_mode',
     'events',
+    'superevents',
     'userprofile',
     'ligoauth',
     'rest_framework',
@@ -300,6 +303,15 @@ INSTALLED_APPS = [
 SHELL_PLUS_MODEL_ALIASES = {
     # Two 'Group' models - auth.Group and gracedb.Group
     'auth': {'Group': 'AuthGroup'},
+    # Superevents models which have the same name as
+    # models in the events app
+    'superevents': {
+        'EMObservation': 'SupereventEMObservation',
+        'Label': 'SupereventLabel',
+        'Labelling': 'SupereventLabelling',
+        'Log': 'SupereventLog',
+        'VOEvent': 'SupereventVOEvent',
+    }
 }
 
 # Details used by REST API
@@ -467,6 +479,11 @@ LOGGING = {
             'level': LOG_LEVEL,
         },
         'events': {
+            'handlers': ['debug_file','error_file'],
+            'propagate': True,
+            'level': LOG_LEVEL,
+        },
+        'superevents': {
             'handlers': ['debug_file','error_file'],
             'propagate': True,
             'level': LOG_LEVEL,

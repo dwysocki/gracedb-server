@@ -121,8 +121,8 @@ class Event(models.Model):
 
     # Events aren't required to be part of a superevent. If the superevent is
     # deleted, don't delete the event; just set this FK to null.
-    #superevent = models.ForeignKey('superevents.Superevent', null=True,
-    #    related_name='events', on_delete=models.SET_NULL)
+    superevent = models.ForeignKey('superevents.Superevent', null=True,
+        related_name='events', on_delete=models.SET_NULL)
 
     # Note: a default value is needed only during the schema migration
     # that creates this column. After that, we can safely remove it.
