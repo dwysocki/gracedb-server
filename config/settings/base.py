@@ -360,6 +360,7 @@ SOUTH_TESTS_MIGRATE = False
 # system time zone.
 TIME_ZONE = 'UTC'
 GRACE_DATETIME_FORMAT = 'Y-m-d H:i:s T'
+GRACE_STRFTIME_FORMAT = '%Y-%m-%d %H:%M:%S %Z'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
