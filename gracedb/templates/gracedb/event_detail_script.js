@@ -435,7 +435,9 @@ require([
         // so we should be able to define them here.
         function getTagDelCallback(tag_name, N) {
             return function() {
-                tagUrl = tagUrlPattern.replace("000", N).replace("temp",encodeURIComponent(tag_name)); 
+                // Wonky replacement so we don't replace 000s in graceid or somewhere else
+                // where we don't want to do that.
+                tagUrl = tagUrlPattern.replace("/000/", "/"+N+"/").replace("temp",encodeURIComponent(tag_name));
                 var tagResultDialog = new Dialog({ style: "width: 300px" }); 
                 var actionBar = domConstruct.create("div", { "class": "dijitDialogPaneActionBar" }); 
                 var tbnode = domConstruct.create("div", { 
@@ -521,7 +523,9 @@ require([
                     formData = addTagForm.getValues();
                     var tagName = formData.existingTagSelect;
                     var tagDispName = formData.tagDispName;
-                    var tagUrl = tagUrlPattern.replace("000", N).replace("temp",tagName);
+                    // Wonky replacement so we don't replace 000s in graceid or somewhere else
+                    // where we don't want to do that.
+                    var tagUrl = tagUrlPattern.replace("/000/", "/"+N+"/").replace("temp", tagName);
 
                     request.post(tagUrl, {
                         data: {displayName: tagDispName}
