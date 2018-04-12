@@ -885,7 +885,7 @@ class EventLogDetail(APIView):
     def get(self, request, event, eventlog):
         # XXX Access control to log messages for external users.
         if is_external(request.user):
-            tagnames = [t.name for t in eventlog.tag_set.all()]
+            tagnames = [t.name for t in eventlog.tags.all()]
             if settings.EXTERNAL_ACCESS_TAGNAME not in tagnames:
                 msg = 'You do not have permission to view this log message.'
                 return HttpResponseForbidden(msg)
@@ -1187,7 +1187,7 @@ class EventLogTagList(APIView):
                                     args=[event.graceid(), 
                                     eventlog.N, tag.name],
                                     request=request)
-                           for tag in eventlog.tag_set.all()]
+                           for tag in eventlog.tags.all()]
              }
 
         return Response(rv)
@@ -1202,7 +1202,7 @@ class EventLogTagDetail(APIView):
     @eventlog_required
     def get(self, request, event, eventlog, tagname):
         try:
-            tag = eventlog.tag_set.filter(name=tagname)[0]
+            tag = eventlog.tags.filter(name=tagname)[0]
             # Serialize
             return Response(tagToDict(tag,event=event,n=eventlog.N,request=request))
         except:
@@ -1218,7 +1218,7 @@ class EventLogTagDetail(APIView):
             # an extra log entry, or a deceptive HTTP response (i.e., one telling the 
             # client that the creation was sucessful when, in fact, the database
             # was unchanged.
-            tag = eventlog.tag_set.filter(name=tagname)[0]
+            tag = eventlog.tags.filter(name=tagname)[0]
             msg = "Log already has tag %s" % unicode(tag)
             return Response(msg,status=status.HTTP_409_CONFLICT)
         except:
@@ -1263,7 +1263,7 @@ class EventLogTagDetail(APIView):
                 return HttpResponseForbidden(msg)            
 
         try:
-            tag = eventlog.tag_set.filter(name=tagname)[0]
+            tag = eventlog.tags.filter(name=tagname)[0]
             tag.eventlogs.remove(eventlog)
 
             # Is the tag empty now?  If so we can delete it.
@@ -1688,7 +1688,7 @@ class Files(APIView):
                     filename = l.filename
                     if len(filename):
                         version = l.file_version
-                        tagnames = [t.name for t in l.tag_set.all()]
+                        tagnames = [t.name for t in l.tags.all()]
                         if settings.EXTERNAL_ACCESS_TAGNAME not in tagnames:
                             continue
                         if version>=0:

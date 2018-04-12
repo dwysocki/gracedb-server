@@ -299,7 +299,7 @@ def logentry(request, event, num=None):
         
         # Check authorization for this log message
         if is_external(request.user):
-            tagnames = [t.name for t in elog.tag_set.all()]
+            tagnames = [t.name for t in elog.tags.all()]
             if settings.EXTERNAL_ACCESS_TAGNAME not in tagnames:
                 msg = "You do not have permission to view this log message."
                 return HttpResponseForbidden(msg)
@@ -753,7 +753,7 @@ def taglogentry(request, event, num, tagname):
                 return HttpResponseForbidden(msg)
 
         # Check if tag is already applied to this log entry.
-        tag_matches = eventlog.tag_set.filter(name=tagname)
+        tag_matches = eventlog.tags.filter(name=tagname)
         if tag_matches:
             msg = "Log already has tag %s." % tagname
             return HttpResponse(msg, content_type="text")
@@ -790,7 +790,7 @@ def taglogentry(request, event, num, tagname):
                 msg = "You do not have permission to add or remove this tag."
                 return HttpResponseForbidden(msg)
         # Check if tag is applied to this log entry.
-        tags = eventlog.tag_set.filter(name=tagname)
+        tags = eventlog.tags.filter(name=tagname)
         if tags:
             tag = tags[0]
             tag.eventlogs.remove(eventlog)
@@ -846,7 +846,7 @@ def file_list(request, event):
             filename = l.filename
             if len(filename):
                 version = l.file_version
-                tagnames = [t.name for t in l.tag_set.all()]
+                tagnames = [t.name for t in l.tags.all()]
                 if settings.EXTERNAL_ACCESS_TAGNAME not in tagnames:
                     continue
                 if version>=0:

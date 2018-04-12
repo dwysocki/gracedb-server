@@ -238,7 +238,7 @@ class Event(models.Model):
     # Return a list of distinct tags associated with the log messages of this
     # event.
     def getAvailableTags(self):
-        tagset_list = [log.tag_set.all() for log in self.eventlog_set.all()]
+        tagset_list = [log.tags.all() for log in self.eventlog_set.all()]
         taglist = []
         for tagset in tagset_list:
             for tag in tagset:
@@ -265,7 +265,7 @@ class Event(models.Model):
     def getLogsForTag(self,tagname):
         loglist = []
         for log in self.eventlog_set.all():
-            for tag in log.tag_set.all():
+            for tag in log.tags.all():
                 if tag.name==tagname:
                     loglist.append(log)
         return loglist
@@ -422,6 +422,7 @@ class EventLog(AutoIncrementModel):
         ordering = ['-created','-N']
         unique_together = ('event','N')
     event = models.ForeignKey(Event, null=False)
+    tags = models.ManyToManyField('Tag', related_name='eventlogs')
     created = models.DateTimeField(auto_now_add=True)
     issuer = models.ForeignKey(DjangoUser)
     filename = models.CharField(max_length=100, default="")
@@ -1106,7 +1107,6 @@ class Tag(models.Model):
     # XXX Does the tag need to have a submitter column?
     # No, because creating a tag will generate a log message.
     # For the same reason, a timstamp is not necessary.
-    eventlogs   = models.ManyToManyField(EventLog)
     name        = models.CharField(max_length=100)
     displayName = models.CharField(max_length=200,null=True)
 

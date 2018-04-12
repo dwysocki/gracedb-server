@@ -182,7 +182,7 @@ def check_external_file_access(event, filename):
         log = logs[0]
 
     # check access
-    tagnames = [t.name for t in log.tag_set.all()]
+    tagnames = [t.name for t in log.tags.all()]
     if settings.EXTERNAL_ACCESS_TAGNAME not in tagnames:
         return False
     return True
