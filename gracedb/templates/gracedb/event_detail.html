@@ -196,6 +196,9 @@
                 <div id="basic_info_created_ts"></div>
                 <div> Submitted </div>
             </th>
+            {% if object.superevent %}
+            <th>Superevent</th>
+            {% endif %}
     </tr>
     <tr>
         <td>{{ object.graceid }}</td>
@@ -217,6 +220,9 @@
         <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_yr }}</td>
         <td><a href="{{ object.weburl }}">Data</a></td>
         <td>{{ object.created|multiTime:"created" }}</td>
+        {% if object.superevent %}
+        <td><a href="{{ object.superevent.get_web_url }}">{{ object.superevent.superevent_id }}</a></td>
+        {% endif %}
     </tr>
 </table>
 {% endblock %}
