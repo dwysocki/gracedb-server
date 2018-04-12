@@ -744,9 +744,9 @@ class EventLabel(APIView):
         else:
             return Response(rv, status=status.HTTP_200_OK)
 
-    def delete(self, request, graceid, label):
+    @event_and_auth_required
+    def delete(self, request, event, label):
         try:
-            event = Event.getByGraceid(graceid)
             rv = delete_label(event, request, label)
         except ValueError, e:
             return Response(e.message,
