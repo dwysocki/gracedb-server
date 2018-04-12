@@ -1,0 +1,12 @@
+<h2>Create log message</h2>
+
+<div style="padding-bottom: 20px">
+<form enctype="multipart/form-data" action="{% url "superevents:create-log" superevent.superevent_id %}" method="POST">
+    <table>
+        {{ log_create_form.as_table }}
+    </table>
+    <input type="submit" value="Submit" />
+</form>
+</div>
+
+

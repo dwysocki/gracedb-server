@@ -32,6 +32,12 @@ table.event {width:100%}
 /* Tanner added - centering columns in multi-column tables */
 table.eventmulti td {text-align:center;}
 
+/* superevent info table */
+.superevent th {padding: 5px 10px 5px 10px;border:none;text-align:center;vertical-align:bottom;}
+.superevent td {padding:10px;border:none;vertical-align:bottom;}
+.superevent {border-bottom:1px solid gray;}
+/* #table.superevent {width:100%} */
+
 table.analysis_specific_lm th {padding:3px;border:none;text-align:center;vertical-align:bottom;}
 table.analysis_specific_lm {border-bottom:1px solid gray;}
 
