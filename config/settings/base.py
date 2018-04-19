@@ -316,7 +316,9 @@ SHELL_PLUS_MODEL_ALIASES = {
 
 # Details used by REST API
 REST_FRAMEWORK = {
-    'PAGINATE_BY': 10,
+    'DEFAULT_PAGINATION_CLASS':
+        'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 10,
     'DEFAULT_THROTTLE_RATES': {
         'event_creation': '1/second',
         'annotation'    : '10/second',
