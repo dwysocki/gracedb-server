@@ -807,7 +807,8 @@ class Tag(CleanSaveModel):
     assumption that this will always be done.  But is it really important to
     track those things?  Doesn't seem like it.
     """
-    name = models.CharField(max_length=100, null=False, blank=False)
+    name = models.CharField(max_length=100, null=False, blank=False,
+        unique=True)
     displayName = models.CharField(max_length=200, null=True, blank=True)
 
     def __unicode__(self):
