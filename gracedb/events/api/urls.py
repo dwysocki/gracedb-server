@@ -1,6 +1,5 @@
-
 # Changed for Django 1.11
-from django.conf.urls import url
+from django.conf.urls import url, include
 
 from .views import * 
 
@@ -88,4 +87,7 @@ urlpatterns = [
     # Legacy
     url(r'^event/(?P<graceid>\w[\d]+)/files/(?P<filename>.+)?$',
         Files.as_view(), name="file-download"),
+
+    # Superevents
+    url(r'^superevents/', include('superevents.api.urls')),
 ]
