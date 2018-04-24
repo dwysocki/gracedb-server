@@ -36,6 +36,8 @@ from core.http import check_and_serve_file
 
 from guardian.models import GroupObjectPermission
 
+from superevents.api.view_templates import construct_api_url_templates
+
 import os
 import urllib
 import shutil
@@ -829,6 +831,8 @@ class EventLogList(APIView):
         if tagnames and len(tagnames):
             for tagname in tagnames:
                 n = logentry.N
+                # Yeah... this is really bad and doesn't work as expected.
+                # Creates any new tags all with the same displayName.
                 tmp = EventLogTagDetail()
                 retval = tmp.put(request, event.graceid(), n, tagname) 
                 # XXX This seems like a bizarre way of getting an error message out.
@@ -1536,8 +1540,13 @@ class GracedbRoot(APIView):
                 "signoff-list-template": signofflist,
                 }
 
+        # Get superevent templates
+        superevent_templates = construct_api_url_templates(request)
+        templates.update(superevent_templates)
+
         return Response({
             "links" : {
+                "superevents" : reverse("superevent-list", request=request),
                 "events"      : reverse("event-list", request=request),
                 "self"        : reverse("api-root", request=request),
                 "performance" : reverse("performance-info", request=request),
@@ -1876,20 +1885,3 @@ class OperatorSignoffList(APIView):
              }
         return Response(rv)
 
-#==================================================================
-# Superevent
-
-class SupereventList(APIView):
-    """Superevent list resource"""
-
-    def get(self, request):
-        pass
-
-    def post(self, request):
-        pass
-
-class SupereventDetail(APIView):
-    """Superevent detail resource"""
-
-    def get(self, request):
-        pass
