@@ -152,12 +152,15 @@ def eventToDict(event, columns=None, request=None):
     rv['far'] = display_far
     rv['far_is_upper_limit'] = far_is_upper_limit
     rv['likelihood'] = event.likelihood
-    rv['labels'] = dict([
-          (labelling.label.name,
-              reverse("labels",
-                  args=[graceid, labelling.label.name],
-                  request=request))
-          for labelling in event.labelling_set.all()])
+    # TODO: changed by TP 17 Apr 2018.
+    # Can delete the following comment block in the near future
+    rv['labels'] = [l.name for l in event.labels.all()]
+    #rv['labels'] = dict([
+    #      (labelling.label.name,
+    #          reverse("labels",
+    #              args=[graceid, labelling.label.name],
+    #              request=request))
+    #      for labelling in event.labelling_set.all()])
     # XXX Try to produce a dictionary of analysis specific attributes.  Duck typing.
     # XXX These extra attributes should only be seen by internal users.
     if request and request.user and not is_external(request.user): 
@@ -336,6 +339,8 @@ def eventToDict(event, columns=None, request=None):
 
     # Add superevent information
     rv['superevent'] = getattr(event.superevent, 'superevent_id', None)
+
+    # Links
     rv['links'] = {
           "neighbors" : reverse("neighbors", args=[graceid], request=request),
           "log"   : reverse("eventlog-list", args=[graceid], request=request),
@@ -379,10 +384,12 @@ def eventLogToDict(log, request=None):
     else:
         display_name = log.issuer.username
 
-    issuer_info = {
-        "username": log.issuer.username,
-        "display_name": display_name,
-    }
+    # Not sure why we need to do this; changing to just be username
+    issuer_info = log.issuer.username
+    #issuer_info = {
+    #    "username": log.issuer.username,
+    #    "display_name": display_name,
+    #}
 
     return {
                 "N"            : log.N,
@@ -565,10 +572,15 @@ def voeventToDict(voevent, request=None):
             args=[voevent.event.graceid(), filename],
             request=request)
 
-    issuer_info = {
-        "username": voevent.issuer.username,
-        "display_name": "%s %s" % (voevent.issuer.first_name, voevent.issuer.last_name),
+    issuer = voevent.issuer.username
+    links = {
+        'self': uri,
+        'file': file_uri,
     }
+    #issuer_info = {
+    #    "username": voevent.issuer.username,
+    #    "display_name": "%s %s" % (voevent.issuer.first_name, voevent.issuer.last_name),
+    #}
 
     # Read in the filecontents
     filepath = os.path.join(voevent.event.datadir, voevent.filename)
@@ -579,11 +591,10 @@ def voeventToDict(voevent, request=None):
         pass
 
     return {
-                "self"         : uri,
                 "text"         : text,
-                "file"         : file_uri,
+                "links"        : links,
                 "N"            : voevent.N,
-                "issuer"       : issuer_info,
+                "issuer"       : issuer,
                 "ivorn"        : voevent.ivorn,
                 "filename"     : voevent.filename,
                 "file_version" : voevent.file_version,
