@@ -334,6 +334,8 @@ def eventToDict(event, columns=None, request=None):
         except:
             pass
 
+    # Add superevent information
+    rv['superevent'] = getattr(event.superevent, 'superevent_id', None)
     rv['links'] = {
           "neighbors" : reverse("neighbors", args=[graceid], request=request),
           "log"   : reverse("eventlog-list", args=[graceid], request=request),
