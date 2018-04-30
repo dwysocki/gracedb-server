@@ -1511,6 +1511,10 @@ class GracedbRoot(APIView):
         embb = embb.replace("G1200", "{graceid}")
         emo = reverse("emobservation-list", args=["G1200"], request=request)
         emo = emo.replace("G1200", "{graceid}")
+        emo_detail = reverse("emobservation-detail", args=["G1200", "3333"],
+            request=request)
+        emo_detail= emo_detail.replace("G1200", "{graceid}")
+        emo_detail= emo_detail.replace("3333", "{N}")
 
         files = reverse("files", args=["G1200", "filename"], request=request)
         files = files.replace("G1200", "{graceid}")
@@ -1541,6 +1545,7 @@ class GracedbRoot(APIView):
                 "event-log-template" : log,
                 "event-log-detail-template" : log_detail,
                 "emobservation-list-template": emo,
+                "emobservation-detail-template": emo_detail,
                 "embb-event-log-template" : embb,
                 "event-label-template" : labels,
                 "files-template" : files,
