@@ -277,10 +277,18 @@ class SupereventLogTagSerializer(serializers.ModelSerializer):
     parent_log = serializers.HiddenField(write_only=True,
         default=ParentObjectDefault(context_key='log',
         view_get_parent_method='get_parent_log'))
+    self = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Tag
-        fields = ('name', 'displayName', 'parent_log')
+        fields = ('name', 'displayName', 'self', 'parent_log')
+
+    def get_self(self, obj):
+        superevent_id = self.context['view'].kwargs.get(
+            SUPEREVENT_LOOKUP_FIELD)
+        log_N = self.context['view'].kwargs.get('N')
+        return gracedb_reverse('superevent-log-tag-detail', args=[
+            superevent_id, log_N, obj.name], request=self.context['request'])
 
     def __init__(self, *args, **kwargs):
         super(SupereventLogTagSerializer, self).__init__(*args, **kwargs)
@@ -348,12 +356,12 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
     issuer = serializers.SlugRelatedField(slug_field='username',
         read_only=True)
     links = serializers.SerializerMethodField(read_only=True)
-    text = serializers.SerializerMethodField(read_only=True)
+    #text = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = VOEvent
         fields = ('voevent_type', 'file_version', 'ivorn', 'created',
-            'text', 'issuer', 'filename', 'N', 'links')
+            'issuer', 'filename', 'N', 'links')
 
     def get_links(self, obj):
         file_link = None
@@ -372,13 +380,13 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         }
         return link_dict
 
-    def get_text(self, obj):
-        text = None
-        if obj.filename:
-            filepath = os.path.join(obj.superevent.datadir, obj.filename)
-            text = open(filepath, 'r').read()
+    #def get_text(self, obj):
+    #    text = None
+    #    if obj.filename:
+    #        filepath = os.path.join(obj.superevent.datadir, obj.filename)
+    #        text = open(filepath, 'r').read()
 
-        return text
+    #    return text
 
 
     #def __init__(self, *args, **kwargs):

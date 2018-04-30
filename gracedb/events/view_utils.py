@@ -583,15 +583,14 @@ def voeventToDict(voevent, request=None):
     #}
 
     # Read in the filecontents
-    filepath = os.path.join(voevent.event.datadir, voevent.filename)
-    text = None
-    try: 
-        text = open(filepath, 'r').read()
-    except:
-        pass
+    #filepath = os.path.join(voevent.event.datadir, voevent.filename)
+    #text = None
+    #try:
+    #    text = open(filepath, 'r').read()
+    #except:
+    #    pass
 
     return {
-                "text"         : text,
                 "links"        : links,
                 "N"            : voevent.N,
                 "issuer"       : issuer,

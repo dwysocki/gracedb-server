@@ -23,6 +23,8 @@ from events.view_utils import reverse as gracedb_reverse
 from events.api.backends import LigoAuthentication
 
 from .mixins import GetParentSupereventMixin
+from .paginators import BasePaginationFactory, CustomLabelPagination, \
+    CustomLogTagPagination
 from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
     SupereventEventSerializer, SupereventLabelSerializer, \
     SupereventLogSerializer, SupereventLogTagSerializer, \
@@ -42,7 +44,7 @@ class SupereventViewSet(viewsets.ModelViewSet):
     """
     queryset = Superevent.objects.all()
     serializer_class = SupereventSerializer
-    pagination_class = None
+    pagination_class = BasePaginationFactory(results_name='superevents')
     lookup_field = SUPEREVENT_LOOKUP_FIELD
     lookup_value_regex = SUPEREVENT_LOOKUP_REGEX
 
@@ -81,7 +83,7 @@ class SupereventEventViewSet(mixins.ListModelMixin,
                              viewsets.GenericViewSet):
     """View for events attached to a superevent"""
     serializer_class = SupereventEventSerializer
-    pagination_class = None
+    pagination_class = BasePaginationFactory(results_name='events')
     lookup_field = 'graceid'
 
     def get_queryset(self):
@@ -112,7 +114,7 @@ class SupereventLabelViewSet(GetParentSupereventMixin,
                              viewsets.ModelViewSet):
     """Superevent labels"""
     serializer_class = SupereventLabelSerializer
-    pagination_class = None
+    pagination_class = CustomLabelPagination
     lookup_field = 'label_name'
 
     def get_queryset(self):
@@ -145,13 +147,13 @@ class SupereventLogViewSet(mixins.ListModelMixin,
     """
     parser_class = parsers.FileUploadParser
     serializer_class = SupereventLogSerializer
-    pagination_class = None
+    pagination_class = BasePaginationFactory(results_name='log')
     lookup_field = 'N'
 
     def get_queryset(self):
         superevent = self.get_parent()
         logger.warning('may need to filter logs for users')
-        queryset = superevent.log_set.all()
+        queryset = superevent.log_set.all().order_by('N')
         # filter for those tagged with external access tagname if is_external(request.user)
         return queryset
 
@@ -172,7 +174,7 @@ class SupereventLogTagViewSet(GetParentSupereventMixin,
     View for tags attached to a log message which is attached to a superevent.
     """
     serializer_class = SupereventLogTagSerializer
-    pagination_class = None
+    pagination_class = CustomLogTagPagination
     lookup_field = 'tag_name'
 
     def get_parent_log(self):
@@ -264,7 +266,7 @@ class SupereventVOEventViewSet(mixins.ListModelMixin,
     View for VOEvents attached to a superevent.
     """
     serializer_class = SupereventVOEventSerializer
-    pagination_class = None
+    pagination_class = BasePaginationFactory(results_name='voevents')
     lookup_field = 'N'
 
     def get_queryset(self):
