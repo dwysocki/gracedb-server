@@ -464,7 +464,8 @@ def emObservationToDict(emo, request=None):
                   "N"               : emo.N,
                   "footprint_count" : emo.emfootprint_set.count(),
                   "self"            : uri,
-                  "created"         : emo.created.isoformat(),
+                  "created"         : emo.created.strftime(
+                      settings.GRACE_STRFTIME_FORMAT),
                   "submitter"       : emo.submitter.username,
                   "group"           : emo.group.name,
                   "comment"         : emo.comment,                  
@@ -493,7 +494,8 @@ def emFootprintToDict(emf, request=None):
                   "dec"             : emf.dec,
                   "raWidth"         : emf.raWidth,
                   "decWidth"        : emf.decWidth,
-                  "start_time"      : emf.start_time.isoformat(),
+                  "start_time"      : emf.start_time.strftime(
+                      settings.GRACE_STRFTIME_FORMAT),
                   "exposure_time"   : emf.exposure_time,
               }
 
