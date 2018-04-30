@@ -1132,12 +1132,16 @@ class EventTagList(APIView):
         # user is external and has access to the logs. I don't think this is 
         # a big deal, though.
         rv = {
-                'tags' : [ reverse("eventtag-detail",args=[event.graceid(),
-                                   tag.name],
-                                   request=request)
-                           for tag in event.getAvailableTags()]
-             }
-
+                'tags' : [
+                    {
+                        'self': reverse("eventtag-detail", args=[
+                            event.graceid(), tag.name], request=request),
+                        'name': tag.name,
+                        'displayName': tag.displayName
+                    }
+                for tag in event.getAvailableTags()
+                ]
+        }
         return Response(rv)
 
 class EventTagDetail(APIView):
@@ -1166,12 +1170,17 @@ class EventLogTagList(APIView):
     @eventlog_required
     def get(self, request, event, eventlog):
         rv = {
-                'tags' : [ reverse("eventlogtag-detail",
-                                    args=[event.graceid(), 
-                                    eventlog.N, tag.name],
-                                    request=request)
-                           for tag in eventlog.tags.all()]
-             }
+                'tags' : [
+                    {
+                        'self': reverse("eventlogtag-detail", args=[
+                            event.graceid(), eventlog.N, tag.name],
+                            request=request),
+                        'name': tag.name,
+                        'displayName': tag.displayName
+                    }
+                for tag in eventlog.tags.all()
+                ]
+        }
 
         return Response(rv)
 
