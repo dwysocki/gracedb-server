@@ -386,7 +386,7 @@ class EMObservationBase(models.Model):
         abstract = True
         ordering = ['-created', '-N']
 
-    N = models.IntegerField(null=False)
+    N = models.IntegerField(null=False, editable=False)
     created = models.DateTimeField(auto_now_add=True)
     submitter  = models.ForeignKey(UserModel, null=False,
         related_name='%(app_label)s_%(class)s_set')
