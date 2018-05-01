@@ -600,7 +600,8 @@ def voeventToDict(voevent, request=None):
                 "filename"     : voevent.filename,
                 "file_version" : voevent.file_version,
                 "voevent_type" : voevent.voevent_type,
-                "created"      : voevent.created.isoformat(),
+                "created"      : voevent.created.strftime(
+                    settings.GRACE_STRFTIME_FORMAT),
            }
 
 def singleInspiralToDict(single_inspiral):
