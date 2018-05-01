@@ -1,6 +1,7 @@
 
 from django.http import HttpResponse, HttpResponseNotFound
 from django.http import HttpResponseForbidden, HttpResponseServerError
+from django.http.request import QueryDict
 from django.urls import reverse as django_reverse
 
 from django.conf import settings
@@ -776,12 +777,15 @@ class EventLogList(APIView):
     @event_and_auth_required
     def post(self, request, event):
         message = request.data.get('message')
-        tagnames = request.data.get('tagname', None)
-        # Convert tagnames from comma separated list.
-        if tagnames:
-            tagnames = tagnames.split(',')
+        # Handle requests encoded as multipart/form or regular JSONs
+        if isinstance(request.data, QueryDict):
+            # request.data is a MultiValueDict
+            tagnames = request.data.getlist('tagname', [])
+            displayNames = request.data.getlist('displayName', [])
         else:
-            tagnames = []
+            # request.data is a normal dict
+            tagnames = request.data.get('tagname', [])
+            displayNames = request.data.get('displayName', [])
 
         try:
             uploadedFile = request.data['upload'] 
@@ -827,12 +831,22 @@ class EventLogList(APIView):
             if settings.EXTERNAL_ACCESS_TAGNAME not in tagnames:
                 tagnames.append(settings.EXTERNAL_ACCESS_TAGNAME)
 
+        # Check how to handle displayNames
+        if len(displayNames) == len(tagnames):
+            use_display_names = True
+        else:
+            use_display_names = False
+            request.data['displayName'] = ''
+
         tw_dict = {}
         if tagnames and len(tagnames):
-            for tagname in tagnames:
+            for i,tagname in enumerate(tagnames):
                 n = logentry.N
-                # Yeah... this is really bad and doesn't work as expected.
-                # Creates any new tags all with the same displayName.
+
+                # Modify request data to include display name for this tag
+                if use_display_names:
+                    request.data['displayName'] = displayNames[i]
+
                 tmp = EventLogTagDetail()
                 retval = tmp.put(request, event.graceid(), n, tagname) 
                 # XXX This seems like a bizarre way of getting an error message out.
@@ -846,7 +860,6 @@ class EventLogList(APIView):
         response['Location'] = rv['self']
         if 'tagWarning' in tw_dict.keys():
             response['tagWarning'] = tw_dict['tagWarning']
-
 
         # Issue alert.
         description = "LOG: "
@@ -1221,11 +1234,10 @@ class EventLogTagDetail(APIView):
                     return HttpResponseForbidden(msg)            
 
             # Look for the tag.  If it doesn't already exist, create it.
-            try:
-                tag = Tag.objects.filter(name=tagname)[0]
-            except:
-                displayName = request.data.get('displayName')
-                tag = Tag(name=tagname, displayName=displayName)
+            tag, created = Tag.objects.get_or_create(name=tagname)
+            displayName = request.data.get('displayName')
+            if created:
+                tag.displayName = displayName
                 tag.save()
 
             # Now add the log message to this tag.
