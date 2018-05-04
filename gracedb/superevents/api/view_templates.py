@@ -1,7 +1,8 @@
 from events.view_utils import reverse
 from .views import SupereventViewSet, SupereventEventViewSet, \
     SupereventLabelViewSet, SupereventLogViewSet, SupereventLogTagViewSet, \
-    SupereventFileViewSet, SupereventVOEventViewSet
+    SupereventFileViewSet, SupereventVOEventViewSet, \
+    SupereventEMObservationViewSet
 
 
 # Placeholder parameters for getting URLs with reverse
@@ -13,6 +14,7 @@ PH = {
     SupereventLogTagViewSet.lookup_field: 'TAG_NAME', # tag name
     SupereventFileViewSet.lookup_field: 'FILE_NAME', # file name
     SupereventVOEventViewSet.lookup_field: '4444', # VOEvent number (N)
+    SupereventEMObservationViewSet.lookup_field: '5555', # EMObservation number (N)
 }
 
 
@@ -38,6 +40,9 @@ def construct_api_url_templates(request=None):
         'superevent-voevent-list': [],
         'superevent-voevent-detail': [
             PH[SupereventVOEventViewSet.lookup_field]],
+        'superevent-emobservation-list': [],
+        'superevent-emobservation-detail': [
+            PH[SupereventEMObservationViewSet.lookup_field]],
     }
 
     # Dict of URL templates:

@@ -2,7 +2,7 @@ from rest_framework import serializers, validators
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-from ..models import Superevent, Labelling, Log, VOEvent
+from ..models import Superevent, Labelling, Log, VOEvent, EMObservation
 from ..forms import LogCreateForm
 from ..utils import create_superevent, update_superevent, add_tag_to_log, \
     create_log, add_event_to_superevent, add_label_to_superevent
@@ -10,7 +10,7 @@ from ..utils import create_superevent, update_superevent, add_tag_to_log, \
 from .fields import ParentObjectDefault
 from .settings import SUPEREVENT_LOOKUP_FIELD
 
-from events.models import Event, Label, Tag
+from events.models import Event, Label, Tag, EMGroup
 from events.view_utils import reverse as gracedb_reverse
 from events.api.fields import EventGraceidField
 
@@ -380,38 +380,47 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         }
         return link_dict
 
-    #def get_text(self, obj):
-    #    text = None
-    #    if obj.filename:
-    #        filepath = os.path.join(obj.superevent.datadir, obj.filename)
-    #        text = open(filepath, 'r').read()
-
-    #    return text
+    # TODO:
+    # VOEvent creation!!
 
 
-    #def __init__(self, *args, **kwargs):
-    #    super(SupereventLogSerializer, self).__init__(*args, **kwargs)
-    #    self.fields['filename'].read_only = True
-    #    self.fields['file_version'].read_only = True
+class SupereventEMObservationSerializer(serializers.ModelSerializer):
+    # Read only fields
+    submitter = serializers.SlugRelatedField(slug_field='username',
+        read_only=True)
+    created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
+        read_only=True)
+    footprint_count = serializers.SerializerMethodField(read_only=True)
+    footprints = serializers.SerializerMethodField(read_only=True)
 
-    #def get_self(self, obj):
-    #    superevent_id = self.context['view'].kwargs.get(
-    #        SUPEREVENT_LOOKUP_FIELD)
-    #    return gracedb_reverse('superevent-log-detail', args=[
-    #        superevent_id, obj.N], request=self.context['request'])
+    # Both
+    group = serializers.SlugRelatedField(slug_field='name',
+        queryset=EMGroup.objects.all())
 
-    #def create(self, validated_data):
-    #    # Check user permissions here, or somewhere else? Maybe just on viewset
-    #    # create resource
+    # Write only fields
+    user = serializers.HiddenField(write_only=True,
+        default=serializers.CurrentUserDefault())
 
-    #    # Convert to be used with Django form for Logs
-    #    validated_data['issuer'] = validated_data.pop('submitter').id
-    #    validated_data['superevent'] = validated_data['superevent'].id
-    #    if validated_data.has_key('data_file'):
-    #        validated_data['filename'] = validated_data['data_file'].name
+    class Meta:
+        model = EMObservation
+        fields = ('created', 'N', 'submitter', 'group', 'ra', 'raWidth', 'dec',
+            'decWidth', 'footprint_count', 'footprints', 'user')
 
-    #    form = LogCreateForm(validated_data, validated_data)
-    #    if form.is_valid():
-    #        obj = form.save()
+    def get_footprint_count(self, obj):
+        return obj.emfootprint_set.count()
 
-    #    return obj
+    def get_footprints(self, obj):
+        return [{
+            'exposure_time': fp.exposure_time,
+            'start_time': fp.start_time.strftime(
+                settings.GRACE_STRFTIME_FORMAT),
+            'N': fp.N,
+            'raWidth': fp.raWidth,
+            'decWidth': fp.decWidth,
+            'ra': fp.ra,
+            'dec': fp.dec,
+        } for fp in obj.emfootprint_set.all().order_by('-N')]
+        return 'test'
+
+    # TODO:
+    # EMObservation creation!!

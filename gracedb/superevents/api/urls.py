@@ -61,6 +61,15 @@ suburlpatterns = [
         SupereventVOEventViewSet.lookup_field),
         SupereventVOEventViewSet.as_view({'get': 'retrieve'}),
         name='superevent-voevent-detail'),
+
+    # EMObservations
+    url(r'^emobservations/$', SupereventEMObservationViewSet.as_view(
+        {'get': 'list', 'post': 'create'}),
+        name='superevent-emobservation-list'),
+    url(r'^emobservations/(?P<{lookup_field}>\d+)/$'.format(lookup_field=
+        SupereventEMObservationViewSet.lookup_field),
+        SupereventEMObservationViewSet.as_view({'get': 'retrieve'}),
+        name='superevent-emobservation-detail'),
 ]
 
 urlpatterns = router.urls + [

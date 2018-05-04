@@ -28,7 +28,7 @@ from .paginators import BasePaginationFactory, CustomLabelPagination, \
 from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
     SupereventEventSerializer, SupereventLabelSerializer, \
     SupereventLogSerializer, SupereventLogTagSerializer, \
-    SupereventVOEventSerializer
+    SupereventVOEventSerializer, SupereventEMObservationSerializer
 
 from .settings import SUPEREVENT_LOOKUP_FIELD, SUPEREVENT_LOOKUP_REGEX
 
@@ -283,3 +283,29 @@ class SupereventVOEventViewSet(mixins.ListModelMixin,
         obj = get_object_or_404(queryset, **filter_kwargs)
         return obj
 
+
+class SupereventEMObservationViewSet(mixins.ListModelMixin,
+                                     mixins.RetrieveModelMixin,
+                                     mixins.CreateModelMixin,
+                                     GetParentSupereventMixin,
+                                     viewsets.GenericViewSet):
+    """
+    View for EMObservations attached to a superevent.
+    """
+    serializer_class = SupereventEMObservationSerializer
+    pagination_class = BasePaginationFactory(results_name='observations')
+    lookup_field = 'N'
+
+    def get_queryset(self):
+        superevent = self.get_parent()
+        queryset = superevent.emobservation_set.all()
+        # filter for those tagged with external access tagname if is_external(request.user)
+        return queryset
+
+    # TODO: generalize this method, can be used for superevent, superevent-event, etc.
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        N = self.kwargs.get(self.lookup_field, None)
+        filter_kwargs = {'N': N}
+        obj = get_object_or_404(queryset, **filter_kwargs)
+        return obj
