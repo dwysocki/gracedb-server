@@ -306,6 +306,7 @@ SHELL_PLUS_MODEL_ALIASES = {
     # Superevents models which have the same name as
     # models in the events app
     'superevents': {
+        'EMFootprint': 'SupereventEMFootprint',
         'EMObservation': 'SupereventEMObservation',
         'Label': 'SupereventLabel',
         'Labelling': 'SupereventLabelling',
@@ -318,7 +319,7 @@ SHELL_PLUS_MODEL_ALIASES = {
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 10,
+    'PAGE_SIZE': 1e7,
     'DEFAULT_THROTTLE_RATES': {
         'event_creation': '1/second',
         'annotation'    : '10/second',
