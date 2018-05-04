@@ -734,7 +734,7 @@ class EventLabel(APIView):
             return Response(e.message,
                         status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(rv, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 #==================================================================
 # EventLog
@@ -776,7 +776,7 @@ class EventLogList(APIView):
 
     @event_and_auth_required
     def post(self, request, event):
-        message = request.data.get('message')
+        message = request.data.get('comment')
         # Handle requests encoded as multipart/form or regular JSONs
         if isinstance(request.data, QueryDict):
             # request.data is a MultiValueDict
