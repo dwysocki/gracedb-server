@@ -5,7 +5,8 @@ from django.conf import settings
 from ..models import Superevent, Labelling, Log, VOEvent, EMObservation
 from ..forms import LogCreateForm
 from ..utils import create_superevent, update_superevent, add_tag_to_log, \
-    create_log, add_event_to_superevent, add_label_to_superevent
+    create_log, add_event_to_superevent, add_label_to_superevent, \
+    get_or_create_tag, get_or_create_tags
 
 from .fields import ParentObjectDefault
 from .settings import SUPEREVENT_LOOKUP_FIELD
@@ -120,6 +121,8 @@ class SupereventUpdateSerializer(SupereventSerializer):
         self.fields['labels'].read_only = True
 
     def validate(self, data):
+        # We don't want to use the SupereventSerializers validate method, which
+        # is why we use that class in the super() call here
         data = super(SupereventSerializer, self).validate(data)
         preferred_event = data.get('preferred_event')
 
@@ -139,7 +142,11 @@ class SupereventUpdateSerializer(SupereventSerializer):
         return data
 
     def update(self, instance, validated_data):
-        updater = validated_data.pop('user')
+        # CurrentUserDefault doesn't work for PATCH requests since the
+        # serializer has self.partial == True, the default function is never
+        # called to fill empty data values. So we just grab the user directly
+        # from the request.
+        updater = self.context['request'].user
         instance = update_superevent(instance, updater, issue_alert=True,
             **validated_data)
         return instance
@@ -220,27 +227,36 @@ class SupereventLabelSerializer(serializers.ModelSerializer):
 
 
 class SupereventLogSerializer(serializers.ModelSerializer):
+    # Error messages
+    default_error_messages = {
+        'bad_display': _('There should either be as many display names as '
+            'tags, or there should be no display names'),
+    }
     # Read only fields
     self = serializers.SerializerMethodField(read_only=True)
     created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
         read_only=True)
     issuer = serializers.SlugRelatedField(slug_field='username',
         read_only=True)
-    # Both
-    tag_names = serializers.SlugRelatedField(slug_field='name',
-        queryset=Tag.objects.all(), many=True, source='tags')
+    tag_names = serializers.SlugRelatedField(slug_field='name', many=True,
+        source='tags', read_only=True)
     # Write only fields (submitter used to set creator for created instance)
-    data_file = serializers.FileField(label='File', write_only=True,
+    upload = serializers.FileField(label='File', write_only=True,
         required=False)
     submitter = serializers.HiddenField(write_only=True,
         default=serializers.CurrentUserDefault())
     superevent = serializers.HiddenField(write_only=True,
         default=ParentObjectDefault(context_key='superevent'))
+    tagname = serializers.ListField(write_only=True, label='Tag names',
+        child=serializers.CharField(), required=False)
+    displayName = serializers.ListField(write_only=True, label='Display names',
+        child=serializers.CharField(), required=False)
 
     class Meta:
         model = Log
         fields = ('self', 'N', 'comment', 'created', 'issuer', 'filename',
-            'file_version', 'tag_names', 'submitter', 'superevent', 'data_file')
+            'file_version', 'tag_names', 'submitter', 'superevent',
+            'tagname', 'displayName', 'upload')
 
     def __init__(self, *args, **kwargs):
         super(SupereventLogSerializer, self).__init__(*args, **kwargs)
@@ -253,21 +269,40 @@ class SupereventLogSerializer(serializers.ModelSerializer):
         return gracedb_reverse('superevent-log-detail', args=[
             superevent_id, obj.N], request=self.context['request'])
 
+    def validate(self, data):
+        data = super(SupereventLogSerializer, self).validate(data)
+        tags = data.get('tagname', None)
+        tag_displays = data.get('displayName', None)
+
+        if (tags and tag_displays) and (len(tags) != len(tag_displays)):
+            self.fail('bad_display')
+
+        return data
+
     def create(self, validated_data):
         # Check user permissions here, or somewhere else? Maybe just on viewset
         # create resource
+        logger.debug(validated_data)
 
-        # Convert to be used with Django form for Logs
-        validated_data['issuer'] = validated_data.pop('submitter').id
-        validated_data['superevent'] = validated_data['superevent'].id
-        if validated_data.has_key('data_file'):
-            validated_data['filename'] = validated_data['data_file'].name
+        # Convert data to be used with create_log function
+        issuer = validated_data.get('submitter', None)
+        superevent = validated_data.get('superevent', None)
+        data_file = validated_data.get('upload', None)
+        filename = getattr(data_file, 'name', "")
+        tag_names = validated_data.get('tagname', [])
+        display_names = validated_data.get('displayName', [])
 
-        form = LogCreateForm(validated_data, validated_data)
-        if form.is_valid():
-            obj = form.save()
+        # Get tag objects
+        tags = []
+        if tag_names:
+            tags = get_or_create_tags(tag_names, display_names)
 
-        return obj
+        # Create log message
+        log = create_log(issuer, validated_data['comment'], superevent,
+            filename=filename, data_file=data_file, tags=tags,
+            issue_alert=True, autogenerated=False)
+
+        return log
 
 
 class SupereventLogTagSerializer(serializers.ModelSerializer):
@@ -320,14 +355,9 @@ class SupereventLogTagSerializer(serializers.ModelSerializer):
         # Get parent log message
         parent_log = validated_data.pop('parent_log')
 
-        # get_or_create tag by name only
-        tag, created = self.Meta.model.objects.get_or_create(
-            name=validated_data['name'])
-
-        # If it's a new tag, set the displayName
-        if created and validated_data.has_key('displayName'):
-            tag.displayName = validated_data['displayName']
-            tag.save()
+        # get or create tag by name only
+        tag = get_or_create_tag(validated_data['name'],
+            validated_data.get('displayName', None))
 
         # Add tag to log
         add_tag_to_log(parent_log, tag, self.context.get('request').user,
@@ -338,25 +368,11 @@ class SupereventLogTagSerializer(serializers.ModelSerializer):
 
 class SupereventVOEventSerializer(serializers.ModelSerializer):
     # Read only fields
-    #self = serializers.SerializerMethodField(read_only=True)
-    #created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
-    #    read_only=True)
-    #issuer = serializers.SlugRelatedField(slug_field='username',
-    #    read_only=True)
-    ## Both
-    #tag_names = serializers.SlugRelatedField(slug_field='name',
-    #    queryset=Tag.objects.all(), many=True, source='tags')
-    ## Write only fields (submitter used to set creator for created instance)
-    #data_file = serializers.FileField(label='File', write_only=True,
-    #    required=False)
-    #submitter = serializers.HiddenField(write_only=True,
-    #    default=serializers.CurrentUserDefault())
-    #superevent = serializers.HiddenField(write_only=True,
-    #    default=ParentObjectDefault(context_key='superevent'))
     issuer = serializers.SlugRelatedField(slug_field='username',
         read_only=True)
+    created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
+        read_only=True)
     links = serializers.SerializerMethodField(read_only=True)
-    #text = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = VOEvent
