@@ -342,3 +342,28 @@ def remove_label_from_superevent(labelling, user, add_log_message=True,
     #       (need to check on this)
     if issue_alert:
         pass
+
+
+def get_or_create_tag(tag_name, display_name=None):
+
+    tag, created = Tag.objects.get_or_create(name=tag_name)
+    if created and display_name is not None:
+        tag.displayName = display_name
+        tag.save()
+
+    return tag
+
+
+def get_or_create_tags(tag_name_list, display_name_list=[]):
+    if display_name_list and (len(display_name_list) != len(tag_name_list)):
+        raise ValueError('')
+
+    tag_list = []
+    for i, tag_name in enumerate(tag_name_list):
+        display_name = None
+        if display_name_list:
+            display_name = display_name_list[i]
+        tag = get_or_create_tag(tag_name, display_name)
+        tag_list.append(tag)
+
+    return tag_list
