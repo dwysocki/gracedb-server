@@ -24,7 +24,7 @@ from events.api.backends import LigoAuthentication
 
 from .mixins import GetParentSupereventMixin
 from .paginators import BasePaginationFactory, CustomLabelPagination, \
-    CustomLogTagPagination
+    CustomLogTagPagination, CustomSupereventPagination
 from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
     SupereventEventSerializer, SupereventLabelSerializer, \
     SupereventLogSerializer, SupereventLogTagSerializer, \
@@ -44,7 +44,7 @@ class SupereventViewSet(viewsets.ModelViewSet):
     """
     queryset = Superevent.objects.all()
     serializer_class = SupereventSerializer
-    pagination_class = BasePaginationFactory(results_name='superevents')
+    pagination_class = CustomSupereventPagination
     lookup_field = SUPEREVENT_LOOKUP_FIELD
     lookup_value_regex = SUPEREVENT_LOOKUP_REGEX
 
