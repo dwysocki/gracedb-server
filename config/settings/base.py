@@ -327,6 +327,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'events.api.backends.LigoAuthentication',
     ),
+    'COERCE_DECIMAL_TO_STRING': False,
 }
 
 # Location of packages installed by bower
