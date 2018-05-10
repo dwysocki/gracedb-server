@@ -27,7 +27,10 @@ def webview(request, superevent_id):
     context['preferred_event'] = superevent.preferred_event
 
     # Display far
-    display_far = superevent.preferred_event.far
+    if superevent.preferred_event is not None:
+        display_far = superevent.preferred_event.far
+    else:
+        display_far = None
     far_is_upper_limit = False
     if display_far and is_external(request.user):
         if display_far < settings.VOEVENT_FAR_FLOOR:
