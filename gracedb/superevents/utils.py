@@ -86,7 +86,7 @@ def create_superevent(submitter, t_start, t_0, t_end, preferred_event=None,
 def update_superevent(superevent, updater, issue_alert=True, **kwargs):
     """
     kwargs which are used as superevent parameters:
-        t_start, t_0, t_end
+        t_start, t_0, t_end, preferred_event
     """
 
     # Extract "updatable" superevent params from kwargs
@@ -115,10 +115,11 @@ def update_superevent(superevent, updater, issue_alert=True, **kwargs):
     if new_params.has_key('preferred_event') and \
         (old_params['preferred_event'] != new_params['preferred_event']):
         # Old preferred event
-        old_msg = ("Removed as preferred event for superevent: "
-            "{superevent_id}").format(superevent_id=superevent.superevent_id)
-        old_log = create_log(updater, old_msg, old_params['preferred_event'],
-            issue_alert=True)
+        if old_params['preferred_event'] is not None:
+            old_msg = ("Removed as preferred event for superevent: "
+                "{superevent_id}").format(superevent_id=superevent.superevent_id)
+            old_log = create_log(updater, old_msg, old_params['preferred_event'],
+                issue_alert=True)
 
         # New preferred event
         new_msg = "Set as preferred event for superevent: {superevent_id}" \
@@ -154,6 +155,7 @@ def create_log(issuer, comment, event_or_superevent, filename="",
         LogModel = EventLog
     else:
         # TODO: raise error
+        logger.error(type(event_or_superevent))
         pass
 
     # Create log object
