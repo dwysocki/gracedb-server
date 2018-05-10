@@ -60,13 +60,7 @@ class Superevent(CleanSaveModel, ModelToDictMixin):
     # Class method overrides --------------------------------------------------
     def clean(self, *args, **kwargs):
 
-        # If preferred event is not set, just pick the first non-external
-        # event in the set
-        # NOTE: do we actually want to do this?
-        if self.events.exists() and not self.preferred_event:
-            self.preferred_event = self.events.exclude(group__name=
-                settings.EXTERNAL_ANALYSIS_GROUP).first()
-
+        # External events can't be set as preferred events
         if (self.preferred_event and self.preferred_event.group.name ==
             settings.EXTERNAL_ANALYSIS_GROUP):
             raise ValidationError({'preferred_event':
