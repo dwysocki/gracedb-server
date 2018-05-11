@@ -63,7 +63,7 @@ class CustomLogTagPagination(pagination.PageNumberPagination):
 
 
 class CustomSupereventPagination(pagination.LimitOffsetPagination):
-    default_limit = 3
+    default_limit = 10
     limit_query_param = 'count'
     offset_query_param = 'start'
 
