@@ -96,7 +96,6 @@ class SupereventSerializer(serializers.ModelSerializer):
     def get_links(self, obj):
         bound_reverse = functools.partial(gracedb_reverse,
             args=[obj.superevent_id], request=self.context['request'])
-        # TODO: finish link_dict
         link_dict = {
             'events': bound_reverse('superevent-event-list'),
             'labels': bound_reverse('superevent-label-list'),
@@ -104,7 +103,7 @@ class SupereventSerializer(serializers.ModelSerializer):
             'files': bound_reverse('superevent-file-list'),
             'self': bound_reverse('superevent-detail'),
             'voevents': bound_reverse('superevent-voevent-list'),
-            'emobservations': 'TBD',
+            'emobservations': bound_reverse('superevent-emobservation-list'),
         }
         return link_dict
 
