@@ -143,6 +143,58 @@ class AutoIncrementModel(models.Model):
             self._state.adding = False
 
 
+    def auto_increment_update(self, update_field_name, constraints=[],
+        allow_update_to_nonnull=False):
+        """
+        UPDATE superevents_superevent SET gw_date_number = (SELECT N FROM (SELECT IFNULL(MAX(gw_date_number),0)+1 as N FROM superevents_superevent WHERE t_0_date='1980-01-06' AND is_gw=1) AS y) WHERE id=41;
+        """
+
+        if not allow_update_to_nonnull and getattr(self, update_field_name) is not None:
+            logger.warning('Attempt to auto increment a non-null field for '
+                'object {0}. Not allowed.'.format(self.__str__))
+            return
+
+        # Setup for generating base SQL query for doing an update
+        meta = self._meta
+        field = meta.get_field(update_field_name)
+        values = [(field, None, field.pre_save(self, False))]
+        query = models.sql.UpdateQuery(self.__class__)
+        query.add_update_fields(values)
+        compiler = query.get_compiler(using=self.__class__._base_manager.db)
+
+        # Useful function
+        qn = compiler.quote_name_unless_alias
+
+        # SQL for doing autoincrement
+        custom_sql= ("(SELECT N FROM (SELECT IFNULL(MAX({field}),0)+1 AS N "
+            "FROM {tbl_name}").format(tbl_name=qn(meta.db_table),
+            field=update_field_name)
+
+        # Convert list of field names to be used as constraints into database
+        # column names and their values (retrieved from the instance itself)
+        constraint_fields = [meta.get_field(f) for f in constraints]
+        constraint_list = ["{0}=%s".format(qn(f.attname)) for f in constraint_fields]
+        values = [f.get_db_prep_value(getattr(self, f.attname),
+            compiler.connection) for f in constraint_fields]
+
+        # Add constraints to custom SQL (if they are provided)
+        if constraint_list:
+            custom_sql += (" WHERE " + " AND ".join(constraint_list))
+
+        # Add end
+        custom_sql += (") AS temp) WHERE id={pk};".format(pk=self.pk))
+
+        # Replace NULL in base sql update query
+        base_sql = compiler.as_sql()[0]
+        sql = base_sql.replace('NULL', custom_sql)
+
+        # Execute sql
+        compiler.connection.cursor().execute(sql, values)
+
+        # Refresh from database
+        self.refresh_from_db(fields=[update_field_name])
+
+
 class LogBase(models.Model):
     """
     Abstract base class for log message-type objects. Concrete derived
