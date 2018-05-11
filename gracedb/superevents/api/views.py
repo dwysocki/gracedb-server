@@ -22,7 +22,7 @@ from events.view_utils import reverse as gracedb_reverse
 #from events.api.views import IsAuthorizedForPipeline, LigoLwRenderer
 from events.api.backends import LigoAuthentication
 
-from .mixins import GetParentSupereventMixin
+from .mixins import GetParentSupereventMixin, BaseGetObjectMixin
 from .paginators import BasePaginationFactory, CustomLabelPagination, \
     CustomLogTagPagination, CustomSupereventPagination
 from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
@@ -111,24 +111,19 @@ class SupereventEventViewSet(mixins.ListModelMixin,
 
 
 class SupereventLabelViewSet(GetParentSupereventMixin,
+                             BaseGetObjectMixin,
                              viewsets.ModelViewSet):
     """Superevent labels"""
     serializer_class = SupereventLabelSerializer
     pagination_class = CustomLabelPagination
     lookup_field = 'label_name'
+    query_field = 'label__name'
 
     def get_queryset(self):
         superevent = self.get_parent()
         # TODO: check whether user can view the superevent
         queryset = superevent.labelling_set.all()
         return queryset
-
-    def get_object(self):
-        queryset = self.filter_queryset(self.get_queryset())
-        label_name = self.kwargs.get(self.lookup_field, None)
-        filter_kwargs = {'label__name': label_name}
-        obj = get_object_or_404(queryset, **filter_kwargs)
-        return obj
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -141,6 +136,7 @@ class SupereventLogViewSet(mixins.ListModelMixin,
                            mixins.RetrieveModelMixin,
                            mixins.CreateModelMixin,
                            GetParentSupereventMixin,
+                           BaseGetObjectMixin,
                            viewsets.GenericViewSet):
     """
     View for log messages attached to a superevent.
@@ -157,18 +153,9 @@ class SupereventLogViewSet(mixins.ListModelMixin,
         # filter for those tagged with external access tagname if is_external(request.user)
         return queryset
 
-    # TODO: generalize this method, can be used for superevent, superevent-event, etc.
-    def get_object(self):
-        logger.warning('can probably do this generically on some mixin')
-        queryset = self.filter_queryset(self.get_queryset())
-        N = self.kwargs.get(self.lookup_field, None)
-        filter_kwargs = {'N': N}
-        obj = get_object_or_404(queryset, **filter_kwargs)
-        logger.warning('check permissions here? or just in get_queryset?')
-        return obj
-
 
 class SupereventLogTagViewSet(GetParentSupereventMixin,
+                              BaseGetObjectMixin,
                               viewsets.ModelViewSet):
     """
     View for tags attached to a log message which is attached to a superevent.
@@ -176,6 +163,7 @@ class SupereventLogTagViewSet(GetParentSupereventMixin,
     serializer_class = SupereventLogTagSerializer
     pagination_class = CustomLogTagPagination
     lookup_field = 'tag_name'
+    query_field = 'name'
 
     def get_parent_log(self):
         # TODO: check superevent permissions here
@@ -187,17 +175,11 @@ class SupereventLogTagViewSet(GetParentSupereventMixin,
         parent_log = self.get_parent_log()
         return parent_log.tags.all()
 
-    def get_object(self):
-        queryset = self.filter_queryset(self.get_queryset())
-        tag_name = self.kwargs.get(self.lookup_field, None)
-        filter_kwargs = {'name': tag_name}
-        obj = get_object_or_404(queryset, **filter_kwargs)
-        return obj
-
     def perform_destroy(self, instance):
         parent_log = self.get_parent_log()
         remove_tag_from_log(parent_log, instance, self.request.user,
             add_log_message=True, issue_alert=True)
+
 
 # TODO: add permissions to this viewset
 class SupereventFileViewSet(GetParentSupereventMixin,
@@ -261,6 +243,7 @@ class SupereventVOEventViewSet(mixins.ListModelMixin,
                                mixins.RetrieveModelMixin,
                                mixins.CreateModelMixin,
                                GetParentSupereventMixin,
+                               BaseGetObjectMixin,
                                viewsets.GenericViewSet):
     """
     View for VOEvents attached to a superevent.
@@ -274,14 +257,6 @@ class SupereventVOEventViewSet(mixins.ListModelMixin,
         queryset = superevent.voevent_set.all()
         # filter for those tagged with external access tagname if is_external(request.user)
         return queryset
-
-    # TODO: generalize this method, can be used for superevent, superevent-event, etc.
-    def get_object(self):
-        queryset = self.filter_queryset(self.get_queryset())
-        N = self.kwargs.get(self.lookup_field, None)
-        filter_kwargs = {'N': N}
-        obj = get_object_or_404(queryset, **filter_kwargs)
-        return obj
 
 
 class SupereventEMObservationViewSet(mixins.ListModelMixin,
@@ -302,10 +277,3 @@ class SupereventEMObservationViewSet(mixins.ListModelMixin,
         # filter for those tagged with external access tagname if is_external(request.user)
         return queryset
 
-    # TODO: generalize this method, can be used for superevent, superevent-event, etc.
-    def get_object(self):
-        queryset = self.filter_queryset(self.get_queryset())
-        N = self.kwargs.get(self.lookup_field, None)
-        filter_kwargs = {'N': N}
-        obj = get_object_or_404(queryset, **filter_kwargs)
-        return obj
