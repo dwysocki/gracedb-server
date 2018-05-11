@@ -1,11 +1,15 @@
 from django.contrib.auth import get_user_model
 from django.db import models, connection
+from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 from django.forms.models import model_to_dict
 from django.db.models import QuerySet
 
 import re
 from collections import OrderedDict
+import logging
+
+logger = logging.getLogger(__name__)
 
 UserModel = get_user_model()
 
@@ -27,21 +31,34 @@ class AutoIncrementModel(models.Model):
     autoincrementing save method described below.
 
     AUTO_FIELD: name of field which acts as an autoincrement field.
-    AUTO_FK:    name of ForeignKey to which the AUTO_FIELD is relative.
+    AUTO_CONSTRAINT: name of field which is used as a constraint; i.e., the
+                     AUTO_FIELD increments relative to the number of rows in
+                     the table which share the same value of this field.
     """
     AUTO_FIELD = None
-    AUTO_FK = None
+    AUTO_CONSTRAINT = None
 
     class Meta:
         abstract = True
 
     def save(self, *args, **kwargs):
+
+        # Do a normal save if this is not an insert (i.e., the instance has a
+        # primary key already).
+        pk_set = self._get_pk_val() is not None
+        if pk_set:
+            super(AutoIncrementModel, self).save(*args, **kwargs)
+        else:
+            self.auto_increment_insert(*args, **kwargs)
+
+    def auto_increment_insert(self, *args, **kwargs):
         """
         This custom save method does a SELECT and INSERT in a single raw SQL
         query in order to properly handle a quasi-autoincrementing field, which
         is used to identify instances associated with a ForeignKey. With this
         method, concurrency issues are handled by the database backend.
-        Ex: EventLog instances associated with an Event should be numbered 1-N.
+        Ex: EventLog instances associated with an Event should be numbered from
+        1 to N, based on the order of their submission.
 
         This has been tested with the following classes:
             EventLog, EMObservation, EMFootprint, EMBBEventLog, VOEvent
@@ -49,37 +66,32 @@ class AutoIncrementModel(models.Model):
         Thorough testing is needed to use this method for a new model. Note
         that this method may not work properly for non-MySQL backends.
 
-        Requires AUTO_FIELD and AUTO_FK to be defined.
+        Requires AUTO_FIELD and AUTO_CONSTRAINT to be defined.
         """
 
         if connection.vendor != 'mysql':
-            raise DatabaseError(_('The custom AutoIncrementModel save method '
-                'is not compatible with non-MySQL backends'))
+            raise DatabaseError(_('The custom AutoIncrementModel '
+                'auto_increment_save method is not compatible with non-MySQL '
+                'backends'))
 
-        # Do normal save if this is not an insert (i.e., the instance has a
-        # primary key already).
+        # Get some useful information
         meta = self.__class__._meta
-        pk_set = self._get_pk_val(meta) is not None
-        if pk_set:
-            super(AutoIncrementModel, self).save(*args, **kwargs)
-            return
-
-        # Otherwise, we'll generate some raw SQL to do the
-        # insert and auto-increment.
+        pk_set = self._get_pk_val() is not None
 
         # Get model fields, except for primary key field.
-        fields = meta.local_concrete_fields
-        if not pk_set:
-            fields = [f for f in fields if not
-                isinstance(f, models.fields.AutoField)]
+        fields = [f for f in meta.local_concrete_fields if not
+            isinstance(f, models.fields.AutoField)]
 
         # Setup for generating base SQL query for doing an INSERT.
-        query = models.sql.InsertQuery(self.__class__._base_manager.model)
+        query = models.sql.InsertQuery(self.__class__)
         query.insert_values(fields, objs=[self])
         compiler = query.get_compiler(using=self.__class__._base_manager.db)
         compiler.return_id = meta.has_auto_field and not pk_set
 
-        fk_name = meta.get_field(self.AUTO_FK).column
+        # Useful function
+        qn = compiler.quote_name_unless_alias
+
+        fk_field = meta.get_field(self.AUTO_CONSTRAINT)
         with compiler.connection.cursor() as cursor:
             # Get base SQL query as string.
             for sql, params in compiler.as_sql():
@@ -93,11 +105,12 @@ class AutoIncrementModel(models.Model):
 
                 # Add table to SELECT from and ForeignKey id corresponding to
                 # our autoincrement field.
-                sql += " FROM `{tbl_name}` WHERE `{fk_name}`={fk_id}".format(
-                    tbl_name=meta.db_table,
-                    fk_name=fk_name,
-                    fk_id=getattr(self, fk_name)
-                    )
+                sql += " FROM {tbl_name} WHERE {fk_name}='{fk_id}'".format(
+                    tbl_name=qn(meta.db_table),
+                    fk_name=qn(fk_field.column),
+                    fk_id=fk_field.get_db_prep_value(
+                        getattr(self, fk_field.column), compiler.connection)
+                )
 
                 # Get index corresponding to AUTO_FIELD.
                 af_idx = [f.name for f in fields].index(self.AUTO_FIELD)
