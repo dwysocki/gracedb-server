@@ -9,13 +9,16 @@ from core.models import CleanSaveModel, AutoIncrementModel
 from core.models import LogBase, m2mThroughBase
 from core.models import ModelToDictMixin
 from core.time_utils import posixToGpsTime, gpsToUtc
+from core.utils import int_to_letters, letters_to_int
 from events.models import Event, SignoffBase, VOEventBase, EMObservationBase, \
     EMFootprintBase
 from core.utils import int_to_letters
 
+import datetime
 from cStringIO import StringIO
 from hashlib import sha1
 import os
+import re
 
 import logging
 
@@ -24,8 +27,28 @@ UserModel = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-class Superevent(CleanSaveModel, ModelToDictMixin):
-    ID_PREFIX = 'S'
+class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
+    """
+
+    Superevent date-based IDs:
+        Initially, a superevent has an ID like 'Syymmdd' (S180101)
+        If there are multiple superevents on the same date, a letter prefix is
+            added: S180101a, S180101b, etc., based on how many other
+            superevents exist for the given date.
+        Once an alert is sent out about a superevent, its prefix is changed to
+            'GWA': GWA180101a.
+        Once a superevent is confirmed as a GW, its prefix is changed to 'GW'
+            and its suffix is recalculated in terms of how many confirmed GWs
+            exist for the given date. Ex: S180101b -> GWA180101b -> GW180101A
+    """
+    DEFAULT_ID_PREFIX = 'S'
+    ALERT_ID_PREFIX = 'GWA'
+    GW_ID_PREFIX = 'GW'
+    ID_REGEX = r'(({0}|{1})(\d+)([a-z]*)|({2})(\d+)([A-Z]*))'.format(
+        DEFAULT_ID_PREFIX, ALERT_ID_PREFIX, GW_ID_PREFIX)
+    DATE_STR_FMT = '%y%m%d'
+    AUTO_FIELD = 'base_date_number'
+    AUTO_CONSTRAINT = 't_0_date'
 
     # Fields ------------------------------------------------------------------
     submitter = models.ForeignKey(UserModel)
@@ -50,9 +73,25 @@ class Superevent(CleanSaveModel, ModelToDictMixin):
     t_end = models.DecimalField(max_digits=16, decimal_places=6, null=False,
         blank=False)
 
+    # Fields for handling date-based IDs
+    t_0_date = models.DateField(null=False, editable=False)
+    base_date_number = models.PositiveIntegerField(null=False, editable=False)
+    base_letter_suffix = models.CharField(max_length=10, null=True,
+        editable=False)
+    gw_date_number = models.PositiveIntegerField(null=True, editable=False)
+    gw_letter_suffix = models.CharField(max_length=10, null=True,
+        editable=False)
+
+    # Booleans
+    alert_sent = models.BooleanField(default=False)
+    is_gw = models.BooleanField(default=False)
+
     # Meta class --------------------------------------------------------------
     class Meta:
         ordering = ["-id"]
+        unique_together = (('t_0_date', 'base_date_number'),
+            ('t_0_date', 'gw_date_number'), ('t_0_date', 'base_letter_suffix'),
+            ('t_0_date', 'gw_letter_suffix'),)
 
         # Extra permissions beyond the standard add, change, delete perms
         permissions = (('view_superevent', 'Can view superevent'),)
@@ -69,29 +108,89 @@ class Superevent(CleanSaveModel, ModelToDictMixin):
         super(Superevent, self).clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
-        """Custom save method for handling date_id and preferred event"""
+        """
+        Custom save method for handling autoincrement numbers and
+        adding events
+        """
 
-        # Only modify date_id if pk is not already set (i.e. this is an INSERT)
-        #pk_set = self._get_pk_val() is not None
-        #if not pk_set:
-        #    if self.date_id:
-        #        raise Exception('ERROR')
+        # Determine whether this is an insert or update - will be used for
+        # deciding whether we need to calculate t_0_date and letter suffix
+        pk_set = self._get_pk_val() is not None
 
-        #    # Find an attached event with a gpstime to get the date;
-        #    # try preferred event first, of course.
-        #    if self.preferred_event:
-        #        
-        #    else:
-        #        # Get other superevents from this date to increment id
+        # Set t_0_date on insert
+        if not pk_set:
+            self.t_0_date = gpsToUtc(self.t_0).date()
 
-        # Do base class save
+        # Will do either base save (for updates) or auto_increment_insert
+        # for new entries, to calculate base_date_number within the database
         super(Superevent, self).save(*args, **kwargs)
 
-        # Have to do this after save because the superevent needs a pk
-        # to be used as a foreign key in the event table
+        # Update letter suffix from date number
+        if not pk_set:
+            if self.base_date_number == 1:
+                # No letter suffix for only one superevent on a given date
+                self.base_letter_suffix = ""
+            else:
+                self.base_letter_suffix = int_to_letters(self.base_date_number)
+            self.save(update_fields=['base_letter_suffix'])
+
+            # If a second superevent is found on a given date, update the first
+            # one from that date to now use a letter suffix for the ID.
+            if self.base_date_number == 2:
+                first_for_date = self.__class__.objects.get(
+                    t_0_date=self.t_0_date, base_date_number=1)
+                first_for_date.base_letter_suffix = int_to_letters(
+                    first_for_date.base_date_number)
+                first_for_date.save(update_fields=['base_letter_suffix'])
+
+        # Add preferred event to events list. Have to do this after base save
+        # because the superevent needs a pk to be used as a foreign key in the
+        # event table
         if (self.preferred_event and
             self.preferred_event not in self.events.all()):
             self.events.add(self.preferred_event)
+
+    def mark_as_alert_sent(self):
+        """
+        Sets alert_sent to True. May add functionality to calculate an
+        'alert_date_number' if that becomes necessary
+        """
+        self.alert_sent = True
+        self.save(update_fields=['alert_sent'])
+
+    def confirm_as_gw(self):
+        """
+        Sets is_gw to True, calculates the gw_date_number in the database, and
+        the gw_letter_suffix afterward.
+        """
+        # Set is_gw bool to True
+        self.is_gw = True
+
+        # Prep for custom autoincrement update
+        meta = self._meta
+        constraint_fields = ['t_0_date', 'is_gw']
+
+        # Do the update
+        self.auto_increment_update('gw_date_number', constraint_fields)
+
+        # Update gw_letter_suffix from gw_date_number
+        if self.gw_date_number == 1:
+            # No letter suffix for only one confirmed GW on a given date
+            self.gw_letter_suffix = ""
+        else:
+            self.gw_letter_suffix = int_to_letters(self.gw_date_number).upper()
+
+        # Save the fields which have changed
+        self.save(update_fields=['is_gw', 'gw_letter_suffix'])
+
+        # If a second confirmed GW is found for a given date, update the first
+        # one from that date to now use a letter suffix for the ID.
+        if self.gw_date_number == 2:
+            first_for_date = self.__class__.objects.get(is_gw=True,
+                t_0_date=self.t_0_date, gw_date_number=1)
+            first_for_date.gw_letter_suffix = int_to_letters(
+                    first_for_date.gw_date_number).upper()
+            first_for_date.save(update_fields=['gw_letter_suffix'])
 
     def get_absolute_url(self):
         return self.get_web_url()
@@ -127,6 +226,50 @@ class Superevent(CleanSaveModel, ModelToDictMixin):
         }
         return mapping
 
+    @classmethod
+    def get_filter_kwargs_for_date_id_lookup(cls, date_id):
+        """
+        Takes in a superevent date id and gets the filter kwargs
+        for looking it up using the default class manager's .get method.
+        """
+
+        # Try to get the prefix, date string, and letter suffix from the ID
+        match = re.match(cls.ID_REGEX, date_id)
+        if not match:
+            raise ValueError(_('Superevent ID {0} does not have the correct '
+                'format.'.format(date_id)))
+        prefix, date_str, suffix = [g for g in match.groups()[1:]
+            if g is not None]
+
+        # Convert date string to a datetime.date object
+        d = datetime.datetime.strptime(date_str, cls.DATE_STR_FMT).date()
+
+        # Determine date_number from letter suffix
+        if suffix == "":
+            date_number = 1
+        else:
+            date_number = letters_to_int(suffix.lower())
+
+        # Compile query kwargs
+        q_kwargs = {'t_0_date': d}
+        if prefix == cls.GW_ID_PREFIX:
+            q_kwargs['is_gw'] = True
+            date_number_key = 'gw_date_number'
+        else:
+            date_number_key = 'base_date_number'
+            if prefix == cls.ALERT_ID_PREFIX:
+                # Require that alert_sent is True if using the ALERT_ID_PREFIX
+                q_kwargs['alert_sent'] = True
+        q_kwargs[date_number_key] = date_number
+
+        return q_kwargs
+
+    @classmethod
+    def get_by_date_id(cls, date_id):
+        """Get a superevent by its date-based ID"""
+        q_kwargs = cls.get_filter_kwargs_for_date_id_lookup(date_id)
+        return cls.objects.get(**q_kwargs)
+
     # Properties --------------------------------------------------------------
     @property
     def datadir(self):
@@ -148,26 +291,20 @@ class Superevent(CleanSaveModel, ModelToDictMixin):
 
     @property
     def superevent_id(self):
-        return self.superevent_basic_id
-        # Really, really temporary and not good at all
-        # Plan:
-        #   Convert event gpstimes to datetime fields
-        #   store gpstime as a property
-        #   Use datetime field to determine number for the day in question
-        #filter_dict = {
-        #    'date_created__year': self.date_created.year,
-        #    'date_created__month': self.date_created.month,
-        #    'date_created__day': self.date_created.day,
-        #}
-        #obj_set = self.__class__.objects.filter(**filter_dict).order_by('date_created')
-        #day_number = list(obj_set).index(self)
-        #suffix = int_to_letters(day_number+1)
-        #event_time_UTC = gpsToUtc(self.preferred_event.gpstime)
-        #return self.ID_PREFIX + event_time_UTC.strftime('%y%m%d') + suffix
+        id_prefix = self.DEFAULT_ID_PREFIX
+        letter_suffix = self.base_letter_suffix
+        if self.is_gw:
+            id_prefix = self.GW_ID_PREFIX
+            letter_suffix = self.gw_letter_suffix if self.gw_letter_suffix else ""
+        elif self.alert_sent:
+            id_prefix = self.ALERT_ID_PREFIX
+
+        return id_prefix + self.t_0_date.strftime(self.DATE_STR_FMT) + \
+            letter_suffix
 
     @property
     def superevent_basic_id(self):
-        return self.ID_PREFIX + '{0:0>4}'.format(self.id)
+        return self.DEFAULT_ID_PREFIX + '{0:0>4}'.format(self.id)
 
     # Custom methods ----------------------------------------------------------
     def get_external_events(self):
@@ -178,9 +315,6 @@ class Superevent(CleanSaveModel, ModelToDictMixin):
         """Returns a queryset of internal events"""
         return self.events.exclude(group__name=
             settings.EXTERNAL_ANALYSIS_GROUP)
-
-    #def get_by_superevent_id(self):
-    #    pass
 
     def get_web_url(self):
         return reverse('superevents:view', args=[self.superevent_id])

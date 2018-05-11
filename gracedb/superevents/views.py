@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 def webview(request, superevent_id):
 
     # Get superevent object
-    superevent = Superevent.objects.get(id=superevent_id[1:])
+    superevent = Superevent.get_by_date_id(superevent_id)
 
     # Get context
     context = {}

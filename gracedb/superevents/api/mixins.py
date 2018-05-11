@@ -25,8 +25,7 @@ class GetParentSupereventMixin(GetParentMixin):
     parent_queryset = Superevent.objects.all()
 
     def get_filter_kwargs(self, superevent_id):
-        # Currently, superevent_id ~ S0001, where 1 is the PK
-        return {'id': int(superevent_id[1:])}
+        return Superevent.get_filter_kwargs_for_date_id_lookup(superevent_id)
 
 
 class BaseGetObjectMixin(object):

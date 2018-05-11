@@ -65,7 +65,8 @@ class SupereventViewSet(viewsets.ModelViewSet):
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
         superevent_id = self.kwargs.get(self.lookup_field)
-        filter_kwargs = {'id': int(superevent_id[1:])}
+        filter_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup(
+            superevent_id)
 
         obj = get_object_or_404(queryset, **filter_kwargs)
 
