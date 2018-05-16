@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.html import escape
@@ -19,7 +19,10 @@ logger = logging.getLogger(__name__)
 def webview(request, superevent_id):
 
     # Get superevent object
-    superevent = Superevent.get_by_date_id(superevent_id)
+    try:
+        superevent = Superevent.get_by_date_id(superevent_id)
+    except Superevent.DoesNotExist:
+        raise Http404("Superevent matching the given query does not exist.")
 
     # Get context
     context = {}
