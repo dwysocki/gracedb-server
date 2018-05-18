@@ -65,7 +65,7 @@ def webview(request, superevent_id):
     # Temporary method for getting logs
     context['logs'] = superevent.log_set.select_related('issuer').all()
 
-    return render(request, 'superevent.html', context=context)
+    return render(request, 'superevents/view.html', context=context)
 
 # Need to add an auth check for this too
 # If we use javascript for this eventually, we will want to enforce
