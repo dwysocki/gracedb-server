@@ -1865,7 +1865,7 @@ class VOEventList(APIView):
             filename=filename, serialized_object=rv)
 
         response = Response(rv, status=status.HTTP_201_CREATED)
-        response['Location'] = rv['self']
+        response['Location'] = rv['links']['self']
         return response
 
 class VOEventDetail(APIView):
