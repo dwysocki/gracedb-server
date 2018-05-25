@@ -13,6 +13,7 @@ from events.feeds import EventFeed, feedview
 # After Django 1.10, have to import views directly, rather
 # than just using a string
 import events.views
+import search.views
 import events.reports
 
 feeds = {
@@ -38,6 +39,7 @@ urlpatterns = [
     url(r'^latest', events.views.latest, name="latest"),
     #(r'^reports/(?P<path>.+)$', 'django.views.static.serve',
     #        {'document_root': settings.LATENCY_REPORT_DEST_DIR}),
+    url(r'^search/$', search.views.search, name="mainsearch"),
 
     # API URLs
     url(r'^apiweb/', include('events.api.urls', app_name="api",
@@ -50,7 +52,6 @@ urlpatterns = [
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
     # to INSTALLED_APPS to enable admin documentation:
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
     url(r'^admin/', admin.site.urls),
 
 ]

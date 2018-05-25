@@ -1,0 +1,72 @@
+from django import forms
+from django.utils.translation import ugettext_lazy as _
+from django.utils.safestring import mark_safe
+from django.utils.html import escape
+
+from events.models import Event
+from events.query import parseQuery, filter_for_labels
+from superevents.models import Superevent
+from superevents.query import parseSupereventQuery
+
+from pyparsing import ParseException
+
+import os
+import logging
+logger = logging.getLogger(__name__)
+
+htmlEntityStar = "&#9733;"
+errorMarker = '<span style="color:red;">'+htmlEntityStar+'</span>'
+
+class MainSearchForm(forms.Form):
+    QUERY_TYPE_CHOICES = (
+        ('E', 'Event'),
+        ('S', 'Superevent'),
+    )
+    FORMAT_CHOICES = (
+        ('S', 'standard'),
+        ('F', 'flexigrid'),
+        ('L', 'ligolw'),
+    )
+
+    query = forms.CharField(required=False, widget=forms.TextInput(
+        attrs={'size': 60}))
+    query_type = forms.ChoiceField(required=True,
+        choices=QUERY_TYPE_CHOICES, label="Search for", initial='S')
+    get_neighbors = forms.BooleanField(required=False,
+        help_text="(Events only)")
+    results_format = forms.ChoiceField(required=False, initial='S',
+        choices=FORMAT_CHOICES, widget=forms.HiddenInput())
+
+    def clean(self):
+        # Do base class clean and just return if there are any errors already
+        cleaned_data = super(MainSearchForm, self).clean()
+        if self.errors:
+            return cleaned_data
+
+        # Get cleaned data
+        query_string = self.cleaned_data.get('query')
+        query_type = self.cleaned_data.get('query_type')
+
+        if query_type == 'S':
+            model = Superevent
+            parse_func = parseSupereventQuery
+        elif query_type == 'E':
+            model = Event
+            parse_func = parseQuery
+        # Don't need to check anything else here, can expect data to be good
+        # thanks to base class clean
+
+        # Parse query and get resulting objects
+        try:
+            qs = model.objects.filter(parse_func(query_string))
+            qs = filter_for_labels(qs,query_string).distinct()
+            cleaned_data['query'] = qs
+            return cleaned_data
+        except ParseException as e:
+            err = "Error: invalid query. (" + escape(e.pstr[:e.loc]) + \
+                errorMarker + escape(e.pstr[e.loc:]) + ")"
+            raise forms.ValidationError({'query': mark_safe(err)})
+        except Exception as e:
+            # What could this be and how can we handle it better? XXX
+            logger.error(e)
+            raise forms.ValidationError(str(e)+str(type(e)))
