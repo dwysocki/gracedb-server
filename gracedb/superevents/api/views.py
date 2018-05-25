@@ -22,6 +22,7 @@ from events.view_utils import reverse as gracedb_reverse
 #from events.api.views import IsAuthorizedForPipeline, LigoLwRenderer
 from events.api.backends import LigoAuthentication
 
+from .filters import SupereventSearchFilter, SupereventOrderingFilter
 from .mixins import GetParentSupereventMixin, BaseGetObjectMixin
 from .paginators import BasePaginationFactory, CustomLabelPagination, \
     CustomLogTagPagination, CustomSupereventPagination
@@ -29,7 +30,6 @@ from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
     SupereventEventSerializer, SupereventLabelSerializer, \
     SupereventLogSerializer, SupereventLogTagSerializer, \
     SupereventVOEventSerializer, SupereventEMObservationSerializer
-
 from .settings import SUPEREVENT_LOOKUP_FIELD, SUPEREVENT_LOOKUP_REGEX
 
 import os
@@ -47,6 +47,10 @@ class SupereventViewSet(viewsets.ModelViewSet):
     pagination_class = CustomSupereventPagination
     lookup_field = SUPEREVENT_LOOKUP_FIELD
     lookup_value_regex = SUPEREVENT_LOOKUP_REGEX
+    filter_backends = (SupereventSearchFilter, SupereventOrderingFilter,)
+    ordering_fields = ('date_created', 't_0', 't_start', 't_end',
+        'preferred_event__id', 't_0_date', 'is_gw', 'base_date_number',
+        'gw_date_number')
 
     def get_serializer_class(self):
         """Select a different serializer for updates"""
