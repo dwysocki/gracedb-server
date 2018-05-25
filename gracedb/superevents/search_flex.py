@@ -70,6 +70,9 @@ def flexigridResponse(request, objects):
                 object.superevent_id]), object.superevent_id),
             #Labels
             " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();" style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name) for label in object.labelling_set.all()]),
+            str(object.preferred_event.graceid()),
+            " ".join([ev.graceid() for ev in object.get_internal_events()]),
+            " ".join([ev.graceid() for ev in object.get_external_events()]),
             t_start_times.get('gps', ""),
             t_0_times.get('gps', ""),
             t_end_times.get('gps', ""),
