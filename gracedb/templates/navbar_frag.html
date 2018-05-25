@@ -1,6 +1,6 @@
 <ul id="nav">
     <li id="nav-home"><a href="{% url "home" %}">Home</a></li>
-    <li id="nav-search"><a href="{% url "search" %}">Search</a></li>
+    <li id="nav-search"><a href="{% url "mainsearch" %}">Search</a></li>
     {% if user_is_internal %}
         <li id="nav-create"><a href="{% url "create" %}">Create</a></li>
         <li id="nav-reports"><a href="{% url "reports" %}">Reports</a></li>
