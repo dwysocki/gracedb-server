@@ -235,7 +235,7 @@ container.selectAll(".y.axis text")
 var line_length = 12;
 
 var get_url = function(d) {
-    return {% url 'home-events' %} + d.graceid;
+    return {% url 'home' %} + d.graceid;
 }
 
 container.append("g").selectAll("line")
