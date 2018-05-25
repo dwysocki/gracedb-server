@@ -2,12 +2,13 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.html import escape
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 
 from .models import Superevent, Log
 from .forms import LogCreateForm
 from .utils import get_superevent_by_date_id_or_404
 
+from core.http import check_and_serve_file
 from core.vfile import VersionedFile
 from events.permission_utils import internal_user_required, is_external
 
@@ -135,3 +136,30 @@ def web_create_log(request, superevent_id):
     # Return to superevent page
     return HttpResponseRedirect(reverse('superevents:view',
         args=[superevent_id]))
+
+
+# TODO:
+# filter files for external users (see how this is done for events)
+def file_list(request, superevent_id):
+    superevent = get_superevent_by_date_id_or_404(request, superevent_id)
+    file_list = superevent.list_files(absolute_paths=False)
+
+    context = {
+        'file_list': file_list,
+        'title': 'Files for {0}'.format(superevent.superevent_id),
+        'superevent_id': superevent.superevent_id,
+    }
+    return render(request, 'superevents/file_list.html', context=context)
+
+# TODO:
+# add permission checking
+def file_download(request, superevent_id, filename):
+
+    # Get superevent
+    superevent = get_superevent_by_date_id_or_404(request, superevent_id)
+
+    # Construct absolute path to file
+    file_path = os.path.join(superevent.datadir, filename)
+
+    # Check file and serve it
+    return check_and_serve_file(request, file_path, ResponseClass=HttpResponse)

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block heading %}{{ title }}{% endblock %}
+{% block pageid %}Superevent files{% endblock %}
+
+{% block content %}
+<p>{{ message }}</p>
+
+<ul>
+{% for filename in file_list %}
+<li><a href="{% url "superevents:file-download" superevent_id filename %}">{{ filename }}</a></li>
+{% endfor %}
+</ul>
+
+{% endblock %}

@@ -13,9 +13,9 @@
 
 TBD:
 <ul style="padding-bottom: 30px;">
-<li>javascript update for labels</li>
-<li>link for log message files, make sure to link to correct file version</li>
-<li>event log tagging</li>
+<li>Javascript update for labels</li>
+<li>Log messages should display links for files (make sure to link to correct version)</li>
+<li>Event log tagging from web interface</li>
 </ul>
 
 <div id='event_detail_content'>
@@ -29,6 +29,7 @@ TBD:
         <th>Preferred Event</th>
         <th>GW events</th>
         <th>External events</th>
+        <th>Links</th>
     </tr>
     <tr>
         <td>{{ superevent.superevent_id }}</td>
@@ -56,6 +57,7 @@ TBD:
             {% endfor %}
             </div>
         </td>
+        <td><a href="{% url "superevents:file-list" superevent.superevent_id %}">Data</a></td>
     </tr>
 </table>
 {% endblock %}

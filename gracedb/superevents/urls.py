@@ -12,4 +12,10 @@ urlpatterns = [
         regex=Superevent.ID_REGEX), views.webview, name="view"),
     url(r'^create_log/(?P<superevent_id>{regex})/$'.format(
         regex=Superevent.ID_REGEX), views.web_create_log, name="create-log"),
+
+    # Files
+    url(r'^(?P<superevent_id>{regex})/files/$'.format(
+        regex=Superevent.ID_REGEX), views.file_list, name="file-list"),
+    url(r'^(?P<superevent_id>{regex})/files/(?P<filename>.*)$'.format(
+        regex=Superevent.ID_REGEX), views.file_download, name="file-download"),
 ]
