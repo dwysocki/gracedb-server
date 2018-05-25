@@ -16,6 +16,7 @@ from .nltime import nlTimeExpression as nltime_
 nltime = nltime_.setParseAction(lambda toks: toks["calculatedTime"])
 from .models import Group, Pipeline, Search, Label
 from .query_utils import maybeRange, getLabelQ, RUN_MAP
+from superevents.query import parse_superevent_id, superevent_expr
 
 #import time, datetime
 import datetime
@@ -238,6 +239,25 @@ nifoQ.setParseAction(lambda toks: ("nevents", Q(nevents=toks[0])))
 
 ifoQ = ifoListQ | nifoQ
 
+# Superevent queries ---------------------------------------------------------
+
+# Event is part of a superevent?
+t_or_f = Or([CaselessLiteral(b) for b in ['true', 'false']])
+inSupereventQ = Suppress(Keyword("in_superevent:")) + t_or_f
+inSupereventQ = inSupereventQ.setParseAction(lambda toks: ("in_superevent",
+    Q(superevent__isnull=(toks[0] == "false"))))
+
+# Event is preferred for some superevent?
+isPreferredEventQ = Suppress(Keyword("is_preferred_event:")) + t_or_f
+isPreferredEventQ = isPreferredEventQ.setParseAction(lambda toks:
+    ("is_preferred_event", Q(superevent_preferred_for__isnull=
+    (toks[0] == "false"))))
+
+# Event is part of a specific superevent?
+supereventQ = Suppress(Keyword("superevent:")) + superevent_expr
+supereventQ.setParseAction(lambda toks: parse_superevent_id(
+    "superevent", toks, filter_prefix="superevent"))
+
 ###########################
 
 #andTheseTags = ["attr"]
@@ -292,6 +312,7 @@ def parseQuery(s):
     # A parser for the non-label-related remainder of the query string.
     q = (ifoQ | hasfarQ | gidQ | hidQ | tidQ | eidQ | midQ | searchQ 
          | pipelineQ | groupQ | gpsQ | createdQ | submitterQ | runQ
+         | inSupereventQ | supereventQ | isPreferredEventQ
          | attributeQ
         ).setName("query term")
 
