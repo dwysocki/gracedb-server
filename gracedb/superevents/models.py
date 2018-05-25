@@ -35,17 +35,14 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         If there are multiple superevents on the same date, a letter prefix is
             added: S180101a, S180101b, etc., based on how many other
             superevents exist for the given date.
-        Once an alert is sent out about a superevent, its prefix is changed to
-            'GWA': GWA180101a.
         Once a superevent is confirmed as a GW, its prefix is changed to 'GW'
             and its suffix is recalculated in terms of how many confirmed GWs
-            exist for the given date. Ex: S180101b -> GWA180101b -> GW180101A
+            exist for the given date. Ex: S180101b -> GW180101A
     """
     DEFAULT_ID_PREFIX = 'S'
-    ALERT_ID_PREFIX = 'GWA'
     GW_ID_PREFIX = 'GW'
-    ID_REGEX = r'(({0}|{1})(\d+)([a-z]*)|({2})(\d+)([A-Z]*))'.format(
-        DEFAULT_ID_PREFIX, ALERT_ID_PREFIX, GW_ID_PREFIX)
+    ID_REGEX = r'(({0})(\d+)([a-z]*)|({1})(\d+)([A-Z]*))'.format(
+        DEFAULT_ID_PREFIX, GW_ID_PREFIX)
     DATE_STR_FMT = '%y%m%d'
     AUTO_FIELD = 'base_date_number'
     AUTO_CONSTRAINT = 't_0_date'
@@ -81,7 +78,6 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         editable=False)
 
     # Booleans
-    alert_sent = models.BooleanField(default=False)
     is_gw = models.BooleanField(default=False)
 
     # Meta class --------------------------------------------------------------
@@ -147,14 +143,6 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         if (self.preferred_event and
             self.preferred_event not in self.events.all()):
             self.events.add(self.preferred_event)
-
-    def mark_as_alert_sent(self):
-        """
-        Sets alert_sent to True. May add functionality to calculate an
-        'alert_date_number' if that becomes necessary
-        """
-        self.alert_sent = True
-        self.save(update_fields=['alert_sent'])
 
     def confirm_as_gw(self):
         """
@@ -255,9 +243,6 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
             date_number_key = 'gw_date_number'
         else:
             date_number_key = 'base_date_number'
-            if prefix == cls.ALERT_ID_PREFIX:
-                # Require that alert_sent is True if using the ALERT_ID_PREFIX
-                q_kwargs['alert_sent'] = True
         q_kwargs[date_number_key] = date_number
 
         return q_kwargs
@@ -289,13 +274,12 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
 
     @property
     def superevent_id(self):
-        id_prefix = self.DEFAULT_ID_PREFIX
-        letter_suffix = self.base_letter_suffix
         if self.is_gw:
             id_prefix = self.GW_ID_PREFIX
-            letter_suffix = self.gw_letter_suffix if self.gw_letter_suffix else ""
-        elif self.alert_sent:
-            id_prefix = self.ALERT_ID_PREFIX
+            letter_suffix = self.gw_letter_suffix
+        else:
+            id_prefix = self.DEFAULT_ID_PREFIX
+            letter_suffix = self.base_letter_suffix
 
         return id_prefix + self.t_0_date.strftime(self.DATE_STR_FMT) + \
             letter_suffix

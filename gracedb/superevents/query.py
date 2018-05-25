@@ -38,8 +38,6 @@ def parse_superevent_id(name, toks, filter_prefix=None):
         else:
             fullQ &= Q(**{fp("gw_date_number"): letters_to_int(suffix)})
     else:
-        if prefix and prefix == Superevent.ALERT_ID_PREFIX:
-            fullQ &= Q(**{fp("alert_sent"): True})
 
         if not suffix:
             if not prefix:
@@ -59,8 +57,8 @@ def parse_superevent_id(name, toks, filter_prefix=None):
 
 # Construct an expression for date-based superevent ids
 superevent_prefix = Optional(Or([CaselessLiteral(pref) for pref in
-    Superevent.DEFAULT_ID_PREFIX, Superevent.ALERT_ID_PREFIX,
-    Superevent.GW_ID_PREFIX])).setResultsName('prefix')
+    Superevent.DEFAULT_ID_PREFIX, Superevent.GW_ID_PREFIX])
+    ).setResultsName('prefix')
 superevent_date = Word(nums, exact=6).setResultsName('date')
 superevent_suffix = Optional(Word(alphas)).setResultsName('suffix')
 superevent_expr = Combine(superevent_prefix + superevent_date +
