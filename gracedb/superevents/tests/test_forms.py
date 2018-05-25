@@ -113,18 +113,7 @@ class TestSupereventForm(TestCase):
         form = SupereventForm(data_dict)
 
         # Form is valid?
-        self.assertTrue(form.is_valid())
-
-        # Make sure submitter field is set correctly
-        self.assertEqual(submitter, form.cleaned_data['submitter'])
-
-        # preferred_event should be None
-        self.assertTrue(form.cleaned_data['preferred_event'] is None)
-
-        # Make sure events are set correctly
-        self.assertEqual(events.count(), form.cleaned_data['events'].count())
-        for ev in events:
-            self.assertIn(ev, form.cleaned_data['events'])
+        self.assertFalse(form.is_valid())
 
     def test_form_no_preferred_event_no_events(self):
         """Test form with no preferred_event or events"""

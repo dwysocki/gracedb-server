@@ -25,8 +25,6 @@ logger = logging.getLogger(__name__)
 class SupereventSerializer(serializers.ModelSerializer):
     # Error messages
     default_error_messages = {
-        'event_missing': _('Either "preferred_event" or "events" must be '
-            'specified for Superevent creation'),
         'event_assigned': _('Event {graceid} is already assigned to a '
                             'Superevent'),
     }
@@ -34,7 +32,7 @@ class SupereventSerializer(serializers.ModelSerializer):
     # Fields
     submitter = serializers.SlugRelatedField(slug_field='username',
         read_only=True)
-    preferred_event = EventGraceidField(required=False)
+    preferred_event = EventGraceidField(required=True)
     created = serializers.DateTimeField(source='date_created',
         format=settings.GRACE_STRFTIME_FORMAT, read_only=True)
     # Add custom fields
@@ -59,10 +57,6 @@ class SupereventSerializer(serializers.ModelSerializer):
         data = super(SupereventSerializer, self).validate(data)
         preferred_event = data.get('preferred_event')
         events = data.get('events')
-
-        # Require either events or preferred_event to be set (creation only)
-        if not self.instance and not (preferred_event or events):
-            self.fail('event_missing')
 
         # Make sure preferred_event is not already assigned
         if preferred_event:

@@ -56,11 +56,9 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
 
     # One-to-one relationship with preferred event - an event can only be
     # preferred for a single superevent and a superevent can only have
-    # one preferred event. Ideally, this wouldn't be nullable, but it makes
-    # the logic a lot easier to handle.  We will just have to check whether
-    # self.preferred_event is None in some cases.
-    preferred_event = models.OneToOneField(Event, null=True, blank=True,
-        on_delete=models.SET_NULL, related_name='superevent_preferred_for')
+    # one preferred event.
+    preferred_event = models.OneToOneField(Event, null=False,
+        on_delete=models.PROTECT, related_name='superevent_preferred_for')
 
     # Labels
     labels = models.ManyToManyField('events.label', through='Labelling')

@@ -12,24 +12,23 @@ logger = logging.getLogger(__name__)
 
 # TODO:
 # Add decorator to check access permissions (??) not sure if we should do it here or in the viewset itself
-def create_superevent(submitter, t_start, t_0, t_end, preferred_event=None,
+def create_superevent(submitter, t_start, t_0, t_end, preferred_event,
     events=[], labels=[], add_log_message=True, issue_alert=True):
     """
-    Utility method for creating superevents. Requires at least one event to be
-    specified. Can be a preferred_event, an event or list of events, or both.
+    Utility method for creating superevents.
 
     Arguments:
-        submitter: User object
-        t_start, t_0, t_end: floats
-        preferred_event: Event object
+        submitter: User object (required)
+        t_start, t_0, t_end: floats (required)
+        preferred_event: Event object (required)
         events: list or QuerySet of Event objects
         labels: list of QuerySet of Label objects
 
     Usage:
         create_superevent(
             UserModel.objects.get(username='albert.einstein@ligo.org'),
-            t_start=1, t_0=2, t_end=3,
-            events=[Event.objects.getByGraceid('G123400')]
+            t_start=1, t_0=2, t_end=3, preferred_event=
+            Event.objects.get(id='123400')
         )
     """
 
@@ -121,11 +120,10 @@ def update_superevent(superevent, updater, issue_alert=True, **kwargs):
     if new_params.has_key('preferred_event') and \
         (old_params['preferred_event'] != new_params['preferred_event']):
         # Old preferred event
-        if old_params['preferred_event'] is not None:
-            old_msg = ("Removed as preferred event for superevent: "
-                "{superevent_id}").format(superevent_id=superevent.superevent_id)
-            old_log = create_log(updater, old_msg, old_params['preferred_event'],
-                issue_alert=True)
+        old_msg = ("Removed as preferred event for superevent: "
+            "{superevent_id}").format(superevent_id=superevent.superevent_id)
+        old_log = create_log(updater, old_msg, old_params['preferred_event'],
+            issue_alert=True)
 
         # New preferred event
         new_msg = "Set as preferred event for superevent: {superevent_id}" \
