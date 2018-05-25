@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 
 from .models import Superevent, Log
 from .forms import LogCreateForm
+from .utils import get_superevent_by_date_id_or_404
 
 from core.vfile import VersionedFile
 from events.permission_utils import internal_user_required, is_external
@@ -19,10 +20,7 @@ logger = logging.getLogger(__name__)
 def webview(request, superevent_id):
 
     # Get superevent object
-    try:
-        superevent = Superevent.get_by_date_id(superevent_id)
-    except Superevent.DoesNotExist:
-        raise Http404("Superevent matching the given query does not exist.")
+    superevent = get_superevent_by_date_id_or_404(request, superevent_id)
 
     # Get context
     context = {}

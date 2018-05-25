@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 from .models import Superevent, Log, Labelling
 from events.models import Event, EventLog, Tag
 from events.permission_utils import assign_default_perms
@@ -372,3 +374,15 @@ def get_or_create_tags(tag_name_list, display_name_list=[]):
         tag_list.append(tag)
 
     return tag_list
+
+
+# TODO: add permissions checking?
+def get_superevent_by_date_id_or_404(request, superevent_id):
+
+    filter_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup(
+        superevent_id)
+
+    # TODO: filter queryset for user here
+    queryset = Superevent.objects.all()
+
+    return get_object_or_404(queryset, **filter_kwargs)

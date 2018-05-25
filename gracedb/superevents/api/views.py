@@ -14,7 +14,7 @@ from django.shortcuts import get_object_or_404
 
 from ..models import Superevent
 from ..utils import remove_tag_from_log, remove_event_from_superevent, \
-    remove_label_from_superevent
+    remove_label_from_superevent, get_superevent_by_date_id_or_404
 
 from core.vfile import VersionedFile
 from core.http import check_and_serve_file
@@ -70,10 +70,8 @@ class SupereventViewSet(viewsets.ModelViewSet):
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
         superevent_id = self.kwargs.get(self.lookup_field)
-        filter_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup(
-            superevent_id)
 
-        obj = get_object_or_404(queryset, **filter_kwargs)
+        obj = get_superevent_by_date_id_or_404(self.request, superevent_id)
 
         # TODO: figure this out
         self.check_object_permissions(self.request, obj)
