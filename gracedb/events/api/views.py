@@ -12,7 +12,7 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.contenttypes.models import ContentType
 
-from ..alert import issueAlertForUpdate
+from alerts.old_alert import issueAlertForUpdate
 from ..buildVOEvent import buildVOEvent, VOEventBuilderException
 from ..view_utils import BadFARRange, check_query_far_range
 from ..query import parseQuery, ParseException

@@ -294,6 +294,7 @@ INSTALLED_APPS = [
     'userprofile',
     'ligoauth',
     'search',
+    'alerts',
     'rest_framework',
     'guardian',
     'django_twilio',
@@ -505,6 +506,11 @@ LOGGING = {
             'level': LOG_LEVEL,
         },
         'search': {
+            'handlers': ['debug_file','error_file'],
+            'propagate': True,
+            'level': LOG_LEVEL,
+        },
+        'alerts': {
             'handlers': ['debug_file','error_file'],
             'propagate': True,
             'level': LOG_LEVEL,

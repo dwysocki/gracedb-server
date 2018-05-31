@@ -1,28 +1,24 @@
 
 import simplejson
 import os
-import sys
+import socket
 from subprocess import Popen, PIPE, STDOUT
+import sys
 
 from django.core.mail import EmailMessage
 from django.conf import settings
 
-from .permission_utils import is_external
+from core.time_utils import gpsToUtc
 
-import json
+from events.models import Event
+from events.permission_utils import is_external
+from events.query import filter_for_labels
+
+from django_twilio.client import twilio_client
 
 import logging
 log = logging.getLogger(__name__)
 
-from django_twilio.client import twilio_client
-
-from core.time_utils import gpsToUtc
-
-from .query import filter_for_labels
-
-from .models import Event
-
-import socket
 
 # These imports can be fragile, so they should be brought in only
 # if use of the LVAlert overseer is really intended.

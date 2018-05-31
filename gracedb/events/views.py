@@ -30,7 +30,7 @@ from .view_utils import flexigridResponse, jqgridResponse
 from .view_utils import get_recent_events_string
 from .view_utils import eventLogToDict
 from .view_utils import signoffToDict
-from .alert import issueAlertForUpdate, issueXMPPAlert
+from alerts.old_alert import issueAlertForUpdate, issueXMPPAlert
 
 # Set up logging
 import logging

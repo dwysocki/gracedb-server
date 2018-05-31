@@ -10,14 +10,14 @@ from .models import SimInspiralEvent
 from .models import LalInferenceBurstEvent
 from .models import EMBBEventLog, EMGroup
 from .models import EMObservation, EMFootprint
-from .alert import issueAlert, issueAlertForLabel, issueAlertForUpdate, \
-    issueXMPPAlert
 from .translator import handle_uploaded_data
-
-from core.vfile import VersionedFile
 from .view_utils import _saveUploadedFile
 from .view_utils import eventToDict, eventLogToDict, emObservationToDict
 from .permission_utils import assign_default_event_perms
+
+from alerts.old_alert import issueAlert, issueAlertForLabel, issueAlertForUpdate, \
+    issueXMPPAlert
+from core.vfile import VersionedFile
 
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission
