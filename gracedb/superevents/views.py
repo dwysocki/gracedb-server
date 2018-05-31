@@ -87,8 +87,8 @@ def web_create_log(request, superevent_id):
     log_dict['issuer'] = request.user.id
 
     # Get superevent id from superevent_id
-    # TODO: TEMPORARY until superevent_id is well defined
-    superevent = Superevent.objects.get(id=int(superevent_id[1:]))
+    # Get superevent object
+    superevent = get_superevent_by_date_id_or_404(request, superevent_id)
     log_dict['superevent'] = superevent.id
 
     # TODO:
