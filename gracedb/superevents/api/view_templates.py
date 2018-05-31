@@ -43,6 +43,7 @@ def construct_api_url_templates(request=None):
         'superevent-emobservation-list': [],
         'superevent-emobservation-detail': [
             PH[SupereventEMObservationViewSet.lookup_field]],
+        'superevent-confirm-as-gw': []
     }
 
     # Dict of URL templates:

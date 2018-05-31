@@ -1,4 +1,5 @@
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, \
+    HttpResponseForbidden
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.html import escape
@@ -6,7 +7,7 @@ from django.views.decorators.http import require_POST, require_GET
 
 from .models import Superevent, Log
 from .forms import LogCreateForm
-from .utils import get_superevent_by_date_id_or_404
+from .utils import get_superevent_by_date_id_or_404, confirm_superevent_as_gw
 
 from core.http import check_and_serve_file
 from core.vfile import VersionedFile
@@ -48,6 +49,14 @@ def webview(request, superevent_id):
         else:
             display_far_yr = "{0:0.5g} per year".format(far_yr)
     context['display_far_yr'] = display_far_yr
+
+    # Form to change GW status (only for authorized users)
+    # Only show if superevent is NOT a GW.  Require manual intervention to
+    # revert since it will surely mess with automated numbering of date IDs
+    if not superevent.is_gw and request.user.has_perm('confirm_gw_superevent'):
+        context['show_gw_status_form'] = True
+    else:
+        context['show_gw_status_form'] = False
 
     # Is the user an external user? (I.e., not part of the LVC?) The template 
     # needs to know that in order to decide what pieces of information to show.
@@ -132,6 +141,32 @@ def web_create_log(request, superevent_id):
     # just redirect, we can't update the form with errors.  We can just call
     # the webview function with extra context, but then the URL is "wrong"
 
+
+    # Return to superevent page
+    return HttpResponseRedirect(reverse('superevents:view',
+        args=[superevent_id]))
+
+
+@require_POST
+def confirm_as_gw(request, superevent_id):
+
+    # Check user permissions
+    if not request.user.has_perm('confirm_gw_superevent'):
+        return HttpResponseForbidden('You do not have permission to perform '
+            'this action.')
+
+    # TODO: make sure user has permission to see the superevent
+    # need to do some kind of filtering on queryset initially, like in
+    # rest_framework. maybe add an optional queryset argument to
+    # get_superevent_by_date_id_or_404, and a check that the queryset's model
+    # is Superevent
+
+    # Get superevent id from superevent_id
+    # Get superevent object
+    superevent = get_superevent_by_date_id_or_404(request, superevent_id)
+
+    # Set superevent as gw
+    confirm_superevent_as_gw(superevent, request.user)
 
     # Return to superevent page
     return HttpResponseRedirect(reverse('superevents:view',

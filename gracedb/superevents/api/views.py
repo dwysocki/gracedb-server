@@ -1,4 +1,5 @@
 from rest_framework import parsers
+from rest_framework.decorators import action
 from rest_framework.renderers import BaseRenderer, JSONRenderer, \
     BrowsableAPIRenderer
 from rest_framework.permissions import IsAuthenticated
@@ -14,7 +15,8 @@ from django.shortcuts import get_object_or_404
 
 from ..models import Superevent
 from ..utils import remove_tag_from_log, remove_event_from_superevent, \
-    remove_label_from_superevent, get_superevent_by_date_id_or_404
+    remove_label_from_superevent, confirm_superevent_as_gw, \
+    get_superevent_by_date_id_or_404
 
 from core.vfile import VersionedFile
 from core.http import check_and_serve_file
@@ -77,6 +79,24 @@ class SupereventViewSet(viewsets.ModelViewSet):
         self.check_object_permissions(self.request, obj)
 
         return obj
+
+    @action(methods=['post'], detail=True)
+    def confirm_as_gw(self, request, superevent_id):
+        # TODO: permissions checking!!
+
+        # Get superevent
+        superevent = self.get_object()
+
+        # If already a GW, return an error
+        if not superevent.is_gw:
+            confirm_superevent_as_gw(superevent, self.request.user)
+        else:
+            return Response('Superevent is already confirmed as a GW',
+                status=status.HTTP_400_BAD_REQUEST)
+
+        # Return data
+        serializer = self.get_serializer(superevent)
+        return Response(serializer.data)
 
 
 class SupereventEventViewSet(mixins.ListModelMixin,

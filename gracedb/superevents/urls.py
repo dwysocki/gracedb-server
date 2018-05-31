@@ -11,6 +11,8 @@ urlpatterns = [
         regex=Superevent.ID_REGEX), views.webview, name="view"),
     url(r'^create_log/(?P<superevent_id>{regex})/$'.format(
         regex=Superevent.ID_REGEX), views.web_create_log, name="create-log"),
+    url(r'^confirm_as_gw/(?P<superevent_id>{regex})/$'.format(
+        regex=Superevent.ID_REGEX), views.confirm_as_gw, name="confirm-gw"),
 
     # Files
     url(r'^(?P<superevent_id>{regex})/files/$'.format(

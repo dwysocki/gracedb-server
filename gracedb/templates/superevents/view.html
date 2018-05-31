@@ -20,6 +20,17 @@ TBD:
 
 <div id='event_detail_content'>
 
+{% block gw_status %}
+{% if show_gw_status_form %}
+<div class="content-area">
+<form action="{% url "superevents:confirm-gw" superevent.superevent_id %}" method="POST">
+    <input type="submit" value="Confirm this superevent as a GW" class="permButtonClass">
+</form>
+<div><b>Note:</b> this action is irreversible without manual intervention by an admin!</div>
+</div>
+{% endif %}
+{% endblock %}
+
 {% block superevent_info %}
 <h2>Superevent Info</h2>
 <table class="superevent">

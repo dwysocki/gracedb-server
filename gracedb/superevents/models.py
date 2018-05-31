@@ -88,7 +88,10 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
             ('t_0_date', 'gw_letter_suffix'),)
 
         # Extra permissions beyond the standard add, change, delete perms
-        permissions = (('view_superevent', 'Can view superevent'),)
+        permissions = (
+            ('view_superevent', 'Can view superevent'),
+            ('confirm_gw_superevent', 'Can confirm as a superevent as a GW'),
+        )
 
     # Class method overrides --------------------------------------------------
     def clean(self, *args, **kwargs):
