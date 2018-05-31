@@ -38,23 +38,3 @@ class LogCreateForm(forms.ModelForm):
         create_log_args = self.cleaned_data.copy()
         create_log_args['issue_alert'] = True
         return create_log(**create_log_args)
-        #return create_log(**self.cleaned_data, issue_alert=True)
-        #data_file = self.cleaned_data.pop('data_file', None)
-
-        ## Inherited save from ModelForm
-        #obj = super(LogCreateForm, self).save(commit)
-
-        ## Do other stuff with data file
-        #if data_file:
-        #    filepath = os.path.join(obj.superevent.datadir,
-        #        self.cleaned_data['filename'])
-        #    fdest = VersionedFile(filepath, 'w')
-        #    for chunk in data_file.chunks():
-        #        fdest.write(chunk)
-        #    fdest.close()
-
-        #    obj.file_version = fdest.version
-        #    if commit:
-        #        obj.save()
-
-        #return obj
