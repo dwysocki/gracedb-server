@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 # Need to restrict ability to view
 def webview(request, superevent_id):
 
+    # TODO: any special web displays for template for confirmed GWs?
+    # can do this in template by checking superevent.is_gw
+
     # Get superevent object
     superevent = get_superevent_by_date_id_or_404(request, superevent_id)
 
@@ -185,6 +188,7 @@ def file_list(request, superevent_id):
         'superevent_id': superevent.superevent_id,
     }
     return render(request, 'superevents/file_list.html', context=context)
+
 
 # TODO:
 # add permission checking

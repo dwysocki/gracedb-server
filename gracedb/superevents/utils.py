@@ -10,6 +10,9 @@ import os
 import logging
 logger = logging.getLogger(__name__)
 
+# NOTE: everything in here assumes that permissions have already been checked
+# and handled properly
+
 # TODO:
 # Add decorator to check access permissions (??) not sure if we should do it here or in the viewset itself
 def create_superevent(submitter, t_start, t_0, t_end, preferred_event,
@@ -364,6 +367,8 @@ def get_or_create_tag(tag_name, display_name=None):
 
 
 def get_or_create_tags(tag_name_list, display_name_list=[]):
+
+    # TODO: make this a useful error
     if display_name_list and (len(display_name_list) != len(tag_name_list)):
         raise ValueError('')
 
@@ -379,6 +384,7 @@ def get_or_create_tags(tag_name_list, display_name_list=[]):
 
 
 # TODO: add permissions checking?
+# TODO: move this somewhere else?
 def get_superevent_by_date_id_or_404(request, superevent_id):
 
     filter_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup(
