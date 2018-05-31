@@ -136,10 +136,10 @@ To build the package and upload it to PyPi testing::
     git clean -dxf
 
     # Build the source tarball
-    python setup.py sdist
+    python setup.py sdist bdist_wheel
 
     # Upload to test PyPI
-    twine upload dist/*.gz -r testpypi
+    twine upload dist/* -r testpypi
 
 Testing
 -------
@@ -153,10 +153,11 @@ Login to one of the LIGO clusters and do the following:
     cd gracedb_testing
     virtualenv --system-site-packages test
     source test/bin/activate
-    pip install -i https://testpypi.python.org/pypi ligo-gracedb --upgrade
+    pip install -i https://test.pypi.org/simple/ ligo-gracedb --upgrade
 
     # Clone the git repository (needed for git tag unittest to work)
     git clone https://git@git.ligo.org/lscsoft/gracedb-client.git
+
     # Check out tag
     cd gracedb-client
     git checkout gracedb-1.24-1
@@ -178,7 +179,7 @@ LIGO packaging and SCCB approval process (see below).
 
 Upload to the real PyPI::
 
-    twine upload dist/*.gz -r pypi
+    twine upload dist/* -r pypi
 
 Lastly, make sure you can pip install the package::
 
