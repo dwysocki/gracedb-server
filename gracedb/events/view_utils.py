@@ -696,6 +696,10 @@ def flexigridResponse(request, objects):
     rp = int(request.GET.get('rows', 10))       # get how many rows we want to have into the grid
 
     get_neighbors = request.GET.get('get_neighbors', False) # whether to retrieve the neighbors
+    if get_neighbors in ['True', 'true', 'T', 't', 1, '1']:
+        get_neighbors = True
+    else:
+        get_neighbors = False
 
     # select related objects to reduce the number of queries.
     objects = objects.select_related('group', 'pipeline', 'search', 'submitter')
