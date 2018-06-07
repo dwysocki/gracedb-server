@@ -3,10 +3,6 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from ..models import Superevent, Labelling, Log, VOEvent, EMObservation
-from ..forms import LogCreateForm
-from ..utils import create_superevent, update_superevent, add_tag_to_log, \
-    create_log, add_event_to_superevent, add_label_to_superevent, \
-    get_or_create_tag, get_or_create_tags
 
 from .fields import ParentObjectDefault
 from .settings import SUPEREVENT_LOOKUP_FIELD
@@ -73,6 +69,8 @@ class SupereventSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        # Function-level import to prevent circular import in alerts
+        from ..utils import create_superevent
         submitter = validated_data.pop('user')
 
         # TODO: 
@@ -89,7 +87,8 @@ class SupereventSerializer(serializers.ModelSerializer):
 
     def get_links(self, obj):
         bound_reverse = functools.partial(gracedb_reverse,
-            args=[obj.superevent_id], request=self.context['request'])
+            args=[obj.superevent_id],
+            request=self.context.get('request', None))
         link_dict = {
             'events': bound_reverse('superevent-event-list'),
             'labels': bound_reverse('superevent-label-list'),
@@ -135,11 +134,15 @@ class SupereventUpdateSerializer(SupereventSerializer):
         return data
 
     def update(self, instance, validated_data):
+        # Function-level import to prevent circular import in alerts
+        from ..utils import update_superevent
+
         # CurrentUserDefault doesn't work for PATCH requests since the
         # serializer has self.partial == True, the default function is never
         # called to fill empty data values. So we just grab the user directly
         # from the request.
-        updater = self.context['request'].user
+        request = self.context.get('request', None)
+        updater = getattr(request, 'user', None)
         instance = update_superevent(instance, updater, issue_alert=True,
             **validated_data)
         return instance
@@ -164,7 +167,7 @@ class SupereventEventSerializer(serializers.ModelSerializer):
 
     def get_self(self, obj):
         return gracedb_reverse('event-detail', args=[obj.graceid()],
-            request=self.context['request'])
+            request=self.context.get('request', None))
 
     def validate(self, data):
         data = super(SupereventEventSerializer, self).validate(data)
@@ -174,6 +177,9 @@ class SupereventEventSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        # Function-level import to prevent circular import in alerts
+        from ..utils import add_event_to_superevent
+
         superevent = validated_data.pop('superevent')
         event = validated_data.pop('event')
         submitter = validated_data.pop('user')
@@ -205,12 +211,14 @@ class SupereventLabelSerializer(serializers.ModelSerializer):
             'superevent')
 
     def get_self(self, obj):
-        superevent_id = self.context['view'].kwargs.get(
-            SUPEREVENT_LOOKUP_FIELD)
         return gracedb_reverse('superevent-label-detail', args=[
-            superevent_id, obj.label.name], request=self.context['request'])
+            obj.superevent.superevent_id, obj.label.name],
+            request=self.context.get('request', None))
 
     def create(self, validated_data):
+        # Function-level import to prevent circular import in alerts
+        from ..utils import add_label_to_superevent
+
         creator = validated_data.pop('submitter')
         superevent = validated_data.pop('superevent')
         label = validated_data.pop('label')
@@ -257,10 +265,9 @@ class SupereventLogSerializer(serializers.ModelSerializer):
         self.fields['file_version'].read_only = True
 
     def get_self(self, obj):
-        superevent_id = self.context['view'].kwargs.get(
-            SUPEREVENT_LOOKUP_FIELD)
         return gracedb_reverse('superevent-log-detail', args=[
-            superevent_id, obj.N], request=self.context['request'])
+            obj.superevent.superevent_id, obj.N],
+            request=self.context.get('request', None))
 
     def validate(self, data):
         data = super(SupereventLogSerializer, self).validate(data)
@@ -273,9 +280,12 @@ class SupereventLogSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        # Function-level import to prevent circular import in alerts
+        from ..utils import create_log, get_or_create_tags
+
+        # TODO:
         # Check user permissions here, or somewhere else? Maybe just on viewset
         # create resource
-        logger.debug(validated_data)
 
         # Convert data to be used with create_log function
         issuer = validated_data.get('submitter', None)
@@ -316,7 +326,8 @@ class SupereventLogTagSerializer(serializers.ModelSerializer):
             SUPEREVENT_LOOKUP_FIELD)
         log_N = self.context['view'].kwargs.get('N')
         return gracedb_reverse('superevent-log-tag-detail', args=[
-            superevent_id, log_N, obj.name], request=self.context['request'])
+            superevent_id, log_N, obj.name],
+            request=self.context.get('request', None))
 
     def __init__(self, *args, **kwargs):
         super(SupereventLogTagSerializer, self).__init__(*args, **kwargs)
@@ -345,6 +356,9 @@ class SupereventLogTagSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        # Function-level import to prevent circular import in alerts
+        from ..utils import add_tag_to_log, get_or_create_tag
+
         # Get parent log message
         parent_log = validated_data.pop('parent_log')
 
@@ -379,12 +393,12 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
                 obj.file_version)
             file_link = gracedb_reverse('superevent-file-detail', args=[
                 obj.superevent.superevent_id, file_name],
-                request=self.context['request']),
+                request=self.context.get('request', None)),
 
         link_dict = {
             'self': gracedb_reverse('superevent-voevent-detail', args=[
                 obj.superevent.superevent_id, obj.N],
-                request=self.context['request']),
+                request=self.context.get('request', None)),
             'file': file_link
         }
         return link_dict
