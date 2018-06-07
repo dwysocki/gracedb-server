@@ -88,6 +88,7 @@ def create(request):
             farThresh = form.cleaned_data['farThresh']
             label_query = form.cleaned_data['label_query']
 
+            # TODO: properly handle negated labels
             # If we've got a label query defined for this trigger, then we want
             # each label mentioned in the query to be listed in the event's
             # labels. It would be smarter to make sure the label isn't being
