@@ -808,7 +808,14 @@ class Tag(CleanSaveModel):
     track those things?  Doesn't seem like it.
     """
     name = models.CharField(max_length=100, null=False, blank=False,
-        unique=True)
+        unique=True,
+        validators=[
+            models.fields.validators.RegexValidator(
+                regex=r'^[0-9a-zA-Z_\-]*$',
+                message="Tag names can only include [0-9a-zA-z_-]",
+                code="invalid_tag_name",
+            )
+        ])
     displayName = models.CharField(max_length=200, null=True, blank=True)
 
     def __unicode__(self):
