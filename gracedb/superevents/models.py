@@ -287,10 +287,6 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         return id_prefix + self.t_0_date.strftime(self.DATE_STR_FMT) + \
             letter_suffix
 
-    @property
-    def superevent_basic_id(self):
-        return self.DEFAULT_ID_PREFIX + '{0:0>4}'.format(self.id)
-
     # Custom methods ----------------------------------------------------------
     def get_external_events(self):
         """Returns a queryset of external events"""
