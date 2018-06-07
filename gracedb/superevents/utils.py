@@ -281,15 +281,17 @@ def add_event_to_superevent(superevent, event, user, add_event_log=True,
 def remove_event_from_superevent(superevent, event, user, add_event_log=True,
     add_superevent_log=True, issue_event_alert=True,
     issue_superevent_alert=True):
+    """
+    This function should be within a try-except block to catch exceptions and
+    convert them to the appropriate response.
+    """
+    # Throw error if this is the preferred event
+    if event == superevent.preferred_event:
+        raise Superevent.PreferredEventRemovalError("Can't remove a "
+            "superevent's preferred event without setting a new one.")
 
     # Remove event from superevent
     superevent.events.remove(event)
-
-    # Handle case where the event is also the preferred event for the
-    # superevent
-    if (hasattr(event, 'superevent_preferred_for') and 
-        event.superevent_preferred_for == superevent):
-        superevent.preferred_event = None
 
     # Create superevent log message to record event removal?
     if add_superevent_log:

@@ -307,6 +307,9 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
     def __unicode__(self):
         return self.superevent_id
 
+    class PreferredEventRemovalError(Exception):
+        # To be raised when an attempt is made to remove the preferred event.
+        pass
 
 class Log(CleanSaveModel, LogBase, AutoIncrementModel):
     """
