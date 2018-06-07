@@ -627,7 +627,7 @@ require([
                             return t;                                                       
                         }
                     }, 
-                    { field: 'issuer', label: 'Submitter', get: function(obj) { return obj.issuer.display_name; } },
+                    { field: 'issuer', label: 'Submitter', get: function(obj) { return obj.issuer; } },
                     // Sometimes the comment contains HTML, so we just want to return whatever it has.
                     // This is where the link with the filename goes. Also the view in skymapViewer button
                     { 
@@ -699,7 +699,7 @@ require([
                             var figComment = put(figTabInner, 'tr td');
                             figComment.innerHTML = log.comment;
                             figComment.innerHTML += ' <a href="' + log.file + '">' + log.filename + '.</a> ';
-                            figComment.innerHTML += 'Submitted by ' + log.issuer.display_name + ' on ' + log.created;
+                            figComment.innerHTML += 'Submitted by ' + log.issuer + ' on ' + log.created;
                         }
                         // XXX Have commented out the scroll pane at Patrick's request.
                         // var sp = new dojox.layout.ScrollPane({ orientation: "horizontal", style: "overflow: hidden;" }, figContainerId); 
@@ -787,7 +787,7 @@ require([
                             return t;                                                       
                         }
                     }, 
-{ field: 'issuer', label: 'Submitter', get: function(obj) { return obj.issuer.display_name; } },
+{ field: 'issuer', label: 'Submitter', get: function(obj) { return obj.issuer; } },
                     // Sometimes the comment contains HTML, so we just want to return whatever it has.
                     // This is where the link with the filename goes. Also the view in skymapViewer button
                     { 
@@ -879,7 +879,7 @@ require([
                 var columns = [
                     { field: 'N', label: 'No.' },
                     { field: 'created', label: 'Log Entry Created' }, 
-                    { field: 'issuer', label: 'Submitter', get: function(obj) { return obj.issuer.display_name; } },
+                    { field: 'issuer', label: 'Submitter', get: function(obj) { return obj.issuer; } },
                     // Sometimes the comment contains HTML, so we just want to return whatever it has.
                     // This is where the link with the filename goes. Also the view in skymapViewer button
                     { 
