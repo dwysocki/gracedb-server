@@ -279,13 +279,16 @@ MIDDLEWARE = [
 # Path to root URLconf
 ROOT_URLCONF = '{module}.urls'.format(module=os.path.basename(CONFIG_ROOT))
 
+# Database ID of the current site (for sites framework)
+SITE_ID=1
+
 # List of string designating all applications which are enabled.
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.admin',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-#    'django.contrib.sites',
+    'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.messages',
     'maintenance_mode',
@@ -348,10 +351,12 @@ STATICFILES_DIRS = [
     BOWER_DIR,
 ]
 
-# Added in order to perform data migrations on the auth and guardian apps
+# Added in order to perform data migrations on Django apps
+# and other third-party apps
 MIGRATION_MODULES = {
     'auth': 'migrations.auth',
     'guardian': 'migrations.guardian',
+    'sites': 'migrations.sites',
 }
 
 # Forces test database to be created with syncdb rather than via
