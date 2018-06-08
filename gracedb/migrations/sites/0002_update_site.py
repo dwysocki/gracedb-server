@@ -20,25 +20,29 @@ SITES = {
 def update_site(apps, schema_editor):
     Site = apps.get_model('sites', 'Site')
 
-    # Get current site matching SITE_ID, should be example.com at this point
-    site1 = Site.objects.get(id=settings.SITE_ID)
+    # Get or create our new site:
+    #   If all migrations are being run at once, there shouldn't be any sites
+    #     since the initial example site is created by a post_migrate signal
+    #   If this is being run individually, then we overwrite the existing
+    #     example.com site
+    site, created = Site.objects.get_or_create(id=settings.SITE_ID)
 
     # Update with new site name and domain
-    site1.name = SITES['new']['name']
-    site1.domain = SITES['new']['domain']
-    site1.save()
+    site.name = SITES['new']['name']
+    site.domain = SITES['new']['domain']
+    site.save()
 
 
 def revert_site(apps, schema_editor):
     Site = apps.get_model('sites', 'Site')
 
     # Get current site matching SITE_ID should be ligo.org
-    site1 = Site.objects.get(id=settings.SITE_ID)
+    site = Site.objects.get(id=settings.SITE_ID)
 
     # Revert to original site
-    site1.name = SITES['old']['name']
-    site1.domain = SITES['old']['domain']
-    site1.save()
+    site.name = SITES['old']['name']
+    site.domain = SITES['old']['domain']
+    site.save()
 
 
 class Migration(migrations.Migration):
