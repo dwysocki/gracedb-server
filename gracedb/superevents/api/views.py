@@ -127,11 +127,20 @@ class SupereventEventViewSet(mixins.ListModelMixin,
 
         return obj
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            self.perform_destroy(instance)
+        except Superevent.PreferredEventRemovalError as e:
+            return Response(e.__str__(), status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def perform_destroy(self, instance):
-        remove_event_from_superevent(instance.superevent, instance,
-            self.request.user, add_superevent_log=True,
-            add_event_log=True, issue_superevent_alert=True,
-            issue_event_alert=True)
+       remove_event_from_superevent(instance.superevent, instance,
+           self.request.user, add_superevent_log=True,
+           add_event_log=True, issue_superevent_alert=True,
+           issue_event_alert=True)
 
 
 class SupereventLabelViewSet(GetParentSupereventMixin,
@@ -151,9 +160,17 @@ class SupereventLabelViewSet(GetParentSupereventMixin,
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        remove_label_from_superevent(instance, request.user,
-            add_log_message=True, issue_alert=True)
+        try:
+            self.perform_destroy(instance)
+        except Exception as e:
+            return Response(e.__str__(),
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        remove_label_from_superevent(instance, self.request.user,
+            add_log_message=True, issue_alert=True)
 
 
 class SupereventLogViewSet(mixins.ListModelMixin,
@@ -198,6 +215,16 @@ class SupereventLogTagViewSet(GetParentSupereventMixin,
         # TODO: for external users, check permissions on the log
         parent_log = self.get_parent_log()
         return parent_log.tags.all()
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            self.perform_destroy(instance)
+        except Exception as e:
+            return Response(e.__str__(),
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_destroy(self, instance):
         parent_log = self.get_parent_log()
