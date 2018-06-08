@@ -113,7 +113,7 @@ def issue_alerts(event_or_superevent, alert_type, url=None, file_name="",
     # Send XMPP alert
     if settings.SEND_XMPP_ALERTS:
         issue_xmpp_alert(event_or_superevent, alert_type, file_name,
-            serialized_object=serialized_object)
+            description=description, serialized_object=serialized_object)
 
     # Below here, we only do processing for email and phone alerts ------------
 

@@ -222,7 +222,7 @@ class SupereventLabelSerializer(serializers.ModelSerializer):
         creator = validated_data.pop('submitter')
         superevent = validated_data.pop('superevent')
         label = validated_data.pop('label')
-        labelling = add_label_to_superevent(superevent, label, creator,
+        labelling , _ = add_label_to_superevent(superevent, label, creator,
             add_log_message=True, issue_alert=True)
         return labelling
 
