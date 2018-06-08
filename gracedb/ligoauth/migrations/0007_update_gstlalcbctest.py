@@ -6,7 +6,7 @@ from django.conf import settings
 
 ROBOTS = [
         {
-            'username' : 'gstlalcbc',
+            'username' : 'gstlalcbctest',
             'first_name' : '',
             'last_name' : 'Gstlal CBC (Test)',  # Note that the last_name acts as a display
             'email' : 'cody.messick@ligo.org',
