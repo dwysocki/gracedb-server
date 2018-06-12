@@ -1,6 +1,7 @@
 from django.db import models, IntegrityError
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
@@ -12,14 +13,14 @@ from core.time_utils import posixToGpsTime, gpsToUtc
 from core.utils import int_to_letters, letters_to_int
 from events.models import Event, SignoffBase, VOEventBase, EMObservationBase, \
     EMFootprintBase
-from core.utils import int_to_letters
+from guardian.models import GroupObjectPermission
 
 import datetime
 from cStringIO import StringIO
 from hashlib import sha1
 import os
 import re
-
+import shutil
 import logging
 
 # Other setup
@@ -146,6 +147,21 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         if (self.preferred_event and
             self.preferred_event not in self.events.all()):
             self.events.add(self.preferred_event)
+
+    def delete(self, purge=False, *args, **kwargs):
+        if purge:
+            # Delete data directory
+            if os.path.isdir(self.datadir):
+                shutil.rmtree(self.datadir)
+
+            # Delete GroupObjectPermissions
+            ctype = ContentType.objects.get_for_model(self.__class__)
+            gops = GroupObjectPermission.objects.filter(object_pk=self.pk,
+                content_type=ctype)
+            gops.delete()
+
+        # Call base class delete
+        super(Superevent, self).delete(*args, **kwargs)
 
     def confirm_as_gw(self):
         """
