@@ -26,7 +26,8 @@ from events.view_utils import reverse as gracedb_reverse
 from events.api.backends import LigoAuthentication
 
 from .filters import SupereventSearchFilter, SupereventOrderingFilter
-from .mixins import GetParentSupereventMixin, BaseGetObjectMixin
+from .mixins import GetParentSupereventMixin, BaseGetObjectMixin, \
+    SafeDestroyMixin, SafeCreateMixin
 from .paginators import BasePaginationFactory, CustomLabelPagination, \
     CustomLogTagPagination, CustomSupereventPagination
 from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
@@ -102,13 +103,15 @@ class SupereventViewSet(viewsets.ModelViewSet):
 class SupereventEventViewSet(mixins.ListModelMixin,
                              mixins.CreateModelMixin,
                              mixins.RetrieveModelMixin,
-                             mixins.DestroyModelMixin,
+                             SafeDestroyMixin,
                              GetParentSupereventMixin,
                              viewsets.GenericViewSet):
     """View for events attached to a superevent"""
     serializer_class = SupereventEventSerializer
     pagination_class = BasePaginationFactory(results_name='events')
     lookup_field = 'graceid'
+    destroy_error_classes = (Superevent.PreferredEventRemovalError,)
+    destroy_error_response_status = status.HTTP_400_BAD_REQUEST
 
     def get_queryset(self):
         superevent = self.get_parent()
@@ -127,20 +130,11 @@ class SupereventEventViewSet(mixins.ListModelMixin,
 
         return obj
 
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        try:
-            self.perform_destroy(instance)
-        except Superevent.PreferredEventRemovalError as e:
-            return Response(e.__str__(), status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
     def perform_destroy(self, instance):
-       remove_event_from_superevent(instance.superevent, instance,
-           self.request.user, add_superevent_log=True,
-           add_event_log=True, issue_superevent_alert=True,
-           issue_event_alert=True)
+        remove_event_from_superevent(instance.superevent, instance,
+            self.request.user, add_superevent_log=True,
+            add_event_log=True, issue_superevent_alert=True,
+            issue_event_alert=True)
 
 
 class SupereventLabelViewSet(GetParentSupereventMixin,
@@ -158,16 +152,6 @@ class SupereventLabelViewSet(GetParentSupereventMixin,
         queryset = superevent.labelling_set.all()
         return queryset
 
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        try:
-            self.perform_destroy(instance)
-        except Exception as e:
-            return Response(e.__str__(),
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
     def perform_destroy(self, instance):
         remove_label_from_superevent(instance, self.request.user,
             add_log_message=True, issue_alert=True)
@@ -175,7 +159,7 @@ class SupereventLabelViewSet(GetParentSupereventMixin,
 
 class SupereventLogViewSet(mixins.ListModelMixin,
                            mixins.RetrieveModelMixin,
-                           mixins.CreateModelMixin,
+                           SafeCreateMixin,
                            GetParentSupereventMixin,
                            BaseGetObjectMixin,
                            viewsets.GenericViewSet):
@@ -197,7 +181,8 @@ class SupereventLogViewSet(mixins.ListModelMixin,
 
 class SupereventLogTagViewSet(GetParentSupereventMixin,
                               BaseGetObjectMixin,
-                              viewsets.ModelViewSet):
+                              viewsets.ModelViewSet,
+                              SafeCreateMixin):
     """
     View for tags attached to a log message which is attached to a superevent.
     """
@@ -215,16 +200,6 @@ class SupereventLogTagViewSet(GetParentSupereventMixin,
         # TODO: for external users, check permissions on the log
         parent_log = self.get_parent_log()
         return parent_log.tags.all()
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        try:
-            self.perform_destroy(instance)
-        except Exception as e:
-            return Response(e.__str__(),
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_destroy(self, instance):
         parent_log = self.get_parent_log()

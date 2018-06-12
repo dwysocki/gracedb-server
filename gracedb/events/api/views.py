@@ -7,6 +7,7 @@ from django.urls import reverse as django_reverse
 from django.conf import settings
 from django.utils.functional import wraps
 from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 
 from django.contrib.auth.models import User, Permission
 from django.contrib.auth.models import Group as AuthGroup
@@ -851,15 +852,17 @@ class EventLogList(APIView):
                 retval = tmp.put(request, event.graceid(), n, tagname) 
                 # XXX This seems like a bizarre way of getting an error message out.
                 if retval.status_code != 201:
-                    tw_dict = {'tagWarning': 'Error creating tag %s.' % tagname }
-                    #response['tagWarning'] = 'Error creating tag %s.' % tagname
+                    return Response(('Log message created, but error creating '
+                        'tag: {0}').format(retval.data),
+                        status=retval.status_code)
+                    #tw_dict = {'tagWarning': 'Error creating tag %s.' % tagname }
                     
         # Serialize the event log object *after* adding tags!
         rv = eventLogToDict(logentry, request=request)
         response = Response(rv, status=status.HTTP_201_CREATED)
         response['Location'] = rv['self']
-        if 'tagWarning' in tw_dict.keys():
-            response['tagWarning'] = tw_dict['tagWarning']
+        #if 'tagWarning' in tw_dict.keys():
+        #    response['tagWarning'] = tw_dict['tagWarning']
 
         # Issue alert.
         description = "LOG: "
@@ -1234,7 +1237,12 @@ class EventLogTagDetail(APIView):
                     return HttpResponseForbidden(msg)            
 
             # Look for the tag.  If it doesn't already exist, create it.
-            tag, created = Tag.objects.get_or_create(name=tagname)
+            #tag, created = Tag.objects.get_or_create(name=tagname)
+            try:
+                tag, created = Tag.objects.get_or_create(name=tagname)
+            except ValidationError as e:
+                return Response(e.__str__(),
+                    status=status.HTTP_400_BAD_REQUEST)
             displayName = request.data.get('displayName')
             if created:
                 tag.displayName = displayName
@@ -1843,21 +1851,23 @@ class VOEventList(APIView):
         # Create LogEntry to document the new VOEvent.
         logentry = EventLog(event=event,
                              issuer=request.user,
-                             comment='',
+                             comment='New VOEvent',
                              filename=filename,
                              file_version=file_version)
         try:
             logentry.save()
-        except:
+        except Exception as e:
             rv['warnings'] = 'Problem saving log entry for VOEvent %s of %s' % (voevent.N, 
                 event.graceid()) 
 
-        # Tag log entry as 'sky_loc'
+        # Tag log entry as 'em_follow')
         tmp = EventLogTagDetail()
-        retval = tmp.put(request, event.graceid(), logentry.N, 'em_follow') 
+        retval = tmp.put(request, event.graceid(), logentry.N, 'em_follow')
         # XXX This seems like a bizarre way of getting an error message out.
         if retval.status_code != 201:
-            rv['tagWarning'] = 'Error tagging VOEvent log message as em_follow.'
+            return Response(('VOEvent log message created, but error tagging '
+                'message: {0}').format(retval.data), status=retval.status_code)
+            #rv['tagWarning'] = 'Error tagging VOEvent log message as em_follow.'
 
         # Issue alert.
         description = "VOEVENT: %s" % filename
