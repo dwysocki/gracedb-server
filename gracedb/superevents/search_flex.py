@@ -62,7 +62,7 @@ def flexigridResponse(request, objects):
         t_start_times = timeSelections(object.t_start)
         t_0_times = timeSelections(object.t_0)
         t_end_times = timeSelections(object.t_end)
-        created_times = timeSelections(object.date_created)
+        created_times = timeSelections(object.created)
 
         cell_values = [
             '<a href="{0}">{1}</a>'.format(

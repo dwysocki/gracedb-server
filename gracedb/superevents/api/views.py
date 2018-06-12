@@ -51,7 +51,7 @@ class SupereventViewSet(viewsets.ModelViewSet):
     lookup_field = SUPEREVENT_LOOKUP_FIELD
     lookup_value_regex = SUPEREVENT_LOOKUP_REGEX
     filter_backends = (SupereventSearchFilter, SupereventOrderingFilter,)
-    ordering_fields = ('date_created', 't_0', 't_start', 't_end',
+    ordering_fields = ('created', 't_0', 't_start', 't_end',
         'preferred_event__id', 't_0_date', 'is_gw', 'base_date_number',
         'gw_date_number')
 

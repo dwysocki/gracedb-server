@@ -33,7 +33,6 @@ class SupereventSearchFilter(filters.SearchFilter):
 class SupereventOrderingFilter(filters.OrderingFilter):
     ordering_param = 'sort'
     field_map = {
-        'created': u'date_created',
         'preferred_event': u'preferred_event__id',
         'id': [u't_0_date', u'is_gw', u'gw_date_number', 'base_date_number'],
         'superevent_id': [u't_0_date', u'is_gw', u'gw_date_number',

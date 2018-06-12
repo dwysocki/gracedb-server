@@ -29,8 +29,8 @@ class SupereventSerializer(serializers.ModelSerializer):
     submitter = serializers.SlugRelatedField(slug_field='username',
         read_only=True)
     preferred_event = EventGraceidField(required=True)
-    created = serializers.DateTimeField(source='date_created',
-        format=settings.GRACE_STRFTIME_FORMAT, read_only=True)
+    created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
+        read_only=True)
     # Add custom fields
     gw_events = serializers.SerializerMethodField(read_only=True)
     em_events = serializers.SerializerMethodField(read_only=True)

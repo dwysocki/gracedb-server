@@ -49,7 +49,7 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
 
     # Fields ------------------------------------------------------------------
     submitter = models.ForeignKey(UserModel)
-    date_created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True)
 
     # One-to-one relationship with preferred event - an event can only be
     # preferred for a single superevent and a superevent can only have
