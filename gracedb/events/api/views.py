@@ -1580,7 +1580,8 @@ class GracedbRoot(APIView):
 
         return Response({
             "links" : {
-                "superevents" : reverse("superevent-list", request=request),
+                "superevents" : reverse("superevents:superevent-list",
+                    request=request),
                 "events"      : reverse("event-list", request=request),
                 "self"        : reverse("api-root", request=request),
                 "performance" : reverse("performance-info", request=request),

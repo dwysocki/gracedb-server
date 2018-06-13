@@ -218,7 +218,7 @@ class SupereventFileViewSet(GetParentSupereventMixin,
     def list(self, request, *args, **kwargs):
         parent_superevent = self.get_parent()
         files = parent_superevent.list_files(absolute_paths=False)
-        file_list = {f: gracedb_reverse("superevent-file-detail",
+        file_list = {f: gracedb_reverse("superevents:superevent-file-detail",
             args=[parent_superevent.superevent_id, f], request=request)
             for f in files}
         return Response(file_list)

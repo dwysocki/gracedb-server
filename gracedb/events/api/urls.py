@@ -89,5 +89,6 @@ urlpatterns = [
         Files.as_view(), name="file-download"),
 
     # Superevents
-    url(r'^superevents/', include('superevents.api.urls')),
+    url(r'^superevents/', include('superevents.api.urls',
+        namespace='superevents')),
 ]

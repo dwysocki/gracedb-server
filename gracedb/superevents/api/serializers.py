@@ -90,13 +90,14 @@ class SupereventSerializer(serializers.ModelSerializer):
             args=[obj.superevent_id],
             request=self.context.get('request', None))
         link_dict = {
-            'events': bound_reverse('superevent-event-list'),
-            'labels': bound_reverse('superevent-label-list'),
-            'logs': bound_reverse('superevent-log-list'),
-            'files': bound_reverse('superevent-file-list'),
-            'self': bound_reverse('superevent-detail'),
-            'voevents': bound_reverse('superevent-voevent-list'),
-            'emobservations': bound_reverse('superevent-emobservation-list'),
+            'events': bound_reverse('superevents:superevent-event-list'),
+            'labels': bound_reverse('superevents:superevent-label-list'),
+            'logs': bound_reverse('superevents:superevent-log-list'),
+            'files': bound_reverse('superevents:superevent-file-list'),
+            'self': bound_reverse('superevents:superevent-detail'),
+            'voevents': bound_reverse('superevents:superevent-voevent-list'),
+            'emobservations': bound_reverse(
+                'superevents:superevent-emobservation-list'),
         }
         return link_dict
 
@@ -211,7 +212,7 @@ class SupereventLabelSerializer(serializers.ModelSerializer):
             'superevent')
 
     def get_self(self, obj):
-        return gracedb_reverse('superevent-label-detail', args=[
+        return gracedb_reverse('superevents:superevent-label-detail', args=[
             obj.superevent.superevent_id, obj.label.name],
             request=self.context.get('request', None))
 
@@ -265,8 +266,8 @@ class SupereventLogSerializer(serializers.ModelSerializer):
         self.fields['file_version'].read_only = True
 
     def get_self(self, obj):
-        return gracedb_reverse('superevent-log-detail', args=[
-            obj.superevent.superevent_id, obj.N],
+        return gracedb_reverse('superevents:superevent-log-detail',
+            args=[obj.superevent.superevent_id, obj.N],
             request=self.context.get('request', None))
 
     def validate(self, data):
@@ -325,8 +326,8 @@ class SupereventLogTagSerializer(serializers.ModelSerializer):
         superevent_id = self.context['view'].kwargs.get(
             SUPEREVENT_LOOKUP_FIELD)
         log_N = self.context['view'].kwargs.get('N')
-        return gracedb_reverse('superevent-log-tag-detail', args=[
-            superevent_id, log_N, obj.name],
+        return gracedb_reverse('superevents:superevent-log-tag-detail',
+            args=[superevent_id, log_N, obj.name],
             request=self.context.get('request', None))
 
     def __init__(self, *args, **kwargs):
@@ -391,13 +392,13 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         if obj.filename:
             file_name = "{name},{version}".format(obj.filename, 
                 obj.file_version)
-            file_link = gracedb_reverse('superevent-file-detail', args=[
-                obj.superevent.superevent_id, file_name],
+            file_link = gracedb_reverse('superevents:superevent-file-detail',
+                args=[obj.superevent.superevent_id, file_name],
                 request=self.context.get('request', None)),
 
         link_dict = {
-            'self': gracedb_reverse('superevent-voevent-detail', args=[
-                obj.superevent.superevent_id, obj.N],
+            'self': gracedb_reverse('superevents:superevent-voevent-detail',
+                args=[obj.superevent.superevent_id, obj.N],
                 request=self.context.get('request', None)),
             'file': file_link
         }

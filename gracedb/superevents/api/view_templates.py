@@ -20,7 +20,7 @@ PH = {
 
 def construct_api_url_templates(request=None):
     # Bind our custom reverse for ease of use
-    sr = lambda view_name, args=[]: reverse(view_name, args=[
+    sr = lambda view_name, args=[]: reverse('superevents:' + view_name, args=[
         PH[SupereventViewSet.lookup_field]] + args, request=request)
 
     # Dict of views and temporary arguments which will be passed to reverse
