@@ -394,7 +394,8 @@ def eventLogToDict(log, request=None):
     return {
                 "N"            : log.N,
                 "comment"      : log.comment,
-                "created"      : log.created.isoformat(),
+                "created"      : log.created.strftime(
+                      settings.GRACE_STRFTIME_FORMAT),
                 "issuer"       : issuer_info,
                 "filename"     : log.filename,
                 "file_version" : log.file_version,
@@ -409,7 +410,8 @@ def labelToDict(label, request=None):
     return { 
             "name" : label.label.name,
             "creator" : label.creator.username,
-            "created" : label.created.isoformat(),
+            "created" : label.created.strftime(
+                      settings.GRACE_STRFTIME_FORMAT),
             "self" : reverse("labels",
                 args=[label.event.graceid(), label.label.name],
                 request=request),
@@ -425,7 +427,8 @@ def embbEventLogToDict(eel, request=None):
       return {
                   "N"       : eel.N,
                   "self"    : uri,
-                  "created" : eel.created.isoformat(),
+                  "created" : eel.created.strftime(
+                      settings.GRACE_STRFTIME_FORMAT),
                   "submitter"  : eel.submitter.username,
                   "group" : eel.group.name,
                   "instrument" : eel.instrument,
@@ -545,7 +548,8 @@ def skymapViewerEMObservationToDict(emo, request=None):
     return {
                 "N"               : emo.N,
                 "self"            : uri,
-                "created"         : emo.created.isoformat(),
+                "created"         : emo.created.strftime(
+                      settings.GRACE_STRFTIME_FORMAT),
                 "submitter"       : emo.submitter.username,
                 "comment"         : emo.comment,
                 "footprintID"     : avg_time_string,
