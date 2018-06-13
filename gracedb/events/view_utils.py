@@ -8,6 +8,7 @@ from django.utils.safestring import mark_safe
 
 from .models import SingleInspiral, Event, Search, Group
 
+from core.urls import build_absolute_uri
 from core.vfile import VersionedFile
 from .permission_utils import is_external
 from django.db.models import Q
@@ -103,17 +104,25 @@ def reverse(name, *args, **kw):
   
       # This probably only works if you give app_names which are the same
       # and namespaces that are different.
-  
-      if kw.get('request', None) is not None and 'current_app' not in kw:
-          request = kw['request']
+      request = kw.get('request', None)
+      if request is not None and 'current_app' not in kw:
           # For some reason, resolve() does not seem to like the script_prefix.
           # So, remove it.
           prefix = get_script_prefix()
           path = request.path.replace(prefix, '/')
           current_app = resolve(path).namespace
           kw['current_app'] = current_app
-  
-      return rest_framework_reverse(name, *args, **kw)
+
+      # FIXME:
+      # Temporary fix to provide absolute URL even in cases where
+      # request is not available; needed for issuing alerts
+      # Defaults to /api/ since that is the lowest defined
+      # api namespace in config/urls.py
+      url = rest_framework_reverse(name, *args, **kw)
+      if request is None:
+          url = build_absolute_uri(url)
+
+      return url
 
 
 #---------------------------------------------------------------------------------------
@@ -356,25 +365,26 @@ def eventLogToDict(log, request=None):
     uri = None
     taglist_uri = None
     file_uri = None
-    if request:
-        uri = reverse("eventlog-detail",
-                args=[log.event.graceid(), log.N],
-                request=request)
-        taglist_uri = reverse("eventlogtag-list",
-                args=[log.event.graceid(), log.N],
-                request=request)
-        if log.filename:
-            actual_filename = log.filename
-            if log.file_version >= 0:
-                actual_filename += ',%d' % log.file_version
-            # NOTE: the reverse function will return a urlquoted
-            # result, so we don't need urlquote here. Effectively
-            # escaping twice results in wrong urls. 
-            #filename = urlquote(actual_filename)
-            filename = actual_filename
-            file_uri = reverse("files",
-                args=[log.event.graceid(), filename],
-                request=request)
+
+    # Get some links
+    uri = reverse("eventlog-detail",
+            args=[log.event.graceid(), log.N],
+            request=request)
+    taglist_uri = reverse("eventlogtag-list",
+            args=[log.event.graceid(), log.N],
+            request=request)
+    if log.filename:
+        actual_filename = log.filename
+        if log.file_version >= 0:
+            actual_filename += ',%d' % log.file_version
+        # NOTE: the reverse function will return a urlquoted
+        # result, so we don't need urlquote here. Effectively
+        # escaping twice results in wrong urls. 
+        #filename = urlquote(actual_filename)
+        filename = actual_filename
+        file_uri = reverse("files",
+            args=[log.event.graceid(), filename],
+            request=request)
 
     # This is purely for convenience in working with the web interface.
     tag_names = [tag.name for tag in log.tags.all() ];
@@ -457,11 +467,9 @@ def embbEventLogToDict(eel, request=None):
 
 # EMObservation serializer.
 def emObservationToDict(emo, request=None):
-      uri = None
-      if request:
-          uri = reverse("emobservation-detail",
-                  args=[emo.event.graceid(), emo.N],
-                  request=request)
+      uri = reverse("emobservation-detail",
+          args=[emo.event.graceid(), emo.N],
+          request=request)
       
       return {
                   "N"               : emo.N,
@@ -505,11 +513,9 @@ def emFootprintToDict(emf, request=None):
 # XXX Eventually hope to remove this
 # EMObservation serializer for the skymap Viewer
 def skymapViewerEMObservationToDict(emo, request=None):
-    uri = None
-    if request:
-        uri = reverse("emobservation-detail",
-                args=[emo.event.graceid(), emo.N],
-                request=request)
+    uri = reverse("emobservation-detail",
+        args=[emo.event.graceid(), emo.N],
+        request=request)
 
     # Keys we want:
     # comment - empty
@@ -568,15 +574,12 @@ def voeventToDict(voevent, request=None):
     #filename = urlquote('%s,%d' % (voevent.filename, voevent.file_version))
     filename = '%s,%d' % (voevent.filename, voevent.file_version)
 
-    uri = None
-    file_uri = None
-    if request:
-        uri = reverse("voevent-detail",
-                args=[voevent.event.graceid(), voevent.N],
-                request=request)
-        file_uri = reverse("files",
-            args=[voevent.event.graceid(), filename],
-            request=request)
+    uri = reverse("voevent-detail",
+        args=[voevent.event.graceid(), voevent.N],
+        request=request)
+    file_uri = reverse("files",
+        args=[voevent.event.graceid(), filename],
+        request=request)
 
     issuer = voevent.issuer.username
     links = {
