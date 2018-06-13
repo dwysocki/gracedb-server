@@ -66,8 +66,10 @@ class SupereventViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Filter queryset for user"""
         # TODO: do we need to filter this any further?
-        queryset = get_objects_for_user(self.request.user,
-            'superevents.view_superevent')
+        # TODO: Check that this might be causing slowness
+        #queryset = get_objects_for_user(self.request.user,
+        #    'superevents.view_superevent')
+        queryset = self.queryset
         return queryset
 
     def get_object(self):
