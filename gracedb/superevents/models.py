@@ -42,7 +42,7 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
     """
     DEFAULT_ID_PREFIX = 'S'
     GW_ID_PREFIX = 'GW'
-    ID_REGEX = r'(({0})(\d+)([a-z]*)|({1})(\d+)([A-Z]*))'.format(
+    ID_REGEX = r'(({0})(\d{{6}})([a-z]*)|({1})(\d{{6}})([A-Z]*))'.format(
         DEFAULT_ID_PREFIX, GW_ID_PREFIX)
     DATE_STR_FMT = '%y%m%d'
     AUTO_FIELD = 'base_date_number'

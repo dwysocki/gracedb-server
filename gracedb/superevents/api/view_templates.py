@@ -7,7 +7,7 @@ from .views import SupereventViewSet, SupereventEventViewSet, \
 
 # Placeholder parameters for getting URLs with reverse
 PH = {
-    SupereventViewSet.lookup_field: 'S1234', # superevent_id
+    SupereventViewSet.lookup_field: 'S800106', # superevent_id
     SupereventEventViewSet.lookup_field: 'G1234', # graceid
     SupereventLabelViewSet.lookup_field: 'LABEL_NAME', # label name
     SupereventLogViewSet.lookup_field: '3333', # log number (N)
