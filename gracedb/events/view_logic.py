@@ -521,107 +521,61 @@ def create_emobservation(request, event):
 
     # Assign RA and Dec, plus widths
     try:
-        raList = d.get('raList')
-        raWidthList = d.get('raWidthList')
+        raList = d.get('ra_list')
+        raWidthList = d.get('ra_width_list')
 
-        decList = d.get('decList')
-        decWidthList = d.get('decWidthList')
+        decList = d.get('dec_list')
+        decWidthList = d.get('dec_width_list')
 
-        startTimeList = d.get('startTimeList')
-        durationList = d.get('durationList')
+        startTimeList = d.get('start_time_list')
+        durationList = d.get('duration_list')
     except Exception, e:
         raise ValueError('Lacking input: %s' % str(e))
 
-    for list_string in [raList, raWidthList, decList, decWidthList, startTimeList, durationList]:
-        if len(list_string) == 0:
+
+    all_lists = (raList, raWidthList, decList, decWidthList, startTimeList,
+        durationList)
+    for sub_list in all_lists:
+        if len(sub_list) == 0:
             raise ValueError('All fields are required, please try again.')
 
-    # Let's do some checking on the startTimeList. The ISO 8601 strings
-    # should be enclosed in quotes and separated by commas.
-    if startTimeList:
-        testStartTimeList = startTimeList.split(',')
-        newStartTimeList = []
-        for timeString in testStartTimeList:
-            # Look for double quotes in the time string. If not present,
-            # put them in. This has to be JSON parseable.
-            if not '"' in timeString:
-                timeString = '"' + timeString + '"'
-            newStartTimeList.append(timeString)
-
-        startTimeList = ','.join(newStartTimeList)
-
-    # Much code here lifted from EMBBEventLog.validateMakeRects
-    # get all the list based position and times and their widths
-    # add a [ and ] to convert the input csv list to a json parsable text
-    try:
-        raRealList = json.loads('['+raList+']')
-        rawRealList = json.loads('['+raWidthList+']')
-
-        decRealList = json.loads('['+decList+']')
-        decwRealList = json.loads('['+decWidthList+']')
-
-        # this will actually be a list of ISO times in double quotes
-        startTimeRealList = json.loads('['+startTimeList+']')
-        durationRealList = json.loads('['+durationList+']')
-    except Exception, e:
-        raise ValueError('Problem interpreting list: %s' % str(e))
-
-    # is there anything in the ra list? 
-    nList = len(raRealList)
-    if nList > 0:
-        if decRealList and len(decRealList) != nList:
-            raise ValueError('RA and Dec lists are different lengths.')
-        if startTimeRealList and len(startTimeRealList) != nList:
-            raise ValueError('RA and start time lists are different lengths.')
-
-    # is there anything in the raWidth list? 
-    mList = len(rawRealList)
-    if mList > 0:
-        if decwRealList and len(decwRealList) != mList:
-            raise ValueError('RAwidth and Decwidth lists are different lengths.')
-        if durationRealList and len(durationRealList) != mList:
-            raise ValueError('RAwidth and Duration lists are different lengths.')
-
-        # There can be 1 width for the whole list, or one for each ra/dec/gps 
-        if mList != 1 and mList != nList:
-            raise ValueError('Width and duration lists must be length 1 or same length as coordinate lists')
-    else:
-        mList = 0
+    # Check all list lengths
+    list_length = len(all_lists[0])
+    if not all(map(lambda l: len(l) == list_length, all_lists)):
+        raise ValueError('ra_list, dec_list, ra_width_list, dec_width_list, '
+            'start_time_list, and duration_list must be the same length.')
 
     # now that we've validated the input, save the emo object
     # Must do this so as to have an id.
     emo.save()
 
+    nList = len(raList)
     for i in range(nList):
         try:
-            ra = float(raRealList[i])
+            ra = float(raList[i])
         except:
             raise ValueError('Cannot read RA list element %d of %s'%(i, raList))
         try:
-            dec = float(decRealList[i])
+            dec = float(decList[i])
         except:
             raise ValueError('Cannot read Dec list element %d of %s'%(i, decList))
         try:
-            start_time = startTimeRealList[i]
+            start_time = startTimeList[i]
         except:
             raise ValueError('Cannot read GPStime list element %d of %s'%(i, startTimeList))
 
-        # the widths list can have 1 member to cover all, or one for each
-        if mList==1: j=0
-        else       : j=i
-
         try:
-            raWidth = float(rawRealList[j])
+            raWidth = float(raWidthList[i])
         except:
             raise ValueError('Cannot read raWidth list element %d of %s'%(i, raWidthList))
 
         try:
-            decWidth = float(decwRealList[j])
+            decWidth = float(decWidthList[i])
         except:
-            raise ValueError('Cannot read raWidth list element %d of %s'%(i, decWidthList))
+            raise ValueError('Cannot read decWidth list element %d of %s'%(i, decWidthList))
 
         try:
-            duration = int(durationRealList[j])
+            duration = int(durationList[i])
         except:
             raise ValueError('Cannot read duration list element %d of %s'%(i, durationList))
 
@@ -631,7 +585,6 @@ def create_emobservation(request, event):
                 start_time = pytz.utc.localize(start_time)
         except:
             raise ValueError('Could not parse start time list element %d of %s'%(i, startTimeRealList))
-
 
         # Create footprint object 
         EMFootprint.objects.create(observation=emo, ra=ra, dec=dec, 
@@ -644,13 +597,17 @@ def create_emobservation(request, event):
 
     # Try issuing an alert.
     try:
-        description = "New EMBB observation record."
+        description = "New EMBB observation record for {group}".format(
+            group=emo.group)
         object = emObservationToDict(emo, request)
         issueAlertForUpdate(event, description, doxmpp=True,
             filename="", serialized_object=object)        
     except Exception, e:
         # XXX Should probably send back warnings, as in the other cases.
         pass
+
+    # Write a log message
+    log = EventLog.objects.create(issuer=user, comment=description, event=event)
 
     return emo
     
