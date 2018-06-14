@@ -22,10 +22,11 @@ from core.vfile import VersionedFile
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission
 from django.contrib.auth.models import Group as AuthGroup
+from django.conf import settings
 from guardian.models import GroupObjectPermission
 
 import os
-from django.conf import settings
+import six
 
 import json
 import datetime
@@ -492,7 +493,7 @@ def create_eel(d, event, user):
 #
 # Create an EMBB Observaton Record
 #
-def create_emobservation(request, event):    
+def create_emobservation(request, event):
     d = getattr(request, 'data', None)
     if not d:
         d = getattr(request, 'POST', None)
@@ -532,6 +533,19 @@ def create_emobservation(request, event):
     except Exception, e:
         raise ValueError('Lacking input: %s' % str(e))
 
+    # Handle case where comma-separated strings are submitted rather than lists
+    if isinstance(raList, six.string_types):
+        raList = map(lambda x: float(x.strip()), raList.split(','))
+    if isinstance(raWidthList, six.string_types):
+        raWidthList = map(lambda x: float(x.strip()), raWidthList.split(','))
+    if isinstance(decList, six.string_types):
+        decList = map(lambda x: float(x.strip()), decList.split(','))
+    if isinstance(decWidthList, six.string_types):
+        decWidthList = map(lambda x: float(x.strip()), decWidthList.split(','))
+    if isinstance(startTimeList, six.string_types):
+        startTimeList = map(lambda x: x.strip(), startTimeList.split(','))
+    if isinstance(durationList, six.string_types):
+        durationList = map(lambda x: int(x.strip()), durationList.split(','))
 
     all_lists = (raList, raWidthList, decList, decWidthList, startTimeList,
         durationList)
