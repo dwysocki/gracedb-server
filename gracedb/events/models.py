@@ -401,12 +401,12 @@ class EMObservationBase(models.Model):
 
     # The center of the bounding box of the rectangular footprints ra,dec
     # in J2000 in decimal degrees
-    ra         = models.FloatField(null=True)
-    dec        = models.FloatField(null=True)
+    ra         = models.FloatField(null=True, blank=True)
+    dec        = models.FloatField(null=True, blank=True)
 
     # The width and height (RA range and Dec range) in decimal degrees 
-    raWidth    = models.FloatField(null=True)
-    decWidth   = models.FloatField(null=True)
+    raWidth    = models.FloatField(null=True, blank=True)
+    decWidth   = models.FloatField(null=True, blank=True)
 
     comment = models.TextField(blank=True)
 
