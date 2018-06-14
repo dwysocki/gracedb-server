@@ -4,7 +4,8 @@ from rest_framework.renderers import JSONRenderer
 from .main import issue_alerts
 from core.urls import build_absolute_uri
 from superevents.api.serializers import SupereventSerializer, \
-    SupereventLogSerializer, SupereventLabelSerializer
+    SupereventLogSerializer, SupereventLabelSerializer, \
+    SupereventEMObservationSerializer
 from superevents.shortcuts import is_superevent
 
 import logging
@@ -119,4 +120,14 @@ def issue_alert_for_superevent_voevent(voevent, request=None):
 
 
 def issue_alert_for_superevent_emobservation(emobservation, request=None):
-    pass
+    # Get URL for superevent webview and serialized label
+    url, serialized_object = superevent_alert_helper(emobservation,
+        SupereventEMObservationSerializer, request=request)
+
+    # Description
+    description = "New EMBB observation record for {group}".format(
+        group=emobservation.group.name)
+
+    # Send alerts
+    issue_alerts(emobservation.superevent, alert_type="update", url=url,
+        description=description, serialized_object=serialized_object)

@@ -206,7 +206,7 @@ class SupereventLogTagViewSet(GetParentSupereventMixin,
     def perform_destroy(self, instance):
         parent_log = self.get_parent_log()
         remove_tag_from_log(parent_log, instance, self.request.user,
-            add_log_message=True, issue_alert=True)
+            add_log_message=True, issue_alert=False)
 
 
 # TODO: add permissions to this viewset
@@ -254,7 +254,7 @@ class SupereventVOEventViewSet(mixins.ListModelMixin,
 
 class SupereventEMObservationViewSet(mixins.ListModelMixin,
                                      mixins.RetrieveModelMixin,
-                                     mixins.CreateModelMixin,
+                                     SafeCreateMixin,
                                      GetParentSupereventMixin,
                                      viewsets.GenericViewSet):
     """

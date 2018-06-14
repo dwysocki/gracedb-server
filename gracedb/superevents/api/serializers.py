@@ -2,7 +2,8 @@ from rest_framework import serializers, validators
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-from ..models import Superevent, Labelling, Log, VOEvent, EMObservation
+from ..models import Superevent, Labelling, Log, VOEvent, EMObservation, \
+    EMFootprint
 
 from .fields import ParentObjectDefault
 from .settings import SUPEREVENT_LOOKUP_FIELD
@@ -408,14 +409,35 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
     # VOEvent creation!!
 
 
+class SupereventEMFootprintSerializer(serializers.ModelSerializer):
+    """
+    Should be read-only; only used as a nester serializer within
+    SupereventEMObservationSerializer
+    """
+    start_time = serializers.DateTimeField(read_only=True,
+        format=settings.GRACE_STRFTIME_FORMAT)
+
+    class Meta:
+        model = EMFootprint
+        fields = ('exposure_time', 'start_time', 'N', 'raWidth', 'decWidth',
+            'ra', 'dec',)
+
+
 class SupereventEMObservationSerializer(serializers.ModelSerializer):
+    # Error messages
+    default_error_messages = {
+        'list_lengths': _('ra_list, dec_list, ra_width_list, dec_width_list, '
+                          'start_time_list, and duration_list must be the '
+                          'same length.'),
+    }
     # Read only fields
     submitter = serializers.SlugRelatedField(slug_field='username',
         read_only=True)
     created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
         read_only=True)
     footprint_count = serializers.SerializerMethodField(read_only=True)
-    footprints = serializers.SerializerMethodField(read_only=True)
+    footprints = SupereventEMFootprintSerializer(many=True,
+        source='emfootprint_set', read_only=True)
 
     # Both
     group = serializers.SlugRelatedField(slug_field='name',
@@ -424,27 +446,68 @@ class SupereventEMObservationSerializer(serializers.ModelSerializer):
     # Write only fields
     user = serializers.HiddenField(write_only=True,
         default=serializers.CurrentUserDefault())
+    superevent = serializers.HiddenField(write_only=True,
+        default=ParentObjectDefault(context_key='superevent'))
+    ra_list = serializers.ListField(child=serializers.FloatField(),
+        write_only=True)
+    dec_list = serializers.ListField(child=serializers.FloatField(),
+        write_only=True)
+    ra_width_list = serializers.ListField(child=serializers.FloatField(),
+        write_only=True)
+    dec_width_list = serializers.ListField(child=serializers.FloatField(),
+        write_only=True)
+    start_time_list = serializers.ListField(child=serializers.DateTimeField(),
+        write_only=True)
+    duration_list = serializers.ListField(
+        child=serializers.IntegerField(min_value=0), write_only=True)
 
     class Meta:
         model = EMObservation
         fields = ('created', 'N', 'submitter', 'group', 'ra', 'raWidth', 'dec',
-            'decWidth', 'footprint_count', 'footprints', 'user')
+            'decWidth', 'comment','footprint_count', 'footprints', 'user',
+            'superevent', 'ra_list', 'dec_list', 'ra_width_list',
+            'dec_width_list', 'start_time_list', 'duration_list',)
+
+    def __init__(self, *args, **kwargs):
+        """Modify some fields"""
+        super(SupereventEMObservationSerializer, self).__init__(*args, **kwargs)
+        self.fields['ra'].read_only = True
+        self.fields['raWidth'].read_only = True
+        self.fields['dec'].read_only = True
+        self.fields['decWidth'].read_only = True
 
     def get_footprint_count(self, obj):
         return obj.emfootprint_set.count()
 
-    def get_footprints(self, obj):
-        return [{
-            'exposure_time': fp.exposure_time,
-            'start_time': fp.start_time.strftime(
-                settings.GRACE_STRFTIME_FORMAT),
-            'N': fp.N,
-            'raWidth': fp.raWidth,
-            'decWidth': fp.decWidth,
-            'ra': fp.ra,
-            'dec': fp.dec,
-        } for fp in obj.emfootprint_set.all().order_by('-N')]
-        return 'test'
+    def validate(self, data):
+        data = super(SupereventEMObservationSerializer, self).validate(data)
+        ra_list = data.get('ra_list')
+        dec_list = data.get('dec_list')
+        ra_width_list = data.get('ra_width_list')
+        dec_width_list = data.get('dec_width_list')
+        start_time_list = data.get('start_time_list')
+        duration_list = data.get('duration_list')
 
-    # TODO:
-    # EMObservation creation!!
+        # Make sure that all lists have the same length
+        list_length = len(ra_list)
+        all_lists = (ra_list, dec_list, ra_width_list, dec_width_list,
+            start_time_list, duration_list)
+        if not all(map(lambda l: len(l) == list_length, all_lists)):
+            self.fail('list_lengths')
+
+        return data
+
+    def create(self, validated_data):
+        # Function-level import to prevent circular import in alerts
+        from ..utils import create_emobservation_for_superevent
+
+        # Create EMObservation and EMFootprint set
+        emo = create_emobservation_for_superevent(validated_data['superevent'],
+            validated_data['user'], validated_data['ra_list'],
+            validated_data['dec_list'], validated_data['ra_width_list'],
+            validated_data['dec_width_list'], validated_data['start_time_list'],
+            validated_data['duration_list'], validated_data['group'],
+            validated_data['comment'])
+
+        return emo
+
