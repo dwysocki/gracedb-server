@@ -229,6 +229,7 @@ TEMPLATES = [
                 'django.template.context_processors.i18n',
                 'django.template.context_processors.media',
                 'django.template.context_processors.static',
+                'django.contrib.messages.context_processors.messages',
                 # Extra additions
                 'django.template.context_processors.request',
                 'events.context_processors.LigoAuthContext',
@@ -276,6 +277,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
 #    'django.contrib.sites',
     'django.contrib.staticfiles',
+    'django.contrib.messages',
     'maintenance_mode',
     'events',
     'userprofile',
