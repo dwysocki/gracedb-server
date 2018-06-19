@@ -955,7 +955,7 @@ require([
                 if (emos.length == 0) {
                     emoDiv = dom.byId('emo-grid');
 
-                    if (emoDiv !=== null) {
+                    if (emoDiv !== null) {
                         emoDiv.innerHTML = '<p> No EM observation entries so far. </p>';
                     }
 
