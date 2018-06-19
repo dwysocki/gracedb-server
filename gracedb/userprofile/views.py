@@ -193,7 +193,6 @@ def testContact(request, id):
                     [c.email], [])
                 email.send()
                 log.debug('Sent test e-mail to {0}'.format(c.email))
-                zzzz
             except Exception as e:
                 messages.error(request, ("Error sending test e-mail to {0}: "
                     "{1}.").format(c.email, e))
