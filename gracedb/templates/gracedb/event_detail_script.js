@@ -954,10 +954,13 @@ require([
 
                 if (emos.length == 0) {
                     emoDiv = dom.byId('emo-grid');
-                    emoDiv.innerHTML = '<p> No EM observation entries so far. </p>';
+
+                    if (emoDiv !=== null) {
+                        emoDiv.innerHTML = '<p> No EM observation entries so far. </p>';
+                    }
 
                     // Let's try toggling the emo title pane closed.
-                    if (emo_tp.open) { emo_tp.toggle(); }
+                    //if (emo_tp.open) { emo_tp.toggle(); }
                 } else {
 
                     // Notice that the +00:00 designating UTC will be stripped out since it 
