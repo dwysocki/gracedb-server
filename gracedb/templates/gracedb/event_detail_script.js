@@ -565,7 +565,7 @@ require([
 
             // Convert the 'created' times to UTC.
             logs = logs.map( function(obj) {
-                var server_t = moment.tz(obj.created, 'America/Chicago');
+                var server_t = moment.tz(obj.created, 'UTC');
                 obj.created = server_t.clone().tz('UTC').format(TIME_DISP_FMT);
                 return obj;
             });
@@ -615,10 +615,10 @@ require([
                             return timeHeaderContainer;
                         },
                         renderCell: function(object, value, node, options) {
-                            var server_t = moment.tz(object.created, 'America/Chicago');
+                            var server_t = moment.tz(object.created, 'UTC');
                             var t = put(node, 'time[name="time-log"]', server_t.format(TIME_DISP_FMT));
                             put(t, '[utc="$"]', server_t.clone().tz('UTC').format(TIME_DISP_FMT));
-                            put(t, '[llo="$"]', server_t.format(TIME_DISP_FMT));
+                            put(t, '[llo="$"]', server_t.clone().tz('America/Chicago').format(TIME_DISP_FMT));
                             put(t, '[lho="$"]', server_t.clone().tz('America/Los_Angeles').format(TIME_DISP_FMT));
                             put(t, '[virgo="$"]', server_t.clone().tz('Europe/Rome').format(TIME_DISP_FMT));
                             return t;                                                       
@@ -775,10 +775,10 @@ require([
                             //return ts;
                         },
                         renderCell: function(object, value, node, options) {
-                            var server_t = moment.tz(object.created, 'America/Chicago');
+                            var server_t = moment.tz(object.created, 'UTC');
                             var t = put(node, 'time[name="time-audit-log"]', server_t.format(TIME_DISP_FMT));
                             put(t, '[utc="$"]', server_t.clone().tz('UTC').format(TIME_DISP_FMT));
-                            put(t, '[llo="$"]', server_t.format(TIME_DISP_FMT));
+                            put(t, '[llo="$"]', server_t.clone().tz('America/Chicago').format(TIME_DISP_FMT));
                             put(t, '[lho="$"]', server_t.clone().tz('America/Los_Angeles').format(TIME_DISP_FMT));
                             put(t, '[virgo="$"]', server_t.clone().tz('Europe/Rome').format(TIME_DISP_FMT));
                             return t;                                                       
