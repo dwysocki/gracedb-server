@@ -22,7 +22,6 @@ from .xmpp import issue_xmpp_alert
 import logging
 log = logging.getLogger(__name__)
 
-LVC_GROUP = Group.objects.get(name=settings.LVC_GROUP)
 
 
 def check_recips(recips_qs):
@@ -30,6 +29,7 @@ def check_recips(recips_qs):
     Make sure only internal users are included. Assumes that the queryset's
     model has a foreign key to the user object.
     """
+    LVC_GROUP = Group.objects.get(name=settings.LVC_GROUP)
     return recips_qs.filter(user__groups=LVC_GROUP)
 
 
