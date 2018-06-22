@@ -11,12 +11,11 @@ urlpatterns = [
     url(r'^$', views.index, name="home-events"),
     url(r'^create/$', views.create, name="create"),
     url(r'^search/(?P<format>(json|flex))?$', views.search, name="search"),
-    url(r'^view/(?P<graceid>[GEHMT]\d+)', views.view, name="view"),
-    url(r'^voevent/(?P<graceid>[GEHMT]\d+)', views.voevent, name="voevent"),
+    url(r'^(?P<graceid>[GEHMT]\d+)/view/$', views.view, name="view"),
+    url(r'^(?P<graceid>[GEHMT]\d+)/voevent/$', views.voevent, name="voevent"),
     #url (r'^skyalert/(?P<graceid>[GEHMT]\d+)', 'skyalert', name="skyalert"),
-    url((r'^neighbors/(?P<graceid>[GEHMT]\d+)/\(?(?P<delta1>[-+]?\d+)'
-         '(,(?P<delta2>[-+]?\d+)\)?)?'), views.neighbors, name="neighbors"),
-    url(r'^(?P<graceid>[GEHMT]\d+)$', views.view, name="view2"),
+    url((r'^(?P<graceid>[GEHMT]\d+)/neighbors/\(?(?P<delta1>[-+]?\d+)'
+         '(,(?P<delta2>[-+]?\d+)\)?)?/$'), views.neighbors, name="neighbors"),
     url(r'^(?P<graceid>[GEHMT]\d+)/t90/$', views.modify_t90,
         name="modify_t90"),
     url(r'^(?P<graceid>[GEHMT]\d+)/perms/$', views.modify_permissions,
@@ -36,4 +35,12 @@ urlpatterns = [
     url(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>\d+)/tag/(?P<tagname>.*)$',
         views.taglogentry, name="taglogentry"),
 
+    # Legacy URLs
+    url(r'^view/(?P<graceid>[GEHMT]\d+)', views.view, name="legacyview"),
+    url(r'^(?P<graceid>[GEHMT]\d+)$', views.view, name="legacyview2"),
+    url(r'^voevent/(?P<graceid>[GEHMT]\d+)', views.voevent,
+        name="legacyvoevent"),
+    url((r'^neighbors/(?P<graceid>[GEHMT]\d+)/\(?(?P<delta1>[-+]?\d+)'
+         '(,(?P<delta2>[-+]?\d+)\)?)?'), views.neighbors,
+        name="legacyneighbors"),
 ]
