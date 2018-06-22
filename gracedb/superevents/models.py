@@ -304,6 +304,8 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
             letter_suffix
 
     # Custom methods ----------------------------------------------------------
+    # TODO: may want to add select or prefetch here to speed up access to group
+    # names, since that is used in calculating the graceid as well
     def get_external_events(self):
         """Returns a queryset of external events"""
         return self.events.filter(group__name=settings.EXTERNAL_ANALYSIS_GROUP)
@@ -371,6 +373,10 @@ class Labelling(m2mThroughBase):
     label = models.ForeignKey('events.Label', null=False,
         related_name='%(app_label)s_%(class)s_set',
         on_delete=models.CASCADE)
+
+    def __unicode__(self):
+        return "{superevent_id} | {label}".format(superevent_id=
+            self.superevent.superevent_id, label=self.label.name)
 
 
 class Signoff(CleanSaveModel, SignoffBase):
