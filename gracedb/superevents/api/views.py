@@ -25,6 +25,7 @@ from events.view_utils import reverse as gracedb_reverse
 #from events.api.views import IsAuthorizedForPipeline, LigoLwRenderer
 from events.api.backends import LigoAuthentication
 
+from ..buildVOEvent import VOEventBuilderException
 from .filters import SupereventSearchFilter, SupereventOrderingFilter
 from .mixins import GetParentSupereventMixin, BaseGetObjectMixin, \
     SafeDestroyMixin, SafeCreateMixin
@@ -173,9 +174,9 @@ class SupereventLogViewSet(mixins.ListModelMixin,
     pagination_class = BasePaginationFactory(results_name='log')
     lookup_field = 'N'
 
+    # TODO: filter logs for viewers
     def get_queryset(self):
         superevent = self.get_parent()
-        logger.warning('may need to filter logs for users')
         queryset = superevent.log_set.all().order_by('N')
         # filter for those tagged with external access tagname if is_external(request.user)
         return queryset
@@ -234,7 +235,7 @@ class SupereventFileViewSet(GetParentSupereventMixin,
 
 class SupereventVOEventViewSet(mixins.ListModelMixin,
                                mixins.RetrieveModelMixin,
-                               mixins.CreateModelMixin,
+                               SafeCreateMixin,
                                GetParentSupereventMixin,
                                BaseGetObjectMixin,
                                viewsets.GenericViewSet):
@@ -244,6 +245,7 @@ class SupereventVOEventViewSet(mixins.ListModelMixin,
     serializer_class = SupereventVOEventSerializer
     pagination_class = BasePaginationFactory(results_name='voevents')
     lookup_field = 'N'
+    create_error_classes = (VOEventBuilderException)
 
     def get_queryset(self):
         superevent = self.get_parent()
