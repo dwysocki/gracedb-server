@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% load timeutil %}
+{% load scientific %}
+{% load sanitize_html %}
+{% load logtags %}
+{% block heading %}{% endblock %}
+{% block bodyattrs %}class="tundra eventDetail"{% endblock %}
+
+{% block jscript %}
+{% load static %}
+<link rel="stylesheet" href="{% static "css/labeltips.css" %}" />
+<script src="{% static "moment/moment.js" %}"></script>
+<script src="{% static "moment-timezone/builds/moment-timezone-with-data.min.js" %}"></script>
+<script src="{% static "dojo/dojo.js" %}" data-dojo-config="async: true"></script>
+<script src="{% static "jquery/dist/jquery.min.js" %}"></script>
+<!-- Styles for dgrid -->
+<!-- <link rel="stylesheet" href="{% static "dgrid/css/dgrid.css" %}" /> -->
+<!-- Styles for the editor components -->
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/PageBreak.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/ShowBlockNodes.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Preview.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Save.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Breadcrumb.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/FindReplace.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/PasteFromWord.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/InsertAnchor.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/CollapsibleToolbar.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Blockquote.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Smiley.css" %}" />
+<!-- Styles for the lightboxes. --> 
+<link rel="stylesheet" href="{% static "dojox/image/resources/LightboxNano.css" %}" />
+<!-- Local style declarations -->
+<link rel="stylesheet" href="{% static "dijit/themes/tundra/tundra.css" %}" />
+
+<!-- the main JavaScript block is pulled in with an include -->
+<script>
+{% include "superevents/superevent_detail_script.js" %}
+</script>
+
+{% endblock %}
+
+{% block content %}
+<div id='event_detail_content'>
+
+{% if messages %}
+<div class="flash">
+    {% for m in messages %}
+        <p>{{ m }}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if show_gw_status_form %}
+<div class="content-area">
+<form action="{% url "superevents:confirm-gw" superevent.superevent_id %}" method="POST">
+    <input type="submit" value="Confirm this superevent as a GW" class="permButtonClass">
+</form>
+<div><b>Note:</b> this action is irreversible without manual intervention by an admin!</div>
+</div>
+{% endif %}
+
+{% if 'lvem_view' not in request.path %}
+<!-- XXX This next bit is super hacky. -->
+{% if can_expose_to_lvem %}
+<div class="content-area">
+<form action="{% url "superevents:modify-permissions" superevent.superevent_id %}" method="POST">
+    <input type="hidden" name="group_name" value="{{ lvem_group_name }}">
+    <input type="hidden" name="action" value="expose">
+    <input type="submit" value="Expose this superevent to LV-EM" class="permButtonClass">
+</form>
+</div>
+{% elif can_protect_from_lvem %}
+<div class="content-area">
+<form action="{% url "superevents:modify-permissions" superevent.superevent_id %}" method="POST">
+    <input type="hidden" name="group_name" value="{{ lvem_group_name }}">
+    <input type="hidden" name="action" value="protect">
+    <input type="submit" value="Revoke LV-EM permissions for this superevent" class="permButtonClass">
+</form>
+</div>
+{% endif %}
+
+{% if operator_signoff_authorized and operator_signoff_active %}
+<div class="signoff-area">
+    <h2>{{ operator_signoff_instrument }} Operator Signoff</h2>
+    <p>You are seeing this section because you've connected from a machine that, according to our records, is in the {{ signoff_instrument }} control room.</p>
+    {% if operator_signoff_exists %}
+    <p>This event has already been signed off on. Use the form below if you wish to edit or delete the record.</p>
+    {% else %}
+    <p>This superevent still requires operator signoff. Please answer the following (and optionally enter a comment): At the time of the
+        {% if operator_signoff_instrument == 'H1' %}
+            superevent ({{ superevent.t_0|gpsdate_tz:"lho" }}),
+        {% elif operator_signoff_instrument == 'L1' %}
+            superevent ({{ superevent.t_0|gpsdate_tz:"llo" }}),
+        {% elif operator_signoff_instrument == 'V1' %}
+            superevent ({{ superevent.t_0|gpsdate_tz:"virgo" }}),
+        {% else %}
+            superevent,
+        {% endif %}
+    was the operating status of the detector basically okay, or not?</p>
+    {% endif %}
+    <form action="{% url "superevents:modify-signoff" superevent.superevent_id %}" method="POST">
+        <table>
+        {{ operator_signoff_form.as_table }}
+        <tr><td></td><td><input type="submit" value="Submit" class="searchButtonClass"></td></tr>
+        </table>
+    </form>
+</div>
+{% endif %}
+
+<!-- Here is a section for the EM advocate signoffs. -->
+{% if advocate_signoff_authorized and advocate_signoff_active %}
+<div class="signoff-area">
+    <h2>Advocate Signoff</h2>
+    <p>You are seeing this section because you're a designated EM followup advocate.
+    {% if advocate_signoff_exists %}
+    This event has already been signed off on. Use the form below if you wish to edit or delete the record.
+    {% else %}
+    This event still requires EM Followup advocate signoff.
+    {% endif %}
+    </p>
+    
+    <form action="{% url "superevents:modify-signoff" superevent.superevent_id %}" method="POST">
+        <table>
+        {{ advocate_signoff_form.as_table }}
+        <tr><td></td><td><input type="submit" value="Submit" class="searchButtonClass"></td></tr>
+        </table>
+    </form>
+</div>
+{% endif %}
+
+{% endif %} {# lvem_view not in request.path #}
+
+<div class="content-area">
+{% block superevent_info %}
+<h2>Superevent Info</h2>
+<table class="superevent">
+    <tr>
+        <th>Superevent ID</th>
+        <th>Labels</th>
+        <th>Preferred Event</th>
+        <th>GW events</th>
+        <th>External events</th>
+        <th>Links</th>
+    </tr>
+    <tr>
+        <td>{{ superevent.superevent_id }}</td>
+        <td>{% for labelling in superevent.labelling_set.all %}
+            <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}"><b>{{ labelling.label.name }}</b></div>
+            {% endfor %}
+        </td>
+
+        <td>
+            <a href="{% url "view" preferred_event.graceid %}">{{ preferred_event.graceid }}</a>
+        </td>
+        <td>
+            <div>
+            {% for graceid in internal_events %}
+            <a href="{% url "view" graceid %}">{{ graceid }}</a>
+            {% endfor %}
+            </div>
+        </td>
+        <td>
+            <div>
+            {% for graceid in external_events %}
+            <a href="{% url "view" graceid %}">{{ graceid }}</a>
+            {% endfor %}
+            </div>
+        </td>
+        <td><a href="{% url "superevents:file-list" superevent.superevent_id %}">Data</a></td>
+    </tr>
+</table>
+{% endblock %}
+
+<br />
+<br />
+
+{% block basic_info %}
+<h2>Preferred Event Info</h2>
+
+<table class="event">
+    <tr>
+        <th valign="top">UID</th>
+        <th>Labels</th>
+        <th>Group</th>
+        <th>Pipeline</th>
+        <th>Search</th>
+        <th>Instruments</th>
+        <th>
+            <div id="basic_info_event_ts"></div>
+            <div> Event Time </div>
+        </th>
+        <th>FAR (Hz)</th>
+        <th>FAR (yr<sup>-1</sup>)</th>
+        <th>Links</th>
+        <th>
+            <div id="basic_info_created_ts"></div>
+            <div> Submitted </div>
+        </th>
+    </tr>
+    <tr>
+        <td><a href="{% url "view" preferred_event.graceid %}">{{ preferred_event.graceid }}</a></td>
+        <td>
+             {% for labelling in preferred_event_labelling %}
+                <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}"><b>{{ labelling.label.name }}</b></div>
+             {% endfor %}
+        </td>
+        <td>{{ preferred_event.group.name }} </td>
+        <td>{{ preferred_event.pipeline.name }} </td>
+        <td>{{ preferred_event.search.name }} </td>
+        <td>{{ preferred_event.instruments }}</td>
+        <td>{% if preferred_event.gpstime %}
+                <!-- <span title="{{ preferred_event.gpstime|gpsdate }}">{{ preferred_event.gpstime }}</span> -->
+                {{ preferred_event.gpstime|multiTime:"gps" }}
+            {% endif %}</td>
+        {# NOTE: XXX Using event_far so it can be floored for external users. #}
+        <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
+        <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_hr }}</td>
+        <td><a href="{{ preferred_event.weburl }}">Data</a></td>
+        <td>{{ preferred_event.created|multiTime:"created" }}</td>
+    </tr>
+</table>
+{% endblock %}
+{% include "superevents/emo_form_frag.html" %}
+
+</div> <!-- end event_detail_content div -->
+{% endblock %}
+
