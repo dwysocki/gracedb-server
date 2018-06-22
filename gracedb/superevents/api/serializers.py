@@ -5,7 +5,7 @@ from django.conf import settings
 from ..models import Superevent, Labelling, Log, VOEvent, EMObservation, \
     EMFootprint
 
-from .fields import ParentObjectDefault
+from .fields import ParentObjectDefault, CommaSeparatedOrListField
 from .settings import SUPEREVENT_LOOKUP_FIELD
 
 from events.models import Event, Label, Tag, EMGroup
@@ -14,6 +14,7 @@ from events.api.fields import EventGraceidField
 
 UserModel = get_user_model()
 
+import os
 import functools
 import logging
 logger = logging.getLogger(__name__)
@@ -448,17 +449,17 @@ class SupereventEMObservationSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault())
     superevent = serializers.HiddenField(write_only=True,
         default=ParentObjectDefault(context_key='superevent'))
-    ra_list = serializers.ListField(child=serializers.FloatField(),
+    ra_list = CommaSeparatedOrListField(child=serializers.FloatField(),
         write_only=True)
-    dec_list = serializers.ListField(child=serializers.FloatField(),
+    dec_list = CommaSeparatedOrListField(child=serializers.FloatField(),
         write_only=True)
-    ra_width_list = serializers.ListField(child=serializers.FloatField(),
+    ra_width_list = CommaSeparatedOrListField(child=serializers.FloatField(),
         write_only=True)
-    dec_width_list = serializers.ListField(child=serializers.FloatField(),
+    dec_width_list = CommaSeparatedOrListField(child=serializers.FloatField(),
         write_only=True)
-    start_time_list = serializers.ListField(child=serializers.DateTimeField(),
-        write_only=True)
-    duration_list = serializers.ListField(
+    start_time_list = CommaSeparatedOrListField(
+        child=serializers.DateTimeField(), write_only=True)
+    duration_list = CommaSeparatedOrListField(
         child=serializers.IntegerField(min_value=0), write_only=True)
 
     class Meta:

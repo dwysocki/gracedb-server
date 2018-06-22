@@ -1,5 +1,10 @@
 from rest_framework import fields
 
+import six
+import logging
+logger = logging.getLogger(__name__)
+
+
 class CustomHiddenDefault(fields.CurrentUserDefault):
     context_key = None
 
@@ -37,3 +42,25 @@ class ParentObjectDefault(CustomHiddenDefault):
                 value = value()
             #value = serializer_field.context['view'].get_parent()
         return value
+
+
+class CommaSeparatedOrListField(fields.ListField):
+    default_style = {'base_template': 'input.html'}
+
+    def __init__(self, *args, **kwargs):
+        super(CommaSeparatedOrListField, self).__init__(*args, **kwargs)
+        # Set form style for browsable API
+        self.style = kwargs.get('style', self.default_style)
+
+    def to_internal_value(self, data):
+        # Empirical tests with HTML forms indicate that if we enter
+        # something like 1,2,3 in a form, we will get something like
+        # [u'1,2,3'] here.  So if we get input like that, we convert it
+        # to [u'1', u'2', u'3'], then pass it to the base class's
+        # to_internal_value() method. Might not be safe for cases where
+        # a list contains CharFields which might have commas in them.
+        if (isinstance(data, list) and len(data) == 1 and
+            isinstance(data[0], six.string_types)):
+            data = data[0].split(',')
+        return super(CommaSeparatedOrListField, self).to_internal_value(data)
+
