@@ -316,6 +316,7 @@ SHELL_PLUS_MODEL_ALIASES = {
         'Label': 'SupereventLabel',
         'Labelling': 'SupereventLabelling',
         'Log': 'SupereventLog',
+        'Signoff': 'SupereventSignoff',
         'VOEvent': 'SupereventVOEvent',
     }
 }
