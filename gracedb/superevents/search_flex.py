@@ -58,6 +58,10 @@ def flexigridResponse(request, objects):
         if total > MAX_FLEXI_ROWS:
             return HttpResponseBadRequest("Too many rows! Please try loading a smaller number.")
 
+    # Function for constructing HTML link to event page from graceid
+    ev_link = lambda gid: '<a href="{url}">{graceid}</a>'.format(
+        url=django_reverse("view", args=[gid]), graceid=gid)
+
     for object in objects[start:end]:
         t_start_times = timeSelections(object.t_start)
         t_0_times = timeSelections(object.t_0)
@@ -70,9 +74,9 @@ def flexigridResponse(request, objects):
                 object.superevent_id]), object.superevent_id),
             #Labels
             " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();" style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name) for label in object.labelling_set.all()]),
-            str(object.preferred_event.graceid()),
-            " ".join([ev.graceid() for ev in object.get_internal_events()]),
-            " ".join([ev.graceid() for ev in object.get_external_events()]),
+            ev_link(object.preferred_event.graceid()),
+            ", ".join([ev_link(ev.graceid()) for ev in object.get_internal_events()]),
+            ", ".join([ev_link(ev.graceid()) for ev in object.get_external_events()]),
             t_start_times.get('gps', ""),
             t_0_times.get('gps', ""),
             t_end_times.get('gps', ""),
