@@ -48,8 +48,8 @@ def get_voevent_type(short_name):
     return None
 
 def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filename=None,
-                 skymap_type=None, skymap_image_filename=None, internal=1, vetted=0,
-                 open_alert=0, hardware_inj=0, CoincComment=0, ProbHasNS=None,
+                 skymap_type=None, skymap_image_filename=None, internal=True, vetted=False,
+                 open_alert=False, hardware_inj=False, CoincComment=False, ProbHasNS=None,
                  ProbHasRemnant=None):
 
 # XXX Branson commenting out. Reed's MDC events do not have FAR for some reason.
@@ -127,7 +127,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             h.add_Description("L1: LIGO Livingston 4 km gravitational wave detector")
         if 'V1' in instruments:
             h.add_Description("V1: Virgo 3 km gravitational wave detector")
-        if CoincComment==1:
+        if int(CoincComment) == 1:
             h.add_Description("A gravitational wave trigger identified a possible counterpart GRB")
         v.set_How(h)
 
@@ -150,7 +150,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     # basically, a string that makes sense to humans about what units a value is. eg. "m/s"
 
     # Whether the alert is internal or not
-    w.add_Param(Param(name="internal", value=internal, dataType="int",
+    w.add_Param(Param(name="internal", value=int(internal), dataType="int",
         Description=['Indicates whether this event should be distributed to LSC/Virgo members only']))
     
     # The serial number
@@ -198,26 +198,26 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         dataType="int",
         ucd="meta.number",
         unit="",
-        value=hardware_inj,
+        value=int(hardware_inj),
         Description=['Indicates that this event is a hardware injection if 1, no if 0']))
 
     w.add_Param(Param(name="Vetted",
         dataType="int",
         ucd = "meta.number",
         unit="",
-        value=vetted,
+        value=int(vetted),
         Description=['Indicates whether this candidate has undergone basic vetting by humans']))
 
     w.add_Param(Param(name="OpenAlert",
         dataType="int",
         ucd="meta.number",
         unit="",
-        value=open_alert,
+        value=int(open_alert),
         Description=['Indicates that this event is an open alert if 1, no if 0']))
 
     w.add_Param(Param(name="EventPage",
         ucd="meta.ref.url",
-        value=get_url(request, objid, "view2"),
+        value=get_url(request, objid, "view"),
         Description=["Web page for evolving status of this candidate event"]))
 
     if voevent_type != 'retraction':
