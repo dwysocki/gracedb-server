@@ -7,7 +7,6 @@ from django.views.decorators.http import require_POST, require_GET
 from .forms import MainSearchForm
 from .utils import get_search_results_as_ligolw
 from core.http import check_and_serve_file
-from core.vfile import VersionedFile
 
 from events.view_utils import flexigridResponse as events_flex
 from superevents.search_flex import flexigridResponse as superevents_flex
