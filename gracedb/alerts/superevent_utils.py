@@ -5,7 +5,7 @@ from .main import issue_alerts
 from core.urls import build_absolute_uri
 from superevents.api.serializers import SupereventSerializer, \
     SupereventLogSerializer, SupereventLabelSerializer, \
-    SupereventEMObservationSerializer
+    SupereventEMObservationSerializer, SupereventVOEventSerializer
 from superevents.shortcuts import is_superevent
 
 import logging
@@ -110,13 +110,22 @@ def issue_alert_for_superevent_label_removal(labelling, request=None):
     description = "UPDATE: {label} removed".format(label=labelling.label.name)
 
     # Send alerts
-    # TODO: should this be a 'label' alert or an 'update' alert
     issue_alerts(labelling.superevent, alert_type="update", url=url,
         description=description, serialized_object=None)
 
 
 def issue_alert_for_superevent_voevent(voevent, request=None):
-    pass
+    # Get URL for superevent webview and serialized label
+    url, serialized_object = superevent_alert_helper(voevent,
+        SupereventVOEventSerializer, request=request)
+
+    # Description
+    description = "VOEVENT: {filename}".format(filename=voevent.filename)
+
+    # Send alerts
+    issue_alerts(voevent.superevent, alert_type="update", url=url,
+        file_name=voevent.filename, description=description,
+        serialized_object=serialized_object)
 
 
 def issue_alert_for_superevent_emobservation(emobservation, request=None):

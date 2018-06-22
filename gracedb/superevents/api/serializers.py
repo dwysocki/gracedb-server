@@ -377,6 +377,18 @@ class SupereventLogTagSerializer(serializers.ModelSerializer):
 
 
 class SupereventVOEventSerializer(serializers.ModelSerializer):
+    default_error_messages = {
+        'no_gpstime': _('Cannot build a VOEvent because preferred event does '
+                        'not have a gpstime.'),
+        'skymap_file_required': _('Skymap filename is required for initial '
+                                  'and update VOEvents.'),
+        'skymap_type_required': _('Skymap type is required for initial and '
+                                  'update VOEvents.'),
+        'skymap_not_found': _('Skymap file {filename} not found for this '
+                              'superevent.'),
+        'skymap_image_not_found': _('Skymap image file {filename} not found '
+                                    'for this superevent.'),
+    }
     # Read only fields
     issuer = serializers.SlugRelatedField(slug_field='username',
         read_only=True)
@@ -384,16 +396,44 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         read_only=True)
     links = serializers.SerializerMethodField(read_only=True)
 
+    # Write only fields
+    user = serializers.HiddenField(write_only=True,
+        default=serializers.CurrentUserDefault())
+    superevent = serializers.HiddenField(write_only=True,
+        default=ParentObjectDefault(context_key='superevent'))
+    skymap_type = serializers.CharField(write_only=True, required=False)
+    skymap_filename = serializers.CharField(write_only=True, required=False)
+    skymap_image_filename = serializers.CharField(write_only=True,
+        required=False)
+    vetted = serializers.BooleanField(write_only=True, default=False)
+    internal = serializers.BooleanField(write_only=True, default=True)
+    open_alert = serializers.BooleanField(write_only=True, default=False)
+    hardware_inj = serializers.BooleanField(write_only=True, default=False)
+    CoincComment = serializers.BooleanField(write_only=True, default=False)
+    ProbHasNS = serializers.FloatField(write_only=True, min_value=0,
+        max_value=1, required=False)
+    ProbHasRemnant = serializers.FloatField(write_only=True, min_value=0,
+        max_value=1, required=False)
+
     class Meta:
         model = VOEvent
         fields = ('voevent_type', 'file_version', 'ivorn', 'created',
-            'issuer', 'filename', 'N', 'links')
+            'issuer', 'filename', 'N', 'links', 'skymap_type',
+            'skymap_filename', 'skymap_image_filename', 'vetted', 'internal',
+            'open_alert', 'hardware_inj', 'CoincComment', 'ProbHasNS',
+            'ProbHasRemnant', 'superevent', 'user')
+
+    def __init__(self, *args, **kwargs):
+        super(SupereventVOEventSerializer, self).__init__(*args, **kwargs)
+        self.fields['file_version'].read_only = True
+        self.fields['filename'].read_only = True
+        self.fields['ivorn'].read_only = True
 
     def get_links(self, obj):
         file_link = None
         if obj.filename:
-            file_name = "{name},{version}".format(obj.filename, 
-                obj.file_version)
+            file_name = "{name},{version}".format(name=obj.filename,
+                version=obj.file_version)
             file_link = gracedb_reverse('superevents:superevent-file-detail',
                 args=[obj.superevent.superevent_id, file_name],
                 request=self.context.get('request', None)),
@@ -406,8 +446,63 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         }
         return link_dict
 
-    # TODO:
-    # VOEvent creation!!
+    def validate(self, data):
+        data = super(SupereventVOEventSerializer, self).validate(data)
+
+        # Get data
+        superevent = data.get('superevent')
+        voevent_type = data.get('voevent_type')
+        skymap_filename = data.get('skymap_filename', None)
+        skymap_type = data.get('skymap_type', None)
+        skymap_image_filename = data.get('skymap_image_filename', None)
+
+        # Checks to do:
+        # Preferred event must have gpstime
+        if not superevent.preferred_event.gpstime:
+            self.fail('no_gpstime')
+
+        # initial and update VOEvents must have a skymap, and
+        # preliminary VOEvents can have a skymap
+        if (voevent_type in ["IN", "UP"] or
+           (voevent_type == "PR" and skymap_filename != None)):
+
+            # Check skymap filename
+            if not skymap_filename:
+                self.fail('skymap_file_required')
+
+            # Check skymap type
+            if not skymap_type:
+                self.fail('skymap_type_required')
+
+            # Check if skymap fits file exists
+            full_skymap_path = os.path.join(superevent.datadir,
+                skymap_filename)
+            if not os.path.exists(full_skymap_path):
+                self.fail('skymap_not_found', filename=skymap_filename)
+
+            if skymap_image_filename:
+                full_skymap_image_path = os.path.join(superevent.datadir,
+                    skymap_image_filename)
+                if not os.path.exists(full_skymap_image_path):
+                    self.fail('skymap_image_not_found', filename=
+                        skymap_image_filename)
+
+        return data
+
+    def create(self, validated_data):
+
+        from ..utils import create_voevent_for_superevent
+
+        # Pop some data
+        superevent = validated_data.pop('superevent')
+        issuer = validated_data.pop('user')
+
+        # Call create function - creates VOEvent object and also runs
+        # buildVOEvent to create the related file.
+        voevent = create_voevent_for_superevent(superevent, issuer,
+            **validated_data)
+
+        return voevent
 
 
 class SupereventEMFootprintSerializer(serializers.ModelSerializer):

@@ -1,5 +1,8 @@
 from django.shortcuts import get_object_or_404
 
+from .buildVOEvent import construct_voevent_file
+from .models import Superevent, Log, Labelling, EMObservation, EMFootprint, \
+    VOEvent, Signoff
 from .shortcuts import is_superevent
 from .models import Superevent, Log, Labelling, EMObservation, EMFootprint
 from events.models import Event, EventLog, Tag
@@ -10,7 +13,8 @@ from alerts.superevent_utils import issue_alert_for_superevent_creation, \
     issue_alert_for_superevent_log, \
     issue_alert_for_superevent_label_creation, \
     issue_alert_for_superevent_label_removal, \
-    issue_alert_for_superevent_emobservation
+    issue_alert_for_superevent_emobservation, \
+    issue_alert_for_superevent_voevent
 from alerts.event_utils import issue_alert_for_event_log
 
 import os
@@ -453,3 +457,51 @@ def create_emobservation_for_superevent(superevent, submitter, ra_list,
         issue_alert_for_superevent_emobservation(emo)
 
     return emo
+
+
+def create_voevent_for_superevent(superevent, issuer, voevent_type,
+    skymap_type=None, skymap_filename=None, skymap_image_filename=None,
+    internal=True, vetted=False, open_alert=False, hardware_inj=False,
+    CoincComment=False, ProbHasNS=None, ProbHasRemnant=None,
+    add_log_message=True, issue_alert=True):
+
+    # Instantiate VOEvent object
+    voevent = VOEvent.objects.create(superevent=superevent, issuer=issuer,
+        voevent_type=voevent_type)
+
+    # Construct VOEvent file text
+    voevent_text, ivorn = construct_voevent_file(superevent, voevent,
+        skymap_type=skymap_type, skymap_filename=skymap_filename,
+        skymap_image_filename=skymap_image_filename, internal=internal,
+        vetted=vetted, open_alert=open_alert, hardware_inj=hardware_inj,
+        CoincComment=CoincComment, ProbHasNS=ProbHasNS,
+        ProbHasRemnant=ProbHasRemnant)
+
+    # Save versioned VOEvent file
+    voevent_display_type = dict(VOEvent.VOEVENT_TYPE_CHOICES) \
+        [voevent.voevent_type].capitalize()
+    voevent_filename = "{superevent}-{N}-{voevent_type}.xml".format(
+        superevent=superevent.superevent_id, N=voevent.N,
+        voevent_type=voevent_display_type)
+    version = create_versioned_file(voevent_filename, superevent.datadir,
+        voevent_text)
+
+    # Update VOEvent object
+    voevent.filename = voevent_filename
+    voevent.file_version = version
+    voevent.ivorn = ivorn
+    voevent.save(update_fields=['filename', 'file_version', 'ivorn'])
+
+    # Create a log entry to document the new VOEvent (tag it as em_follow)
+    if add_log_message:
+        comment = "New VOEvent"
+        em_follow = Tag.objects.get(name='em_follow')
+        voevent_log = create_log(issuer, comment, superevent,
+            filename=voevent.filename, file_version=voevent.file_version,
+            tags=[em_follow], issue_alert=False)
+
+    # Issue an alert
+    if issue_alert:
+        issue_alert_for_superevent_voevent(voevent)
+
+    return voevent
