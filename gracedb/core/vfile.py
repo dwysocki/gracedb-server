@@ -1,10 +1,17 @@
-
 import os
+import six
 import tempfile
 import logging
 import errno
 import shutil
 import mimetypes
+
+from django.core.files.uploadedfile import InMemoryUploadedFile, \
+    SimpleUploadedFile, TemporaryUploadedFile, UploadedFile
+
+import logging
+logger = logging.getLogger(__name__)
+
 
 class VersionedFile(file):
     """Open a versioned file.
@@ -190,3 +197,21 @@ class VersionedFile(file):
         if ',' in filename:
             filename = filename.split(',')[0]
         return os.path.basename(filename)
+
+
+def create_versioned_file(filename, file_dir, file_contents):
+
+    # Get full file path
+    full_path = os.path.join(file_dir, filename)
+
+    # Create file
+    fdest = VersionedFile(full_path, 'w')
+    if isinstance(file_contents, six.string_types):
+        fdest.write(file_contents)
+    elif isinstance(file_contents, (UploadedFile, InMemoryUploadedFile,
+                    TemporaryUploadedFile, SimpleUploadedFile)):
+        for chunk in file_contents.chunks():
+            fdest.write(chunk)
+    fdest.close()
+
+    return fdest.version
