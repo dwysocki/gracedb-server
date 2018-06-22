@@ -4,6 +4,8 @@ from django.http import HttpResponse
 from .vfile import VersionedFile
 
 import os
+import logging
+logger = logging.getLogger(__name__)
 
 
 def serve_file(file_path, ResponseClass=HttpResponse):
@@ -28,6 +30,12 @@ def serve_file(file_path, ResponseClass=HttpResponse):
 
     # Configure response to have Apache serve the file with X-Sendfile
     response['X-Sendfile'] = file_path
+
+    # Set content type (have to set both since different ones are used
+    # depending on whether the response is a Django response or
+    # a rest_framework response)
+    response.content_type = content_type
+    response['Content-Type'] = content_type
 
     # For binary files, add the file as an attachment (direct download instead
     # of opening in browser window)
