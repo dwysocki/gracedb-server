@@ -14,7 +14,7 @@ from alerts.superevent_utils import issue_alert_for_superevent_creation, \
     issue_alert_for_superevent_label_creation, \
     issue_alert_for_superevent_label_removal, \
     issue_alert_for_superevent_emobservation, \
-    issue_alert_for_superevent_voevent
+    issue_alert_for_superevent_voevent, issue_alert_for_superevent_signoff
 from alerts.event_utils import issue_alert_for_event_log
 
 import os
@@ -505,3 +505,135 @@ def create_voevent_for_superevent(superevent, issuer, voevent_type,
         issue_alert_for_superevent_voevent(voevent)
 
     return voevent
+
+
+# TODO: wrap this function in a try-except block in the form
+def create_signoff_for_superevent(superevent, user, signoff_type,
+    signoff_instrument, signoff_status, signoff_comment, add_log_message=True,
+    issue_alert=True):
+
+    # Create signoff
+    signoff = Signoff.objects.create(superevent=superevent, submitter=user,
+        instrument=signoff_instrument, signoff_type=signoff_type,
+        status=signoff_status, comment=signoff_comment)
+
+    # Create log message to document the signoff
+    if add_log_message:
+        signoff_type_full = dict(Signoff.SIGNOFF_TYPE_CHOICES)[signoff_type]
+        comment = "{signoff_type} signoff certified status as {status}".format(
+            signoff_type=signoff_type_full.capitalize(), status=signoff_status)
+        if signoff_instrument:
+            comment += " for {inst}".format(inst=signoff_instrument)
+        em_follow = Tag.objects.get(name='em_follow')
+        signoff_log = create_log(user, comment, superevent, issue_alert=False,
+            tags=[em_follow])
+
+    # Remove label which requested signoff
+    labelling_to_remove = superevent.labelling_set.filter(label__name=
+        signoff.get_req_label_name()).first()
+    if labelling_to_remove is not None:
+        remove_label_from_superevent(labelling_to_remove, user)
+
+    # Add new label depending on signoff status
+    label_to_add = Label.objects.get(name=signoff.get_status_label_name())
+    add_label_to_superevent(superevent, label_to_add, user)
+
+    # Issue alert
+    if issue_alert:
+        issue_alert_for_superevent_signoff(signoff)
+
+    return signoff
+
+def update_signoff_for_superevent(signoff, user, changed_data,
+    add_log_message=True, issue_alert=True):
+    # changed_data is a dict which contains the fields of the signoff
+    # which have changed
+
+    # Get superevent
+    superevent = signoff.superevent
+
+    # Save signoff
+    signoff.save()
+
+    if 'status' in changed_data:
+        # If label for opposite status exists, remove it (i.e., the status has
+        # changed in this update, so we need to update the labels)
+        labelling_to_remove = superevent.labelling_set.filter(label__name=
+            signoff.get_opposite_status_label_name()).first()
+        if labelling_to_remove is not None:
+            remove_label_from_superevent(labelling_to_remove, user,
+                add_log_message=False, issue_alert=True)
+
+        # If label for current status doesn't exist, add it
+        label_to_add = Label.objects.get(name=signoff.get_status_label_name())
+        if label_to_add not in superevent.labels.all():
+            add_label_to_superevent(superevent, label_to_add, user,
+                add_log_message=False, issue_alert=True)
+
+    # Create log message to document the update
+    if add_log_message:
+        # Construct message
+        signoff_type_full = dict(Signoff.SIGNOFF_TYPE_CHOICES) \
+            [signoff.signoff_type]
+        comment = "{signoff_type} signoff updated".format(
+            signoff_type=signoff_type_full.capitalize())
+        if signoff.instrument:
+            comment += " for {inst}".format(inst=signoff.instrument)
+        if 'status' in changed_data:
+            comment += (": status {old_status} -> {new_status}, label "
+                "{r_label} removed, and label {a_label} applied").format(
+                old_status=signoff.opposite_status, new_status=signoff.status,
+                r_label=labelling_to_remove.label.name,
+                a_label=label_to_add.name)
+        em_follow = Tag.objects.get(name='em_follow')
+        signoff_log = create_log(user, comment, superevent, issue_alert=False,
+            tags=[em_follow])
+
+    # Issue alert
+    if issue_alert:
+        issue_alert_for_superevent_signoff(signoff)
+
+    return signoff
+
+
+def delete_signoff_for_superevent(signoff, user, add_log_message=True,
+    issue_alert=True):
+
+    # Get superevent
+    superevent = signoff.superevent
+
+    # Delete signoff
+    signoff.delete()
+
+    # Remove current OK or NO label: we don't add a log message here since
+    # we'll document this in the full log message about the signoff
+    labelling_to_remove = superevent.labelling_set.filter(label__name=
+        signoff.get_status_label_name()).first()
+    remove_label_from_superevent(labelling_to_remove, user,
+        add_log_message=False, issue_alert=True)
+
+    # Reapply initial "req" labe: we don't add a log message here since we'll
+    # document this in the full log message about the signoff
+    label_to_add = Label.objects.get(name=signoff.get_req_label_name())
+    add_label_to_superevent(superevent, label_to_add, user,
+        add_log_message=False, issue_alert=True)
+
+    # Log message
+    if add_log_message:
+        # Construct log message
+        signoff_type_full = dict(Signoff.SIGNOFF_TYPE_CHOICES) \
+            [signoff.signoff_type]
+        comment = "{signoff_type} signoff ".format(signoff_type=
+            signoff_type_full.capitalize())
+        if signoff.instrument:
+            comment += "for {inst} ".format(inst=signoff.instrument)
+        comment += "deleted: {r_label} removed and {a_label} reapplied".format(
+            r_label=labelling_to_remove.label.name, a_label=label_to_add.name)
+        em_follow = Tag.objects.get(name='em_follow')
+        signoff_log = create_log(user, comment, superevent, tags=[em_follow],
+            issue_alert=False)
+
+    # Alert
+    if issue_alert:
+        issue_alert_for_superevent_log(signoff_log)
+

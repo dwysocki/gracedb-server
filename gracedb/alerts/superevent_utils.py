@@ -5,7 +5,8 @@ from .main import issue_alerts
 from core.urls import build_absolute_uri
 from superevents.api.serializers import SupereventSerializer, \
     SupereventLogSerializer, SupereventLabelSerializer, \
-    SupereventEMObservationSerializer, SupereventVOEventSerializer
+    SupereventEMObservationSerializer, SupereventVOEventSerializer, \
+    SupereventSignoffSerializer
 from superevents.shortcuts import is_superevent
 
 import logging
@@ -139,4 +140,17 @@ def issue_alert_for_superevent_emobservation(emobservation, request=None):
 
     # Send alerts
     issue_alerts(emobservation.superevent, alert_type="update", url=url,
+        description=description, serialized_object=serialized_object)
+
+
+def issue_alert_for_superevent_signoff(signoff, request=None):
+    # Get URL for superevent webview and serialized label
+    url, serialized_object = superevent_alert_helper(signoff,
+        SupereventSignoffSerializer, request=request)
+
+    # Description
+    description = signoff.status
+
+    # Send alerts
+    issue_alerts(signoff.superevent, alert_type="signoff", url=url,
         description=description, serialized_object=serialized_object)

@@ -458,9 +458,6 @@ class EMObservation(EMObservationBase, AutoIncrementModel):
         return "{event_id} | {group} | {N}".format(
             event_id=self.event.graceid(), group=self.group.name, N=self.N)
 
-    def __unicode__(self):
-        return "%s-%s-%d" % (self.event.graceid(), self.group.name, self.N)
-
     def calculateCoveringRegion(self):
         footprints = self.emfootprint_set.all()
         super(EMObservation, self).calculateCoveringRegion(footprints)
@@ -513,6 +510,11 @@ class Labelling(m2mThroughBase):
     """
     event = models.ForeignKey(Event)
     label = models.ForeignKey(Label)
+
+    def __unicode__(self):
+        return "{graceid} | {label}".format(graceid=self.event.graceid(),
+            label=self.label.name)
+
 
 # XXX Deprecated?  Is this used *anywhere*?
 # Appears to only be used in models.py.  Here and Event class as approval_set
@@ -923,13 +925,39 @@ class SignoffBase(models.Model):
         """Custom clean method for signoffs"""
 
         # Make sure instrument is non-blank if this is an operator signoff
-        if (signoff_type == self.SIGNOFF_TYPE_OPERATOR and
+        if (self.signoff_type == self.SIGNOFF_TYPE_OPERATOR and
             not self.instrument):
 
             raise ValidationError({'instrument':
                 _('Instrument must be specified for operator signoff')})
 
         super(SignoffBase, self).clean(*args, **kwargs)
+
+    def get_req_label_name(self):
+        if self.signoff_type == 'OP':
+            return self.instrument + 'OPS'
+        elif self.signoff_type == 'ADV':
+            return 'ADVREQ'
+
+    def get_status_label_name(self):
+        if self.signoff_type == 'OP':
+            return self.instrument + self.status
+        elif self.signoff_type == 'ADV':
+            return 'ADV' + self.status
+
+    @property
+    def opposite_status(self):
+        if self.status == 'OK':
+            return 'NO'
+        elif self.status == 'NO':
+            return 'OK'
+
+    def get_opposite_status_label_name(self):
+        if self.signoff_type == 'OP':
+            return self.instrument + self.opposite_status
+        elif self.signoff_type == 'ADV':
+            return 'ADV' + self.opposite_status
+
 
 
 class Signoff(SignoffBase):

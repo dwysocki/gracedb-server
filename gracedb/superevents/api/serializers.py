@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from ..models import Superevent, Labelling, Log, VOEvent, EMObservation, \
-    EMFootprint
+    EMFootprint, Signoff
 
 from .fields import ParentObjectDefault, CommaSeparatedOrListField
 from .settings import SUPEREVENT_LOOKUP_FIELD
@@ -607,3 +607,12 @@ class SupereventEMObservationSerializer(serializers.ModelSerializer):
 
         return emo
 
+
+class SupereventSignoffSerializer(serializers.ModelSerializer):
+    submitter = serializers.SlugRelatedField(slug_field='username',
+        read_only=True)
+
+    class Meta:
+        model = Signoff
+        fields = ['submitter', 'instrument', 'status', 'comment',
+            'signoff_type']

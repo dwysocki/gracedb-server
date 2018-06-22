@@ -106,9 +106,9 @@ def issue_alerts(event_or_superevent, alert_type, url=None, file_name="",
     description="", label=None, serialized_object=None):
 
     # Check alert_type
-    if alert_type not in ["new", "label", "update"]:
+    if alert_type not in ["new", "label", "update", "signoff"]:
         raise ValueError(("alert_type is {0}, should be 'new', 'label', "
-            "or 'update'").format(alert_type))
+            "'update', or 'signoff'").format(alert_type))
 
     # Send XMPP alert
     if settings.SEND_XMPP_ALERTS:
@@ -121,8 +121,8 @@ def issue_alerts(event_or_superevent, alert_type, url=None, file_name="",
     if is_superevent(event_or_superevent):
         return
 
-    # We currently don't send phone or email alerts for updates
-    if alert_type == "update":
+    # We currently don't send phone or email alerts for updates or signoffs
+    if alert_type == "update" or alert_type == "signoff":
         return
 
     # Don't send phone or email alerts for MDC events or Test events
