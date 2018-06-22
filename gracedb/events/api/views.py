@@ -1820,7 +1820,7 @@ class VOEventList(APIView):
             voevent.save()
         except Exception as e:
             return Response("Failed to create VOEvent: %s" % str(e),
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Now, you need to actually build the VOEvent.
         try:
