@@ -103,7 +103,7 @@ def handle_uploaded_data(event, datafilename,
             else:
                 log_data.append("MChirp: ---")
             log_data.append("MTot: %s" % mass)
-            log_data.append("End Time: %d.%d" % end_time)
+            log_data.append("End Time: %d.%09d" % end_time)
             if snr is not None:
                 log_data.append("SNR: %0.3f" % snr)
             else:
@@ -206,7 +206,7 @@ def handle_uploaded_data(event, datafilename,
 #            log_data.append("Component Masses: %f %f" % mass)
 #            log_data.append("Component 1 Spin: (%f, %f, %f)" % spin1)
 #            log_data.append("Component 2 Spin: (%f, %f, %f)" % spin2)
-#            log_data.append("Geocentric End Time: %d.%d" % end_time)
+#            log_data.append("Geocentric End Time: %d.%09d" % end_time)
 #        except Exception, e:
 #            log_comment = "Problem Creating Log File"
 #            log_data = ["Cannot create log file", "error was:", str(e)]
