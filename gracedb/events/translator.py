@@ -22,6 +22,9 @@ import StringIO
 
 from math import sqrt
 
+import logging
+logger = logging.getLogger(__name__)
+
 use_in(LIGOLWContentHandler)
 
 # This function checks for 'inf' in a float field, asks the database
@@ -397,31 +400,37 @@ def handle_uploaded_data(event, datafilename,
                            comment=error)
             log.save()
     elif pipeline == 'LIB':
+        # lambda function for converting to a type if not None
+        typecast = lambda t, v: t(v) if v is not None else v
+        n_int = lambda v: typecast(int, v)
+        n_float = lambda v: typecast(float, v)
+
+        # Open event file and get data
         event_file = open(datafilename, 'r')
         event_file_contents = event_file.read()
         event_file.close()
         event_dict = json.loads(event_file_contents)
 
         # Extract relevant data from dictionary to put into event record.
-        event.gpstime     = event_dict['gpstime']
-        event.far         = event_dict['FAR']
+        event.gpstime     = n_float(event_dict.get('gpstime'))
+        event.far         = n_float(event_dict.get('FAR'))
         event.instruments = event_dict['instruments']
-        event.nevents     = event_dict.get('nevents', 1)
-        event.likelihood  = event_dict.get('likelihood', None)
+        event.nevents     = n_int(event_dict.get('nevents', 1))
+        event.likelihood  = n_float(event_dict.get('likelihood', None))
 
         # Assign analysis-specific attributes
-        event.bci         = event_dict.get('BCI', None)
-        event.quality_mean = event_dict.get('quality_posterior_mean', None)
-        event.quality_median = event_dict.get('quality_posterior_median', None)
-        event.bsn         = event_dict.get('BSN', None)
-        event.omicron_snr_network = event_dict.get('Omicron_SNR_Network', None)
-        event.omicron_snr_H1 = event_dict.get('Omicron_SNR_H1', None)
-        event.omicron_snr_L1 = event_dict.get('Omicron_SNR_L1', None)
-        event.omicron_snr_V1 = event_dict.get('Omicron_SNR_V1', None)
-        event.hrss_mean   = event_dict.get('hrss_posterior_mean', None)
-        event.hrss_median   = event_dict.get('hrss_posterior_median', None)
-        event.frequency_mean   = event_dict.get('frequency_posterior_mean', None)
-        event.frequency_median = event_dict.get('frequency_posterior_median', None)
+        event.bci         = n_float(event_dict.get('BCI', None))
+        event.quality_mean = n_float(event_dict.get('quality_posterior_mean', None))
+        event.quality_median = n_float(event_dict.get('quality_posterior_median', None))
+        event.bsn         = n_float(event_dict.get('BSN', None))
+        event.omicron_snr_network = n_float(event_dict.get('Omicron_SNR_Network', None))
+        event.omicron_snr_H1 = n_float(event_dict.get('Omicron_SNR_H1', None))
+        event.omicron_snr_L1 = n_float(event_dict.get('Omicron_SNR_L1', None))
+        event.omicron_snr_V1 = n_float(event_dict.get('Omicron_SNR_V1', None))
+        event.hrss_mean   = n_float(event_dict.get('hrss_posterior_mean', None))
+        event.hrss_median   = n_float(event_dict.get('hrss_posterior_median', None))
+        event.frequency_mean   = n_float(event_dict.get('frequency_posterior_mean', None))
+        event.frequency_median = n_float(event_dict.get('frequency_posterior_median', None))
         event.save()
 
     else:
@@ -586,11 +595,16 @@ class CwbData(Translator):
                     pass
                 break
 
+        # lambda function for converting to a type if not None
+        typecast = lambda t, v: t(v) if v is not None else v
+        n_int = lambda v: typecast(int, v)
+        n_float = lambda v: typecast(float, v) 
+
         data = {}
         data['rawdata'] = rawdata
-        data['gpstime']    = rawdata.get('time',[None])[0]
-        data['likelihood'] = rawdata.get('likelihood',[None])[0]
-        data['far']        = rawdata.get('far',[None])[0]
+        data['gpstime']    = n_float(rawdata.get('time',[None])[0])
+        data['likelihood'] = n_float(rawdata.get('likelihood',[None])[0])
+        data['far']        = n_float(rawdata.get('far',[None])[0])
 
 
         # Get ifos and corresponding GPS times.
@@ -614,14 +628,14 @@ class CwbData(Translator):
             data['start_time_ns'] = None
 
         data['ifo'] = ','.join(ifos)
-        data['duration']      = rawdata.get('duration',[None])[0]
-        data['central_freq']  = rawdata.get('frequency',[None])[0]
-        data['bandwidth']     = rawdata.get('bandwidth',[None])[0]
+        data['duration']      = n_float(rawdata.get('duration',[None])[0])
+        data['central_freq']  = n_float(rawdata.get('frequency',[None])[0])
+        data['bandwidth']     = n_float(rawdata.get('bandwidth',[None])[0])
         #data['snr']           = rawdata.get('snr',[None])[0]
         # rho is what log file says is "effective snr"
-        data['snr']           = data['rawdata'].get('rho',[None])[0]
-        data['ligo_axis_ra']     = data['rawdata'].get('phi',[None,None,None])[2]
-        data['ligo_axis_dec']    = data['rawdata'].get('theta',[None,None,None])[2]
+        data['snr']           = n_float(data['rawdata'].get('rho',[None])[0])
+        data['ligo_axis_ra']     = n_float(data['rawdata'].get('phi',[None,None,None])[2])
+        data['ligo_axis_dec']    = n_float(data['rawdata'].get('theta',[None,None,None])[2])
 
         # Check for the links at the end.
         ced_link = None

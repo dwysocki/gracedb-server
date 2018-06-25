@@ -125,6 +125,10 @@ def _createEventFromForm(request, form):
                 file_contents = file_contents)
             warnings += translator_warnings
 
+            # Refresh event from database to ensure attribute types are
+            # properly set.
+            event.refresh_from_db()
+
             # Add labels here - need event to have been saved already
             for label in label_list:
 

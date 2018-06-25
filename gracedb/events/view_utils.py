@@ -35,6 +35,9 @@ import calendar
 from django.utils import timezone
 from datetime import datetime, timedelta
 
+import logging
+logger = logging.getLogger(__name__)
+
 SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 def timeToUTC(dt):
     if not dt.tzinfo:
