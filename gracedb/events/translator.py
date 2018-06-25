@@ -598,7 +598,7 @@ class CwbData(Translator):
         # lambda function for converting to a type if not None
         typecast = lambda t, v: t(v) if v is not None else v
         n_int = lambda v: typecast(int, v)
-        n_float = lambda v: typecast(float, v) 
+        n_float = lambda v: typecast(float, v)
 
         data = {}
         data['rawdata'] = rawdata
