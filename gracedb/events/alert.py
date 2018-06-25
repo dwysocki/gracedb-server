@@ -1,4 +1,5 @@
 
+import simplejson
 import os
 import sys
 from subprocess import Popen, PIPE, STDOUT
@@ -322,7 +323,7 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
     }
     if serialized_object:
         lva_data['object'] = serialized_object
-    msg = json.dumps(lva_data)
+    msg = simplejson.dumps(lva_data)
     log.debug("issueXMPPAlert: writing message %s" % msg)
 
     if settings.USE_LVALERT_OVERSEER:
