@@ -50,9 +50,9 @@
             {
             sortable: true,
             {% if get_neighbors %}
-            url: '{% url "search" %}flex?query={{rawquery|urlencode}}&get_neighbors=true',
+            url: '{% url "eventsearch" %}flex?query={{rawquery|urlencode}}&get_neighbors=true',
             {% else %}
-            url: '{% url "search" %}flex?query={{rawquery|urlencode}}',
+            url: '{% url "eventsearch" %}flex?query={{rawquery|urlencode}}',
             {% endif %}
             datatype: 'json',
             mtype: "GET",
@@ -121,8 +121,8 @@
             <td>
                 <a onClick="toggle_visibility('hints');">Hints on querying</a>
                 {% if rawquery %}
-                    | <a href="{% url "search" %}?query={{rawquery|urlencode}}">Link to current query</a>
-                    | <a href="{% url "search" %}?query={{rawquery|urlencode}}&ligolw">Download LIGOLW File</a>
+                    | <a href="{% url "eventsearch" %}?query={{rawquery|urlencode}}">Link to current query</a>
+                    | <a href="{% url "eventsearch" %}?query={{rawquery|urlencode}}&ligolw">Download LIGOLW File</a>
                 {% endif %}
             </td>
         </tr>

@@ -1,3 +1,5 @@
+from django import forms
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -8,8 +10,11 @@ from .forms import MainSearchForm
 from .utils import get_search_results_as_ligolw
 from core.http import check_and_serve_file
 
+from events.models import Event
 from events.view_utils import flexigridResponse as events_flex
+from superevents.models import Superevent
 from superevents.search_flex import flexigridResponse as superevents_flex
+
 
 import os
 import logging
@@ -64,3 +69,46 @@ def search(request):
     context['form'] = form
 
     return render(request, 'search/query.html', context=context)
+
+
+@require_GET
+def latest(request):
+
+    # Set up context
+    context = {}
+
+    if "query" in request.GET:
+        form = MainSearchForm(request.GET)
+    else:
+        form = MainSearchForm({'query': "", 'query_type': 'E'})
+
+    # Hide get_neighbors widget
+    form.fields['get_neighbors'].widget = forms.HiddenInput()
+
+    if form.is_valid():
+        objects = form.cleaned_data.get('query')
+        query_type = form.cleaned_data.get('query_type')
+        get_neighbors = form.cleaned_data.get('get_neighbors')
+
+        # TODO
+        # Add some select_related stuff here!!
+
+        # TODO:
+        # Filter objects for user
+        context['title'] = "Query results"
+        context['raw_query'] = request.GET.get('query')
+        context['get_neighbors'] = get_neighbors
+
+        # Determine object type and order by id (equivalent to
+        # ordering by creation time and might be faster)
+        if query_type == 'E':
+            objects_key = 'events'
+        elif query_type == 'S':
+            objects_key = 'superevents'
+        context[objects_key] = \
+            objects.order_by('-id')[:settings.LATEST_RESULTS_NUMBER]
+
+    # Update form to have query and errors (if they exist)
+    context['form'] = form
+
+    return render(request, 'search/latest.html', context=context)

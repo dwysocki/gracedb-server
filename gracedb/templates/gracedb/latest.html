@@ -11,7 +11,7 @@
 {% block jscript %}
 
 {% if not error %}
-    <meta http-equiv="refresh" content="300;url={% url "latest" %}/?query={{rawquery|urlencode}}">
+    <meta http-equiv="refresh" content="300;url={% url "eventlatest" %}/?query={{rawquery|urlencode}}">
 {% endif %}
 
     {# http/https depending on this pages' protocol #}

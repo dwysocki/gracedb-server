@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% load timeutil %}
+{% load scientific %}
+
+{% block title %}Latest{% endblock %}
+{% block heading %}Latest &mdash; as of {% now "j F Y H:i:s T" %}{% endblock %}
+{% block pageid %}latest{% endblock %}
+
+
+{% block headcontents %}
+    {{ block.super }}
+{% if not form.errors %}
+    <meta http-equiv="refresh" content="300;url={{ request.build_absolute_uri }}">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- Search form -->
+<form method="GET" name="search_form">
+    <table>
+        {{ form.as_table }}
+    <tr><td></td><td><input type="Submit" value="Search" class="searchButtonClass"></td></tr>
+    </table>
+</form>
+
+{% if events %}
+<!-- Event listing -->
+<table class="event">
+    <tr>
+        <th valign="top">UID</th>
+        <th>Labels</th>
+        <th>Group</th>
+        <th>Pipeline</th>
+        <th>Search</th>
+        <th>
+            {{ "gps"|timeselect:"gps" }}
+            Event Time
+        </th>
+        <th>Instruments</th>
+        <th>FAR (Hz)</th>
+        <th>Latency (sec)</th>
+        <th>
+            {{"created"|timeselect:"utc" }}
+            Created
+        </th>
+    </tr>
+
+{% for ev in events %}
+    <tr class={% cycle 'odd' 'even' %}>
+        <td><a href="{% url "view" ev.graceid %}">{{ ev.graceid }}</a></td>
+        <td>
+             {% for labelling in ev.labelling_set.all %}
+                <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
+             {% endfor %}
+        </td>
+        <td>{{ ev.group.name }} </td>
+        <td>{{ ev.pipeline.name }} </td>
+        <td>{{ ev.search.name }} </td>
+        <td>{% if ev.gpstime%}
+                <!-- <span title="{{ ev.gpstime|gpsdate }}">{{ ev.gpstime }}</span> -->
+                {{ ev.gpstime|multiTimeMicroSeconds:"gps" }}
+            {% endif %}</td>
+        <!-- this is a bug. The far should be floored for display purposes. --> 
+        <td>{{ ev.instruments }}</td>
+        {% if user_is_external %}
+            {% if ev.far and ev.far < far_floor %} 
+            <td>&lt; {{ far_floor|scientific }}</td>
+            {% else %}
+            <td>{{ ev.far|scientific }}</td>
+            {% endif %}
+        {% else %}
+        <td>{{ ev.far|scientific }}</td>
+        {% endif %}
+        <td style="text-align:center">{{ ev.reportingLatency }}</td>
+        <td>{{ ev.created|multiTime:"created" }}</td>
+    </tr>
+
+{% endfor %}
+</table>
+
+{% elif superevents %}
+<!-- Superevent listing -->
+<table class="event">
+    <tr>
+        <th valign="top">UID</th>
+        <th>Labels</th>
+        <th>Preferred Event</th>
+        <th>GW Events</th>
+        <th>t_start</th>
+        <th>t_0</th>
+        <th>t_end</th>
+        <th>Preferred event's FAR (Hz)</th>
+        <th>
+            {{"created"|timeselect:"utc" }}
+            Created
+        </th>
+    </tr>
+
+{% for s in superevents %}
+    <tr class={% cycle 'odd' 'even' %}>
+        <td><a href="{% url "superevents:view" s.superevent_id %}">{{ s.superevent_id }}</a></td>
+        <td>
+             {% for labelling in s.labelling_set.all %}
+                <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
+             {% endfor %}
+        </td>
+        <td><a href="{% url "view" s.preferred_event.graceid %}">{{ s.preferred_event.graceid }}</a></td>
+        <td>
+        {% for ev in s.get_internal_events %}
+            {% if forloop.last %}
+                <a href="{% url "view" ev.graceid %}">{{ ev.graceid }}</a>
+            {% else %}
+                <a href="{% url "view" ev.graceid %}">{{ ev.graceid }}</a>,
+            {% endif %}
+        {% endfor %}
+        </td>
+        <td>{{ s.t_start }} </td>
+        <td>{{ s.t_0 }} </td>
+        <td>{{ s.t_end }} </td>
+        {% if user_is_external %}
+            {% if s.preferred_event.far and s.preferred_event.far < far_floor %} 
+            <td>&lt; {{ far_floor|scientific }}</td>
+            {% else %}
+            <td>{{ s.preferred_event.far|scientific }}</td>
+            {% endif %}
+        {% else %}
+        <td>{{ s.preferred_event.far|scientific }}</td>
+        {% endif %}
+        <td>{{ s.created|multiTime:"created" }}</td>
+    </tr>
+
+{% endfor %}
+</table>
+
+{% else %} <!-- !events -->
+<h1>No results.</h1>
+{% endif %} <!-- if eventss -->
+
+{% endblock %}

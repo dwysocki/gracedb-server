@@ -144,7 +144,7 @@ onload="document.search_form.query.focus();"
         {{ form.as_table }}
         <tr><td></td><td><input type="Submit" value="Search" class="searchButtonClass"></td></tr>
         <tr><td></td><td><a onClick="toggle_visibility('hints');">Query help</a>
-        | <a href="{% url "search" %}">Link to old search page</a>
+        | <a href="{% url "eventsearch" %}">Link to old search page</a>
         {% if raw_query %}
             | <a href="{{ request.build_absolute_uri }}">Link to current query</a>
             {% if query_type == 'E' %}

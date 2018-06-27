@@ -10,7 +10,6 @@ from . import views
 urlpatterns = [
     url(r'^$', views.index, name="home-events"),
     url(r'^create/$', views.create, name="create"),
-    url(r'^search/(?P<format>(json|flex))?$', views.search, name="search"),
     url(r'^(?P<graceid>[GEHMT]\d+)/view/$', views.view, name="view"),
     url(r'^(?P<graceid>[GEHMT]\d+)/voevent/$', views.voevent, name="voevent"),
     #url (r'^skyalert/(?P<graceid>[GEHMT]\d+)', 'skyalert', name="skyalert"),
@@ -34,6 +33,11 @@ urlpatterns = [
         views.emobservation_entry, name="emobservation_entry"),
     url(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>\d+)/tag/(?P<tagname>.*)$',
         views.taglogentry, name="taglogentry"),
+
+    # old event-only searches
+    url(r'^latest/$', views.latest, name="eventlatest"),
+    url(r'^search/(?P<format>(json|flex))?$', views.search,
+        name="eventsearch"),
 
     # Legacy URLs
     url(r'^view/(?P<graceid>[GEHMT]\d+)', views.view, name="legacyview"),

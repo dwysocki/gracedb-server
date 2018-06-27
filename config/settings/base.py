@@ -25,6 +25,9 @@ DEBUG = False
 # Set to off by default
 MAINTENANCE_MODE = False
 
+# Number of results to show on latest page
+LATEST_RESULTS_NUMBER = 50
+
 # Used for running unit tests
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 

@@ -36,7 +36,7 @@ urlpatterns = [
     url(r'^reports/$', events.reports.histo, name="reports"),
     url(r'^reports/cbc_report/(?P<format>(json|flex))?$',
         events.reports.cbc_report, name="cbc_report"),
-    url(r'^latest', events.views.latest, name="latest"),
+    url(r'^latest/$', search.views.latest, name="latest"),
     #(r'^reports/(?P<path>.+)$', 'django.views.static.serve',
     #        {'document_root': settings.LATENCY_REPORT_DEST_DIR}),
     url(r'^search/$', search.views.search, name="mainsearch"),
