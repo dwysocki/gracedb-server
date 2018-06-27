@@ -304,16 +304,17 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
             letter_suffix
 
     # Custom methods ----------------------------------------------------------
-    # TODO: may want to add select or prefetch here to speed up access to group
-    # names, since that is used in calculating the graceid as well
-    def get_external_events(self):
+    def get_external_events(self, related_fields=['group']):
         """Returns a queryset of external events"""
-        return self.events.filter(group__name=settings.EXTERNAL_ANALYSIS_GROUP)
+        return self.events.filter(
+            group__name=settings.EXTERNAL_ANALYSIS_GROUP) \
+            .select_related(*related_fields)
 
-    def get_internal_events(self):
+    def get_internal_events(self, related_fields=['group']):
         """Returns a queryset of internal events"""
-        return self.events.exclude(group__name=
-            settings.EXTERNAL_ANALYSIS_GROUP)
+        return self.events.exclude(
+            group__name=settings.EXTERNAL_ANALYSIS_GROUP) \
+            .select_related(*related_fields)
 
     def get_web_url(self):
         return reverse('superevents:view', args=[self.superevent_id])
@@ -328,6 +329,7 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
     class PreferredEventRemovalError(Exception):
         # To be raised when an attempt is made to remove the preferred event.
         pass
+
 
 class Log(CleanSaveModel, LogBase, AutoIncrementModel):
     """
