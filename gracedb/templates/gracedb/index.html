@@ -95,9 +95,17 @@ follow-ups. </p>
     <div class="signoff-area">
         <h2>Attention {{signoff_instrument}} Operator</h2>
         <br />
+        <h3>The following superevents require your signoff:</h3>
+        {% if signoff_superevent_ids|length %}
+        <ul>
+        {% for s_id in signoff_superevent_ids %}
+            <li><a href="{% url "superevents:view" s_id %}">{{ s_id }}</a></li>
+        {% endfor %}
+        </ul>
+        {% endif %}
         <h3>The following events require your sign-off:</h3>
-        <p>Events submitted within the last 24 hours:</p>
         {% if new_signoff_graceids|length %}
+        <p>Events submitted within the last 24 hours:</p>
         <ul>
         {% for graceid in new_signoff_graceids %}
             <li><a href="{% url "view" graceid %}">{{ graceid }}</a></li>

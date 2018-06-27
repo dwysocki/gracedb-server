@@ -31,6 +31,7 @@ from .view_utils import get_recent_events_string
 from .view_utils import eventLogToDict
 from .view_utils import signoffToDict
 from alerts.old_alert import issueAlertForUpdate, issueXMPPAlert
+from superevents.models import Superevent
 
 # Set up logging
 import logging
@@ -116,6 +117,11 @@ def index(request):
         # Put into context dict for template rendering
         context['new_signoff_graceids'] = [e.graceid() for e in new_events]
         context['older_signoff_graceids'] = [e.graceid() for e in older_events]
+
+        # TODO: ensure not test or MDC types once those are implemented
+        # Superevent signoffs
+        context['signoff_superevent_ids'] = [s.superevent_id for s in
+            Superevent.objects.filter(labelling__label__name=label_name)]
 
     recent_events = '' 
     if request.user and not is_external(request.user) and settings.SHOW_RECENT_EVENTS_ON_HOME:
