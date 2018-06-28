@@ -226,7 +226,7 @@ class Event(models.Model):
             return e
         if (id[0] == "E") and (e.group.name == "External"):
             return e
-        if (id[0] == "M") and (e.search.name == "MDC"):
+        if (id[0] == "M") and (e.search and e.search.name == "MDC"):
             return e
         if (id[0] == "G"):
             return e
