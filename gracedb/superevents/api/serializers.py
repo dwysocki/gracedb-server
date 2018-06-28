@@ -244,6 +244,7 @@ class SupereventLogSerializer(serializers.ModelSerializer):
         read_only=True)
     tag_names = serializers.SlugRelatedField(slug_field='name', many=True,
         source='tags', read_only=True)
+    file = serializers.SerializerMethodField(read_only=True)
     # Write only fields (submitter used to set creator for created instance)
     upload = serializers.FileField(label='File', write_only=True,
         required=False)
@@ -260,7 +261,7 @@ class SupereventLogSerializer(serializers.ModelSerializer):
         model = Log
         fields = ('self', 'N', 'comment', 'created', 'issuer', 'filename',
             'file_version', 'tag_names', 'submitter', 'superevent',
-            'tagname', 'displayName', 'upload')
+            'tagname', 'displayName', 'upload', 'file')
 
     def __init__(self, *args, **kwargs):
         super(SupereventLogSerializer, self).__init__(*args, **kwargs)
@@ -271,6 +272,14 @@ class SupereventLogSerializer(serializers.ModelSerializer):
         return gracedb_reverse('superevents:superevent-log-detail',
             args=[obj.superevent.superevent_id, obj.N],
             request=self.context.get('request', None))
+
+    def get_file(self, obj):
+        link = None
+        if obj.filename:
+            link = gracedb_reverse('superevents:superevent-file-detail',
+                args=[obj.superevent.superevent_id, obj.full_filename],
+                request=self.context.get('request', None))
+        return link
 
     def validate(self, data):
         data = super(SupereventLogSerializer, self).validate(data)
