@@ -173,10 +173,10 @@ them with this tag. An extra filter would need to be added in ``api.py``::
 
         # Filter log messages for external users.
         if is_external(request.user):
-            logset = logset.filter(tag__name=settings.EXTERNAL_ACCESS_TAGNAME)
+            logset = logset.filter(tags__name=settings.EXTERNAL_ACCESS_TAGNAME)
 
         if is_public(request.user):
-            logset = logset.filter(tag__name=settings.PUBLIC_ACCESS_TAGNAME)
+            logset = logset.filter(tags__name=settings.PUBLIC_ACCESS_TAGNAME)
 
 And you'll need an ``is_public`` utility function as well. Everything else can
 be done in the same way as for external users.

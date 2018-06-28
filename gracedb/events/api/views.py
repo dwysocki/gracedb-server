@@ -772,7 +772,7 @@ class EventLogList(APIView):
 
         # Filter log messages for external users.
         if is_external(request.user):
-            logset = logset.filter(tag__name=settings.EXTERNAL_ACCESS_TAGNAME)
+            logset = logset.filter(tags__name=settings.EXTERNAL_ACCESS_TAGNAME)
 
         count = logset.count()
 
