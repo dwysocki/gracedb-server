@@ -42,7 +42,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class SupereventViewSet(viewsets.ModelViewSet):
+class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
     """
     View for listing all Superevents, retrieving individual superevents,
     creating new superevents, and updating existing superevents.
