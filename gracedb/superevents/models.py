@@ -346,12 +346,11 @@ class Log(CleanSaveModel, LogBase, AutoIncrementModel):
         unique_together = (('superevent', 'N'),)
 
     def get_full_file_path(self):
-        # TODO: add file_version?
-        return os.path.join(self.superevent.datadir, self.filename)
+        return os.path.join(self.superevent.datadir, self.full_filename)
 
     def fileurl(self):
-        # TODO: implement this
-        super(Log, self).fileurl()
+        return reverse("superevents:file-download", args=
+            [self.superevent.superevent_id, self.full_filename])
 
 
 class Labelling(m2mThroughBase):

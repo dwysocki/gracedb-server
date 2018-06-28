@@ -213,6 +213,16 @@ class LogBase(models.Model):
         abstract = True
         ordering = ['-created', '-N']
 
+    @property
+    def full_filename(self):
+        if self.filename:
+            actual_filename = self.filename
+            if self.file_version is not None:
+                actual_filename += ",{n}".format(n=self.file_version)
+        else:
+            actual_filename = None
+        return actual_filename
+
     def fileurl(self):
         # Override this on derived classes
         return NotImplemented
