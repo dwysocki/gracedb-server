@@ -12,7 +12,8 @@ from .models import EMBBEventLog, EMGroup
 from .models import EMObservation, EMFootprint
 from .translator import handle_uploaded_data
 from .view_utils import _saveUploadedFile
-from .view_utils import eventToDict, eventLogToDict, emObservationToDict
+from .view_utils import eventToDict, eventLogToDict, emObservationToDict, \
+    labelToDict
 from .permission_utils import assign_default_event_perms
 
 from alerts.old_alert import issueAlert, issueAlertForLabel, issueAlertForUpdate, \
@@ -214,8 +215,12 @@ def create_label(event, request, labelName, doAlert=True, doXMPP=True):
             logger.exception('Problem saving log message (%s)' % str(e))
             d['error'] = str(e)
 
+        # Serialize the labelling object
+        serialized_label = labelToDict(labelling)
+
         try:
-            issueAlertForLabel(event, label, doXMPP, event_url=event_url)
+            issueAlertForLabel(event, label, doXMPP, event_url=event_url,
+                serialized_object=serialized_label)
         except Exception as e:
             logger.exception('Problem issuing alert (%s)' % str(e))
             d['warning'] = "Problem issuing alert (%s)" % str(e)
@@ -258,11 +263,15 @@ def delete_label(event, request, labelName, doXMPP=True):
             logger.exception('Problem saving log message (%s)' % str(e))
             d['error'] = str(e)
 
+        # Serialize deleted labelling object
+        serialized_label = labelToDict(this_label)
+
         # send an XMPP alert, no email or phone alerts
         try:
             if doXMPP:
-                issueXMPPAlert(event, "", alert_type="label",
-                    description="Label {0} removed".format(label.name))
+                issueXMPPAlert(event, "", alert_type="update",
+                    description="Label {0} removed".format(label.name),
+                    serialized_object=serialized_label)
         except Exception as e:
             logger.exception('Problem issuing alert (%s)' % str(e))
             d['warning'] = "Problem issuing alert (%s)" % str(e)

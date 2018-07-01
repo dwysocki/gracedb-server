@@ -147,9 +147,10 @@ def issueAlertForUpdate(event, description, doxmpp, filename="", serialized_obje
     # XXX No emails or phone calls for this.  Argh.
 
 # The only kind of serialized object relevant for a Label is an event.
-def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=None):
+# False - why not just send the labelling object?
+def issueAlertForLabel(event, label, doxmpp, serialized_object=None, event_url=None):
     if doxmpp:
-        issueXMPPAlert(event, "", "label", label, serialized_event)
+        issueXMPPAlert(event, "", "label", label, serialized_object)
     # Email
     profileRecips = []
     phoneRecips = []

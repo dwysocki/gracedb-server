@@ -416,14 +416,14 @@ def eventLogToDict(log, request=None):
            }
 
 
-def labelToDict(label, request=None):
+def labelToDict(labelling, request=None):
     return { 
-            "name" : label.label.name,
-            "creator" : label.creator.username,
-            "created" : label.created.strftime(
+            "name" : labelling.label.name,
+            "creator" : labelling.creator.username,
+            "created" : labelling.created.strftime(
                       settings.GRACE_STRFTIME_FORMAT),
             "self" : reverse("labels",
-                args=[label.event.graceid(), label.label.name],
+                args=[labelling.event.graceid(), labelling.label.name],
                 request=request),
            }
 

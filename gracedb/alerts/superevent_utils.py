@@ -99,7 +99,7 @@ def issue_alert_for_superevent_label_creation(labelling, request=None):
     # Send alerts
     # NOTE: current alerts don't include an object (change this?)
     issue_alerts(labelling.superevent, alert_type="label", url=url,
-        description=description, serialized_object=None)
+        description=description, serialized_object=serialized_object)
 
 
 def issue_alert_for_superevent_label_removal(labelling, request=None):
@@ -112,7 +112,7 @@ def issue_alert_for_superevent_label_removal(labelling, request=None):
 
     # Send alerts
     issue_alerts(labelling.superevent, alert_type="update", url=url,
-        description=description, serialized_object=None)
+        description=description, serialized_object=serialized_object)
 
 
 def issue_alert_for_superevent_voevent(voevent, request=None):
