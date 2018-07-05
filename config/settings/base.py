@@ -35,7 +35,7 @@ MANAGERS = ADMINS
 
 # Client versions allowed - pip-like specifier strings,
 # can be multiple (comma-separated)
-ALLOWED_CLIENT_VERSIONS = '>=1.29.dev0'
+ALLOWED_CLIENT_VERSIONS = '>=1.29.dev1'
 # Allow requests to API without user-agent header specified
 # Temporary fix while we transition
 ALLOW_BLANK_USER_AGENT_TO_API = True
