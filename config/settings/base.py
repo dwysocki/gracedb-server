@@ -33,6 +33,13 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 # BrokenLinkEmailsMiddleware is enabled
 MANAGERS = ADMINS
 
+# Client versions allowed - pip-like specifier strings,
+# can be multiple (comma-separated)
+ALLOWED_CLIENT_VERSIONS = '<=1.28'
+# Allow requests to API without user-agent header specified
+# Temporary fix while we transition
+ALLOW_BLANK_USER_AGENT_TO_API = True
+
 # Use forwarded host header for Apache -> Gunicorn reverse proxy configuration
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -258,7 +265,8 @@ AUTHENTICATION_BACKENDS = (
 MIDDLEWARE = [
     'events.middleware.PerformanceMiddleware',
     'core.middleware.accept.AcceptMiddleware',
-    'core.middleware.cli.CliExceptionMiddleware',
+    'core.middleware.api.ClientVersionMiddleware',
+    'core.middleware.api.CliExceptionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
