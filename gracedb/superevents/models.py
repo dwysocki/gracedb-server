@@ -16,6 +16,7 @@ from events.models import Event, SignoffBase, VOEventBase, EMObservationBase, \
 from guardian.models import GroupObjectPermission
 
 import datetime
+import pytz
 from cStringIO import StringIO
 from hashlib import sha1
 import os
@@ -26,6 +27,11 @@ import logging
 # Other setup
 UserModel = get_user_model()
 logger = logging.getLogger(__name__)
+
+# Dates for allowed superevent date ranges (all t_0 values should be
+# START <= t_0 < END)
+SUPEREVENT_DATE_START = datetime.datetime(1980, 1, 1, 0, 0, 0, 0, pytz.utc)
+SUPEREVENT_DATE_END = datetime.datetime(2080, 1, 1, 0, 0, 0, 0, pytz.utc)
 
 
 class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
@@ -103,6 +109,21 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
             raise ValidationError({'preferred_event':
                 _('External event cannot be set as preferred')})
 
+        # FIXME: someone will have to deal with this in 2080
+        # Make sure t_0 is in the appropriate range [1980 - 2079)
+        # We do this in UTC since the GPS time of the end of ths range could
+        # change as leap seconds are added
+        t_0_UTC = gpsToUtc(self.t_0)
+        if (t_0_UTC < SUPEREVENT_DATE_START or t_0_UTC >= SUPEREVENT_DATE_END):
+            raise ValidationError({'t_0':
+                _('t_0 out of range: we require that {start} <= t_0 < {end}' \
+                .format(start=SUPEREVENT_DATE_START.__str__(),
+                end=SUPEREVENT_DATE_END.__str__()))})
+
+        # Set t_0_date on insert
+        if self._get_pk_val() is None:
+            self.t_0_date = t_0_UTC.date()
+
         super(Superevent, self).clean(*args, **kwargs)
 
     def save(self, *args, **kwargs):
@@ -114,10 +135,6 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         # Determine whether this is an insert or update - will be used for
         # deciding whether we need to calculate t_0_date and letter suffix
         pk_set = self._get_pk_val() is not None
-
-        # Set t_0_date on insert
-        if not pk_set:
-            self.t_0_date = gpsToUtc(self.t_0).date()
 
         # Will do either base save (for updates) or auto_increment_insert
         # for new entries, to calculate base_date_number within the database
@@ -248,6 +265,21 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
 
         # Convert date string to a datetime.date object
         d = datetime.datetime.strptime(date_str, cls.DATE_STR_FMT).date()
+
+        # FIXME: someone will have to deal with this in 2080
+        # Safety check for 2 digit years: enforce year range of [1980 - 2079),
+        # since GPS time starts in 1980. datetime.datetime.strptime follows
+        # the POSIX standard for 2 digit years with a range of 1969-2068.
+        # We also enforce this range for t_0 in Superevent.clean()
+        if (d.year >= SUPEREVENT_DATE_END.year or 
+            d.year < SUPEREVENT_DATE_START.year):
+
+            yr_tens = d.year % 100
+            if yr_tens >= 80:
+                replace_yr = 1900 + yr_tens
+            else:
+                replace_yr = 2000 + yr_tens
+            d = d.replace(year=replace_yr)
 
         # Determine date_number from letter suffix
         if suffix == "":
