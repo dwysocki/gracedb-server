@@ -78,5 +78,5 @@ class MainSearchForm(forms.Form):
             raise forms.ValidationError({'query': mark_safe(err)})
         except Exception as e:
             # What could this be and how can we handle it better? XXX
-            logger.error(e)
-            raise forms.ValidationError(str(e)+str(type(e)))
+            logger.error('{t}: {e}'.format(t=str(type(e)), e=str(e)))
+            raise forms.ValidationError(str(e))
