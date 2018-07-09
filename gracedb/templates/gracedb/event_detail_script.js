@@ -143,6 +143,7 @@ var getKeys = function(obj){
 
 var image_extensions = ['png', 'gif', 'jpg'];
 var TIME_DISP_FMT = 'MMM D, YYYY h:mm:ss A';
+var UTC_TIME_DISP_FMT = 'MMM D, YYYY HH:mm:ss UTC';
 //var TIME_DISP_FMT = 'LLL';
 
 // A utility function to determine whether a log message has an image.
@@ -566,7 +567,7 @@ require([
             // Convert the 'created' times to UTC.
             logs = logs.map( function(obj) {
                 var server_t = moment.tz(obj.created, 'UTC');
-                obj.created = server_t.clone().tz('UTC').format(TIME_DISP_FMT);
+                obj.created = server_t.clone().tz('UTC').format(UTC_TIME_DISP_FMT);
                 return obj;
             });
             
@@ -610,14 +611,14 @@ require([
                         field: 'created', 
                         renderHeaderCell: function(node) {
                             timeHeaderContainer = put(node, 'div');
-                            createTimeSelect(timeHeaderContainer, 'log', 'llo');
+                            createTimeSelect(timeHeaderContainer, 'log', 'utc');
                             put(timeHeaderContainer, 'div', 'Log Entry Created');
                             return timeHeaderContainer;
                         },
                         renderCell: function(object, value, node, options) {
                             var server_t = moment.tz(object.created, 'UTC');
-                            var t = put(node, 'time[name="time-log"]', server_t.format(TIME_DISP_FMT));
-                            put(t, '[utc="$"]', server_t.clone().tz('UTC').format(TIME_DISP_FMT));
+                            var t = put(node, 'time[name="time-log"]', server_t.format(UTC_TIME_DISP_FMT));
+                            put(t, '[utc="$"]', server_t.clone().tz('UTC').format(UTC_TIME_DISP_FMT));
                             put(t, '[llo="$"]', server_t.clone().tz('America/Chicago').format(TIME_DISP_FMT));
                             put(t, '[lho="$"]', server_t.clone().tz('America/Los_Angeles').format(TIME_DISP_FMT));
                             put(t, '[virgo="$"]', server_t.clone().tz('Europe/Rome').format(TIME_DISP_FMT));
@@ -768,7 +769,7 @@ require([
                         field: 'created', 
                         renderHeaderCell: function(node) {
                             timeHeaderContainer = put(node, 'div');
-                            var ts = createTimeSelect(timeHeaderContainer, 'audit-log', 'llo');
+                            var ts = createTimeSelect(timeHeaderContainer, 'audit-log', 'utc');
                             put(timeHeaderContainer, 'div', 'Log Entry Created');
                             // XXX Not sure how to get this to do the right thing.
                             return timeHeaderContainer; 
@@ -776,8 +777,8 @@ require([
                         },
                         renderCell: function(object, value, node, options) {
                             var server_t = moment.tz(object.created, 'UTC');
-                            var t = put(node, 'time[name="time-audit-log"]', server_t.format(TIME_DISP_FMT));
-                            put(t, '[utc="$"]', server_t.clone().tz('UTC').format(TIME_DISP_FMT));
+                            var t = put(node, 'time[name="time-audit-log"]', server_t.format(UTC_TIME_DISP_FMT));
+                            put(t, '[utc="$"]', server_t.clone().tz('UTC').format(UTC_TIME_DISP_FMT));
                             put(t, '[llo="$"]', server_t.clone().tz('America/Chicago').format(TIME_DISP_FMT));
                             put(t, '[lho="$"]', server_t.clone().tz('America/Los_Angeles').format(TIME_DISP_FMT));
                             put(t, '[virgo="$"]', server_t.clone().tz('Europe/Rome').format(TIME_DISP_FMT));
@@ -875,7 +876,7 @@ require([
 
                 var columns = [
                     { field: 'N', label: 'No.' },
-                    { field: 'created', label: 'Log Entry Created (UTC)' }, 
+                    { field: 'created', label: 'Log Entry Created' }, 
                     { field: 'issuer', label: 'Submitter', get: function(obj) { return obj.issuer.display_name; } },
                     // Sometimes the comment contains HTML, so we just want to return whatever it has.
                     // This is where the link with the filename goes. Also the view in skymapViewer button
