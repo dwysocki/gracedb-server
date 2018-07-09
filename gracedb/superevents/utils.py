@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.http import Http404
 
 from .buildVOEvent import construct_voevent_file
 from .models import Superevent, Log, Labelling, EMObservation, EMFootprint, \
@@ -400,8 +401,17 @@ def get_or_create_tags(tag_name_list, display_name_list=[]):
 # TODO: move this somewhere else?
 def get_superevent_by_date_id_or_404(request, superevent_id, queryset=None):
 
-    filter_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup(
-        superevent_id)
+    try:
+        filter_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup(
+            superevent_id)
+    except Superevent.DateIdError as e:
+        # The user passed an invalid date string (i.e., month=13
+        # or something).  Probably should return 400 when this happens,
+        # since it is technically a client error, but it's a lot simpler to
+        # just raise a 404 here than to wrap every usage of this function in a
+        # try-except block (or more than one, if it's in a CBV) and return a
+        # 400. But raising a 404 is not technically wrong.
+        raise Http404(e)
 
     # TODO: filter queryset for user here
     if queryset is None:

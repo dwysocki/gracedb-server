@@ -258,13 +258,17 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         # Try to get the prefix, date string, and letter suffix from the ID
         match = re.match(cls.ID_REGEX, date_id)
         if not match:
-            raise ValueError(_('Superevent ID {0} does not have the correct '
+            raise cls.DateIdError(_('Superevent ID {0} does not have the correct '
                 'format.'.format(date_id)))
         prefix, date_str, suffix = [g for g in match.groups()[1:]
             if g is not None]
 
         # Convert date string to a datetime.date object
-        d = datetime.datetime.strptime(date_str, cls.DATE_STR_FMT).date()
+        try:
+            d = datetime.datetime.strptime(date_str, cls.DATE_STR_FMT).date()
+        except ValueError as e:
+            # Catch error for bad date string (i.e., month=13 or something)
+            raise cls.DateIdError(_('Bad superevent date string'))
 
         # FIXME: someone will have to deal with this in 2080
         # Safety check for 2 digit years: enforce year range of [1980 - 2079),
@@ -360,6 +364,11 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
 
     class PreferredEventRemovalError(Exception):
         # To be raised when an attempt is made to remove the preferred event.
+        pass
+
+    class DateIdError(Exception):
+        # To be raised when the superevent date ID is in a bad format; i.e.,
+        # one that datetime can't parse or that the regex won't match
         pass
 
 
