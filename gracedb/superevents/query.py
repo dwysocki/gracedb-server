@@ -18,65 +18,35 @@ from pyparsing import Word, nums, Literal, CaselessLiteral, delimitedList, \
 
 # Function for parsing matched superevent ID tokens
 def parse_superevent_id(name, toks, filter_prefix=None):
-    prefix = toks.get('prefix', None)
-    date = toks.get('date')
-    suffix = toks.get('suffix', None)
+    # toks = matched superevent id
 
-    # Convert date to datetime object
-    date_dt = datetime.datetime.strptime(date, Superevent.DATE_STR_FMT).date()
-
-    # Useful function
-    fp = lambda field: (filter_prefix + "__" + field) if filter_prefix \
-        else field
-
-    # Construct Q object
-    fullQ = Q(**{fp("t_0_date"): date_dt})
-    if prefix and prefix == Superevent.GW_ID_PREFIX:
-        fullQ &= Q(**{fp("is_gw"): True})
-        if not suffix:
-            fullQ &= Q(**{fp("gw_date_number"): 1}) 
-        else:
-            fullQ &= Q(**{fp("gw_date_number"): letters_to_int(suffix)})
-    else:
-
-        if not suffix:
-            if not prefix:
-                fullQ &= (Q(**{fp("base_date_number"): 1}) |
-                    Q(**{fp("gw_date_number"): 1}))
-            else:
-                fullQ &= Q(**{fp("base_date_number"): 1}) 
-        else:
-            s = letters_to_int(suffix)
-            if not prefix:
-                fullQ &= (Q(**{fp("base_date_number"): s}) |
-                    Q(**{fp("gw_date_number"): s}))
-            else:
-                fullQ &= Q(**{fp("base_date_number"): s}) 
+    # Get lookup kwargs and convert to a Q object
+    f_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup(toks)
+    fullQ = Q(**f_kwargs)
 
     return (name, fullQ)
 
 # Construct an expression for date-based superevent ids
-superevent_prefix = Optional(Or([CaselessLiteral(pref) for pref in
+superevent_prefix = Or([CaselessLiteral(pref) for pref in
     Superevent.DEFAULT_ID_PREFIX, Superevent.GW_ID_PREFIX])
-    ).setResultsName('prefix')
-superevent_date = Word(nums, exact=6).setResultsName('date')
-superevent_suffix = Optional(Word(alphas)).setResultsName('suffix')
+superevent_date = Word(nums, exact=6)
+superevent_suffix = Optional(Word(alphas))
 superevent_expr = Combine(superevent_prefix + superevent_date +
     superevent_suffix)
 
 # Dict of queryable parameters which are compiled into a pyparsing
 # expression below
 parameter_dicts = {
-    # id: S180506a OR superevent_id: GWA180517
+    # id: S180506a OR superevent_id: GWA180517 OR S180506a
     'superevent_id': {
         'keyword': ['id', 'superevent_id'],
         'keywordOptional': True,
         'value': superevent_expr,
         'doRange': False,
         'parseAction': lambda toks: parse_superevent_id(
-            "superevent_id", toks, filter_prefix=None),
+            "superevent_id", toks[0], filter_prefix=None),
     },
-    # runid: O2
+    # runid: O2 or O2
     'runid': {
         'keyword': 'runid',
         'keywordOptional': True,
