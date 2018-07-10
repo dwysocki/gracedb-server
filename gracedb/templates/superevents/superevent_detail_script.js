@@ -639,7 +639,7 @@ require([
                             // Putting this in the innerHTML allows users to create comments in HTML.
                             // Whereas, inserting the comment with the put selector escapes it.
                             commentDiv.innerHTML += value + ' ';
-                            if (object.filename) put(commentDiv, 'a[href=$]', fileDownloadUrl.replace("FAKE_FILE_NAME", object.filename), object.filename);
+                            if (object.filename) put(commentDiv, 'a[href=$]', fileDownloadUrl.replace("FAKE_FILE_NAME", object.filename + "," + object.file_version), object.filename);
                             // Branson, 3/3/15
                             //if (object.filename == 'skymap.json') {
                             var isItJson = object.filename.indexOf(".json");
@@ -799,7 +799,7 @@ require([
                             // Putting this in the innerHTML allows users to create comments in HTML.
                             // Whereas, inserting the comment with the put selector escapes it.
                             commentDiv.innerHTML += value + ' ';
-                            if (object.filename) put(commentDiv, 'a[href=$]', fileDownloadUrl.replace("FAKE_FILE_NAME", object.filename), object.filename);
+                            if (object.filename) put(commentDiv, 'a[href=$]', fileDownloadUrl.replace("FAKE_FILE_NAME", object.filename + "," + object.file_version), object.filename);
                             // Create tag-related features
                             var tagButtonContainer = put(commentDiv, 'div.tagButtonContainerClass');
                             // For each existing tag on a log message, we will make a little widget
@@ -891,7 +891,7 @@ require([
                             // Putting this in the innerHTML allows users to create comments in HTML.
                             // Whereas, inserting the comment with the put selector escapes it.
                             commentDiv.innerHTML += value + ' ';
-                            if (object.filename) put(commentDiv, 'a[href=$]', fileDownloadUrl.replace("FAKE_FILE_NAME", object.filename), object.filename);
+                            if (object.filename) put(commentDiv, 'a[href=$]', fileDownloadUrl.replace("FAKE_FILE_NAME", object.filename + "," + object.file_version), object.filename);
                             // Create tag-related features
                             var tagButtonContainer = put(commentDiv, 'div.tagButtonContainerClass');
                             // For each existing tag on a log message, we will make a little widget
@@ -1233,7 +1233,7 @@ require([
                 sVdiv = put(annotationsDiv, 'div#sV_form_div[style="display: none"]');
                 sVform = put(sVdiv, 'form#sV_form[method="post"][action="$"]', 
                 encodeURI(skymapViewerUrl));
-                put(sVform, 'input[type="hidden"][name="skymapid"][value="{{ object.graceid }}"]'); 
+                put(sVform, 'input[type="hidden"][name="skymapid"][value="{{ superevent.superevent_id }}"]'); 
                 put(sVform, 'input[type="hidden"][name="json"]');
                 put(sVform, 'input[type="hidden"][name="embb"]');
                 put(sVform, 'input[type="submit"][value="View in skymapViewer!"]');
