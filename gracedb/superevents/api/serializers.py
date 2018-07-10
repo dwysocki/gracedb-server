@@ -445,13 +445,13 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
                 version=obj.file_version)
             file_link = gracedb_reverse('superevents:superevent-file-detail',
                 args=[obj.superevent.superevent_id, file_name],
-                request=self.context.get('request', None)),
+                request=self.context.get('request', None))
 
         link_dict = {
             'self': gracedb_reverse('superevents:superevent-voevent-detail',
                 args=[obj.superevent.superevent_id, obj.N],
                 request=self.context.get('request', None)),
-            'file': file_link
+            'file': file_link,
         }
         return link_dict
 
