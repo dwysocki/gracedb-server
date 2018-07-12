@@ -136,14 +136,16 @@
 <table class="superevent">
     <tr>
         <th>Superevent ID</th>
+        <th>Superevent category</th>
         <th>Labels</th>
-        <th>Preferred Event</th>
+        <th>Preferred event</th>
         <th>GW events</th>
         <th>External events</th>
         <th>Links</th>
     </tr>
     <tr>
         <td>{{ superevent.superevent_id }}</td>
+        <td>{{ superevent.get_category_display }}</td>
         <td>{% for labelling in superevent.labelling_set.all %}
             <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}"><b>{{ labelling.label.name }}</b></div>
             {% endfor %}
