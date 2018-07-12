@@ -346,7 +346,7 @@ class EventLog(CleanSaveModel, LogBase, AutoIncrementModel):
     to handle log enumeration on a per-Event basis.
     """
     AUTO_FIELD = 'N'
-    AUTO_CONSTRAINT = 'event'
+    AUTO_CONSTRAINTS = ('event',)
 
     # Extra fields
     event = models.ForeignKey(Event, null=False)
@@ -445,7 +445,7 @@ class EMObservationBase(models.Model):
 class EMObservation(EMObservationBase, AutoIncrementModel):
     """EMObservation class for events"""
     AUTO_FIELD = 'N'
-    AUTO_CONSTRAINT = 'event'
+    AUTO_CONSTRAINTS = ('event',)
     event = models.ForeignKey(Event, null=False, on_delete=models.CASCADE)
 
     class Meta(EMObservationBase.Meta):
@@ -493,7 +493,7 @@ class EMFootprint(EMFootprintBase, AutoIncrementModel):
     """EMFootprint class for event EMObservations"""
     # For AutoIncrementModel save
     AUTO_FIELD = 'N'
-    AUTO_CONSTRAINT = 'observation'
+    AUTO_CONSTRAINTS = ('observation',)
     observation = models.ForeignKey(EMObservation, null=False,
         on_delete=models.CASCADE)
 
@@ -858,7 +858,7 @@ class VOEventBase(models.Model):
 class VOEvent(VOEventBase, AutoIncrementModel):
     """VOEvent class for events"""
     AUTO_FIELD = 'N'
-    AUTO_CONSTRAINT = 'event'
+    AUTO_CONSTRAINTS = ('event',)
     event = models.ForeignKey(Event, null=False, on_delete=models.CASCADE)
 
     class Meta(VOEventBase.Meta):
@@ -1110,7 +1110,7 @@ class EMBBEventLog(AutoIncrementModel):
 
     # For AutoIncrementModel save
     AUTO_FIELD = 'N'
-    AUTO_CONSTRAINT = 'event'
+    AUTO_CONSTRAINTS = ('event',)
 
     # Validates the input and builds  bounding box in RA/Dec/GPS
     def validateMakeRects(self):

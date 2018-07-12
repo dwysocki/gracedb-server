@@ -52,7 +52,7 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         DEFAULT_ID_PREFIX, GW_ID_PREFIX)
     DATE_STR_FMT = '%y%m%d'
     AUTO_FIELD = 'base_date_number'
-    AUTO_CONSTRAINT = 't_0_date'
+    AUTO_CONSTRAINTS = ('t_0_date',)
 
     # Fields ------------------------------------------------------------------
     submitter = models.ForeignKey(UserModel)
@@ -378,7 +378,7 @@ class Log(CleanSaveModel, LogBase, AutoIncrementModel):
     to handle log enumeration on a per-Superevent basis.
     """
     AUTO_FIELD = 'N'
-    AUTO_CONSTRAINT = 'superevent'
+    AUTO_CONSTRAINTS = ('superevent',)
     superevent = models.ForeignKey(Superevent, null=False,
         on_delete=models.CASCADE)
     tags = models.ManyToManyField('events.Tag', related_name='superevent_logs')
@@ -438,7 +438,7 @@ class Signoff(CleanSaveModel, SignoffBase):
 class VOEvent(CleanSaveModel, VOEventBase, AutoIncrementModel):
     """VOEvent class for superevents"""
     AUTO_FIELD = 'N'
-    AUTO_CONSTRAINT = 'superevent'
+    AUTO_CONSTRAINTS = ('superevent',)
     superevent = models.ForeignKey(Superevent, null=False,
         on_delete=models.CASCADE)
 
@@ -453,7 +453,7 @@ class VOEvent(CleanSaveModel, VOEventBase, AutoIncrementModel):
 class EMObservation(CleanSaveModel, EMObservationBase, AutoIncrementModel):
     """EMObservation class for superevents"""
     AUTO_FIELD = 'N'
-    AUTO_CONSTRAINT = 'superevent'
+    AUTO_CONSTRAINTS = ('superevent',)
     superevent = models.ForeignKey(Superevent, null=False,
         on_delete=models.CASCADE)
 
@@ -473,7 +473,7 @@ class EMObservation(CleanSaveModel, EMObservationBase, AutoIncrementModel):
 class EMFootprint(CleanSaveModel, EMFootprintBase, AutoIncrementModel):
     """EMFootprint class for superevent EMObservations"""
     AUTO_FIELD = 'N'
-    AUTO_CONSTRAINT = 'observation'
+    AUTO_CONSTRAINTS = ('observation',)
     observation = models.ForeignKey(EMObservation, null=False,
         on_delete=models.CASCADE)
 

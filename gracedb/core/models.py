@@ -31,12 +31,12 @@ class AutoIncrementModel(models.Model):
     autoincrementing save method described below.
 
     AUTO_FIELD: name of field which acts as an autoincrement field.
-    AUTO_CONSTRAINT: name of field which is used as a constraint; i.e., the
-                     AUTO_FIELD increments relative to the number of rows in
-                     the table which share the same value of this field.
+    AUTO_CONSTRAINTS: tuple of field names to use as a constraint; i.e., the
+                      AUTO_FIELD increments relative to the number of rows in
+                      the table which have the same values for these fields.
     """
     AUTO_FIELD = None
-    AUTO_CONSTRAINT = None
+    AUTO_CONSTRAINTS = None
 
     class Meta:
         abstract = True
@@ -44,9 +44,10 @@ class AutoIncrementModel(models.Model):
     def save(self, *args, **kwargs):
 
         # Do a normal save if this is not an insert (i.e., the instance has a
-        # primary key already).
+        # primary key already), or if the required fields are not set
         pk_set = self._get_pk_val() is not None
-        if pk_set:
+        if (pk_set or (self.AUTO_FIELD is None or
+                       self.AUTO_CONSTRAINTS is None)):
             super(AutoIncrementModel, self).save(*args, **kwargs)
         else:
             self.auto_increment_insert(*args, **kwargs)
@@ -66,9 +67,10 @@ class AutoIncrementModel(models.Model):
         Thorough testing is needed to use this method for a new model. Note
         that this method may not work properly for non-MySQL backends.
 
-        Requires AUTO_FIELD and AUTO_CONSTRAINT to be defined.
+        Requires AUTO_FIELD and AUTO_CONSTRAINTS to be defined.
         """
 
+        # Check database type
         if connection.vendor != 'mysql':
             raise DatabaseError(_('The custom AutoIncrementModel '
                 'auto_increment_save method is not compatible with non-MySQL '
@@ -82,6 +84,23 @@ class AutoIncrementModel(models.Model):
         fields = [f for f in meta.local_concrete_fields if not
             isinstance(f, models.fields.AutoField)]
 
+        # Check type of self.AUTO_CONSTRAINTS
+        if not isinstance(self.AUTO_CONSTRAINTS, (tuple, list)):
+            raise TypeError(_('AUTO_CONSTRAINTS should be a tuple or list'))
+
+        # Check constraint fields
+        f_names = [f.name for f in fields]
+        for constraint_field in self.AUTO_CONSTRAINTS:
+            if constraint_field not in f_names:
+                raise ValueError(_(('Constraint {0} is not a field for '
+                    'model {1}').format(constraint_field,
+                    self.__class__.__name__)))
+
+        # Check auto field
+        if self.AUTO_FIELD not in f_names:
+            raise ValueError(_(('AUTO_FIELD {0} is not a field for '
+                'model {1}').format(self.auto_field, self.__class__.__name__)))
+
         # Setup for generating base SQL query for doing an INSERT.
         query = models.sql.InsertQuery(self.__class__)
         query.insert_values(fields, objs=[self])
@@ -91,7 +110,14 @@ class AutoIncrementModel(models.Model):
         # Useful function
         qn = compiler.quote_name_unless_alias
 
-        fk_field = meta.get_field(self.AUTO_CONSTRAINT)
+        # Compile multiple constraints with AND
+        constraint_fields = map(meta.get_field, self.AUTO_CONSTRAINTS)
+        constraint_list = ["{0}=%s".format(qn(f.column))
+            for f in constraint_fields]
+        constraint_values = [f.get_db_prep_value(getattr(self, f.column),
+            compiler.connection) for f in constraint_fields]
+        constraint_str = " AND ".join(constraint_list)
+
         with compiler.connection.cursor() as cursor:
             # Get base SQL query as string.
             for sql, params in compiler.as_sql():
@@ -103,17 +129,14 @@ class AutoIncrementModel(models.Model):
                 # SELECT %s, %s, ..., %s
                 sql = re.sub(r"VALUES \((.*)\)", r"SELECT \1", sql)
 
-                # Add table to SELECT from and ForeignKey id corresponding to
-                # our autoincrement field.
-                sql += " FROM {tbl_name} WHERE {fk_name}='{fk_id}'".format(
+                # Add table to SELECT from, as well as constraints
+                sql += " FROM {tbl_name} WHERE {constraints}".format(
                     tbl_name=qn(meta.db_table),
-                    fk_name=qn(fk_field.column),
-                    fk_id=fk_field.get_db_prep_value(
-                        getattr(self, fk_field.column), compiler.connection)
+                    constraints=constraint_str
                 )
 
                 # Get index corresponding to AUTO_FIELD.
-                af_idx = [f.name for f in fields].index(self.AUTO_FIELD)
+                af_idx = [f.attname for f in fields].index(self.AUTO_FIELD)
                 # Put this directly in the SQL; cursor.execute quotes it
                 # as a literal, which causes the SQL command to fail.
                 # We shouldn't have issues with SQL injection because
@@ -122,6 +145,9 @@ class AutoIncrementModel(models.Model):
                 sql = re.sub(r"((%s, ){{{0}}})%s".format(af_idx),
                     r"\1IFNULL(MAX({af}),0)+1", sql, 1).format(
                     af=self.AUTO_FIELD)
+
+                # Add constraint values to params
+                params += constraint_values
 
                 # Execute SQL command.
                 cursor.execute(sql, params)
@@ -149,10 +175,10 @@ class AutoIncrementModel(models.Model):
         UPDATE superevents_superevent SET gw_date_number = (SELECT N FROM (SELECT IFNULL(MAX(gw_date_number),0)+1 as N FROM superevents_superevent WHERE t_0_date='1980-01-06' AND is_gw=1) AS y) WHERE id=41;
         """
 
-        if not allow_update_to_nonnull and getattr(self, update_field_name) is not None:
-            logger.warning('Attempt to auto increment a non-null field for '
-                'object {0}. Not allowed.'.format(self.__str__))
-            return
+        if (not allow_update_to_nonnull and getattr(self, update_field_name)
+            is not None):
+            raise ValueError(_(('Attempt to update a non-null constrained auto'
+                'field for object {0}. Not allowed.').format(self.__str__)))
 
         # Setup for generating base SQL query for doing an update
         meta = self._meta
@@ -173,8 +199,8 @@ class AutoIncrementModel(models.Model):
         # Convert list of field names to be used as constraints into database
         # column names and their values (retrieved from the instance itself)
         constraint_fields = [meta.get_field(f) for f in constraints]
-        constraint_list = ["{0}=%s".format(qn(f.attname)) for f in constraint_fields]
-        values = [f.get_db_prep_value(getattr(self, f.attname),
+        constraint_list = ["{0}=%s".format(qn(f.column)) for f in constraint_fields]
+        values = [f.get_db_prep_value(getattr(self, f.column),
             compiler.connection) for f in constraint_fields]
 
         # Add constraints to custom SQL (if they are provided)
