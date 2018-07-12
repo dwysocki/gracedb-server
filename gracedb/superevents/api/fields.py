@@ -64,3 +64,12 @@ class CommaSeparatedOrListField(fields.ListField):
             data = data[0].split(',')
         return super(CommaSeparatedOrListField, self).to_internal_value(data)
 
+
+class ChoiceDisplayField(fields.ChoiceField):
+    """
+    Same as standard choice field, but return a choice's display_value
+    instead of the key when serializing the field.
+    """
+
+    def to_representation(self, value):
+        return self._choices[value]
