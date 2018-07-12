@@ -33,12 +33,13 @@ def get_xmpp_node_names(event_or_superevent):
     # Compile a list of node names
     node_names = []
     if is_superevent(event_or_superevent):
-        # TODO: test superevents
-        is_test = False
-        if is_test:
-            superevent_node = 'test_superevent'
-        else:
+        superevent = event_or_superevent
+        if superevent.is_production():
             superevent_node = 'superevent'
+        elif superevent.is_mdc():
+            superevent_node = 'mdc_superevent'
+        else:
+            superevent_node = 'test_superevent'
         node_names.append(superevent_node)
     elif is_event(event_or_superevent):
         # Node name format is group_pipeline or group_pipeline_search
