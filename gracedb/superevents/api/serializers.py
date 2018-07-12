@@ -1,11 +1,13 @@
 from rest_framework import serializers, validators
+from rest_framework.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from ..models import Superevent, Labelling, Log, VOEvent, EMObservation, \
     EMFootprint, Signoff
 
-from .fields import ParentObjectDefault, CommaSeparatedOrListField
+from .fields import ParentObjectDefault, CommaSeparatedOrListField, \
+    ChoiceDisplayField
 from .settings import SUPEREVENT_LOOKUP_FIELD
 
 from events.models import Event, Label, Tag, EMGroup
@@ -25,6 +27,9 @@ class SupereventSerializer(serializers.ModelSerializer):
     default_error_messages = {
         'event_assigned': _('Event {graceid} is already assigned to a '
                             'Superevent'),
+        'category_mismatch': _('Event {graceid} is of type \'{e_category}\', '
+                               'and cannot be assigned to a superevent of '
+                                'type \'{s_category}\''),
     }
 
     # Fields
@@ -33,6 +38,9 @@ class SupereventSerializer(serializers.ModelSerializer):
     preferred_event = EventGraceidField(required=True)
     created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
         read_only=True)
+    category = ChoiceDisplayField(required=True,
+        choices=Superevent.SUPEREVENT_CATEGORY_CHOICES)
+
     # Add custom fields
     gw_events = serializers.SerializerMethodField(read_only=True)
     em_events = serializers.SerializerMethodField(read_only=True)
@@ -47,26 +55,40 @@ class SupereventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Superevent
-        fields = ('superevent_id', 'created', 'submitter', 'preferred_event',
-            'events', 't_start', 't_0', 't_end', 'gw_events', 'em_events',
-            'labels', 'links', 'user')
+        fields = ('superevent_id', 'category', 'created', 'submitter',
+            'preferred_event', 'events', 't_start', 't_0', 't_end',
+            'gw_events', 'em_events', 'labels', 'links', 'user')
 
     def validate(self, data):
         data = super(SupereventSerializer, self).validate(data)
         preferred_event = data.get('preferred_event')
         events = data.get('events')
+        category = data.get('category')
+        category_display = \
+            dict(Superevent.SUPEREVENT_CATEGORY_CHOICES)[category]
 
         # Make sure preferred_event is not already assigned
-        if preferred_event:
-            if (preferred_event.superevent or hasattr(preferred_event,
-                'superevent_preferred_for')):
-                self.fail('event_assigned', graceid=preferred_event.graceid())
+        if (preferred_event.superevent or hasattr(preferred_event,
+            'superevent_preferred_for')):
+            self.fail('event_assigned', graceid=preferred_event.graceid())
+
+        # Check that preferred_event has the correct type for the superevent
+        # it's being assigned to
+        if not Superevent.event_category_check(preferred_event, category):
+            self.fail('category_mismatch', graceid=preferred_event.graceid(),
+                e_category=preferred_event.get_event_category(),
+                s_category=category_display)
 
         # Make sure the events are not already assigned to a superevent
         if events:
             for ev in events:
                 if (ev.superevent or hasattr(ev, 'superevent_preferred_for')):
                     self.fail('event_assigned', graceid=ev.graceid())
+                # Check each event for type compatibility
+                if not Superevent.event_category_check(ev, category):
+                    self.fail('category_mismatch', graceid=ev.graceid(),
+                        e_category=ev.get_event_category(),
+                        s_category=category_display)
 
         return data
 
@@ -109,17 +131,31 @@ class SupereventUpdateSerializer(SupereventSerializer):
     Used for updates ONLY (PUT/PATCH). Overrides validation which is needed
     for object creation.
     """
+    allowed_fields = ('t_start', 't_0', 't_end', 'preferred_event')
 
     def __init__(self, *args, **kwargs):
         super(SupereventUpdateSerializer, self).__init__(*args, **kwargs)
-        self.fields['events'].read_only = True
-        self.fields['labels'].read_only = True
+        # Set all fields except self.allowed_fields to be read_only.
+        # Safeguard against attempts to set other attributes through this
+        # resource, but still allows us to return the same serialized object
+        # as for the serializer that this inherits from
+        for name in self.fields:
+            if name not in self.allowed_fields:
+                self.fields.get(name).read_only = True
 
     def validate(self, data):
-        # We don't want to use the SupereventSerializers validate method, which
-        # is why we use that class in the super() call here
+        # We don't want to use the SupereventSerializer's validate method,
+        # which is why we use that class in the super() call here
         data = super(SupereventSerializer, self).validate(data)
         preferred_event = data.get('preferred_event')
+
+        # Only pass through attributes which are being changed
+        updated_attributes = {k: v for k,v in data.items()
+            if getattr(self.instance, k, None) != v}
+
+        # Fail if nothing would be updated
+        if not updated_attributes:
+            raise ValidationError('Request would not modify the superevent')
 
         # Make sure preferred_event is not already assigned
         if preferred_event and (self.instance.preferred_event != 
@@ -134,7 +170,7 @@ class SupereventUpdateSerializer(SupereventSerializer):
                 preferred_event.superevent_preferred_for != self.instance):
                 self.fail('event_assigned', graceid=preferred_event.graceid())
 
-        return data
+        return updated_attributes
 
     def update(self, instance, validated_data):
         # Function-level import to prevent circular import in alerts
@@ -155,6 +191,9 @@ class SupereventEventSerializer(serializers.ModelSerializer):
     default_error_messages = {
         'event_assigned': _('Event {graceid} is already assigned to a '
                             'Superevent'),
+        'category_mismatch': _('Event {graceid} is of type \'{e_category}\', '
+                               'and cannot be assigned to a superevent of '
+                               'type \'{s_category}\''),
     }
     self = serializers.SerializerMethodField(read_only=True)
     event = EventGraceidField(write_only=True)
@@ -174,9 +213,20 @@ class SupereventEventSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         data = super(SupereventEventSerializer, self).validate(data)
-        event = data.get('event', None)
+        event = data.get('event')
+        superevent = data.get('superevent')
+
+        # Check if event is already assigned to a superevent
         if (event.superevent or hasattr(event, 'superevent_preferred_for')):
             self.fail('event_assigned', graceid=event.graceid())
+
+        # Check that event has the correct type for the superevent it's being
+        # assigned to
+        if not superevent.event_compatible(event):
+            self.fail('category_mismatch', graceid=event.graceid(),
+                e_category=event.get_event_category(),
+                s_category=superevent.get_category_display())
+
         return data
 
     def create(self, validated_data):

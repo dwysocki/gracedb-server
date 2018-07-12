@@ -28,7 +28,8 @@ logger = logging.getLogger(__name__)
 # TODO:
 # Add decorator to check access permissions (??) not sure if we should do it here or in the viewset itself
 def create_superevent(submitter, t_start, t_0, t_end, preferred_event,
-    events=[], labels=[], add_log_message=True, issue_alert=True):
+    events=[], labels=[], category='P', add_log_message=True,
+    issue_alert=True):
     """
     Utility method for creating superevents.
 
@@ -49,7 +50,8 @@ def create_superevent(submitter, t_start, t_0, t_end, preferred_event,
 
     # Create superevent
     s = Superevent.objects.create(submitter=submitter, t_start=t_start,
-        t_0=t_0, t_end=t_end, preferred_event=preferred_event)
+        t_0=t_0, t_end=t_end, preferred_event=preferred_event,
+        category=category)
 
     # Create a log message to record initial superevent parameters
     creation_comment = ("Superevent created with t_start={t_start}, t_0={t_0},"
@@ -266,6 +268,16 @@ def add_event_to_superevent(superevent, event, user, add_event_log=True,
     """
     We return log objects in case they are needed elsewhere
     """
+
+    # Check that the event is of the correct type to be added
+    # to a superevent
+    if not superevent.event_compatible(event):
+        raise Superevent.EventCategoryMismatchError(
+            _(('Event {graceid} is of type \'{e_category}\', and '
+               'cannot be assigned to a superevent of type '
+               '\'{s_category}\'').format(graceid=event.graceid(),
+                e_category=event.get_event_category(),
+                s_category=superevent.get_category_display())))
 
     # Add event to superevent
     superevent.events.add(event)
