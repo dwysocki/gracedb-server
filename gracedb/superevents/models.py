@@ -46,17 +46,42 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
             and its suffix is recalculated in terms of how many confirmed GWs
             exist for the given date. Ex: S180101b -> GW180101A
     """
+    # Superevent types
+    SUPEREVENT_CATEGORY_PRODUCTION = 'P'
+    SUPEREVENT_CATEGORY_TEST = 'T'
+    SUPEREVENT_CATEGORY_MDC = 'M'
+    SUPEREVENT_CATEGORY_CHOICES = (
+        (SUPEREVENT_CATEGORY_PRODUCTION, 'Production'),
+        (SUPEREVENT_CATEGORY_TEST, 'Test'),
+        (SUPEREVENT_CATEGORY_MDC, 'MDC'),
+    )
+
+    # Prefixes
     DEFAULT_ID_PREFIX = 'S'
     GW_ID_PREFIX = 'GW'
-    ID_REGEX = r'(({0})(\d{{6}})([a-z]*)|({1})(\d{{6}})([A-Z]*))'.format(
-        DEFAULT_ID_PREFIX, GW_ID_PREFIX)
+
+    # Format for date string in date-based ID
     DATE_STR_FMT = '%y%m%d'
+
+    # Full date-based ID regex:
+    # (T|M)?S180709abc OR (T|M)?GW180709ABC
+    ID_REGEX = (r'(({test}|{mdc})?({0})(\d{{6}})([a-z]*)|'
+        '({test}|{mdc})?({1})(\d{{6}})([A-Z]*))').format(DEFAULT_ID_PREFIX,
+        GW_ID_PREFIX, test=SUPEREVENT_CATEGORY_TEST,
+        mdc=SUPEREVENT_CATEGORY_MDC)
+
+    # Auto-increment save fields
     AUTO_FIELD = 'base_date_number'
-    AUTO_CONSTRAINTS = ('t_0_date',)
+    AUTO_CONSTRAINTS = ('t_0_date', 'category',)
 
     # Fields ------------------------------------------------------------------
     submitter = models.ForeignKey(UserModel)
     created = models.DateTimeField(auto_now_add=True)
+
+    # Type of superevent (Production, Test, MDC)
+    category = models.CharField(max_length=1, null=False, blank=False,
+        choices=SUPEREVENT_CATEGORY_CHOICES,
+        default=SUPEREVENT_CATEGORY_PRODUCTION)
 
     # One-to-one relationship with preferred event - an event can only be
     # preferred for a single superevent and a superevent can only have
@@ -90,9 +115,12 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
     # Meta class --------------------------------------------------------------
     class Meta:
         ordering = ["-id"]
-        unique_together = (('t_0_date', 'base_date_number'),
-            ('t_0_date', 'gw_date_number'), ('t_0_date', 'base_letter_suffix'),
-            ('t_0_date', 'gw_letter_suffix'),)
+        unique_together = (
+            ('t_0_date', 'base_date_number', 'category'),
+            ('t_0_date', 'gw_date_number', 'category'),
+            ('t_0_date', 'base_letter_suffix', 'category'),
+            ('t_0_date', 'gw_letter_suffix', 'category'),
+        )
 
         # Extra permissions beyond the standard add, change, delete perms
         permissions = (
@@ -128,8 +156,7 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
 
     def save(self, *args, **kwargs):
         """
-        Custom save method for handling autoincrement numbers and
-        adding events
+        Custom save method for managing date-based IDs
         """
 
         # Determine whether this is an insert or update - will be used for
@@ -153,7 +180,8 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
             # one from that date to now use a letter suffix for the ID.
             if self.base_date_number == 2:
                 first_for_date = self.__class__.objects.get(
-                    t_0_date=self.t_0_date, base_date_number=1)
+                    t_0_date=self.t_0_date, category=self.category,
+                    base_date_number=1)
                 first_for_date.base_letter_suffix = int_to_letters(
                     first_for_date.base_date_number)
                 first_for_date.save(update_fields=['base_letter_suffix'])
@@ -190,7 +218,7 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
 
         # Prep for custom autoincrement update
         meta = self._meta
-        constraint_fields = ['t_0_date', 'is_gw']
+        constraint_fields = ['t_0_date', 'is_gw', 'category']
 
         # Do the update
         self.auto_increment_update('gw_date_number', constraint_fields)
@@ -258,10 +286,15 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         # Try to get the prefix, date string, and letter suffix from the ID
         match = re.match(cls.ID_REGEX, date_id)
         if not match:
-            raise cls.DateIdError(_('Superevent ID {0} does not have the correct '
-                'format.'.format(date_id)))
-        prefix, date_str, suffix = [g for g in match.groups()[1:]
-            if g is not None]
+            raise cls.DateIdError(_('Superevent ID {0} does not have the '
+                'correct format.'.format(date_id)))
+        # Match should have 9 groups: full match, then 4 matches to default
+        # ID, or 4 matches to GW ID.  So we either want groups 2-5 or 6-9.
+        if any(match.groups()[1:5]):
+            grps = match.groups()[1:5]
+        else:
+            grps = match.groups()[5:]
+        preprefix, prefix, date_str, suffix = grps
 
         # Convert date string to a datetime.date object
         try:
@@ -291,8 +324,15 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         else:
             date_number = letters_to_int(suffix.lower())
 
-        # Compile query kwargs
+        # Compile query kwargs - we don't have to be too careful here
+        # since the regex match above will filter out any issues
         q_kwargs = {'t_0_date': d}
+        # Get category from preprefix
+        if preprefix:
+            q_kwargs['category'] = preprefix
+        else:
+            q_kwargs['category'] = cls.SUPEREVENT_CATEGORY_PRODUCTION
+
         if prefix == cls.GW_ID_PREFIX:
             q_kwargs['is_gw'] = True
             date_number_key = 'gw_date_number'
@@ -335,6 +375,10 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         else:
             id_prefix = self.DEFAULT_ID_PREFIX
             letter_suffix = self.base_letter_suffix
+
+        # Prepend category prefix (if not production)
+        if self.category != self.SUPEREVENT_CATEGORY_PRODUCTION:
+            id_prefix = self.category + id_prefix
 
         return id_prefix + self.t_0_date.strftime(self.DATE_STR_FMT) + \
             letter_suffix
