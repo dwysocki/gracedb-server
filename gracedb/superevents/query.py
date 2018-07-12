@@ -27,6 +27,9 @@ def parse_superevent_id(name, toks, filter_prefix=None):
     return (name, fullQ)
 
 # Construct an expression for date-based superevent ids
+superevent_preprefix = Optional(Or([CaselessLiteral(pref) for pref in
+    [Superevent.SUPEREVENT_CATEGORY_TEST, Superevent.SUPEREVENT_CATEGORY_MDC]])
+    )
 superevent_prefix = Or([CaselessLiteral(pref) for pref in
     Superevent.DEFAULT_ID_PREFIX, Superevent.GW_ID_PREFIX])
 superevent_date = Word(nums, exact=6)
@@ -131,7 +134,18 @@ parameter_dicts = {
             Word(nums, exact=2)))).setParseAction(lambda toks:
             pytz.utc.localize(datetime.datetime(*(map(int, toks))))),
         'parseAction': maybeRange("created"),
-    }
+    },
+    # test OR category: test
+    'category': {
+        'keyword': 'category',
+        'keywordOptional': True,
+        'doRange': False,
+        'value': Or([CaselessLiteral(t[1]) for t in
+            Superevent.SUPEREVENT_CATEGORY_CHOICES]),
+        'parseAction': lambda toks: ("category",
+            Q(category=[t[0] for t in Superevent.SUPEREVENT_CATEGORY_CHOICES
+              if t[1].lower()==toks[0].lower()][0])),
+    },
 }
 
 # Compile a list of expressions to try to match
@@ -182,14 +196,20 @@ def parseSupereventQuery(s):
     # A parser for the non-label-related remainder of the query string.
     q = combined_expr.setName("query term")
 
-    # For an empty query, return everything
-    # TODO: non-test superevents?
-    if not s:
-        return Q()
-        #return ~Q(group__name="Test") & ~Q(search__name="MDC")
+    # By default, queries don't return test or MDC superevents
+    default_Q = ~Q(category=Superevent.SUPEREVENT_CATEGORY_TEST) & \
+        ~Q(category=Superevent.SUPEREVENT_CATEGORY_MDC)
 
-    # Get matches
+    # For an empty query, return default
+    if not s:
+        return default_Q
+
+    # Match query string to parsers
     matches = (stringStart + OneOrMore(q) + stringEnd).parseString(s).asList()
+
+    # Append default category query if category is not specified in the query
+    if 'category' not in [m[0] for m in matches]:
+        matches.append(('category', default_Q))
 
     return reduce(Q.__and__, [m[1] for m in matches], Q())
 
