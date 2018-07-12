@@ -193,6 +193,24 @@ class Event(models.Model):
         nodes.append(hdf.read())
         return os.path.join(settings.GRACEDB_DATA_DIR, *nodes)
 
+    def is_test(self):
+        return self.group.name == 'Test'
+
+    def is_mdc(self):
+        return (self.search and self.search.name == 'MDC' and
+                self.group.name != 'Test')
+
+    def is_production(self):
+        return not (self.is_test() or self.is_mdc())
+
+    def get_event_category(self):
+        if self.is_test():
+            return 'Test'
+        elif self.is_mdc():
+            return 'MDC'
+        else:
+            return 'Production'
+
     def ligoApproved(self):
         return self.approval_set.filter(approvingCollaboration='L').count()
 

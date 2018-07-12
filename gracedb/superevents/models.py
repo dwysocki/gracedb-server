@@ -208,6 +208,40 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         # Call base class delete
         super(Superevent, self).delete(*args, **kwargs)
 
+    def event_compatible(self, event):
+        """
+        Check whether an event is of the correct type to be part of this
+        superevent
+        """
+        return self.__class__.event_category_check(event, self.category)
+
+    @classmethod
+    def event_category_check(cls, event, superevent_category):
+        """
+        Given a superevent type, check whether an event could be added to such
+        a superevent
+        """
+        if (superevent_category == cls.SUPEREVENT_CATEGORY_TEST and
+            not event.is_test()):
+            return False
+        elif (superevent_category == cls.SUPEREVENT_CATEGORY_MDC and
+              not event.is_mdc()):
+            return False
+        elif (superevent_category == cls.SUPEREVENT_CATEGORY_PRODUCTION and
+              (event.is_test() or event.is_mdc())):
+            return False
+        else:
+            return True
+
+    def is_production(self):
+        return self.category == self.SUPEREVENT_CATEGORY_PRODUCTION
+
+    def is_test(self):
+        return self.category == self.SUPEREVENT_CATEGORY_TEST
+
+    def is_mdc(self):
+        return self.category == self.SUPEREVENT_CATEGORY_MDC
+
     def confirm_as_gw(self):
         """
         Sets is_gw to True, calculates the gw_date_number in the database, and
@@ -413,6 +447,11 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
     class DateIdError(Exception):
         # To be raised when the superevent date ID is in a bad format; i.e.,
         # one that datetime can't parse or that the regex won't match
+        pass
+
+    class EventTypeMismatchError(Exception):
+        # To be raised when an attempt is made to add an event with an
+        # incompatible type
         pass
 
 
