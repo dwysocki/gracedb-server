@@ -17,7 +17,13 @@ class SupereventSearchFilter(filters.SearchFilter):
 
     def filter_queryset(self, request, queryset, view):
         query = self.get_search_terms(request)
-        
+
+        # TODO: do we want to do this?
+        # If no query, we still set a blank query and pass things through to
+        # query parser so as to perform the default filtering out of Test and
+        # MDC superevents
+        #if not query:
+        #    query = ''
         if not query:
             return queryset
 
