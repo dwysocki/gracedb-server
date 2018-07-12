@@ -38,6 +38,7 @@ from core.http import check_and_serve_file
 
 from guardian.models import GroupObjectPermission
 
+from superevents.models import Superevent
 from superevents.api.view_templates import construct_api_url_templates
 
 import os
@@ -1595,8 +1596,9 @@ class GracedbRoot(APIView):
             "wavebands"      : dict(EMSPECTRUM),
             "eel-statuses"   : dict(EMBBEventLog.EEL_STATUS_CHOICES),
             "obs-statuses"   : dict(EMBBEventLog.OBS_STATUS_CHOICES),
+            "superevent-categories": dict(Superevent.SUPEREVENT_CATEGORY_CHOICES),
             "voevent-types"  : dict(VOEvent.VOEVENT_TYPE_CHOICES),
-           })
+        })
 
 
 class Files(APIView):
