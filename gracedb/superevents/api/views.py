@@ -17,6 +17,7 @@ from ..utils import remove_tag_from_log, remove_event_from_superevent, \
     remove_label_from_superevent
 
 from core.vfile import VersionedFile
+from core.http import check_and_serve_file
 from events.models import Event, Label
 from events.view_utils import reverse as gracedb_reverse
 #from events.api.views import IsAuthorizedForPipeline, LigoLwRenderer
@@ -206,42 +207,7 @@ class SupereventFileViewSet(GetParentSupereventMixin,
         file_name = self.kwargs.get(self.lookup_field, None)
         file_path = os.path.join(parent_superevent.datadir, file_name)
 
-        # Check if file exists:
-        if not os.path.exists(file_path):
-            err_msg = "File {0} not found for superevent {1}".format(file_name,
-                parent_superevent.superevent_id)
-            response = Response(err_msg, status=status.HTTP_404_NOT_FOUND)
-        elif not os.access(file_path, os.R_OK):
-            err_msg = "File {0} for superevent {1} is not readable".format(
-                file_name, parent_superevent.superevent_id)
-            response = Response(err_msg, status=
-                status.HTTP_500_INTERNAL_SERVER_ERROR)
-        elif os.path.isfile(file_path):
-            # Get an actual file.
-            # If the user is external, check for authorization
-            # TODO: update this
-            #if is_external(request.user):
-            #    if not check_external_file_access(superevent, file_name):
-            #        msg = "You do not have permission to view this file."
-            #        return HttpResponseForbidden(msg)
-            # Try to figure out content type of file
-            content_type, encoding = VersionedFile.guess_mimetype(file_path)
-            content_type = content_type or "application/octet-stream"
-
-            # Set up response object
-            response = Response()
-
-            # Use Apache XSendFile module to serve file
-            response['X-Sendfile'] = file_path
-
-            # For binary files, add as an attachment (will be downloaded from
-            # browser instead of opened)
-            if content_type == "application/octet-stream":
-                response['Content-Disposition'] = \
-                    'attachment; filename="{0}"'.format(os.path.basename(
-                    file_name))
-
-        return response
+        return check_and_serve_file(request, file_path, ResponseClass=Response)
 
 
 class SupereventVOEventViewSet(mixins.ListModelMixin,
