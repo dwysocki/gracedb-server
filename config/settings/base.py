@@ -293,7 +293,14 @@ INSTALLED_APPS = [
     'rest_framework',
     'guardian',
     'django_twilio',
+    'django_extensions',
 ]
+
+# Aliases for django-extensions shell_plus
+SHELL_PLUS_MODEL_ALIASES = {
+    # Two 'Group' models - auth.Group and gracedb.Group
+    'auth': {'Group': 'AuthGroup'},
+}
 
 # Details used by REST API
 REST_FRAMEWORK = {

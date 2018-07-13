@@ -22,7 +22,6 @@ MIDDLEWARE += [
 # Add to installed apps
 INSTALLED_APPS += [
     'debug_toolbar',
-    'django_extensions',
 ]
 
 # Add testserver to ALLOWED_HOSTS
@@ -42,9 +41,3 @@ if DEBUG and debug_middleware in MIDDLEWARE:
 INTERNAL_IPS = [
     socket.gethostbyname(socket.gethostname()),
 ]
-
-# Aliases for django-extensions shell_plus
-# We have two 'Group' models - auth.Group and gracedb.Group
-SHELL_PLUS_MODEL_ALIASES = {
-    'auth': {'Group': 'AuthGroup'},
-}
