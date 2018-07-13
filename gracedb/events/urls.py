@@ -6,7 +6,6 @@ from django.conf.urls import url
 from . import views
 #import django.views.generic.list_detail
 
-from .api.views import download
 
 urlpatterns = [
     url(r'^$', views.index, name="home-events"),
@@ -26,8 +25,8 @@ urlpatterns = [
         name="modify_signoff"),
     url(r'^(?P<graceid>[GEHMT]\d+)/files/$', views.file_list,
         name="file_list"),
-    url(r'^(?P<graceid>[GEHMT]\d+)/files/(?P<filename>.*)$', download,
-        name="file"),
+    url(r'^(?P<graceid>[GEHMT]\d+)/files/(?P<filename>.*)$',
+        views.file_download, name="file-download"),
     url(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>([\d]*|preview))$',
         views.logentry, name="logentry"),
     url(r'^(?P<graceid>[GEHMT]\d+)/embblog/(?P<num>([\d]*|preview))$',

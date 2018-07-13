@@ -161,7 +161,8 @@ var eventLogListUrl     = '{% url "shib:eventlog-list" object.graceid %}';
 var eventLogSaveUrl     = '{% url "logentry" object.graceid "" %}';
 var embbEventLogListUrl = '{% url "shib:embbeventlog-list" object.graceid %}';
 var emObservationListUrl = '{% url "shib:emobservation-list" object.graceid %}';
-var skymapJsonUrl       = '{% url "file" object.graceid "" %}';
+var fileDownloadUrl = '{% url "file-download" object.graceid "FAKE_FILE_NAME" %}';
+var skymapJsonUrl       = '{% url "shib:files" object.graceid "" %}';
 var skymapViewerUrl     = '{{ SKYMAP_VIEWER_SERVICE_URL }}';
 
 // This little list determines the priority ordering of the digest sections.
@@ -636,7 +637,7 @@ require([
                             // Putting this in the innerHTML allows users to create comments in HTML.
                             // Whereas, inserting the comment with the put selector escapes it.
                             commentDiv.innerHTML += value + ' ';
-                            if (object.filename) put(commentDiv, 'a[href=$]', object.file, object.filename);
+                            if (object.filename) put(commentDiv, 'a[href=$]', fileDownloadUrl.replace("FAKE_FILE_NAME", object.filename + "," + object.file_version), object.filename);
                             // Branson, 3/3/15
                             //if (object.filename == 'skymap.json') {
                             var isItJson = object.filename.indexOf(".json");
@@ -796,7 +797,7 @@ require([
                             // Putting this in the innerHTML allows users to create comments in HTML.
                             // Whereas, inserting the comment with the put selector escapes it.
                             commentDiv.innerHTML += value + ' ';
-                            if (object.filename) put(commentDiv, 'a[href=$]', object.file, object.filename);
+                            if (object.filename) put(commentDiv, 'a[href=$]', fileDownloadUrl.replace("FAKE_FILE_NAME", object.filename + "," + object.file_version), object.filename);
                             // Create tag-related features
                             var tagButtonContainer = put(commentDiv, 'div.tagButtonContainerClass');
                             // For each existing tag on a log message, we will make a little widget
@@ -888,7 +889,7 @@ require([
                             // Putting this in the innerHTML allows users to create comments in HTML.
                             // Whereas, inserting the comment with the put selector escapes it.
                             commentDiv.innerHTML += value + ' ';
-                            if (object.filename) put(commentDiv, 'a[href=$]', object.file, object.filename);
+                            if (object.filename) put(commentDiv, 'a[href=$]', fileDownloadUrl.replace("FAKE_FILE_NAME", object.filename + "," + object.file_version), object.filename);
                             // Create tag-related features
                             var tagButtonContainer = put(commentDiv, 'div.tagButtonContainerClass');
                             // For each existing tag on a log message, we will make a little widget

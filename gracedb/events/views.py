@@ -6,6 +6,7 @@ from django.template import RequestContext
 from django.urls import reverse
 from django.shortcuts import render
 
+from core.http import check_and_serve_file
 from .models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
 from .models import EMGroup, Signoff
 from .forms import CreateEventForm, EventSearchForm, SimpleSearchForm, SignoffForm
@@ -14,7 +15,8 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.contenttypes.models import ContentType
 from .permission_utils import filter_events_for_user, user_has_perm
-from .permission_utils import internal_user_required, is_external
+from .permission_utils import internal_user_required, is_external, \
+    check_external_file_access
 from guardian.models import GroupObjectPermission
 
 from .view_logic import _createEventFromForm
@@ -865,6 +867,21 @@ def file_list(request, event):
     context['graceid'] = event.graceid() 
         
     return render(request, 'gracedb/event_filelist.html', context=context)
+
+
+@event_and_auth_required
+def file_download(request, event, filename):
+
+    # If the user is external, check for authorization
+    if is_external(request.user):
+        if not check_external_file_access(event, filename):
+            msg = "You do not have permission to view this file."
+            return HttpResponseForbidden(msg)
+
+    file_path = os.path.join(event.datadir, filename)
+    return check_and_serve_file(request, file_path,
+        ResponseClass=HttpResponse)
+
 
 # A view to modify the GroupObjectPermissions for an event.
 # This is very non-RESTful. If the action is 'expose', you

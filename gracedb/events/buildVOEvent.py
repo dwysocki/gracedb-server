@@ -291,9 +291,9 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         g = Group('GW_SKYMAP', skymap_type)
 
         # shib urls.
-        shib_fits_skymap_url = get_url(request, objid, "file", fits_name)
+        shib_fits_skymap_url = get_url(request, objid, "file-download", fits_name)
         if img_name:
-            shib_png_skymap_url  = get_url(request, objid, "file", img_name)
+            shib_png_skymap_url  = get_url(request, objid, "file-download", img_name)
 
         # x509 urls. Hafta specify the api namespace.
         x509_fits_skymap_url = get_url(request, objid, "x509:files", fits_name)

@@ -153,7 +153,7 @@ def _createEventFromForm(request, form):
                 # XXX This reverse will give the web-interface URL, not the REST URL.
                 # This could be a problem if anybody ever tries to use it.
                 issueAlert(event,
-                           request.build_absolute_uri(reverse("file", args=[event.graceid(),f.name])),
+                           request.build_absolute_uri(reverse("file-download", args=[event.graceid(),f.name])),
                            request.build_absolute_uri(reverse("view", args=[event.graceid()])),
                            eventToDict(event, request=request))
             except Exception, e:

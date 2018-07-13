@@ -37,6 +37,11 @@ def serve_file(file_path, ResponseClass=HttpResponse):
     response.content_type = content_type
     response['Content-Type'] = content_type
 
+    # Set encoding (again in both places)
+    if encoding is not None:
+        response.encoding = encoding
+        response['Content-Encoding'] = encoding
+
     # For binary files, add the file as an attachment (direct download instead
     # of opening in browser window)
     if content_type == "application/octet-stream":

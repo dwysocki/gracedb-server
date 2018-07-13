@@ -89,6 +89,6 @@ urlpatterns = [
     url(r'^performance/$', PerformanceInfo.as_view(), name='performance-info'),
 
     # Legacy
-    url(r'^event/(?P<graceid>\w[\d]+)/files/(?P<filename>.+)?$', download,
-        name="download2"),
+    url(r'^event/(?P<graceid>\w[\d]+)/files/(?P<filename>.+)?$',
+        Files.as_view(), name="file-download"),
 ]

@@ -31,6 +31,7 @@ from ..permission_utils import user_has_perm, filter_events_for_user, \
 from .throttles import EventCreationThrottle, AnnotationThrottle
 
 from core.vfile import VersionedFile
+from core.http import check_and_serve_file
 
 from guardian.models import GroupObjectPermission
 
@@ -1570,72 +1571,6 @@ class GracedbRoot(APIView):
             "voevent-types"  : dict(VOEvent.VOEVENT_TYPE_CHOICES),
            })
 
-##################################################################
-# Old.  Must support this.
-def download(request, graceid, filename=""):
-    # Do not filename to be None.  That messes up later os.path.join
-    filename = filename or ""
-
-    try:
-        event = Event.getByGraceid(graceid)
-        if not user_has_perm(request.user, 'view', event):
-            return HttpResponseForbidden("Forbidden")
-    except Event.DoesNotExist:
-        return HttpResponseNotFound("Event not found")
-
-    # If the user is external, check for authorization
-    if is_external(request.user):
-        if not check_external_file_access(event, filename):
-            msg = "You do not have permission to view this file."
-            return HttpResponseForbidden(msg)
-
-    filepath = os.path.join(event.datadir(), filename)
-
-    if not os.path.exists(filepath):
-        response = HttpResponseNotFound("File does not exist")
-    elif not os.access(filepath, os.R_OK):
-        response = HttpResponseNotFound("File not readable")
-    elif os.path.isfile(filepath):
-        # get an actual file.
-        content_type, encoding = VersionedFile.guess_mimetype(filepath)
-        content_type = content_type or "application/octet-stream"
-        # XXX encoding should probably not be ignored.
-
-        # Get a pretty filename. Just strip off version info.
-        # XXX This will break if you change the file-version naming convention
-        # (by, for instance, using a different delimiter than a comma).
-        try:
-            ind = filename.index(',')
-            pretty_filename = filename[:ind]
-        except ValueError:
-            pretty_filename = filename
-
-        response = HttpResponse(open(filepath, "r"), content_type=content_type)
-        if content_type == "application/octet-stream":
-            #response['Content-Disposition'] = 'attachment; filename=%s' % os.path.basename(filename)
-            response['Content-Disposition'] = 'attachment; filename=%s' % pretty_filename
-        else:
-            response['Content-Disposition'] = 'inline; filename=%s' % pretty_filename
-        if encoding is not None:
-            response['Content-Encoding'] = encoding
-    elif not filename:
-        # Get list of files w/urls.
-        rv = {}
-        filepath = event.datadir()
-        for dirname, dirnames, filenames in os.walk(filepath):
-            dirname = dirname[len(filepath):]  # cut off base event dir path
-            for filename in filenames:
-                # relative path from root of event data dir
-                filename = os.path.join(dirname, filename)
-                rv[filename] = django_reverse(download, args=[graceid, filename])
-
-        response = HttpResponse(json.dumps(rv), content_type="application/json")
-    elif os.path.isdir(filepath):
-        response = HttpResponseForbidden("%s is a directory" % filename)
-    else:
-        response = HttpResponseServerError("Should not happen.")
-
-    return response
 
 class Files(APIView):
     """Files Resource"""
@@ -1653,28 +1588,17 @@ class Files(APIView):
 
         filepath = os.path.join(event.datadir(), filename)
 
-        if not os.path.exists(filepath):
-            response = HttpResponseNotFound("File does not exist")
-        elif not os.access(filepath, os.R_OK):
-            response = HttpResponseNotFound("File not readable")
-        elif os.path.isfile(filepath):
-            # get an actual file.
-            # If the user is external, check for authorization
+        # Check permissions for external users
+        if filename and os.path.isdir(filepath):
+            # XXX Really?
+            response = HttpResponseForbidden("%s is a directory" % filename)
+        elif filename:
             if is_external(request.user):
                 if not check_external_file_access(event, filename):
                     msg = "You do not have permission to view this file."
                     return HttpResponseForbidden(msg)
-
-            content_type, encoding = VersionedFile.guess_mimetype(filepath)
-            content_type = content_type or "application/octet-stream"
-            # XXX encoding should probably not be ignored.
-            response = HttpResponse(open(filepath, "r"), content_type=content_type)
-            if content_type == "application/octet-stream":
-                # Double quotes are required to avoid MUTLIPLE_CONTENT_DISPOSITION error
-                # in Chrome when the filename contains a comma.
-                response['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(filename)
-            if encoding is not None:
-                response['Content-Encoding'] = encoding
+            response = check_and_serve_file(request, filepath,
+                ResponseClass=Response)
         elif not filename:
             # Get list of files w/urls.
             rv = {}
@@ -1714,9 +1638,6 @@ class Files(APIView):
                             request=request),
                         })
             response = Response(rv)
-        elif os.path.isdir(filepath):
-            # XXX Really?
-            response = HttpResponseForbidden("%s is a directory" % filename)
         else:
             response = HttpResponseServerError("Should not happen.")
 

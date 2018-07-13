@@ -436,7 +436,8 @@ class EventLog(AutoIncrementModel):
             actual_filename = self.filename
             if self.file_version >= 0:
                 actual_filename += ',%d' % self.file_version
-            return reverse('file', args=[self.event.graceid(), actual_filename])
+            return reverse('file-download', args=[self.event.graceid(),
+                actual_filename])
         else:
             return None
 
@@ -1143,7 +1144,8 @@ class VOEvent(models.Model):
             actual_filename = self.filename
             if self.file_version >= 0:
                 actual_filename += ',%d' % self.file_version
-            return reverse('file', args=[self.event.graceid(), actual_filename])
+            return reverse('file-download', args=[self.event.graceid(),
+                actual_filename])
         else:
             return None
 
