@@ -147,7 +147,7 @@
         <td>{{ superevent.superevent_id }}</td>
         <td>{{ superevent.get_category_display }}</td>
         <td>{% for labelling in superevent.labelling_set.all %}
-            <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}"><b>{{ labelling.label.name }}</b></div>
+            <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}};" class="label">{{ labelling.label.name }}</div>
             {% endfor %}
         </td>
 
@@ -203,7 +203,7 @@
         <td><a href="{% url "view" preferred_event.graceid %}">{{ preferred_event.graceid }}</a></td>
         <td>
              {% for labelling in preferred_event_labelling %}
-                <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}"><b>{{ labelling.label.name }}</b></div>
+                <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}};" class="label">{{ labelling.label.name }}</div>
              {% endfor %}
         </td>
         <td>{{ preferred_event.group.name }} </td>
