@@ -1,10 +1,11 @@
+from collections import OrderedDict
+import logging
+import urllib
+
 from rest_framework import pagination
 from rest_framework.response import Response
 
-import urllib
-from collections import OrderedDict
-
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 # TP (30 Apr 2018):

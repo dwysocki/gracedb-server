@@ -3,7 +3,7 @@ from rest_framework.renderers import JSONRenderer
 
 from .main import issue_alerts
 from core.urls import build_absolute_uri
-from superevents.api.serializers import SupereventSerializer, \
+from api.v1.superevents.serializers import SupereventSerializer, \
     SupereventLogSerializer, SupereventLabelSerializer, \
     SupereventEMObservationSerializer, SupereventVOEventSerializer, \
     SupereventSignoffSerializer

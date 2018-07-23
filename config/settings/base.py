@@ -301,7 +301,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'maintenance_mode',
     'alerts',
-    'api'
+    'api',
     'events',
     'ligoauth',
     'search',
@@ -332,6 +332,11 @@ SHELL_PLUS_MODEL_ALIASES = {
 
 # Details used by REST API
 REST_FRAMEWORK = {
+    'DEFAULT_VERSIONING_CLASS':
+        'api.versioning.NestedNamespaceVersioning',
+        #'rest_framework.versioning.NamespaceVersioning',
+    'DEFAULT_VERSION': 'default',
+    'ALLOWED_VERSIONS': ['default', 'v1'],
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 1e7,
@@ -340,11 +345,11 @@ REST_FRAMEWORK = {
         'annotation'    : '10/second',
     },
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'events.api.backends.LigoAuthentication',
+        'api.v1.backends.LigoAuthentication',
     ),
     'COERCE_DECIMAL_TO_STRING': False,
     'EXCEPTION_HANDLER':
-        'superevents.api.exceptions.gracedb_exception_handler',
+        'api.exceptions.gracedb_exception_handler',
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     )
@@ -526,6 +531,11 @@ LOGGING = {
             'level': LOG_LEVEL,
         },
         'search': {
+            'handlers': ['debug_file','error_file'],
+            'propagate': True,
+            'level': LOG_LEVEL,
+        },
+        'api': {
             'handlers': ['debug_file','error_file'],
             'propagate': True,
             'level': LOG_LEVEL,

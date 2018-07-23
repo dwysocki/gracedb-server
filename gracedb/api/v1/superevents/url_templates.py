@@ -1,9 +1,10 @@
-from events.view_utils import reverse
+from __future__ import absolute_import
+
 from .views import SupereventViewSet, SupereventEventViewSet, \
     SupereventLabelViewSet, SupereventLogViewSet, SupereventLogTagViewSet, \
     SupereventFileViewSet, SupereventVOEventViewSet, \
     SupereventEMObservationViewSet
-
+from ...utils import api_reverse
 
 # Placeholder parameters for getting URLs with reverse
 PH = {
@@ -19,10 +20,10 @@ PH = {
 }
 
 
-def construct_api_url_templates(request=None):
+def construct_url_templates(request=None):
     # Bind our custom reverse for ease of use
-    sr = lambda view_name, args=[]: reverse('superevents:' + view_name, args=[
-        PH[SupereventViewSet.lookup_url_kwarg]] + args, request=request)
+    sr = lambda view_name, args=[]: api_reverse('superevents:' + view_name,
+        args=[PH[SupereventViewSet.lookup_url_kwarg]] + args, request=request)
 
     # Dict of views and temporary arguments which will be passed to reverse
     views = {

@@ -156,14 +156,14 @@ var hasImage = function(object) {
 }
 
 // some URLs. Usage of Django template syntax should be limited to here
-var tagListUrl          = '{% url "shib:tag-list" %}';
+var tagListUrl          = '{% url "shib:default:tag-list" %}';
 var tagUrlPattern       = '{% url "taglogentry" object.graceid "000" "temp" %}';
-var eventLogListUrl     = '{% url "shib:eventlog-list" object.graceid %}';
+var eventLogListUrl     = '{% url "shib:default:events:eventlog-list" object.graceid %}';
 var eventLogSaveUrl     = '{% url "logentry" object.graceid "" %}';
-var embbEventLogListUrl = '{% url "shib:embbeventlog-list" object.graceid %}';
-var emObservationListUrl = '{% url "shib:emobservation-list" object.graceid %}';
+var embbEventLogListUrl = '{% url "shib:default:events:embbeventlog-list" object.graceid %}';
+var emObservationListUrl = '{% url "shib:default:events:emobservation-list" object.graceid %}';
 var fileDownloadUrl = '{% url "file-download" object.graceid "FAKE_FILE_NAME" %}';
-var skymapJsonUrl       = '{% url "shib:files" object.graceid "" %}';
+var skymapJsonUrl       = '{% url "shib:default:events:files" object.graceid "" %}';
 var skymapViewerUrl     = '{{ SKYMAP_VIEWER_SERVICE_URL }}';
 
 // This little list determines the priority ordering of the digest sections.

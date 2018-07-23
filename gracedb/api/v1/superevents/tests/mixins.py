@@ -3,8 +3,8 @@ import os
 
 from django.contrib.auth import get_user_model
 
-from events.api.tests.mixins import EventCreateMixin
 from superevents.models import Superevent
+from ...events.tests.mixins import EventCreateMixin
 
 UserModel = get_user_model()
 

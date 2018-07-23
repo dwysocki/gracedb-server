@@ -296,14 +296,18 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             shib_png_skymap_url  = get_url(request, objid, "file-download", img_name)
 
         # x509 urls. Hafta specify the api namespace.
-        x509_fits_skymap_url = get_url(request, objid, "x509:files", fits_name)
+        x509_fits_skymap_url = get_url(request, objid,
+            "x509:default:events:files", fits_name)
         if img_name:
-            x509_png_skymap_url  = get_url(request, objid, "x509:files", img_name)
+            x509_png_skymap_url  = get_url(request, objid,
+                "x509:default:events:files", img_name)
 
         # basic urls. Hafta specify the api namespace.
-        basic_fits_skymap_url = get_url(request, objid, "basic:files", fits_name)
+        basic_fits_skymap_url = get_url(request, objid,
+            "basic:default:events:files", fits_name)
         if img_name:
-            basic_png_skymap_url  = get_url(request, objid, "basic:files", img_name)
+            basic_png_skymap_url  = get_url(request, objid,
+                "basic:default:events:files", img_name)
         
 
         # Add parameters to the skymap group

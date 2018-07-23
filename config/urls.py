@@ -42,12 +42,10 @@ urlpatterns = [
     url(r'^search/$', search.views.search, name="mainsearch"),
 
     # API URLs
-    url(r'^apibasic/', include('events.api.urls', app_name="api",
-        namespace="basic")),
-    url(r'^apiweb/', include('events.api.urls', app_name="api",
-        namespace="shib")),
-    url(r'^api/', include('events.api.urls', app_name="api",
-        namespace="x509")),
+    url(r'^apibasic/', include('api.urls', namespace="basic")),
+    url(r'^apiweb/', include('api.urls', namespace="shib")),
+    url(r'^api/', include('api.urls', namespace="x509")),
+    #url(r'^apinew/', include('api.urls')), # one place for all auth schemes
 
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
     # to INSTALLED_APPS to enable admin documentation:

@@ -156,12 +156,12 @@ var hasImage = function(object) {
 }
 
 // some URLs. Usage of Django template syntax should be limited to here
-var tagListUrl          = '{% url "shib:tag-list" %}';
-var tagCreateUrlPattern = '{% url "shib:superevents:superevent-log-tag-list" superevent.superevent_id "000" %}';
-var tagDeleteUrlPattern = '{% url "shib:superevents:superevent-log-tag-detail" superevent.superevent_id "000" "FAKE_TAG_NAME" %}';
-var logListUrl     = '{% url "shib:superevents:superevent-log-list" superevent.superevent_id %}';
-var logSaveUrl     = '{% url "shib:superevents:superevent-log-list" superevent.superevent_id %}';
-var emObservationListUrl = '{% url "shib:superevents:superevent-emobservation-list" superevent.superevent_id %}';
+var tagListUrl          = '{% url "shib:default:tag-list" %}';
+var tagCreateUrlPattern = '{% url "shib:default:superevents:superevent-log-tag-list" superevent.superevent_id "000" %}';
+var tagDeleteUrlPattern = '{% url "shib:default:superevents:superevent-log-tag-detail" superevent.superevent_id "000" "FAKE_TAG_NAME" %}';
+var logListUrl     = '{% url "shib:default:superevents:superevent-log-list" superevent.superevent_id %}';
+var logSaveUrl     = '{% url "shib:default:superevents:superevent-log-list" superevent.superevent_id %}';
+var emObservationListUrl = '{% url "shib:default:superevents:superevent-emobservation-list" superevent.superevent_id %}';
 var fileDownloadUrl     = '{% url "superevents:file-download" superevent.superevent_id "FAKE_FILE_NAME" %}';
 var skymapViewerUrl     = '{{ SKYMAP_VIEWER_SERVICE_URL }}';
 

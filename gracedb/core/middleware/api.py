@@ -53,6 +53,8 @@ class ClientVersionMiddleware(object):
         #  3. If User-Agent header and not client_string, assume browser
         #     and allow to pass
         request_allowed = True
+        # TODO: can we check the request's resolver match for the api namespace
+        # instead?  That keeps things more DRY.
         if request.path.startswith('/api'):
             if (agent_header is None and not
                 settings.ALLOW_BLANK_USER_AGENT_TO_API):

@@ -1,4 +1,4 @@
-
+from __future__ import absolute_import
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.urls import reverse as django_reverse
 from django.utils import dateformat
@@ -11,6 +11,7 @@ from .models import SingleInspiral, Event, Search, Group
 from core.urls import build_absolute_uri
 from core.vfile import VersionedFile
 from .permission_utils import is_external
+from api.utils import api_reverse
 from django.db.models import Q
 
 import os
@@ -351,13 +352,13 @@ def eventToDict(event, columns=None, request=None):
 
     # Links
     rv['links'] = {
-          "neighbors" : reverse("neighbors", args=[graceid], request=request),
-          "log"   : reverse("eventlog-list", args=[graceid], request=request),
-          "emobservations"   : reverse("emobservation-list", args=[graceid], request=request),
-          "files" : reverse("files", args=[graceid], request=request),
-          "labels" : reverse("labels", args=[graceid], request=request),
-          "self"  : reverse("event-detail", args=[graceid], request=request),
-          "tags"  : reverse("eventtag-list", args=[graceid], request=request),
+          "neighbors" : api_reverse("events:neighbors", args=[graceid], request=request),
+          "log"   : api_reverse("events:eventlog-list", args=[graceid], request=request),
+          "emobservations"   : api_reverse("events:emobservation-list", args=[graceid], request=request),
+          "files" : api_reverse("events:files", args=[graceid], request=request),
+          "labels" : api_reverse("events:labels", args=[graceid], request=request),
+          "self"  : api_reverse("events:event-detail", args=[graceid], request=request),
+          "tags"  : api_reverse("events:eventtag-list", args=[graceid], request=request),
           }
     return rv
 
@@ -367,10 +368,10 @@ def eventLogToDict(log, request=None):
     file_uri = None
 
     # Get some links
-    uri = reverse("eventlog-detail",
+    uri = api_reverse("events:eventlog-detail",
             args=[log.event.graceid(), log.N],
             request=request)
-    taglist_uri = reverse("eventlogtag-list",
+    taglist_uri = api_reverse("events:eventlogtag-list",
             args=[log.event.graceid(), log.N],
             request=request)
     if log.filename:
@@ -382,7 +383,7 @@ def eventLogToDict(log, request=None):
         # escaping twice results in wrong urls. 
         #filename = urlquote(actual_filename)
         filename = actual_filename
-        file_uri = reverse("files",
+        file_uri = api_reverse("events:files",
             args=[log.event.graceid(), filename],
             request=request)
 
@@ -422,7 +423,7 @@ def labelToDict(labelling, request=None):
             "creator" : labelling.creator.username,
             "created" : labelling.created.strftime(
                       settings.GRACE_STRFTIME_FORMAT),
-            "self" : reverse("labels",
+            "self" : api_reverse("events:labels",
                 args=[labelling.event.graceid(), labelling.label.name],
                 request=request),
            }
@@ -431,7 +432,7 @@ def labelToDict(labelling, request=None):
 def embbEventLogToDict(eel, request=None):
       uri = None
       if request:
-          uri = reverse("embbeventlog-detail",
+          uri = api_reverse("events:embbeventlog-detail",
                   args=[eel.event.graceid(), eel.N],
                   request=request)
       return {
@@ -467,7 +468,7 @@ def embbEventLogToDict(eel, request=None):
 
 # EMObservation serializer.
 def emObservationToDict(emo, request=None):
-      uri = reverse("emobservation-detail",
+      uri = api_reverse("events:emobservation-detail",
           args=[emo.event.graceid(), emo.N],
           request=request)
       
@@ -492,7 +493,7 @@ def emObservationToDict(emo, request=None):
 def emFootprintToDict(emf, request=None):
 #      uri = None
 #      if request:
-#          uri = reverse("emfootprint-detail",
+#          uri = api_reverse("events:emfootprint-detail",
 #                  args=[emf.emobservation.event.graceid(), emf.emobservation.N, emf.N],
 #                  request=request)
       
@@ -513,7 +514,7 @@ def emFootprintToDict(emf, request=None):
 # XXX Eventually hope to remove this
 # EMObservation serializer for the skymap Viewer
 def skymapViewerEMObservationToDict(emo, request=None):
-    uri = reverse("emobservation-detail",
+    uri = api_reverse("events:emobservation-detail",
         args=[emo.event.graceid(), emo.N],
         request=request)
 
@@ -574,10 +575,10 @@ def voeventToDict(voevent, request=None):
     #filename = urlquote('%s,%d' % (voevent.filename, voevent.file_version))
     filename = '%s,%d' % (voevent.filename, voevent.file_version)
 
-    uri = reverse("voevent-detail",
+    uri = api_reverse("events:voevent-detail",
         args=[voevent.event.graceid(), voevent.N],
         request=request)
-    file_uri = reverse("files",
+    file_uri = api_reverse("events:files",
         args=[voevent.event.graceid(), filename],
         request=request)
 

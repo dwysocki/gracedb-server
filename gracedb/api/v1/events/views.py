@@ -1,83 +1,22 @@
-
-from django.http import HttpResponse, HttpResponseNotFound
-from django.http import HttpResponseForbidden, HttpResponseServerError
-from django.http.request import QueryDict
-from django.urls import reverse as django_reverse
-
-from django.conf import settings
-from django.utils.functional import wraps
-from django.db import IntegrityError
-from django.core.exceptions import ValidationError
-
-from django.contrib.auth.models import User, Permission
-from django.contrib.auth.models import Group as AuthGroup
-from django.contrib.contenttypes.models import ContentType
-
-from alerts.old_alert import issueAlertForUpdate
-from ..buildVOEvent import buildVOEvent, VOEventBuilderException
-from ..view_utils import BadFARRange, check_query_far_range
-from ..query import parseQuery, ParseException
-from ..models import Event, Group, Search, Pipeline, EventLog, Tag, Label, \
-    EMGroup, EMBBEventLog, EMSPECTRUM, VOEvent
-from ..view_logic import create_label, get_performance_info, delete_label, \
-    _createEventFromForm, create_eel, create_emobservation
-from ..view_utils import eventToDict, eventLogToDict, labelToDict, reverse, \
-    embbEventLogToDict, voeventToDict, emObservationToDict, signoffToDict, \
-    skymapViewerEMObservationToDict
-from ..forms import SimpleSearchForm
-from ..translator import handle_uploaded_data
-from ..forms import CreateEventForm
-from ..permission_utils import user_has_perm, filter_events_for_user, \
-    is_external, check_external_file_access
-
-from .backends import LigoAuthentication
-from .throttles import EventCreationThrottle, AnnotationThrottle
-
-from core.vfile import VersionedFile
-from core.http import check_and_serve_file
-
-from guardian.models import GroupObjectPermission
-
-from superevents.models import Superevent
-from superevents.api.view_templates import construct_api_url_templates
-
-import os
-import urllib
-import shutil
+from __future__ import absolute_import
 import exceptions
 import json
+import logging
+import os
+import shutil
+import StringIO
+import urllib
 
+from django.conf import settings
+from django.contrib.auth.models import User, Permission, Group as AuthGroup
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
+from django.http import HttpResponse, HttpResponseForbidden, \
+    HttpResponseNotFound, HttpResponseServerError
+from django.http.request import QueryDict
+from django.utils.functional import wraps
 
-import logging; logger = logging.getLogger(__name__)
-# 
-# for checking queries in the evnet that the user is external
-#
-
-##################################################################
-
-REST_FRAMEWORK_SETTINGS = getattr(settings, 'REST_FRAMEWORK', {})
-PAGINATE_BY = REST_FRAMEWORK_SETTINGS.get('PAGINATE_BY', 10)
-
-##################################################################
-# rest_framework
-from rest_framework import serializers, status
-from rest_framework.response import Response
-#from rest_framework.renderers import JSONRenderer, JSONPRenderer
-#from rest_framework.renderers import YAMLRenderer, XMLRenderer
-from rest_framework.renderers import BaseRenderer, JSONRenderer
-from rest_framework.renderers import BrowsableAPIRenderer
-from rest_framework import parsers      # YAMLParser, MultiPartParser
-from rest_framework.parsers import DataAndFiles
-
-from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
-from rest_framework import authentication
-from rest_framework.views import APIView
-
-MAX_FAILED_OPEN_ATTEMPTS = 5
-
-
-
-##################################################################
 # Stuff for the LigoLwRenderer
 from glue.ligolw import ligolw
 # lsctables MUST be loaded before utils.
@@ -85,9 +24,45 @@ from glue.ligolw import utils
 from glue.ligolw.utils import ligolw_add
 from glue.ligolw.ligolw import LIGOLWContentHandler
 from glue.ligolw.lsctables import use_in
-import StringIO
+from guardian.models import GroupObjectPermission
+from rest_framework import authentication, parsers, serializers, status
+from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
+from rest_framework.renderers import BaseRenderer, JSONRenderer, \
+    BrowsableAPIRenderer
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
+from alerts.old_alert import issueAlertForUpdate
+from core.http import check_and_serve_file
+from core.vfile import VersionedFile
+from events.buildVOEvent import buildVOEvent, VOEventBuilderException
+from events.forms import SimpleSearchForm, CreateEventForm
+from events.query import parseQuery, ParseException
+from events.models import Event, Group, Search, Pipeline, EventLog, Tag, \
+    Label, EMGroup, EMBBEventLog, EMSPECTRUM, VOEvent
+from events.permission_utils import user_has_perm, filter_events_for_user, \
+    is_external, check_external_file_access
+from events.translator import handle_uploaded_data
+from events.view_logic import create_label, get_performance_info, \
+    delete_label, _createEventFromForm, create_eel, create_emobservation
+from events.view_utils import eventToDict, eventLogToDict, labelToDict, \
+    embbEventLogToDict, voeventToDict, emObservationToDict, signoffToDict, \
+    skymapViewerEMObservationToDict, BadFARRange, check_query_far_range
+from superevents.models import Superevent
+from .throttles import EventCreationThrottle, AnnotationThrottle
+from ..backends import LigoAuthentication
+from ...utils import api_reverse
+
+# Set up logger
+logger = logging.getLogger(__name__)
+
+# Set up content handler
 use_in(LIGOLWContentHandler)
+
+# For checking queries in the event that the user is external
+REST_FRAMEWORK_SETTINGS = getattr(settings, 'REST_FRAMEWORK', {})
+PAGINATE_BY = REST_FRAMEWORK_SETTINGS.get('PAGINATE_BY', 10)
+
 
 #
 # A custom permission class for the EventDetail view. 
@@ -426,7 +401,7 @@ class EventList(APIView):
         rv['links'] = links
         rv['events'] = [eventToDict(e, request=request)
                 for e in events[start:start+count]]
-        baseuri = reverse('event-list', request=request)
+        baseuri = api_reverse('events:event-list', request=request)
 
         links['self'] = request.build_absolute_uri()
 
@@ -506,8 +481,8 @@ class EventList(APIView):
                 rv.update(eventToDict(event, request=request))
                 rv['warnings'] += warnings
                 response = Response(rv, status=status.HTTP_201_CREATED)
-                response["Location"] = reverse(
-                        'event-detail',
+                response["Location"] = api_reverse(
+                        'events:event-detail',
                         args=[event.graceid()],
                         request=request)
                 return response
@@ -531,7 +506,7 @@ class RawdataParser(parsers.BaseParser):
                 self.read = read
         files = { 'upload' : FakeFile("initial.data", stream.read) }
         data = {}
-        return DataAndFiles(data, files)
+        return parsers.DataAndFiles(data, files)
 
 class LigoLwParser(parsers.MultiPartParser):
     # XXX Revisit this.
@@ -678,7 +653,8 @@ class EventNeighbors(APIView):
                 'numRows' : len(neighbors),
                 'links' : {
                     'self': request.build_absolute_uri(),
-                    'event': reverse("event-detail", args=[event.graceid()], request=request),
+                    'event': api_reverse("events:event-detail",
+                        args=[event.graceid()], request=request),
                     }
                 })
 
@@ -707,7 +683,7 @@ class EventLabel(APIView):
             return Response({
                 'links' : [{
                     'self': request.build_absolute_uri(),
-                    'event': reverse("event-detail",
+                    'event': api_reverse("events:event-detail",
                         args=[event.graceid()],
                         request=request),
                     }],
@@ -1066,18 +1042,18 @@ def tagToDict(tag, columns=None, request=None, event=None, n=None):
         if n:
             # We want a link to the self only.  End of the line.
             rv['links'] = {
-                            "self" : reverse("eventlogtag-detail",
+                            "self" : api_reverse("events:eventlogtag-detail",
                                              args=[event.graceid(),n,tag.name],
                                              request=request)
                           }
         else:
             # Links to all log messages of the event with this tag.
             rv['links'] = {
-                            "logs" : [reverse("eventlog-detail", 
+                            "logs" : [api_reverse("events:eventlog-detail", 
                                               args=[event.graceid(),log.N], 
                                               request=request) 
                                       for log in event.getLogsForTag(tag.name)],
-                            "self" : reverse("eventtag-detail",
+                            "self" : api_reverse("events:eventtag-detail",
                                              args=[event.graceid(),tag.name],
                                              request=request)
                           }
@@ -1096,30 +1072,6 @@ def tagToDict(tag, columns=None, request=None, event=None, n=None):
 #                       }
     return rv
 
-class TagList(APIView):
-    """Tag List Resource
-    """
-    authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        # Return a list of links to all tag objects.
-        tag_dict = {}
-        for tag in Tag.objects.all():
-            tag_dict[tag.name] = { 
-                'displayName': tag.displayName,
-                'blessed': tag.name in settings.BLESSED_TAGS
-            }
-        rv = {
-#                 'tags' : [ reverse("tag-detail", args=[tag.name],
-#                                    request=request)
-#                            for tag in Tag.objects.all() ]
-#                For now, we just output the tag names, since we don't know what 
-#                tag-detail should look like.
-#                 'tags' : [ tag.name for tag in Tag.objects.all() ]
-                  'tags' : tag_dict,
-             }
-        return Response(rv)
 
 # XXX Unclear what the tag detail resource should be.
 # class TagDetail(APIView):
@@ -1151,8 +1103,8 @@ class EventTagList(APIView):
         rv = {
                 'tags' : [
                     {
-                        'self': reverse("eventtag-detail", args=[
-                            event.graceid(), tag.name], request=request),
+                        'self': api_reverse("events:eventtag-detail",
+                            args=[event.graceid(), tag.name], request=request),
                         'name': tag.name,
                         'displayName': tag.displayName
                     }
@@ -1189,8 +1141,8 @@ class EventLogTagList(APIView):
         rv = {
                 'tags' : [
                     {
-                        'self': reverse("eventlogtag-detail", args=[
-                            event.graceid(), eventlog.N, tag.name],
+                        'self': api_reverse("events:eventlogtag-detail",
+                            args=[event.graceid(), eventlog.N, tag.name],
                             request=request),
                         'name': tag.name,
                         'displayName': tag.displayName
@@ -1314,7 +1266,7 @@ def groupeventpermissionToDict(gop, event, request=None):
     rv['permission'] = perm_shortname
     # We want a link to the self only.  End of the line.
     rv['links'] = {
-                    "self" : reverse("groupeventpermission-detail",
+                    "self" : api_reverse("events:groupeventpermission-detail",
                                      args=[event.graceid(),gop.group.name,perm_shortname],
                                      request=request)
                   }
@@ -1342,7 +1294,7 @@ class EventPermissionList(APIView):
         out_dict = {}
         links['groupeventpermissions'] = out_dict
         for group in groups:
-            out_dict[group.name] = reverse("groupeventpermission-list", 
+            out_dict[group.name] = api_reverse("events:groupeventpermission-list", 
                 args=[event.graceid(),group.name], request=request) 
         return Response(rv, status=status.HTTP_200_OK)            
 
@@ -1501,105 +1453,6 @@ class GroupEventPermissionDetail(APIView):
         rv = {'message': 'Permission successfully deleted.'}
         return Response(rv, status=status.HTTP_200_OK)            
 
-#==================================================================
-# Root Resource
-
-class GracedbRoot(APIView):
-    """
-        Root of the Gracedb REST API
-    """
-    authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
-    parser_classes = ()
-    def get(self, request):
-        # XXX This seems like a scummy way to get a URI template.
-        # Is there better?
-        detail = reverse("event-detail", args=["G1200"], request=request)
-        detail = detail.replace("G1200", "{graceid}")
-        log = reverse("eventlog-list", args=["G1200"], request=request)
-        log = log.replace("G1200", "{graceid}")
-        log_detail = reverse("eventlog-detail", args=["G1200", "3333"],
-            request=request)
-        log_detail = log_detail.replace("G1200", "{graceid}")
-        log_detail = log_detail.replace("3333", "{N}")
-        voevent = reverse("voevent-list", args=["G1200"], request=request)
-        voevent = voevent.replace("G1200", "{graceid}")
-        voevent_detail = reverse("voevent-detail", args=["G1200", "3333"],
-            request=request)
-        voevent_detail = voevent_detail.replace("G1200", "{graceid}")
-        voevent_detail = voevent_detail.replace("3333", "{N}")
-        embb = reverse("embbeventlog-list", args=["G1200"], request=request)
-        embb = embb.replace("G1200", "{graceid}")
-        emo = reverse("emobservation-list", args=["G1200"], request=request)
-        emo = emo.replace("G1200", "{graceid}")
-        emo_detail = reverse("emobservation-detail", args=["G1200", "3333"],
-            request=request)
-        emo_detail= emo_detail.replace("G1200", "{graceid}")
-        emo_detail= emo_detail.replace("3333", "{N}")
-
-        files = reverse("files", args=["G1200", "filename"], request=request)
-        files = files.replace("G1200", "{graceid}")
-        files = files.replace("filename", "{filename}")
-
-        labels = reverse('labels', args=["G1200", "thelabel"], request=request)
-        labels = labels.replace("G1200", "{graceid}")
-        labels = labels.replace("thelabel", "{label}")
-
-        taglist = reverse("eventlogtag-list", args=["G1200", "0"], request=request)
-        taglist = taglist.replace("G1200", "{graceid}")
-        taglist = taglist.replace("0", "{N}")
-
-        tag = reverse("eventlogtag-detail", args=["G1200", "0", "tagname"], request=request)
-        tag = tag.replace("G1200", "{graceid}")
-        tag = tag.replace("0", "{N}")
-        tag = tag.replace("tagname", "{tag_name}")
-
-        signofflist = reverse("signoff-list", args=["G1200"], request=request)
-        signofflist = signofflist.replace("G1200", "{graceid}")
-
-        # XXX Need a template for the tag list?
-
-        templates = {
-                "event-detail-template" : detail,
-                "voevent-list-template" : voevent,
-                "voevent-detail-template" : voevent_detail,
-                "event-log-template" : log,
-                "event-log-detail-template" : log_detail,
-                "emobservation-list-template": emo,
-                "emobservation-detail-template": emo_detail,
-                "embb-event-log-template" : embb,
-                "event-label-template" : labels,
-                "files-template" : files,
-                "tag-template" : tag,
-                "taglist-template" : taglist,
-                "signoff-list-template": signofflist,
-                }
-
-        # Get superevent templates
-        superevent_templates = construct_api_url_templates(request)
-        templates.update(superevent_templates)
-
-        return Response({
-            "links" : {
-                "superevents" : reverse("superevents:superevent-list",
-                    request=request),
-                "events"      : reverse("event-list", request=request),
-                "self"        : reverse("api-root", request=request),
-                "performance" : reverse("performance-info", request=request),
-                },
-            "templates" : templates,
-            "groups"    : [group.name for group in Group.objects.all()],
-            "pipelines" : [pipeline.name for pipeline in Pipeline.objects.all()],
-            "searches"  : [search.name for search in Search.objects.all()],
-            "labels"    : [label.name for label in Label.objects.all()],
-            "em-groups"  : [g.name for g in EMGroup.objects.all()],
-            "wavebands"      : dict(EMSPECTRUM),
-            "eel-statuses"   : dict(EMBBEventLog.EEL_STATUS_CHOICES),
-            "obs-statuses"   : dict(EMBBEventLog.OBS_STATUS_CHOICES),
-            "superevent-categories": dict(Superevent.SUPEREVENT_CATEGORY_CHOICES),
-            "voevent-types"  : dict(VOEvent.VOEVENT_TYPE_CHOICES),
-        })
-
 
 class Files(APIView):
     """Files Resource"""
@@ -1659,10 +1512,10 @@ class Files(APIView):
 
             files = []
             for filename in fnames:
-                rv[filename] = reverse("files", args=[graceid, filename], request=request)
+                rv[filename] = api_reverse("events:files", args=[graceid, filename], request=request)
                 files.append({
                         'name' : filename,
-                        'link' :  reverse("files",
+                        'link' :  api_reverse("events:files",
                             args=[graceid, filename],
                             request=request),
                         })
@@ -1691,8 +1544,8 @@ class Files(APIView):
             # XXX this seems wobbly.
             longname = fdest.name
             shortname = longname[longname.rfind(filename):]
-            rv['permalink'] = reverse(
-                    "files", args=[event.graceid(), shortname], request=request)
+            rv['permalink'] = api_reverse(
+                    "events:files", args=[event.graceid(), shortname], request=request)
             response = Response(rv, status=status.HTTP_201_CREATED)
         except Exception, e:
             # XXX This needs some thought.
@@ -1730,35 +1583,6 @@ class Files(APIView):
             pass
 
         return response
-
-class PerformanceInfo(APIView):
-    """
-    Serialized performance information
-    """
-    authentication_classes = (LigoAuthentication,)
-    permission_classes = (IsAuthenticated,)
-    parser_classes = (parsers.MultiPartParser,)
-
-    def get(self, request, *args, **kwargs):
-        user_groups = set(request.user.groups.all())
-        allowed_groups = set([])
-        try:
-            allowed_groups = set([
-                AuthGroup.objects.get(name=settings.LVC_GROUP),
-                AuthGroup.objects.get(name=settings.EXEC_GROUP),
-            ])
-        except:
-            pass
-
-        if not user_groups & allowed_groups:
-            return HttpResponseForbidden("Forbidden")
-
-        try:
-            performance_info = get_performance_info()
-        except Exception, e:
-            return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response(performance_info,status=status.HTTP_200_OK)
 
 
 #==================================================================

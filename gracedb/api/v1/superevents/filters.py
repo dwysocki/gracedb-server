@@ -1,12 +1,16 @@
-from rest_framework import filters, exceptions
+from __future__ import absolute_import
+import logging
+from pyparsing import ParseException
 
 from django.http import HttpResponseBadRequest
 
-from ..query import parseSupereventQuery
+from rest_framework import filters, exceptions
 
-from pyparsing import ParseException
-import logging
+from superevents.query import parseSupereventQuery
+
+# Set up logger
 logger = logging.getLogger(__name__)
+
 
 class SupereventSearchFilter(filters.SearchFilter):
     search_param = 'query'

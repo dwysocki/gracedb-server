@@ -1,7 +1,9 @@
+import logging
+import six
+
 from rest_framework import fields
 
-import six
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 

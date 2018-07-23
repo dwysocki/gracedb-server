@@ -1,12 +1,18 @@
-from rest_framework import serializers
+from __future__ import absolute_import
+import logging
+
 from django.contrib.auth import get_user_model
 
-from ..models import Event
+from rest_framework import serializers
 
+from events.models import Event
+
+# Set up user model
 UserModel = get_user_model()
 
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
+
 
 class GenericField(serializers.Field):
     # Field, property, or callable of the object which will be used to

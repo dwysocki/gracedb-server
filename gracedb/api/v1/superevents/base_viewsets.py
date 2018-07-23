@@ -5,9 +5,9 @@ from django.shortcuts import get_object_or_404
 from guardian.shortcuts import get_objects_for_user
 from rest_framework import viewsets
 
+from superevents.models import Superevent
+from superevents.utils import get_superevent_by_date_id_or_404
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG
-from ..models import Superevent
-from ..utils import get_superevent_by_date_id_or_404
 
 # Set up logger
 logger = logging.getLogger(__name__)

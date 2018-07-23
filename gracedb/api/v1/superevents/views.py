@@ -1,35 +1,28 @@
+from __future__ import absolute_import
 from collections import OrderedDict
 import logging
 import os
 
 from django.http import HttpResponse
-from django.db.models import QuerySet, Max
+from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 
 from guardian.shortcuts import get_objects_for_user
 from rest_framework import mixins, parsers, permissions, serializers, status, \
     viewsets
 from rest_framework.decorators import action
-from rest_framework.renderers import BaseRenderer, JSONRenderer, \
-    BrowsableAPIRenderer
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-
-from ..models import Superevent, Log
-from ..utils import remove_tag_from_log, remove_event_from_superevent, \
-    remove_label_from_superevent, confirm_superevent_as_gw, \
-    get_superevent_by_date_id_or_404
-
-from core.vfile import VersionedFile
 from core.http import check_and_serve_file
+from core.vfile import VersionedFile
 from events.models import Event, Label
 from events.view_utils import reverse as gracedb_reverse
-#from events.api.views import IsAuthorizedForPipeline, LigoLwRenderer
-from events.api.backends import LigoAuthentication
-
-from ..buildVOEvent import VOEventBuilderException
+from superevents.buildVOEvent import VOEventBuilderException
+from superevents.models import Superevent, Log
+from superevents.utils import remove_tag_from_log, \
+    remove_event_from_superevent, remove_label_from_superevent, \
+    confirm_superevent_as_gw, get_superevent_by_date_id_or_404
 from .base_viewsets import SupereventNestedViewSet
 from .filters import SupereventSearchFilter, SupereventOrderingFilter, \
     DjangoObjectAndGlobalPermissionsFilter
@@ -46,7 +39,9 @@ from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
     SupereventLogSerializer, SupereventLogTagSerializer, \
     SupereventVOEventSerializer, SupereventEMObservationSerializer
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
+from ...utils import api_reverse
 
+# Set up logger
 logger = logging.getLogger(__name__)
 
 
@@ -279,7 +274,7 @@ class SupereventFileViewSet(SupereventNestedViewSet):
 
         # Compile sorted dict of filenames and links
         file_dict = OrderedDict((f,
-            gracedb_reverse('superevents:superevent-file-detail',
+            api_reverse('superevents:superevent-file-detail',
             args=[parent_superevent.superevent_id, f], request=request))
             for f in sorted(file_list))
 
