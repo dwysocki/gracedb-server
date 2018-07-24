@@ -878,7 +878,7 @@ def file_download(request, event, filename):
             msg = "You do not have permission to view this file."
             return HttpResponseForbidden(msg)
 
-    file_path = os.path.join(event.datadir, filename)
+    file_path = os.path.join(event.datadir(), filename)
     return check_and_serve_file(request, file_path,
         ResponseClass=HttpResponse)
 
