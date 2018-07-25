@@ -138,7 +138,7 @@ def construct_voevent_file(superevent, voevent, request=None,
     w.add_Param(Param(name="Pkt_Ser_Num", value=voevent.N))
 
     # The superevent ID
-    w.add_Param(Param(name="SupereventID", 
+    w.add_Param(Param(name="GraceID",
         dataType="string",
         ucd="meta.id", 
         value=superevent.superevent_id, 
@@ -197,7 +197,7 @@ def construct_voevent_file(superevent, voevent, request=None,
         Description=['Indicates that this event is an open alert if 1, no if 0']))
 
     # TODO: fix for superevent
-    w.add_Param(Param(name="SupereventPage",
+    w.add_Param(Param(name="EventPage",
         ucd="meta.ref.url",
         value=build_absolute_uri(reverse("superevents:view",
             args=[superevent.superevent_id]), request),
