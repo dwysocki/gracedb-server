@@ -33,9 +33,9 @@ superevent_preprefix = Optional(Or([CaselessLiteral(pref) for pref in
 superevent_prefix = Or([CaselessLiteral(pref) for pref in
     Superevent.DEFAULT_ID_PREFIX, Superevent.GW_ID_PREFIX])
 superevent_date = Word(nums, exact=6)
-superevent_suffix = Optional(Word(alphas))
-superevent_expr = Combine(superevent_prefix + superevent_date +
-    superevent_suffix)
+superevent_suffix = Word(alphas)
+superevent_expr = Combine(superevent_preprefix + superevent_prefix +
+    superevent_date + superevent_suffix)
 
 # Dict of queryable parameters which are compiled into a pyparsing
 # expression below

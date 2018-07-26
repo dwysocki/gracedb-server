@@ -38,10 +38,7 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
     """
 
     Superevent date-based IDs:
-        Initially, a superevent has an ID like 'Syymmdd' (S180101)
-        If there are multiple superevents on the same date, a letter prefix is
-            added: S180101a, S180101b, etc., based on how many other
-            superevents exist for the given date.
+        Initially, a superevent has an ID like 'S180725a'
         Once a superevent is confirmed as a GW, its prefix is changed to 'GW'
             and its suffix is recalculated in terms of how many confirmed GWs
             exist for the given date. Ex: S180101b -> GW180101A
@@ -65,8 +62,8 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
 
     # Full date-based ID regex:
     # (T|M)?S180709abc OR (T|M)?GW180709ABC
-    ID_REGEX = (r'(({test}|{mdc})?({0})(\d{{6}})([a-z]*)|'
-        '({test}|{mdc})?({1})(\d{{6}})([A-Z]*))').format(DEFAULT_ID_PREFIX,
+    ID_REGEX = (r'(({test}|{mdc})?({0})(\d{{6}})([a-z]+)|'
+        '({test}|{mdc})?({1})(\d{{6}})([A-Z]+))').format(DEFAULT_ID_PREFIX,
         GW_ID_PREFIX, test=SUPEREVENT_CATEGORY_TEST,
         mdc=SUPEREVENT_CATEGORY_MDC)
 
@@ -103,7 +100,7 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
     # Fields for handling date-based IDs
     t_0_date = models.DateField(null=False, editable=False)
     base_date_number = models.PositiveIntegerField(null=False, editable=False)
-    base_letter_suffix = models.CharField(max_length=10, null=True,
+    base_letter_suffix = models.CharField(max_length=10, null=False,
         editable=False)
     gw_date_number = models.PositiveIntegerField(null=True, editable=False)
     gw_letter_suffix = models.CharField(max_length=10, null=True,
@@ -169,22 +166,8 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
 
         # Update letter suffix from date number
         if not pk_set:
-            if self.base_date_number == 1:
-                # No letter suffix for only one superevent on a given date
-                self.base_letter_suffix = ""
-            else:
-                self.base_letter_suffix = int_to_letters(self.base_date_number)
+            self.base_letter_suffix = int_to_letters(self.base_date_number)
             self.save(update_fields=['base_letter_suffix'])
-
-            # If a second superevent is found on a given date, update the first
-            # one from that date to now use a letter suffix for the ID.
-            if self.base_date_number == 2:
-                first_for_date = self.__class__.objects.get(
-                    t_0_date=self.t_0_date, category=self.category,
-                    base_date_number=1)
-                first_for_date.base_letter_suffix = int_to_letters(
-                    first_for_date.base_date_number)
-                first_for_date.save(update_fields=['base_letter_suffix'])
 
         # Add preferred event to events list. Have to do this after base save
         # because the superevent needs a pk to be used as a foreign key in the
@@ -258,23 +241,10 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         self.auto_increment_update('gw_date_number', constraint_fields)
 
         # Update gw_letter_suffix from gw_date_number
-        if self.gw_date_number == 1:
-            # No letter suffix for only one confirmed GW on a given date
-            self.gw_letter_suffix = ""
-        else:
-            self.gw_letter_suffix = int_to_letters(self.gw_date_number).upper()
+        self.gw_letter_suffix = int_to_letters(self.gw_date_number).upper()
 
         # Save the fields which have changed
         self.save(update_fields=['is_gw', 'gw_letter_suffix'])
-
-        # If a second confirmed GW is found for a given date, update the first
-        # one from that date to now use a letter suffix for the ID.
-        if self.gw_date_number == 2:
-            first_for_date = self.__class__.objects.get(is_gw=True,
-                t_0_date=self.t_0_date, gw_date_number=1)
-            first_for_date.gw_letter_suffix = int_to_letters(
-                    first_for_date.gw_date_number).upper()
-            first_for_date.save(update_fields=['gw_letter_suffix'])
 
     def get_absolute_url(self):
         return self.get_web_url()
@@ -335,7 +305,7 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
             d = datetime.datetime.strptime(date_str, cls.DATE_STR_FMT).date()
         except ValueError as e:
             # Catch error for bad date string (i.e., month=13 or something)
-            raise cls.DateIdError(_('Bad superevent date string'))
+            raise cls.DateIdError(_('Bad superevent date string.'))
 
         # FIXME: someone will have to deal with this in 2080
         # Safety check for 2 digit years: enforce year range of [1980 - 2079),
@@ -353,10 +323,7 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
             d = d.replace(year=replace_yr)
 
         # Determine date_number from letter suffix
-        if suffix == "":
-            date_number = 1
-        else:
-            date_number = letters_to_int(suffix.lower())
+        date_number = letters_to_int(suffix.lower())
 
         # Compile query kwargs - we don't have to be too careful here
         # since the regex match above will filter out any issues
