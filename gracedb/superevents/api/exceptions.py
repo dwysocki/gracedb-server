@@ -8,11 +8,14 @@ def gracedb_exception_handler(exc, context):
     # to get the standard error response.
     response = exception_handler(exc, context)
 
-    # Now add the HTTP status code to the response.
-    if response is not None:
-        if response.data.has_key('detail'):
-            response.data['detail'] = []
-            for a in exc.args:
-                response.data['detail'].append(a)
+    # Combine values into one list
+    exc_out = [item for sublist in exc.detail.values() for item in sublist]
+
+    # For only one exception, just print it rather than the list
+    if len(exc_out) == 1:
+        exc_out = exc_out[0]
+
+    # Update response data
+    response.data = exc_out
 
     return response

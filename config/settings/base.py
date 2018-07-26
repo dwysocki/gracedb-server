@@ -337,6 +337,8 @@ REST_FRAMEWORK = {
         'events.api.backends.LigoAuthentication',
     ),
     'COERCE_DECIMAL_TO_STRING': False,
+    'EXCEPTION_HANDLER':
+        'superevents.api.exceptions.gracedb_exception_handler',
 }
 
 # Location of packages installed by bower
