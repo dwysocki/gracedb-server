@@ -51,6 +51,15 @@ def construct_voevent_file(superevent, voevent, request=None,
 
     # Set preferred_event as event to be used in most of this
     event = superevent.preferred_event
+    # Get the event subclass (CoincInspiralEvent, MultiBurstEvent, etc.) and
+    # set that as the event
+    subclass_fields = [f for f in event.__class__._meta.get_fields()
+        if (f.one_to_one and f.auto_created and not f.concrete and
+            event.__class__ in f.related_model.__bases__)]
+    for f in subclass_fields:
+        if hasattr(event, f.name):
+            event = getattr(event, f.name)
+            break
 
     # Let's convert that voevent_type to something nicer looking
     voevent_type = VOEVENT_TYPE_DICT[voevent.voevent_type]
