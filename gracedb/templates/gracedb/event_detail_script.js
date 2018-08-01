@@ -142,8 +142,9 @@ var getKeys = function(obj){
 }
 
 var image_extensions = ['png', 'gif', 'jpg'];
-var TIME_DISP_FMT = 'MMM D, YYYY h:mm:ss A';
-var UTC_TIME_DISP_FMT = 'MMM D, YYYY HH:mm:ss UTC';
+var TIME_DISP_FMT = 'MMM D, YYYY h:mm:ss A z';
+var UTC_TIME_DISP_FMT = 'MMM D, YYYY HH:mm:ss z';
+var UTC_TIME_INPUT_FMT = 'YYYY-MM-DD HH:mm:ss z';
 //var TIME_DISP_FMT = 'LLL';
 
 // A utility function to determine whether a log message has an image.
@@ -567,7 +568,7 @@ require([
 
             // Convert the 'created' times to UTC.
             logs = logs.map( function(obj) {
-                var server_t = moment.tz(obj.created, 'UTC');
+                var server_t = moment.tz(obj.created, UTC_TIME_INPUT_FMT, 'UTC');
                 obj.created = server_t.clone().tz('UTC').format(UTC_TIME_DISP_FMT);
                 return obj;
             });
@@ -617,7 +618,7 @@ require([
                             return timeHeaderContainer;
                         },
                         renderCell: function(object, value, node, options) {
-                            var server_t = moment.tz(object.created, 'UTC');
+                            var server_t = moment.tz(object.created, UTC_TIME_DISP_FMT, 'UTC');
                             var t = put(node, 'time[name="time-log"]', server_t.format(UTC_TIME_DISP_FMT));
                             put(t, '[utc="$"]', server_t.clone().tz('UTC').format(UTC_TIME_DISP_FMT));
                             put(t, '[llo="$"]', server_t.clone().tz('America/Chicago').format(TIME_DISP_FMT));
@@ -777,7 +778,7 @@ require([
                             //return ts;
                         },
                         renderCell: function(object, value, node, options) {
-                            var server_t = moment.tz(object.created, 'UTC');
+                            var server_t = moment.tz(object.created, UTC_TIME_DISP_FMT, 'UTC');
                             var t = put(node, 'time[name="time-audit-log"]', server_t.format(UTC_TIME_DISP_FMT));
                             put(t, '[utc="$"]', server_t.clone().tz('UTC').format(UTC_TIME_DISP_FMT));
                             put(t, '[llo="$"]', server_t.clone().tz('America/Chicago').format(TIME_DISP_FMT));
