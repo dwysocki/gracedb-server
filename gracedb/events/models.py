@@ -376,7 +376,7 @@ class EventLog(CleanSaveModel, LogBase, AutoIncrementModel):
     def fileurl(self):
         if self.filename:
             return reverse('file-download', args=[self.event.graceid(),
-                self.full_filename])
+                self.versioned_filename])
         else:
             return None
 

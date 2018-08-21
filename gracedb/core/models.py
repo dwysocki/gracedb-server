@@ -240,7 +240,7 @@ class LogBase(models.Model):
         ordering = ['-created', '-N']
 
     @property
-    def full_filename(self):
+    def versioned_filename(self):
         if self.filename:
             actual_filename = self.filename
             if self.file_version is not None:

@@ -327,7 +327,7 @@ class SupereventLogSerializer(serializers.ModelSerializer):
         link = None
         if obj.filename:
             link = gracedb_reverse('superevents:superevent-file-detail',
-                args=[obj.superevent.superevent_id, obj.full_filename],
+                args=[obj.superevent.superevent_id, obj.versioned_filename],
                 request=self.context.get('request', None))
         return link
 
