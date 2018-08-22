@@ -1,17 +1,20 @@
-from django.contrib.auth import get_user_model
-from django.db import models, connection
-from django.utils import six
-from django.utils.translation import ugettext_lazy as _
-from django.forms.models import model_to_dict
-from django.db.models import QuerySet
-
-import re
 from collections import OrderedDict
 import logging
+import re
 
-logger = logging.getLogger(__name__)
+from django.db import models, connection
+from django.utils import six
+from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
+from django.forms.models import model_to_dict
+from django.utils.translation import ugettext_lazy as _
 
+
+# Set up user model
 UserModel = get_user_model()
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 
 class CleanSaveModel(models.Model):
