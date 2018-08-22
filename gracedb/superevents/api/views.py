@@ -26,7 +26,8 @@ from events.view_utils import reverse as gracedb_reverse
 from events.api.backends import LigoAuthentication
 
 from ..buildVOEvent import VOEventBuilderException
-from .filters import SupereventSearchFilter, SupereventOrderingFilter
+from .filters import SupereventSearchFilter, SupereventOrderingFilter, \
+    DjangoObjectAndGlobalPermissionsFilter
 from .mixins import GetParentSupereventMixin, BaseGetObjectMixin, \
     SafeDestroyMixin, SafeCreateMixin
 from .paginators import BasePaginationFactory, CustomLabelPagination, \
@@ -52,7 +53,8 @@ class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
     pagination_class = CustomSupereventPagination
     lookup_field = SUPEREVENT_LOOKUP_FIELD
     lookup_value_regex = SUPEREVENT_LOOKUP_REGEX
-    filter_backends = (SupereventSearchFilter, SupereventOrderingFilter,)
+    filter_backends = (DjangoObjectAndGlobalPermissionsFilter,
+        SupereventSearchFilter, SupereventOrderingFilter,)
     ordering_fields = ('created', 't_0', 't_start', 't_end',
         'preferred_event__id', 't_0_date', 'is_gw', 'base_date_number',
         'gw_date_number', 'category')
@@ -63,15 +65,6 @@ class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
         if self.request.method in ["PUT", "PATCH"]:
             serializer_class = SupereventUpdateSerializer
         return serializer_class
-
-    def get_queryset(self):
-        """Filter queryset for user"""
-        # TODO: do we need to filter this any further?
-        # TODO: Check that this might be causing slowness
-        #queryset = get_objects_for_user(self.request.user,
-        #    'superevents.view_superevent')
-        queryset = self.queryset
-        return queryset
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
@@ -172,9 +165,9 @@ class SupereventLogViewSet(mixins.ListModelMixin,
     parser_class = parsers.FileUploadParser
     serializer_class = SupereventLogSerializer
     pagination_class = BasePaginationFactory(results_name='log')
+    filter_backends = (DjangoObjectAndGlobalPermissionsFilter,)
     lookup_field = 'N'
 
-    # TODO: filter logs for viewers
     def get_queryset(self):
         superevent = self.get_parent()
         queryset = superevent.log_set.all().order_by('N')
