@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 class VersionedFile(file):
-    """Open a versioned file.
+    """
+    Open a versioned file.
 
     VersionedFile(name [, mode [, version [, OTHER FILE ARGS]]]) -> file object
     """
@@ -131,7 +132,32 @@ class VersionedFile(file):
     def _name_for_version(self, version):
         if version is None:
             return self.fullname
-        return "{0},{1}".format(self.fullname, version)
+        return self.construct_versioned_name(self.fullname, version)
+
+    @staticmethod
+    def construct_versioned_name(filename, version):
+        return "{0},{1}".format(filename, version)
+
+    @staticmethod
+    def split_versioned_name(versioned_name):
+        """
+        Split a (possibly) versioned file name into file name and version.
+        If filename doesn't include version (according to the convention that
+        we expect), return None for the version.
+        """
+        result = versioned_name.split(',')
+        if len(result) == 2:
+            filename = result[0]
+            version = result[1]
+        elif len(result) == 1:
+            filename = result[0]
+            version = None
+        else:
+            err = 'Filename {0} does not match versioning scheme'.format(
+                versioned_name)
+            raise ValueError(err)
+
+        return filename, version
 
     def _repoint_symlink(self):
         # re-point symlink to latest version
