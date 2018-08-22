@@ -24,7 +24,7 @@ class CustomHiddenDefault(fields.CurrentUserDefault):
 
 
 class ParentObjectDefault(CustomHiddenDefault):
-    view_get_parent_method = 'get_parent'
+    view_get_parent_method = 'get_parent_object'
 
     def __init__(self, *args, **kwargs):
         super(ParentObjectDefault, self).__init__(*args, **kwargs)
