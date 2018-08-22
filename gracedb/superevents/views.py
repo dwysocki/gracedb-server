@@ -49,8 +49,7 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
         if queryset is None:
             queryset = self.get_queryset()
         superevent_id = self.kwargs.get('superevent_id')
-        obj = get_superevent_by_date_id_or_404(self.request, superevent_id,
-            queryset)
+        obj = get_superevent_by_date_id_or_404(superevent_id, queryset)
         return obj
 
     def get_context_data(self, **kwargs):
@@ -106,7 +105,8 @@ def old_webview(request, superevent_id):
     # can do this in template by checking superevent.is_gw
 
     # Get superevent object
-    superevent = get_superevent_by_date_id_or_404(request, superevent_id)
+    # TODO: add queryset to args
+    superevent = get_superevent_by_date_id_or_404(superevent_id)
 
     # Get context
     context = {}
@@ -171,7 +171,8 @@ def web_create_log(request, superevent_id):
 
     # Get superevent id from superevent_id
     # Get superevent object
-    superevent = get_superevent_by_date_id_or_404(request, superevent_id)
+    # TODO: add queryset to args
+    superevent = get_superevent_by_date_id_or_404(superevent_id)
     log_dict['superevent'] = superevent.id
 
     # TODO:
@@ -246,7 +247,8 @@ def confirm_as_gw(request, superevent_id):
 
     # Get superevent id from superevent_id
     # Get superevent object
-    superevent = get_superevent_by_date_id_or_404(request, superevent_id)
+    # TODO: add queryset to args
+    superevent = get_superevent_by_date_id_or_404(superevent_id)
 
     # Set superevent as gw
     confirm_superevent_as_gw(superevent, request.user)
@@ -259,7 +261,8 @@ def confirm_as_gw(request, superevent_id):
 # TODO:
 # filter files for external users (see how this is done for events)
 def file_list(request, superevent_id):
-    superevent = get_superevent_by_date_id_or_404(request, superevent_id)
+    # TODO: add queryset to args
+    superevent = get_superevent_by_date_id_or_404(superevent_id)
     file_list = superevent.list_files(absolute_paths=False)
 
     context = {
@@ -274,8 +277,9 @@ def file_list(request, superevent_id):
 # add permission checking
 def file_download(request, superevent_id, filename):
 
+    # TODO: add queryset to args
     # Get superevent
-    superevent = get_superevent_by_date_id_or_404(request, superevent_id)
+    superevent = get_superevent_by_date_id_or_404(superevent_id)
 
     # Construct absolute path to file
     file_path = os.path.join(superevent.datadir, filename)
@@ -289,7 +293,8 @@ def file_download(request, superevent_id, filename):
 def modify_permissions(request, superevent_id):
 
     # Get superevent
-    superevent = get_superevent_by_date_id_or_404(request, superevent_id)
+    # TODO: add queryset to args
+    superevent = get_superevent_by_date_id_or_404(superevent_id)
 
     # Get info from POST data
     group_name = request.POST.get('group_name', None)
@@ -370,7 +375,8 @@ def modify_signoff(request, superevent_id):
     signoff_dict['submitter'] = request.user.id
 
     # Get superevent id from date-based superevent_id
-    superevent = get_superevent_by_date_id_or_404(request, superevent_id)
+    # TODO: add queryset to args
+    superevent = get_superevent_by_date_id_or_404(superevent_id)
     signoff_dict['superevent'] = superevent.id
     # TODO:
     # After getting superevent, make sure user has appropriate permissions

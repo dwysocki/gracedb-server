@@ -70,7 +70,8 @@ class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         superevent_id = self.kwargs.get(self.lookup_url_kwarg)
 
-        obj = get_superevent_by_date_id_or_404(self.request, superevent_id)
+        # Get superevent by id
+        obj = get_superevent_by_date_id_or_404(superevent_id, queryset)
 
         # TODO: figure this out
         self.check_object_permissions(self.request, obj)

@@ -411,7 +411,7 @@ def get_or_create_tags(tag_name_list, display_name_list=[]):
 
 # TODO: add permissions checking?
 # TODO: move this somewhere else?
-def get_superevent_by_date_id_or_404(request, superevent_id, queryset=None):
+def get_superevent_by_date_id_or_404(superevent_id, queryset=None):
 
     try:
         filter_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup(
