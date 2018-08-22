@@ -101,6 +101,8 @@ LVEM_OBSERVERS_GROUP = 'gw-astronomy:LV-EM:Observers'
 EXEC_GROUP = 'executives'
 # EM Advocate group name
 EM_ADVOCATE_GROUP = 'em_advocates'
+
+# Analysis groups
 # Analysis group name for non-GW events
 EXTERNAL_ANALYSIS_GROUP = 'External'
 

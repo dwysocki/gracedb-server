@@ -371,6 +371,10 @@ class SupereventLogSerializer(serializers.ModelSerializer):
 
 
 class SupereventLogTagSerializer(serializers.ModelSerializer):
+    """
+    Note: this is a little janky due to the lack of a "through" model for
+    the m2m relationship.
+    """
     default_error_messages = {
         'tag_exists_for_log': _('Tag is already applied to this log message'),
     }

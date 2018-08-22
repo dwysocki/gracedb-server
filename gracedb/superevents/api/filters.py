@@ -24,6 +24,7 @@ class SupereventSearchFilter(filters.SearchFilter):
         # MDC superevents
         #if not query:
         #    query = ''
+        # Currently, we just return the full queryset
         if not query:
             return queryset
 

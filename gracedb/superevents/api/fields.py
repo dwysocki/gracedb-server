@@ -40,7 +40,6 @@ class ParentObjectDefault(CustomHiddenDefault):
                 self.view_get_parent_method)
             if callable(value):
                 value = value()
-            #value = serializer_field.context['view'].get_parent()
         return value
 
 
