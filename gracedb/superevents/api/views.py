@@ -32,6 +32,11 @@ from .filters import SupereventSearchFilter, SupereventOrderingFilter, \
 from .mixins import SafeCreateMixin, SafeDestroyMixin
 from .paginators import BasePaginationFactory, CustomLabelPagination, \
     CustomLogTagPagination, CustomSupereventPagination
+from .permissions import SupereventModelPermissions, \
+    SupereventObjectPermissions, SupereventLabellingModelPermissions, \
+    EventParentSupereventPermissions, SupereventLogModelPermissions, \
+    SupereventLogTagModelPermissions, SupereventLogTagObjectPermissions, \
+    SupereventVOEventModelPermissions, ParentSupereventAnnotatePermissions
 from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
     SupereventEventSerializer, SupereventLabelSerializer, \
     SupereventLogSerializer, SupereventLogTagSerializer, \
@@ -51,6 +56,8 @@ class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
     queryset = Superevent.objects.all()
     serializer_class = SupereventSerializer
     pagination_class = CustomSupereventPagination
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+        SupereventModelPermissions, SupereventObjectPermissions,)
     lookup_url_kwarg = SUPEREVENT_LOOKUP_URL_KWARG
     lookup_value_regex = SUPEREVENT_LOOKUP_REGEX
     filter_backends = (DjangoObjectAndGlobalPermissionsFilter,
@@ -105,6 +112,8 @@ class SupereventEventViewSet(mixins.ListModelMixin,
     """View for events attached to a superevent"""
     serializer_class = SupereventEventSerializer
     pagination_class = BasePaginationFactory(results_name='events')
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+        EventParentSupereventPermissions,)
     lookup_url_kwarg = 'graceid'
     destroy_error_classes = (Superevent.PreferredEventRemovalError,)
     destroy_error_response_status = status.HTTP_400_BAD_REQUEST
@@ -138,6 +147,8 @@ class SupereventLabelViewSet(viewsets.ModelViewSet,
     """Superevent labels"""
     serializer_class = SupereventLabelSerializer
     pagination_class = CustomLabelPagination
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+        SupereventLabellingModelPermissions,)
     lookup_url_kwarg = 'label_name'
     lookup_field = 'label__name'
 
@@ -162,6 +173,8 @@ class SupereventLogViewSet(mixins.ListModelMixin,
     serializer_class = SupereventLogSerializer
     pagination_class = BasePaginationFactory(results_name='log')
     filter_backends = (DjangoObjectAndGlobalPermissionsFilter,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+        SupereventLogModelPermissions, ParentSupereventAnnotatePermissions,)
     lookup_url_kwarg = 'N'
     lookup_field = 'N'
 
@@ -169,7 +182,9 @@ class SupereventLogViewSet(mixins.ListModelMixin,
         # Get full set of logs for superevent
         superevent = self.get_parent_object()
         queryset = superevent.log_set.all().order_by('N')
-        # filter for those tagged with external access tagname if is_external(request.user)
+        # NOTE: filtering of logs by view permissions is handled in
+        # filter_queryset by the filter backends.
+
         return queryset
 
 
@@ -183,6 +198,8 @@ class SupereventLogTagViewSet(mixins.ListModelMixin,
     """
     serializer_class = SupereventLogTagSerializer
     pagination_class = CustomLogTagPagination
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+        SupereventLogTagModelPermissions, SupereventLogTagObjectPermissions,)
     lookup_url_kwarg = 'tag_name'
     lookup_field = 'name'
 
@@ -248,6 +265,8 @@ class SupereventVOEventViewSet(mixins.ListModelMixin,
     """
     serializer_class = SupereventVOEventSerializer
     pagination_class = BasePaginationFactory(results_name='voevents')
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+        SupereventVOEventModelPermissions,)
     create_error_classes = (VOEventBuilderException)
     lookup_url_kwarg = 'N'
     lookup_field = 'N'
@@ -268,6 +287,8 @@ class SupereventEMObservationViewSet(mixins.ListModelMixin,
     """
     serializer_class = SupereventEMObservationSerializer
     pagination_class = BasePaginationFactory(results_name='observations')
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+        ParentSupereventAnnotatePermissions,)
     lookup_url_kwarg = 'N'
     lookup_field = 'N'
 
