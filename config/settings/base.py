@@ -344,6 +344,9 @@ REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False,
     'EXCEPTION_HANDLER':
         'superevents.api.exceptions.gracedb_exception_handler',
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    )
 }
 
 # Location of packages installed by bower
