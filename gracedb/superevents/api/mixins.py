@@ -1,14 +1,13 @@
-from django.shortcuts import get_object_or_404
+import logging
+
 from django.core.exceptions import ValidationError as DjangoValidationError
+
+from rest_framework import status, mixins
 from rest_framework.exceptions import ValidationError as \
     RestFrameworkValidationError
-from rest_framework import status, mixins
 from rest_framework.response import Response
 
-from ..models import Superevent
-from .settings import SUPEREVENT_LOOKUP_FIELD, SUPEREVENT_LOOKUP_REGEX
-
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 

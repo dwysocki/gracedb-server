@@ -1,27 +1,29 @@
-from django.shortcuts import get_object_or_404
+import logging
+import os
+
+from django.conf import settings
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 
 from .buildVOEvent import construct_voevent_file
 from .models import Superevent, Log, Labelling, EMObservation, EMFootprint, \
     VOEvent, Signoff
 from .shortcuts import is_superevent
-from events.models import Event, EventLog, Tag, Label
-from events.permission_utils import assign_default_perms
-from events.shortcuts import is_event
-from core.vfile import create_versioned_file
+from alerts.event_utils import issue_alert_for_event_log
 from alerts.superevent_utils import issue_alert_for_superevent_creation, \
     issue_alert_for_superevent_log, \
     issue_alert_for_superevent_label_creation, \
     issue_alert_for_superevent_label_removal, \
     issue_alert_for_superevent_emobservation, \
     issue_alert_for_superevent_voevent, issue_alert_for_superevent_signoff
-from alerts.event_utils import issue_alert_for_event_log
-
-import os
 from core.permission_utils import expose_log_to_lvem, expose_log_to_public, \
     hide_log_from_lvem, hide_log_from_public
+from core.vfile import create_versioned_file
+from events.models import Event, EventLog, Tag, Label
+from events.permission_utils import assign_default_perms
+from events.shortcuts import is_event
 
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 # NOTE: everything in here assumes that permissions have already been checked

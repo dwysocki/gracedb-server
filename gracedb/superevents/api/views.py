@@ -1,19 +1,23 @@
-from rest_framework import parsers
+from collections import OrderedDict
+import logging
+import os
+
+from django.http import HttpResponse
+from django.db.models import QuerySet, Max
+from django.shortcuts import get_object_or_404
+
+from guardian.shortcuts import get_objects_for_user
+from rest_framework import mixins, parsers, permissions, serializers, status, \
+    viewsets
 from rest_framework.decorators import action
 from rest_framework.renderers import BaseRenderer, JSONRenderer, \
     BrowsableAPIRenderer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework import mixins, parsers, serializers, status
-from guardian.shortcuts import get_objects_for_user
 
-from django.http import HttpResponse
-from django.db.models import QuerySet
-from django.shortcuts import get_object_or_404
 
-from ..models import Superevent
+from ..models import Superevent, Log
 from ..utils import remove_tag_from_log, remove_event_from_superevent, \
     remove_label_from_superevent, confirm_superevent_as_gw, \
     get_superevent_by_date_id_or_404
@@ -43,8 +47,6 @@ from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
     SupereventVOEventSerializer, SupereventEMObservationSerializer
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
 
-import os
-import logging
 logger = logging.getLogger(__name__)
 
 
