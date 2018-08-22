@@ -259,7 +259,7 @@ AUTHENTICATION_BACKENDS = (
     'ligoauth.middleware.auth.LigoX509Backend',
     'ligoauth.middleware.auth.LigoShibBackend',
     'ligoauth.middleware.auth.LigoBasicBackend',
-    'ligoauth.middleware.auth.ModelBackend',
+    'ligoauth.backends.GraceDbModelBackend',
 #   'ligoauth.middleware.auth.RemoteUserBackend',
 #   'ligodjangoauth.LigoShibbolethAuthBackend',
 #   'django.contrib.auth.backends.ModelBackend',

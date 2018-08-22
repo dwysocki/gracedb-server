@@ -304,7 +304,3 @@ class LigoBasicBackend:
             return User.objects.get(id=user_id)
         except User.DoesNotExist:
             return None
-
-class ModelBackend(DefaultModelBackend):
-    def authenticate(self, username=None, password=None, **kwargs):
-        return None
