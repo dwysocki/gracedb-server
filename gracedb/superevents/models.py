@@ -13,7 +13,8 @@ from core.time_utils import posixToGpsTime, gpsToUtc
 from core.utils import int_to_letters, letters_to_int
 from events.models import Event, SignoffBase, VOEventBase, EMObservationBase, \
     EMFootprintBase
-from guardian.models import GroupObjectPermission
+from guardian.models import GroupObjectPermission, GroupObjectPermissionBase, \
+    UserObjectPermissionBase
 
 import datetime
 import pytz
@@ -36,7 +37,6 @@ SUPEREVENT_DATE_END = datetime.datetime(2080, 1, 1, 0, 0, 0, 0, pytz.utc)
 
 class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
     """
-
     Superevent date-based IDs:
         Initially, a superevent has an ID like 'S180725a'
         Once a superevent is confirmed as a GW, its prefix is changed to 'GW'
@@ -121,8 +121,20 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
 
         # Extra permissions beyond the standard add, change, delete perms
         permissions = (
+            ('add_test_superevent', 'Can add test superevent'),
+            ('add_mdc_superevent', 'Can add MDC superevent'),
+            ('change_test_superevent', 'Can change test superevent'),
+            ('change_mdc_superevent', 'Can change MDC superevent'),
+            ('confirm_gw_superevent', 'Can confirm superevent as GW'),
+            ('confirm_gw_test_superevent', 'Can confirm test superevent as '
+                'GW'),
+            ('confirm_gw_mdc_superevent', 'Can confirm MDC superevent as GW'),
+            ('annotate_superevent', 'Can add log messages and '
+                'EM observation data to uperevent'),
+            ('expose_superevent', 'Can expose a superevent to be viewed by '
+                'external users'),
+            ('hide_superevent', 'Can hide a superevent from external users'),
             ('view_superevent', 'Can view superevent'),
-            ('confirm_gw_superevent', 'Can confirm as a superevent as a GW'),
         )
 
     # Class method overrides --------------------------------------------------
@@ -421,6 +433,16 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         # incompatible type
         pass
 
+# Classes for direct foreign key lookups of permissions. Should
+# increase speed and efficiency of permission lookups.
+# view_superevent and annotate_superevent will be assigned on a
+# row-level basis
+class SupereventGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey(Superevent, on_delete=models.CASCADE)
+
+class SupereventUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey(Superevent, on_delete=models.CASCADE)
+
 
 class Log(CleanSaveModel, LogBase, AutoIncrementModel):
     """
@@ -435,6 +457,13 @@ class Log(CleanSaveModel, LogBase, AutoIncrementModel):
 
     class Meta(LogBase.Meta):
         unique_together = (('superevent', 'N'),)
+        permissions = (
+            ('expose_log', 'Can expose a log to be viewed by external users'),
+            ('hide_log', 'Can hide a log from external users'),
+            ('tag_log', 'Add tag to log'),
+            ('untag_log', 'Remove tag from log'),
+            ('view_log', 'Can view log'),
+        )
 
     def get_full_file_path(self):
         return os.path.join(self.superevent.datadir, self.versioned_filename)
@@ -442,6 +471,15 @@ class Log(CleanSaveModel, LogBase, AutoIncrementModel):
     def fileurl(self):
         return reverse("superevents:file-download", args=
             [self.superevent.superevent_id, self.versioned_filename])
+
+# Classes for direct foreign key lookups of permissions. Should
+# increase speed and efficiency of permission lookups.
+# view_log will be assigned on a row-level basis.
+class LogGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey(Log, on_delete=models.CASCADE)
+
+class LogUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey(Log, on_delete=models.CASCADE)
 
 
 class Labelling(m2mThroughBase):
