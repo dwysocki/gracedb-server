@@ -236,25 +236,87 @@ class SupereventLogTagViewSet(mixins.ListModelMixin,
             add_log_message=True, issue_alert=False)
 
 
-# TODO: add permissions to this viewset
 class SupereventFileViewSet(SupereventNestedViewSet):
     """Superevent files"""
     lookup_url_kwarg = 'file_name'
 
+    def get_log_queryset(self):
+        # Get full list of logs for parent superevent
+        parent_superevent = self.get_parent_object()
+        return parent_superevent.log_set.all()
+
+    def filter_log_queryset(self, log_queryset):
+        # Filter queryset based on the user's view permissions
+        return get_objects_for_user(self.request.user,
+            'superevents.view_log', log_queryset)
+
     def list(self, request, *args, **kwargs):
-        parent_superevent = self.get_parent()
-        files = parent_superevent.list_files(absolute_paths=False)
-        file_list = {f: gracedb_reverse("superevents:superevent-file-detail",
-            args=[parent_superevent.superevent_id, f], request=request)
-            for f in files}
-        return Response(file_list)
+        # Get logs which are viewable by the current user and
+        # have files attached
+        parent_superevent = self.get_parent_object()
+        viewable_logs = self.filter_log_queryset(self.get_log_queryset())
+        file_logs = viewable_logs.exclude(filename='')
+
+        # List of full versioned filenames
+        file_list = [l.versioned_filename for l in file_logs]
+
+        # Get list of possibly viewable symlinked files by getting
+        # the distinct unversioned filenames from the list of
+        # viewable logs with files
+        possible_symlinks = file_logs.order_by('filename').values_list(
+            'filename', flat=True).distinct()
+
+        # Iterate over possible symlinks
+        for s in possible_symlinks:
+            # Get full path
+            full_path = os.path.join(parent_superevent.datadir, s)
+
+            # If the path is a symlink, get the file it points to (which should
+            # be versioned).  Check if that file is in the file_list already:
+            # if so, then the symlink can be included in the list, as well.
+            if os.path.islink(full_path):
+                pointed_to = os.path.basename(os.path.realpath(full_path))
+                if pointed_to in file_list:
+                    file_list.append(s)
+
+        # Compile sorted dict of filenames and links
+        file_dict = OrderedDict((f,
+            gracedb_reverse('superevents:superevent-file-detail',
+            args=[parent_superevent.superevent_id, f], request=request))
+            for f in sorted(file_list))
+
+        return Response(file_dict)
 
     def retrieve(self, request, *args, **kwargs):
+        # Get parent superevent
+        parent_superevent = self.get_parent_object()
 
-        parent_superevent = self.get_parent()
-        file_name = self.kwargs.get(self.lookup_field, None)
-        file_path = os.path.join(parent_superevent.datadir, file_name)
+        # Get file name from URL kwargs
+        full_filename = self.kwargs.get(self.lookup_url_kwarg)
 
+        # Try to split into name,version (for log lookup)
+        filename, version = Log.split_versioned_filename(full_filename)
+
+        # Get logs which are viewable by the current user and
+        # have files attached
+        filtered_logs = self.filter_log_queryset(self.get_log_queryset())
+
+        # If no version provided, it's a symlink to the most recent version.
+        # So we follow the symlink and get the version that way.
+        if version is None:
+            full_file_path = os.path.join(parent_superevent.datadir, filename)
+            target_file = os.path.realpath(full_file_path)
+            target_basename = os.path.basename(target_file)
+            _, version = Log.split_versioned_filename(target_basename)
+
+        # Get specific log based on filename and version to check if user has
+        # access.
+        log = get_object_or_404(filtered_logs, **{'filename': filename,
+            'file_version': version})
+
+        # Get full file path for serving
+        parent_superevent = self.get_parent_object()
+        file_path = os.path.join(parent_superevent.datadir, full_filename)
         return check_and_serve_file(request, file_path, ResponseClass=Response)
 
 
