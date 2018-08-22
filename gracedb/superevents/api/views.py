@@ -28,15 +28,15 @@ from events.api.backends import LigoAuthentication
 from ..buildVOEvent import VOEventBuilderException
 from .filters import SupereventSearchFilter, SupereventOrderingFilter, \
     DjangoObjectAndGlobalPermissionsFilter
-from .mixins import GetParentSupereventMixin, BaseGetObjectMixin, \
-    SafeDestroyMixin, SafeCreateMixin
+from .mixins import GetParentSupereventMixin, SafeCreateMixin, \
+    SafeDestroyMixin
 from .paginators import BasePaginationFactory, CustomLabelPagination, \
     CustomLogTagPagination, CustomSupereventPagination
 from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
     SupereventEventSerializer, SupereventLabelSerializer, \
     SupereventLogSerializer, SupereventLogTagSerializer, \
     SupereventVOEventSerializer, SupereventEMObservationSerializer
-from .settings import SUPEREVENT_LOOKUP_FIELD, SUPEREVENT_LOOKUP_REGEX
+from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
 
 import os
 import logging
@@ -51,7 +51,7 @@ class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
     queryset = Superevent.objects.all()
     serializer_class = SupereventSerializer
     pagination_class = CustomSupereventPagination
-    lookup_field = SUPEREVENT_LOOKUP_FIELD
+    lookup_url_kwarg = SUPEREVENT_LOOKUP_URL_KWARG
     lookup_value_regex = SUPEREVENT_LOOKUP_REGEX
     filter_backends = (DjangoObjectAndGlobalPermissionsFilter,
         SupereventSearchFilter, SupereventOrderingFilter,)
@@ -68,7 +68,7 @@ class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
-        superevent_id = self.kwargs.get(self.lookup_field)
+        superevent_id = self.kwargs.get(self.lookup_url_kwarg)
 
         obj = get_superevent_by_date_id_or_404(self.request, superevent_id)
 
@@ -105,7 +105,7 @@ class SupereventEventViewSet(mixins.ListModelMixin,
     """View for events attached to a superevent"""
     serializer_class = SupereventEventSerializer
     pagination_class = BasePaginationFactory(results_name='events')
-    lookup_field = 'graceid'
+    lookup_url_kwarg = 'graceid'
     destroy_error_classes = (Superevent.PreferredEventRemovalError,)
     destroy_error_response_status = status.HTTP_400_BAD_REQUEST
 
@@ -117,7 +117,7 @@ class SupereventEventViewSet(mixins.ListModelMixin,
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
-        graceid = self.kwargs.get(self.lookup_field)
+        graceid = self.kwargs.get(self.lookup_url_kwarg)
         filter_kwargs = {'id': int(graceid[1:])}
         obj = get_object_or_404(queryset, **filter_kwargs)
 
@@ -134,13 +134,12 @@ class SupereventEventViewSet(mixins.ListModelMixin,
 
 
 class SupereventLabelViewSet(GetParentSupereventMixin,
-                             BaseGetObjectMixin,
                              viewsets.ModelViewSet):
     """Superevent labels"""
     serializer_class = SupereventLabelSerializer
     pagination_class = CustomLabelPagination
-    lookup_field = 'label_name'
-    query_field = 'label__name'
+    lookup_url_kwarg = 'label_name'
+    lookup_field = 'label__name'
 
     def get_queryset(self):
         superevent = self.get_parent()
@@ -157,7 +156,6 @@ class SupereventLogViewSet(mixins.ListModelMixin,
                            mixins.RetrieveModelMixin,
                            SafeCreateMixin,
                            GetParentSupereventMixin,
-                           BaseGetObjectMixin,
                            viewsets.GenericViewSet):
     """
     View for log messages attached to a superevent.
@@ -166,6 +164,7 @@ class SupereventLogViewSet(mixins.ListModelMixin,
     serializer_class = SupereventLogSerializer
     pagination_class = BasePaginationFactory(results_name='log')
     filter_backends = (DjangoObjectAndGlobalPermissionsFilter,)
+    lookup_url_kwarg = 'N'
     lookup_field = 'N'
 
     def get_queryset(self):
@@ -176,7 +175,6 @@ class SupereventLogViewSet(mixins.ListModelMixin,
 
 
 class SupereventLogTagViewSet(GetParentSupereventMixin,
-                              BaseGetObjectMixin,
                               viewsets.ModelViewSet,
                               SafeCreateMixin):
     """
@@ -184,8 +182,8 @@ class SupereventLogTagViewSet(GetParentSupereventMixin,
     """
     serializer_class = SupereventLogTagSerializer
     pagination_class = CustomLogTagPagination
-    lookup_field = 'tag_name'
-    query_field = 'name'
+    lookup_url_kwarg = 'tag_name'
+    lookup_field = 'name'
 
     def get_parent_log(self):
         # TODO: check superevent permissions here
@@ -207,7 +205,7 @@ class SupereventLogTagViewSet(GetParentSupereventMixin,
 class SupereventFileViewSet(GetParentSupereventMixin,
                             viewsets.ViewSet):
     """Superevent files"""
-    lookup_field = 'file_name'
+    lookup_url_kwarg = 'file_name'
 
     def list(self, request, *args, **kwargs):
         parent_superevent = self.get_parent()
@@ -230,15 +228,15 @@ class SupereventVOEventViewSet(mixins.ListModelMixin,
                                mixins.RetrieveModelMixin,
                                SafeCreateMixin,
                                GetParentSupereventMixin,
-                               BaseGetObjectMixin,
                                viewsets.GenericViewSet):
     """
     View for VOEvents attached to a superevent.
     """
     serializer_class = SupereventVOEventSerializer
     pagination_class = BasePaginationFactory(results_name='voevents')
-    lookup_field = 'N'
     create_error_classes = (VOEventBuilderException)
+    lookup_url_kwarg = 'N'
+    lookup_field = 'N'
 
     def get_queryset(self):
         superevent = self.get_parent()
@@ -257,6 +255,7 @@ class SupereventEMObservationViewSet(mixins.ListModelMixin,
     """
     serializer_class = SupereventEMObservationSerializer
     pagination_class = BasePaginationFactory(results_name='observations')
+    lookup_url_kwarg = 'N'
     lookup_field = 'N'
 
     def get_queryset(self):

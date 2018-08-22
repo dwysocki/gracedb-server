@@ -8,7 +8,7 @@ from ..models import Superevent, Labelling, Log, VOEvent, EMObservation, \
 
 from .fields import ParentObjectDefault, CommaSeparatedOrListField, \
     ChoiceDisplayField
-from .settings import SUPEREVENT_LOOKUP_FIELD
+from .settings import SUPEREVENT_LOOKUP_URL_KWARG
 
 from events.models import Event, Label, Tag, EMGroup
 from events.view_utils import reverse as gracedb_reverse
@@ -389,7 +389,7 @@ class SupereventLogTagSerializer(serializers.ModelSerializer):
 
     def get_self(self, obj):
         superevent_id = self.context['view'].kwargs.get(
-            SUPEREVENT_LOOKUP_FIELD)
+            SUPEREVENT_LOOKUP_URL_KWARG)
         log_N = self.context['view'].kwargs.get('N')
         return gracedb_reverse('superevents:superevent-log-tag-detail',
             args=[superevent_id, log_N, obj.name],
