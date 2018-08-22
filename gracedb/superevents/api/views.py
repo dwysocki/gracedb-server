@@ -82,15 +82,14 @@ class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
         # Get superevent by id
         obj = get_superevent_by_date_id_or_404(superevent_id, queryset)
 
-        # TODO: figure this out
+        # Check permissions
         self.check_object_permissions(self.request, obj)
 
         return obj
 
     @action(methods=['post'], detail=True)
     def confirm_as_gw(self, request, superevent_id):
-        # TODO: permissions checking!!
-
+        """Confirm a superevent as a GW"""
         # Get superevent
         superevent = self.get_object()
 
@@ -123,19 +122,19 @@ class SupereventEventViewSet(mixins.ListModelMixin,
     def get_queryset(self):
         superevent = self.get_parent_object()
         queryset = superevent.events.all()
-        # TODO: filter events for user
+        # TODO: filter events for user (?)
         return queryset
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
         graceid = self.kwargs.get(self.lookup_url_kwarg)
         filter_kwargs = {'id': int(graceid[1:])}
-        obj = get_object_or_404(queryset, **filter_kwargs)
+        event = get_object_or_404(queryset, **filter_kwargs)
 
-        # TODO: figure this out
-        self.check_object_permissions(self.request, obj)
+        # Check event object permissions (?)
+        self.check_object_permissions(self.request, event)
 
-        return obj
+        return event
 
     def perform_destroy(self, instance):
         remove_event_from_superevent(instance.superevent, instance,
@@ -226,9 +225,8 @@ class SupereventLogTagViewSet(mixins.ListModelMixin,
         return self._parent_log
 
     def get_queryset(self):
-        # TODO: for external users, check permissions on the log
         parent_log = self.get_parent_log()
-        return parent_log.tags.all()
+        return parent_log.tags.all().order_by('name')
 
     def perform_destroy(self, instance):
         parent_log = self.get_parent_log()
@@ -338,7 +336,6 @@ class SupereventVOEventViewSet(mixins.ListModelMixin,
     def get_queryset(self):
         superevent = self.get_parent_object()
         queryset = superevent.voevent_set.all()
-        # filter for those tagged with external access tagname if is_external(request.user)
         return queryset
 
 
@@ -359,6 +356,4 @@ class SupereventEMObservationViewSet(mixins.ListModelMixin,
     def get_queryset(self):
         superevent = self.get_parent_object()
         queryset = superevent.emobservation_set.all()
-        # filter for those tagged with external access tagname if is_external(request.user)
         return queryset
-
