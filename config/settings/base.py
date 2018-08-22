@@ -97,6 +97,8 @@ EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@{fqdn}'.format(fqdn=SERVER_FQDN)]
 LVC_GROUP = 'Communities:LSCVirgoLIGOGroupMembers'
 LVEM_GROUP = 'gw-astronomy:LV-EM'
 LVEM_OBSERVERS_GROUP = 'gw-astronomy:LV-EM:Observers'
+PUBLIC_GROUP = 'public_users'
+
 # Executives group name
 EXEC_GROUP = 'executives'
 # EM Advocate group name
@@ -111,6 +113,7 @@ ADMIN_MANAGED_GROUPS = [EM_ADVOCATE_GROUP, 'executives']
 
 # Tag to apply to log messages to allow EM partners to view
 EXTERNAL_ACCESS_TAGNAME = 'lvem'
+PUBLIC_ACCESS_TAGNAME = 'public'
 
 # FAR floor for outgoing VOEvents intended for GCN
 VOEVENT_FAR_FLOOR = 0 # Hz

@@ -18,6 +18,8 @@ from alerts.superevent_utils import issue_alert_for_superevent_creation, \
 from alerts.event_utils import issue_alert_for_event_log
 
 import os
+from core.permission_utils import expose_log_to_lvem, expose_log_to_public, \
+    hide_log_from_lvem, hide_log_from_public
 
 import logging
 logger = logging.getLogger(__name__)
@@ -232,6 +234,21 @@ def add_tag_to_log(log, tag, user, add_log_message=True, issue_alert=False):
     # Add tag to log
     log.tags.add(tag)
 
+    # If this tag controls whether the log is exposed or not, we need to create
+    # a corresponding GroupObjectPermission.  If we get to this point,
+    # permissions should have already been checked.
+    if (tag.name == settings.EXTERNAL_ACCESS_TAGNAME):
+        expose_log_to_lvem(log)
+    elif (tag.name == settings.PUBLIC_ACCESS_TAGNAME):
+        expose_log_to_public(log)
+        # Publicly exposed tags should also be exposed to LV-EM, if they
+        # aren't already
+        lvem_tag_applied = log.tags.filter(
+            name=settings.EXTERNAL_ACCESS_TAGNAME).exists()
+        if not lvem_tag_applied:
+            lvem_tag = Tag.objects.get(name=settings.EXTERNAL_ACCESS_TAGNAME)
+            add_tag_to_log(log, lvem_tag, user)
+
     # Create log message to record tag addition?
     log_for_tag_addition = None
     if add_log_message:
@@ -249,6 +266,21 @@ def remove_tag_from_log(log, tag, user, add_log_message=True,
 
     # Remove tag from log
     log.tags.remove(tag)
+
+    # If this tag controls whether the log is exposed or not, we need to create
+    # a corresponding GroupObjectPermission.  If we get to this point,
+    # permissions should have already been checked.
+    if (tag.name == settings.EXTERNAL_ACCESS_TAGNAME):
+        hide_log_from_lvem(log)
+        # If the log is hidden from LV-EM, it should also be hidden from the
+        # public
+        public_tag_applied = log.tags.filter(
+            name=settings.PUBLIC_ACCESS_TAGNAME).exists()
+        if not public_tag_applied:
+            public_tag = Tag.objects.get(name=settings.PUBLIC_ACCESS_TAGNAME)
+            remove_tag_from_log(log, public_tag, user)
+    elif (tag.name == settings.PUBLIC_ACCESS_TAGNAME):
+        hide_log_from_public(log)
 
     # Create log message to record tag removal?
     log_for_tag_removal = None
