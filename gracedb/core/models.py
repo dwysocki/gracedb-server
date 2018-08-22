@@ -9,6 +9,7 @@ from django.db.models import QuerySet
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext_lazy as _
 
+from core.vfile import VersionedFile
 
 # Set up user model
 UserModel = get_user_model()
@@ -260,6 +261,11 @@ class LogBase(models.Model):
         # XXX hacky
         IMAGE_EXT = ['png', 'gif', 'jpg']
         return (self.filename and self.filename[-3:].lower() in IMAGE_EXT)
+
+    @staticmethod
+    def split_versioned_filename(versioned_name):
+        filename, version = VersionedFile.split_versioned_name(versioned_name)
+        return filename, version
 
 
 class m2mThroughBase(models.Model):
