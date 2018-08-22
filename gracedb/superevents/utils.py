@@ -20,7 +20,6 @@ from core.permission_utils import expose_log_to_lvem, expose_log_to_public, \
     hide_log_from_lvem, hide_log_from_public
 from core.vfile import create_versioned_file
 from events.models import Event, EventLog, Tag, Label
-from events.permission_utils import assign_default_perms
 from events.shortcuts import is_event
 
 # Set up logger
@@ -107,10 +106,6 @@ def create_superevent(submitter, t_start, t_0, t_end, preferred_event,
     for label in labels:
         l = add_label_to_superevent(s, label, submitter,
             add_log_message=True, issue_alert=issue_alert)
-
-    # Create default GroupObjectPermissions - LVC group and executives group
-    # can view/change superevents
-    assign_default_perms(s)
 
     # Look at event creation functions to see if there is anything else we should add here.
     # CREATE DIRECTORY
