@@ -6,6 +6,8 @@ from django.urls import reverse
 from django.utils.html import escape
 from django.views.decorators.http import require_POST, require_GET
 
+from guardian.shortcuts import get_objects_for_user
+
 from .forms import MainSearchForm
 from .utils import get_search_results_as_ligolw
 from core.http import check_and_serve_file
@@ -39,6 +41,14 @@ def search(request):
 
             # TODO:
             # Filter objects for user
+            if query_type == 'S':
+                view_perm = 'superevents.view_superevent'
+            elif query_type == 'E':
+                view_perm = 'events.view_event'
+            else:
+                # TODO: raise error
+                pass
+            objects = get_objects_for_user(request.user, view_perm, objects)
 
             # Get call from template for populating flexigrid table
             if _format == 'F':
