@@ -228,8 +228,8 @@ def logentry(request, event, num=None):
             except Exception, e:
                 return HttpResponseServerError(str(e))
 
-        elog.filename = filename
-        elog.file_version = file_version
+            elog.filename = filename
+            elog.file_version = file_version
 
         try:
             elog.save()
@@ -269,8 +269,7 @@ def logentry(request, event, num=None):
             try:
                 tag = Tag.objects.get(name=settings.EXTERNAL_ACCESS_TAGNAME)
             except:
-                displayName = request.POST.get('displayName')
-                tag = Tag(name=tagname, displayName=displayName)
+                tag = Tag(name=settings.EXTERNAL_ACCESS_TAGNAME)
                 tag.save()
             # I'm putting this in a try/except in case the user has already
             # added the external access tagname somehow, and the following 
