@@ -12,12 +12,12 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse as drf_reverse
 from rest_framework.views import APIView
 
+from api.backends import LigoAuthentication
 from api.utils import api_reverse
 from events.models import Group, Pipeline, Search, Tag, Label, EMGroup, \
     VOEvent, EMBBEventLog, EMSPECTRUM
 from events.view_logic import get_performance_info
 from superevents.models import Superevent
-from ..backends import LigoAuthentication
 from ..superevents.url_templates import construct_url_templates
 
 

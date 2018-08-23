@@ -33,6 +33,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from alerts.old_alert import issueAlertForUpdate
+from api.backends import LigoAuthentication
 from core.http import check_and_serve_file
 from core.vfile import VersionedFile
 from events.buildVOEvent import buildVOEvent, VOEventBuilderException
@@ -50,7 +51,6 @@ from events.view_utils import eventToDict, eventLogToDict, labelToDict, \
     skymapViewerEMObservationToDict, BadFARRange, check_query_far_range
 from superevents.models import Superevent
 from .throttles import EventCreationThrottle, AnnotationThrottle
-from ..backends import LigoAuthentication
 from ...utils import api_reverse
 
 # Set up logger

@@ -345,7 +345,7 @@ REST_FRAMEWORK = {
         'annotation'    : '10/second',
     },
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'api.v1.backends.LigoAuthentication',
+        'api.backends.LigoAuthentication',
     ),
     'COERCE_DECIMAL_TO_STRING': False,
     'EXCEPTION_HANDLER':

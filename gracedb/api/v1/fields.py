@@ -1,13 +1,14 @@
+from __future__ import absolute_import
 import logging
 import six
 
-from rest_framework import fields
+from rest_framework import serializers
 
 # Set up logger
 logger = logging.getLogger(__name__)
 
 
-class CustomHiddenDefault(fields.CurrentUserDefault):
+class CustomHiddenDefault(serializers.CurrentUserDefault):
     context_key = None
 
     def __init__(self, *args, **kwargs):
@@ -45,7 +46,7 @@ class ParentObjectDefault(CustomHiddenDefault):
         return value
 
 
-class CommaSeparatedOrListField(fields.ListField):
+class CommaSeparatedOrListField(serializers.ListField):
     default_style = {'base_template': 'input.html'}
 
     def __init__(self, *args, **kwargs):
@@ -66,7 +67,7 @@ class CommaSeparatedOrListField(fields.ListField):
         return super(CommaSeparatedOrListField, self).to_internal_value(data)
 
 
-class ChoiceDisplayField(fields.ChoiceField):
+class ChoiceDisplayField(serializers.ChoiceField):
     """
     Same as standard choice field, but return a choice's display_value
     instead of the key when serializing the field.
@@ -74,3 +75,42 @@ class ChoiceDisplayField(fields.ChoiceField):
 
     def to_representation(self, value):
         return self._choices[value]
+
+
+class GenericField(serializers.Field):
+    # Field, property, or callable of the object which will be used to
+    # generate the representation of the object.
+    to_repr = None
+    lookup_field = 'id'
+    model = None
+
+    def __init__(self, *args, **kwargs):
+        self.to_repr = kwargs.pop('to_repr', self.to_repr)
+        self.lookup_field = kwargs.pop('lookup_field', self.lookup_field)
+        self.model = kwargs.pop('model', self.model)
+
+        assert self.to_repr is not None, ('Must specify to_repr')
+        assert self.model is not None, ('Must specify model')
+        super(GenericField, self).__init__(*args, **kwargs)
+
+    def to_representation(self, obj):
+        value = getattr(obj, self.to_repr)
+
+        # Handle case where we are given a function instead of
+        # a model field or a property
+        if callable(value):
+            value = value()
+        return value
+
+    def to_internal_value(self, data):
+        model_dict = self.get_model_dict(data)
+        try:
+            return self.model.objects.get(**model_dict)
+        except self.model.DoesNotExist:
+            error_msg = '{model} with {lf}={data} does not exist' \
+                .format(model=self.model.__name__, lf=model_dict.keys()[0],
+                data=model_dict.values()[0])
+            raise serializers.ValidationError(error_msg)
+
+    def get_model_dict(self, data):
+        return {self.lookup_field: data}
