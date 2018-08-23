@@ -215,8 +215,9 @@ class TestPerms(TestCase):
 
     def search_helper(self, query, user):
         """Helper function for search tests"""
-        url = '{baseurl}?{query}'.format(baseurl=reverse('search',
-            args=['flex']), query=urlencode({'query': query}))
+        url = '{baseurl}?{query}'.format(baseurl=reverse('mainsearch'),
+            query=urlencode({'query': query, 'results_format': 'F',
+            'query_type': 'E'}))
         response = self.client.get(url, **extra_args(user))
         res = json.loads(response.content)
         return res
