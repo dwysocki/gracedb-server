@@ -19,7 +19,8 @@ class GraceDbApiTestBase(GraceDbTestBase):
             # Set up user dict
             user_dict = {
                 'HTTP_REMOTE_USER': user.username,
-                'HTTP_ISMEMBEROF': ';'.join([g.name for g in user.groups.all()]),
+                'HTTP_ISMEMBEROF': ';'.join([g.name for g in
+                    user.groups.all()]),
             }
 
             # Make request and return response

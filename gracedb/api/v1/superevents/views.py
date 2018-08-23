@@ -23,12 +23,8 @@ from superevents.models import Superevent, Log
 from superevents.utils import remove_tag_from_log, \
     remove_event_from_superevent, remove_label_from_superevent, \
     confirm_superevent_as_gw, get_superevent_by_date_id_or_404
-from .base_viewsets import SupereventNestedViewSet
-from .filters import SupereventSearchFilter, SupereventOrderingFilter, \
-    DjangoObjectAndGlobalPermissionsFilter
-from .mixins import SafeCreateMixin, SafeDestroyMixin
-from .paginators import BasePaginationFactory, CustomLabelPagination, \
-    CustomLogTagPagination, CustomSupereventPagination
+from .filters import SupereventSearchFilter, SupereventOrderingFilter
+from .paginators import CustomSupereventPagination
 from .permissions import SupereventModelPermissions, \
     SupereventObjectPermissions, SupereventLabellingModelPermissions, \
     EventParentSupereventPermissions, SupereventLogModelPermissions, \
@@ -39,6 +35,11 @@ from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
     SupereventLogSerializer, SupereventLogTagSerializer, \
     SupereventVOEventSerializer, SupereventEMObservationSerializer
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
+from .viewsets import SupereventNestedViewSet
+from ..filters import DjangoObjectAndGlobalPermissionsFilter
+from ..mixins import SafeCreateMixin, SafeDestroyMixin
+from ..paginators import BasePaginationFactory, CustomLabelPagination, \
+    CustomLogTagPagination
 from ...utils import api_reverse
 
 # Set up logger

@@ -10,6 +10,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from guardian.shortcuts import assign_perm, remove_perm
 
+from api.tests.utils import GraceDbApiTestBase
 from core.permission_utils import expose_event_or_superevent_to_lvem, \
     expose_event_or_superevent_to_public, expose_log_to_lvem, \
     expose_log_to_public
@@ -20,7 +21,7 @@ from superevents.models import Superevent, Labelling, Log, VOEvent, \
     EMObservation
 from superevents.utils import create_log
 from .mixins import SupereventCreateMixin
-from .utils import GraceDbApiTestBase
+
 
 class SupereventSetup(GraceDbTestBase, SupereventCreateMixin):
     """

@@ -13,9 +13,9 @@ from rest_framework.exceptions import ValidationError
 from events.models import Event, Label, Tag, EMGroup
 from superevents.models import Superevent, Labelling, Log, VOEvent, \
     EMObservation, EMFootprint, Signoff
-from .fields import ParentObjectDefault, CommaSeparatedOrListField, \
-    ChoiceDisplayField
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG
+from ..fields import ParentObjectDefault, CommaSeparatedOrListField, \
+    ChoiceDisplayField
 from ..events.fields import EventGraceidField
 from ...utils import api_reverse
 

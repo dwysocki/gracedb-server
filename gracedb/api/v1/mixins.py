@@ -16,7 +16,7 @@ class SafeDestroyMixin(mixins.DestroyModelMixin):
     """
     Copy of rest_framework's DestroyModelMixin which wraps
     the call to perform_destroy() in a try-except block for
-    proper response handling.
+    proper error handling.
     """
     destroy_error_classes = (Exception,)
     destroy_error_response_status = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -36,7 +36,7 @@ class SafeCreateMixin(mixins.CreateModelMixin):
     """
     Copy of rest_framework's CreateModelMixin which wraps
     the call to perform_destroy() in a try-except block for
-    proper response handling.
+    proper error handling.
     """
     create_error_classes = \
         (DjangoValidationError, RestFrameworkValidationError)
@@ -52,5 +52,6 @@ class SafeCreateMixin(mixins.CreateModelMixin):
             err_msg = self.create_error_message or e.__str__()
             return Response(err_msg, status=self.create_error_response_status)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data, status=status.HTTP_201_CREATED,
+            headers=headers)
 
