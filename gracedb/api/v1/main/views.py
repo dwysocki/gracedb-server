@@ -10,6 +10,7 @@ from rest_framework import parsers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse as drf_reverse
+from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
 from api.backends import LigoAuthentication
@@ -136,6 +137,7 @@ class GracedbRoot(APIView):
             "superevent-categories": 
                 dict(Superevent.SUPEREVENT_CATEGORY_CHOICES),
             "voevent-types"  : dict(VOEvent.VOEVENT_TYPE_CHOICES),
+            "API_VERSIONS": api_settings.ALLOWED_VERSIONS,
         })
 
 
