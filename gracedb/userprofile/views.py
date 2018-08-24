@@ -22,7 +22,8 @@ log = logging.getLogger(__name__)
 
 from .models import Trigger, Contact
 from .forms import ContactForm, triggerFormFactory, TriggerForm
-from events.permission_utils import internal_user_required, lvem_user_required
+from events.permission_utils import internal_user_required, \
+    lvem_user_required, is_external
 from events.query import labelQuery
 from events.models import Label
 from events.alert import get_twilio_from
@@ -38,6 +39,13 @@ def index(request):
 
 @lvem_user_required
 def managePassword(request):
+    # lvem_user_required only checks for LVEM group membership,
+    # not the absence of LVC membership.  We want this page to be
+    # forbidden to LVC members - they don't need passwords since they
+    # have certificate-based access to the API.
+    if not is_external(request.user):
+        return HttpResponseForbidden("Forbidden")
+
     # Set up context dictionary
     d = { 'username': request.user.username }
 
