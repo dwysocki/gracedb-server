@@ -336,7 +336,7 @@ REST_FRAMEWORK = {
         'api.versioning.NestedNamespaceVersioning',
         #'rest_framework.versioning.NamespaceVersioning',
     'DEFAULT_VERSION': 'default',
-    'ALLOWED_VERSIONS': ['default', 'v1'],
+    'ALLOWED_VERSIONS': ['default', 'v1', 'v2'],
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 1e7,
