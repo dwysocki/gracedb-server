@@ -21,6 +21,12 @@ from superevents.models import Superevent, Labelling, Log, VOEvent, \
     EMObservation
 from superevents.utils import create_log
 from .mixins import SupereventCreateMixin
+from ...settings import API_VERSION
+
+def v_reverse(viewname, *args, **kwargs):
+    """Easily customizable versioned API reverse for testing"""
+    viewname = 'api:{version}:'.format(version=API_VERSION) + viewname
+    return reverse(viewname, *args, **kwargs)
 
 
 class SupereventSetup(GraceDbTestBase, SupereventCreateMixin):
@@ -50,7 +56,7 @@ class TestSupereventListGet(SupereventSetup, GraceDbApiTestBase):
     @classmethod
     def setUpClass(cls):
         super(TestSupereventListGet, cls).setUpClass()
-        cls.url = reverse('api:default:superevents:superevent-list')
+        cls.url = v_reverse('superevents:superevent-list')
 
     def test_internal_user(self):
         """Internal user sees all superevents"""
@@ -133,7 +139,7 @@ class TestSupereventListPost(SupereventManagersGroupAndUserSetup,
     @classmethod
     def setUpClass(cls):
         super(TestSupereventListPost, cls).setUpClass()
-        cls.url = reverse('api:default:superevents:superevent-list')
+        cls.url = v_reverse('superevents:superevent-list')
 
     def test_basic_internal_production(self):
         """Basic internal user can't create a production superevent"""
@@ -258,7 +264,7 @@ class TestSupereventDetail(SupereventSetup, GraceDbApiTestBase):
         """Internal user can get all superevent details"""
         for s in Superevent.objects.all():
             # Set up URL
-            url = reverse('api:default:superevents:superevent-detail',
+            url = v_reverse('superevents:superevent-detail',
                 args=[s.superevent_id])
             # Get response and check code
             response = self.request_as_user(url, "GET",
@@ -273,7 +279,7 @@ class TestSupereventDetail(SupereventSetup, GraceDbApiTestBase):
         have not been added
         """
         # Set up URL
-        url = reverse('api:default:superevents:superevent-detail',
+        url = v_reverse('superevents:superevent-detail',
             args=[self.internal_superevent.superevent_id])
         # Get response and check code
         response = self.request_as_user(url, "GET", self.lvem_user)
@@ -286,7 +292,7 @@ class TestSupereventDetail(SupereventSetup, GraceDbApiTestBase):
         LV-EM user can GET this superevent since permissions have been added
         """
         # Set up URL
-        url = reverse('api:default:superevents:superevent-detail',
+        url = v_reverse('superevents:superevent-detail',
             args=[self.lvem_superevent.superevent_id])
         # Get response and check code
         response = self.request_as_user(url, "GET", self.lvem_user)
@@ -312,7 +318,7 @@ class TestSupereventDetail(SupereventSetup, GraceDbApiTestBase):
     def test_basic_internal_patch_production(self):
         """Basic internal user can't update production superevents"""
         # Define url, make request, and check response
-        url = reverse('api:default:superevents:superevent-detail',
+        url = v_reverse('superevents:superevent-detail',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "PATCH", self.internal_user,
             data={'t_0': 1234})
@@ -324,7 +330,7 @@ class TestSupereventDetail(SupereventSetup, GraceDbApiTestBase):
         s = self.create_superevent(self.internal_user, event_search='MDC',
             category=Superevent.SUPEREVENT_CATEGORY_MDC)
         # Define url, make request, and check response
-        url = reverse('api:default:superevents:superevent-detail',
+        url = v_reverse('superevents:superevent-detail',
             args=[s.superevent_id])
         response = self.request_as_user(url, "PATCH", self.internal_user,
             data={'t_0': 1234})
@@ -336,7 +342,7 @@ class TestSupereventDetail(SupereventSetup, GraceDbApiTestBase):
         s = self.create_superevent(self.internal_user, event_group='Test',
             category=Superevent.SUPEREVENT_CATEGORY_TEST)
         # Define url, make request, and check response
-        url = reverse('api:default:superevents:superevent-detail',
+        url = v_reverse('superevents:superevent-detail',
             args=[s.superevent_id])
         response = self.request_as_user(url, "PATCH", self.internal_user,
             data={'t_0': 1234})
@@ -374,21 +380,21 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
 
     def test_basic_internal_user_confirm_production(self):
         """Basic internal user can't confirm production superevent as GW"""
-        url = reverse('api:default:superevents:superevent-confirm-as-gw',
+        url = v_reverse('superevents:superevent-confirm-as-gw',
             args=[self.production_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user)
         self.assertEqual(response.status_code, 403)
 
     def test_basic_internal_user_confirm_mdc(self):
         """Basic internal user can't confirm MDC superevent as GW"""
-        url = reverse('api:default:superevents:superevent-confirm-as-gw',
+        url = v_reverse('superevents:superevent-confirm-as-gw',
             args=[self.mdc_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user)
         self.assertEqual(response.status_code, 403)
 
     def test_basic_internal_user_confirm_test(self):
         """Basic internal user can confirm test superevent as GW"""
-        url = reverse('api:default:superevents:superevent-confirm-as-gw',
+        url = v_reverse('superevents:superevent-confirm-as-gw',
             args=[self.test_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user)
         self.assertEqual(response.status_code, 200)
@@ -398,7 +404,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
 
     def test_privileged_internal_user_confirm_production(self):
         """Privileged internal user can confirm production superevent as GW"""
-        url = reverse('api:default:superevents:superevent-confirm-as-gw',
+        url = v_reverse('superevents:superevent-confirm-as-gw',
             args=[self.production_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.sm_user)
         self.assertEqual(response.status_code, 200)
@@ -408,7 +414,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
 
     def test_privileged_internal_user_confirm_mdc(self):
         """Privileged internal user can confirm MDC superevent as GW"""
-        url = reverse('api:default:superevents:superevent-confirm-as-gw',
+        url = v_reverse('superevents:superevent-confirm-as-gw',
             args=[self.mdc_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.sm_user)
         self.assertEqual(response.status_code, 200)
@@ -418,7 +424,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
 
     def test_privileged_internal_user_confirm_test(self):
         """Privileged internal user can confirm test superevent as GW"""
-        url = reverse('api:default:superevents:superevent-confirm-as-gw',
+        url = v_reverse('superevents:superevent-confirm-as-gw',
             args=[self.test_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.sm_user)
         self.assertEqual(response.status_code, 200)
@@ -428,7 +434,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
 
     def test_lvem_user_confirm_production(self):
         """LV-EM user can't confirm production superevent as GW"""
-        url = reverse('api:default:superevents:superevent-confirm-as-gw',
+        url = v_reverse('superevents:superevent-confirm-as-gw',
             args=[self.production_superevent.superevent_id])
 
         # Make request and check response
@@ -443,7 +449,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
 
     def test_lvem_user_confirm_mdc(self):
         """LV-EM user can't confirm mdc superevent as GW"""
-        url = reverse('api:default:superevents:superevent-confirm-as-gw',
+        url = v_reverse('superevents:superevent-confirm-as-gw',
             args=[self.mdc_superevent.superevent_id])
 
         # Make request and check response
@@ -458,7 +464,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
 
     def test_lvem_user_confirm_test(self):
         """LV-EM user can't confirm test superevent as GW"""
-        url = reverse('api:default:superevents:superevent-confirm-as-gw',
+        url = v_reverse('superevents:superevent-confirm-as-gw',
             args=[self.test_superevent.superevent_id])
 
         # Make request and check response
@@ -477,7 +483,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
         superevents = [self.production_superevent, self.test_superevent,
             self.mdc_superevent]
         for s in superevents:
-            url = reverse('api:default:superevents:superevent-confirm-as-gw',
+            url = v_reverse('superevents:superevent-confirm-as-gw',
                 args=[s.superevent_id])
             response = self.request_as_user(url, "POST")
             self.assertEqual(response.status_code, 403)
@@ -509,7 +515,7 @@ class TestSupereventLabelList(SupereventSetup, GraceDbApiTestBase):
         """Internal user sees all labels for all superevents"""
         for s in Superevent.objects.all():
             # Set up URL
-            url = reverse('api:default:superevents:superevent-label-list',
+            url = v_reverse('superevents:superevent-label-list',
                 args=[s.superevent_id])
             # Get response and check code
             response = self.request_as_user(url, "GET",
@@ -524,7 +530,7 @@ class TestSupereventLabelList(SupereventSetup, GraceDbApiTestBase):
 
     def test_lvem_get_no_view_perms(self):
         """LV-EM user can't see labels for internal-only superevent"""
-        url = reverse('api:default:superevents:superevent-label-list',
+        url = v_reverse('superevents:superevent-label-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         # Should get 404 response - because of filtering, this object
@@ -533,7 +539,7 @@ class TestSupereventLabelList(SupereventSetup, GraceDbApiTestBase):
 
     def test_lvem_get_with_view_perms(self):
         """LV-EM user can see labels for exposed superevent"""
-        url = reverse('api:default:superevents:superevent-label-list',
+        url = v_reverse('superevents:superevent-label-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
@@ -548,7 +554,7 @@ class TestSupereventLabelList(SupereventSetup, GraceDbApiTestBase):
         """Public user can't see labels for non-public superevents"""
         # TODO: these errors will be 404 in the future
         # Test internal superevent
-        url = reverse('api:default:superevents:superevent-label-list',
+        url = v_reverse('superevents:superevent-label-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET")
         # Should get 404 response - because of filtering, this object
@@ -556,7 +562,7 @@ class TestSupereventLabelList(SupereventSetup, GraceDbApiTestBase):
         self.assertEqual(response.status_code, 403)
 
         # Test LV-EM superevent
-        url = reverse('api:default:superevents:superevent-label-list',
+        url = v_reverse('superevents:superevent-label-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "GET")
         # Should get 404 response - because of filtering, this object
@@ -572,7 +578,7 @@ class TestSupereventLabelList(SupereventSetup, GraceDbApiTestBase):
         """Internal user can add labels to all superevents"""
         label, _ = Label.objects.get_or_create(name='NEW_LABEL')
         for s in Superevent.objects.all():
-            url = reverse('api:default:superevents:superevent-label-list',
+            url = v_reverse('superevents:superevent-label-list',
                 args=[s.superevent_id])
             data = {'name': label.name}
             response = self.request_as_user(url, "POST", self.internal_user,
@@ -587,7 +593,7 @@ class TestSupereventLabelList(SupereventSetup, GraceDbApiTestBase):
         label, _ = Label.objects.get_or_create(name='NEW_LABEL')
 
         # Internal-only superevent - should get 404
-        url = reverse('api:default:superevents:superevent-label-list',
+        url = v_reverse('superevents:superevent-label-list',
             args=[self.internal_superevent.superevent_id])
         data = {'name': label.name}
         response = self.request_as_user(url, "POST", self.lvem_user,
@@ -595,7 +601,7 @@ class TestSupereventLabelList(SupereventSetup, GraceDbApiTestBase):
         self.assertEqual(response.status_code, 404)
 
         # LV-EM superevent - should get 403
-        url = reverse('api:default:superevents:superevent-label-list',
+        url = v_reverse('superevents:superevent-label-list',
             args=[self.lvem_superevent.superevent_id])
         data = {'name': label.name}
         response = self.request_as_user(url, "POST", self.lvem_user,
@@ -608,7 +614,7 @@ class TestSupereventLabelList(SupereventSetup, GraceDbApiTestBase):
 
         # Internal-only superevent - should get 404
         # TODO: eventually this will be a 404, 403 for now
-        url = reverse('api:default:superevents:superevent-label-list',
+        url = v_reverse('superevents:superevent-label-list',
             args=[self.internal_superevent.superevent_id])
         data = {'name': label.name}
         response = self.request_as_user(url, "POST", data=data)
@@ -616,7 +622,7 @@ class TestSupereventLabelList(SupereventSetup, GraceDbApiTestBase):
 
         # LV-EM superevent - should get 404
         # TODO: eventually this will be a 404, 403 for now
-        url = reverse('api:default:superevents:superevent-label-list',
+        url = v_reverse('superevents:superevent-label-list',
             args=[self.lvem_superevent.superevent_id])
         data = {'name': label.name}
         response = self.request_as_user(url, "POST", data=data)
@@ -650,7 +656,7 @@ class TestSupereventLabelDetail(SupereventSetup, GraceDbApiTestBase):
         for s in Superevent.objects.all():
             for l in s.labels.all():
             # Set up URL
-                url = reverse('api:default:superevents:superevent-label-detail',
+                url = v_reverse('superevents:superevent-label-detail',
                     args=[s.superevent_id, l.name])
                 # Get response and check code
                 response = self.request_as_user(url, "GET",
@@ -662,7 +668,7 @@ class TestSupereventLabelDetail(SupereventSetup, GraceDbApiTestBase):
     def test_lvem_get_no_view_perms(self):
         """LV-EM user can't see labels for internal-only superevent"""
         for l in self.internal_superevent.labels.all():
-            url = reverse('api:default:superevents:superevent-label-detail',
+            url = v_reverse('superevents:superevent-label-detail',
                 args=[self.internal_superevent.superevent_id, l.name])
             response = self.request_as_user(url, "GET", self.lvem_user)
             # Should get 404 response - because of filtering, the superevent
@@ -672,7 +678,7 @@ class TestSupereventLabelDetail(SupereventSetup, GraceDbApiTestBase):
     def test_lvem_get_with_view_perms(self):
         """LV-EM user can see all labels for exposed superevent"""
         for l in self.lvem_superevent.labels.all():
-            url = reverse('api:default:superevents:superevent-label-detail',
+            url = v_reverse('superevents:superevent-label-detail',
                 args=[self.lvem_superevent.superevent_id, l.name])
             response = self.request_as_user(url, "GET", self.lvem_user)
             self.assertEqual(response.status_code, 200)
@@ -684,14 +690,14 @@ class TestSupereventLabelDetail(SupereventSetup, GraceDbApiTestBase):
         # TODO: these errors will be 404 in the future
         # Test internal superevent
         for l in self.internal_superevent.labels.all():
-            url = reverse('api:default:superevents:superevent-label-detail',
+            url = v_reverse('superevents:superevent-label-detail',
                 args=[self.internal_superevent.superevent_id, l.name])
             response = self.request_as_user(url, "GET")
             self.assertEqual(response.status_code, 403)
         
         # Test LV-EM superevent
         for l in self.lvem_superevent.labels.all():
-            url = reverse('api:default:superevents:superevent-label-detail',
+            url = v_reverse('superevents:superevent-label-detail',
                 args=[self.lvem_superevent.superevent_id, l.name])
             response = self.request_as_user(url, "GET")
             self.assertEqual(response.status_code, 403)
@@ -705,7 +711,7 @@ class TestSupereventLabelDetail(SupereventSetup, GraceDbApiTestBase):
         """Internal user can remove labels from all superevents"""
         for s in Superevent.objects.all():
             for l in s.labels.all():
-                url = reverse('api:default:superevents:superevent-label-detail',
+                url = v_reverse('superevents:superevent-label-detail',
                     args=[s.superevent_id, l.name])
                 response = self.request_as_user(url, "DELETE",
                     self.internal_user)
@@ -716,20 +722,20 @@ class TestSupereventLabelDetail(SupereventSetup, GraceDbApiTestBase):
         """LV-EM user cannot remove labels from any superevents"""
         # Internal superevent - should get 404
         for l in self.internal_superevent.labels.all():
-            url = reverse('api:default:superevents:superevent-label-detail',
+            url = v_reverse('superevents:superevent-label-detail',
                 args=[self.internal_superevent.superevent_id, l.name])
             response = self.request_as_user(url, "DELETE", self.lvem_user)
             self.assertEqual(response.status_code, 404)
         # Try to delete a label that doesn't exist to ensure there is no
         # information leaked that way.
-        url = reverse('api:default:superevents:superevent-label-detail',
+        url = v_reverse('superevents:superevent-label-detail',
             args=[self.internal_superevent.superevent_id, 'FAKE_LABEL'])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
         self.assertEqual(response.status_code, 404)
 
         # LV-EM superevent - should get 403
         for l in self.lvem_superevent.labels.all():
-            url = reverse('api:default:superevents:superevent-label-detail',
+            url = v_reverse('superevents:superevent-label-detail',
                 args=[self.lvem_superevent.superevent_id, l.name])
             response = self.request_as_user(url, "DELETE", self.lvem_user)
             self.assertEqual(response.status_code, 403)
@@ -738,21 +744,21 @@ class TestSupereventLabelDetail(SupereventSetup, GraceDbApiTestBase):
         """Public user cannot remove labels from any superevents"""
         # Internal superevent - should get 404 (TODO: 403 for now)
         for l in self.internal_superevent.labels.all():
-            url = reverse('api:default:superevents:superevent-label-detail',
+            url = v_reverse('superevents:superevent-label-detail',
                 args=[self.internal_superevent.superevent_id, l.name])
             response = self.request_as_user(url, "DELETE")
             self.assertEqual(response.status_code, 403)
 
         # Try to delete a label that doesn't exist to ensure there is no
         # information leaked that way. (TODO: 403 for now, will be 404)
-        url = reverse('api:default:superevents:superevent-label-detail',
+        url = v_reverse('superevents:superevent-label-detail',
             args=[self.internal_superevent.superevent_id, 'FAKE_LABEL'])
         response = self.request_as_user(url, "DELETE")
         self.assertEqual(response.status_code, 403)
 
         # LV-EM superevent - should get 404 (TODO: 403 for now)
         for l in self.lvem_superevent.labels.all():
-            url = reverse('api:default:superevents:superevent-label-detail',
+            url = v_reverse('superevents:superevent-label-detail',
                 args=[self.lvem_superevent.superevent_id, l.name])
             response = self.request_as_user(url, "DELETE")
             self.assertEqual(response.status_code, 403)
@@ -785,7 +791,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
         """Internal user sees all events for superevents"""
         for s in Superevent.objects.all():
             # Set up URL
-            url = reverse('api:default:superevents:superevent-event-list',
+            url = v_reverse('superevents:superevent-event-list',
                 args=[s.superevent_id])
             # Get response and check code
             response = self.request_as_user(url, "GET", self.internal_user)
@@ -798,7 +804,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
 
     def test_lvem_get_no_view_perms(self):
         """LV-EM user can't see events for internal-only superevent"""
-        url = reverse('api:default:superevents:superevent-event-list',
+        url = v_reverse('superevents:superevent-event-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         # Should get 404 response - because of filtering, this object
@@ -809,7 +815,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
         """LV-EM user can see events for exposed superevent"""
         # TODO: do we deal with permissions on events too? i.e.,
         #       don't show events in the list if they aren't exposed?
-        url = reverse('api:default:superevents:superevent-event-list',
+        url = v_reverse('superevents:superevent-event-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
@@ -824,7 +830,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
     def test_public_get_no_view_perms(self):
         """Public user can't see events for non-public superevents"""
         # Internal superevent
-        url = reverse('api:default:superevents:superevent-event-list',
+        url = v_reverse('superevents:superevent-event-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET")
         # Should get 404 response - because of filtering, this object
@@ -832,7 +838,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
         self.assertEqual(response.status_code, 403)
 
         # LV-EM superevent
-        url = reverse('api:default:superevents:superevent-event-list',
+        url = v_reverse('superevents:superevent-event-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "GET")
         # Should get 404 response - because of filtering, this object
@@ -852,7 +858,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
             user=self.internal_user)
 
         # Set up URL, make request, check response code
-        url = reverse('api:default:superevents:superevent-event-list',
+        url = v_reverse('superevents:superevent-event-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user,
             data={'event': ev.graceid()})
@@ -867,7 +873,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
             search_name='MDC', user=self.internal_user)
 
         # Set up URL, make request, check response code
-        url = reverse('api:default:superevents:superevent-event-list',
+        url = v_reverse('superevents:superevent-event-list',
             args=[s.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user,
             data={'event': ev.graceid()})
@@ -882,7 +888,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
             user=self.internal_user)
 
         # Set up URL, make request, check response code and data
-        url = reverse('api:default:superevents:superevent-event-list',
+        url = v_reverse('superevents:superevent-event-list',
             args=[s.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user,
             data={'event': ev.graceid()})
@@ -896,7 +902,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
             user=self.internal_user)
 
         # Set up URL, make request, check response code
-        url = reverse('api:default:superevents:superevent-event-list',
+        url = v_reverse('superevents:superevent-event-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.sm_user,
             data={'event': ev.graceid()})
@@ -912,7 +918,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
             search_name='MDC', user=self.internal_user)
 
         # Set up URL, make request, check response code
-        url = reverse('api:default:superevents:superevent-event-list',
+        url = v_reverse('superevents:superevent-event-list',
             args=[s.superevent_id])
         response = self.request_as_user(url, "POST", self.sm_user,
             data={'event': ev.graceid()})
@@ -928,7 +934,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
             user=self.internal_user)
 
         # Set up URL, make request, check response code and data
-        url = reverse('api:default:superevents:superevent-event-list',
+        url = v_reverse('superevents:superevent-event-list',
             args=[s.superevent_id])
         response = self.request_as_user(url, "POST", self.sm_user,
             data={'event': ev.graceid()})
@@ -943,7 +949,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
 
         # Set up URL, make request, check response code
         # Should be 404 since superevent is not exposed
-        url = reverse('api:default:superevents:superevent-event-list',
+        url = v_reverse('superevents:superevent-event-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data={'event': ev.graceid()})
@@ -964,7 +970,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
 
         # Set up URL, make request, check response code
         # Should be 404 since superevent is not exposed
-        url = reverse('api:default:superevents:superevent-event-list',
+        url = v_reverse('superevents:superevent-event-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST",
             data={'event': ev.graceid()})
@@ -997,7 +1003,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         for s in Superevent.objects.all():
             for ev in s.events.all():
                 # Set up URL
-                url = reverse('api:default:superevents:superevent-event-detail',
+                url = v_reverse('superevents:superevent-event-detail',
                     args=[s.superevent_id, ev.graceid()])
                 # Get response and check code
                 response = self.request_as_user(url, "GET", self.internal_user)
@@ -1008,7 +1014,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
     def test_lvem_get_no_view_perms(self):
         """LV-EM user can't see events for internal-only superevent"""
         for ev in self.internal_superevent.events.all():
-            url = reverse('api:default:superevents:superevent-event-detail',
+            url = v_reverse('superevents:superevent-event-detail',
                 args=[self.internal_superevent.superevent_id, ev.graceid()])
             response = self.request_as_user(url, "GET", self.lvem_user)
             # Should get 404 response - because of filtering, this superevent
@@ -1020,7 +1026,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         # TODO: do we deal with permissions on events too? i.e.,
         #       don't show events in the list if they aren't exposed?
         for ev in self.lvem_superevent.events.all():
-            url = reverse('api:default:superevents:superevent-event-detail',
+            url = v_reverse('superevents:superevent-event-detail',
                 args=[self.lvem_superevent.superevent_id, ev.graceid()])
             response = self.request_as_user(url, "GET", self.lvem_user)
             self.assertEqual(response.status_code, 200)
@@ -1031,7 +1037,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         """Public user can't see events for non-public superevents"""
         # Internal superevent
         for ev in self.internal_superevent.events.all():
-            url = reverse('api:default:superevents:superevent-event-detail',
+            url = v_reverse('superevents:superevent-event-detail',
                 args=[self.internal_superevent.superevent_id, ev.graceid()])
             response = self.request_as_user(url, "GET")
             # Should get 404 response - because of filtering, this superevent
@@ -1040,7 +1046,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
             # NOTE: will be a 404 error in the future
 
         for ev in self.lvem_superevent.events.all():
-            url = reverse('api:default:superevents:superevent-event-detail',
+            url = v_reverse('superevents:superevent-event-detail',
                 args=[self.lvem_superevent.superevent_id, ev.graceid()])
             response = self.request_as_user(url, "GET")
             # Should get 404 response - because of filtering, this superevent
@@ -1057,7 +1063,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         """
         Basic internal user can't remove events from production superevents.
         """
-        url = reverse('api:default:superevents:superevent-event-detail',
+        url = v_reverse('superevents:superevent-event-detail',
             args=[self.internal_superevent.superevent_id,
             self.event1.graceid()])
         response = self.request_as_user(url, "DELETE", self.internal_user)
@@ -1075,7 +1081,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         s.events.add(ev)
 
         # Set up URL, make request, check response code
-        url = reverse('api:default:superevents:superevent-event-detail',
+        url = v_reverse('superevents:superevent-event-detail',
             args=[s.superevent_id, ev.graceid()])
         response = self.request_as_user(url, "DELETE", self.internal_user)
         self.assertEqual(response.status_code, 403)
@@ -1092,7 +1098,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         s.events.add(ev)
 
         # Set up URL, make request, check response code
-        url = reverse('api:default:superevents:superevent-event-detail',
+        url = v_reverse('superevents:superevent-event-detail',
             args=[s.superevent_id, ev.graceid()])
         response = self.request_as_user(url, "DELETE", self.internal_user)
         self.assertEqual(response.status_code, 204)
@@ -1101,7 +1107,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         """
         Privileged internal user can remove events from production superevents.
         """
-        url = reverse('api:default:superevents:superevent-event-detail',
+        url = v_reverse('superevents:superevent-event-detail',
             args=[self.internal_superevent.superevent_id,
             self.event1.graceid()])
         response = self.request_as_user(url, "DELETE", self.sm_user)
@@ -1119,7 +1125,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         s.events.add(ev)
 
         # Set up URL, make request, check response code
-        url = reverse('api:default:superevents:superevent-event-detail',
+        url = v_reverse('superevents:superevent-event-detail',
             args=[s.superevent_id, ev.graceid()])
         response = self.request_as_user(url, "DELETE", self.sm_user)
         self.assertEqual(response.status_code, 204)
@@ -1136,7 +1142,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         s.events.add(ev)
 
         # Set up URL, make request, check response code
-        url = reverse('api:default:superevents:superevent-event-detail',
+        url = v_reverse('superevents:superevent-event-detail',
             args=[s.superevent_id, ev.graceid()])
         response = self.request_as_user(url, "DELETE", self.sm_user)
         self.assertEqual(response.status_code, 204)
@@ -1144,14 +1150,14 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
     def test_lvem_user_remove_event_from_superevent(self):
         """LV-EM user can't remove events from hidden or exposed superevents"""
         # Internal superevent
-        url = reverse('api:default:superevents:superevent-event-detail',
+        url = v_reverse('superevents:superevent-event-detail',
             args=[self.internal_superevent.superevent_id,
             self.event1.graceid()])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
         self.assertEqual(response.status_code, 404)
 
         # Exposed superevent
-        url = reverse('api:default:superevents:superevent-event-detail',
+        url = v_reverse('superevents:superevent-event-detail',
             args=[self.lvem_superevent.superevent_id,
             self.event2.graceid()])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
@@ -1162,7 +1168,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         Public user can't remove events from hidden or exposed superevents
         """
         # Internal superevent
-        url = reverse('api:default:superevents:superevent-event-detail',
+        url = v_reverse('superevents:superevent-event-detail',
             args=[self.internal_superevent.superevent_id,
             self.event1.graceid()])
         response = self.request_as_user(url, "DELETE")
@@ -1196,7 +1202,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
 
     def test_internal_user_get(self):
         """Internal user can see all logs for a superevent"""
-        url = reverse('api:default:superevents:superevent-log-list',
+        url = v_reverse('superevents:superevent-log-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.internal_user)
         self.assertEqual(response.status_code, 200)
@@ -1207,14 +1213,14 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         """LV-EM user can't see any logs for hidden superevent"""
         # Internal superevent even has one log exposed to LV-EM,
         # but still shouldn't be able to see it
-        url = reverse('api:default:superevents:superevent-log-list',
+        url = v_reverse('superevents:superevent-log-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 404)
 
     def test_lvem_user_get_for_exposed_superevent(self):
         """LV-EM user can see only exposed logs for exposed superevent"""
-        url = reverse('api:default:superevents:superevent-log-list',
+        url = v_reverse('superevents:superevent-log-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
@@ -1231,7 +1237,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         """Internal user can create logs for all superevents"""
         log_data = {'comment': 'test comment'}
         for s in Superevent.objects.all():
-            url = reverse('api:default:superevents:superevent-log-list',
+            url = v_reverse('superevents:superevent-log-list',
                 args=[s.superevent_id])
             response = self.request_as_user(url, "POST", self.internal_user,
                 data=log_data)
@@ -1246,7 +1252,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
             'tagname': ['tag1', 'tag2']
         }
         for s in Superevent.objects.all():
-            url = reverse('api:default:superevents:superevent-log-list',
+            url = v_reverse('superevents:superevent-log-list',
                 args=[s.superevent_id])
             response = self.request_as_user(url, "POST", self.internal_user,
                 data=log_data)
@@ -1268,7 +1274,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         Tag.objects.create(name=settings.EXTERNAL_ACCESS_TAGNAME)
 
         # Make request
-        url = reverse('api:default:superevents:superevent-log-list',
+        url = v_reverse('superevents:superevent-log-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user,
             data=log_data)
@@ -1288,7 +1294,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         Tag.objects.create(name=settings.PUBLIC_ACCESS_TAGNAME)
 
         # Make request
-        url = reverse('api:default:superevents:superevent-log-list',
+        url = v_reverse('superevents:superevent-log-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user,
             data=log_data)
@@ -1308,7 +1314,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         Tag.objects.create(name=settings.EXTERNAL_ACCESS_TAGNAME)
 
         # Make request
-        url = reverse('api:default:superevents:superevent-log-list',
+        url = v_reverse('superevents:superevent-log-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.am_user,
             data=log_data)
@@ -1331,7 +1337,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         Tag.objects.create(name=settings.EXTERNAL_ACCESS_TAGNAME)
 
         # Make request
-        url = reverse('api:default:superevents:superevent-log-list',
+        url = v_reverse('superevents:superevent-log-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.am_user,
             data=log_data)
@@ -1348,7 +1354,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         log_data = {'comment': 'test comment'}
 
         # Internal-only superevent
-        url = reverse('api:default:superevents:superevent-log-list',
+        url = v_reverse('superevents:superevent-log-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=log_data)
@@ -1357,7 +1363,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         self.assertEqual(response.status_code, 404)
 
         # LV-EM exposed superevent
-        url = reverse('api:default:superevents:superevent-log-list',
+        url = v_reverse('superevents:superevent-log-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=log_data)
@@ -1370,7 +1376,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         log_data = {'comment': 'test comment', 'tagname': ['test_tag']}
 
         # Post to hidden superevent, should get 404
-        url = reverse('api:default:superevents:superevent-log-list',
+        url = v_reverse('superevents:superevent-log-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=log_data)
@@ -1378,7 +1384,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         self.assertEqual(response.status_code, 404)
 
         # Post to exposed superevent
-        url = reverse('api:default:superevents:superevent-log-list',
+        url = v_reverse('superevents:superevent-log-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=log_data)
@@ -1424,7 +1430,7 @@ class TestSupereventLogDetail(SupereventSetup, GraceDbApiTestBase):
         """Internal user can see all logs for all superevents"""
         for s in Superevent.objects.all():
             for l in s.log_set.all():
-                url = reverse('api:default:superevents:superevent-log-detail',
+                url = v_reverse('superevents:superevent-log-detail',
                     args=[self.internal_superevent.superevent_id, l.N])
                 response = self.request_as_user(url, "GET",
                     self.internal_user)
@@ -1437,7 +1443,7 @@ class TestSupereventLogDetail(SupereventSetup, GraceDbApiTestBase):
         # Internal superevent even has one log exposed to LV-EM,
         # but still shouldn't be able to see it
         for l in self.internal_superevent.log_set.all():
-            url = reverse('api:default:superevents:superevent-log-detail',
+            url = v_reverse('superevents:superevent-log-detail',
                 args=[self.internal_superevent.superevent_id, l.N])
             response = self.request_as_user(url, "GET", self.lvem_user)
             self.assertEqual(response.status_code, 404)
@@ -1445,7 +1451,7 @@ class TestSupereventLogDetail(SupereventSetup, GraceDbApiTestBase):
     def test_lvem_user_get_for_exposed_superevent(self):
         """LV-EM user can see only exposed logs for exposed superevent"""
         for l in self.lvem_superevent.log_set.all():
-            url = reverse('api:default:superevents:superevent-log-detail',
+            url = v_reverse('superevents:superevent-log-detail',
                 args=[self.lvem_superevent.superevent_id, l.N])
             response = self.request_as_user(url, "GET", self.lvem_user)
 
@@ -1462,7 +1468,7 @@ class TestSupereventLogDetail(SupereventSetup, GraceDbApiTestBase):
         """Public user can't get log detail for hidden superevent"""
         # TODO: add public log to superevent
         for l in self.internal_superevent.log_set.all():
-            url = reverse('api:default:superevents:superevent-log-detail',
+            url = v_reverse('superevents:superevent-log-detail',
                 args=[self.internal_superevent.superevent_id, l.N])
             response = self.request_as_user(url, "GET")
             # TODO: will be 404 in the future
@@ -1513,7 +1519,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
         """Internal user can get all tags for all logs for all superevents"""
         for s in Superevent.objects.all():
             for l in s.log_set.all():
-                url = reverse('api:default:superevents:superevent-log-tag-list',
+                url = v_reverse('superevents:superevent-log-tag-list',
                     args=[s.superevent_id, l.N])
                 # Make request
                 response = self.request_as_user(url, "GET", self.internal_user)
@@ -1532,7 +1538,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
     def test_lvem_get_for_hidden_superevent(self):
         """LV-EM user can't get tags for any logs on hidden superevent"""
         for l in self.internal_superevent.log_set.all():
-            url = reverse('api:default:superevents:superevent-log-tag-list',
+            url = v_reverse('superevents:superevent-log-tag-list',
                 args=[self.internal_superevent.superevent_id, l.N])
             # Make request
             response = self.request_as_user(url, "GET", self.lvem_user)
@@ -1544,7 +1550,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
         LV-EM user can only get tags for exposed logs on exposed superevent
         """
         for l in self.lvem_superevent.log_set.all():
-            url = reverse('api:default:superevents:superevent-log-tag-list',
+            url = v_reverse('superevents:superevent-log-tag-list',
                 args=[self.lvem_superevent.superevent_id, l.N])
             # Make request
             response = self.request_as_user(url, "GET", self.lvem_user)
@@ -1562,7 +1568,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
     def test_public_get_for_hidden_superevent(self):
         """Public user can't get tags for any logs on hidden superevent"""
         for l in self.internal_superevent.log_set.all():
-            url = reverse('api:default:superevents:superevent-log-tag-list',
+            url = v_reverse('superevents:superevent-log-tag-list',
                 args=[self.internal_superevent.superevent_id, l.N])
             # Make request
             response = self.request_as_user(url, "GET")
@@ -1582,7 +1588,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
         tag = Tag.objects.create(name='new_tag')
         for s in Superevent.objects.all():
             for l in s.log_set.all():
-                url = reverse('api:default:superevents:superevent-log-tag-list',
+                url = v_reverse('superevents:superevent-log-tag-list',
                     args=[s.superevent_id, l.N])
                 response = self.request_as_user(url, "POST",
                     self.internal_user, data={'name': tag.name})
@@ -1600,7 +1606,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
             superevent=self.internal_superevent, comment='test')
 
         # Make request
-        url = reverse('api:default:superevents:superevent-log-tag-list',
+        url = v_reverse('superevents:superevent-log-tag-list',
             args=[self.internal_superevent.superevent_id, log.N])
         response = self.request_as_user(url, "POST", self.internal_user,
             data={'name': settings.EXTERNAL_ACCESS_TAGNAME})
@@ -1620,7 +1626,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
             superevent=self.internal_superevent, comment='test')
 
         # Make request
-        url = reverse('api:default:superevents:superevent-log-tag-list',
+        url = v_reverse('superevents:superevent-log-tag-list',
             args=[self.internal_superevent.superevent_id, log.N])
         response = self.request_as_user(url, "POST", self.internal_user,
             data={'name': settings.PUBLIC_ACCESS_TAGNAME})
@@ -1640,7 +1646,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
             superevent=self.internal_superevent, comment='test')
 
         # Make request
-        url = reverse('api:default:superevents:superevent-log-tag-list',
+        url = v_reverse('superevents:superevent-log-tag-list',
             args=[self.internal_superevent.superevent_id, log.N])
         response = self.request_as_user(url, "POST", self.am_user,
             data={'name': settings.EXTERNAL_ACCESS_TAGNAME})
@@ -1661,7 +1667,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
             superevent=self.internal_superevent, comment='test')
 
         # Make request
-        url = reverse('api:default:superevents:superevent-log-tag-list',
+        url = v_reverse('superevents:superevent-log-tag-list',
             args=[self.internal_superevent.superevent_id, log.N])
         response = self.request_as_user(url, "POST", self.am_user,
             data={'name': settings.PUBLIC_ACCESS_TAGNAME})
@@ -1676,7 +1682,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
         log = Log.objects.create(issuer=self.internal_user,
             superevent=self.internal_superevent, comment='test')
 
-        url = reverse('api:default:superevents:superevent-log-tag-list',
+        url = v_reverse('superevents:superevent-log-tag-list',
             args=[self.internal_superevent.superevent_id, log.N])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data={'name': self.tag1.name})
@@ -1687,7 +1693,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
         # Internal-only superevent again, with tag already applied,
         # to make sure error message is what we expect and that nothing
         # leaks out that way.
-        url = reverse('api:default:superevents:superevent-log-tag-list',
+        url = v_reverse('superevents:superevent-log-tag-list',
             args=[self.internal_superevent.superevent_id,
             self.internal_superevent_exposed_log.N])
         response = self.request_as_user(url, "POST", self.lvem_user,
@@ -1696,7 +1702,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
         self.assertEqual(response.status_code, 404)
 
         # LV-EM exposed superevent
-        url = reverse('api:default:superevents:superevent-log-tag-list',
+        url = v_reverse('superevents:superevent-log-tag-list',
             args=[self.lvem_superevent.superevent_id,
             self.lvem_superevent_exposed_log.N])
         response = self.request_as_user(url, "POST", self.lvem_user,
@@ -1711,7 +1717,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
         log = Log.objects.create(issuer=self.internal_user,
             superevent=self.internal_superevent, comment='test')
 
-        url = reverse('api:default:superevents:superevent-log-tag-list',
+        url = v_reverse('superevents:superevent-log-tag-list',
             args=[self.internal_superevent.superevent_id, log.N])
         response = self.request_as_user(url, "POST",
             data={'name': self.tag1.name})
@@ -1723,7 +1729,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
         # Internal-only superevent again, with tag already applied,
         # to make sure error message is what we expect and that nothing
         # leaks out that way.
-        url = reverse('api:default:superevents:superevent-log-tag-list',
+        url = v_reverse('superevents:superevent-log-tag-list',
             args=[self.internal_superevent.superevent_id,
             self.internal_superevent_exposed_log.N])
         response = self.request_as_user(url, "POST",
@@ -1834,7 +1840,7 @@ class TestSupereventLogTagDetail(AccessManagersGroupAndUserSetup,
 
     def test_internal_user_remove_tag(self):
         """Internal user can remove tags from superevent logs"""
-        url = reverse('api:default:superevents:superevent-log-tag-detail',
+        url = v_reverse('superevents:superevent-log-tag-detail',
             args=[self.internal_superevent.superevent_id,
             self.internal_superevent_exposed_log.N, self.tag1.name])
         response = self.request_as_user(url, "DELETE", self.internal_user)
@@ -1847,7 +1853,7 @@ class TestSupereventLogTagDetail(AccessManagersGroupAndUserSetup,
         log.tags.add(self.lvem_tag)
 
         # Make request and check response data
-        url = reverse('api:default:superevents:superevent-log-tag-detail',
+        url = v_reverse('superevents:superevent-log-tag-detail',
             args=[log.superevent.superevent_id, log.N, self.lvem_tag.name])
         response = self.request_as_user(url, "DELETE", self.internal_user)
         self.assertEqual(response.status_code, 403)
@@ -1859,7 +1865,7 @@ class TestSupereventLogTagDetail(AccessManagersGroupAndUserSetup,
         log.tags.add(self.public_tag)
 
         # Make request and check response data
-        url = reverse('api:default:superevents:superevent-log-tag-detail',
+        url = v_reverse('superevents:superevent-log-tag-detail',
             args=[log.superevent.superevent_id, log.N, self.public_tag.name])
         response = self.request_as_user(url, "DELETE", self.internal_user)
         self.assertEqual(response.status_code, 403)
@@ -1871,7 +1877,7 @@ class TestSupereventLogTagDetail(AccessManagersGroupAndUserSetup,
         log.tags.add(self.lvem_tag)
 
         # Make request and check response data
-        url = reverse('api:default:superevents:superevent-log-tag-detail',
+        url = v_reverse('superevents:superevent-log-tag-detail',
             args=[log.superevent.superevent_id, log.N, self.lvem_tag.name])
         response = self.request_as_user(url, "DELETE", self.am_user)
         self.assertEqual(response.status_code, 204)
@@ -1883,7 +1889,7 @@ class TestSupereventLogTagDetail(AccessManagersGroupAndUserSetup,
         log.tags.add(self.public_tag)
 
         # Make request and check response data
-        url = reverse('api:default:superevents:superevent-log-tag-detail',
+        url = v_reverse('superevents:superevent-log-tag-detail',
             args=[log.superevent.superevent_id, log.N, self.public_tag.name])
         response = self.request_as_user(url, "DELETE", self.am_user)
         self.assertEqual(response.status_code, 204)
@@ -1891,7 +1897,7 @@ class TestSupereventLogTagDetail(AccessManagersGroupAndUserSetup,
     def test_lvem_user_remove_tag_from_log_on_hidden_superevent(self):
         """LV-EM user can't remove tag from logs on hidden superevent"""
         # Make request and check response data
-        url = reverse('api:default:superevents:superevent-log-tag-detail',
+        url = v_reverse('superevents:superevent-log-tag-detail',
             args=[self.internal_superevent.superevent_id,
             self.internal_superevent_exposed_log.N, self.tag1.name])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
@@ -1902,20 +1908,20 @@ class TestSupereventLogTagDetail(AccessManagersGroupAndUserSetup,
         # Hidden log on exposed superevent, no tags
         log = Log.objects.create(issuer=self.internal_user,
             superevent=self.lvem_superevent, comment='test')
-        url = reverse('api:default:superevents:superevent-log-tag-detail',
+        url = v_reverse('superevents:superevent-log-tag-detail',
             args=[self.lvem_superevent.superevent_id, log.N, self.tag1.name])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
         self.assertEqual(response.status_code, 404)
 
         # Add the tag and try again just to make sure
         log.tags.add(self.tag1)
-        url = reverse('api:default:superevents:superevent-log-tag-detail',
+        url = v_reverse('superevents:superevent-log-tag-detail',
             args=[self.lvem_superevent.superevent_id, log.N, self.tag1.name])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
         self.assertEqual(response.status_code, 404)
 
         # Exposed log on exposed superevent
-        url = reverse('api:default:superevents:superevent-log-tag-detail',
+        url = v_reverse('superevents:superevent-log-tag-detail',
             args=[self.lvem_superevent.superevent_id,
             self.lvem_superevent_exposed_log.N, self.tag1.name])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
@@ -1924,7 +1930,7 @@ class TestSupereventLogTagDetail(AccessManagersGroupAndUserSetup,
     def test_public_user_remove_tag_from_log_on_hidden_superevent(self):
         """Public user can't remove tag from logs on hidden superevent"""
         # Make request and check response data
-        url = reverse('api:default:superevents:superevent-log-tag-detail',
+        url = v_reverse('superevents:superevent-log-tag-detail',
             args=[self.internal_superevent.superevent_id,
             self.internal_superevent_exposed_log.N, self.tag1.name])
         response = self.request_as_user(url, "DELETE")
@@ -1974,7 +1980,7 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
     def test_internal_user_get_list(self):
         """Internal user can get all VOEvents for all superevents"""
         for s in Superevent.objects.all():
-            url = reverse('api:default:superevents:superevent-voevent-list',
+            url = v_reverse('superevents:superevent-voevent-list',
                 args=[s.superevent_id])
             response = self.request_as_user(url, "GET", self.internal_user)
             self.assertEqual(response.status_code, 200)
@@ -1988,14 +1994,14 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
 
     def test_lvem_user_get_list_for_hidden_superevent(self):
         """LV-EM user can't get any VOEvents for hidden superevents"""
-        url = reverse('api:default:superevents:superevent-voevent-list',
+        url = v_reverse('superevents:superevent-voevent-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 404)
 
     def test_lvem_user_get_list_for_exposed_superevent(self):
         """LV-EM user can get all VOEvents for exposed superevents"""
-        url = reverse('api:default:superevents:superevent-voevent-list',
+        url = v_reverse('superevents:superevent-voevent-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
@@ -2008,7 +2014,7 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
 
     def test_public_user_get_list_for_hidden_superevent(self):
         """Public user can't get any VOEvents for hidden superevents"""
-        url = reverse('api:default:superevents:superevent-voevent-list',
+        url = v_reverse('superevents:superevent-voevent-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET")
         self.assertEqual(response.status_code, 403)
@@ -2021,7 +2027,7 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
 
     def test_internal_user_create_voevent(self):
         """Internal user can create VOEvents for all superevents"""
-        url = reverse('api:default:superevents:superevent-voevent-list',
+        url = v_reverse('superevents:superevent-voevent-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user,
             data=self.voevent_data)
@@ -2031,7 +2037,7 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
 
     def test_lvem_user_create_voevent_for_hidden_superevent(self):
         """LV-EM user can't create VOEvents for hidden superevents"""
-        url = reverse('api:default:superevents:superevent-voevent-list',
+        url = v_reverse('superevents:superevent-voevent-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=self.voevent_data)
@@ -2039,7 +2045,7 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
 
     def test_lvem_user_create_voevent_for_exposed_superevent(self):
         """LV-EM user can't create VOEvents for exposed superevents"""
-        url = reverse('api:default:superevents:superevent-voevent-list',
+        url = v_reverse('superevents:superevent-voevent-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=self.voevent_data)
@@ -2049,7 +2055,7 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
 
     def test_public_user_create_voevent_for_hidden_superevent(self):
         """Public user can't create VOEvents for hidden superevents"""
-        url = reverse('api:default:superevents:superevent-voevent-list',
+        url = v_reverse('superevents:superevent-voevent-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", data=self.voevent_data)
         self.assertEqual(response.status_code, 403)
@@ -2092,7 +2098,7 @@ class TestSupereventVOEventDetail(SupereventSetup, GraceDbApiTestBase):
     def test_lvem_user_get_detail_for_hidden_superevent(self):
         """LV-EM user can't get VOEvent detail for hidden superevents"""
         voevent = self.internal_superevent.voevent_set.first()
-        url = reverse('api:default:superevents:superevent-voevent-detail',
+        url = v_reverse('superevents:superevent-voevent-detail',
             args=[self.internal_superevent.superevent_id, voevent.N])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 404)
@@ -2100,7 +2106,7 @@ class TestSupereventVOEventDetail(SupereventSetup, GraceDbApiTestBase):
     def test_lvem_user_get_detail_for_exposed_superevent(self):
         """LV-EM user can get all VOEvent details for exposed superevents"""
         for v in self.lvem_superevent.voevent_set.all():
-            url = reverse('api:default:superevents:superevent-voevent-detail',
+            url = v_reverse('superevents:superevent-voevent-detail',
                 args=[self.lvem_superevent.superevent_id, v.N])
             response = self.request_as_user(url, "GET", self.lvem_user)
             self.assertEqual(response.status_code, 200)
@@ -2110,7 +2116,7 @@ class TestSupereventVOEventDetail(SupereventSetup, GraceDbApiTestBase):
     def test_public_user_get_list_for_hidden_superevent(self):
         """Public user can't get any VOEvent details for hidden superevents"""
         v = self.internal_superevent.voevent_set.first()
-        url = reverse('api:default:superevents:superevent-voevent-detail',
+        url = v_reverse('superevents:superevent-voevent-detail',
             args=[self.internal_superevent.superevent_id, v.N])
         response = self.request_as_user(url, "GET")
         self.assertEqual(response.status_code, 403)
@@ -2179,14 +2185,14 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
 
     def test_lvem_user_get_list_for_hidden_superevent(self):
         """LV-EM user can't get any EMObservations for hidden superevents"""
-        url = reverse('api:default:superevents:superevent-emobservation-list',
+        url = v_reverse('superevents:superevent-emobservation-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 404)
 
     def test_lvem_user_get_list_for_exposed_superevent(self):
         """LV-EM user can get all EMObservations for exposed superevents"""
-        url = reverse('api:default:superevents:superevent-emobservation-list',
+        url = v_reverse('superevents:superevent-emobservation-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
@@ -2199,7 +2205,7 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
 
     def test_public_user_get_list_for_hidden_superevent(self):
         """Public user can't get any EMObservations for hidden superevents"""
-        url = reverse('api:default:superevents:superevent-emobservation-list',
+        url = v_reverse('superevents:superevent-emobservation-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET")
         self.assertEqual(response.status_code, 403)
@@ -2212,7 +2218,7 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
 
     def test_internal_user_create_emobservation(self):
         """Internal user can create EMObservations for all superevents"""
-        url = reverse('api:default:superevents:superevent-emobservation-list',
+        url = v_reverse('superevents:superevent-emobservation-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user,
             data=self.emobservation_data)
@@ -2224,7 +2230,7 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
 
     def test_lvem_user_create_emobservation_for_hidden_superevent(self):
         """LV-EM user can't create EMObservations for hidden superevents"""
-        url = reverse('api:default:superevents:superevent-emobservation-list',
+        url = v_reverse('superevents:superevent-emobservation-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=self.emobservation_data)
@@ -2232,7 +2238,7 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
 
     def test_lvem_user_create_emobservation_for_exposed_superevent(self):
         """LV-EM user can create EMObservations for exposed superevents"""
-        url = reverse('api:default:superevents:superevent-emobservation-list',
+        url = v_reverse('superevents:superevent-emobservation-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=self.emobservation_data)
@@ -2244,7 +2250,7 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
 
     def test_public_user_create_emobservation_for_hidden_superevent(self):
         """Public user can't create EMObservations for hidden superevents"""
-        url = reverse('api:default:superevents:superevent-emobservation-list',
+        url = v_reverse('superevents:superevent-emobservation-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST",
             data=self.emobservation_data)
@@ -2290,7 +2296,7 @@ class TestSupereventEMObservationDetail(SupereventSetup, GraceDbApiTestBase):
     def test_lvem_user_get_detail_for_hidden_superevent(self):
         """LV-EM user can't get EMObservation detail for hidden superevents"""
         emo = self.internal_superevent.emobservation_set.first()
-        url = reverse('api:default:superevents:superevent-emobservation-detail',
+        url = v_reverse('superevents:superevent-emobservation-detail',
             args=[self.internal_superevent.superevent_id, emo.N])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 404)
@@ -2352,7 +2358,7 @@ class TestSupereventFileList(SupereventSetup, GraceDbApiTestBase):
     def test_internal_get_file_list_for_superevent(self):
         """Internal user can see all files for all superevents"""
         for s in Superevent.objects.all():
-            url = reverse('api:default:superevents:superevent-file-list',
+            url = v_reverse('superevents:superevent-file-list',
                 args=[s.superevent_id])
             response = self.request_as_user(url, "GET", self.internal_user)
             self.assertEqual(response.status_code, 200)
@@ -2367,7 +2373,7 @@ class TestSupereventFileList(SupereventSetup, GraceDbApiTestBase):
 
     def test_lvem_get_file_list_for_hidden_superevent(self):
         """LV-EM user can't get file list for hidden superevents"""
-        url = reverse('api:default:superevents:superevent-file-list',
+        url = v_reverse('superevents:superevent-file-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 404)
@@ -2386,7 +2392,7 @@ class TestSupereventFileList(SupereventSetup, GraceDbApiTestBase):
         expose_log_to_lvem(log)
 
         # Make request and check response
-        url = reverse('api:default:superevents:superevent-file-list',
+        url = v_reverse('superevents:superevent-file-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
@@ -2405,7 +2411,7 @@ class TestSupereventFileList(SupereventSetup, GraceDbApiTestBase):
         expose_log_to_lvem(log)
 
         # Make request and get response
-        url = reverse('api:default:superevents:superevent-file-list',
+        url = v_reverse('superevents:superevent-file-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
@@ -2415,7 +2421,7 @@ class TestSupereventFileList(SupereventSetup, GraceDbApiTestBase):
 
     def test_public_get_file_list_for_hidden_superevent(self):
         """Public user can't get file list for hidden superevents"""
-        url = reverse('api:default:superevents:superevent-file-list',
+        url = v_reverse('superevents:superevent-file-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET")
         self.assertEqual(response.status_code, 403)
@@ -2471,7 +2477,7 @@ class TestSupereventFileDetail(SupereventSetup, GraceDbApiTestBase):
             symlinks = list(set([fl.filename for fl in file_logs]))
             file_list.extend(symlinks)
             for f in file_list:
-                url = reverse('api:default:superevents:superevent-file-detail',
+                url = v_reverse('superevents:superevent-file-detail',
                     args=[s.superevent_id, f])
                 response = self.request_as_user(url, "GET", self.internal_user)
                 self.assertEqual(response.status_code, 200)
@@ -2483,7 +2489,7 @@ class TestSupereventFileDetail(SupereventSetup, GraceDbApiTestBase):
         symlinks = list(set([fl.filename for fl in file_logs]))
         file_list.extend(symlinks)
         for f in file_list:
-            url = reverse('api:default:superevents:superevent-file-detail',
+            url = v_reverse('superevents:superevent-file-detail',
                 args=[self.internal_superevent.superevent_id, f])
             response = self.request_as_user(url, "GET", self.lvem_user)
             self.assertEqual(response.status_code, 404)
@@ -2496,7 +2502,7 @@ class TestSupereventFileDetail(SupereventSetup, GraceDbApiTestBase):
         expose_log_to_lvem(log)
 
         # Make request and check response
-        url = reverse('api:default:superevents:superevent-file-detail',
+        url = v_reverse('superevents:superevent-file-detail',
             args=[self.lvem_superevent.superevent_id, log.versioned_filename])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
@@ -2506,7 +2512,7 @@ class TestSupereventFileDetail(SupereventSetup, GraceDbApiTestBase):
         log2 = self.lvem_superevent.log_set.get(filename=
             self.file1['filename'], file_version=0)
         # Make request and check response
-        url = reverse('api:default:superevents:superevent-file-detail',
+        url = v_reverse('superevents:superevent-file-detail',
             args=[self.lvem_superevent.superevent_id, log2.versioned_filename])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 404)
@@ -2522,14 +2528,14 @@ class TestSupereventFileDetail(SupereventSetup, GraceDbApiTestBase):
         expose_log_to_lvem(log)
 
         # Make request and check response
-        url = reverse('api:default:superevents:superevent-file-detail',
+        url = v_reverse('superevents:superevent-file-detail',
             args=[self.lvem_superevent.superevent_id, log.versioned_filename])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
         data1 = response.data
 
         # Repeat with non-versioned filename
-        url = reverse('api:default:superevents:superevent-file-detail',
+        url = v_reverse('superevents:superevent-file-detail',
             args=[self.lvem_superevent.superevent_id, log.filename])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
@@ -2542,7 +2548,7 @@ class TestSupereventFileDetail(SupereventSetup, GraceDbApiTestBase):
         symlinks = list(set([fl.filename for fl in file_logs]))
         file_list.extend(symlinks)
         for f in file_list:
-            url = reverse('api:default:superevents:superevent-file-detail',
+            url = v_reverse('superevents:superevent-file-detail',
                 args=[self.internal_superevent.superevent_id, f])
             response = self.request_as_user(url, "GET")
             self.assertEqual(response.status_code, 403)
