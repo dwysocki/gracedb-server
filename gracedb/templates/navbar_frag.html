@@ -1,3 +1,4 @@
+<div style="padding-bottom: 30px;">
 <ul id="nav">
     <li id="nav-home"><a href="{% url "home" %}">Home</a></li>
     <li id="nav-search"><a href="{% url "mainsearch" %}">Search</a></li>
@@ -26,13 +27,6 @@
         <li id="nav-login"><a href="{{ login_url }}">Login</a></li>
     {% endif %}
 </ul>
-<center>
-    {% if config_name %}
-      <h1 style="color: red;">
-          {{config_name}}
-      </h1>
-    {% endif %}
-</center>
 
 {% if 'lvem_view' in request.path %}
 <div id="lvem_view_message">
@@ -42,3 +36,4 @@ return to the regular GraceDB site. This will ensure that your group memberships
 are correct the next time you log in. 
 </div>
 {% endif %}
+</div>

@@ -33,14 +33,17 @@ function changeTime(obj, label) {
 <div id="content">
 
 <center>
-<h1>GraceDB &mdash; Gravitational Wave Candidate Event Database</h1>
+<h1>
+GraceDB &mdash; Gravitational Wave Candidate Event Database
+{% if config_name %}
+<span style="color: red;">({{ config_name }})</span>
+{% endif %}
+</h1>
 </center>
 
 {% block nav %}
     {% include "navbar_frag.html" %}
 {% endblock %}
-
-    <p>&nbsp;</p> <!-- bad way to create vertical space -->
 
     <h2>{% block heading %}Title{% endblock %}</h2>
 
