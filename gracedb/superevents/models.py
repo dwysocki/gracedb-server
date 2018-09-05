@@ -18,7 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 
 from core.models import CleanSaveModel, AutoIncrementModel, LogBase, \
-    m2mThroughBase, ModelToDictMixin
+    m2mThroughBase
 from core.time_utils import posixToGpsTime, gpsToUtc
 from core.utils import int_to_letters, letters_to_int
 from events.models import Event, SignoffBase, VOEventBase, EMObservationBase, \
@@ -34,7 +34,7 @@ SUPEREVENT_DATE_START = datetime.datetime(1980, 1, 1, 0, 0, 0, 0, pytz.utc)
 SUPEREVENT_DATE_END = datetime.datetime(2080, 1, 1, 0, 0, 0, 0, pytz.utc)
 
 
-class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
+class Superevent(CleanSaveModel, AutoIncrementModel):
     """
     Superevent date-based IDs:
         Initially, a superevent has an ID like 'S180725a'
@@ -266,26 +266,6 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
                 self.datadir) for (dir_name, _, file_names) in os.walk(
                 self.datadir) for file_name in file_names]
         return file_list
-
-    def default_dict_mapping(self):
-        # Used by ModelToDictMixin to generate dict from model
-        mapping = {
-            'submitter': self.submitter.username,
-            'preferred_event': self.preferred_event.graceid(),
-            'gw_events': {
-                self.QS_KEY: self.get_internal_events(),
-                self.QS_PROP_KEY: 'graceid',
-            },
-            'em_events': {
-                self.QS_KEY: self.get_external_events(),
-                self.QS_PROP_KEY: 'graceid',
-            },
-            'labels': {
-                self.QS_KEY: self.labels.all(),
-                self.QS_PROP_KEY: 'name',
-            },
-        }
-        return mapping
 
     @classmethod
     def get_filter_kwargs_for_date_id_lookup(cls, date_id):
