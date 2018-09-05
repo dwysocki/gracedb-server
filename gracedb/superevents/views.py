@@ -8,15 +8,19 @@ from django.views.generic.detail import DetailView
 from django.contrib.auth.models import Group as AuthGroup, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib import messages
+
 from guardian.models import GroupObjectPermission
+from guardian.shortcuts import assign_perm, remove_perm
 
 from .forms import LogCreateForm, SignoffForm
-from .mixins import LvemPermissionMixin, OperatorSignoffMixin, \
+from .mixins import ExposeHideMixin, OperatorSignoffMixin, \
     AdvocateSignoffMixin
 from .models import Superevent, Log
 from .utils import get_superevent_by_date_id_or_404, \
-    confirm_superevent_as_gw, delete_signoff_for_superevent
+    confirm_superevent_as_gw, delete_signoff
 
+from core.permission_utils import expose_event_or_superevent_to_lvem, \
+    expose_event_or_superevent_to_public
 from core.http import check_and_serve_file
 from core.vfile import VersionedFile
 from events.models import EMGroup
@@ -29,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
-    LvemPermissionMixin, DetailView, DisplayFarMixin):
+    ExposeHideMixin, DetailView, DisplayFarMixin):
     model = Superevent
     template_name = 'superevents/detail.html'
 
@@ -310,12 +314,6 @@ def modify_permissions(request, superevent_id):
     except AuthGroup.DoesNotExist:
         return HttpResponseNotFound('Group not found')
 
-    # Get content type and permissions
-    ctype = ContentType.objects.get(app_label='superevents',
-        model='superevent')
-    p_view = Permission.objects.get(codename='view_superevent')
-    p_change = Permission.objects.get(codename='change_superevent')
-
     # Make sure the user is authorized.
     if action == 'expose':
         # Check permissions
@@ -323,11 +321,8 @@ def modify_permissions(request, superevent_id):
             msg = "You aren't authorized to create permission objects."
             return HttpResponseForbidden(msg)
 
-        # Create GOPs
-        GroupObjectPermission.objects.get_or_create(content_type=ctype,
-            group=group, permission=p_view, object_pk=superevent.id)
-        GroupObjectPermission.objects.get_or_create(content_type=ctype,
-            group=group, permission=p_change, object_pk=superevent.id)
+        assign_perm('superevents.view_superevent', group, superevent)
+        assign_perm('superevents.annotate_superevent', group, superevent)
 
     elif action == 'protect':
         # Check permissions
@@ -336,21 +331,8 @@ def modify_permissions(request, superevent_id):
             return HttpResponseForbidden(msg)
 
         # Delete gops
-        try:
-            gop = GroupObjectPermission.objects.get(content_type=ctype,
-                group=group, permission=p_view, object_pk=superevent.id)
-            gop.delete()
-        except GroupObjectPermission.DoesNotExist:
-            # Couldn't find it. Take no action.
-            pass
-        try:
-            gop = GroupObjectPermission.objects.get(content_type=ctype,
-                group=group, permission=p_change, object_pk=superevent.id)
-            gop.delete()
-        except GroupObjectPermission.DoesNotExist:
-            # Couldn't find it. Take no action.
-            pass
-
+        remove_perm('superevent.view_superevent', group, superevent)
+        remove_perm('superevent.annotate_superevent', group, superevent)
     else:
         msg = "Unknown action. Choices are 'expose' and 'protect'."
         return HttpResponseBadRequest(msg)
@@ -408,7 +390,7 @@ def modify_signoff(request, superevent_id):
 
     # Check for delete parameter.  If True, just delete the signoff.
     if delete:
-        delete_signoff_for_superevent(signoff, request.user,
+        delete_signoff(signoff, request.user,
             add_log_message=True, issue_alert=True)
         messages.info(request, "Signoff deleted.")
         return HttpResponseRedirect(original_url)

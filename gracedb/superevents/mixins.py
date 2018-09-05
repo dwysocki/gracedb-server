@@ -1,13 +1,18 @@
 # mixins for class-based views
+import pytz
+
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.base import ContextMixin
+
 from guardian.models import GroupObjectPermission
 
+from core.time_utils import gpsToUtc
 from .forms import SignoffForm
+from .models import Signoff
 
 import logging
 logger = logging.getLogger(__name__)
@@ -34,7 +39,7 @@ class OperatorSignoffMixin(ContextMixin):
 
         # Determine if a signoff object already exists
         signoff = self.object.signoff_set.filter(instrument=signoff_instrument,
-            signoff_type='OP').first()
+            signoff_type=Signoff.SIGNOFF_TYPE_OPERATOR).first()
 
         # Check if label requesting signoff exists
         signoff_request_label_name = signoff_instrument + 'OPS'
@@ -47,20 +52,27 @@ class OperatorSignoffMixin(ContextMixin):
         if not signoff_active:
             return context
 
+        # Get object time in operator timezone
+        obj_time_for_operator = gpsToUtc(self.object.gpstime).astimezone(
+            pytz.timezone(Signoff.instrument_time_zones[signoff_instrument]))
+
         # Add more to context
+        context['object_gpstime_in_operator_tz'] = \
+            obj_time_for_operator.strftime(settings.GRACE_STRFTIME_FORMAT)
         context['operator_signoff_instrument'] = signoff_instrument
+        context['operator_signoff_type'] = Signoff.SIGNOFF_TYPE_OPERATOR
         if signoff:
             # Populate form with instance
-            form = SignoffForm(initial={'action': 'UP'}, instance=signoff)
+            form = SignoffForm(instance=signoff)
             context['operator_signoff_exists'] = True
         else:
             # Default create form
-            form = SignoffForm(initial={'signoff_type': 'OP',
-                'instrument': signoff_instrument, 'action': 'CR'})
+            form = SignoffForm(initial={
+                'signoff_type': Signoff.SIGNOFF_TYPE_OPERATOR,
+                'instrument': signoff_instrument,
+            })
             context['operator_signoff_exists'] = False
 
-            # Hide delete checkbox - doesn't apply to creation
-            form.fields['delete'].widget=forms.HiddenInput()
         context['operator_signoff_form'] = form
 
         return context
@@ -87,7 +99,7 @@ class AdvocateSignoffMixin(ContextMixin):
 
         # Determine if a signoff object already exists
         signoff = self.object.signoff_set.filter(instrument=signoff_instrument,
-            signoff_type='ADV').first()
+            signoff_type=Signoff.SIGNOFF_TYPE_ADVOCATE).first()
 
         # Check if label requesting signoff exists
         signoff_request_label_name = 'ADVREQ'
@@ -102,66 +114,53 @@ class AdvocateSignoffMixin(ContextMixin):
 
         # Add more to context
         context['advocate_signoff_instrument'] = signoff_instrument
+        context['advocate_signoff_type'] = Signoff.SIGNOFF_TYPE_ADVOCATE
         if signoff:
             # Populate form with instance
-            form = SignoffForm(initial={'action': 'UP'}, instance=signoff)
+            form = SignoffForm(instance=signoff)
             context['advocate_signoff_exists'] = True
         else:
             # Default create form
-            form = SignoffForm(initial={'signoff_type': 'ADV',
-                'instrument': signoff_instrument, 'action': 'CR'})
+            form = SignoffForm(initial={
+                'signoff_type': Signoff.SIGNOFF_TYPE_ADVOCATE,
+                'instrument': signoff_instrument,
+            })
             context['advocate_signoff_exists'] = False
 
-            # Hide delete checkbox - doesn't apply to creation
-            form.fields['delete'].widget=forms.HiddenInput()
         context['advocate_signoff_form'] = form
 
         return context
 
 
-class LvemPermissionMixin(ContextMixin):
+class ExposeHideMixin(ContextMixin):
+    expose_perm_name = 'superevents.expose_superevent'
+    hide_perm_name = 'superevents.hide_superevent'
+    form_url_view_name = 'shib:default:superevents:superevent-permissions'
 
     def get_context_data(self, **kwargs):
 
         # Get base context
-        context = super(LvemPermissionMixin, self).get_context_data(**kwargs)
+        context = super(ExposeHideMixin, self).get_context_data(**kwargs)
 
-        # Get LV-EM observers group
-        lvem_obs_group = AuthGroup.objects.get(
-            name=settings.LVEM_OBSERVERS_GROUP)
-
-        # Get permission objects
-        model_name = self.model.__name__.lower()
-        ctype = ContentType.objects.get(app_label=self.model._meta.app_label,
-            model=model_name)
-        p_view = Permission.objects.get(codename='view_{0}'.format(model_name))
-        p_change = Permission.objects.get(codename='change_{0}'.format(
-            model_name))
-
-        # Determine
-        lvem_obs_can_view = GroupObjectPermission.objects.filter(
-            content_type=ctype, object_pk=self.object.pk, group=lvem_obs_group,
-            permission=p_view).exists()
-        lvem_obs_can_change = GroupObjectPermission.objects.filter(
-            content_type=ctype, object_pk=self.object.pk, group=lvem_obs_group,
-            permission=p_change).exists()
-
-        # Determine user permissions for exposing to or protecting from
-        # the LV-EM observers group
-        if (lvem_obs_can_view and lvem_obs_can_change and
-            self.request.user.has_perm(
-            'guardian.delete_groupobjectpermission')):
-            perms = False, True
-        elif (not lvem_obs_can_view and not lvem_obs_can_change and
-              self.request.user.has_perm(
-              'guardian.add_groupobjectpermission')):
-            perms = True, False
-        else:
-            perms = False, False
+        # Determine if user can modify permissions to expose or hide
+        can_modify_permissions = False
+        if (self.request.user.has_perm(self.expose_perm_name) and
+            not self.object.is_exposed):
+            # Object is hidden and user can expose
+            can_modify_permissions = True
+            button_text = 'Make this superevent publicly visible'
+            action = 'expose'
+        elif (self.request.user.has_perm(self.hide_perm_name) and
+              self.object.is_exposed):
+            # Object is visible and user can hide
+            can_modify_permissions = True
+            button_text = 'Make this superevent internal-only'
+            action = 'hide'
 
         # Update context
-        context['can_expose_to_lvem'] = perms[0]
-        context['can_protect_from_lvem'] = perms[1]
-        context['lvem_group_name'] = settings.LVEM_OBSERVERS_GROUP
+        context['can_modify_permissions'] = can_modify_permissions
+        if can_modify_permissions:
+            context['permissions_form_button_text'] = button_text
+            context['permissions_action'] = action
 
         return context

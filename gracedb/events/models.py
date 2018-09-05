@@ -933,6 +933,14 @@ class SignoffBase(models.Model):
     signoff_type = models.CharField(max_length=3, blank=False,
         choices=SIGNOFF_TYPE_CHOICES)
 
+    # Timezones for instruments (this should really be handled separately
+    # by an instrument class)
+    instrument_time_zones = {
+        INSTRUMENT_H1: 'America/Los_Angeles',
+        INSTRUMENT_L1: 'America/Chicago',
+        INSTRUMENT_V1: 'Europe/Rome',
+    }
+
     class Meta:
         abstract = True
 

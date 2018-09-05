@@ -59,22 +59,15 @@
 </div>
 {% endif %}
 
+{# not sure why we need this if statement, maybe can delete in the future #}
 {% if 'lvem_view' not in request.path %}
-<!-- XXX This next bit is super hacky. -->
-{% if can_expose_to_lvem %}
+
+{#-- XXX This next bit is super hacky. #}
+{% if can_modify_permissions %}
 <div class="content-area">
-<form action="{% url "superevents:modify-permissions" superevent.superevent_id %}" method="POST">
-    <input type="hidden" name="group_name" value="{{ lvem_group_name }}">
-    <input type="hidden" name="action" value="expose">
-    <input type="submit" value="Expose this superevent to LV-EM" class="permButtonClass">
-</form>
-</div>
-{% elif can_protect_from_lvem %}
-<div class="content-area">
-<form action="{% url "superevents:modify-permissions" superevent.superevent_id %}" method="POST">
-    <input type="hidden" name="group_name" value="{{ lvem_group_name }}">
-    <input type="hidden" name="action" value="protect">
-    <input type="submit" value="Revoke LV-EM permissions for this superevent" class="permButtonClass">
+<form action="{% url "shib:default:superevents:superevent-permission-modify" superevent.superevent_id %}" method="POST" id="permissions_form">
+    <input type="hidden" name="action" value="{{ permissions_action }}">
+    <input type="submit" value="{{ permissions_form_button_text }}" class="permButtonClass">
 </form>
 </div>
 {% endif %}
@@ -86,28 +79,31 @@
     {% if operator_signoff_exists %}
     <p>This event has already been signed off on. Use the form below if you wish to edit or delete the record.</p>
     {% else %}
-    <p>This superevent still requires operator signoff. Please answer the following (and optionally enter a comment): At the time of the
-        {% if operator_signoff_instrument == 'H1' %}
-            superevent ({{ superevent.t_0|gpsdate_tz:"lho" }}),
-        {% elif operator_signoff_instrument == 'L1' %}
-            superevent ({{ superevent.t_0|gpsdate_tz:"llo" }}),
-        {% elif operator_signoff_instrument == 'V1' %}
-            superevent ({{ superevent.t_0|gpsdate_tz:"virgo" }}),
-        {% else %}
-            superevent,
-        {% endif %}
-    was the operating status of the detector basically okay, or not?</p>
+    <p>This superevent still requires operator signoff. Please answer the following (and optionally enter a comment): At the time of the superevent ({{ object_gpstime_in_operator_tz }}), was the operating status of the detector basically okay, or not?</p>
     {% endif %}
-    <form action="{% url "superevents:modify-signoff" superevent.superevent_id %}" method="POST">
+    <form class="signoff_form">
         <table>
         {{ operator_signoff_form.as_table }}
-        <tr><td></td><td><input type="submit" value="Submit" class="searchButtonClass"></td></tr>
+        <tr>
+            <td></td>
+            <td>
+            {# inputs are disabled here, enabled by jquery code on page load. Otherwise users who click quickly can activate the form before the jquery is fully loaded #}
+            {% if operator_signoff_exists %}
+            {% with operator_signoff_type|add:operator_signoff_instrument as typeinst %}
+                <input type="submit" formaction="{% url "shib:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Update signoff" class="searchButtonClass" id="update" disabled>
+                <input type="submit" formaction="{% url "shib:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Delete signoff" class="searchButtonClass" id="delete" disabled>
+            {% endwith %}
+            {% else %}
+            <input type="submit" value="Create signoff" class="searchButtonClass" formaction={% url "shib:default:superevents:superevent-signoff-list" superevent.superevent_id %} disabled>
+            {% endif %}
+            </td>
+        </tr>
         </table>
     </form>
 </div>
 {% endif %}
 
-<!-- Here is a section for the EM advocate signoffs. -->
+{# Here is a section for the EM advocate signoffs. #}
 {% if advocate_signoff_authorized and advocate_signoff_active %}
 <div class="signoff-area">
     <h2>Advocate Signoff</h2>
@@ -119,10 +115,23 @@
     {% endif %}
     </p>
     
-    <form action="{% url "superevents:modify-signoff" superevent.superevent_id %}" method="POST">
+    <form class="signoff_form">
         <table>
         {{ advocate_signoff_form.as_table }}
-        <tr><td></td><td><input type="submit" value="Submit" class="searchButtonClass"></td></tr>
+        <tr>
+            <td></td>
+            <td>
+            {# inputs are disabled here, enabled by jquery code on page load. Otherwise users who click quickly can activate the form before the jquery is fully loaded #}
+            {% if advocate_signoff_exists %}
+            {% with advocate_signoff_type|add:advocate_signoff_instrument as typeinst %}
+                <input type="submit" formaction="{% url "shib:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Update signoff" class="searchButtonClass" id="update" disabled>
+                <input type="submit" formaction="{% url "shib:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Delete signoff" class="searchButtonClass" id="delete" disabled>
+            {% endwith %}
+            {% else %}
+            <input type="submit" value="Create signoff" class="searchButtonClass" formaction={% url "shib:default:superevents:superevent-signoff-list" superevent.superevent_id %} disabled>
+            {% endif %}
+            </td>
+        </tr>
         </table>
     </form>
 </div>
