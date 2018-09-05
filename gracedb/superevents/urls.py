@@ -19,12 +19,6 @@ suburlpatterns = [
     url(r'^files/$', views.file_list, name="file-list"),
     url(r'^files/(?P<filename>.*)$', views.file_download,
         name="file-download"),
-
-    # Changing LV-EM observers' superevent view/change permissions
-    url(r'^perms/$', views.modify_permissions, name="modify-permissions"),
-
-    # Signoff updates
-    url(r'^signoff/$', views.modify_signoff, name="modify-signoff"),
 ]
 
 # Legacy URL patterns - don't really need them, but we use them for the
