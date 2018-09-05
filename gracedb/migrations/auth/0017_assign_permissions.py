@@ -49,6 +49,13 @@ SUPEREVENT_PERMS = {
     'add_signoff': [H1_CONTROL, L1_CONTROL, V1_CONTROL, EM_ADVOCATES],
     'change_signoff': [H1_CONTROL, L1_CONTROL, V1_CONTROL, EM_ADVOCATES],
     'delete_signoff': [H1_CONTROL, L1_CONTROL, V1_CONTROL, EM_ADVOCATES],
+    'view_signoff': [LVC],
+    'do_H1_signoff': [H1_CONTROL],
+    'do_L1_signoff': [L1_CONTROL],
+    'do_V1_signoff': [V1_CONTROL],
+    'do_adv_signoff': [EM_ADVOCATES],
+    # Viewing permissions
+    'view_supereventgroupobjectpermission': [LVC],
 }
 
 
@@ -81,17 +88,10 @@ def remove_perms(apps, schema_editor):
     # Add permissions to groups
     for codename, group_names in SUPEREVENT_PERMS.iteritems():
         p = Permission.objects.get(codename=codename,
-            content_type__app_label=APP_NAME)
+            content_type__app_label='superevents')
         groups = Group.objects.filter(name__in=group_names)
         p.group_set.remove(*groups)
 
-    # Add other permissions
-    for full_code, group_names in OTHER_PERMS.iteritems():
-        app_label, codename = full_code.split('.')
-        p = Permission.objects.get(codename=codename,
-            content_type__app_label=app_label)
-        groups = Group.objects.filter(name__in=group_names)
-        p.group_set.remove(*groups)
 
 class Migration(migrations.Migration):
 
