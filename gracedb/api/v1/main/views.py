@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from api.backends import LigoAuthentication
 from api.utils import api_reverse
 from events.models import Group, Pipeline, Search, Tag, Label, EMGroup, \
-    VOEvent, EMBBEventLog, EMSPECTRUM
+    VOEvent, EMBBEventLog, EMSPECTRUM, SignoffBase
 from events.view_logic import get_performance_info
 from superevents.models import Superevent
 from ..superevents.url_templates import construct_url_templates
@@ -136,6 +136,9 @@ class GracedbRoot(APIView):
             "obs-statuses"   : dict(EMBBEventLog.OBS_STATUS_CHOICES),
             "superevent-categories": 
                 dict(Superevent.SUPEREVENT_CATEGORY_CHOICES),
+            "signoff-types": dict(SignoffBase.SIGNOFF_TYPE_CHOICES),
+            "signoff-statuses": dict(SignoffBase.OPERATOR_STATUS_CHOICES),
+            "instruments": dict(SignoffBase.INSTRUMENT_CHOICES),
             "voevent-types"  : dict(VOEvent.VOEVENT_TYPE_CHOICES),
             "API_VERSIONS": api_settings.ALLOWED_VERSIONS,
         })
