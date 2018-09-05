@@ -42,6 +42,11 @@
 {% block content %}
 <div id='event_detail_content'>
 
+{% if superevent.is_exposed and not user_is_external %}
+<!-- Show internal users that this superevent is publicly exposed -->
+<h2 style="color: red; text-align: center;">PUBLIC SUPEREVENT</h2>
+{% endif %}
+
 {% if messages %}
 <div class="flash">
     {% for m in messages %}
