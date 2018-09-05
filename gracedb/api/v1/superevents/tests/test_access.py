@@ -11,9 +11,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from guardian.shortcuts import assign_perm, remove_perm
 
 from api.tests.utils import GraceDbApiTestBase
-from core.permission_utils import expose_event_or_superevent_to_lvem, \
-    expose_event_or_superevent_to_public, expose_log_to_lvem, \
-    expose_log_to_public
+from core.permission_utils import expose_log_to_lvem, expose_log_to_public
 from core.tests.utils import GraceDbTestBase, \
     SupereventManagersGroupAndUserSetup, AccessManagersGroupAndUserSetup
 from events.models import Label, Tag, EMGroup
