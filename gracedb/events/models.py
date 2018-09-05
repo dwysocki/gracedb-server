@@ -1,3 +1,5 @@
+from math import isnan
+
 from django.db import models, IntegrityError
 from django.urls import reverse
 
@@ -986,12 +988,17 @@ class SingleInspiral(models.Model):
             #log.debug("Single/creating event")
             for f in [cls._meta.get_field(f) for f in cls.field_names()]:
                 value = getattr(row, f.attname, f.default)
+
+                # Handle nan for eff_distance
+                if f.attname == 'eff_distance' and isnan(value):
+                    value = None
+
                 # Only set value of class instance member if
                 # value is not None or if field is nullable.
                 # Otherwise we could overwrite non-nullable fields
                 # which have default values with None.
                 if value is not None or f.null:
-                    #log.debug("Setting column '%s' with value '%s'" % (column, value))
+                    #log.debug("Setting column '%s' with value '%s'" % (f.attname, value))
                     setattr(e, f.attname, value)
             e.save()
             created_events.append(e)
