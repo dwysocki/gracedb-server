@@ -1744,7 +1744,7 @@ class OperatorSignoffList(APIView):
                     'first' : request.build_absolute_uri(),
                     'last' : request.build_absolute_uri(),
                     },
-                'signoff' : signoff,
+                'signoffs' : signoff,
              }
         return Response(rv)
 
