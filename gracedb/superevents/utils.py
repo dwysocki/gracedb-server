@@ -4,6 +4,7 @@ import os
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import Group as AuthGroup
 
 from .buildVOEvent import construct_voevent_file
 from .models import Superevent, Log, Labelling, EMObservation, EMFootprint, \
@@ -15,9 +16,11 @@ from alerts.superevent_utils import issue_alert_for_superevent_creation, \
     issue_alert_for_superevent_label_creation, \
     issue_alert_for_superevent_label_removal, \
     issue_alert_for_superevent_emobservation, \
-    issue_alert_for_superevent_voevent, issue_alert_for_superevent_signoff
+    issue_alert_for_superevent_voevent, issue_alert_for_superevent_signoff, \
+    issue_alert_for_superevent_permissions
 from core.permission_utils import expose_log_to_lvem, expose_log_to_public, \
-    hide_log_from_lvem, hide_log_from_public
+    hide_log_from_lvem, hide_log_from_public, assign_perms_to_obj, \
+    remove_perms_from_obj
 from core.vfile import create_versioned_file
 from events.models import Event, EventLog, Tag, Label
 from events.shortcuts import is_event
@@ -27,6 +30,15 @@ logger = logging.getLogger(__name__)
 
 # NOTE: everything in here assumes that permissions have already been checked
 # and handled properly
+
+# Permissions which should be applied when exposing a superevent and removed
+# when hiding it.  Keys are group names and values are permissions
+# for that particulare group.
+SUPEREVENT_PERMS = {
+    settings.LVEM_OBSERVERS_GROUP: ['view', 'annotate'],
+    settings.PUBLIC_GROUP: ['view'],
+}
+
 
 # TODO:
 # Add decorator to check access permissions (??) not sure if we should do it here or in the viewset itself
@@ -567,9 +579,8 @@ def create_voevent_for_superevent(superevent, issuer, voevent_type,
 
 
 # TODO: wrap this function in a try-except block in the form
-def create_signoff_for_superevent(superevent, user, signoff_type,
-    signoff_instrument, signoff_status, signoff_comment, add_log_message=True,
-    issue_alert=True):
+def create_signoff(superevent, user, signoff_type, signoff_instrument,
+    signoff_status, signoff_comment, add_log_message=True, issue_alert=True):
 
     # Create signoff
     signoff = Signoff.objects.create(superevent=superevent, submitter=user,
@@ -583,6 +594,7 @@ def create_signoff_for_superevent(superevent, user, signoff_type,
             signoff_type=signoff_type_full.capitalize(), status=signoff_status)
         if signoff_instrument:
             comment += " for {inst}".format(inst=signoff_instrument)
+        comment += ": '{comment}'".format(comment=signoff_comment)
         em_follow = Tag.objects.get(name='em_follow')
         signoff_log = create_log(user, comment, superevent, issue_alert=False,
             tags=[em_follow])
@@ -603,18 +615,30 @@ def create_signoff_for_superevent(superevent, user, signoff_type,
 
     return signoff
 
-def update_signoff_for_superevent(signoff, user, changed_data,
-    add_log_message=True, issue_alert=True):
-    # changed_data is a dict which contains the fields of the signoff
-    # which have changed
+
+def update_signoff(signoff, user, status, comment, add_log_message=True,
+    issue_alert=True):
+    # "Updatable" parameters for signoffs: status and comment
+    new_data = {
+        'status': status,
+        'comment': comment,
+    }
+    updated_attributes = {k: v for k,v in new_data.items()
+        if getattr(signoff, k, None) != v}
+    old_data = {k: getattr(signoff, k) for k in updated_attributes}
+    logger.debug(updated_attributes)
+    logger.debug(old_data)
 
     # Get superevent
     superevent = signoff.superevent
 
-    # Save signoff
-    signoff.save()
+    # Update signoff values
+    for k,v in updated_attributes.iteritems():
+        setattr(signoff, k, v)
+    signoff.save(update_fields=list(updated_attributes))
 
-    if 'status' in changed_data:
+    # Manage labels
+    if 'status' in updated_attributes:
         # If label for opposite status exists, remove it (i.e., the status has
         # changed in this update, so we need to update the labels)
         labelling_to_remove = superevent.labelling_set.filter(label__name=
@@ -634,28 +658,57 @@ def update_signoff_for_superevent(signoff, user, changed_data,
         # Construct message
         signoff_type_full = dict(Signoff.SIGNOFF_TYPE_CHOICES) \
             [signoff.signoff_type]
-        comment = "{signoff_type} signoff updated".format(
-            signoff_type=signoff_type_full.capitalize())
-        if signoff.instrument:
-            comment += " for {inst}".format(inst=signoff.instrument)
-        if 'status' in changed_data:
-            comment += (": status {old_status} -> {new_status}, label "
-                "{r_label} removed, and label {a_label} applied").format(
-                old_status=signoff.opposite_status, new_status=signoff.status,
-                r_label=labelling_to_remove.label.name,
-                a_label=label_to_add.name)
-        em_follow = Tag.objects.get(name='em_follow')
-        signoff_log = create_log(user, comment, superevent, issue_alert=False,
-            tags=[em_follow])
 
-    # Issue alert
+        # Base comment string
+        base_comment = "{signoff_type} signoff {for_inst}updated: {updates}"
+
+        # Instrument-related string
+        if signoff.instrument:
+            comment_for_inst = "for {inst} ".format(inst=signoff.instrument)
+        else:
+            comment_for_inst = ""
+
+        # Updates to specific parameters
+        updates = []
+        if 'status' in updated_attributes:
+            # Careful with label removal in comment in case label doesn't
+            # exist for some reason
+            if labelling_to_remove is not None:
+                r_label_comment = ', label {label} removed'.format(
+                    label=labelling_to_remove.label.name)
+            else:
+                r_label_comment = ""
+            status_comment = ("status {old_status} -> {new_status}"
+                "{r_label_comment}, label {a_label} applied").format(
+                old_status=signoff.opposite_status, new_status=signoff.status,
+                r_label_comment=r_label_comment, a_label=label_to_add.name)
+            updates.append(status_comment)
+        if 'comment' in updated_attributes:
+            comment_comment = "comment '{old}' -> '{new}'".format(
+                old=old_data['comment'], new=updated_attributes['comment'])
+            updates.append(comment_comment)
+
+        # full comment
+        full_comment_kwargs = {
+            'signoff_type': signoff_type_full.capitalize(),
+            'for_inst': comment_for_inst,
+            'updates': "; ".join(updates)
+        }
+        full_comment = base_comment.format(**full_comment_kwargs)
+
+        # Create log
+        em_follow = Tag.objects.get(name='em_follow')
+        signoff_log = create_log(user, full_comment, superevent,
+            issue_alert=False, tags=[em_follow])
+
+    # Issue alert #TODO: make this specifically for a signoff update
     if issue_alert:
         issue_alert_for_superevent_signoff(signoff)
 
     return signoff
 
 
-def delete_signoff_for_superevent(signoff, user, add_log_message=True,
+def delete_signoff(signoff, user, add_log_message=True,
     issue_alert=True):
 
     # Get superevent
@@ -671,8 +724,8 @@ def delete_signoff_for_superevent(signoff, user, add_log_message=True,
     remove_label_from_superevent(labelling_to_remove, user,
         add_log_message=False, issue_alert=True)
 
-    # Reapply initial "req" labe: we don't add a log message here since we'll
-    # document this in the full log message about the signoff
+    # Reapply initial "REQ" or "OPS" label: we don't add a log message here
+    # since we'll document this in the full log message about the signoff
     label_to_add = Label.objects.get(name=signoff.get_req_label_name())
     add_label_to_superevent(superevent, label_to_add, user,
         add_log_message=False, issue_alert=True)
@@ -695,4 +748,60 @@ def delete_signoff_for_superevent(signoff, user, add_log_message=True,
     # Alert
     if issue_alert:
         issue_alert_for_superevent_log(signoff_log)
+
+
+def expose_superevent(superevent, user, add_log_message=True,
+    issue_alert=True):
+
+    # Get groups
+    lvem_group = AuthGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
+    public_group = AuthGroup.objects.get(name=settings.PUBLIC_GROUP)
+
+    # Assign permissions which will expose the superevent to LV-EM and the
+    # public
+    assign_perms_to_obj(SUPEREVENT_PERMS[lvem_group.name], lvem_group,
+        superevent)
+    assign_perms_to_obj(SUPEREVENT_PERMS[public_group.name], public_group,
+        superevent)
+
+    # Update superevent is_exposed attribute
+    superevent.is_exposed = True
+    superevent.save(update_fields=['is_exposed'])
+
+    # Write log message
+    if add_log_message:
+        comment = 'Exposed to LV-EM observers and the general public.'
+        create_log(user, comment, superevent, issue_alert=False)
+
+    # Send alert
+    if issue_alert:
+        issue_alert_for_superevent_permissions(superevent)
+
+
+def hide_superevent(superevent, user, add_log_message=True,
+    issue_alert=True):
+
+    # Get groups
+    lvem_group = AuthGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
+    public_group = AuthGroup.objects.get(name=settings.PUBLIC_GROUP)
+
+    # Assign permissions which will expose the superevent to LV-EM and the
+    # public
+    remove_perms_from_obj(SUPEREVENT_PERMS[lvem_group.name], lvem_group,
+        superevent)
+    remove_perms_from_obj(SUPEREVENT_PERMS[public_group.name], public_group,
+        superevent)
+
+    # Update superevent is_exposed attribute
+    superevent.is_exposed = False
+    superevent.save(update_fields=['is_exposed'])
+
+    # Write log message
+    if add_log_message:
+        comment = 'Hidden from LV-EM observers and the general public.'
+        create_log(user, comment, superevent, issue_alert=False)
+
+    # Send alert
+    if issue_alert:
+        issue_alert_for_superevent_permissions(superevent)
 
