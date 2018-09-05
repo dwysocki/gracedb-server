@@ -1,15 +1,19 @@
+import logging
+
 from django.urls import reverse
+from django.contrib.auth.models import Group as AuthGroup
+
 from rest_framework.renderers import JSONRenderer
 
-from .main import issue_alerts
-from core.urls import build_absolute_uri
 from api.v1.superevents.serializers import SupereventSerializer, \
     SupereventLogSerializer, SupereventLabelSerializer, \
     SupereventEMObservationSerializer, SupereventVOEventSerializer, \
     SupereventSignoffSerializer
+from core.urls import build_absolute_uri
 from superevents.shortcuts import is_superevent
+from .main import issue_alerts
 
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 
@@ -116,7 +120,7 @@ def issue_alert_for_superevent_label_removal(labelling, request=None):
 
 
 def issue_alert_for_superevent_voevent(voevent, request=None):
-    # Get URL for superevent webview and serialized label
+    # Get URL for superevent webview and serialized voevent
     url, serialized_object = superevent_alert_helper(voevent,
         SupereventVOEventSerializer, request=request)
 
@@ -130,7 +134,7 @@ def issue_alert_for_superevent_voevent(voevent, request=None):
 
 
 def issue_alert_for_superevent_emobservation(emobservation, request=None):
-    # Get URL for superevent webview and serialized label
+    # Get URL for superevent webview and serialized emo
     url, serialized_object = superevent_alert_helper(emobservation,
         SupereventEMObservationSerializer, request=request)
 
@@ -144,7 +148,7 @@ def issue_alert_for_superevent_emobservation(emobservation, request=None):
 
 
 def issue_alert_for_superevent_signoff(signoff, request=None):
-    # Get URL for superevent webview and serialized label
+    # Get URL for superevent webview and serialized signoff
     url, serialized_object = superevent_alert_helper(signoff,
         SupereventSignoffSerializer, request=request)
 
