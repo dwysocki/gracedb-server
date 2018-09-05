@@ -1,29 +1,28 @@
-from django.db import models, IntegrityError
-from django.urls import reverse
+from cStringIO import StringIO
+import datetime
+from hashlib import sha1
+import logging
+import os
+import pytz
+import re
+import shutil
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db import models, IntegrityError
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-from core.models import CleanSaveModel, AutoIncrementModel
-from core.models import LogBase, m2mThroughBase
-from core.models import ModelToDictMixin
+from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
+
+from core.models import CleanSaveModel, AutoIncrementModel, LogBase, \
+    m2mThroughBase, ModelToDictMixin
 from core.time_utils import posixToGpsTime, gpsToUtc
 from core.utils import int_to_letters, letters_to_int
 from events.models import Event, SignoffBase, VOEventBase, EMObservationBase, \
     EMFootprintBase
-from guardian.models import GroupObjectPermission, GroupObjectPermissionBase, \
-    UserObjectPermissionBase
-
-import datetime
-import pytz
-from cStringIO import StringIO
-from hashlib import sha1
-import os
-import re
-import shutil
-import logging
 
 # Other setup
 UserModel = get_user_model()
