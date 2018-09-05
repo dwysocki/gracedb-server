@@ -516,6 +516,13 @@ class Signoff(CleanSaveModel, SignoffBase):
 
     class Meta:
         unique_together = (('superevent', 'instrument'),)
+        permissions = (
+            ('view_signoff', 'Can view signoff'),
+            ('do_H1_signoff', 'Can interact with H1 signoffs'),
+            ('do_L1_signoff', 'Can interact with L1 signoffs'),
+            ('do_V1_signoff', 'Can interact with V1 signoffs'),
+            ('do_adv_signoff', 'Can interact with advocate signoffs'),
+        )
 
     def __unicode__(self):
         return "{superevent_id} | {instrument} | {status}".format(
