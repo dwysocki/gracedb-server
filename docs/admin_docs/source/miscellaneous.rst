@@ -112,9 +112,11 @@ Specifics (assume X1 is the IFO code):
 3. Update ifoList in ``gracedb/events/query.py``
 4. Add entry to ``CONTROL_ROOM_IPS`` in ``gracedb/config/settings/base.py``
 5. Add signoff option for X1 in ``gracedb/templates/gracedb/event_detail.html``
-6. Update INSTRUMENTS in ``gracedb/events/models.py``.
+6. Update INSTRUMENTS and time zones in ``gracedb/events/models.py``.
 7. Update any event objects which need it (currently only LIB events)
 8. Update lots of things in ``gracedb/events/serialize.py``
+9. Add a permission like 'do_X1_signoff' to the superevent (and probably event) signoff model
+10. Handle that case in the corresponding permissions in the API
 
 See an example (Virgo) `here <https://git.ligo.org/lscsoft/gracedb/commit/65a4c08e25d7a472e1f995072d166b4c8dc611df>`__, but note that a lot of the Virgo-related stuff was already in the code.
 
