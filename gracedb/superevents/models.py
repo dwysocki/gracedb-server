@@ -399,6 +399,16 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
         return id_prefix + self.t_0_date.strftime(self.DATE_STR_FMT) + \
             letter_suffix
 
+    @property
+    def graceid(self):
+        """Alias for superevent_id"""
+        return self.superevent_id
+
+    @property
+    def gpstime(self):
+        """Alias for t_0"""
+        return self.t_0
+
     # Custom methods ----------------------------------------------------------
     def get_external_events(self, related_fields=['group']):
         """Returns a queryset of external events"""
