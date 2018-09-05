@@ -114,7 +114,8 @@ def create_superevent(submitter, t_start, t_0, t_end, preferred_event,
     return s
 
 
-def update_superevent(superevent, updater, issue_alert=True, **kwargs):
+def update_superevent(superevent, updater, add_log_message=True,
+    issue_alert=True, **kwargs):
     """
     kwargs which are used as superevent parameters:
         t_start, t_0, t_end, preferred_event
@@ -134,28 +135,33 @@ def update_superevent(superevent, updater, issue_alert=True, **kwargs):
 
     # Write a log message
     # 'if' statement to handle patch requests which don't change entire object
-    updates = ["{name}: {old} -> {new}".format(name=k, old=old_params[k],
-        new=new_params[k]) for k in new_params.keys()
-        if old_params[k] != new_params[k]]
-    update_comment = "Updated superevent parameters: {0}".format(
-        ", ".join(updates))
-    update_log = create_log(updater, update_comment, superevent,
-        issue_alert=issue_alert)
-
-    # Write event log messages if preferred event changed
-    if new_params.has_key('preferred_event') and \
-        (old_params['preferred_event'] != new_params['preferred_event']):
-        # Old preferred event
-        old_msg = ("Removed as preferred event for superevent: "
-            "{superevent_id}").format(superevent_id=superevent.superevent_id)
-        old_log = create_log(updater, old_msg, old_params['preferred_event'],
+    if add_log_message:
+        updates = ["{name}: {old} -> {new}".format(name=k, old=old_params[k],
+            new=new_params[k]) for k in new_params.keys()
+            if old_params[k] != new_params[k]]
+        update_comment = "Updated superevent parameters: {0}".format(
+            ", ".join(updates))
+        update_log = create_log(updater, update_comment, superevent,
             issue_alert=issue_alert)
 
-        # New preferred event
-        new_msg = "Set as preferred event for superevent: {superevent_id}" \
-            .format(superevent_id=superevent.superevent_id)
-        new_log = create_log(updater, new_msg, new_params['preferred_event'],
-            issue_alert=issue_alert)
+        # Write event log messages if preferred event changed
+        if new_params.has_key('preferred_event') and \
+            (old_params['preferred_event'] != new_params['preferred_event']):
+            # Old preferred event
+            old_msg = ("Removed as preferred event for superevent: "
+                "{superevent_id}").format(superevent_id=
+                superevent.superevent_id)
+            old_log = create_log(updater, old_msg,
+                    old_params['preferred_event'], issue_alert=issue_alert)
+
+            # New preferred event
+            new_msg = ("Set as preferred event for superevent: "
+                "{superevent_id}").format(superevent_id=
+                superevent.superevent_id)
+            new_log = create_log(updater, new_msg,
+                new_params['preferred_event'], issue_alert=issue_alert)
+
+    # TODO: issue alert separately from log creation
 
     return superevent
 

@@ -187,8 +187,8 @@ class SupereventUpdateSerializer(SupereventSerializer):
         # from the request.
         request = self.context.get('request', None)
         updater = getattr(request, 'user', None)
-        instance = update_superevent(instance, updater, issue_alert=True,
-            **validated_data)
+        instance = update_superevent(instance, updater, add_log_message=True,
+            issue_alert=True, **validated_data)
         return instance
 
 
