@@ -191,18 +191,11 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
             self.preferred_event not in self.events.all()):
             self.events.add(self.preferred_event)
 
-    def delete(self, purge=False, *args, **kwargs):
+    def delete(self, purge=True, *args, **kwargs):
         if purge:
             # Delete data directory
             if os.path.isdir(self.datadir):
                 shutil.rmtree(self.datadir)
-
-            # Delete GroupObjectPermissions
-            ctype = ContentType.objects.get_for_model(self.__class__)
-            gops = GroupObjectPermission.objects.filter(object_pk=self.pk,
-                content_type=ctype)
-            gops.delete()
-
         # Call base class delete
         super(Superevent, self).delete(*args, **kwargs)
 
