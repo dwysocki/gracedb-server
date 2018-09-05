@@ -108,6 +108,9 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
 
     # Booleans
     is_gw = models.BooleanField(default=False)
+    # Because there are multiple actions/permissions involved with exposing a
+    # superevent, we are going to use a database field to track it.
+    is_exposed = models.BooleanField(default=False)
 
     # Meta class --------------------------------------------------------------
     class Meta:
@@ -439,6 +442,12 @@ class Superevent(CleanSaveModel, ModelToDictMixin, AutoIncrementModel):
 # row-level basis
 class SupereventGroupObjectPermission(GroupObjectPermissionBase):
     content_object = models.ForeignKey(Superevent, on_delete=models.CASCADE)
+
+    class Meta(GroupObjectPermissionBase.Meta):
+        permissions = (
+            ('view_supereventgroupobjectpermission',
+                'Can view superevent groupobjectpermission'),
+        )
 
 class SupereventUserObjectPermission(UserObjectPermissionBase):
     content_object = models.ForeignKey(Superevent, on_delete=models.CASCADE)
