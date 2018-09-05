@@ -74,7 +74,7 @@ suburlpatterns = [
         SupereventVOEventViewSet.as_view({'get': 'retrieve'}),
         name='superevent-voevent-detail'),
 
-    # EMObservation list creation
+    # EMObservation list and creation
     url(r'^emobservations/$', SupereventEMObservationViewSet.as_view(
         {'get': 'list', 'post': 'create'}),
         name='superevent-emobservation-list'),

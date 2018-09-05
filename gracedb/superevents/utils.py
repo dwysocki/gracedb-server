@@ -456,7 +456,6 @@ def get_or_create_tags(tag_name_list, display_name_list=[]):
     return tag_list
 
 
-# TODO: add permissions checking?
 # TODO: move this somewhere else?
 def get_superevent_by_date_id_or_404(superevent_id, queryset=None):
 
@@ -472,7 +471,6 @@ def get_superevent_by_date_id_or_404(superevent_id, queryset=None):
         # 400. But raising a 404 is not technically wrong.
         raise Http404(e)
 
-    # TODO: filter queryset for user here
     if queryset is None:
         queryset = Superevent.objects.all()
 
