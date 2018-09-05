@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from .views import SupereventViewSet, SupereventEventViewSet, \
     SupereventLabelViewSet, SupereventLogViewSet, SupereventLogTagViewSet, \
     SupereventFileViewSet, SupereventVOEventViewSet, \
-    SupereventEMObservationViewSet
+    SupereventEMObservationViewSet, SupereventSignoffViewSet
 from ...utils import api_reverse
 
 # Placeholder parameters for getting URLs with reverse
@@ -17,6 +17,7 @@ PH = {
     SupereventVOEventViewSet.lookup_url_kwarg: '4444', # VOEvent number (N)
     SupereventEMObservationViewSet.lookup_url_kwarg: '5555', # EMObservation
                                                              # number (N)
+    SupereventSignoffViewSet.lookup_url_kwarg: 'TYPE_INST', # type + instrument
 }
 
 
@@ -45,7 +46,10 @@ def construct_url_templates(request=None):
         'superevent-emobservation-list': [],
         'superevent-emobservation-detail': [
             PH[SupereventEMObservationViewSet.lookup_url_kwarg]],
-        'superevent-confirm-as-gw': []
+        'superevent-confirm-as-gw': [],
+        'superevent-signoff-list': [],
+        'superevent-signoff-detail': [
+            PH[SupereventSignoffViewSet.lookup_url_kwarg]],
     }
 
     # Dict of URL templates:

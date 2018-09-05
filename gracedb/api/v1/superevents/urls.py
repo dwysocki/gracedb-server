@@ -83,6 +83,16 @@ suburlpatterns = [
         lookup_url_kwarg=SupereventEMObservationViewSet.lookup_url_kwarg),
         SupereventEMObservationViewSet.as_view({'get': 'retrieve'}),
         name='superevent-emobservation-detail'),
+
+    # Signoff list and creation
+    url(r'signoffs/$', SupereventSignoffViewSet.as_view(
+        {'get': 'list', 'post': 'create'}), name='superevent-signoff-list'),
+    # Signoff detail
+    url(r'signoffs/(?P<{lookup_url_kwarg}>.+)/$'.format(lookup_url_kwarg=
+        SupereventSignoffViewSet.lookup_url_kwarg),
+        SupereventSignoffViewSet.as_view({'get': 'retrieve',
+        'patch': 'partial_update', 'delete': 'destroy'}),
+        name='superevent-signoff-detail'),
 ]
 
 # Full urlpatterns

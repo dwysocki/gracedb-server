@@ -676,10 +676,104 @@ class SupereventEMObservationSerializer(serializers.ModelSerializer):
 
 
 class SupereventSignoffSerializer(serializers.ModelSerializer):
+    # Error messages
+    default_error_messages = {
+        'label_missing': _('{s_type} signoff not requested for superevent '
+                           '{id}: label \'{label}\' not present.'),
+        'instrument_missing': _('Operator signoffs require an instrument'),
+        'instrument_provided': _('Advocate signoffs are not relevant to a'
+                                 'particular instrument; do not provide one.'),
+        'bad_update': _('Request would not modify the signoff.')
+    }
+    signoff_type = ChoiceDisplayField(required=True,
+        choices=Signoff.SIGNOFF_TYPE_CHOICES)
+    self = serializers.SerializerMethodField(read_only=True)
     submitter = serializers.SlugRelatedField(slug_field='username',
         read_only=True)
+    superevent = serializers.HiddenField(write_only=True,
+        default=ParentObjectDefault(context_key='superevent'))
+    user = serializers.HiddenField(write_only=True,
+        default=serializers.CurrentUserDefault())
 
     class Meta:
         model = Signoff
-        fields = ['submitter', 'instrument', 'status', 'comment',
-            'signoff_type']
+        fields = ['self', 'signoff_type', 'instrument', 'status', 'submitter',
+            'comment', 'superevent', 'user']
+
+    def get_self(self, obj):
+        return api_reverse('superevents:superevent-signoff-detail', args=[
+            obj.superevent.superevent_id, obj.signoff_type + obj.instrument],
+            request=self.context.get('request', None))
+
+    def validate(self, data):
+        data = super(SupereventSignoffSerializer, self).validate(data)
+        instrument = data.get('instrument')
+        superevent = data.get('superevent')
+        signoff_type = data.get('signoff_type')
+
+        # Fail if instrument not provided for operator signoff
+        if (signoff_type == Signoff.SIGNOFF_TYPE_OPERATOR and
+            not instrument):
+            self.fail('instrument_missing')
+
+        # Fail if instrument provided for advocate signoff
+        if (signoff_type == Signoff.SIGNOFF_TYPE_ADVOCATE and
+            instrument != ''):
+            self.fail('instrument_provided')
+
+        # A few method-specific validation checks: this way we don't
+        # have to have multiple serializers
+        http_method = self.context.get('request').method
+
+        # If superevent doesn't have expected label, fail
+        # (POST requests only; for PUT/PATCH we don't want to check this
+        # since we are updating an already existing signoff)
+        if (http_method == 'POST'):
+            # Get expected label
+            if (instrument == ""):
+                expected_label = 'ADVREQ'
+            else:
+                expected_label = instrument + 'OPS'
+            if not expected_label in [l.name for l in superevent.labels.all()]:
+                self.fail('label_missing', s_type=signoff_type,
+                    label=expected_label, id=superevent.superevent_id)
+
+        if (http_method in ['PUT', 'PATCH']):
+            comment = data.get('comment')
+            status = data.get('status')
+            if (comment == self.instance.comment and
+                status == self.instance.status):
+                self.fail('bad_update')
+
+        return data
+
+    def create(self, validated_data):
+        # Function-level import to prevent circular import in alerts
+        from superevents.utils import create_signoff
+
+        return create_signoff(validated_data['superevent'],
+            validated_data['user'], validated_data['signoff_type'],
+            validated_data['instrument'], validated_data['status'],
+            validated_data['comment'], add_log_message=True, issue_alert=True)
+
+    def update(self, instance, validated_data):
+        # Function-level import to prevent circular import in alerts
+        from superevents.utils import update_signoff
+        # Pull data out from the validated_data dictionary since the
+        # update_signoff function has non-kwargs for most of the args.
+        updater = validated_data.get('user')
+        status = validated_data.get('status')
+        comment = validated_data.get('comment')
+
+        # CurrentUserDefault doesn't work for PATCH requests since the
+        # serializer has self.partial == True, the default function is never
+        # called to fill empty data values. So we just grab the user directly
+        # from the request.
+        request = self.context.get('request')
+        if request.method == "PATCH":
+            updater = getattr(request, 'user')
+
+        # Call update_signoff
+        instance = update_signoff(instance, updater, status, comment,
+            add_log_message = True, issue_alert=True)
+        return instance

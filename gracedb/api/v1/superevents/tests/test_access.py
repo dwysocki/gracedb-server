@@ -13,10 +13,11 @@ from guardian.shortcuts import assign_perm, remove_perm
 from api.tests.utils import GraceDbApiTestBase
 from core.permission_utils import expose_log_to_lvem, expose_log_to_public
 from core.tests.utils import GraceDbTestBase, \
-    SupereventManagersGroupAndUserSetup, AccessManagersGroupAndUserSetup
+    SupereventManagersGroupAndUserSetup, AccessManagersGroupAndUserSetup, \
+    SignoffGroupsAndUsersSetup
 from events.models import Label, Tag, EMGroup
 from superevents.models import Superevent, Labelling, Log, VOEvent, \
-    EMObservation
+    EMObservation, Signoff
 from superevents.utils import create_log
 from .mixins import SupereventCreateMixin
 from ...settings import API_VERSION
@@ -2562,3 +2563,510 @@ class TestSupereventFileDetail(SupereventSetup, GraceDbApiTestBase):
         symlinks
         """
         # TODO
+
+
+class TestSupereventSignoffList(SupereventSetup, GraceDbApiTestBase):
+
+    @classmethod
+    def setUpTestData(cls):
+        super(TestSupereventSignoffList, cls).setUpTestData()
+
+        # Create signoffs for superevents
+        cls.internal_signoff = Signoff.objects.create(
+            submitter=cls.internal_user, superevent=cls.internal_superevent,
+            status=Signoff.OPERATOR_STATUS_OK,
+            instrument=Signoff.INSTRUMENT_H1,
+            signoff_type=Signoff.SIGNOFF_TYPE_OPERATOR)
+        cls.lvem_signoff = Signoff.objects.create(
+            submitter=cls.internal_user, superevent=cls.lvem_superevent,
+            status=Signoff.OPERATOR_STATUS_OK,
+            instrument=Signoff.INSTRUMENT_H1,
+            signoff_type=Signoff.SIGNOFF_TYPE_OPERATOR)
+
+    def test_internal_get_signoff_list(self):
+        """Internal user can view list of signoffs"""
+        url = v_reverse('superevents:superevent-signoff-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "GET", self.internal_user)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['signoffs']),
+            self.internal_superevent.signoff_set.count())
+
+    def test_lvem_get_hidden_signoff_list(self):
+        """LV-EM user can't view list of signoffs for hidden superevent"""
+        url = v_reverse('superevents:superevent-signoff-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "GET", self.lvem_user)
+        self.assertEqual(response.status_code, 404)
+
+    def test_lvem_get_exposed_signoff_list(self):
+        """LV-EM user can't view list of signoffs for exposed superevent"""
+        url = v_reverse('superevents:superevent-signoff-list',
+            args=[self.lvem_superevent.superevent_id])
+        response = self.request_as_user(url, "GET", self.lvem_user)
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('do not have permission to view superevent signoffs',
+            response.data['detail'])
+
+    def test_public_get_hidden_signoff_list(self):
+        """Public user can't view list of signoffs for hidden superevent"""
+        url = v_reverse('superevents:superevent-signoff-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "GET")
+        self.assertEqual(response.status_code, 403)
+        # TODO: will be 404 error in the future
+
+    def test_public_get_exposed_signoff_list(self):
+        """Public user can't view list of signoffs for exposed superevent"""
+        # TODO
+        pass
+
+
+class TestSupereventSignoffDetail(SupereventSetup, GraceDbApiTestBase):
+
+    @classmethod
+    def setUpTestData(cls):
+        super(TestSupereventSignoffDetail, cls).setUpTestData()
+
+        # Create signoffs for superevents
+        cls.internal_signoff = Signoff.objects.create(
+            submitter=cls.internal_user, superevent=cls.internal_superevent,
+            status=Signoff.OPERATOR_STATUS_OK,
+            instrument=Signoff.INSTRUMENT_H1,
+            signoff_type=Signoff.SIGNOFF_TYPE_OPERATOR)
+        cls.lvem_signoff = Signoff.objects.create(
+            submitter=cls.internal_user, superevent=cls.lvem_superevent,
+            status=Signoff.OPERATOR_STATUS_OK,
+            instrument=Signoff.INSTRUMENT_H1,
+            signoff_type=Signoff.SIGNOFF_TYPE_OPERATOR)
+
+    def test_internal_user_get_signoff_detail(self):
+        """Internal user can view signoff detail"""
+        signoff = self.internal_superevent.signoff_set.first()
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[self.internal_superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "GET", self.internal_user)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['submitter'],
+            signoff.submitter.username)
+        self.assertEqual(response.data['signoff_type'],
+            dict(Signoff.SIGNOFF_TYPE_CHOICES)[signoff.signoff_type])
+        self.assertEqual(response.data['status'], signoff.status)
+        self.assertEqual(response.data['comment'], signoff.comment)
+        self.assertEqual(response.data['instrument'], signoff.instrument)
+
+    def test_lvem_user_get_signoff_detail_for_hidden_superevent(self):
+        """LV-EM user can't view signoff detail for hidden superevent"""
+        signoff = self.internal_superevent.signoff_set.first()
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[self.internal_superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "GET", self.lvem_user)
+        self.assertEqual(response.status_code, 404)
+        
+    def test_lvem_user_get_signoff_detail_for_exposed_superevent(self):
+        """LV-EM user can't view signoff detail for exposed superevent"""
+        signoff = self.lvem_superevent.signoff_set.first()
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[self.lvem_superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "GET", self.lvem_user)
+        self.assertEqual(response.status_code, 403)
+        
+    def test_public_user_get_signoff_detail_for_hidden_superevent(self):
+        """Public user can't view signoff detail for hidden superevent"""
+        signoff = self.internal_superevent.signoff_set.first()
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[self.internal_superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "GET")
+        self.assertEqual(response.status_code, 403)
+        # TODO: will be 404 in the future
+        
+    def test_public_user_get_signoff_detail_for_exposed_superevent(self):
+        """Public user can't view signoff detail for exposed superevent"""
+        # TODO
+        pass
+
+
+class TestSupereventSignoffCreation(SignoffGroupsAndUsersSetup,
+    SupereventSetup, GraceDbApiTestBase):
+
+    @classmethod
+    def setUpTestData(cls):
+        super(TestSupereventSignoffCreation, cls).setUpTestData()
+
+        # Create a few labels for testing
+        h1ops, _ =Label.objects.get_or_create(name='H1OPS')
+        Label.objects.get_or_create(name='H1OK')
+        Label.objects.get_or_create(name='H1NO')
+        advreq, _ = Label.objects.get_or_create(name='ADVREQ')
+        Label.objects.get_or_create(name='ADVOK')
+        Label.objects.get_or_create(name='ADVNO')
+
+        # Add H1OPS and ADVREQ to superevents so that signoffs can be created
+        Labelling.objects.create(superevent=cls.internal_superevent,
+            label=h1ops, creator=cls.internal_user)
+        Labelling.objects.create(superevent=cls.internal_superevent,
+            label=advreq, creator=cls.internal_user)
+
+        # Also need em_follow tag since signoff-related log messages are
+        # tagged with it
+        Tag.objects.get_or_create(name='em_follow')
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestSupereventSignoffCreation, cls).setUpClass()
+
+        # Data for signoff creation
+        cls.signoff_data = {
+            'signoff_type': Signoff.SIGNOFF_TYPE_OPERATOR,
+            'status': Signoff.OPERATOR_STATUS_NOTOK,
+            'instrument': Signoff.INSTRUMENT_H1,
+            'comment': 'test comment',
+        }
+
+    def test_internal_user_create_signoff(self):
+        """Basic internal user can't create signoffs"""
+        url = v_reverse('superevents:superevent-signoff-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.internal_user,
+            data=self.signoff_data)
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('do not have permission to create superevent signoffs',
+            response.data['detail'])
+
+    def test_H1_control_room_create_H1_signoff(self):
+        """H1 control room user can create H1 signoffs"""
+        url = v_reverse('superevents:superevent-signoff-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.H1_user,
+            data=self.signoff_data)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['status'], self.signoff_data['status'])
+        self.assertEqual(response.data['comment'],
+            self.signoff_data['comment'])
+
+    def test_H1_control_room_create_other_signoff(self):
+        """H1 control room user can't create signoffs for other ifos"""
+        self.signoff_data['instrument'] = Signoff.INSTRUMENT_L1
+        url = v_reverse('superevents:superevent-signoff-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.H1_user,
+            data=self.signoff_data)
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('do not have permission to do L1 signoffs',
+            response.data['detail'])
+
+    def test_advocate_create_adv_signoff(self):
+        """EM advocate user can create advocate signoffs"""
+        self.signoff_data['instrument'] = ''
+        self.signoff_data['signoff_type'] = Signoff.SIGNOFF_TYPE_ADVOCATE
+        url = v_reverse('superevents:superevent-signoff-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.adv_user,
+            data=self.signoff_data)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['status'], self.signoff_data['status'])
+        self.assertEqual(response.data['comment'],
+            self.signoff_data['comment'])
+
+    def test_lvem_user_create_signoff_for_hidden_superevent(self):
+        """LV-EM user can't create signoffs for hidden superevents"""
+        url = v_reverse('superevents:superevent-signoff-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.lvem_user,
+            data=self.signoff_data)
+        self.assertEqual(response.status_code, 404)
+
+    def test_lvem_user_create_signoff_for_exposed_superevent(self):
+        """LV-EM user can't create signoffs for exposed superevents"""
+        url = v_reverse('superevents:superevent-signoff-list',
+            args=[self.lvem_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.lvem_user,
+            data=self.signoff_data)
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('do not have permission to create superevent signoffs',
+            response.data['detail'])
+
+    def test_public_user_create_signoff_for_hidden_superevent(self):
+        """Public user can't create signoffs for hidden superevents"""
+        url = v_reverse('superevents:superevent-signoff-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", data=self.signoff_data)
+        self.assertEqual(response.status_code, 403)
+        # TODO: this will be 404 in the future
+
+    def test_public_user_create_signoff_for_exposed_superevent(self):
+        """Public user can't create signoffs for exposed superevents"""
+        # TODO
+        pass
+
+
+class TestSupereventSignoffUpdate(SignoffGroupsAndUsersSetup,
+    SupereventSetup, GraceDbApiTestBase):
+
+    @classmethod
+    def setUpTestData(cls):
+        super(TestSupereventSignoffUpdate, cls).setUpTestData()
+
+        # Create signoffs for superevents
+        cls.internal_signoff = Signoff.objects.create(
+            submitter=cls.internal_user, superevent=cls.internal_superevent,
+            status=Signoff.OPERATOR_STATUS_OK,
+            instrument=Signoff.INSTRUMENT_H1,
+            signoff_type=Signoff.SIGNOFF_TYPE_OPERATOR)
+        cls.lvem_signoff = Signoff.objects.create(
+            submitter=cls.internal_user, superevent=cls.lvem_superevent,
+            status=Signoff.OPERATOR_STATUS_OK,
+            instrument=Signoff.INSTRUMENT_H1,
+            signoff_type=Signoff.SIGNOFF_TYPE_OPERATOR)
+
+        # Create a few labels for testing
+        Label.objects.get_or_create(name='H1OPS')
+        h1ok, _ = Label.objects.get_or_create(name='H1OK')
+        Label.objects.get_or_create(name='H1NO')
+        Label.objects.get_or_create(name='ADVREQ')
+        advok, _ = Label.objects.get_or_create(name='ADVOK')
+        Label.objects.get_or_create(name='ADVNO')
+
+        # Add H1OPS and ADVREQ to superevents so that signoffs can be created
+        Labelling.objects.create(superevent=cls.internal_superevent,
+            label=h1ok, creator=cls.internal_user)
+        Labelling.objects.create(superevent=cls.lvem_superevent,
+            label=h1ok, creator=cls.internal_user)
+        Labelling.objects.create(superevent=cls.internal_superevent,
+            label=advok, creator=cls.internal_user)
+
+        # Also need em_follow tag since signoff-related log messages are
+        # tagged with it
+        Tag.objects.get_or_create(name='em_follow')
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestSupereventSignoffUpdate, cls).setUpClass()
+
+        # Data for signoff creation
+        cls.signoff_data = {
+            'status': Signoff.OPERATOR_STATUS_NOTOK,
+            'comment': 'test comment',
+        }
+
+    def test_internal_user_update_signoff(self):
+        """Basic internal user can't update signoffs"""
+        signoff = self.internal_signoff
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[self.internal_superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "PATCH", self.internal_user,
+            data=self.signoff_data)
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('do not have permission to change superevent signoffs',
+            response.data['detail'])
+
+    def test_H1_control_room_update_H1_signoff(self):
+        """H1 control room user can update H1 signoffs"""
+        signoff = self.internal_signoff
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[self.internal_superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "PATCH", self.H1_user,
+            data=self.signoff_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], self.signoff_data['status'])
+        self.assertEqual(response.data['comment'],
+            self.signoff_data['comment'])
+
+    def test_H1_control_room_update_other_signoff(self):
+        """H1 control room user can't update signoffs for other ifos"""
+        signoff = Signoff.objects.create(submitter=self.internal_user,
+            superevent=self.internal_superevent,
+            status=Signoff.OPERATOR_STATUS_OK,
+            instrument=Signoff.INSTRUMENT_L1,
+            signoff_type=Signoff.SIGNOFF_TYPE_OPERATOR)
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[signoff.superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "PATCH", self.H1_user,
+            data=self.signoff_data)
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('do not have permission to do L1 signoffs',
+            response.data['detail'])
+
+    def test_advocate_update_adv_signoff(self):
+        """EM advocate user can update advocate signoffs"""
+        signoff = Signoff.objects.create(submitter=self.internal_user,
+            superevent=self.internal_superevent,
+            status=Signoff.OPERATOR_STATUS_OK,
+            instrument="", signoff_type=Signoff.SIGNOFF_TYPE_ADVOCATE)
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[signoff.superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "PATCH", self.adv_user,
+            data=self.signoff_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], self.signoff_data['status'])
+        self.assertEqual(response.data['comment'],
+            self.signoff_data['comment'])
+
+    def test_lvem_user_update_signoff_for_hidden_superevent(self):
+        """LV-EM user can't update signoffs for hidden superevents"""
+        signoff = self.internal_signoff
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[signoff.superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "PATCH", self.lvem_user,
+            data=self.signoff_data)
+        self.assertEqual(response.status_code, 404)
+
+    def test_lvem_user_update_signoff_for_exposed_superevent(self):
+        """LV-EM user can't update signoffs for exposed superevents"""
+        signoff = self.lvem_signoff
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[signoff.superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "PATCH", self.lvem_user,
+            data=self.signoff_data)
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('do not have permission to change superevent signoffs',
+            response.data['detail'])
+
+    def test_public_user_update_signoff_for_hidden_superevent(self):
+        """Public user can't update signoffs for hidden superevents"""
+        signoff = self.internal_signoff
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[signoff.superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "PATCH", data=self.signoff_data)
+        self.assertEqual(response.status_code, 403)
+        # TODO: this will be 404 in the future
+
+    def test_public_user_update_signoff_for_exposed_superevent(self):
+        """Public user can't update signoffs for exposed superevents"""
+        # TODO
+        pass
+
+
+class TestSupereventSignoffDeletion(SignoffGroupsAndUsersSetup,
+    SupereventSetup, GraceDbApiTestBase):
+
+    @classmethod
+    def setUpTestData(cls):
+        super(TestSupereventSignoffDeletion, cls).setUpTestData()
+
+        # Create signoffs for superevents
+        cls.internal_signoff = Signoff.objects.create(
+            submitter=cls.internal_user, superevent=cls.internal_superevent,
+            status=Signoff.OPERATOR_STATUS_OK,
+            instrument=Signoff.INSTRUMENT_H1,
+            signoff_type=Signoff.SIGNOFF_TYPE_OPERATOR)
+        cls.lvem_signoff = Signoff.objects.create(
+            submitter=cls.internal_user, superevent=cls.lvem_superevent,
+            status=Signoff.OPERATOR_STATUS_OK,
+            instrument=Signoff.INSTRUMENT_H1,
+            signoff_type=Signoff.SIGNOFF_TYPE_OPERATOR)
+
+        # Create a few labels for testing
+        Label.objects.get_or_create(name='H1OPS')
+        h1ok, _ = Label.objects.get_or_create(name='H1OK')
+        Label.objects.get_or_create(name='H1NO')
+        Label.objects.get_or_create(name='ADVREQ')
+        advok, _ = Label.objects.get_or_create(name='ADVOK')
+        Label.objects.get_or_create(name='ADVNO')
+
+        # Add H1OPS and ADVREQ to superevents so that signoffs can be created
+        Labelling.objects.create(superevent=cls.internal_superevent,
+            label=h1ok, creator=cls.internal_user)
+        Labelling.objects.create(superevent=cls.lvem_superevent,
+            label=h1ok, creator=cls.internal_user)
+        Labelling.objects.create(superevent=cls.internal_superevent,
+            label=advok, creator=cls.internal_user)
+
+        # Also need em_follow tag since signoff-related log messages are
+        # tagged with it
+        Tag.objects.get_or_create(name='em_follow')
+
+    def test_internal_user_delete_signoff(self):
+        """Basic internal user can't delete signoffs"""
+        signoff = self.internal_signoff
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[self.internal_superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "DELETE", self.internal_user)
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('do not have permission to delete superevent signoffs',
+            response.data['detail'])
+
+    def test_H1_control_room_delete_H1_signoff(self):
+        """H1 control room user can delete H1 signoffs"""
+        signoff = self.internal_signoff
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[self.internal_superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "DELETE", self.H1_user)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data, None)
+
+    def test_H1_control_room_delete_other_signoff(self):
+        """H1 control room user can't delete signoffs for other ifos"""
+        signoff = Signoff.objects.create(submitter=self.internal_user,
+            superevent=self.internal_superevent,
+            status=Signoff.OPERATOR_STATUS_OK,
+            instrument=Signoff.INSTRUMENT_L1,
+            signoff_type=Signoff.SIGNOFF_TYPE_OPERATOR)
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[signoff.superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "DELETE", self.H1_user)
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('do not have permission to do L1 signoffs',
+            response.data['detail'])
+
+    def test_advocate_delete_adv_signoff(self):
+        """EM advocate user can delete advocate signoffs"""
+        signoff = Signoff.objects.create(submitter=self.internal_user,
+            superevent=self.internal_superevent,
+            status=Signoff.OPERATOR_STATUS_OK,
+            instrument="", signoff_type=Signoff.SIGNOFF_TYPE_ADVOCATE)
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[signoff.superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "DELETE", self.adv_user)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data, None)
+
+    def test_lvem_user_delete_signoff_for_hidden_superevent(self):
+        """LV-EM user can't delete signoffs for hidden superevents"""
+        signoff = self.internal_signoff
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[signoff.superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "DELETE", self.lvem_user)
+        self.assertEqual(response.status_code, 404)
+
+    def test_lvem_user_delete_signoff_for_exposed_superevent(self):
+        """LV-EM user can't delete signoffs for exposed superevents"""
+        signoff = self.lvem_signoff
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[signoff.superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "DELETE", self.lvem_user)
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('do not have permission to delete superevent signoffs',
+            response.data['detail'])
+
+    def test_public_user_delete_signoff_for_hidden_superevent(self):
+        """Public user can't delete signoffs for hidden superevents"""
+        signoff = self.internal_signoff
+        url = v_reverse('superevents:superevent-signoff-detail',
+            args=[signoff.superevent.superevent_id,
+            signoff.signoff_type + signoff.instrument])
+        response = self.request_as_user(url, "DELETE")
+        self.assertEqual(response.status_code, 403)
+        # TODO: this will be 404 in the future
+
+    def test_public_user_delete_signoff_for_exposed_superevent(self):
+        """Public user can't delete signoffs for exposed superevents"""
+        # TODO
+        pass

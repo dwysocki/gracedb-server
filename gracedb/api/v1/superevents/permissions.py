@@ -5,7 +5,7 @@ from django.urls import resolve
 
 from rest_framework import permissions
 
-from superevents.models import Superevent
+from superevents.models import Superevent, Signoff
 from ..permissions import FunctionalModelPermissions, \
     FunctionalObjectPermissions, FunctionalParentObjectPermissions
 
@@ -340,3 +340,97 @@ class SupereventVOEventModelPermissions(permissions.DjangoModelPermissions):
         'POST': ['superevents.add_voevent'],
     }
     message = 'You do not have permission to create VOEvents.'
+
+
+class SupereventSignoffModelPermissions(FunctionalModelPermissions):
+    allowed_methods = ['OPTIONS', 'HEAD', 'GET', 'POST', 'PATCH', 'DELETE']
+
+    def get_get_permissions(self, request):
+        self.message = ('You do not have permission to view superevent '
+            'signoffs.')
+        return ['superevents.view_signoff']
+
+    def get_post_permissions(self, request):
+        self.message = ('You do not have permission to create superevent '
+            'signoffs.')
+        return ['superevents.add_signoff']
+
+    def get_patch_permissions(self, request):
+        self.message = ('You do not have permission to change superevent '
+            'signoffs.')
+        return ['superevents.change_signoff']
+
+    def get_delete_permissions(self, request):
+        self.message = ('You do not have permission to delete superevent '
+            'signoffs.')
+        return ['superevents.delete_signoff']
+
+
+def get_signoff_type_permissions(signoff_type, instrument):
+    """
+    Helper function for returning permissions and error message for
+    superevent signoff actions.
+    """
+
+    # Base permissions and error message
+    permissions = []
+    message = None
+
+    # Determine required permissions based on signoff type
+    # and instrument
+    if (signoff_type == Signoff.SIGNOFF_TYPE_OPERATOR):
+        if (instrument == Signoff.INSTRUMENT_H1):
+            permissions.append('superevents.do_H1_signoff')
+        elif (instrument == Signoff.INSTRUMENT_L1):
+            permissions.append('superevents.do_L1_signoff')
+        elif (instrument == Signoff.INSTRUMENT_V1):
+            permissions.append('superevents.do_V1_signoff')
+        message = 'You do not have permission to do {inst} signoffs.' \
+            .format(inst=instrument)
+    elif (signoff_type == Signoff.SIGNOFF_TYPE_ADVOCATE):
+        permissions.append('superevents.do_adv_signoff')
+        message = 'You do not have permission to do advocate signoffs.'
+
+    return permissions, message
+
+
+class SupereventSignoffTypeModelPermissions(FunctionalModelPermissions):
+    """
+    Enforces signoff type-based permissions for signoff creation (POST).
+    """
+    allowed_methods = SupereventSignoffModelPermissions.allowed_methods
+
+    def get_post_permissions(self, request):
+        # Get signoff_type and instrument from request data
+        signoff_type = request.data.get('signoff_type')
+        instrument = request.data.get('instrument', '')
+
+        required_permissions, message = get_signoff_type_permissions(
+            signoff_type, instrument)
+        if message is not None:
+            self.message = message
+
+        return required_permissions
+
+
+class SupereventSignoffTypeObjectPermissions(FunctionalObjectPermissions):
+    """
+    Enforces signoff type-based permissions for signoff updates and
+    deletion (PATCH and DELETE).
+    """
+    allowed_methods = SupereventSignoffModelPermissions.allowed_methods
+
+    def _get_signoff_type_permissions_for_object(self, request, obj):
+        """Helper function to prevent code duplication"""
+        required_permissions, message = get_signoff_type_permissions(
+            obj.signoff_type, obj.instrument)
+        if message is not None:
+            self.message = message
+        return required_permissions
+
+    def get_patch_object_permissions(self, request, obj):
+        return self._get_signoff_type_permissions_for_object(request, obj)
+
+    def get_delete_object_permissions(self, request, obj):
+        return self._get_signoff_type_permissions_for_object(request, obj)
+

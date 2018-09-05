@@ -19,21 +19,25 @@ from core.vfile import VersionedFile
 from events.models import Event, Label
 from events.view_utils import reverse as gracedb_reverse
 from superevents.buildVOEvent import VOEventBuilderException
-from superevents.models import Superevent, Log
+from superevents.models import Superevent, Log, Signoff
 from superevents.utils import remove_tag_from_log, \
     remove_event_from_superevent, remove_label_from_superevent, \
-    confirm_superevent_as_gw, get_superevent_by_date_id_or_404
+    confirm_superevent_as_gw, get_superevent_by_date_id_or_404, \
+    delete_signoff
 from .filters import SupereventSearchFilter, SupereventOrderingFilter
 from .paginators import CustomSupereventPagination
 from .permissions import SupereventModelPermissions, \
     SupereventObjectPermissions, SupereventLabellingModelPermissions, \
     EventParentSupereventPermissions, SupereventLogModelPermissions, \
     SupereventLogTagModelPermissions, SupereventLogTagObjectPermissions, \
-    SupereventVOEventModelPermissions, ParentSupereventAnnotatePermissions
+    SupereventVOEventModelPermissions, ParentSupereventAnnotatePermissions, \
+    SupereventSignoffModelPermissions, SupereventSignoffTypeModelPermissions, \
+    SupereventSignoffTypeObjectPermissions
 from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
     SupereventEventSerializer, SupereventLabelSerializer, \
     SupereventLogSerializer, SupereventLogTagSerializer, \
-    SupereventVOEventSerializer, SupereventEMObservationSerializer
+    SupereventVOEventSerializer, SupereventEMObservationSerializer, \
+    SupereventSignoffSerializer
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
 from .viewsets import SupereventNestedViewSet
 from ..filters import DjangoObjectAndGlobalPermissionsFilter
@@ -353,3 +357,56 @@ class SupereventEMObservationViewSet(mixins.ListModelMixin,
         superevent = self.get_parent_object()
         queryset = superevent.emobservation_set.all()
         return queryset
+
+
+class SupereventSignoffViewSet(viewsets.ModelViewSet,
+                               SafeCreateMixin,
+                               SupereventNestedViewSet):
+    """
+    View for signoffs associated with a superevent.
+    """
+    serializer_class = SupereventSignoffSerializer
+    pagination_class = BasePaginationFactory(results_name='signoffs')
+    # Order of the 'model' and 'type' permissions matters for the
+    # error messages to make sense.
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+        SupereventSignoffModelPermissions,
+        SupereventSignoffTypeModelPermissions,
+        SupereventSignoffTypeObjectPermissions,)
+    lookup_url_kwarg = 'typeinst' # signoff_type + instrument
+
+    def get_queryset(self):
+        superevent = self.get_parent_object()
+        queryset = superevent.signoff_set.all()
+        return queryset
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # lookup_url_kwarg is like 'TYPEINSTRUMENT'
+        type_instrument = self.kwargs.get(self.lookup_url_kwarg)
+
+        # Try to split on signoff type. If a split happens, then
+        # set the instrument and break out. Otherwise, we take
+        # instrument='' and take the full lookup_url_kwarg as the
+        # signoff_type
+        filter_kwargs = {'instrument': ''}
+        for _type, _ in Signoff.SIGNOFF_TYPE_CHOICES:
+            type_inst_tuple = type_instrument.split(_type)
+
+            if (len(type_inst_tuple) == 2):
+                filter_kwargs['instrument'] = type_inst_tuple[1]
+                break
+        filter_kwargs['signoff_type'] = _type
+
+        # Get signoff or 404 
+        signoff = get_object_or_404(queryset, **filter_kwargs)
+
+        # Check object permissions
+        self.check_object_permissions(self.request, signoff)
+
+        return signoff
+
+    def perform_destroy(self, instance):
+        delete_signoff(instance, self.request.user, add_log_message=True,
+            issue_alert=True)
