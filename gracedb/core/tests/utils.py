@@ -74,6 +74,8 @@ class InternalGroupAndUserSetup(TestCase):
             'annotate_superevent',
             'view_superevent',
             'add_voevent',
+            'view_supereventgroupobjectpermission',
+            'view_signoff',
         ]
         perms = Permission.objects.filter(
             content_type__app_label='superevents',
@@ -188,6 +190,71 @@ class AccessManagersGroupAndUserSetup(TestCase):
             content_type__app_label='superevents',
             codename__in=am_permissions_codenames)
         cls.am_group.permissions.add(*perms)
+
+
+class SignoffGroupsAndUsersSetup(TestCase):
+    """
+    Base class which sets up signoff groups ([ifo]_control_room and
+    em_advocates) and groups for each one. Users are accessible under
+    self.[ifo]_user and self.adv_user.
+
+    Also adds appropriate permissions.
+    """
+    @classmethod
+    def setUpTestData(cls):
+
+        # Run super
+        super(SignoffGroupsAndUsersSetup, cls).setUpTestData()
+
+        # Internal group, used later
+        internal_group, _ = Group.objects.get_or_create(
+            name=settings.LVC_GROUP)
+
+        # Get or create IFO control room groups and users, and add perms
+        ifos = ['H1', 'L1', 'V1']
+        for ifo in ifos:
+            # Create groups and usres
+            g, _ = Group.objects.get_or_create(name=(ifo + '_control_room'))
+            user, _ = UserModel.objects.get_or_create(username=(ifo + '.user'))
+            user.groups.add(g)
+            setattr(cls, ifo + '_user', user)
+
+            # Also add user to internal group
+            internal_group.user_set.add(user)
+
+            # Add permission
+            p = Permission.objects.filter(
+                content_type__app_label='superevents',
+                codename=('do_' + ifo + '_signoff'))
+            g.permissions.add(*p)
+
+        # Same for em advocates
+        g, _ = Group.objects.get_or_create(name='em_advocates')
+        user, _ = UserModel.objects.get_or_create(username='em.advocate')
+        user.groups.add(g)
+        cls.adv_user = user
+
+        p = Permission.objects.filter(
+            content_type__app_label='superevents',
+            codename='do_adv_signoff')
+        g.permissions.add(*p)
+        # Also add user to internal group
+        internal_group.user_set.add(user)
+
+        # Add add/change/delete perms to all of these groups
+        ctrl_room_groups = [ifo + '_control_room' for ifo in ifos]
+        grps = ctrl_room_groups + ['em_advocates']
+        permission_codenames = [
+            'add_signoff',
+            'change_signoff',
+            'delete_signoff',
+        ]
+        for grp_name in grps:
+            group = Group.objects.get(name=grp_name)
+            perms = Permission.objects.filter(
+                content_type__app_label='superevents',
+                codename__in=permission_codenames)
+            group.permissions.add(*perms)
 
 
 class PublicGroupSetup(TestCase):
