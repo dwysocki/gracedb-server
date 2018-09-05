@@ -8,7 +8,7 @@ from rest_framework.renderers import JSONRenderer
 from api.v1.superevents.serializers import SupereventSerializer, \
     SupereventLogSerializer, SupereventLabelSerializer, \
     SupereventEMObservationSerializer, SupereventVOEventSerializer, \
-    SupereventSignoffSerializer
+    SupereventSignoffSerializer, SupereventGroupObjectPermissionSerializer
 from core.urls import build_absolute_uri
 from superevents.shortcuts import is_superevent
 from .main import issue_alerts
@@ -158,3 +158,23 @@ def issue_alert_for_superevent_signoff(signoff, request=None):
     # Send alerts
     issue_alerts(signoff.superevent, alert_type="signoff", url=url,
         description=description, serialized_object=serialized_object)
+
+
+def issue_alert_for_superevent_permissions(superevent, request=None):
+    # Construct URL for web view
+    url = build_absolute_uri(reverse('superevents:view', args=[
+        superevent.superevent_id]), request)
+
+    # Get serialized permissions
+    gops = superevent.supereventgroupobjectpermission_set.all()
+    gop_group_pks = gops.values_list('group', flat=True).distinct()
+    group_queryset = AuthGroup.objects.filter(pk__in=gop_group_pks)
+    serialized_list = SupereventGroupObjectPermissionSerializer(
+        group_queryset, many=True)
+
+    # Description
+    description = 'Permissions updated'
+
+    # Send alerts
+    issue_alerts(superevent, alert_type="update", url=url,
+        description=description, serialized_object=serialized_list)
