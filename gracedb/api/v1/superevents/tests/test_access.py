@@ -18,7 +18,7 @@ from core.tests.utils import GraceDbTestBase, \
 from events.models import Label, Tag, EMGroup
 from superevents.models import Superevent, Labelling, Log, VOEvent, \
     EMObservation, Signoff
-from superevents.utils import create_log
+from superevents.utils import create_log, expose_superevent
 from .mixins import SupereventCreateMixin
 from ...settings import API_VERSION
 
@@ -42,8 +42,9 @@ class SupereventSetup(GraceDbTestBase, SupereventCreateMixin):
         cls.internal_superevent = cls.create_superevent(cls.internal_user)
         cls.lvem_superevent = cls.create_superevent(cls.internal_user)
 
-        # Expose one to LV-EM and assign relevant permissions
-        expose_event_or_superevent_to_lvem(cls.lvem_superevent)
+        # Expose one to the LV-EM and assign relevant permissions
+        expose_superevent(cls.lvem_superevent, cls.internal_user,
+            add_log_message=False, issue_alert=False)
 
 
 class TestSupereventListGet(SupereventSetup, GraceDbApiTestBase):
@@ -2563,6 +2564,183 @@ class TestSupereventFileDetail(SupereventSetup, GraceDbApiTestBase):
         symlinks
         """
         # TODO
+
+
+class TestSupereventGroupObjectPermissionList(SupereventSetup,
+    GraceDbApiTestBase):
+
+    def test_internal_user_get_permissions(self):
+        """Internal user can view permissions list for all superevents"""
+        # Internal
+        url = v_reverse('superevents:superevent-permission-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "GET", self.internal_user)
+        # Check response and data
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['results'], [])
+
+        # Exposed
+        url = v_reverse('superevents:superevent-permission-list',
+            args=[self.lvem_superevent.superevent_id])
+        response = self.request_as_user(url, "GET", self.internal_user)
+        # Check response and data
+        data = response.data['results']
+        groups = [p['name'] for p in data]
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 2)
+        self.assertIn(settings.PUBLIC_GROUP, groups)
+        self.assertIn(settings.LVEM_OBSERVERS_GROUP, groups)
+
+    def test_lvem_user_get_permissions(self):
+        """LV-EM user can't get permission list"""
+        # Internal
+        url = v_reverse('superevents:superevent-permission-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "GET", self.lvem_user)
+        # Check response and data
+        self.assertEqual(response.status_code, 404)
+
+        # Exposed
+        url = v_reverse('superevents:superevent-permission-list',
+            args=[self.lvem_superevent.superevent_id])
+        response = self.request_as_user(url, "GET", self.lvem_user)
+        # Check response and data
+        self.assertEqual(response.status_code, 403)
+
+    def test_public_user_get_permissions(self):
+        """Public user can't get permission list"""
+        # Internal
+        url = v_reverse('superevents:superevent-permission-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "GET")
+        # Check response and data
+        self.assertEqual(response.status_code, 403)
+        # TODO: this will be 404 in the future
+
+        # Exposed: TODO
+
+
+class TestSupereventGroupObjectPermissionDetail(SupereventSetup,
+    GraceDbApiTestBase):
+
+    def test_internal_user_get_permissions_detail(self):
+        """Internal user can view all permissions detail for all superevents"""
+        for s in Superevent.objects.all():
+            for gop in s.supereventgroupobjectpermission_set.all():
+                url = v_reverse('superevents:superevent-permission-detail',
+                    args=[s.superevent_id, gop.group.name])
+                response = self.request_as_user(url, "GET", self.internal_user)
+                # Check response and data
+                self.assertEqual(response.status_code, 200)
+
+    def test_lvem_user_get_permissions_detail(self):
+        """LV-EM user can't get permission details"""
+        # Internal
+        url = v_reverse('superevents:superevent-permission-detail',
+            args=[self.internal_superevent.superevent_id, 
+            settings.LVEM_OBSERVERS_GROUP])
+        response = self.request_as_user(url, "GET", self.lvem_user)
+        # Check response and data
+        self.assertEqual(response.status_code, 404)
+
+        # Exposed
+        url = v_reverse('superevents:superevent-permission-detail',
+            args=[self.lvem_superevent.superevent_id,
+            settings.LVEM_OBSERVERS_GROUP])
+        response = self.request_as_user(url, "GET", self.lvem_user)
+        # Check response and data
+        self.assertEqual(response.status_code, 403)
+
+    def test_public_user_get_permissions(self):
+        """Public user can't get permission details"""
+        # Internal
+        url = v_reverse('superevents:superevent-permission-detail',
+            args=[self.internal_superevent.superevent_id,
+            settings.PUBLIC_GROUP])
+        response = self.request_as_user(url, "GET")
+        # Check response and data
+        self.assertEqual(response.status_code, 403)
+        # TODO: this will be 404 in the future
+
+        # Exposed: TODO
+
+
+class TestSupereventGroupObjectPermissionModify(SupereventSetup,
+    AccessManagersGroupAndUserSetup, GraceDbApiTestBase):
+
+    def test_internal_user_expose_internal_superevent(self):
+        """Internal user can't modify permissions to expose superevent"""
+        url = v_reverse('superevents:superevent-permission-modify',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.internal_user,
+            data={'action': 'expose'})
+        # Check response
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('not allowed to expose superevents',
+            response.data['detail'])
+
+    def test_internal_user_hide_exposed_superevent(self):
+        """Internal user can't modify permissions to hide superevent"""
+        url = v_reverse('superevents:superevent-permission-modify',
+            args=[self.lvem_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.internal_user,
+            data={'action': 'hide'})
+        # Check response
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('not allowed to hide superevents',
+            response.data['detail'])
+
+    def test_access_manager_expose_internal_superevent(self):
+        """Access manager can modify permissions to expose superevent"""
+        url = v_reverse('superevents:superevent-permission-modify',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.am_user,
+            data={'action': 'expose'})
+        # Check response
+        groups = [p['name'] for p in response.data]
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2)
+        self.assertIn(settings.PUBLIC_GROUP, groups)
+        self.assertIn(settings.LVEM_OBSERVERS_GROUP, groups)
+
+    def test_access_manager_hide_exposed_superevent(self):
+        """Access manager can modify permissions to hide superevent"""
+        url = v_reverse('superevents:superevent-permission-modify',
+            args=[self.lvem_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.am_user,
+            data={'action': 'hide'})
+        # Check response
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, [])
+
+    def test_lvem_user_permissions_modify(self):
+        """LV-EM user can't modify permissions"""
+        # Internal - expose
+        url = v_reverse('superevents:superevent-permission-modify',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.lvem_user,
+            data={'action': 'expose'})
+        # Check response and data
+        self.assertEqual(response.status_code, 404)
+
+        # Exposed
+        url = v_reverse('superevents:superevent-permission-modify',
+            args=[self.lvem_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.lvem_user,
+            data={'action': 'hide'})
+        # Check response and data
+        self.assertEqual(response.status_code, 403)
+
+    def test_public_user_get_permissions(self):
+        # Internal
+        url = v_reverse('superevents:superevent-permission-modify',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "GET")
+        # Check response and data
+        self.assertEqual(response.status_code, 403)
+        # TODO: this will be 404 in the future
+
+        # Exposed: TODO
 
 
 class TestSupereventSignoffList(SupereventSetup, GraceDbApiTestBase):

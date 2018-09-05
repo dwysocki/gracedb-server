@@ -5,6 +5,7 @@ import os
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group as AuthGroup
 from django.utils.translation import ugettext_lazy as _
 
 from rest_framework import serializers, validators
@@ -12,7 +13,7 @@ from rest_framework.exceptions import ValidationError
 
 from events.models import Event, Label, Tag, EMGroup
 from superevents.models import Superevent, Labelling, Log, VOEvent, \
-    EMObservation, EMFootprint, Signoff
+    EMObservation, EMFootprint, Signoff, SupereventGroupObjectPermission
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG
 from ..fields import ParentObjectDefault, CommaSeparatedOrListField, \
     ChoiceDisplayField
@@ -777,3 +778,23 @@ class SupereventSignoffSerializer(serializers.ModelSerializer):
         instance = update_signoff(instance, updater, status, comment,
             add_log_message = True, issue_alert=True)
         return instance
+
+
+class SupereventGroupObjectPermissionSerializer(serializers.ModelSerializer):
+    """
+    NOTE: this is actually a Group serializer, but the purpose is to show
+    a list of GroupObjectPermissions for this group-superevent pair.
+    """
+    permissions = serializers.SerializerMethodField(read_only=True)
+    action = serializers.ChoiceField(write_only=True,
+        choices=['expose', 'hide'])
+    superevent = serializers.HiddenField(write_only=True,
+        default=ParentObjectDefault(context_key='superevent'))
+
+    class Meta:
+        model = AuthGroup
+        fields = ['name', 'permissions', 'action', 'superevent']
+
+    def get_permissions(self, obj):
+        return [sgop.permission.codename for sgop in
+            obj.supereventgroupobjectpermission_set.all()]

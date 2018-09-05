@@ -342,6 +342,32 @@ class SupereventVOEventModelPermissions(permissions.DjangoModelPermissions):
     message = 'You do not have permission to create VOEvents.'
 
 
+class SupereventGroupObjectPermissionPermissions(
+    FunctionalModelPermissions):
+    allowed_methods = ['OPTIONS', 'HEAD', 'GET', 'POST']
+
+    def get_get_permissions(self, request):
+        required_permissions = [
+            'superevents.view_supereventgroupobjectpermission',
+        ]
+        self.message = 'You are not allowed to view superevent permissions.'
+        return required_permissions
+
+    def get_post_permissions(self, request):
+        # Get action from request data
+        action = request.data.get('action', None)
+
+        required_permissions = []
+        if (action == 'expose'):
+            required_permissions.append('superevents.expose_superevent')
+            self.message = 'You are not allowed to expose superevents.'
+        elif (action == 'hide'):
+            required_permissions.append('superevents.hide_superevent')
+            self.message = 'You are not allowed to hide superevents.'
+
+        return required_permissions
+
+
 class SupereventSignoffModelPermissions(FunctionalModelPermissions):
     allowed_methods = ['OPTIONS', 'HEAD', 'GET', 'POST', 'PATCH', 'DELETE']
 

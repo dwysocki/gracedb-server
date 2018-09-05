@@ -6,6 +6,7 @@ import os
 from django.http import HttpResponse
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import Group as AuthGroup
 
 from guardian.shortcuts import get_objects_for_user
 from rest_framework import mixins, parsers, permissions, serializers, status, \
@@ -23,7 +24,7 @@ from superevents.models import Superevent, Log, Signoff
 from superevents.utils import remove_tag_from_log, \
     remove_event_from_superevent, remove_label_from_superevent, \
     confirm_superevent_as_gw, get_superevent_by_date_id_or_404, \
-    delete_signoff
+    expose_superevent, hide_superevent, delete_signoff
 from .filters import SupereventSearchFilter, SupereventOrderingFilter
 from .paginators import CustomSupereventPagination
 from .permissions import SupereventModelPermissions, \
@@ -32,12 +33,13 @@ from .permissions import SupereventModelPermissions, \
     SupereventLogTagModelPermissions, SupereventLogTagObjectPermissions, \
     SupereventVOEventModelPermissions, ParentSupereventAnnotatePermissions, \
     SupereventSignoffModelPermissions, SupereventSignoffTypeModelPermissions, \
-    SupereventSignoffTypeObjectPermissions
+    SupereventSignoffTypeObjectPermissions, \
+    SupereventGroupObjectPermissionPermissions
 from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
     SupereventEventSerializer, SupereventLabelSerializer, \
     SupereventLogSerializer, SupereventLogTagSerializer, \
     SupereventVOEventSerializer, SupereventEMObservationSerializer, \
-    SupereventSignoffSerializer
+    SupereventSignoffSerializer, SupereventGroupObjectPermissionSerializer
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
 from .viewsets import SupereventNestedViewSet
 from ..filters import DjangoObjectAndGlobalPermissionsFilter
@@ -410,3 +412,61 @@ class SupereventSignoffViewSet(viewsets.ModelViewSet,
     def perform_destroy(self, instance):
         delete_signoff(instance, self.request.user, add_log_message=True,
             issue_alert=True)
+
+
+class SupereventGroupObjectPermissionViewSet(viewsets.ModelViewSet,
+                                             SafeCreateMixin,
+                                             SafeDestroyMixin,
+                                             SupereventNestedViewSet):
+    """
+    View for object permissions associated with exposing/hiding
+    a superevent to/from LV-EM users or the public.
+    """
+    serializer_class = SupereventGroupObjectPermissionSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+        SupereventGroupObjectPermissionPermissions,)
+    lookup_url_kwarg = 'name'
+    lookup_field = 'name'
+
+    def get_queryset(self):
+        superevent = self.get_parent_object()
+
+        # Get GOPs attached to parent superevent
+        gops = superevent.supereventgroupobjectpermission_set.all()
+
+        # Determine groups for these GOPs and return queryset from that
+        gop_group_pks = gops.values_list('group', flat=True).distinct()
+        queryset = AuthGroup.objects.filter(pk__in=gop_group_pks)
+        return queryset
+
+    @action(methods=['post'], detail=False)
+    def modify(self, request, superevent_id):
+        """
+        Expose or hide a superevent by creating or deleting
+        GroupObjectPermissions
+        """
+
+        # Get superevent
+        superevent = self.get_parent_object()
+
+        # Get action from data
+        action = request.data.get('action', None)
+
+        # Validation
+        if action not in ['expose', 'hide']:
+            return Response('action must be \'expose\' or \'hide\'',
+                status=status.HTTP_400_BAD_REQUEST)
+
+        # We make exposing and hiding a superevent idempotent
+        # so as to prevent possible errors due to multi-user
+        # race conditions
+        if action == 'expose' and not superevent.is_exposed:
+            expose_superevent(superevent, request.user, add_log_message=True,
+                issue_alert=True)
+        elif action == 'hide' and superevent.is_exposed:
+            hide_superevent(superevent, request.user, add_log_message=True,
+                issue_alert=True)
+
+        # Return list of permissions
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
