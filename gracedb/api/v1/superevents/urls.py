@@ -15,7 +15,7 @@ suburlpatterns = [
     url(r'^$', SupereventViewSet.as_view({'get': 'retrieve',
         'patch': 'partial_update'}), name='superevent-detail'),
     # Superevent GW confirmation
-    url(r'^confirm_as_gw/$', SupereventViewSet.as_view(
+    url(r'^confirm-as-gw/$', SupereventViewSet.as_view(
         {'post': 'confirm_as_gw'}), name='superevent-confirm-as-gw'),
 
     # Event list and creation (addition to superevent)
