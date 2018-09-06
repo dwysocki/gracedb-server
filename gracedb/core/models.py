@@ -182,7 +182,7 @@ class AutoIncrementModel(models.Model):
         if (not allow_update_to_nonnull and getattr(self, update_field_name)
             is not None):
             raise ValueError(_(('Attempt to update a non-null constrained auto'
-                'field for object {0}. Not allowed.').format(self.__str__)))
+                'field for object {0}. Not allowed.').format(self.__str__())))
 
         # Setup for generating base SQL query for doing an update
         meta = self._meta
