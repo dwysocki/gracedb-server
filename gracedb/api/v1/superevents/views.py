@@ -14,6 +14,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from core.file_utils import get_file_list
 from core.http import check_and_serve_file
 from core.vfile import VersionedFile
 from events.models import Event, Label
@@ -89,7 +90,7 @@ class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
         return obj
 
     @action(methods=['post'], detail=True)
-    def confirm_as_gw(self, request, superevent_id):
+    def confirm_as_gw(self, request, *args, **kwargs):
         """Confirm a superevent as a GW"""
         # Get superevent
         superevent = self.get_object()
@@ -254,29 +255,9 @@ class SupereventFileViewSet(SupereventNestedViewSet):
         # have files attached
         parent_superevent = self.get_parent_object()
         viewable_logs = self.filter_log_queryset(self.get_log_queryset())
-        file_logs = viewable_logs.exclude(filename='')
 
-        # List of full versioned filenames
-        file_list = [l.versioned_filename for l in file_logs]
-
-        # Get list of possibly viewable symlinked files by getting
-        # the distinct unversioned filenames from the list of
-        # viewable logs with files
-        possible_symlinks = file_logs.order_by('filename').values_list(
-            'filename', flat=True).distinct()
-
-        # Iterate over possible symlinks
-        for s in possible_symlinks:
-            # Get full path
-            full_path = os.path.join(parent_superevent.datadir, s)
-
-            # If the path is a symlink, get the file it points to (which should
-            # be versioned).  Check if that file is in the file_list already:
-            # if so, then the symlink can be included in the list, as well.
-            if os.path.islink(full_path):
-                pointed_to = os.path.basename(os.path.realpath(full_path))
-                if pointed_to in file_list:
-                    file_list.append(s)
+        # Get list of filenames
+        file_list = get_file_list(viewable_logs, parent_superevent.datadir)
 
         # Compile sorted dict of filenames and links
         file_dict = OrderedDict((f,
