@@ -327,6 +327,34 @@ require([
         $(this).attr("clicked", true);
     });
 
+    // We don't enable the input buttons until right now otherwise fast users
+    // can trigger the form before the javascript is ready... not ideal
+    $("#permissions_form input[type=submit]").attr('disabled', false);
+    // Permissions form - submit to URL and reload
+    $("#permissions_form").submit(function(e) {
+        e.preventDefault();
+
+        // Get button and disable it to prevent multiple clicks
+        var submit_button = $(this).children("input[type=submit]");
+        submit_button.attr("disabled", true);
+
+        $.ajax({
+            type: 'POST',
+            url: $(this).attr('action'),
+            data: $(this).serialize(),
+            success: function(resp) {
+                //this.button.set("disabled", false);
+                location.reload(true);
+            },
+            error: function(error) {
+                //this.button.set("disabled", false);
+                alert(error);
+                // Re-enable submit button
+                submit_button.attr("disabled", false);
+            }
+        });
+    });
+
     //----------------------------------------------------------------------------------------
     // Some utility functions
     //----------------------------------------------------------------------------------------
@@ -1271,24 +1299,6 @@ require([
             var i2 = put(f, 'input[id="hidden_comment"][name="comment"][type="hidden"]');
             var i3 = put(f, 'input[id="hidden_tagname"][name="tagname"][type="hidden"]');
             put(upload_div, 'br');
-
-            // Permissions form - submit to URL and reload
-            $("#permissions_form").submit(function(e) {
-                e.preventDefault();
-                $.ajax({
-                    type: 'POST',
-                    url: $(this).attr('action'),
-                    data: $(this).serialize(),
-                    success: function(resp) {
-                        //this.button.set("disabled", false);
-                        location.reload(true);
-                    },
-                    error: function(error) {
-                        //this.button.set("disabled", false);
-                        alert(error);
-                    }
-                });
-            });
 
 
             $("#emo_submit_form").submit(function(e) {
