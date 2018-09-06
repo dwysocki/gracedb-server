@@ -10,7 +10,7 @@ from events.models import EMGroup
 from events.mixins import DisplayFarMixin
 from events.permission_utils import is_external
 from .mixins import ExposeHideMixin, OperatorSignoffMixin, \
-    AdvocateSignoffMixin, PermissionsFilterMixin
+    AdvocateSignoffMixin, PermissionsFilterMixin, ConfirmGwFormMixin
 from .models import Superevent
 from .utils import get_superevent_by_date_id_or_404
 
@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 
 class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
-    ExposeHideMixin, DisplayFarMixin, PermissionsFilterMixin, DetailView):
+    ExposeHideMixin, ConfirmGwFormMixin, DisplayFarMixin,
+    PermissionsFilterMixin, DetailView):
     """
     Detail view for superevents.
     """
@@ -70,15 +71,6 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
             self.get_display_far(obj=superevent.preferred_event)
             )
         )
-
-        # Form to change GW status (only for authorized users)
-        # Only show if superevent is NOT a GW.  Require manual intervention to
-        # revert since it will surely mess with automated numbering of date IDs
-        if not superevent.is_gw and self.request.user.has_perm(
-            'confirm_gw_superevent'):
-            context['show_gw_status_form'] = True
-        else:
-            context['show_gw_status_form'] = False
 
         # Is the user an external user? (I.e., not part of the LVC?) The
         # template needs to know that in order to decide what pieces of

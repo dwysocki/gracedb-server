@@ -194,3 +194,37 @@ class ExposeHideMixin(ContextMixin):
             context['permissions_action'] = action
 
         return context
+
+
+class ConfirmGwFormMixin(ContextMixin):
+    """
+    Mixin which determines whether the button (form) for "upgrading" a
+    superevent to GW status should be shown in the web display.
+    """
+
+    def get_context_data(self, **kwargs):
+
+        # Get base context
+        context = super(ConfirmGwFormMixin, self).get_context_data(**kwargs)
+
+        # Default setting is False
+        context['show_gw_status_form'] = False
+
+        # If superevent is already marked as a GW, just return
+        if self.object.is_gw:
+            return context
+
+        # Otherwise, we need to check the superevent category and the
+        # user's permissions to see if we should show the form.
+        method_perm_pairs = {
+            'is_production': 'superevents.confirm_gw_superevent',
+            'is_test': 'superevents.confirm_gw_test_superevent',
+            'is_mdc': 'superevents.confirm_gw_mdc_superevent',
+        }
+        for method_name, perm_name in method_perm_pairs.iteritems():
+            is_category = getattr(self.object, method_name)
+            if (is_category() and self.request.user.has_perm(perm_name)):
+                context['show_gw_status_form'] = True
+                break
+
+        return context
