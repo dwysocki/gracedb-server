@@ -13,7 +13,7 @@ from events.models import EMGroup
 from events.mixins import DisplayFarMixin
 from events.permission_utils import is_external
 from .mixins import ExposeHideMixin, OperatorSignoffMixin, \
-    AdvocateSignoffMixin
+    AdvocateSignoffMixin, PermissionsFilterMixin
 from .models import Superevent
 from .utils import get_superevent_by_date_id_or_404
 
@@ -23,16 +23,16 @@ logger = logging.getLogger(__name__)
 
 
 class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
-    ExposeHideMixin, DetailView, DisplayFarMixin):
+    ExposeHideMixin, DisplayFarMixin, PermissionsFilterMixin, DetailView):
     """
     Detail view for superevents.
     """
     model = Superevent
     template_name = 'superevents/detail.html'
+    filter_permissions = ['superevents.view_superevent']
 
-    # TODO:
-    # May want to override this to select superevents by user
     def get_queryset(self):
+        """Get queryset and preload some related objects"""
         qs = super(SupereventDetailView, self).get_queryset()
 
         # Do some optimization
@@ -59,7 +59,8 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
         context['preferred_event_labelling'] = superevent.preferred_event \
             .labelling_set.prefetch_related('label', 'creator').all()
 
-        # TODO: filter events for user (?)
+        # TODO: filter events for user? Not clear what information we want
+        # to show to different groups
         # Pass event graceids
         context['internal_events'] = superevent.get_internal_events() \
             .order_by('id')

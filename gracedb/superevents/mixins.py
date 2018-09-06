@@ -7,8 +7,9 @@ from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.base import ContextMixin
+from django.views.generic.detail import SingleObjectMixin
 
-from guardian.models import GroupObjectPermission
+from guardian.shortcuts import get_objects_for_user
 
 from core.time_utils import gpsToUtc
 from .forms import SignoffForm
@@ -16,6 +17,35 @@ from .models import Signoff
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+class PermissionsFilterMixin(SingleObjectMixin):
+    """
+    Filters queryset to include only objects for which the user has
+    the required permissions.  The view should return a 404 if the
+    requested object is not found within the filtered queryset.
+
+    Set accept_global_perms to False if you don't want global (table-level)
+    permissions to be accepted in place of object permissions.
+    """
+    filter_permissions = []
+    accept_global_perms = True
+
+    def filter_queryset(self, queryset):
+        """
+        Filters queryset to include only objects for which the user has
+        the required permissions.
+        """
+        qs = get_objects_for_user(self.request.user, self.filter_permissions,
+            queryset, **{'accept_global_perms': self.accept_global_perms})
+
+        return qs
+
+    def get_queryset(self):
+        qs = super(PermissionsFilterMixin, self).get_queryset()
+
+        # Filter the queryset for user and return
+        return self.filter_queryset(qs)
 
 
 class OperatorSignoffMixin(ContextMixin):
