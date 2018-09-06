@@ -57,10 +57,10 @@
 
 {% if show_gw_status_form %}
 <div class="content-area">
-<form action="{% url "superevents:confirm-gw" superevent.superevent_id %}" method="POST">
-    <input type="submit" value="Confirm this superevent as a GW" class="permButtonClass">
+<form action="{% url "shib:default:superevents:superevent-confirm-as-gw" superevent.superevent_id %}" method="POST" id="confirm_as_gw_form">
+    <input type="submit" value="Confirm this superevent as a GW" class="permButtonClass" disabled>
 </form>
-<div><b>Note:</b> this action is irreversible without manual intervention by an admin!</div>
+<div><b>Note:</b> this action is irreversible without manual intervention by an admin.</div>
 </div>
 {% endif %}
 
@@ -72,7 +72,7 @@
 <div class="content-area">
 <form action="{% url "shib:default:superevents:superevent-permission-modify" superevent.superevent_id %}" method="POST" id="permissions_form">
     <input type="hidden" name="action" value="{{ permissions_action }}">
-    <input type="submit" value="{{ permissions_form_button_text }}" class="permButtonClass">
+    <input type="submit" value="{{ permissions_form_button_text }}" class="permButtonClass" disabled>
 </form>
 </div>
 {% endif %}

@@ -12,8 +12,6 @@ suburlpatterns = [
     # Superevent detail view
     url(r'^view/$', views.SupereventDetailView.as_view(), name="view"),
 
-    # Confirm as GW
-    url(r'^confirm_as_gw/$', views.confirm_as_gw, name="confirm-gw"),
 
     # Files
     url(r'^files/$', views.file_list, name="file-list"),

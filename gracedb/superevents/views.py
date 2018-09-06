@@ -15,8 +15,7 @@ from events.permission_utils import is_external
 from .mixins import ExposeHideMixin, OperatorSignoffMixin, \
     AdvocateSignoffMixin
 from .models import Superevent
-from .utils import get_superevent_by_date_id_or_404, \
-    confirm_superevent_as_gw
+from .utils import get_superevent_by_date_id_or_404
 
 
 # Set up logger
@@ -93,33 +92,6 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
             .values_list('name', flat=True)
 
         return context
-
-
-@require_POST
-def confirm_as_gw(request, superevent_id):
-
-    # Check user permissions
-    if not request.user.has_perm('confirm_gw_superevent'):
-        return HttpResponseForbidden('You do not have permission to perform '
-            'this action.')
-
-    # TODO: make sure user has permission to see the superevent
-    # need to do some kind of filtering on queryset initially, like in
-    # rest_framework. maybe add an optional queryset argument to
-    # get_superevent_by_date_id_or_404, and a check that the queryset's model
-    # is Superevent
-
-    # Get superevent id from superevent_id
-    # Get superevent object
-    # TODO: add queryset to args
-    superevent = get_superevent_by_date_id_or_404(superevent_id)
-
-    # Set superevent as gw
-    confirm_superevent_as_gw(superevent, request.user)
-
-    # Return to superevent page
-    return HttpResponseRedirect(reverse('superevents:view',
-        args=[superevent_id]))
 
 
 # TODO:
