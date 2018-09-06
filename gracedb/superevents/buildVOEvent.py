@@ -278,15 +278,10 @@ def construct_voevent_file(superevent, voevent, request=None,
         file_abs_reverse = lambda ns, file_name: build_absolute_uri(
             reverse(ns + ":default:superevents:superevent-file-detail",
             args=[superevent.superevent_id, file_name]), request)
-        shib_fits_skymap_url = build_absolute_uri(
-            reverse("superevents:file-download",
-            args=[superevent.superevent_id, fits_name]), request)
+        shib_fits_skymap_url = file_abs_reverse('shib', fits_name)
         x509_fits_skymap_url = file_abs_reverse('x509', fits_name)
         basic_fits_skymap_url = file_abs_reverse('basic', fits_name)
         if img_name:
-            shib_fits_skymap_url = build_absolute_uri(
-                reverse("superevents:file-download",
-                args=[superevent.superevent_id, img_name]), request)
             shib_png_skymap_url = file_abs_reverse('shib', img_name)
             x509_png_skymap_url = file_abs_reverse('x509', img_name)
             basic_png_skymap_url = file_abs_reverse('basic', img_name)

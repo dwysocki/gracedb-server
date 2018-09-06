@@ -1,14 +1,11 @@
 import logging
 import os
 
-from django.http import HttpResponse, HttpResponseRedirect, \
-    HttpResponseForbidden
-from django.shortcuts import render
-from django.urls import reverse
-from django.views.decorators.http import require_POST, require_GET
 from django.views.generic.detail import DetailView
 
-from core.http import check_and_serve_file
+from guardian.shortcuts import get_objects_for_user
+
+from core.file_utils import get_file_list
 from events.models import EMGroup
 from events.mixins import DisplayFarMixin
 from events.permission_utils import is_external
@@ -88,38 +85,41 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
         # information to show.
         context['user_is_external'] = is_external(self.request.user)
 
-        # Get list of EMGroup names for 
+        # Get list of EMGroup names for emo creation form
         context['emgroups'] = EMGroup.objects.all().order_by('name') \
             .values_list('name', flat=True)
 
         return context
 
 
-# TODO:
-# filter files for external users (see how this is done for events)
-def file_list(request, superevent_id):
-    # TODO: add queryset to args
-    superevent = get_superevent_by_date_id_or_404(superevent_id)
-    file_list = superevent.list_files(absolute_paths=False)
+class SupereventFileList(SupereventDetailView):
+    """
+    List of files associated with a superevent.
+    """
+    model = Superevent
+    template_name = 'superevents/file_list.html'
+    filter_permissions = ['superevents.view_superevent']
+    log_view_permission = 'superevents.view_log'
+    sort_files = True
 
-    context = {
-        'file_list': file_list,
-        'title': 'Files for {0}'.format(superevent.superevent_id),
-        'superevent_id': superevent.superevent_id,
-    }
-    return render(request, 'superevents/file_list.html', context=context)
+    def get_context_data(self, **kwargs):
+        # We actually don't want the context from the SupereventDetailView or
+        # its mixins so we just override it with the base DetailView
+        context = DetailView.get_context_data(self, **kwargs)
 
+        # Get list of logs which are viewable by the user
+        viewable_logs = get_objects_for_user(self.request.user, 
+            self.log_view_permission, self.object.log_set.all())
 
-# TODO:
-# add permission checking
-def file_download(request, superevent_id, filename):
+        # Here we get the list of files
+        file_list = get_file_list(viewable_logs, self.object.datadir)
+        if self.sort_files:
+            file_list = sorted(file_list)
 
-    # TODO: add queryset to args
-    # Get superevent
-    superevent = get_superevent_by_date_id_or_404(superevent_id)
+        # Compile the new context data
+        context['file_list'] = file_list
 
-    # Construct absolute path to file
-    file_path = os.path.join(superevent.datadir, filename)
-
-    # Check file and serve it
-    return check_and_serve_file(request, file_path, ResponseClass=HttpResponse)
+        return context
+# NOTE: file "detail" or downloads (and associated permissions) are
+# handled through the API. Links on the file list page point to the
+# API file download page.

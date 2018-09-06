@@ -12,11 +12,8 @@ suburlpatterns = [
     # Superevent detail view
     url(r'^view/$', views.SupereventDetailView.as_view(), name="view"),
 
-
-    # Files
-    url(r'^files/$', views.file_list, name="file-list"),
-    url(r'^files/(?P<filename>.*)$', views.file_download,
-        name="file-download"),
+    # File list (file detail/download is handled through the API)
+    url(r'^files/$', views.SupereventFileList.as_view(), name="file-list"),
 ]
 
 # Legacy URL patterns - don't really need them, but we use them for the

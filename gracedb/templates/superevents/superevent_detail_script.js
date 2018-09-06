@@ -162,7 +162,7 @@ var tagDeleteUrlPattern = '{% url "shib:default:superevents:superevent-log-tag-d
 var logListUrl     = '{% url "shib:default:superevents:superevent-log-list" superevent.superevent_id %}';
 var logSaveUrl     = '{% url "shib:default:superevents:superevent-log-list" superevent.superevent_id %}';
 var emObservationListUrl = '{% url "shib:default:superevents:superevent-emobservation-list" superevent.superevent_id %}';
-var fileDownloadUrl     = '{% url "superevents:file-download" superevent.superevent_id "FAKE_FILE_NAME" %}';
+var fileDownloadUrl     = '{% url "shib:default:superevents:superevent-file-detail" superevent.superevent_id "FAKE_FILE_NAME" %}';
 var skymapViewerUrl     = '{{ SKYMAP_VIEWER_SERVICE_URL }}';
 
 // This little list determines the priority ordering of the digest sections.

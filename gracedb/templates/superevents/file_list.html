@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}{{ title }}{% endblock %}
-{% block heading %}{{ title }}{% endblock %}
+{% block title %}Files for {{ object.superevent_id }}{% endblock %}
+{% block heading %}Files for {{ object.superevent_id }}{% endblock %}
 {% block pageid %}Superevent files{% endblock %}
 
 {% block content %}
@@ -8,7 +8,7 @@
 
 <ul>
 {% for filename in file_list %}
-<li><a href="{% url "superevents:file-download" superevent_id filename %}">{{ filename }}</a></li>
+<li><a href="{% url "shib:default:superevents:superevent-file-detail" object.superevent_id filename %}">{{ filename }}</a></li>
 {% endfor %}
 </ul>
 
