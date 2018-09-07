@@ -10,8 +10,8 @@ from .buildVOEvent import construct_voevent_file
 from .models import Superevent, Log, Labelling, EMObservation, EMFootprint, \
     VOEvent, Signoff
 from .shortcuts import is_superevent
-from alerts.event_utils import issue_alert_for_event_log
-from alerts.superevent_utils import issue_alert_for_superevent_creation, \
+from alerts.events.utils import issue_alert_for_event_log
+from alerts.superevents.utils import issue_alert_for_superevent_creation, \
     issue_alert_for_superevent_log, \
     issue_alert_for_superevent_label_creation, \
     issue_alert_for_superevent_label_removal, \

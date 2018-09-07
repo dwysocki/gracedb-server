@@ -1,10 +1,12 @@
-import os
+import logging
 from multiprocessing import Process
+import os
 from subprocess import Popen, PIPE
 from ligo.overseer.overseer_client import send_to_overseer
 
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
+
 
 def send_with_lvalert_overseer(node_name, message, manager, port):
 

@@ -1,13 +1,14 @@
-
+from __future__ import absolute_import
 import json
+import logging
 import os
 import socket
 from subprocess import Popen, PIPE, STDOUT
 import sys
 
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.mail import EmailMessage
-from django.conf import settings
 from django.db.models import QuerySet, Q
 
 from core.time_utils import gpsToUtc
@@ -16,12 +17,10 @@ from events.permission_utils import is_external
 from events.query import filter_for_labels
 from events.shortcuts import is_event
 from superevents.shortcuts import is_superevent
-
 from .xmpp import issue_xmpp_alert
 
-import logging
+# Set up logger
 log = logging.getLogger(__name__)
-
 
 
 def check_recips(recips_qs):

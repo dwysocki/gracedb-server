@@ -1,21 +1,21 @@
-
-import simplejson
+from __future__ import absolute_import
+import logging
 import os
+import simplejson
 import socket
 import sys
-
 
 from django.core.mail import EmailMessage
 from django.conf import settings
 
-from .lvalert import send_with_lvalert_overseer, send_with_lvalert_send
 from core.time_utils import gpsToUtc
 from events.permission_utils import is_external
 from events.query import filter_for_labels
 from events.shortcuts import is_event
 from superevents.shortcuts import is_superevent
+from .lvalert import send_with_lvalert_overseer, send_with_lvalert_send
 
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 if settings.USE_LVALERT_OVERSEER:

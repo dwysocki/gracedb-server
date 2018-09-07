@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import logging
 
 from django.urls import reverse
@@ -11,7 +12,7 @@ from api.v1.superevents.serializers import SupereventSerializer, \
     SupereventSignoffSerializer, SupereventGroupObjectPermissionSerializer
 from core.urls import build_absolute_uri
 from superevents.shortcuts import is_superevent
-from .main import issue_alerts
+from ..main import issue_alerts
 
 # Set up logger
 logger = logging.getLogger(__name__)

@@ -1,10 +1,12 @@
+from __future__ import absolute_import
+import logging
 import socket
 
 from django.conf import settings
 from django_twilio.client import twilio_client
 from events.permission_utils import is_external
 
-import logging
+# Set up logger
 log = logging.getLogger(__name__)
 
 

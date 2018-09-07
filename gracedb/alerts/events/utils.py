@@ -1,11 +1,14 @@
+from __future__ import absolute_import
+import logging
+
 from django.urls import reverse
 
-from .main import issue_alerts
 from core.urls import build_absolute_uri
 from events.shortcuts import is_event
 from events.view_utils import eventToDict, eventLogToDict
+from ..main import issue_alerts
 
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 

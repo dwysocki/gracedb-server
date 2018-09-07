@@ -1,6 +1,7 @@
-
-import simplejson
+from __future__ import absolute_import
+import logging
 import os
+import simplejson
 import socket
 from subprocess import Popen, PIPE, STDOUT
 import sys
@@ -8,15 +9,14 @@ import sys
 from django.core.mail import EmailMessage
 from django.conf import settings
 
-from core.time_utils import gpsToUtc
+from django_twilio.client import twilio_client
 
+from core.time_utils import gpsToUtc
 from events.models import Event
 from events.permission_utils import is_external
 from events.query import filter_for_labels
 
-from django_twilio.client import twilio_client
-
-import logging
+# Set up logger
 log = logging.getLogger(__name__)
 
 

@@ -1,5 +1,6 @@
-
+from __future__ import absolute_import
 import json
+import logging
 import os
 import socket
 from subprocess import Popen, PIPE, STDOUT
@@ -14,8 +15,9 @@ from events.models import Event
 from events.permission_utils import is_external
 from events.query import filter_for_labels
 
-import logging
+# Set up logger
 log = logging.getLogger(__name__)
+
 
 def indent(nindent, text):
     return "\n".join([(nindent*' ')+line for line in text.split('\n')])
