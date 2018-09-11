@@ -102,11 +102,6 @@ suburlpatterns = [
     url(r'^permissions/modify/$',
         SupereventGroupObjectPermissionViewSet.as_view({'post': 'modify'}),
         name='superevent-permission-modify'),
-    # Permissions detail
-    url(r'permissions/(?P<{lookup_url_kwarg}>.+)/$'.format(lookup_url_kwarg=
-        SupereventGroupObjectPermissionViewSet.lookup_url_kwarg),
-        SupereventGroupObjectPermissionViewSet.as_view({'get': 'retrieve'}),
-        name='superevent-permission-detail'),
 ]
 
 # Full urlpatterns

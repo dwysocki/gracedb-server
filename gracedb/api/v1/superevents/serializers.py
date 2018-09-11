@@ -785,20 +785,11 @@ class SupereventSignoffSerializer(serializers.ModelSerializer):
 
 
 class SupereventGroupObjectPermissionSerializer(serializers.ModelSerializer):
-    """
-    NOTE: this is actually a Group serializer, but the purpose is to show
-    a list of GroupObjectPermissions for this group-superevent pair.
-    """
-    permissions = serializers.SerializerMethodField(read_only=True)
-    action = serializers.ChoiceField(write_only=True,
-        choices=['expose', 'hide'])
-    superevent = serializers.HiddenField(write_only=True,
-        default=ParentObjectDefault(context_key='superevent'))
+    group = serializers.SlugRelatedField(slug_field='name',
+        read_only=True)
+    permission = serializers.SlugRelatedField(slug_field=
+        'codename', read_only=True)
 
     class Meta:
-        model = AuthGroup
-        fields = ['name', 'permissions', 'action', 'superevent']
-
-    def get_permissions(self, obj):
-        return [sgop.permission.codename for sgop in
-            obj.supereventgroupobjectpermission_set.all()]
+        model = SupereventGroupObjectPermission
+        fields = ['group', 'permission']

@@ -405,19 +405,11 @@ class SupereventGroupObjectPermissionViewSet(viewsets.ModelViewSet,
     serializer_class = SupereventGroupObjectPermissionSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
         SupereventGroupObjectPermissionPermissions,)
-    lookup_url_kwarg = 'name'
-    lookup_field = 'name'
+    pagination_class = BasePaginationFactory(results_name='permissions')
 
     def get_queryset(self):
         superevent = self.get_parent_object()
-
-        # Get GOPs attached to parent superevent
-        gops = superevent.supereventgroupobjectpermission_set.all()
-
-        # Determine groups for these GOPs and return queryset from that
-        gop_group_pks = gops.values_list('group', flat=True).distinct()
-        queryset = AuthGroup.objects.filter(pk__in=gop_group_pks)
-        return queryset
+        return superevent.supereventgroupobjectpermission_set.all()
 
     @action(methods=['post'], detail=False)
     def modify(self, request, superevent_id):

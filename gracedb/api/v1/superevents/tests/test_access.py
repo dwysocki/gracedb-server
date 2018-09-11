@@ -2577,19 +2577,19 @@ class TestSupereventGroupObjectPermissionList(SupereventSetup,
         response = self.request_as_user(url, "GET", self.internal_user)
         # Check response and data
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['results'], [])
+        self.assertEqual(response.data['permissions'], [])
 
         # Exposed
         url = v_reverse('superevents:superevent-permission-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.internal_user)
         # Check response and data
-        data = response.data['results']
-        groups = [p['name'] for p in data]
+        data = response.data['permissions']
+        groups = [p['group'] for p in data]
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(data), 2)
-        self.assertIn(settings.PUBLIC_GROUP, groups)
-        self.assertIn(settings.LVEM_OBSERVERS_GROUP, groups)
+        self.assertEqual(len(data), 3)
+        self.assertEqual(groups.count(settings.PUBLIC_GROUP), 1)
+        self.assertEqual(groups.count(settings.LVEM_OBSERVERS_GROUP), 2)
 
     def test_lvem_user_get_permissions(self):
         """LV-EM user can't get permission list"""
@@ -2612,51 +2612,6 @@ class TestSupereventGroupObjectPermissionList(SupereventSetup,
         # Internal
         url = v_reverse('superevents:superevent-permission-list',
             args=[self.internal_superevent.superevent_id])
-        response = self.request_as_user(url, "GET")
-        # Check response and data
-        self.assertEqual(response.status_code, 403)
-        # TODO: this will be 404 in the future
-
-        # Exposed: TODO
-
-
-class TestSupereventGroupObjectPermissionDetail(SupereventSetup,
-    GraceDbApiTestBase):
-
-    def test_internal_user_get_permissions_detail(self):
-        """Internal user can view all permissions detail for all superevents"""
-        for s in Superevent.objects.all():
-            for gop in s.supereventgroupobjectpermission_set.all():
-                url = v_reverse('superevents:superevent-permission-detail',
-                    args=[s.superevent_id, gop.group.name])
-                response = self.request_as_user(url, "GET", self.internal_user)
-                # Check response and data
-                self.assertEqual(response.status_code, 200)
-
-    def test_lvem_user_get_permissions_detail(self):
-        """LV-EM user can't get permission details"""
-        # Internal
-        url = v_reverse('superevents:superevent-permission-detail',
-            args=[self.internal_superevent.superevent_id, 
-            settings.LVEM_OBSERVERS_GROUP])
-        response = self.request_as_user(url, "GET", self.lvem_user)
-        # Check response and data
-        self.assertEqual(response.status_code, 404)
-
-        # Exposed
-        url = v_reverse('superevents:superevent-permission-detail',
-            args=[self.lvem_superevent.superevent_id,
-            settings.LVEM_OBSERVERS_GROUP])
-        response = self.request_as_user(url, "GET", self.lvem_user)
-        # Check response and data
-        self.assertEqual(response.status_code, 403)
-
-    def test_public_user_get_permissions(self):
-        """Public user can't get permission details"""
-        # Internal
-        url = v_reverse('superevents:superevent-permission-detail',
-            args=[self.internal_superevent.superevent_id,
-            settings.PUBLIC_GROUP])
         response = self.request_as_user(url, "GET")
         # Check response and data
         self.assertEqual(response.status_code, 403)
@@ -2697,11 +2652,11 @@ class TestSupereventGroupObjectPermissionModify(SupereventSetup,
         response = self.request_as_user(url, "POST", self.am_user,
             data={'action': 'expose'})
         # Check response
-        groups = [p['name'] for p in response.data]
+        groups = [p['group'] for p in response.data]
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
-        self.assertIn(settings.PUBLIC_GROUP, groups)
-        self.assertIn(settings.LVEM_OBSERVERS_GROUP, groups)
+        self.assertEqual(len(response.data), 3)
+        self.assertEqual(groups.count(settings.PUBLIC_GROUP), 1)
+        self.assertEqual(groups.count(settings.LVEM_OBSERVERS_GROUP), 2)
 
     def test_access_manager_hide_exposed_superevent(self):
         """Access manager can modify permissions to hide superevent"""
