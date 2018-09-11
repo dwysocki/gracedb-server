@@ -18,8 +18,8 @@ from core.tests.utils import GraceDbTestBase, \
 from events.models import Label, Tag, EMGroup
 from superevents.models import Superevent, Labelling, Log, VOEvent, \
     EMObservation, Signoff
+from superevents.tests.mixins import SupereventCreateMixin
 from superevents.utils import create_log, expose_superevent
-from .mixins import SupereventCreateMixin
 from ...settings import API_VERSION
 
 def v_reverse(viewname, *args, **kwargs):

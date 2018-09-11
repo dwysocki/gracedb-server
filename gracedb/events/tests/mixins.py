@@ -3,7 +3,7 @@ import os
 
 from django.contrib.auth import get_user_model
 
-from events.models import Event, Group, Pipeline, Search
+from ..models import Event, Group, Pipeline, Search
 
 UserModel = get_user_model()
 
