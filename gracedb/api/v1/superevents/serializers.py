@@ -393,6 +393,10 @@ class SupereventLogTagSerializer(serializers.ModelSerializer):
         fields = ('name', 'displayName', 'self', 'parent_log')
 
     def get_self(self, obj):
+        # NOTE: this is a little bad if this is being used to serialize an
+        # object without a request or without a view being called (i.e., for
+        # LVAlerts). But we don't send out LVAlerts for tags, so it's OK
+        # for now.
         superevent_id = self.context['view'].kwargs.get(
             SUPEREVENT_LOOKUP_URL_KWARG)
         log_N = self.context['view'].kwargs.get('N')
