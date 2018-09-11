@@ -9,6 +9,7 @@ import shutil
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, IntegrityError
@@ -252,6 +253,11 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
 
         # Save the fields which have changed
         self.save(update_fields=['is_gw', 'gw_letter_suffix'])
+
+    def get_groups_with_groupobjectpermissions(self):
+        gops = self.supereventgroupobjectpermission_set.all()
+        gop_group_pks = gops.values_list('group', flat=True).distinct()
+        return AuthGroup.objects.filter(pk__in=gop_group_pks)
 
     def get_absolute_url(self):
         return self.get_web_url()
