@@ -131,6 +131,10 @@ def issue_alerts(event_or_superevent, alert_type, url=None, file_name="",
             or event.group.name == 'Test'):
             return
 
+        # Don't send them for offline events, either
+        if event.offline:
+            return
+
     # Compile phone and email recipients for alert
     if alert_type == "new":
         email_recips, phone_recips = get_alert_recips(event_or_superevent)
