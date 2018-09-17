@@ -279,49 +279,6 @@ def delete_label(event, request, labelName, doXMPP=True):
     # Return the json for some reason. I don't do any alert stuff in here.
     return json.dumps(d)
 
-# 8 May 2017 (TP): this function doesn't appear to be used anywhere
-def _createLog(request, graceid, comment, uploadedFile=None):
-    response = HttpResponse(mimetype='application/json')
-    rdict = {}
-
-    try:
-        event = graceid and Event.getByGraceid(graceid)
-    except Event.DoesNotExist:
-        event = None
-
-    if not event:
-        rdict['error'] = "No such event id: %s" % graceid
-    elif (not comment) and (not uploadedFile):
-        rdict['error'] = "Missing argument(s)"
-    else:
-        logEntry = EventLog(event=event,
-                            issuer=request.user,
-                            comment=comment)
-        if uploadedFile:
-            file_version = None
-            try:
-                file_version = _saveUploadedFile(event, uploadedFile)
-                logEntry.filename = uploadedFile.name
-                logEntry.file_version = file_version
-            except Exception, e:
-                rdict['error'] = "Problem saving file: %s" % str(e)
-        try:
-            logEntry.save()
-
-            description = "LOG: "
-            if uploadedFile:
-                description = "UPLOAD: '%s' " % uploadedFile.name
-            issueAlertForUpdate(event, description+comment, doxmpp=True, 
-                filename=uploadedFile.name,
-                serialized_object=eventLogToDict(logEntry, request=request))
-        except Exception, e:
-            rdict['error'] = "Failed to save log message: %s" % str(e) 
-
-    # XXX should be json
-    rval = str(rdict)
-    response['Content-length'] = len(rval)
-    response.write(rval)
-    return response
 
 def get_performance_info():
     # First, try to find the relevant logfile from settings.
