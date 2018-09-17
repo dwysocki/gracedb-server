@@ -93,35 +93,29 @@ def get_alert_recips_for_label(event_or_superevent, label):
             .select_related('user')
         phone_recips |= trigger.contacts.exclude(phone="") \
             .select_related('user')
-        #email_recips.extend([c for c in
-        #    trigger.contacts.all().select_related('user') if c.email])
-        #phone_recips.extend([c for c in
-        #    trigger.contacts.all().select_related('user') if c.phone])
 
     return check_recips(email_recips), check_recips(phone_recips)
 
 
-def issue_alerts(event_or_superevent, alert_type, url=None, file_name="",
-    description="", label=None, serialized_object=None):
-
-    # Check alert_type
-    if alert_type not in ["new", "label", "update", "signoff"]:
-        raise ValueError(("alert_type is {0}, should be 'new', 'label', "
-            "'update', or 'signoff'").format(alert_type))
+def issue_alerts(event_or_superevent, alert_type, serialized_object,
+    serialized_parent=None):
 
     # Send XMPP alert
     if settings.SEND_XMPP_ALERTS:
-        issue_xmpp_alert(event_or_superevent, alert_type, file_name,
-            description=description, serialized_object=serialized_object)
+        issue_xmpp_alert(event_or_superevent, alert_type, serialized_object,
+            serialized_parent=serialized_parent)
 
     # Below here, we only do processing for email and phone alerts ------------
+    if not (settings.SEND_EMAIL_ALERTS or settings.SEND_PHONE_ALERTS):
+        return
 
     # TODO: make phone and e-mail alerts work for superevents
     if is_superevent(event_or_superevent):
         return
 
-    # We currently don't send phone or email alerts for updates or signoffs
-    if alert_type == "update" or alert_type == "signoff":
+    # Phone and email alerts are currently only for "new" and "label_added"
+    # alert_types, for events only.
+    if (alert_type not in ['new', 'label_added']):
         return
 
     # Don't send phone or email alerts for MDC events or Test events

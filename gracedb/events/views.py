@@ -30,7 +30,9 @@ from .view_utils import flexigridResponse, jqgridResponse
 from .view_utils import get_recent_events_string
 from .view_utils import eventLogToDict
 from .view_utils import signoffToDict
-from alerts.old_alert import issueAlertForUpdate, issueXMPPAlert
+from alerts.events.utils import EventAlertIssuer, EventLogAlertIssuer, \
+    EventSignoffAlertIssuer, EventVOEventAlertIssuer, \
+    EventPermissionsAlertIssuer
 from superevents.models import Superevent
 
 # Set up logging
@@ -156,6 +158,9 @@ def voevent(request, event):
         # second argument should be a serial_number.
         voevent = buildVOEvent(event, voevent_type=voevent_type,
                                request=request, internal=internal)
+
+        # Issue alert
+        EventVOEventAlertIssuer(voevent, alert_type='voevent').issue_alerts()
     # Exceptions caused by user errors of some sort.
     except VOEventBuilderException, e:
         return HttpResponseBadRequest(str(e))
@@ -193,10 +198,12 @@ def _create(request):
 
         form = CreateEventForm(request.POST, request.FILES)
         if form.is_valid():
+            # Alert is issued in this function
             event, warnings = _createEventFromForm(request, form)
             if not event:
                 # problem creating event...  XXX need an error page for this.
                 raise Exception("\n".join(warnings))
+
             return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
         else:
             rv['form'] = form
@@ -287,9 +294,7 @@ def logentry(request, event, num=None):
             else:
                 desc = "LOG: "
                 fname = ""
-            issueAlertForUpdate(event, desc+elog.comment, doxmpp=True,
-                filename=fname,
-                serialized_object=eventLogToDict(elog, request=request))
+            EventLogAlertIssuer(elog, alert_type='log').issue_alerts()
         except Exception as e:
             log.error('Error issuing alert: %s' % str(e))
             return HttpResponse("Failed to send alert for log message: %s" \
@@ -913,6 +918,9 @@ def update_event_perms_for_group(event, group, action):
         GroupObjectPermission.objects.get_or_create(
             content_type=ctype, group=group, permission=change,
             object_pk=event.id)
+
+        # Issue alert
+        EventPermissionsAlertIssuer(event, alert_type='exposed').issue_alerts()
     elif action=='protect':
         # Retrieve both group object permissions
         # Delete them
@@ -932,6 +940,8 @@ def update_event_perms_for_group(event, group, action):
         except GroupObjectPermission.DoesNotExist:
             # Couldn't find it. Take no action.
             pass
+        # Issue alert
+        EventPermissionsAlertIssuer(event, alert_type='hidden').issue_alerts()
 
     # lastly 
     event.refresh_perms()
@@ -985,6 +995,7 @@ def modify_permissions(request, event):
 def embblogentry(request, event, num=None):
     if request.method == "POST":
         try:
+            # Alert is issued inside this function
             create_eel(request.POST, event, request.user)
         except ValueError, e:
             return HttpResponseBadRequest(str(e))
@@ -1029,6 +1040,7 @@ def embblogentry(request, event, num=None):
 def emobservation_entry(request, event, num=None):
     if request.method == "POST":
         try:
+            # Alert is issued in this function
             create_emobservation(request, event)
         except ValueError, e:
             return HttpResponseBadRequest(str(e))
@@ -1172,8 +1184,8 @@ def modify_signoff(request, event):
             pass
 
         # Issue an alert.
-        issueXMPPAlert(event, location='', alert_type="signoff", description=status, 
-            serialized_object = signoffToDict(signoff))
+        EventSignoffAlertIssuer(signoff, alert_type='signoff_created') \
+            .issue_alerts()
 
     elif action=='edit':
         # get the existing object
@@ -1215,6 +1227,9 @@ def modify_signoff(request, event):
                 tag.event_logs.add(logentry)
             except:
                 pass
+            # Issue an alert.
+            EventSignoffAlertIssuer(signoff, alert_type='signoff_deleted') \
+                .issue_alerts()
         else:
             if status==None:
                 msg = "Please select a valid status."
@@ -1236,8 +1251,8 @@ def modify_signoff(request, event):
             signoff.comment = comment
             signoff.save()
             # Issue an alert.
-            issueXMPPAlert(event, location='', alert_type="signoff", description=status, 
-                serialized_object = signoffToDict(signoff))
+            EventSignoffAlertIssuer(signoff, alert_type='signoff_updated') \
+                .issue_alerts()
 
             # Create a log message
             msg = "updated %s signoff status as %s" % (signoff_type, status)

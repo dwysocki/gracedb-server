@@ -32,7 +32,8 @@ from rest_framework.renderers import BaseRenderer, JSONRenderer, \
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from alerts.old_alert import issueAlertForUpdate
+from alerts.events.utils import EventAlertIssuer, EventLogAlertIssuer, \
+    EventVOEventAlertIssuer, EventPermissionsAlertIssuer
 from api.backends import LigoAuthentication
 from core.http import check_and_serve_file
 from core.vfile import VersionedFile
@@ -48,7 +49,8 @@ from events.view_logic import create_label, get_performance_info, \
     delete_label, _createEventFromForm, create_eel, create_emobservation
 from events.view_utils import eventToDict, eventLogToDict, labelToDict, \
     embbEventLogToDict, voeventToDict, emObservationToDict, signoffToDict, \
-    skymapViewerEMObservationToDict, BadFARRange, check_query_far_range
+    skymapViewerEMObservationToDict, BadFARRange, check_query_far_range, \
+    groupeventpermissionToDict
 from superevents.models import Superevent
 from .throttles import EventCreationThrottle, AnnotationThrottle
 from ...utils import api_reverse
@@ -609,6 +611,13 @@ class EventDetail(APIView):
             # of exceptions here.
             return Response("Bad Data",
                     status=status.HTTP_400_BAD_REQUEST)
+
+        # Save event
+        event.save()
+
+        # Issue alert
+        EventAlertIssuer(event, alert_type='update').issue_alerts()
+
         return Response(status=status.HTTP_202_ACCEPTED)
 
 #==================================================================
@@ -842,13 +851,7 @@ class EventLogList(APIView):
         #    response['tagWarning'] = tw_dict['tagWarning']
 
         # Issue alert.
-        description = "LOG: "
-        fname = ""
-        if uploadedFile:
-            description = "UPLOAD: '%s' " % uploadedFile.name
-            fname = uploadedFile.name
-        issueAlertForUpdate(event, description+message, doxmpp=True, 
-            filename=fname, serialized_object=rv)
+        EventLogAlertIssuer(logentry, alert_type='log').issue_alerts()
 
         return response
 
@@ -903,6 +906,7 @@ class EMBBEventLogList(APIView):
     @event_and_auth_required
     def post(self, request, event):
         try:
+            # Alert is issued in this code
             eel = create_eel(request.data, event, request.user)
         except ValueError, e:
             return Response("%s" % str(e), status=status.HTTP_400_BAD_REQUEST)
@@ -916,11 +920,6 @@ class EMBBEventLogList(APIView):
         rv = embbEventLogToDict(eel, request=request)
         response = Response(rv, status=status.HTTP_201_CREATED)
         response['Location'] = rv['self']
-
-        # Issue alert.
-        description = "New EMBB log entry."
-        issueAlertForUpdate(event, description, doxmpp=True,
-            filename="", serialized_object=rv)
 
         return response
 
@@ -993,6 +992,7 @@ class EMObservationList(APIView):
     @event_and_auth_required
     def post(self, request, event):
         try:
+            # Create EMObservation - alert is issued inside this code
             emo = create_emobservation(request, event)
         except ValueError, e:
             return Response("%s" % str(e), status=status.HTTP_400_BAD_REQUEST)
@@ -1254,24 +1254,6 @@ class EventLogTagDetail(APIView):
 #==================================================================
 # Permission Resources
 
-def groupeventpermissionToDict(gop, event, request=None):
-    """Convert a group object permission to a dictionary.
-       Output depends on the level of specificity.
-    """
-
-    rv = {}
-    rv['group'] = gop.group.name
-    rv['graceid'] = event.graceid()
-    perm_shortname = gop.permission.codename.split('_')[0]
-    rv['permission'] = perm_shortname
-    # We want a link to the self only.  End of the line.
-    rv['links'] = {
-                    "self" : api_reverse("events:groupeventpermission-detail",
-                                     args=[event.graceid(),gop.group.name,perm_shortname],
-                                     request=request)
-                  }
-    return rv
-
 def getContentType(event):
     return ContentType.objects.get_for_model(event)
 
@@ -1398,6 +1380,9 @@ class GroupEventPermissionDetail(APIView):
         status_code = status.HTTP_200_OK
         if created:
             status_code = status.HTTP_201_CREATED
+            # Issue alert
+            EventPermissionsAlertIssuer(gop, alert_type='exposed') \
+                .issue_alerts()
         return Response(rv, status=status_code)
 
     #
@@ -1420,6 +1405,9 @@ class GroupEventPermissionDetail(APIView):
                 permission=permission)        
             gop.delete()
             event.refresh_perms()
+            # Issue alert
+            EventPermissionsAlertIssuer(gop, alert_type='hidden') \
+                .issue_alerts()
 
             # XXX if the event is a subclass, we need to delete perms on the
             # underlying event as well.
@@ -1575,9 +1563,7 @@ class Files(APIView):
                 pass
 
         try:
-            description = "UPLOAD: {0}".format(filename)
-            issueAlertForUpdate(event, description, doxmpp=True, 
-                filename=filename, serialized_object = eventLogToDict(logentry))
+            EventLogAlertIssuer(logentry, alert_type='log').issue_alerts()
         except:
             # XXX something should be done here.
             pass
@@ -1697,9 +1683,7 @@ class VOEventList(APIView):
             #rv['tagWarning'] = 'Error tagging VOEvent log message as em_follow.'
 
         # Issue alert.
-        description = "VOEVENT: %s" % filename
-        issueAlertForUpdate(event, description, doxmpp=True, 
-            filename=filename, serialized_object=rv)
+        EventVOEventAlertIssuer(voevent, alert_type='voevent').issue_alerts()
 
         response = Response(rv, status=status.HTTP_201_CREATED)
         response['Location'] = rv['links']['self']

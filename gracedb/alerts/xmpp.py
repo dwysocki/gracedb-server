@@ -63,8 +63,8 @@ def get_xmpp_node_names(event_or_superevent):
     return node_names
 
 
-def issue_xmpp_alert(event_or_superevent, alert_type="new", file_name="",
-    description="", serialized_object=None):
+def issue_xmpp_alert(event_or_superevent, alert_type, serialized_object,
+    serialized_parent=None):
     """
     serialized_object should be a dict
     """
@@ -76,33 +76,30 @@ def issue_xmpp_alert(event_or_superevent, alert_type="new", file_name="",
     # Determine LVAlert node names
     node_names = get_xmpp_node_names(event_or_superevent)
 
-    # Get object id
-    if is_superevent(event_or_superevent):
-        object_id = event_or_superevent.superevent_id
-    elif is_event(event_or_superevent):
-        object_id = event_or_superevent.graceid()
+    # Get uid - FIXME when graceid is switched to a property for events
+    # instead of a callable
+    if is_event(event_or_superevent):
+        uid = event_or_superevent.graceid()
     else:
-        error_msg = ('Object is of {0} type; should be an event '
-            'or superevent').format(type(event_or_superevent))
-        logger.error(error_msg)
-        raise TypeError(error_msg)
+        uid = event_or_superevent.graceid
 
     # Create the output dictionary and serialize as JSON.
     lva_data = {
-        'file': file_name,
-        'uid': object_id,
+        'uid': uid,
         'alert_type': alert_type,
-        'description': description,
-        'labels': [label.name for label in event_or_superevent.labels.all()]
+        'data': serialized_object,
     }
-    if serialized_object is not None:
-        lva_data['object'] = serialized_object
+    # Add serialized "parent" object
+    if serialized_parent is not None:
+        lva_data['object'] = serialized_parent
+
+    # Dump to JSON format:
     # simplejson.dumps is needed to properly handle Decimal fields
     msg = simplejson.dumps(lva_data)
 
     # Log message for debugging
-    logger.debug("issue_xmpp_alert: sending message {msg} for {object_id}" \
-        .format(msg=msg, object_id=object_id))
+    logger.info("issue_xmpp_alert: sending message {msg} for {uid}" \
+        .format(msg=msg, uid=uid))
 
     # Get manager ready for LVAlert Overseer (?)
     if settings.USE_LVALERT_OVERSEER:
@@ -118,8 +115,8 @@ def issue_xmpp_alert(event_or_superevent, alert_type="new", file_name="",
 
             # Log message
             logger.info(("issue_xmpp_alert: sending alert type {alert_type} "
-                "with message {msg_id} for {obj_id} to {node}").format(
-                alert_type=alert_type, msg_id=message_id, obj_id=object_id,
+                "with message {msg_id} for {uid} to {node}").format(
+                alert_type=alert_type, msg_id=message_id, uid=uid,
                 node=node_name))
 
             # Try to send with LVAlert Overseer (if enabled)

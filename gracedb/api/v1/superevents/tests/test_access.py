@@ -1351,6 +1351,8 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
 
     def test_lvem_user_create_log(self):
         """LV-EM user can create logs for exposed superevents only"""
+        # Create tag since external users' logs will be tagged with 'lvem'
+        Tag.objects.create(name=settings.EXTERNAL_ACCESS_TAGNAME)
         log_data = {'comment': 'test comment'}
 
         # Internal-only superevent
@@ -2238,6 +2240,10 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
 
     def test_lvem_user_create_emobservation_for_exposed_superevent(self):
         """LV-EM user can create EMObservations for exposed superevents"""
+        # Have to create lvem tag since there will be a log created to
+        # document the EMObservation creation and it will be tagged
+        # with 'lvem' since it was created by an external user.
+        Tag.objects.create(name=settings.EXTERNAL_ACCESS_TAGNAME)
         url = v_reverse('superevents:superevent-emobservation-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,

@@ -243,7 +243,7 @@ class SupereventEventSerializer(serializers.ModelSerializer):
         submitter = validated_data.pop('user')
         add_event_to_superevent(superevent, event, submitter,
             add_superevent_log=True, add_event_log=True,
-            issue_superevent_alert=True, issue_event_alert=True)
+            issue_alert=True)
         return event
 
 

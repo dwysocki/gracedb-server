@@ -141,8 +141,7 @@ class SupereventEventViewSet(mixins.ListModelMixin,
     def perform_destroy(self, instance):
         remove_event_from_superevent(instance.superevent, instance,
             self.request.user, add_superevent_log=True,
-            add_event_log=True, issue_superevent_alert=True,
-            issue_event_alert=True)
+            add_event_log=True, issue_alert=True)
 
 
 class SupereventLabelViewSet(viewsets.ModelViewSet,

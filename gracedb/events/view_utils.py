@@ -132,7 +132,7 @@ def reverse(name, *args, **kw):
 #---------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------
 
-def eventToDict(event, columns=None, request=None):
+def eventToDict(event, columns=None, request=None, is_alert=False):
     """Convert an Event to a dictionary."""
     rv = {}
     graceid = event.graceid()
@@ -173,7 +173,10 @@ def eventToDict(event, columns=None, request=None):
     #      for labelling in event.labelling_set.all()])
     # XXX Try to produce a dictionary of analysis specific attributes.  Duck typing.
     # XXX These extra attributes should only be seen by internal users.
-    if request and request.user and not is_external(request.user): 
+    # So we only do this part if the user account is internal *OR* if this is
+    # for an LVAlert
+    if ((request and request.user and not is_external(request.user)) or
+        is_alert):
         rv['extra_attributes'] = {}
         try:
             # GrbEvent
@@ -628,6 +631,30 @@ def signoffToDict(signoff):
         'comment':      signoff.comment,
         'signoff_type': signoff.signoff_type,
     } 
+
+def groupeventpermissionToDict(gop, event=None, request=None):
+    """Convert a group object permission to a dictionary.
+       Output depends on the level of specificity.
+    """
+
+    # Hacky temporary measure
+    if event is None:
+        event = gop.content_object
+
+    rv = {}
+    rv['group'] = gop.group.name
+    rv['permission'] = gop.permission.codename
+    #rv['graceid'] = event.graceid()
+    #perm_shortname = gop.permission.codename.split('_')[0]
+    #rv['permission'] = perm_shortname
+    # We want a link to the self only.  End of the line.
+    #rv['links'] = {
+    #                "self" : api_reverse("events:groupeventpermission-detail",
+    #                                 args=[event.graceid(),gop.group.name,perm_shortname],
+    #                                 request=request)
+    #              }
+    return rv
+
 
 #---------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------

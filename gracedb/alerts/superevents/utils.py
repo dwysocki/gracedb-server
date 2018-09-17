@@ -1,181 +1,78 @@
-from __future__ import absolute_import
-import logging
-
-from django.urls import reverse
-from django.contrib.auth.models import Group as AuthGroup
-
-from rest_framework.renderers import JSONRenderer
-
 from api.v1.superevents.serializers import SupereventSerializer, \
     SupereventLogSerializer, SupereventLabelSerializer, \
-    SupereventEMObservationSerializer, SupereventVOEventSerializer, \
+    SupereventVOEventSerializer, SupereventEMObservationSerializer, \
     SupereventSignoffSerializer, SupereventGroupObjectPermissionSerializer
-from core.urls import build_absolute_uri
-from superevents.shortcuts import is_superevent
 from ..main import issue_alerts
-
-# Set up logger
-logger = logging.getLogger(__name__)
+from ..utils import AlertIssuerWithParentObject
 
 
-def superevent_alert_helper(obj, serializer=SupereventSerializer,
-    request=None):
-    """
-    Assume non-superevent objects passed to this function have a
-    foreign key link to a superevent
-    """
+class AlertIssuerWithParentSuperevent(AlertIssuerWithParentObject):
+    parent_serializer_class = SupereventSerializer
 
-    # If superevent_id is None, assume obj is a Superevent
-    if is_superevent(obj):
-        superevent_id = obj.superevent_id
-    else:
-        try:
-            superevent_id = obj.superevent.superevent_id
-        except:
-            # TODO: raise appropriate error
-            pass
+    def serialize_parent(self):
+        return self.parent_serializer_class(self.get_parent_obj()).data
 
-    # Construct URL for web view
-    url = build_absolute_uri(reverse('superevents:view', args=[superevent_id]),
-        request)
+    def _get_parent_obj(self):
+        # Assumes that the obj has a direct relation to a superevent
+        if not hasattr(self.obj, 'superevent'):
+            raise AttributeError(('object of class {0} does not have a direct '
+                'relationship to a superevent').format(
+                self.obj.__class__.__name__))
+        return self.obj.superevent
 
-    # Serialize the object into a dictionary
-    obj_dict = serializer(obj).data
-
-    return url, obj_dict
+    def issue_alerts(self):
+        issue_alerts(self.get_parent_obj(), self.alert_type,
+            self.serialize_obj(), self.serialize_parent())
 
 
-def issue_alert_for_superevent_creation(superevent, request=None):
+class SupereventAlertIssuer(AlertIssuerWithParentSuperevent):
+    serializer_class = SupereventSerializer
+    alert_types = ['new', 'update', 'event_added', 'event_removed',
+        'confirmed_as_gw']
 
-    # Get URL and serialized superevent
-    url, serialized_object = superevent_alert_helper(superevent,
-        request=request)
-
-    # Description
-    description = "NEW: superevent {0}".format(superevent.superevent_id)
-
-    # Send alerts
-    issue_alerts(superevent, alert_type="new", url=url,
-        description=description, serialized_object=serialized_object)
+    def _get_parent_obj(self):
+        return self.obj
 
 
-#def issue_alert_for_superevent_update(superevent, request=None):
-#    # Get URL and serialized superevent
-#    url, serialized_object = superevent_alert_helper(superevent,
-#        request=request)
-#
-#    # Description
-#    # TODO: fix
-#    description = "UPDATE: superevent {0}".format(superevent.superevent_id)
-#
-#    # Send alerts
-#    issue_alerts(superevent, alert_type="update", url=url,
-#        description=description, serialized_object=serialized_object)
+class SupereventLogAlertIssuer(AlertIssuerWithParentSuperevent):
+    serializer_class = SupereventLogSerializer
+    alert_types = ['log']
 
 
-def issue_alert_for_superevent_log(log, request=None):
-
-    # Get URL for superevent webview and serialized log
-    url, serialized_object = superevent_alert_helper(log,
-        SupereventLogSerializer, request=request)
-
-    # Description
-    if log.filename:
-        description = "UPLOAD: '{filename}'".format(filename=log.filename)
-    else:
-        description = "LOG:"
-    description += " {message}".format(message=log.comment)
-
-    # Send alerts
-    issue_alerts(log.superevent, alert_type="update", url=url,
-        description=description, serialized_object=serialized_object,
-        file_name=log.filename)
+class SupereventLabelAlertIssuer(AlertIssuerWithParentSuperevent):
+    serializer_class = SupereventLabelSerializer
+    alert_types = ['label_added', 'label_removed']
 
 
-def issue_alert_for_superevent_label_creation(labelling, request=None):
-
-    # Get URL for superevent webview and serialized label
-    url, serialized_object = superevent_alert_helper(labelling,
-        SupereventLabelSerializer, request=request)
-
-    # Description
-    description = "LABEL: {label} added".format(label=labelling.label.name)
-
-    # Send alerts
-    # NOTE: current alerts don't include an object (change this?)
-    issue_alerts(labelling.superevent, alert_type="label", url=url,
-        description=description, serialized_object=serialized_object)
+class SupereventVOEventAlertIssuer(AlertIssuerWithParentSuperevent):
+    serializer_class = SupereventVOEventSerializer
+    alert_types = ['voevent']
 
 
-def issue_alert_for_superevent_label_removal(labelling, request=None):
-    # Get URL for superevent webview and serialized label
-    url, serialized_object = superevent_alert_helper(labelling,
-        SupereventLabelSerializer, request=request)
-
-    # Description
-    description = "UPDATE: {label} removed".format(label=labelling.label.name)
-
-    # Send alerts
-    issue_alerts(labelling.superevent, alert_type="update", url=url,
-        description=description, serialized_object=serialized_object)
+class SupereventEMObservationAlertIssuer(AlertIssuerWithParentSuperevent):
+    serializer_class = SupereventEMObservationSerializer
+    alert_types = ['emobservation']
 
 
-def issue_alert_for_superevent_voevent(voevent, request=None):
-    # Get URL for superevent webview and serialized voevent
-    url, serialized_object = superevent_alert_helper(voevent,
-        SupereventVOEventSerializer, request=request)
-
-    # Description
-    description = "VOEVENT: {filename}".format(filename=voevent.filename)
-
-    # Send alerts
-    issue_alerts(voevent.superevent, alert_type="update", url=url,
-        file_name=voevent.filename, description=description,
-        serialized_object=serialized_object)
+class SupereventSignoffAlertIssuer(AlertIssuerWithParentSuperevent):
+    serializer_class = SupereventSignoffSerializer
+    alert_types = ['signoff_created', 'signoff_updated', 'signoff_deleted']
 
 
-def issue_alert_for_superevent_emobservation(emobservation, request=None):
-    # Get URL for superevent webview and serialized emo
-    url, serialized_object = superevent_alert_helper(emobservation,
-        SupereventEMObservationSerializer, request=request)
+class SupereventPermissionsAlertIssuer(AlertIssuerWithParentSuperevent):
+    serializer_class = SupereventGroupObjectPermissionSerializer
+    alert_types = ['exposed', 'hidden']
 
-    # Description
-    description = "New EMBB observation record for {group}".format(
-        group=emobservation.group.name)
+    def serialize_obj(self):
+        """
+        self.obj should be a superevent, but we want to return the list
+        of group object permissions here.
+        """
+        # NOTE: it seems really weird to return a list of permissions here.
+        # But exposing/hiding a list of permissions does in fact change
+        # multiple permissions. Should give this some more thought.
+        gops = self.obj.supereventgroupobjectpermission_set.all()
+        return self.serializer_class(gops, many=True).data
 
-    # Send alerts
-    issue_alerts(emobservation.superevent, alert_type="update", url=url,
-        description=description, serialized_object=serialized_object)
-
-
-def issue_alert_for_superevent_signoff(signoff, request=None):
-    # Get URL for superevent webview and serialized signoff
-    url, serialized_object = superevent_alert_helper(signoff,
-        SupereventSignoffSerializer, request=request)
-
-    # Description
-    description = signoff.status
-
-    # Send alerts
-    issue_alerts(signoff.superevent, alert_type="signoff", url=url,
-        description=description, serialized_object=serialized_object)
-
-
-def issue_alert_for_superevent_permissions(superevent, request=None):
-    # Construct URL for web view
-    url = build_absolute_uri(reverse('superevents:view', args=[
-        superevent.superevent_id]), request)
-
-    # Get serialized permissions
-    gops = superevent.supereventgroupobjectpermission_set.all()
-    gop_group_pks = gops.values_list('group', flat=True).distinct()
-    group_queryset = AuthGroup.objects.filter(pk__in=gop_group_pks)
-    serialized_list = SupereventGroupObjectPermissionSerializer(
-        group_queryset, many=True)
-
-    # Description
-    description = 'Permissions updated'
-
-    # Send alerts
-    issue_alerts(superevent, alert_type="update", url=url,
-        description=description, serialized_object=serialized_list)
+    def _get_parent_obj(self):
+        return self.obj

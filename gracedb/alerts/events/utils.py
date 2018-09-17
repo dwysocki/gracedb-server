@@ -1,56 +1,100 @@
 from __future__ import absolute_import
 import logging
 
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
+from guardian.models import GroupObjectPermission
 
 from core.urls import build_absolute_uri
 from events.shortcuts import is_event
-from events.view_utils import eventToDict, eventLogToDict
+from events.view_utils import eventToDict, eventLogToDict, signoffToDict, \
+    emObservationToDict, embbEventLogToDict, groupeventpermissionToDict, \
+    labelToDict, voeventToDict
 from ..main import issue_alerts
+from ..utils import AlertIssuerWithParentObject
 
 # Set up logger
 logger = logging.getLogger(__name__)
 
 
-def event_alert_helper(obj, serializer=eventToDict, request=None):
-    """
-    If obj is not an event, assume it is an object with a relation to
-    an Event object.
-    """
+# NOTE: we have to be careful in all of these serializers since we want to
+# serialize the event subclass always, not the base event object.
+class AlertIssuerWithParentEvent(AlertIssuerWithParentObject):
+    parent_serializer_class = staticmethod(eventToDict)
 
-    # If superevent_id is None, assume obj is a Superevent
-    if is_event(obj):
-        graceid = event.graceid()
-    else:
-        try:
-            graceid = obj.event.graceid()
-        except:
-            # TODO: raise appropriate error
-            pass
+    def serialize_obj(self):
+        return self.serializer_class(self.obj)
 
-    # Construct URL for web view
-    url = build_absolute_uri(reverse('view', args=[graceid]), request)
+    def serialize_parent(self):
+        return self.parent_serializer_class(self.get_parent_obj(),
+            is_alert=True)
 
-    # Serialize the object into a dictionary
-    obj_dict = serializer(obj)
+    def _get_parent_obj(self):
+        # Assumes that the obj has a direct relation to an event
+        if not hasattr(self.obj, 'event'):
+            raise AttributeError(('object of class {0} does not have a direct '
+                'relationship to an event').format(
+                self.obj.__class__.__name__))
+        # Make sure we have the event "subclass"
+        return self.obj.event.get_subclass_or_self()
 
-    return url, obj_dict
+    def issue_alerts(self):
+        issue_alerts(self.get_parent_obj(), self.alert_type,
+           self.serialize_obj(), self.serialize_parent())
 
 
-def issue_alert_for_event_log(log, request=None):
+class EventAlertIssuer(AlertIssuerWithParentEvent):
+    serializer_class = staticmethod(eventToDict)
+    alert_types = ['new', 'update', 'selected_as_preferred',
+        'removed_as_preferred', 'added_to_superevent',
+        'removed_from_superevent']
 
-    # Get URL for event webview and serialized log
-    url, serialized_object = event_alert_helper(log, eventLogToDict, request)
+    def serialize_obj(self):
+        return self.serializer_class(self.obj.get_subclass_or_self(),
+            is_alert=True)
 
-    # Description
-    if log.filename:
-        description = "UPLOAD: '{filename}'".format(filename=log.filename)
-    else:
-        description = "LOG:"
-    description += " {message}".format(message=log.comment)
+    def _get_parent_obj(self):
+        return self.obj
 
-    # Send alerts
-    issue_alerts(log.event, alert_type="update", url=url,
-        description=description, serialized_object=serialized_object,
-        file_name=log.filename)
 
+class EventLogAlertIssuer(AlertIssuerWithParentEvent):
+    serializer_class = staticmethod(eventLogToDict)
+    alert_types = ['log']
+
+
+class EventLabelAlertIssuer(AlertIssuerWithParentEvent):
+    serializer_class = staticmethod(labelToDict)
+    alert_types = ['label_added', 'label_removed']
+
+
+class EventVOEventAlertIssuer(AlertIssuerWithParentEvent):
+    serializer_class = staticmethod(voeventToDict)
+    alert_types = ['voevent']
+
+
+class EventEMObservationAlertIssuer(AlertIssuerWithParentEvent):
+    serializer_class = staticmethod(emObservationToDict)
+    alert_types = ['emobservation']
+
+
+class EventEMBBEventLogAlertIssuer(AlertIssuerWithParentEvent):
+    serializer_class = staticmethod(embbEventLogToDict)
+    alert_types = ['embb_event_log']
+
+
+class EventSignoffAlertIssuer(AlertIssuerWithParentEvent):
+    serializer_class = staticmethod(signoffToDict)
+    alert_types = ['signoff_created', 'signoff_updated', 'signoff_deleted']
+
+
+class EventPermissionsAlertIssuer(EventAlertIssuer):
+    serializer_class = staticmethod(groupeventpermissionToDict)
+    alert_types = ['exposed', 'hidden']
+
+    def serialize_obj(self):
+        """self.obj should be an event here"""
+        gops = GroupObjectPermission.objects.filter(
+            object_pk=self.obj.pk,
+            content_type=ContentType.objects.get_for_model(self.obj))
+        gop_list = [self.serializer_class(gop) for gop in gops]
+        return gop_list

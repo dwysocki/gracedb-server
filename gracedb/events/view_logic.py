@@ -16,8 +16,8 @@ from .view_utils import eventToDict, eventLogToDict, emObservationToDict, \
     labelToDict
 from .permission_utils import assign_default_event_perms
 
-from alerts.old_alert import issueAlert, issueAlertForLabel, issueAlertForUpdate, \
-    issueXMPPAlert
+from alerts.events.utils import EventAlertIssuer, EventLabelAlertIssuer, \
+    EventEMObservationAlertIssuer, EventEMBBEventLogAlertIssuer
 from core.vfile import VersionedFile
 
 from django.contrib.contenttypes.models import ContentType
@@ -154,10 +154,7 @@ def _createEventFromForm(request, form):
                 # Send an alert.
                 # XXX This reverse will give the web-interface URL, not the REST URL.
                 # This could be a problem if anybody ever tries to use it.
-                issueAlert(event,
-                           request.build_absolute_uri(reverse("file-download", args=[event.graceid(),f.name])),
-                           request.build_absolute_uri(reverse("view", args=[event.graceid()])),
-                           eventToDict(event, request=request))
+                EventAlertIssuer(event, alert_type='new').issue_alerts()
             except Exception, e:
                 message = "Problem issuing an alert (%s)" % e
                 logger.warning(message)
@@ -215,12 +212,9 @@ def create_label(event, request, labelName, doAlert=True, doXMPP=True):
             logger.exception('Problem saving log message (%s)' % str(e))
             d['error'] = str(e)
 
-        # Serialize the labelling object
-        serialized_label = labelToDict(labelling)
-
         try:
-            issueAlertForLabel(event, label, doXMPP, event_url=event_url,
-                serialized_object=serialized_label)
+            EventLabelAlertIssuer(labelling, alert_type='label_added') \
+                .issue_alerts()
         except Exception as e:
             logger.exception('Problem issuing alert (%s)' % str(e))
             d['warning'] = "Problem issuing alert (%s)" % str(e)
@@ -263,15 +257,10 @@ def delete_label(event, request, labelName, doXMPP=True):
             logger.exception('Problem saving log message (%s)' % str(e))
             d['error'] = str(e)
 
-        # Serialize deleted labelling object
-        serialized_label = labelToDict(this_label)
-
         # send an XMPP alert, no email or phone alerts
         try:
-            if doXMPP:
-                issueXMPPAlert(event, "", alert_type="update",
-                    description="Label {0} removed".format(label.name),
-                    serialized_object=serialized_label)
+            EventLabelAlertIssuer(this_label, alert_type='label_removed') \
+                .issue_alerts()
         except Exception as e:
             logger.exception('Problem issuing alert (%s)' % str(e))
             d['warning'] = "Problem issuing alert (%s)" % str(e)
@@ -454,6 +443,11 @@ def create_eel(d, event, user):
 
     eel.validateMakeRects()
     eel.save()
+
+    # Issue alert
+    EventEMBBEventLogAlertIssuer(eel, alert_type='embb_event_log') \
+        .issue_alerts()
+
     return eel
 
 #
@@ -579,12 +573,11 @@ def create_emobservation(request, event):
     try:
         description = "New EMBB observation record for {group}".format(
             group=emo.group)
-        object = emObservationToDict(emo, request)
-        issueAlertForUpdate(event, description, doxmpp=True,
-            filename="", serialized_object=object)        
+        EventEMObservationAlertIssuer(emo, alert_type='emobservation') \
+            .issue_alerts()
     except Exception, e:
         # XXX Should probably send back warnings, as in the other cases.
-        pass
+        logger.error('error sending alert for emobservation: {0}'.format(e))
 
     # Write a log message
     log = EventLog.objects.create(issuer=user, comment=description, event=event)

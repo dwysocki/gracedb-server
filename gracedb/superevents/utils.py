@@ -10,19 +10,17 @@ from .buildVOEvent import construct_voevent_file
 from .models import Superevent, Log, Labelling, EMObservation, EMFootprint, \
     VOEvent, Signoff
 from .shortcuts import is_superevent
-from alerts.events.utils import issue_alert_for_event_log
-from alerts.superevents.utils import issue_alert_for_superevent_creation, \
-    issue_alert_for_superevent_log, \
-    issue_alert_for_superevent_label_creation, \
-    issue_alert_for_superevent_label_removal, \
-    issue_alert_for_superevent_emobservation, \
-    issue_alert_for_superevent_voevent, issue_alert_for_superevent_signoff, \
-    issue_alert_for_superevent_permissions
+from alerts.events.utils import EventAlertIssuer, EventLogAlertIssuer
+from alerts.superevents.utils import SupereventAlertIssuer, \
+    SupereventLogAlertIssuer, SupereventLabelAlertIssuer, \
+    SupereventVOEventAlertIssuer, SupereventEMObservationAlertIssuer, \
+    SupereventSignoffAlertIssuer, SupereventPermissionsAlertIssuer
 from core.permission_utils import expose_log_to_lvem, expose_log_to_public, \
     hide_log_from_lvem, hide_log_from_public, assign_perms_to_obj, \
     remove_perms_from_obj
 from core.vfile import create_versioned_file
 from events.models import Event, EventLog, Tag, Label
+from events.permission_utils import is_external
 from events.shortcuts import is_event
 
 # Set up logger
@@ -40,8 +38,6 @@ SUPEREVENT_PERMS = {
 }
 
 
-# TODO:
-# Add decorator to check access permissions (??) not sure if we should do it here or in the viewset itself
 def create_superevent(submitter, t_start, t_0, t_end, preferred_event,
     events=[], labels=[], category='P', add_log_message=True,
     issue_alert=True):
@@ -90,37 +86,36 @@ def create_superevent(submitter, t_start, t_0, t_end, preferred_event,
     # Superevent log message and alerts are taken care of elsewhere, but we
     # want to record logs for the individual events
     # NOTE: we don't have to worry about a repeat here for the preferred event
-    # since events comes directly from the serializer and hasn't been updated
-    # to include the preferred event (like it would be if we accessed
-    # s.events.all())
+    # since the 'events' list comes directly from the serializer and hasn't
+    # been updated to include the preferred event (like it would be if we
+    # accessed s.events.all() directly)
     # Alerts aren't issued here since we want to do that *after* the superevent
     # creation alert is issued below.
-    event_log_list = []
     for event in events:
-        _, el = add_event_to_superevent(s, event, submitter,
+        add_event_to_superevent(s, event, submitter,
             add_superevent_log=False, add_event_log=True,
-            issue_superevent_alert=False, issue_event_alert=False)
-        if el is not None:
-            event_log_list.append(el)
+            issue_alert=False)
 
     # Issue all relevant alerts
     if issue_alert:
         # Send "new" alert about superevent creation
-        issue_alert_for_superevent_creation(s)
+        SupereventAlertIssuer(s, alert_type='new').issue_alerts()
 
-        # "Manually" issue alerts for preferred_event and events
-        issue_alert_for_event_log(pref_event_log)
+        # "Manually" issue alerts for preferred_event
+        EventAlertIssuer(preferred_event, alert_type='selected_as_preferred') \
+            .issue_alerts()
 
-        for el in event_log_list:
-            issue_alert_for_event_log(el)
+        # "Manually" issue alerts for events
+        for event in events:
+            EventAlertIssuer(event, alert_type='added_to_superevent') \
+                .issue_alerts()
 
     # Add labels
     for label in labels:
         l = add_label_to_superevent(s, label, submitter,
             add_log_message=True, issue_alert=issue_alert)
 
-    # Look at event creation functions to see if there is anything else we should add here.
-    # CREATE DIRECTORY
+    # Create superevent data directory
     os.makedirs(s.datadir)
 
     return s
@@ -154,26 +149,37 @@ def update_superevent(superevent, updater, add_log_message=True,
         update_comment = "Updated superevent parameters: {0}".format(
             ", ".join(updates))
         update_log = create_log(updater, update_comment, superevent,
-            issue_alert=issue_alert)
+            issue_alert=False)
 
-        # Write event log messages if preferred event changed
+        # If preferred event changed, do a few things
         if new_params.has_key('preferred_event') and \
             (old_params['preferred_event'] != new_params['preferred_event']):
-            # Old preferred event
+            # Write log for old preferred event
             old_msg = ("Removed as preferred event for superevent: "
                 "{superevent_id}").format(superevent_id=
                 superevent.superevent_id)
             old_log = create_log(updater, old_msg,
-                    old_params['preferred_event'], issue_alert=issue_alert)
+                    old_params['preferred_event'], issue_alert=False)
 
-            # New preferred event
+            # Write log for new preferred event
             new_msg = ("Set as preferred event for superevent: "
                 "{superevent_id}").format(superevent_id=
                 superevent.superevent_id)
             new_log = create_log(updater, new_msg,
-                new_params['preferred_event'], issue_alert=issue_alert)
+                new_params['preferred_event'], issue_alert=False)
 
-    # TODO: issue alert separately from log creation
+            # Issue alerts for both
+            if issue_alert:
+                # Old
+                EventAlertIssuer(old_params['preferred_event'],
+                    alert_type='removed_as_preferred').issue_alerts()
+                # New
+                EventAlertIssuer(new_params['preferred_event'],
+                    alert_type='selected_as_preferred').issue_alerts()
+
+    # Superevent alerts
+    if issue_alert:
+        SupereventAlertIssuer(superevent, alert_type='update').issue_alerts()
 
     return superevent
 
@@ -198,19 +204,21 @@ def create_log(issuer, comment, event_or_superevent, filename="",
 
     if is_superevent(event_or_superevent):
         log_dict['superevent'] = event_or_superevent
-        LogModel = Log
-        alert_func = issue_alert_for_superevent_log
+        log_attr = 'log_set'
+        alerter_class = SupereventLogAlertIssuer
     elif is_event(event_or_superevent):
         log_dict['event'] = event_or_superevent
-        LogModel = EventLog
-        alert_func = issue_alert_for_event_log
+        log_attr = 'eventlog_set'
+        alerter_class = EventLogAlertIssuer
     else:
-        # TODO: raise error
-        logger.error(type(event_or_superevent))
-        pass
+        err_msg = "object is of type '{0}'; should be event or superevent" \
+            .format(type(event_or_superevent))
+        logger.error(err_msg)
+        raise TypeError(err_msg)
 
     # Create log object
-    log = LogModel.objects.create(**log_dict)
+    log_set = getattr(event_or_superevent, log_attr)
+    log = log_set.create(**log_dict)
 
     # Create versioned file
     if data_file:
@@ -226,26 +234,36 @@ def create_log(issuer, comment, event_or_superevent, filename="",
         add_tag_to_log(log, t, issuer, issue_alert=False)
 
     if issue_alert:
-        alert_func(log)
+        alerter_class(log, alert_type='log').issue_alerts()
 
-    # TODO:
-    # If user is external, add LV-EM tagname to this log message
+    # If user is external, add LV-EM tagname to this log message and expose it
+    # TODO: should it be exposed to the public? Or to LV-EM only?  We will
+    # stick with LV-EM only for now.
+    if is_external(issuer) and not autogenerated:
+        lvem_tag = Tag.objects.get(name=settings.EXTERNAL_ACCESS_TAGNAME)
+        add_tag_to_log(log, lvem_tag, issuer, add_log_message=True)
 
     return log 
 
 
 def get_log_parent(log):
-    # Determine if this is an event or superevent log
+    """Utility function to determine if this is an event or superevent log"""
+
     if isinstance(log, Log):
         return log.superevent
     elif isinstance(log, EventLog):
         return log.event
     else:
-        # TODO: raise exception
-        pass
+        err_msg = ("object is of type '{0}'; should be superevent log or "
+            "event log").format(type(log))
+        logger.error(err_msg)
+        raise TypeError(err_msg)
 
 
 def add_tag_to_log(log, tag, user, add_log_message=True, issue_alert=False):
+    # Presently, we don't issue alerts for tag addition or for the logs
+    # that are generated as a result.
+
     # Add tag to log
     log.tags.add(tag)
 
@@ -271,13 +289,15 @@ def add_tag_to_log(log, tag, user, add_log_message=True, issue_alert=False):
             tag_name=tag.name)
         event_or_superevent = get_log_parent(log)
         log_for_tag_addition = create_log(user, comment, event_or_superevent,
-            issue_alert=issue_alert, autogenerated=True)
+            issue_alert=False, autogenerated=True)
 
     return log_for_tag_addition
 
 
 def remove_tag_from_log(log, tag, user, add_log_message=True,
     issue_alert=False):
+    # Presently, we don't issue alerts for tag addition or for the logs
+    # that are generated as a result.
 
     # Remove tag from log
     log.tags.remove(tag)
@@ -304,17 +324,14 @@ def remove_tag_from_log(log, tag, user, add_log_message=True,
             N=log.N, tag_name=tag.name)
         event_or_superevent = get_log_parent(log)
         log_for_tag_removal = create_log(user, comment, event_or_superevent,
-            issue_alert=issue_alert, autogenerated=True)
+            issue_alert=False, autogenerated=True)
+
 
     return log_for_tag_removal
 
 
 def add_event_to_superevent(superevent, event, user, add_event_log=True,
-    add_superevent_log=True, issue_event_alert=True,
-    issue_superevent_alert=True):
-    """
-    We return log objects in case they are needed elsewhere
-    """
+    add_superevent_log=True, issue_alert=True):
 
     # Check that the event is of the correct type to be added
     # to a superevent
@@ -330,31 +347,32 @@ def add_event_to_superevent(superevent, event, user, add_event_log=True,
     superevent.events.add(event)
 
     # Create superevent log message to record event addtion?
-    superevent_log_for_event_addition = None
     if add_superevent_log:
         # Record event addition in superevent logs
         superevent_comment = 'Added event: {graceid}'.format(
             graceid=event.graceid())
         superevent_log_for_event_addition = create_log(user,
-            superevent_comment, superevent, issue_alert=issue_superevent_alert,
+            superevent_comment, superevent, issue_alert=False,
             autogenerated=True)
 
     # Create event log message to record addition to superevent?
-    event_log_for_addition_to_superevent = None
     if add_event_log:
         # Record addition to superevent in event logs
         event_comment = 'Added to superevent: {superevent_id}'.format(
             superevent_id=superevent.superevent_id)
         event_log_for_addition_to_superevent = create_log(user, event_comment,
-            event, issue_alert=issue_event_alert, autogenerated=True)
+            event, issue_alert=False, autogenerated=True)
 
-    return superevent_log_for_event_addition, \
-        event_log_for_addition_to_superevent
+    # Issue alerts
+    if issue_alert:
+        SupereventAlertIssuer(superevent, alert_type='event_added') \
+            .issue_alerts()
+        EventAlertIssuer(event, alert_type='added_to_superevent') \
+            .issue_alerts()
 
 
 def remove_event_from_superevent(superevent, event, user, add_event_log=True,
-    add_superevent_log=True, issue_event_alert=True,
-    issue_superevent_alert=True):
+    add_superevent_log=True, issue_alert=True):
     """
     This function should be within a try-except block to catch exceptions and
     convert them to the appropriate response.
@@ -374,18 +392,21 @@ def remove_event_from_superevent(superevent, event, user, add_event_log=True,
         superevent_comment = 'Removed event: {graceid}'.format(
             graceid=event.graceid())
         superevent_log_for_event_removal = create_log(user, superevent_comment,
-            superevent, issue_alert=issue_superevent_alert, autogenerated=True)
+            superevent, issue_alert=False, autogenerated=True)
 
     # Create event log message to record removal from superevent?
-    event_log_for_removal_from_superevent = None
     if add_event_log:
         event_comment ='Removed from superevent: {superevent_id}'.format(
             superevent_id=superevent.superevent_id)
         event_log_for_removal_from_superevent = create_log(user, event_comment,
-            event, issue_alert=issue_event_alert, autogenerated=True)
+            event, issue_alert=False, autogenerated=True)
 
-    return superevent_log_for_event_removal, \
-        event_log_for_removal_from_superevent
+    # Issue alerts
+    if issue_alert:
+        SupereventAlertIssuer(superevent, alert_type='event_removed') \
+            .issue_alerts()
+        EventAlertIssuer(event, alert_type='removed_from_superevent') \
+            .issue_alerts()
 
 
 def add_label_to_superevent(superevent, label, user, add_log_message=True,
@@ -403,7 +424,8 @@ def add_label_to_superevent(superevent, label, user, add_log_message=True,
             issue_alert=False, autogenerated=True)
 
     if issue_alert:
-        issue_alert_for_superevent_label_creation(labelling)
+        SupereventLabelAlertIssuer(labelling, alert_type='label_added') \
+            .issue_alerts()
 
     return labelling, log_for_label_addition
 
@@ -425,9 +447,11 @@ def remove_label_from_superevent(labelling, user, add_log_message=True,
     # labelling object still exists in memory, even though it has been
     # removed from the database and does not have an ID anymore
     if issue_alert:
-        issue_alert_for_superevent_label_removal(labelling)
+        SupereventLabelAlertIssuer(labelling, alert_type='label_removed') \
+            .issue_alerts()
 
     return log_for_label_removal
+
 
 def get_or_create_tag(tag_name, display_name=None):
 
@@ -441,9 +465,11 @@ def get_or_create_tag(tag_name, display_name=None):
 
 def get_or_create_tags(tag_name_list, display_name_list=[]):
 
-    # TODO: make this a useful error
+    # Check that lists are the same length if display_name_list is
+    # provided
     if display_name_list and (len(display_name_list) != len(tag_name_list)):
-        raise ValueError('')
+        raise ValueError('If a list of display names is provided, it must '
+            'have the same length as the list of tag names')
 
     tag_list = []
     for i, tag_name in enumerate(tag_name_list):
@@ -491,8 +517,13 @@ def confirm_superevent_as_gw(superevent, user, add_log_message=True,
     if add_log_message:
         message = ("Confirmed as a gravitational wave: ID changed from "
             "{old} -> {new}").format(old=old_id, new=superevent.superevent_id)
-        gw_log = create_log(user, message, superevent, issue_alert=issue_alert,
+        gw_log = create_log(user, message, superevent, issue_alert=False,
             autogenerated=False)
+
+    # Issue alert
+    if issue_alert:
+        SupereventAlertIssuer(superevent, alert_type='confirmed_as_gw') \
+            .issue_alerts()
 
     return gw_log
 
@@ -525,7 +556,8 @@ def create_emobservation_for_superevent(superevent, submitter, ra_list,
 
     # Issue alert
     if issue_alert:
-        issue_alert_for_superevent_emobservation(emo)
+        SupereventEMObservationAlertIssuer(emo, alert_type='emobservation') \
+            .issue_alerts()
 
     return emo
 
@@ -573,12 +605,12 @@ def create_voevent_for_superevent(superevent, issuer, voevent_type,
 
     # Issue an alert
     if issue_alert:
-        issue_alert_for_superevent_voevent(voevent)
+        SupereventVOEventAlertIssuer(voevent, alert_type='voevent') \
+            .issue_alerts()
 
     return voevent
 
 
-# TODO: wrap this function in a try-except block in the form
 def create_signoff(superevent, user, signoff_type, signoff_instrument,
     signoff_status, signoff_comment, add_log_message=True, issue_alert=True):
 
@@ -611,7 +643,8 @@ def create_signoff(superevent, user, signoff_type, signoff_instrument,
 
     # Issue alert
     if issue_alert:
-        issue_alert_for_superevent_signoff(signoff)
+        SupereventSignoffAlertIssuer(signoff, alert_type='signoff_created') \
+            .issue_alerts()
 
     return signoff
 
@@ -626,8 +659,6 @@ def update_signoff(signoff, user, status, comment, add_log_message=True,
     updated_attributes = {k: v for k,v in new_data.items()
         if getattr(signoff, k, None) != v}
     old_data = {k: getattr(signoff, k) for k in updated_attributes}
-    logger.debug(updated_attributes)
-    logger.debug(old_data)
 
     # Get superevent
     superevent = signoff.superevent
@@ -701,9 +732,10 @@ def update_signoff(signoff, user, status, comment, add_log_message=True,
         signoff_log = create_log(user, full_comment, superevent,
             issue_alert=False, tags=[em_follow])
 
-    # Issue alert #TODO: make this specifically for a signoff update
+    # Issue alert
     if issue_alert:
-        issue_alert_for_superevent_signoff(signoff)
+        SupereventSignoffAlertIssuer(signoff, alert_type='signoff_updated') \
+            .issue_alerts()
 
     return signoff
 
@@ -747,7 +779,8 @@ def delete_signoff(signoff, user, add_log_message=True,
 
     # Alert
     if issue_alert:
-        issue_alert_for_superevent_log(signoff_log)
+        SupereventSignoffAlertIssuer(signoff, alert_type='signoff_deleted') \
+            .issue_alerts()
 
 
 def expose_superevent(superevent, user, add_log_message=True,
@@ -775,7 +808,8 @@ def expose_superevent(superevent, user, add_log_message=True,
 
     # Send alert
     if issue_alert:
-        issue_alert_for_superevent_permissions(superevent)
+        SupereventPermissionsAlertIssuer(superevent, alert_type='exposed') \
+            .issue_alerts()
 
 
 def hide_superevent(superevent, user, add_log_message=True,
@@ -803,5 +837,5 @@ def hide_superevent(superevent, user, add_log_message=True,
 
     # Send alert
     if issue_alert:
-        issue_alert_for_superevent_permissions(superevent)
-
+        SupereventPermissionsAlertIssuer(superevent, alert_type='hidden') \
+            .issue_alerts()
