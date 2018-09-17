@@ -306,6 +306,32 @@ class Event(models.Model):
                     loglist.append(log)
         return loglist
 
+    def get_subclass(self):
+        """
+        For a base Event object, returns subclass (if any); should be only
+        one subclass for each event.
+
+        For a subclass, returns self.
+        """
+        if not (self.__class__ == Event):
+            return self
+        subclass_fields = [f.name for f in self.__class__._meta.get_fields()
+            if (f.one_to_one and f.auto_created and not f.concrete and
+                self.__class__ in f.related_model.__bases__)]
+        for f in subclass_fields:
+            if hasattr(self, f):
+                return getattr(self, f)
+        return None
+
+    def get_subclass_or_self(self):
+        """
+        'Safe' version of get_subclass
+        """
+        subclass = self.get_subclass()
+        if subclass is None:
+            return self
+        return subclass
+
     # A method to update the permissions according to the permission objects in
     # the database. 
     def refresh_perms(self):
