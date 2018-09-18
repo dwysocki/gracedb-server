@@ -157,14 +157,14 @@ x.domain(d3.extent(data, function(d) { return d.created; }));
 // I suspect there is a better and less annoying way of doing all this.
 // But I don't really know what it is. We specify the ordering of the 
 // pipelines and the color for each pipeline that may be present.
-var PIPELINE_ORDER = [ 'gstlal', 'MBTAOnline', 'CWB', 'LIB', 'Fermi', 'Swift', 'SNEWS', 'HardwareInjection'];
+var PIPELINE_ORDER = [ 'gstlal', 'MBTAOnline', 'CWB', 'oLIB', 'Fermi', 'Swift', 'SNEWS', 'HardwareInjection'];
 
 // These are the first 8 colors of category 10
 var COLOR_HASH = {};
 COLOR_HASH['gstlal']            = '#1f77b4';
 COLOR_HASH['MBTAOnline']        = '#ff7f0e';
 COLOR_HASH['CWB']               = '#2ca02c';
-COLOR_HASH['LIB']               = '#d62728';
+COLOR_HASH['oLIB']               = '#d62728';
 COLOR_HASH['Fermi']             = '#9467bd';
 COLOR_HASH['Swift']             = '#8c564b';
 COLOR_HASH['SNEWS']             = '#e377c2';

@@ -52,7 +52,7 @@ def _createEventFromForm(request, form):
         else:
             search = None
         # Create Event
-        if pipeline.name in ['gstlal', 'gstlal-spiir', 'MBTAOnline', 'pycbc',]:
+        if pipeline.name in ['gstlal', 'spiir', 'MBTAOnline', 'pycbc',]:
             event = CoincInspiralEvent()
         elif pipeline.name in ['Fermi', 'Swift', 'SNEWS']:
             event = GrbEvent()
@@ -60,7 +60,7 @@ def _createEventFromForm(request, form):
             event = MultiBurstEvent() 
         elif pipeline.name in ['HardwareInjection',]:
             event = SimInspiralEvent()
-        elif pipeline.name in ['LIB',]:
+        elif pipeline.name in ['oLIB',]:
             event = LalInferenceBurstEvent()
         else:
             event = Event()

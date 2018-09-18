@@ -11,9 +11,9 @@ the pipeline object itself is the easy part. The hard part is figuring out
 what kind of data file the group will be uploading, and how to ingest the values.
 The directions below will focus on the easiest possible case--in which the 
 new pipeline's data files have the same format and information as those 
-of an existing pipeline. (For example, the ``gstlal-spiir`` group uploads
+of an existing pipeline. (For example, the `spiir`` group uploads
 the same type of data file as the ``gstlal`` group, and this made adding the
-``gstlal-spiir`` pipeline relatively easy.)
+``spiir`` pipeline relatively easy.)
 Adding a new ``Search`` is simpler, but the steps relating to LVAlert are similar.
 
 .. NOTE::

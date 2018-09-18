@@ -139,7 +139,7 @@ BLESSED_TAGS = [
 # Lists of pipelines used for selecting templates to serve
 COINC_PIPELINES = [
                     'gstlal',
-                    'gstlal-spiir',
+                    'spiir',
                     'MBTAOnline',
                     'pycbc',
                    ]
@@ -177,7 +177,7 @@ REPORT_INFO_URL_PREFIX = "/report_info/"
 REPORT_IFAR_IMAGE_DIR = GRACEDB_PATHS["latency"]
 
 # Stuff for the new rates plot
-BINNED_COUNT_PIPELINES = ['gstlal', 'MBTAOnline', 'CWB', 'LIB', 'gstlal-spiir']
+BINNED_COUNT_PIPELINES = ['gstlal', 'MBTAOnline', 'CWB', 'oLIB', 'spiir']
 BINNED_COUNT_FILE = join(GRACEDB_PATHS["data"], "binned_counts.json")
 
 # Defaults for RSS feed

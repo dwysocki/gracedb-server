@@ -91,7 +91,7 @@ statement here that creates a new event object instance according to the
 pipeline. We'll need to add our new one::
 
     # Create Event
-    if pipeline.name in ['gstlal', 'gstlal-spiir', 'MBTAOnline', 'pycbc',]:
+    if pipeline.name in ['gstlal', 'spiir', 'MBTAOnline', 'pycbc',]:
         event = CoincInspiralEvent()
     elif pipeline.name in ['Fermi', 'Swift', 'SNEWS']:
         event = GrbEvent()
@@ -99,7 +99,7 @@ pipeline. We'll need to add our new one::
         event = MultiBurstEvent()
     elif pipeline.name in ['HardwareInjection',]:
         event = SimInspiralEvent()
-    elif pipeline.name in ['LIB',]:
+    elif pipeline.name in ['oLIB',]:
         event = LalInferenceBurstEvent()
     ### BEHOLD, a new case:
     elif pipeline.name in ['newpipeline',]:
@@ -171,8 +171,8 @@ we'll need to add something to the control structure that chooses the template::
         templates.insert(0, 'gracedb/event_detail_CWB.html')
     elif event.pipeline.name in ['HardwareInjection',]:
         templates.insert(0, 'gracedb/event_detail_injection.html')
-    elif event.pipeline.name in ['LIB',]:
-        templates.insert(0, 'gracedb/event_detail_LIB.html')
+    elif event.pipeline.name in ['oLIB',]:
+        templates.insert(0, 'gracedb/event_detail_oLIB.html')
     elif event.pipeline.name in ['newpipeline',]:
         templates.insert(0, 'gracedb/event_detail_newpipeline.html')
 

@@ -462,8 +462,8 @@ def view(request, event):
         templates.insert(0, 'gracedb/event_detail_CWB.html')
     elif event.pipeline.name in ['HardwareInjection',]:
         templates.insert(0, 'gracedb/event_detail_injection.html')
-    elif event.pipeline.name in ['LIB',]:
-        templates.insert(0, 'gracedb/event_detail_LIB.html')
+    elif event.pipeline.name in ['oLIB',]:
+        templates.insert(0, 'gracedb/event_detail_oLIB.html')
 
     return render(request, templates, context=context)
 

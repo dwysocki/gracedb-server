@@ -70,7 +70,7 @@ def handle_uploaded_data(event, datafilename,
 
     pipeline = event.pipeline.name
 
-    if pipeline in [ 'gstlal', 'gstlal-spiir', 'pycbc', ] or (pipeline=='MBTAOnline' and '.xml' in datafilename):
+    if pipeline in [ 'gstlal', 'spiir', 'pycbc', ] or (pipeline=='MBTAOnline' and '.xml' in datafilename):
         log_comment = "Log File Created"
         # Wildly speculative wrt HM
 
@@ -399,7 +399,7 @@ def handle_uploaded_data(event, datafilename,
                            issuer=event.submitter,
                            comment=error)
             log.save()
-    elif pipeline == 'LIB':
+    elif pipeline == 'oLIB':
         # lambda function for converting to a type if not None
         typecast = lambda t, v: t(v) if v is not None else v
         n_int = lambda v: typecast(int, v)
