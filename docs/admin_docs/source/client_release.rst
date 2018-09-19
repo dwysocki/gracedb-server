@@ -60,12 +60,9 @@ Here are the files you will need to change:
 gracedb-client
 ----------------
 
-* ``setup.py``: bump the version number
 * ``debian/changelog``: list your changes in the prescribed format
 * ``ligo-gracedb.spec``: check version, unmangled version, and release number
-* ``ligo/gracedb/__init__.py``: update ``GIT_TAG``
-* ``ligo/gracedb/cli.py``: update ``GIT_TAG``
-* ``ligo/gracedb/test/test.py``: update the version number in the ``GIT_TAG`` test
+* ``ligo/gracedb/version.py``: update version
 
 lvalert-client
 ----------------
