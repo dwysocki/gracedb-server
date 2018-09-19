@@ -38,6 +38,7 @@ def unrename_pipelines(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('guardian', '0003_update_emfollow_accounts'),
         ('events', '0016_delete_old_tag_event_logs_table'),
     ]
 

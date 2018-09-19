@@ -162,6 +162,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('ligoauth', '0003_initial_localuser_and_x509cert_data'),
         ('events', '0003_initial_pipeline_data'),
+        ('auth', '0012_create_custom_permissions'),
         ('guardian', '0001_initial'),
     ]
 
