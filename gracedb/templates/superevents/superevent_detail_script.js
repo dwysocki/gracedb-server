@@ -234,7 +234,7 @@ require([
         e.preventDefault();
 
         // Get button and disable it to prevent multiple clicks
-        var submit_button = $(this).children("input[type=submit]");
+        var submit_button = $(this).find("input[type=submit]");
         submit_button.attr("disabled", true);
 
         // Make ajax request
@@ -274,7 +274,7 @@ require([
         e.preventDefault();
 
         // Get HTTP method from button used to submit form
-        var submit_button = $(this).children("input[type=submit][clicked=true]");
+        var submit_button = $(this).find("input[type=submit][clicked=true]");
         var button_id = submit_button.attr("id"); 
         var http_method = 'POST';
         if (button_id == 'update') {
@@ -291,7 +291,7 @@ require([
         }
 
         // Get and disable all submit buttons on the form
-        var all_submit_buttons = $(this).children('input[type=submit]');
+        var all_submit_buttons = $(this).find('input[type=submit]');
         all_submit_buttons.attr("disabled", true);
 
         // Make ajax request
@@ -335,7 +335,7 @@ require([
         e.preventDefault();
 
         // Get button and disable it to prevent multiple clicks
-        var submit_button = $(this).children("input[type=submit]");
+        var submit_button = $(this).find("input[type=submit]");
         submit_button.attr("disabled", true);
 
         $.ajax({
