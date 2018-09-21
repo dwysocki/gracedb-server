@@ -131,6 +131,16 @@ def _createEventFromForm(request, form):
             # properly set.
             event.refresh_from_db()
 
+            # Issue event alert before labels are added
+            try:
+                # XXX This reverse will give the web-interface URL, not the REST URL.
+                # This could be a problem if anybody ever tries to use it.
+                EventAlertIssuer(event, alert_type='new').issue_alerts()
+            except Exception, e:
+                message = "Problem issuing an alert (%s)" % e
+                logger.warning(message)
+                warnings += [message]
+
             # Add labels here - need event to have been saved already
             for label in label_list:
 
@@ -149,16 +159,14 @@ def _createEventFromForm(request, form):
                     log = EventLog(event=event, issuer=event.submitter,
                         comment=message)
                     log.save()
+                    # Issue label alerts
+                    try:
+                        EventLabelAlertIssuer(labelling,
+                            alert_type='label_added').issue_alerts()
+                    except Exception as e:
+                        logger.exception('Problem issuing alert (%s)' % str(e))
+                        d['warning'] = "Problem issuing alert (%s)" % str(e)
 
-            try:
-                # Send an alert.
-                # XXX This reverse will give the web-interface URL, not the REST URL.
-                # This could be a problem if anybody ever tries to use it.
-                EventAlertIssuer(event, alert_type='new').issue_alerts()
-            except Exception, e:
-                message = "Problem issuing an alert (%s)" % e
-                logger.warning(message)
-                warnings += [message]
         except Exception, e:
             message = "Problem scanning data. No alert issued (%s)" % e
             logger.warning(message)
