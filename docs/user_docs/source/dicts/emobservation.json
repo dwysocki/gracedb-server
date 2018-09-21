@@ -1,0 +1,50 @@
+{
+    "N": 1, 
+    "comment": "message", 
+    "created": "2018-09-19 18:28:57 UTC", 
+    "dec": 6.5, 
+    "decWidth": 3.6999999999999993, 
+    "footprint_count": 4, 
+    "footprints": [
+        {
+            "N": 4, 
+            "dec": 8.0, 
+            "decWidth": 0.7, 
+            "exposure_time": 1, 
+            "ra": 4.0, 
+            "raWidth": 0.5, 
+            "start_time": "2018-09-19 13:29:00 UTC"
+        }, 
+        {
+            "N": 3, 
+            "dec": 7.0, 
+            "decWidth": 0.7, 
+            "exposure_time": 1, 
+            "ra": 3.0, 
+            "raWidth": 0.5, 
+            "start_time": "2018-09-19 13:28:59 UTC"
+        }, 
+        {
+            "N": 2, 
+            "dec": 6.0, 
+            "decWidth": 0.7, 
+            "exposure_time": 1, 
+            "ra": 2.0, 
+            "raWidth": 0.5, 
+            "start_time": "2018-09-19 13:28:58 UTC"
+        }, 
+        {
+            "N": 1, 
+            "dec": 5.0, 
+            "decWidth": 0.7, 
+            "exposure_time": 1, 
+            "ra": 1.0, 
+            "raWidth": 0.5, 
+            "start_time": "2018-09-19 13:28:57 UTC"
+        }
+    ], 
+    "group": "ARI LJMU", 
+    "ra": 2.5, 
+    "raWidth": 3.5, 
+    "submitter": "albert.einstein@LIGO.ORG"
+}

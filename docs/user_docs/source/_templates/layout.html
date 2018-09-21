@@ -57,38 +57,6 @@ require([
         }
     );
 
-    // All the rest of this is to get the silly subclass information table in place.
-    {% if pagename == 'models' %}
-        var tableNode = dom.byId("subclasses_table");
-
-        var SubclassInfo = new Object();
-
-        // You know, there is probably a better way of getting at this information.
-        SubclassInfo['CoincInspiralEvent'] = ["ifos","end_time","end_time_ns","mass","mchirp","minimum_duration","snr","false_alarm_rate","combined_far"];
-
-        SubclassInfo['MultiBurstEvent'] = ["ifos","start_time","start_time_ns","duration","peak_time","peak_time_ns","central_freq","bandwidth","amplitude","snr","confidence","false_alarm_rate","ligo_axis_ra","ligo_axis_dec","ligo_angle","ligo_angle_sig"];
-
-        SubclassInfo['SimInspiralEvent'] = ["mass1","mass2","eta","amp_order","coa_phase","mchirp","spin1x","spin1y","spin1z","spin2x","spin2y","spin2z","geocent_end_time","geocent_end_time_ns","end_time_gmst","f_lower","f_final","distance","latitude","longitude","polarization","inclination","theta0","phi0","waveform","numrel_mode_min","numrel_mode_max","numrel_data","source","taper","bandpass","alpha","beta","psi0","psi3","alpha1","alpha2","alpha3","alpha4","alpha5","alpha6","g_end_time","g_end_time_ns","h_end_time","h_end_time_ns","l_end_time","l_end_time_ns","t_end_time","t_end_time_ns","v_end_time","v_end_time_ns","eff_dist_g","eff_dist_h","eff_dist_l","eff_dist_t","eff_dist_v","source_channel","destination_channel"];
-
-        SubclassInfo['GrbEvent'] = ["ivorn","author_ivorn","author_shortname","observatory_location_id","coord_system","ra","dec","error_radius","how_description","how_reference_url","trigger_duration","t90","designation","redshift","trigger_id"]
-
-		SubclassInfo['LalInferenceBurstEvent'] = ["bci","quality_mean","quality_median","bsn","omicron_snr_network","omicron_snr_H1","omicron_snr_L1","omicron_snr_V1","hrss_mean","hrss_median","frequency_mean","frequency_mean"]
-
-        var mainTable = put(tableNode, 'table.subclasses_main');
-        headerRow = put(mainTable, 'tr');
-        for (var key in SubclassInfo) {
-            put(headerRow, 'th', key);
-        }
-
-        contentsRow = put(mainTable, 'tr');
-        for (var key in SubclassInfo) {
-            var subTable = put(contentsRow, 'td.subclasses_row table');
-            for (var ind in SubclassInfo[key]) {
-                put(subTable, 'tr', SubclassInfo[key][ind]);
-            }
-        }
-    {% endif %}
-
 });
 
 </script>

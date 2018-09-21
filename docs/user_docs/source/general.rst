@@ -6,7 +6,7 @@ GraceDB in context
 ==========================
 
 GraceDB serves as a communications hub and as a database for storing and displaying
-information about candidate events:
+information about candidate gravitational-wave events and related electromagnetic events:
 
 .. image:: images/annotations_flow_white.png
 
@@ -52,9 +52,7 @@ There is also a ``gracedb`` executable for the command line with much of
 the same functionality.
 
 The GraceDB API conforms to the RESTful principles of "uniform interface" and
-"resource-oriented architecture," and users experienced with such 
-interfaces may thus wish to create their own clients. This documentation will
-briefly touch on building such clients (see :ref:`coding_against_api`).
+"resource-oriented architecture".
 
 Where can I go for help?
 ==================================

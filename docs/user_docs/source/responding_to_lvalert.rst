@@ -1,3 +1,5 @@
+.. _responding_to_lvalert:
+
 ==============================
 Responding to LVAlert Messages
 ==============================

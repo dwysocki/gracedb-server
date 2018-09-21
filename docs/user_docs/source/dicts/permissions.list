@@ -1,0 +1,14 @@
+[
+    {
+        "group": "gw-astronomy:LV-EM:Observers",
+        "permission": "view_superevent"
+    },
+    {
+        "group": "gw-astronomy:LV-EM:Observers",
+        "permission": "annotate_superevent"
+    },
+    {
+        "group": "public_users",
+        "permission": "view_superevent"
+    }
+]

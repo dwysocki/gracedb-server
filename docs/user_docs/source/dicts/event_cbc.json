@@ -1,0 +1,86 @@
+{
+    "created": "2018-09-19 18:28:46 UTC",
+    "extra_attributes": {
+        "CoincInspiral": {
+            "combined_far": 0.000368007562149924,
+            "end_time": 971609248,
+            "end_time_ns": 151740542,
+            "false_alarm_rate": 1.0,
+            "ifos": "H1,L1,V1",
+            "mass": 3.68682909011841,
+            "mchirp": 0.0,                                                                                                                                                                                     
+            "minimum_duration": 46.848259458,
+            "snr": 9.31793628458239
+        },
+        "SingleInspiral": [
+            {
+                "chisq": 0.78878409,
+                "chisq_dof": 1,
+                "coa_phase": 0.97073036,
+                "eff_distance": 173.30727,
+                "end_time": 971609248,
+                "end_time_ns": 151740542,
+                "ifo": "H1",
+                "mass1": 2.6161611,
+                "mass2": 1.070668,
+                "sigmasq": 802669.916849115,
+                "snr": 5.169538,
+                "spin1z": -0.91339749,
+                "spin2z": 0.02086957
+            },
+            {
+                "chisq": 1.1967639,
+                "chisq_dof": 1,
+                "coa_phase": 2.469281,
+                "eff_distance": 162.4119,
+                "end_time": 971609248,
+                "end_time_ns": 153169206,
+                "ifo": "L1",
+                "mass1": 2.6161611,
+                "mass2": 1.070668,
+                "sigmasq": 802669.916849115,
+                "snr": 5.5163355,
+                "spin1z": -0.91339749,
+                "spin2z": 0.02086957
+            },
+            {
+                "chisq": 0.851273,
+                "chisq_dof": 1,
+                "coa_phase": 2.7670317,
+                "eff_distance": 164.47913,
+                "end_time": 971609248,
+                "end_time_ns": 144829104,
+                "ifo": "V1",
+                "mass1": 2.6161611,
+                "mass2": 1.070668,
+                "sigmasq": 802669.916849115,
+                "snr": 5.4470043,
+                "spin1z": -0.91339749,
+                "spin2z": 0.02086957
+            }
+        ]
+    },
+    "far": 0.000368007562149924,
+    "far_is_upper_limit": false,
+    "gpstime": 971609248.151741,
+    "graceid": "T0132",
+    "group": "Test",
+    "instruments": "H1,L1,V1",
+    "labels": [],
+    "likelihood": 9.91315304082986,
+    "links": {
+        "emobservations": "https://gracedb.ligo.org/api/events/T0132/emobservation/",
+        "files": "https://gracedb.ligo.org/api/events/T0132/files/",
+        "labels": "https://gracedb.ligo.org/api/events/T0132/labels/",
+        "log": "https://gracedb.ligo.org/api/events/T0132/log/",
+        "neighbors": "https://gracedb.ligo.org/api/events/T0132/neighbors/",
+        "self": "https://gracedb.ligo.org/api/events/T0132",
+        "tags": "https://gracedb.ligo.org/api/events/T0132/tag/"
+    },
+    "nevents": 3,
+    "offline": false,
+    "pipeline": "gstlal",
+    "search": "LowMass",
+    "submitter": "albert.einstein@LIGO.ORG",
+    "superevent": null
+}

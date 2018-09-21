@@ -160,11 +160,6 @@ observation records:
 - by ``curl``-ing directly against the EM observation
   resource in the API (`example <https://gw-astronomy.org/wiki/LV_EM/CurlUploadFootprints>`__) 
 
-- by coding against the GraceDB REST API 
-  in one's own favorite language. If you choose to go this route, please
-  consider sending us your script or posting it in the LV-EM wiki Technical Info
-  page for the benefit of other users. See :ref:`coding_against_api`.  
-
 - by email (not yet available, but in the works)
 
 If you discover a mistake in your observation record, the best way to correct

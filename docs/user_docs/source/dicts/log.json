@@ -1,0 +1,11 @@
+{
+    "N": 1,
+    "comment": "Initial data upload",
+    "created": "2018-09-19 18:29:01 UTC",
+    "file": "https://gracedb.ligo.org/api/events/T0140/files/upload.data.gz,0",
+    "file_version": 0,
+    "filename": "upload_data.gz",
+    "issuer": "albert.einstein@LIGO.ORG",
+    "self": "https://gracedb.ligo.org/api/events/T0140/logs/1/",
+    "tag_names": ["em_follow", "sky_loc"]
+}

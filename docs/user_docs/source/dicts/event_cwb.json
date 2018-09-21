@@ -1,0 +1,46 @@
+{
+    "created": "2018-09-19 18:28:37 UTC",
+    "extra_attributes": {
+        "MultiBurst": {
+            "amplitude": 5.017162,
+            "bandwidth": 256.0,
+            "central_freq": 1392.169556,
+            "confidence": null,
+            "duration": 0.023438,
+            "false_alarm_rate": null,
+            "ifos": "H1,L1",
+            "ligo_angle": null,
+            "ligo_angle_sig": null,
+            "ligo_axis_dec": 69.422546,
+            "ligo_axis_ra": 201.224625,
+            "peak_time": null,
+            "peak_time_ns": null,
+            "single_ifo_times": "1042312876.5073,1042312876.5090",
+            "snr": 7.28010988928052,
+            "start_time": 1042312876,
+            "start_time_ns": 500000000
+        }    
+    },   
+    "far": 0.00019265,
+    "far_is_upper_limit": false,
+    "gpstime": 1042312876.509,
+    "graceid": "T0127",
+    "group": "Test",
+    "instruments": "H1,L1",
+    "labels": [],  
+    "likelihood": 53.0,
+    "links": {
+        "emobservations": "https://gracedb.ligo.org/api/events/T0127/emobservation/",
+        "files": "https://gracedb.ligo.org/api/events/T0127/files/",
+        "labels": "https://gracedb.ligo.org/api/events/T0127/labels/",
+        "log": "https://gracedb.ligo.org/api/events/T0127/log/",
+        "neighbors": "https://gracedb.ligo.org/api/events/T0127/neighbors/",
+        "self": "https://gracedb.ligo.org/api/events/T0127",
+        "tags": "https://gracedb.ligo.org/api/events/T0127/tag/"
+    },   
+    "nevents": null,
+    "offline": false,
+    "pipeline": "CWB",
+    "submitter": "albert.einstein@LIGO.ORG",
+    "superevent": null 
+}

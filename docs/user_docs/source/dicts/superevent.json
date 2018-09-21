@@ -1,0 +1,27 @@
+{
+    "category": "Test",
+    "created": "2018-09-19 18:28:54 UTC",
+    "em_events": [
+        "E0155"
+    ],
+    "gw_events": [
+        "T0133",
+        "T0142"
+    ],
+    "labels": [],
+    "links": {
+        "emobservations": "https://gracedb.ligo.org/api/superevents/TS170101z/emobservations/",
+        "events": "https://gracedb.ligo.org/api/superevents/TS170101z/events/",
+        "files": "https://gracedb.ligo.org/api/superevents/TS170101z/files/",
+        "labels": "https://gracedb.ligo.org/api/superevents/TS170101z/labels/",
+        "logs": "https://gracedb.ligo.org/api/superevents/TS170101z/logs/",
+        "self": "https://gracedb.ligo.org/api/superevents/TS170101z/",
+        "voevents": "https://gracedb.ligo.org/api/superevents/TS170101z/voevents/"
+    }, 
+    "preferred_event": "T0133",
+    "submitter": "albert.einstein@LIGO.ORG",
+    "superevent_id": "TS170101z",
+    "t_0": 1167264018.0,
+    "t_end": 1167264025.0,
+    "t_start": 1167264014.0
+}

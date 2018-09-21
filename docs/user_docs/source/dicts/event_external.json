@@ -1,0 +1,45 @@
+{
+    "graceid": "E8840",
+    "gpstime": 1123421619.0,
+    "pipeline": "SNEWS",
+    "group": "External",
+    "extra_attributes": {
+        "GRB": {
+            "redshift": null,
+            "coord_system": "UTC-FK5-GEO",
+            "trigger_id": "1012984",
+            "trigger_duration": null,
+            "observatory_location_id": "GEOLUN",
+            "author_ivorn": "ivo://nasa.gsfc.tan/gcn",
+            "author_shortname": "SNEWS (via VO-TAN)",
+            "how_reference_url": "http://gcn.gsfc.nasa.gov/snews.html",
+            "designation": null,
+            "how_description": "SNEWS: SuperNova Early Warning System",
+            "error_radius": 360.0,
+            "ra": 0.0,
+            "dec": 0.0,
+            "T90": null,
+            "ivorn": "ivo://nasa.gsfc.gcn/SNEWS#Event2018-09-01T14:01:01.00_1000194-580"
+        }
+    },
+    "links": {
+        "neighbors": "https://gracedb.ligo.org/apiweb/events/E8840/neighbors/",
+        "files": "https://gracedb.ligo.org/apiweb/events/E8840/files/",
+        "log": "https://gracedb.ligo.org/apiweb/events/E8840/log/",
+        "tags": "https://gracedb.ligo.org/apiweb/events/E8840/tag/",
+        "self": "https://gracedb.ligo.org/apiweb/events/E8840",
+        "labels": "https://gracedb.ligo.org/apiweb/events/E8840/labels/",
+        "emobservations": "https://gracedb.ligo.org/apiweb/events/E8840/emobservation/"
+    },
+    "created": "2018-09-01 16:00:12 UTC",
+    "far": null,
+    "instruments": "",
+    "labels": [],
+    "search": "GRB",
+    "nevents": null,
+    "superevent": null,
+    "submitter": "albert.einstein@ligo.org",
+    "offline": false,
+    "likelihood": null,
+    "far_is_upper_limit": false
+}

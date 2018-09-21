@@ -87,18 +87,27 @@ of information representing the `API Root resource <https://gracedb.ligo.org/api
 Most of the examples below will ignore the error handling shown here for the 
 sake of brevity.
 
-In addition to ``ping``, the most important client methods are:
+In addition to ``ping``, some important client methods are:
 
-- ``events`` for accessing a list of events,
-- ``files`` for downloading a file or list of files, and ``writeFile`` for uploading,
-- ``logs`` for obtaining a list of log entries, and ``writeLog`` to create a new one,
-- ``emobservations`` for obtaining a list of EM followup observations, and 
-  ``writeEMObservation`` to create a new one,
-- ``labels``, ``writeLabel``, and ``removeLabel`` for managing labels,
-- ``tags``, ``createTag``, and ``deleteTag`` for managing tags.
+- ``events`` for accessing a list of events
+- ``createEvent`` and ``replaceEvent`` for creating and updating events
+- ``superevents`` for accessing a list of superevents
+- ``createSuperevent``, ``updateSuperevent``, ``addEventToSuperevent``, and ``removeEventFromSuperevent`` for creating and updating superevents
+
+The following methods are applicable to both events and superevents:
+
+- ``files`` for downloading a file or list of files
+- ``logs`` for obtaining a list of log entries
+- ``writeLog`` for creating a new log entry and optionally uploading a file
+- ``emobservations`` for obtaining a list of EM followup observations, and ``writeEMObservation`` to create a new one
+- ``labels``, ``writeLabel``, and ``removeLabel`` for managing labels
+- ``tags``, ``addTag``, and ``removeTag`` for managing tags
+- ``voevents`` for getting a list of VOEvents and ``createVOEvent`` to create a new one
 
 Docstrings are available for most of the client methods. To see them, type 
 ``help(client.ping)`` (for example) in the Python interpreter.
+
+The following examples only use events, but for the most part, can be applied to superevents as well, by simply replacing the event's ``graceid`` with a superevent's ``superevent_id``.
 
 .. _searching_for_events:
 
@@ -221,23 +230,67 @@ Care should be taken when applying labels to non-test events, since this
 affects the sending of alerts related to potential electromagnetic followup.
 The following labels are currently in active use:
 
-* ``INJ``: event results from an injection
-* ``DQV``: data quality veto
-* ``EM_READY``: approved for EM followup
-* ``PE_READY``: parameter estimation results available
-* ``H1OPS``, ``L1OPS``: IFO operator signoff requested
-* ``H1OK``, ``L1OK``: IFO operator certifies the detector state *okay*
-* ``H1NO``, ``L1NO``: detector state *not okay* at event time
-* ``ADVREQ``: EM followup advocate signoff requested
-* ``ADVOK``: EM followup advocate approves event
-* ``ADVNO``: EM followup advocate rejects event
-
-The following labels were added August 2016 in order to add new functionality to 
-approval_processor:
-
-* ``EM_Throttled``: event ignored due to too many submissions by corresponding pipeline
-* ``EM_Selected``: most promising candidate out of set for single physical event
-* ``EM_Superseded``: event passed over due to other more-promising candidate for same event. 
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| Label name    | Description                                                                                                                            |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ADVNO         | EM advocate says event is not okay.                                                                                                    |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ADVOK         | EM advocate says event is okay.                                                                                                        |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| ADVREQ        | EM advocate signoff requested.                                                                                                         |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| cWB_r         | cWB_r                                                                                                                                  |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| cWB_s         | cWB_s                                                                                                                                  |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| DQV           | Data quality veto.                                                                                                                     |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| EM_COINC      | Signifies that a coincidence was found between gravitational-wave candidates and External triggers.                                    |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| EM_READY      | Has been processed by GDB Processor. Skymaps have been produced.                                                                       |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| EM_Selected   | GraceID automatically chosen as the most promising candidate out of a set of entries thought to correspond to the same physical event. |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| EM_SENT       | Has been sent to MOU partners.                                                                                                         |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| EM_Superseded | GraceID automatically passed over because another entry was thought to be more promising and to correspond to the same physical event. |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| EM_Throttled  | GraceID is ignored by automatic processing because the corresponding pipeline submitted too many events too quickly.                   |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| GRB_OFFLINE   | Indicates that offline triggered GRB searches found something coincident with this event.                                              |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| GRB_ONLINE    | Indicates that online triggered GRB searches found something coincident with this event.                                               |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| H1NO          | H1 operator says event is not okay.                                                                                                    |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| H1OK          | H1 operator says event is okay.                                                                                                        |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| H1OPS         | H1 operator signoff requested.                                                                                                         |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| INJ           | Injection occured near this time.                                                                                                      |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| L1NO          | L1 operator says event is not okay.                                                                                                    |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| L1OK          | L1 operator says event is okay.                                                                                                        |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| L1OPS         | L1 operator signoff requested.                                                                                                         |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| LUMIN_GO      | LUMIN Go                                                                                                                               |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| LUMIN_NO      | LUMIN No                                                                                                                               |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| PE_READY      | Parameter estimation results are available                                                                                             |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| SWIFT_GO      | Send notification to SWIFT telescope.                                                                                                  |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| SWIFT_NO      | Do not send notification to SWIFT telescope.                                                                                           |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| V1NO          | V1 operator says event is not okay.                                                                                                    |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| V1OK          | V1 operator says event is okay.                                                                                                        |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| V1OPS         | V1 operator signoff requested.                                                                                                         |
++---------------+----------------------------------------------------------------------------------------------------------------------------------------+
 
 .. _command_line_client:
 
@@ -298,37 +351,3 @@ with the command-line client as follows (assuming ``bash``)::
     gracedb label T160779 DQV
 
 Type ``gracedb -h`` for detailed help with the command-line client.
-
-.. _coding_against_api:
-
-Coding against the GraceDB REST API
-=======================================================
-
-Some users may wish to code directly against the GraceDB REST API rather
-than use the Python or command-line clients. In order to do this, the user
-will need to know which resources are exposed by which URLs, and which HTTP
-methods those URLs allow. Fortunately, the 
-`Django REST Framework <http://www.django-rest-framework.org>`__ (on which
-the GraceDB API is built) provides
-a convenient *browseable* version of the API which serves as a reference. 
-The root of the API can be found here:
-
-`https://gracedb.ligo.org/apiweb/ <https://gracedb.ligo.org/apiweb/>`__
-
-A glance at the upper-right hand corner shows that this URL supports only
-``OPTIONS`` and ``GET``. The body is a collection of JSON information provided
-by the root resource, including ``links``. One of these links points to the
-event list resource:
-
-`https://gracedb.ligo.org/apiweb/events/ <https://gracedb.ligo.org/apiweb/events/>`__
-
-which also supports ``POST`` (see the bottom of the page). New events are 
-created by ``POST``-ing to the event list resource. This results in a new
-event with a unique URL. If the parameters of the event change, the event
-can be replaced by a ``PUT`` request to that same event URL with the replacement
-data in the body. In a similar manner,
-new log messages are created by ``POST``-ing to the event log list associated
-with a particular event. The data expected by these target URLs is not yet
-documented here. However, the source code of the GraceDB Python client 
-can be consulted for examples.
-

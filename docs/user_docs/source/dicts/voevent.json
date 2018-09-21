@@ -1,0 +1,13 @@
+{
+    "N": 1,
+    "created": "2018-09-19 18:29:08 UTC",
+    "file_version": 0,
+    "filename": "TGW800106H-1-Preliminary.xml",
+    "issuer": "albert.einstein@LIGO.ORG",
+    "ivorn": "ivo://gwnet/gcn_sender#TGW800106H-1-Preliminary",
+    "links": {
+        "file": "https://gracedb.ligo.org/api/superevents/TGW800106H/files/TGW800106H-1-Preliminary.xml,0",
+        "self": "https://gracedb.ligo.org/api/superevents/TGW800106H/voevents/1/"
+    },
+    "voevent_type": "PR"
+}
