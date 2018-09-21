@@ -690,7 +690,7 @@ class SupereventSignoffSerializer(serializers.ModelSerializer):
                                  'particular instrument; do not provide one.'),
         'bad_update': _('Request would not modify the signoff.')
     }
-    signoff_type = ChoiceDisplayField(required=True,
+    signoff_type = serializers.ChoiceField(required=True,
         choices=Signoff.SIGNOFF_TYPE_CHOICES)
     self = serializers.SerializerMethodField(read_only=True)
     submitter = serializers.SlugRelatedField(slug_field='username',

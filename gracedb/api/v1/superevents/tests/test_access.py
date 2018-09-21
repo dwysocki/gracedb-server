@@ -2789,8 +2789,7 @@ class TestSupereventSignoffDetail(SupereventSetup, GraceDbApiTestBase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['submitter'],
             signoff.submitter.username)
-        self.assertEqual(response.data['signoff_type'],
-            dict(Signoff.SIGNOFF_TYPE_CHOICES)[signoff.signoff_type])
+        self.assertEqual(response.data['signoff_type'], signoff.signoff_type)
         self.assertEqual(response.data['status'], signoff.status)
         self.assertEqual(response.data['comment'], signoff.comment)
         self.assertEqual(response.data['instrument'], signoff.instrument)
