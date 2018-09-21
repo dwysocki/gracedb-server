@@ -1,4 +1,5 @@
 from math import isnan
+import numbers
 
 from django.db import models, IntegrityError
 from django.urls import reverse
@@ -989,9 +990,13 @@ class SingleInspiral(models.Model):
             for f in [cls._meta.get_field(f) for f in cls.field_names()]:
                 value = getattr(row, f.attname, f.default)
 
-                # Handle nan for eff_distance
-                if f.attname == 'eff_distance' and isnan(value):
-                    value = None
+                # Awful kludge for handling nan for eff_distance
+                try:
+                    if (f.attname == 'eff_distance' and
+                        isinstance(value, numbers.Number) and isnan(value)):
+                        value = None
+                except Exception as e:
+                    pass
 
                 # Only set value of class instance member if
                 # value is not None or if field is nullable.
