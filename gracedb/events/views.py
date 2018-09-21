@@ -24,7 +24,7 @@ from .view_logic import get_performance_info
 from .view_logic import get_lvem_perm_status
 from .view_logic import create_eel
 from .view_logic import create_emobservation
-from .view_logic import create_label
+from .view_logic import create_label, delete_label
 from .view_utils import assembleLigoLw, get_file
 from .view_utils import flexigridResponse, jqgridResponse
 from .view_utils import get_recent_events_string
@@ -1149,7 +1149,7 @@ def modify_signoff(request, event):
         # Remove the request label.
         for l in event.labelling_set.all():
             if l.label.name == req_label:
-                l.delete()
+                delete_label(event, request, req_label)
 
         # Create a new label.
         label_name = label_stem + status
@@ -1188,16 +1188,16 @@ def modify_signoff(request, event):
             msg = 'Could not find existing signoff for this event/instrument.'
             return HttpResponseBadRequest(msg)
 
-        # remove the existing label
-        label_name = label_stem + signoff.status
-        for l in event.labelling_set.all():
-            if l.label.name == label_name:
-                l.delete()
-
         delete = request.POST.get('delete', None)
         if delete:
             # delete the operator signoff object
             signoff.delete()
+
+            # remove the existing label
+            label_name = label_stem + signoff.status
+            existing_label = event.labelling_set.get(
+                label__name=label_name).label.name
+            delete_label(event, request, existing_label)
 
             # also restore the label
             create_label(event, request, req_label)
@@ -1219,6 +1219,18 @@ def modify_signoff(request, event):
             if status==None:
                 msg = "Please select a valid status."
                 return HttpResponseBadRequest(msg)
+
+            if signoff.status != status:
+                # remove the existing label
+                label_name = label_stem + signoff.status
+                existing_label = event.labelling_set.get(
+                    label__name=label_name).label.name
+                delete_label(event, request, existing_label)
+                # Create a new label.
+                label_name = label_stem + status
+                create_label(event, request, label_name, doAlert=False,
+                    doXMPP=False)
+
             # update the values
             signoff.status = status
             signoff.comment = comment
@@ -1226,10 +1238,6 @@ def modify_signoff(request, event):
             # Issue an alert.
             issueXMPPAlert(event, location='', alert_type="signoff", description=status, 
                 serialized_object = signoffToDict(signoff))
-
-            # Create a new label.
-            label_name = label_stem + status
-            create_label(event, request, label_name, doAlert=False, doXMPP=False)
 
             # Create a log message
             msg = "updated %s signoff status as %s" % (signoff_type, status)
