@@ -18,33 +18,15 @@ from core.tests.utils import GraceDbTestBase, \
 from events.models import Label, Tag, EMGroup
 from superevents.models import Superevent, Labelling, Log, VOEvent, \
     EMObservation, Signoff
-from superevents.tests.mixins import SupereventCreateMixin
-from superevents.utils import create_log, expose_superevent
+from superevents.tests.mixins import SupereventCreateMixin, SupereventSetup
+from superevents.utils import create_log
 from ...settings import API_VERSION
+
 
 def v_reverse(viewname, *args, **kwargs):
     """Easily customizable versioned API reverse for testing"""
     viewname = 'api:{version}:'.format(version=API_VERSION) + viewname
     return reverse(viewname, *args, **kwargs)
-
-
-class SupereventSetup(GraceDbTestBase, SupereventCreateMixin):
-    """
-    A base test class which creates superevents with specific
-    view permissions.
-    """
-
-    @classmethod
-    def setUpTestData(cls):
-        super(SupereventSetup, cls).setUpTestData()
-
-        # Create two superevents
-        cls.internal_superevent = cls.create_superevent(cls.internal_user)
-        cls.lvem_superevent = cls.create_superevent(cls.internal_user)
-
-        # Expose one to the LV-EM and assign relevant permissions
-        expose_superevent(cls.lvem_superevent, cls.internal_user,
-            add_log_message=False, issue_alert=False)
 
 
 class TestSupereventListGet(SupereventSetup, GraceDbApiTestBase):

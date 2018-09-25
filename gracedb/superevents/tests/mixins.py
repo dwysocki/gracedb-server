@@ -3,6 +3,7 @@ import os
 
 from django.contrib.auth import get_user_model
 
+from core.tests.utils import GraceDbTestBase
 from events.tests.mixins import EventCreateMixin
 from ..models import Superevent
 
@@ -29,3 +30,22 @@ class SupereventCreateMixin(EventCreateMixin):
         os.makedirs(superevent.datadir)
 
         return superevent
+
+
+class SupereventSetup(GraceDbTestBase, SupereventCreateMixin):
+    """
+    A base test class which creates superevents with specific
+    view permissions.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super(SupereventSetup, cls).setUpTestData()
+
+        # Create two superevents
+        cls.internal_superevent = cls.create_superevent(cls.internal_user)
+        cls.lvem_superevent = cls.create_superevent(cls.internal_user)
+
+        # Expose one to LV-EM and public, and assign relevant permissions
+        expose_superevent(cls.lvem_superevent, cls.internal_user,
+            add_log_message=False, issue_alert=False)
