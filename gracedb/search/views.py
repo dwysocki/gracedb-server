@@ -1,10 +1,11 @@
 from django import forms
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, \
+    HttpResponseBadRequest
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.html import escape
-from django.views.decorators.http import require_POST, require_GET
+from django.views.decorators.http import require_GET
 
 from guardian.shortcuts import get_objects_for_user
 
@@ -39,15 +40,14 @@ def search(request):
             get_neighbors = form.cleaned_data.get('get_neighbors')
             _format = form.cleaned_data.get('results_format')
 
-            # TODO:
             # Filter objects for user
             if query_type == 'S':
                 view_perm = 'superevents.view_superevent'
             elif query_type == 'E':
                 view_perm = 'events.view_event'
             else:
-                # TODO: raise error
-                pass
+                return HttpResponseBadRequest(
+                    "query_type should be 'S' or 'E'")
             objects = get_objects_for_user(request.user, view_perm, objects)
 
             # Get call from template for populating flexigrid table
@@ -100,21 +100,23 @@ def latest(request):
         query_type = form.cleaned_data.get('query_type')
         get_neighbors = form.cleaned_data.get('get_neighbors')
 
-        # TODO
-        # Add some select_related stuff here!!
-
-        # TODO:
-        # Filter objects for user
-        context['title'] = "Query results"
-        context['raw_query'] = request.GET.get('query')
-        context['get_neighbors'] = get_neighbors
-
         # Determine object type and order by id (equivalent to
-        # ordering by creation time and might be faster)
+        # ordering by creation time and might be faster).
+        # Also determine which permission is used for filtering
+        # the full queryset for viewing
         if query_type == 'E':
             objects_key = 'events'
+            view_perm = 'events.view_event'
         elif query_type == 'S':
             objects_key = 'superevents'
+            view_perm = 'superevents.view_superevent'
+        else:
+            return HttpResponseBadRequest(
+                "query_type should be 'S' or 'E'")
+
+        # Filter objects for user and add to context, sorted in reverse
+        # chronological order of submission
+        objects = get_objects_for_user(request.user, view_perm, objects)
         context[objects_key] = \
             objects.order_by('-id')[:settings.LATEST_RESULTS_NUMBER]
 
