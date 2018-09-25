@@ -1,13 +1,10 @@
 from __future__ import absolute_import
 import os
 
-from django.contrib.auth import get_user_model
-
 from core.tests.utils import GraceDbTestBase
 from events.tests.mixins import EventCreateMixin
-from ..models import Superevent
-
-UserModel = get_user_model()
+from superevents.models import Superevent
+from superevents.utils import expose_superevent
 
 
 class SupereventCreateMixin(EventCreateMixin):
