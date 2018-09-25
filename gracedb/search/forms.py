@@ -19,10 +19,15 @@ errorMarker = '<span style="color:red;">'+htmlEntityStar+'</span>'
 
 
 class MainSearchForm(forms.Form):
+    QUERY_TYPE_EVENT = 'E'
+    QUERY_TYPE_SUPEREVENT = 'S'
     QUERY_TYPE_CHOICES = (
-        ('E', 'Event'),
-        ('S', 'Superevent'),
+        (QUERY_TYPE_EVENT, 'Event'),
+        (QUERY_TYPE_SUPEREVENT, 'Superevent'),
     )
+    FORMAT_CHOICE_STANDARD = 'S'
+    FORMAT_CHOICE_FLEXIGRID = 'F'
+    FORMAT_CHOICE_LIGOLW = 'L'
     FORMAT_CHOICES = (
         ('S', 'standard'),
         ('F', 'flexigrid'),
