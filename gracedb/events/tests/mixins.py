@@ -21,7 +21,7 @@ class EventCreateMixin(object):
         group, _ = Group.objects.get_or_create(name=group_name)
         pipeline, _ = Pipeline.objects.get_or_create(name=pipeline_name)
         if user is None:
-            user = UserModel.objects.create(username='event.user')
+            user, _ = UserModel.objects.get_or_create(username='event.user')
 
         # Compile event dict
         event_dict = {
