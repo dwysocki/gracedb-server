@@ -115,7 +115,7 @@ class AdvocateSignoffMixin(ContextMixin):
 
         # Check if user is in auth group for which signoff is authorized
         signoff_group = self.request.user.groups.filter(
-            name=settings.EM_ADVOCATE_GROUP)
+            name=settings.EM_ADVOCATE_GROUP).first()
 
         # Update context with signoff_authorized bool
         context['advocate_signoff_authorized'] = signoff_group is not None
