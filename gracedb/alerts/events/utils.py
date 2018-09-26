@@ -54,7 +54,7 @@ class EventAlertIssuer(AlertIssuerWithParentEvent):
             is_alert=True)
 
     def _get_parent_obj(self):
-        return self.obj
+        return self.obj.get_subclass_or_self()
 
 
 class EventLogAlertIssuer(AlertIssuerWithParentEvent):
