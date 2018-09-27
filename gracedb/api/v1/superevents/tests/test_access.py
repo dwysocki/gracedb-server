@@ -1374,7 +1374,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
             data=log_data)
         # Check response and data
         self.assertEqual(response.status_code, 403)
-        self.assertIn('You are not allowed to tag log messages',
+        self.assertIn('You are not allowed to post log messages with tags',
             response.data['detail'])
 
     def test_public_user_create_log(self):

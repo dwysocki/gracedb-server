@@ -198,12 +198,20 @@ class SupereventLogModelPermissions(FunctionalModelPermissions):
     tag_data_field = 'tagname'
 
     def get_post_permissions(self, request):
-        # Get tag names from request data
+        # Get tag names from request data - should be a list (with client)
+        # NOTE: it's just a string for the way it's constructed
+        # from the web interface
         tag_names = request.data.get(self.tag_data_field, None)
 
         required_permissions = []
-        if tag_names is not None:
-
+        if ((tag_names == 'analyst_comments' or
+            tag_names == ['analyst_comments']) and request.is_ajax()):
+            # Special case for log messages posted from the web interface
+            # using AJAX.  I.e., if a message is posted from the web view
+            # and only the default 'analyst_comments' tag is attached,
+            # that's fine.
+            pass
+        elif tag_names is not None:
             # If any tags, require add_tag permission.
             required_permissions.append('superevents.tag_log')
 
@@ -224,7 +232,8 @@ class SupereventLogModelPermissions(FunctionalModelPermissions):
                         'log messages to the public by applying the \'{0}\' '
                         'tag.').format(settings.PUBLIC_ACCESS_TAGNAME)
             else:
-                self.message = "You are not allowed to tag log messages."
+                self.message = ("You are not allowed to post log messages "
+                    "with tags.")
 
         return required_permissions
 
