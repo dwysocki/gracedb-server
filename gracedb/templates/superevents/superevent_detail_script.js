@@ -1236,9 +1236,17 @@ require([
                         location.reload(true);
                     },
                     onError: function (error, ioargs) {
-                        //this.inherited(error, ioargs);
+                        var err_msg = "Error " + error.status + ": ";
+                        if (error.responseText != "") {
+                            err_msg += error.responseText;
+                        } else {
+                            err_msg += error.statusText;
+                        }
+                        if (error.status == 404) {
+                            err_msg += ". Reload the page.";
+                        }
+                        alert(err_msg);
                         this.button.set("disabled", false);
-                        alert(error);
                     },
                     save: function(postdata) {
                         var newTagName = "analyst_comments";
