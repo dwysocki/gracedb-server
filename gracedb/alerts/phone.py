@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 # config/settings/secret.py.
 TWIML_ARG_STR = {
     'new': 'pipeline={pipeline}&graceid={graceid}&server={server}',
-    'label': ('pipeline={pipeline}&graceid={graceid}&label_lower={label}'
+    'label_added': ('pipeline={pipeline}&graceid={graceid}&label_lower={label}'
               '&server={server}'),
 }
 
@@ -25,14 +25,14 @@ TWIML_ARG_STR = {
 TWILIO_MSG_CONTENT = {
     'new': ('A {pipeline} event with GraceDB ID {graceid} was created.'
                ' https://{server}.ligo.org/events/view/{graceid}'),
-    'label': ('A {pipeline} event with GraceDB ID {graceid} was labeled with '
-              '{label}. https://{server}.ligo.org/events/view/{graceid}')
+    'label_added': ('A {pipeline} event with GraceDB ID {graceid} was labeled '
+              'with {label}. https://{server}.ligo.org/events/view/{graceid}')
 }
 
 
 def get_twilio_from():
     """Gets phone number which Twilio alerts come from."""
-    for from_ in twilio_client.phone_numbers.iter():
+    for from_ in twilio_client.incoming_phone_numbers.list():
         return from_.phone_number
     raise RuntimeError('Could not determine "from" Twilio phone number')
 
@@ -51,7 +51,7 @@ def issue_phone_alerts(event, contacts, label=None):
 
     # Determine alert_type
     if label is not None:
-        alert_type = "label"
+        alert_type = "label_added"
     else:
         alert_type = "new"
 
@@ -67,7 +67,7 @@ def issue_phone_alerts(event, contacts, label=None):
         'graceid': event.graceid(),
         'server': hostname,
     }
-    if alert_type == "label";
+    if alert_type == "label_added":
         msg_params['label'] = label.name
     twiml_url = settings.TWIML_BASE_URL + settings.TWIML_BIN[alert_type] + \
         "?" + TWIML_ARG_STR[alert_type]
