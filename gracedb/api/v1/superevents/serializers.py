@@ -40,7 +40,8 @@ class SupereventSerializer(serializers.ModelSerializer):
     # Fields
     submitter = serializers.SlugRelatedField(slug_field='username',
         read_only=True)
-    preferred_event = EventGraceidField(required=True)
+    preferred_event = EventGraceidField(required=True,
+        style={'base_template': 'input.html'})
     created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
         read_only=True)
     category = ChoiceDisplayField(required=True,
@@ -56,7 +57,8 @@ class SupereventSerializer(serializers.ModelSerializer):
     # creation)
     user = serializers.HiddenField(write_only=True,
         default=serializers.CurrentUserDefault())
-    events = EventGraceidField(many=True, required=False, write_only=True)
+    events = CommaSeparatedOrListField(required=False, write_only=True,
+        child=EventGraceidField())
 
     class Meta:
         model = Superevent
