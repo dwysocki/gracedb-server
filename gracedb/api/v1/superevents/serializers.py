@@ -309,10 +309,10 @@ class SupereventLogSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault())
     superevent = serializers.HiddenField(write_only=True,
         default=ParentObjectDefault(context_key='superevent'))
-    tagname = serializers.ListField(write_only=True, label='Tag names',
+    tagname = DelimitedOrListField(write_only=True, label='Tag names',
         child=serializers.CharField(), required=False)
-    displayName = serializers.ListField(write_only=True, label='Display names',
-        child=serializers.CharField(), required=False)
+    displayName = DelimitedOrListField(write_only=True,
+        label='Display names', child=serializers.CharField(), required=False)
 
     class Meta:
         model = Log
