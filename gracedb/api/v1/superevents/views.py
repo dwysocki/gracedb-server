@@ -358,7 +358,8 @@ class SupereventSignoffViewSet(viewsets.ModelViewSet,
 
     def get_queryset(self):
         superevent = self.get_parent_object()
-        queryset = superevent.signoff_set.all()
+        queryset = superevent.signoff_set.all().order_by('signoff_type',
+            'instrument')
         return queryset
 
     def get_object(self):
