@@ -211,7 +211,7 @@ class SupereventLogModelPermissions(FunctionalModelPermissions):
             # and only the default 'analyst_comments' tag is attached,
             # that's fine.
             pass
-        elif tag_names is not None:
+        elif tag_names:
             # If any tags, require add_tag permission.
             required_permissions.append('superevents.tag_log')
 
