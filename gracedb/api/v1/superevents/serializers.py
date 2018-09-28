@@ -297,8 +297,7 @@ class SupereventLogSerializer(serializers.ModelSerializer):
     self = serializers.SerializerMethodField(read_only=True)
     created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
         read_only=True)
-    issuer = serializers.SlugRelatedField(slug_field='username',
-        read_only=True)
+    issuer = serializers.SerializerMethodField(read_only=True)
     tag_names = serializers.SlugRelatedField(slug_field='name', many=True,
         source='tags', read_only=True)
     file = serializers.SerializerMethodField(read_only=True)
@@ -329,6 +328,16 @@ class SupereventLogSerializer(serializers.ModelSerializer):
         return api_reverse('superevents:superevent-log-detail',
             args=[obj.superevent.superevent_id, obj.N],
             request=self.context.get('request', None))
+
+    def get_issuer(self, obj):
+        # Show full name for web interface views (fetched via AJAX), unless
+        # it's blank - then show username.  Outside of the web view, show the
+        # username.
+        request = self.context.get('request', None)
+        user = obj.issuer
+        if (request and request.is_ajax()):
+            return (user.get_full_name() or user.get_username())
+        return user.get_username()
 
     def get_file(self, obj):
         link = None
@@ -601,8 +610,7 @@ class SupereventEMObservationSerializer(serializers.ModelSerializer):
                           'same length.'),
     }
     # Read only fields
-    submitter = serializers.SlugRelatedField(slug_field='username',
-        read_only=True)
+    submitter = serializers.SerializerMethodField(read_only=True)
     created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
         read_only=True)
     footprint_count = serializers.SerializerMethodField(read_only=True)
@@ -648,6 +656,16 @@ class SupereventEMObservationSerializer(serializers.ModelSerializer):
 
     def get_footprint_count(self, obj):
         return obj.emfootprint_set.count()
+
+    def get_submitter(self, obj):
+        # Show full name for web interface views (fetched via AJAX), unless
+        # it's blank - then show username.  Outside of the web view, show the
+        # username.
+        request = self.context.get('request', None)
+        user = obj.submitter
+        if (request and request.is_ajax()):
+            return (user.get_full_name() or user.get_username())
+        return user.get_username()
 
     def validate(self, data):
         data = super(SupereventEMObservationSerializer, self).validate(data)

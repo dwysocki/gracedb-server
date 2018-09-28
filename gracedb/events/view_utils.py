@@ -393,24 +393,19 @@ def eventLogToDict(log, request=None):
     # This is purely for convenience in working with the web interface.
     tag_names = [tag.name for tag in log.tags.all() ];
 
-    if len(log.issuer.last_name):
-        display_name = "%s %s" % (log.issuer.first_name, log.issuer.last_name)
-    else:
-        display_name = log.issuer.username
-
-    # Not sure why we need to do this; changing to just be username
-    issuer_info = log.issuer.username
-    #issuer_info = {
-    #    "username": log.issuer.username,
-    #    "display_name": display_name,
-    #}
+    # User display name
+    # Show full name for web interface views (fetched via AJAX), unless it's
+    # blank, then show username.  Show username outside of web view.
+    user_display = log.issuer.get_username()
+    if (request and request.is_ajax()):
+        user_display = log.issuer.get_full_name() or log.issuer.get_username()
 
     return {
                 "N"            : log.N,
                 "comment"      : log.comment,
                 "created"      : log.created.strftime(
                       settings.GRACE_STRFTIME_FORMAT),
-                "issuer"       : issuer_info,
+                "issuer"       : user_display,
                 "filename"     : log.filename,
                 "file_version" : log.file_version,
                 "tag_names"    : tag_names,
@@ -471,26 +466,32 @@ def embbEventLogToDict(eel, request=None):
 
 # EMObservation serializer.
 def emObservationToDict(emo, request=None):
-      uri = api_reverse("events:emobservation-detail",
-          args=[emo.event.graceid(), emo.N],
-          request=request)
-      
-      return {
-                  "N"               : emo.N,
-                  "footprint_count" : emo.emfootprint_set.count(),
-                  "self"            : uri,
-                  "created"         : emo.created.strftime(
-                      settings.GRACE_STRFTIME_FORMAT),
-                  "submitter"       : emo.submitter.username,
-                  "group"           : emo.group.name,
-                  "comment"         : emo.comment,                  
-  
-                  "ra"       : emo.ra,
-                  "dec"      : emo.dec,
-                  "raWidth"  : emo.raWidth,
-                  "decWidth" : emo.decWidth,
-                  "footprints" : [ emFootprintToDict(emf) for emf in emo.emfootprint_set.all()]
-              }
+    uri = api_reverse("events:emobservation-detail",
+        args=[emo.event.graceid(), emo.N], request=request)
+
+    # User display name
+    # Show full name for web interface views (fetched via AJAX), unless it's
+    # blank, then show username.  Show username outside of web view.
+    user_display = emo.submitter.get_username()
+    if (request and request.is_ajax()):
+        user_display = emo.submitter.get_full_name() or \
+            emo.submitter.get_username()
+
+    return {
+        "N": emo.N,
+        "footprint_count": emo.emfootprint_set.count(),
+        "self": uri,
+        "created": emo.created.strftime(settings.GRACE_STRFTIME_FORMAT),
+        "submitter": user_display,
+        "group": emo.group.name,
+        "comment": emo.comment,
+        "ra": emo.ra,
+        "dec": emo.dec,
+        "raWidth": emo.raWidth,
+        "decWidth": emo.decWidth,
+        "footprints": [emFootprintToDict(emf) for emf in
+            emo.emfootprint_set.all()]
+    }
 
 # EMFootprint serializer
 def emFootprintToDict(emf, request=None):
