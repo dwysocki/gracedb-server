@@ -15,7 +15,7 @@ from events.models import Event, Label, Tag, EMGroup
 from superevents.models import Superevent, Labelling, Log, VOEvent, \
     EMObservation, EMFootprint, Signoff, SupereventGroupObjectPermission
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG
-from ..fields import ParentObjectDefault, CommaSeparatedOrListField, \
+from ..fields import ParentObjectDefault, DelimitedOrListField, \
     ChoiceDisplayField
 from ..events.fields import EventGraceidField
 from ...utils import api_reverse
@@ -57,7 +57,7 @@ class SupereventSerializer(serializers.ModelSerializer):
     # creation)
     user = serializers.HiddenField(write_only=True,
         default=serializers.CurrentUserDefault())
-    events = CommaSeparatedOrListField(required=False, write_only=True,
+    events = DelimitedOrListField(required=False, write_only=True,
         child=EventGraceidField())
 
     class Meta:
@@ -618,17 +618,17 @@ class SupereventEMObservationSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault())
     superevent = serializers.HiddenField(write_only=True,
         default=ParentObjectDefault(context_key='superevent'))
-    ra_list = CommaSeparatedOrListField(child=serializers.FloatField(),
+    ra_list = DelimitedOrListField(child=serializers.FloatField(),
         write_only=True)
-    dec_list = CommaSeparatedOrListField(child=serializers.FloatField(),
+    dec_list = DelimitedOrListField(child=serializers.FloatField(),
         write_only=True)
-    ra_width_list = CommaSeparatedOrListField(child=serializers.FloatField(),
+    ra_width_list = DelimitedOrListField(child=serializers.FloatField(),
         write_only=True)
-    dec_width_list = CommaSeparatedOrListField(child=serializers.FloatField(),
+    dec_width_list = DelimitedOrListField(child=serializers.FloatField(),
         write_only=True)
-    start_time_list = CommaSeparatedOrListField(
+    start_time_list = DelimitedOrListField(
         child=serializers.DateTimeField(), write_only=True)
-    duration_list = CommaSeparatedOrListField(
+    duration_list = DelimitedOrListField(
         child=serializers.IntegerField(min_value=0), write_only=True)
 
     class Meta:

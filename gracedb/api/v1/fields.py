@@ -46,11 +46,19 @@ class ParentObjectDefault(CustomHiddenDefault):
         return value
 
 
-class CommaSeparatedOrListField(serializers.ListField):
+class DelimitedOrListField(serializers.ListField):
     default_style = {'base_template': 'input.html'}
+    initial = '' # prevent '[]' being shown in default form in web
+    delim = ','
 
     def __init__(self, *args, **kwargs):
-        super(CommaSeparatedOrListField, self).__init__(*args, **kwargs)
+        # Allow delimiter to be set dynamically
+        delim = kwargs.pop('delim', None)
+        if delim:
+            self.delim = delim
+
+        # Base class init
+        super(DelimitedOrListField, self).__init__(*args, **kwargs)
         # Set form style for browsable API
         self.style = kwargs.get('style', self.default_style)
 
@@ -59,12 +67,16 @@ class CommaSeparatedOrListField(serializers.ListField):
         # something like 1,2,3 in a form, we will get something like
         # [u'1,2,3'] here.  So if we get input like that, we convert it
         # to [u'1', u'2', u'3'], then pass it to the base class's
-        # to_internal_value() method. Might not be safe for cases where
-        # a list contains CharFields which might have commas in them.
-        if (isinstance(data, list) and len(data) == 1 and
+        # to_internal_value() method. Not safe for cases where a list
+        # contains CharFields that have commas in them.
+        if (data == ['']):
+            # Handle case with no input: we get [''] here as data, so
+            # we convert it to an empty list.
+            data = []
+        elif (isinstance(data, list) and len(data) == 1 and
             isinstance(data[0], six.string_types)):
-            data = data[0].split(',')
-        return super(CommaSeparatedOrListField, self).to_internal_value(data)
+            data = data[0].split(self.delim)
+        return super(DelimitedOrListField, self).to_internal_value(data)
 
 
 class ChoiceDisplayField(serializers.ChoiceField):
