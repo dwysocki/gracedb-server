@@ -17,19 +17,12 @@ from events.permission_utils import is_external
 from events.query import filter_for_labels
 from events.shortcuts import is_event
 from superevents.shortcuts import is_superevent
+from userprofile.models import Contact
+from .phone import issue_phone_alerts
 from .xmpp import issue_xmpp_alerts
 
 # Set up logger
-log = logging.getLogger(__name__)
-
-
-def check_recips(recips_qs):
-    """
-    Make sure only internal users are included. Assumes that the queryset's
-    model has a foreign key to the user object.
-    """
-    LVC_GROUP = Group.objects.get(name=settings.LVC_GROUP)
-    return recips_qs.filter(user__groups=LVC_GROUP)
+logger = logging.getLogger(__name__)
 
 
 def get_alert_recips(event_or_superevent):
@@ -39,18 +32,20 @@ def get_alert_recips(event_or_superevent):
         pass
     elif is_event(event_or_superevent):
         event = event_or_superevent
-        triggers = event.pipeline.trigger_set.filter(labels=None) \
-            .prefetch_related('contacts')
-        email_recips = [c for t in triggers for c in
-            t.contacts.all().select_related('user')
-            if ((not t.farThresh or (event.far and event.far < t.farThresh))
-            and r.email)]
-        phone_recips = [c for t in triggers for c in
-            t.contacts.all().select_related('user')
-            if ((not t.farThresh or (event.far and event.far < t.farThresh))
-            and r.phone)]
+        # Queryset of all triggers for this pipeline
+        triggers = event.pipeline.trigger_set.filter(labels=None)
+        # Filter on FAR threshold requirements
+        query = Q(farThresh__isnull=True)
+        if event.far:
+            query |= Q(farThresh__lt=event.far)
+        triggers = triggers.filter(query)
+        # Contacts for all triggers, make sure user is in LVC group (safeguard)
+        contacts = Contact.objects.filter(trigger__in=triggers,
+            user__groups__name=settings.LVC_GROUP).select_related('user')
+        email_recips = contacts.exclude(email="")
+        phone_recips = contacts.exclude(phone="")
 
-    return check_recips(email_recips), check_recips(phone_recips)
+    return email_recips, phone_recips
 
 
 def get_alert_recips_for_label(event_or_superevent, label):
@@ -60,7 +55,8 @@ def get_alert_recips_for_label(event_or_superevent, label):
 
     # Construct a queryset containing only this object; needed for
     # call to filter_for_labels
-    qs = event_or_superevent.model.objects.filter(id=event_or_superevent.id)
+    qs = event_or_superevent._meta.model.objects.filter(
+        pk=event_or_superevent.pk)
 
     # Triggers on given label matching pipeline OR with no pipeline;
     # no pipeline indicates that pipeline is irrelevant
@@ -78,7 +74,7 @@ def get_alert_recips_for_label(event_or_superevent, label):
     # Idea: have filter_for_labels return a Q object generated from the
     #       label query
     triggers = label.trigger_set.filter(query).prefetch_related('contacts')
-    for trigger in triggers.related():
+    for trigger in triggers:
 
         if len(trigger.label_query) > 0:
             qs_out = filter_for_labels(qs, trigger.label_query)
@@ -88,13 +84,14 @@ def get_alert_recips_for_label(event_or_superevent, label):
             if not qs_out.exists():
                 continue
 
-        # Compile a list of recipients from the trigger's contacts
-        email_recips |= trigger.contacts.exclude(email="") \
-            .select_related('user')
-        phone_recips |= trigger.contacts.exclude(phone="") \
-            .select_related('user')
+        # Compile a list of recipients from the trigger's contacts.
+        # Require that the user is in the LVC group as a safeguard
+        contacts = trigger.contacts.filter(user__groups__name=
+            settings.LVC_GROUP)
+        email_recips |= contacts.exclude(email="").select_related('user')
+        phone_recips |= contacts.exclude(phone="").select_related('user')
 
-    return check_recips(email_recips), check_recips(phone_recips)
+    return email_recips, phone_recips
 
 
 def issue_alerts(event_or_superevent, alert_type, serialized_object,

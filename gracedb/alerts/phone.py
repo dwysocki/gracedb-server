@@ -7,7 +7,7 @@ from django_twilio.client import twilio_client
 from events.permission_utils import is_external
 
 # Set up logger
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 # TODO: generalize to superevents
@@ -75,43 +75,29 @@ def issue_phone_alerts(event, contacts, label=None):
     msg_body = TWILIO_MSG_CONTENT[alert_type].format(**msg_params)
 
     # Loop over recipients and make calls and/or texts.
-    for contact in twilio_recips:
-        if is_external(recip.user):
+    for contact in contacts:
+        if is_external(contact.user):
             # Only make calls to LVC members (non-LVC members
             # shouldn't even be able to sign up for phone alerts,
             # but this is another safety measure.
-            log.warning("External user {0} is somehow signed up for"
-                        " phone alerts".format(recip.user.username))
+            logger.warning("External user {0} is somehow signed up for"
+                        " phone alerts".format(contact.user.username))
             continue
 
         try:
             # POST to TwiML bin to make voice call.
-            if recip.call_phone:
-                log.debug("Calling {0} at {1}".format(recip.user.username,
-                    recip.phone))
-                twilio_client.calls.create(to=recip.phone, from_=from_,
+            if contact.call_phone:
+                logger.debug("Calling {0} at {1}".format(contact.user.username,
+                    contact.phone))
+                twilio_client.calls.create(to=contact.phone, from_=from_,
                     url=twiml_url, method='GET')
 
             # Create Twilio message.
-            if recip.text_phone:
-                log.debug("Texting {0} at {1}".format(recip.user.username,
-                    recip.phone))
-                twilio_client.messages.create(to=recip.phone, from_=from_,
+            if contact.text_phone:
+                logger.debug("Texting {0} at {1}".format(contact.user.username,
+                    contact.phone))
+                twilio_client.messages.create(to=contact.phone, from_=from_,
                     body=msg_body)
         except Exception as e:
-            log.exception("Failed to contact {0} at {1}.".format(
-                recip.user.username, recip.phone))
-
-
-# TODO: update for superevents
-def get_phone_recips(event):
-    triggers = event.pipeline.trigger_set.filter(labels=None) \
-        .prefetch_related('contacts')
-    phone_recips = [c for t in triggers for c in
-        t.contacts.all().select_related('user')
-        if ((not t.farThresh or (event.far and event.far < t.farThresh)) and
-        r.phone)]
-
-    return phone_recips
-
-
+            logger.exception("Failed to contact {0} at {1}.".format(
+                contact.user.username, contact.phone))
