@@ -17,7 +17,7 @@ from events.permission_utils import is_external
 from events.query import filter_for_labels
 from events.shortcuts import is_event
 from superevents.shortcuts import is_superevent
-from .xmpp import issue_xmpp_alert
+from .xmpp import issue_xmpp_alerts
 
 # Set up logger
 log = logging.getLogger(__name__)
@@ -102,7 +102,7 @@ def issue_alerts(event_or_superevent, alert_type, serialized_object,
 
     # Send XMPP alert
     if settings.SEND_XMPP_ALERTS:
-        issue_xmpp_alert(event_or_superevent, alert_type, serialized_object,
+        issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
             serialized_parent=serialized_parent)
 
     # Below here, we only do processing for email and phone alerts ------------

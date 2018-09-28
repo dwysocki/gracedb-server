@@ -63,7 +63,7 @@ def get_xmpp_node_names(event_or_superevent):
     return node_names
 
 
-def issue_xmpp_alert(event_or_superevent, alert_type, serialized_object,
+def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
     serialized_parent=None):
     """
     serialized_object should be a dict
@@ -98,7 +98,7 @@ def issue_xmpp_alert(event_or_superevent, alert_type, serialized_object,
     msg = simplejson.dumps(lva_data)
 
     # Log message for debugging
-    logger.info("issue_xmpp_alert: sending message {msg} for {uid}" \
+    logger.info("issue_xmpp_alerts: sending message {msg} for {uid}" \
         .format(msg=msg, uid=uid))
 
     # Get manager ready for LVAlert Overseer (?)
@@ -114,7 +114,7 @@ def issue_xmpp_alert(event_or_superevent, alert_type, serialized_object,
             message_id = sha1(node_name + msg).hexdigest()
 
             # Log message
-            logger.info(("issue_xmpp_alert: sending alert type {alert_type} "
+            logger.info(("issue_xmpp_alerts: sending alert type {alert_type} "
                 "with message {msg_id} for {uid} to {node}").format(
                 alert_type=alert_type, msg_id=message_id, uid=uid,
                 node=node_name))
@@ -129,7 +129,7 @@ def issue_xmpp_alert(event_or_superevent, alert_type, serialized_object,
 
                 # If not success, we need to do this the old way.
                 if not success:
-                    logger.critical(("issue_xmpp_alert: sending message with "
+                    logger.critical(("issue_xmpp_alerts: sending message with "
                         "LVAlert Overseer failed, trying lvalert_send"))
 
             # If not using LVAlert Overseer or if sending with overseer failed,
@@ -138,6 +138,6 @@ def issue_xmpp_alert(event_or_superevent, alert_type, serialized_object,
                 success, err = send_with_lvalert_send(node_name, msg, server)
 
                 if not success:
-                    logger.critical(("issue_xmpp_alert: error sending message "
-                        "with lvalert_send: {e}").format(e=err))
+                    logger.critical(("issue_xmpp_alerts: error sending "
+                        "message with lvalert_send: {e}").format(e=err))
 
