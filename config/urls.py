@@ -57,8 +57,7 @@ urlpatterns = [
 # We don't require settings.DEBUG for django-silk since running unit tests
 # by default setings settings.DEBUG to False, unless you use the
 # --debug-mode flag
-if settings.DEBUG or ('silk' in settings.INSTALLED_APPS and
-   ['silk' in m for m in settings.MIDDLEWARE]):
+if ('silk' in settings.INSTALLED_APPS):
     # Add django-silk
     urlpatterns = [
         url(r'^silk/', include('silk.urls', namespace='silk'))

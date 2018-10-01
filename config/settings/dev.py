@@ -16,14 +16,14 @@ EMBB_MAIL_ADDRESS = 'gracedb@{fqdn}'.format(fqdn=SERVER_FQDN)
 debug_middleware = 'debug_toolbar.middleware.DebugToolbarMiddleware'
 MIDDLEWARE += [
     debug_middleware,
-    'silk.middleware.SilkyMiddleware',
+    #'silk.middleware.SilkyMiddleware',
     #'core.middleware.profiling.ProfileMiddleware',
 ]
 
 # Add to installed apps
 INSTALLED_APPS += [
     'debug_toolbar',
-    'silk'
+    #'silk'
 ]
 
 # Add testserver to ALLOWED_HOSTS
