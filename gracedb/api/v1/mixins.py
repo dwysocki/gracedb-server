@@ -55,3 +55,33 @@ class SafeCreateMixin(mixins.CreateModelMixin):
         return Response(serializer.data, status=status.HTTP_201_CREATED,
             headers=headers)
 
+
+class OrderedListModelMixin(object):
+    """
+    Identical to ListModelMixin from DRF, but implements ordering based on
+    a user-provided tuple (list_view_order_by).
+    """
+    list_view_order_by = ()
+
+    def __init__(self, **kwargs):
+        super(OrderedListModelMixin, self).__init__(**kwargs)
+        # Force list_view_order_by to be a tuple (easy for users
+        # to mess this up with single-item tuples)
+        assert isinstance(self.list_view_order_by, tuple), (
+            'list_view_order_by must be a tuple'
+        )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        # Custom ordering
+        queryset = queryset.order_by(*self.list_view_order_by)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

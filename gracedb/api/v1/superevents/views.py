@@ -107,10 +107,7 @@ class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class SupereventEventViewSet(mixins.ListModelMixin,
-                             mixins.CreateModelMixin,
-                             mixins.RetrieveModelMixin,
-                             SafeDestroyMixin,
+class SupereventEventViewSet(SafeDestroyMixin,
                              SupereventNestedViewSet):
     """View for events attached to a superevent"""
     serializer_class = SupereventEventSerializer
@@ -120,12 +117,7 @@ class SupereventEventViewSet(mixins.ListModelMixin,
     lookup_url_kwarg = 'graceid'
     destroy_error_classes = (Superevent.PreferredEventRemovalError,)
     destroy_error_response_status = status.HTTP_400_BAD_REQUEST
-
-    def get_queryset(self):
-        superevent = self.get_parent_object()
-        queryset = superevent.events.all()
-        # TODO: filter events for user (?)
-        return queryset
+    # TODO: do we need to filter events by user?
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
@@ -144,8 +136,7 @@ class SupereventEventViewSet(mixins.ListModelMixin,
             add_event_log=True, issue_alert=True)
 
 
-class SupereventLabelViewSet(viewsets.ModelViewSet,
-                             SupereventNestedViewSet):
+class SupereventLabelViewSet(SupereventNestedViewSet):
     """Superevent labels"""
     serializer_class = SupereventLabelSerializer
     pagination_class = CustomLabelPagination
@@ -153,20 +144,14 @@ class SupereventLabelViewSet(viewsets.ModelViewSet,
         SupereventLabellingModelPermissions,)
     lookup_url_kwarg = 'label_name'
     lookup_field = 'label__name'
-
-    def get_queryset(self):
-        superevent = self.get_parent_object()
-        queryset = superevent.labelling_set.all().order_by('label__name')
-        return queryset
+    list_view_order_by = ('label__name',)
 
     def perform_destroy(self, instance):
         remove_label_from_superevent(instance, self.request.user,
             add_log_message=True, issue_alert=True)
 
 
-class SupereventLogViewSet(mixins.ListModelMixin,
-                           mixins.RetrieveModelMixin,
-                           SafeCreateMixin,
+class SupereventLogViewSet(SafeCreateMixin,
                            SupereventNestedViewSet):
     """
     View for log messages attached to a superevent.
@@ -179,20 +164,10 @@ class SupereventLogViewSet(mixins.ListModelMixin,
         SupereventLogModelPermissions, ParentSupereventAnnotatePermissions,)
     lookup_url_kwarg = 'N'
     lookup_field = 'N'
-
-    def get_queryset(self):
-        # Get full set of logs for superevent
-        superevent = self.get_parent_object()
-        queryset = superevent.log_set.all().order_by('N')
-        # NOTE: filtering of logs by view permissions is handled in
-        # filter_queryset by the filter backends.
-
-        return queryset
+    list_view_order_by = ('N',)
 
 
-class SupereventLogTagViewSet(mixins.ListModelMixin,
-                              mixins.RetrieveModelMixin,
-                              SafeCreateMixin,
+class SupereventLogTagViewSet(SafeCreateMixin,
                               SafeDestroyMixin,
                               SupereventNestedViewSet):
     """
@@ -204,6 +179,7 @@ class SupereventLogTagViewSet(mixins.ListModelMixin,
         SupereventLogTagModelPermissions, SupereventLogTagObjectPermissions,)
     lookup_url_kwarg = 'tag_name'
     lookup_field = 'name'
+    list_view_order_by = ('name',)
 
     def _set_parent_log(self):
         """Gets and caches parent log object"""
@@ -227,7 +203,7 @@ class SupereventLogTagViewSet(mixins.ListModelMixin,
 
     def get_queryset(self):
         parent_log = self.get_parent_log()
-        return parent_log.tags.all().order_by('name')
+        return parent_log.tags.all()
 
     def perform_destroy(self, instance):
         parent_log = self.get_parent_log()
@@ -299,9 +275,7 @@ class SupereventFileViewSet(SupereventNestedViewSet):
         return check_and_serve_file(request, file_path, ResponseClass=Response)
 
 
-class SupereventVOEventViewSet(mixins.ListModelMixin,
-                               mixins.RetrieveModelMixin,
-                               SafeCreateMixin,
+class SupereventVOEventViewSet(SafeCreateMixin,
                                SupereventNestedViewSet):
     """
     View for VOEvents attached to a superevent.
@@ -314,15 +288,8 @@ class SupereventVOEventViewSet(mixins.ListModelMixin,
     lookup_url_kwarg = 'N'
     lookup_field = 'N'
 
-    def get_queryset(self):
-        superevent = self.get_parent_object()
-        queryset = superevent.voevent_set.all()
-        return queryset
 
-
-class SupereventEMObservationViewSet(mixins.ListModelMixin,
-                                     mixins.RetrieveModelMixin,
-                                     SafeCreateMixin,
+class SupereventEMObservationViewSet(SafeCreateMixin,
                                      SupereventNestedViewSet):
     """
     View for EMObservations attached to a superevent.
@@ -334,14 +301,8 @@ class SupereventEMObservationViewSet(mixins.ListModelMixin,
     lookup_url_kwarg = 'N'
     lookup_field = 'N'
 
-    def get_queryset(self):
-        superevent = self.get_parent_object()
-        queryset = superevent.emobservation_set.all()
-        return queryset
 
-
-class SupereventSignoffViewSet(viewsets.ModelViewSet,
-                               SafeCreateMixin,
+class SupereventSignoffViewSet(SafeCreateMixin,
                                SupereventNestedViewSet):
     """
     View for signoffs associated with a superevent.
@@ -355,12 +316,7 @@ class SupereventSignoffViewSet(viewsets.ModelViewSet,
         SupereventSignoffTypeModelPermissions,
         SupereventSignoffTypeObjectPermissions,)
     lookup_url_kwarg = 'typeinst' # signoff_type + instrument
-
-    def get_queryset(self):
-        superevent = self.get_parent_object()
-        queryset = superevent.signoff_set.all().order_by('signoff_type',
-            'instrument')
-        return queryset
+    list_view_order_by = ('signoff_type', 'instrument',)
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
@@ -394,8 +350,7 @@ class SupereventSignoffViewSet(viewsets.ModelViewSet,
             issue_alert=True)
 
 
-class SupereventGroupObjectPermissionViewSet(viewsets.ModelViewSet,
-                                             SafeCreateMixin,
+class SupereventGroupObjectPermissionViewSet(SafeCreateMixin,
                                              SafeDestroyMixin,
                                              SupereventNestedViewSet):
     """
@@ -406,10 +361,6 @@ class SupereventGroupObjectPermissionViewSet(viewsets.ModelViewSet,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
         SupereventGroupObjectPermissionPermissions,)
     pagination_class = BasePaginationFactory(results_name='permissions')
-
-    def get_queryset(self):
-        superevent = self.get_parent_object()
-        return superevent.supereventgroupobjectpermission_set.all()
 
     @action(methods=['post'], detail=False)
     def modify(self, request, superevent_id):

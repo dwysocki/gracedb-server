@@ -131,3 +131,26 @@ class NestedViewSet(viewsets.GenericViewSet):
         parent = get_object_or_404(parent_queryset,
             **{self.parent_lookup_field: parent_lookup_value})
         self._parent = parent
+
+
+class NestedModelViewSet(NestedViewSet, viewsets.ModelViewSet):
+    """
+    Provides a default get_queryset mechanism which filters the set of
+    objects which are attached to a parent object.
+
+    Set 'queryset_filter_kwargs' (dict) for database filtering on the
+    *queryset*. The default DRF 'lookup_field' is only used for single object
+    lookup.
+    """
+    queryset_filter_kwargs = {}
+
+    def get_queryset(self):
+        parent = self.get_parent_object()
+        model = self.serializer_class.Meta.model
+        accessor = [f.get_accessor_name() for f in parent._meta.related_objects
+            if f.related_model == model][0]
+
+        # Equivalent to parent.obj_set
+        related_manager = getattr(parent, accessor)
+
+        return related_manager.filter(**self.queryset_filter_kwargs)

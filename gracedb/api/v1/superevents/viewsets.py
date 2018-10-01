@@ -3,13 +3,14 @@ import logging
 from superevents.models import Superevent
 from superevents.utils import get_superevent_by_date_id_or_404
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG
-from ..viewsets import NestedViewSet
+from ..mixins import OrderedListModelMixin
+from ..viewsets import NestedModelViewSet
 
 # Set up logger
 logger = logging.getLogger(__name__)
 
 
-class SupereventNestedViewSet(NestedViewSet):
+class SupereventNestedViewSet(OrderedListModelMixin, NestedModelViewSet):
     """
     Gets a parent superevent object for a nested object by using the
     URL kwargs.  Also does a check on object permissions for the superevent,
