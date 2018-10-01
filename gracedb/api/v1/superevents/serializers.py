@@ -203,7 +203,8 @@ class SupereventEventSerializer(serializers.ModelSerializer):
                                'type \'{s_category}\''),
     }
     self = serializers.SerializerMethodField(read_only=True)
-    event = EventGraceidField(write_only=True)
+    event = EventGraceidField(write_only=True,
+        style={'base_template': 'input.html'})
     superevent = serializers.HiddenField(write_only=True,
         default=ParentObjectDefault(context_key='superevent'))
     # Get user from request automatically
