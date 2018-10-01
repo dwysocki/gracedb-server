@@ -117,6 +117,7 @@ class SupereventEventViewSet(SafeDestroyMixin,
     lookup_url_kwarg = 'graceid'
     destroy_error_classes = (Superevent.PreferredEventRemovalError,)
     destroy_error_response_status = status.HTTP_400_BAD_REQUEST
+    list_view_order_by = ('pk',)
     # TODO: do we need to filter events by user?
 
     def get_object(self):
@@ -287,6 +288,7 @@ class SupereventVOEventViewSet(SafeCreateMixin,
     create_error_classes = (VOEventBuilderException)
     lookup_url_kwarg = 'N'
     lookup_field = 'N'
+    list_view_order_by = ('N',)
 
 
 class SupereventEMObservationViewSet(SafeCreateMixin,
@@ -300,6 +302,7 @@ class SupereventEMObservationViewSet(SafeCreateMixin,
         ParentSupereventAnnotatePermissions,)
     lookup_url_kwarg = 'N'
     lookup_field = 'N'
+    list_view_order_by = ('N',)
 
 
 class SupereventSignoffViewSet(SafeCreateMixin,
