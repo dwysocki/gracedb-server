@@ -22,10 +22,8 @@ class CliExceptionMiddleware(MiddlewareMixin):
 
 class ClientVersionMiddleware(object):
     """
-    Middleware class which checks the user's IP against a list of IPs
-    corresponding to instrument control rooms.  If the user appears to be
-    in a control room, we add them to the corresponding control room group
-    for the duration of the request.
+    Middleware class which checks the version of gracedb-client for
+    compatibility with the server.
     """
     client_string = 'gracedb-client'
     error_messages = {

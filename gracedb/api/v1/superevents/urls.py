@@ -97,8 +97,7 @@ suburlpatterns = [
     # Permissions list and creation
     url(r'permissions/$', SupereventGroupObjectPermissionViewSet.as_view(
         {'get': 'list'}), name='superevent-permission-list'),
-    # Permissions modification (expose/hide superevent). Has to come before
-    # permissions detail, otherwise .+ wildcard will match it first.
+    # Permissions modification (expose/hide superevent).
     url(r'^permissions/modify/$',
         SupereventGroupObjectPermissionViewSet.as_view({'post': 'modify'}),
         name='superevent-permission-modify'),
