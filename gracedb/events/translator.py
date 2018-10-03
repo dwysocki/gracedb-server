@@ -152,11 +152,13 @@ def handle_uploaded_data(event, datafilename,
         except Exception, e:
             warnings += "Could not extract coinc event table."
             return temp_data_loc, warnings
-        event.instruments = coinc_event_table.instruments
         event.nevents = coinc_event_table.nevents
         event.likelihood = cleanData(coinc_event_table.likelihood,'likelihood')
 
+        # event.instruments is attached to the base Event and event.ifos is
+        # part of the CoincInspiralEvent
         event.ifos             = ifos
+        event.instruments      = ifos
         event.end_time         = end_time[0]
         event.end_time_ns      = end_time[1]
         event.mass             = mass
@@ -267,11 +269,18 @@ def handle_uploaded_data(event, datafilename,
         mb_table = mb_table[0]
         event.gpstime = mb_table.start_time
 
-        coinc_table = CoincTable.get_table(xmldoc)
-        coinc_table = coinc_table[0]
-        event.instruments = coinc_table.instruments
-        event.nevents = coinc_table.nevents
-        event.likelihood = cleanData(coinc_table.likelihood, 'likelihood')
+        # Try reading the CoincInspiralTable to get the ifos
+        warnings = []
+        try:
+            coinc_table = CoincInspiralTable.get_table(xmldoc)[0]
+        except Exception, e:
+            warnings += "Could not extract coinc inspiral table."
+            return temp_data_loc, warnings
+
+        coinc_event_table = CoincTable.get_table(xmldoc)[0]
+        event.instruments = coinc_table.ifos
+        event.nevents = coinc_event_table.nevents
+        event.likelihood = cleanData(coinc_event_table.likelihood, 'likelihood')
 
         # XXX xml_filename unused.
         #xml_filename = os.path.join(output_dir, coinc_table_filename)
