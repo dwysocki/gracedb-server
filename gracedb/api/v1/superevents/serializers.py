@@ -466,8 +466,8 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
                         'not have a gpstime.'),
         'skymap_file_required': _('Skymap filename is required for initial '
                                   'and update VOEvents.'),
-        'skymap_type_required': _('Skymap type is required for initial and '
-                                  'update VOEvents.'),
+        'skymap_type_required': _('Skymap type is required for VOEvents that '
+                                  'include a skymap.'),
         'skymap_not_found': _('Skymap file {filename} not found for this '
                               'superevent.'),
         'skymap_image_not_found': _('Skymap image file {filename} not found '
