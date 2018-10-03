@@ -634,7 +634,7 @@ class SingleInspiral(models.Model):
     event             = models.ForeignKey(Event, null=False)
     ifo               = models.CharField(max_length=20, null=True)
     search            = models.CharField(max_length=20, null=True)
-    channel           = models.CharField(max_length=50, blank=True)
+    channel           = models.CharField(max_length=100, blank=True)
     end_time          = models.IntegerField(null=True)
     end_time_ns       = models.IntegerField(null=True)
     end_time_gmst     = models.FloatField(null=True)
