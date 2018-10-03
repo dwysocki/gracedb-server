@@ -238,69 +238,6 @@ def handle_uploaded_data(event, datafilename,
         #               comment=log_comment)
         #log.save()
 
-    # XXX Submitting MBTA events by frame file is now deprecated as of 19 Dec. 2014.
-    # Feel free to break this after 19 Dec. 2015.
-    elif pipeline == 'MBTAOnline' and '.gwf' in datafilename:
-        warnings += ['Submitting MBTA events via frame file is deprecated. Please use coinc.xml file instead.']
-        #here's how it works for inspirals
-        #populate the tables
-        #xmldoc, log_data, temp_data_loc = populate_inspiral_tables("MbtaFake-930909680-16.gwf") 
-        #write the output
-        #write_output_files('.', xmldoc, log_data)
-
-        xmldoc, log_data, temp_data_loc = \
-                populate_inspiral_tables(datafilename)
-
-        output_dir = os.path.dirname(datafilename)
-        write_output_files(output_dir, xmldoc, log_data,
-                           xml_fname=coinc_table_filename,
-                           log_fname=log_filename)
-
-        # Create EventLog entries about these files.
-        log = EventLog(event=event,
-                       filename=log_filename,
-                       file_version=0,
-                       issuer=event.submitter,
-                       comment="Log File Created" )
-        log.save()
-
-        log = EventLog(event=event,
-                       filename=coinc_table_filename,
-                       file_version=0,
-                       issuer=event.submitter,
-                       comment="Coinc Table Created")
-        log.save()
-
-        # Extract relevant data from xmldoc.
-        coinc_table = CoincInspiralTable.get_table(xmldoc)
-        coinc_table = coinc_table[0]
-        #event.gpstime = coinc_table.end_time
-        event.gpstime = coinc_table.end_time + float(coinc_table.end_time_ns)/1e9
-        # Per Patrick 02FEB12.  All MBTA events with null far should have zero far.
-        event.far = coinc_table.combined_far or 0
-
-        event.instruments = coinc_table.instruments
-        event.nevents = coinc_table.nevents
-        event.likelihood = cleanData(coinc_table.likelihood,'likelihood')
-
-        # extended attributes
-        event.ifos             = coinc_table.ifos
-        event.end_time         = coinc_table.end_time
-        event.end_time_ns      = coinc_table.end_time_ns
-        event.mass             = coinc_table.mass
-        event.mchirp           = coinc_table.mchirp
-        #event.minimum_duration = coinc_table.minimum_duration
-        event.snr              = coinc_table.snr
-        event.false_alarm_rate = coinc_table.false_alarm_rate
-        event.combined_far     = coinc_table.combined_far
-
-        event.save()
-
-        # Extract Single Inspiral Information
-        s_inspiral_table = SnglInspiralTable.get_table(xmldoc)
-
-        SingleInspiral.create_events_from_ligolw_table(s_inspiral_table, event)
-
     elif pipeline == 'Omega':
         #here's how it works for bursts
         #xmldoc, log_data, temp_data_loc = populate_burst_tables("initial.data")
