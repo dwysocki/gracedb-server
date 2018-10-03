@@ -1,4 +1,5 @@
-
+from math import isnan
+import numbers
 import os
 
 from .models import EventLog
@@ -97,7 +98,15 @@ def handle_uploaded_data(event, datafilename,
             mchirp   = coinc_table.mchirp
             mass     = coinc_table.mass
             end_time = (coinc_table.end_time, coinc_table.end_time_ns)
-            snr      = coinc_table.snr
+
+            # Awful kludge for handling nan for snr
+            snr = coinc_table.snr
+            try:
+                if (isinstance(snr, numbers.Number) and isnan(snr)):
+                    snr = None
+            except Exception as e:
+                pass
+
             ifos     = coinc_table.ifos
             far      = coinc_table.combined_far
 
