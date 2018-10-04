@@ -5,7 +5,7 @@ Integration with LVAlert
 Introduction
 ===============================================
 
-GraceDB uses `LVAlert <https://wiki.ligo.org/DASWG/LVAlert>`__ to send alerts to listeners within the LVC.
+GraceDB uses `LVAlert <https://wiki.ligo.org/Computing/DASWG/LVAlert>`__ to send alerts to listeners within the LVC.
 The content of the LVAlert message is designed to convey actionable information about a state change in GraceDB, whether it involves the creation of a new event, or the updating or labeling of an existing one.
 
 .. NOTE::
@@ -171,5 +171,5 @@ Further reading on LVAlert
 =====================================================
 
 Further information on using LVAlert can be found on the
-`LVAlert Project Page <https://wiki.ligo.org/DASWG/LVAlert>`__
-and the `LVAlert Howto <https://wiki.ligo.org/DASWG/LVAlertHowto>`__.
+`LVAlert Project Page <https://wiki.ligo.org/Computing/DASWG/LVAlert>`__
+and the `LVAlert Howto <https://wiki.ligo.org/Computing/DASWG/LVAlertHowto>`__.

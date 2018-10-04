@@ -20,7 +20,7 @@ it from the `Python Package Index <https://pypi.python.org/pypi>`__::
 installing ``pip`` if it is not already available on your machine.) Additionally,
 packages for Debian (``.deb``) and Scientific Linux (``.rpm``) are available by 
 pointing your system to the appropriate repositories as described 
-`here <https://wiki.ligo.org/DASWG/SoftwareDownloads>`__.
+`here <https://wiki.ligo.org/Computing/DASWG/SoftwareDownloads>`__.
 Then the client tools can be installed via::
 
     apt-get install python-ligo-gracedb
