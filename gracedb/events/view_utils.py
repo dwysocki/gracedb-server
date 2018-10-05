@@ -18,16 +18,10 @@ import os
 from django.conf import settings
 
 from .templatetags.scientific import scientific
+from .templatetags.timeutil import timeSelections
 
 import logging
 logger = logging.getLogger(__name__)
-
-# XXX This should be configurable / moddable or something
-MAX_QUERY_RESULTS = 1000
-
-# The maximum number of rows to be returned by flexigridResponse
-# in the event that the user asks for all of them.
-MAX_FLEXI_ROWS = 250
 
 GRACEDB_DATA_DIR = settings.GRACEDB_DATA_DIR
 
@@ -712,128 +706,6 @@ def sanitize_html(data):
     s = serializer.htmlserializer.HTMLSerializer(omit_optional_tags=False)
     return "".join(s.serialize(stream))
 
-from .templatetags.timeutil import timeSelections
-
-def jqgridResponse(request, objects):
-    # "GET /data?_search=false&nd=1266350238476&rows=10&page=1&sidx=invid&sord=asc HTTP/1.1"
-    pass
-
-def flexigridResponse(request, objects):
-    response = HttpResponse(content_type='application/json')
-
-    #sortname = request.POST.get('sortname', None)
-    #sortorder = request.POST.get('sortorder', 'desc')
-    #page = int(request.POST.get('page', 1))
-    #rp = int(request.POST.get('rp', 10))
-
-    sortname = request.GET.get('sidx', None)    # get index row - i.e. user click to sort
-    sortorder = request.GET.get('sord', 'desc') # get the direction
-    page = int(request.GET.get('page', 1))      # get the requested page
-    rp = int(request.GET.get('rows', 10))       # get how many rows we want to have into the grid
-
-    get_neighbors = request.GET.get('get_neighbors', False) # whether to retrieve the neighbors
-    if get_neighbors in ['True', 'true', 'T', 't', 1, '1']:
-        get_neighbors = True
-    else:
-        get_neighbors = False
-
-    # select related objects to reduce the number of queries.
-    objects = objects.select_related('group', 'pipeline', 'search', 'submitter')
-
-    if sortname:
-        if sortorder == "desc":
-            sortname = "-" + sortname
-        objects = objects.order_by(sortname)
-
-    total = objects.count()
-    rows = []
-    if rp > -1:
-        start = (page-1) * rp
-
-        if total:
-            total_pages = (total / rp) + 1
-        else:
-            total_pages = 0
-
-        if page > total_pages:
-            page = total_pages
-        
-        end = start+rp
-    else:
-        start = 0
-        total_pages = 1
-        page = 1
-        end = total-1
-
-        if total > MAX_FLEXI_ROWS:
-            return HttpResponseBadRequest("Too many rows! Please try loading a smaller number.")
-
-    for object in objects[start:end]:
-        event_times = timeSelections(object.gpstime)
-        created_times = timeSelections(object.created)
-        if object.search:
-            search_name = object.search.name
-        else:
-            search_name = ''
-
-        display_far = scientific(object.far)
-        if object.far and is_external(request.user):
-            if object.far < settings.VOEVENT_FAR_FLOOR:
-                display_far = "< %s" % scientific(settings.VOEVENT_FAR_FLOOR)
-
-        cell_values = [ '<a href="%s">%s</a>' %
-                            (django_reverse("view", args=[object.graceid()]), object.graceid()),
-                         #Labels
-                        " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();"  style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name)
-                                for label in object.labelling_set.all()]),
-                        object.group.name,
-                        object.pipeline.name,
-                        search_name,
-
-                        event_times.get('gps',""),
-                        #event_times['utc'],
-
-                        object.instruments,
-
-                        #scientific(display_far),
-                        display_far,
-
-                        '<a href="%s">Data</a>' % object.weburl(),
-
-                        #created_times['gps'],
-                        created_times.get('utc',""),
-
-                        "%s %s" % (object.submitter.first_name, object.submitter.last_name)
-
-                      ]
-
-        if get_neighbors:
-            # Links to neighbors
-            cell_values.insert(2, ', '.join([ '<a href="%s">%s</a>' %
-                (django_reverse("view", args=[n.graceid()]), n.graceid()) for n in object.neighbors()]))
-
-        rows.append(
-            { 'id' : object.id,
-              'cell': cell_values,
-            }
-        )
-    d = {
-            'page': page,
-            'total': total_pages,
-            'records': total,
-            'rows': rows,
-        }
-    try:
-        msg = json.dumps(d)
-    except Exception:
-        # XXX Not right not right not right.
-        msg = "{}"
-    response['Content-length'] = len(msg)
-    response.write(msg)
-
-    #query = request.POST['query']
-
-    return response
 
 def get_file(event, filename="event.log"):
     logfilename = os.path.join(event.datadir, filename)

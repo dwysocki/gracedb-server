@@ -39,18 +39,18 @@ onload="document.search_form.query.focus();"
         colNames : ["UID", "Labels", "Preferred Event", "GW events", "External events", "t_start", "t_0", "t_end", "is_gw", "Links", "Submitted", "Submitted By",
         ],
         colModel : [
-           {name : 'id',     index: 'id', width : 30, sortable : true, align: 'left', hidden: false},
-           {name : 'labels', index: 'labels', width : 40, sortable : false, align: 'left'},
-           {name : 'preferred_event', index: 'preferred_event', width : 20, sortable : true, align: 'left', hidden: false},
-           {name : 'gw_events', index: 'gw_events', width : 50, sortable : false, align: 'left', hidden: false},
-           {name : 'em_events', index: 'em_events', width : 50, sortable : false, align: 'left', hidden: true},
-           {name : 't_start',  index: 't_start', width : 20, sortable : false, align: 'left', hidden: true},
-           {name : 't_0',  index: 't_0', width : 20, sortable : false, align: 'left', hidden: false},
-           {name : 't_end',  index: 't_end', width : 20, sortable : false, align: 'left', hidden: true},
-           {name : 'is_gw', index: 'is_gw', width : 20, sortable : true, align: 'left', hidden: true},
-           {name : 'links',   index: 'links', width : 20, sortable : false, align: 'center'},
-           {name : 'created', index: 'created', width : 40, sortable : true, align: 'left'},
-           {name : 'submitter', index: 'submitter', width : 60, sortable : true, align: 'left'},
+           {name: 'id', index: 'id', width: 30, sortable: true, align: 'left', hidden: false},
+           {name: 'labels', index: 'labels', width: 40, sortable: true, align: 'left'},
+           {name: 'preferred_event', index: 'preferred_event', width: 20, sortable: true, align: 'left', hidden: false},
+           {name: 'gw_events', index: 'gw_events', width: 50, sortable: false, align: 'left', hidden: false},
+           {name: 'em_events', index: 'em_events', width: 50, sortable: false, align: 'left', hidden: true},
+           {name: 't_start', index: 't_start', width: 20, sortable: true, align: 'left', hidden: true},
+           {name: 't_0', index: 't_0', width: 20, sortable: true, align: 'left', hidden: false},
+           {name: 't_end', index: 't_end', width: 20, sortable: true, align: 'left', hidden: true},
+           {name: 'is_gw', index: 'is_gw', width: 20, sortable: true, align: 'left', hidden: true},
+           {name: 'links', index: 'links', width: 20, sortable: false, align: 'center'},
+           {name: 'created', index: 'created', width: 40, sortable: true, align: 'left'},
+           {name: 'submitter', index: 'submitter', width: 60, sortable: true, align: 'left'},
     
             ],
         pager: '#pager1',
@@ -91,20 +91,20 @@ onload="document.search_form.query.focus();"
         colNames : ["UID", "Labels", {% if get_neighbors %} "Neighbors (+/-5sec)", {% endif %} "Group", "Pipeline", "Search", "Event Time", "Instruments", "FAR (Hz)", "Links", "Submitted", "Submitted By",
                    ],
         colModel : [
-           {name : 'id',     index: 'id', width : 50, sortable : true, align: 'left', hidden: false},
-           {name : 'labels', index: 'labels', width : 70, sortable : false, align: 'left'},
+           {name: 'id', index: 'id', width: 50, sortable: true, align: 'left', hidden: false},
+           {name: 'labels', index: 'labels', width: 70, sortable: true, align: 'left'},
            {% if get_neighbors %}
-           {name : 'neighbors', index: 'neighbors', width : 100, sortable : false, align: 'left'},
+           {name: 'neighbors', index: 'neighbors', width: 100, sortable: false, align: 'left'},
            {% endif %}
-           {name : 'group',  index: 'group', width : 50, sortable : false, align: 'left', hidden: false},
-           {name : 'pipeline',  index: 'pipeline', width : 50, sortable : false, align: 'left', hidden: false},
-           {name : 'search',  index: 'search', width : 50, sortable : false, align: 'left', hidden: false},
-           {name : 'gpstime', index: 'gpstime', width : 70, sortable : true, align: 'right'},
-           {name : 'instruments', index: 'instruments', width : 50, sortable : true, align: 'right', hidden: false},
-           {name : 'far', index: 'far', width : 80, sortable : true, align: 'right', hidden: false},
-           {name : 'links',   index: 'links', width : 80, sortable : false, align: 'center', hidden: true},
-           {name : 'created', index: 'created', width : 100, sortable : true, align: 'right'},
-           {name : 'submitter', index: 'submitter', width : 80, sortable : true, align: 'right'},
+           {name: 'group', index: 'group', width: 50, sortable: true, align: 'left', hidden: false},
+           {name: 'pipeline', index: 'pipeline', width: 50, sortable: false, align: 'left', hidden: false},
+           {name: 'search', index: 'search', width: 50, sortable: true, align: 'left', hidden: false},
+           {name: 'gpstime', index: 'gpstime', width: 70, sortable: true, align: 'right'},
+           {name: 'instruments', index: 'instruments', width: 50, sortable: true, align: 'right', hidden: false},
+           {name: 'far', index: 'far', width: 80, sortable: true, align: 'right', hidden: false},
+           {name: 'links', index: 'links', width: 80, sortable: false, align: 'center', hidden: true},
+           {name: 'created', index: 'created', width: 100, sortable: true, align: 'right'},
+           {name: 'submitter', index: 'submitter', width: 80, sortable: true, align: 'right'},
     
             ],
         pager: '#pager1',
@@ -144,12 +144,8 @@ onload="document.search_form.query.focus();"
         {{ form.as_table }}
         <tr><td></td><td><input type="Submit" value="Search" class="searchButtonClass"></td></tr>
         <tr><td></td><td><a onClick="toggle_visibility('hints');">Query help</a>
-        | <a href="{% url "eventsearch" %}">Link to old search page</a>
-        {% if raw_query %}
-            | <a href="{{ request.build_absolute_uri }}">Link to current query</a>
-            {% if query_type == 'E' %}
-                | <a href="{% url "mainsearch" %}?query={{raw_query|urlencode}}&query_type={{query_type}}&get_neighbors={{get_neighbors}}&results_format=L">Download LIGOLW file</a>
-            {% endif %}
+        {% if raw_query and  query_type == 'E' %}
+            | <a href="{% url "mainsearch" %}?query={{raw_query|urlencode}}&query_type={{query_type}}&get_neighbors={{get_neighbors}}&results_format=L">Download LIGOLW file</a>
         {% endif %}
         </td></tr>
         <tr><td></td><td>{% include "search/query_help_frag.html" %}</td></tr>

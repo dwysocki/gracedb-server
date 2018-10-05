@@ -274,38 +274,6 @@ class TestPerms(TestCase):
             else:
                 self.assertEqual(response.status_code, 403)
 
-    def test_internal_search(self):
-        """Test search by LIGO users"""
-        query = '{group} {search}'.format(group=TEST_NAMES['group'],
-            search=TEST_NAMES['search'])
-        res = self.search_helper(query, self.internal_user)
-
-        # You should get all three events.
-        self.assertEqual(res['records'], 3)
-
-    def test_lvem_search(self):
-        """Test search by LV-EM users"""
-        query = '{group} {search}'.format(group=TEST_NAMES['group'],
-            search=TEST_NAMES['search'])
-        res = self.search_helper(query, self.lvem_user)
-        
-        # You should get two events ...
-        self.assertEqual(res['records'],2)
-        # ... and the missing event should be the internal one.
-        ids = [r['id'] for r in res['rows']]
-        self.assertTrue(self.internal_event.id not in ids)
-
-    def test_public_search(self):
-        """Test search by public users"""
-        query = '{group} {search}'.format(group=TEST_NAMES['group'],
-            search=TEST_NAMES['search'])
-        res = self.search_helper(query, self.public_user)
-
-        # You should only get one event ...
-        self.assertEqual(res['records'], 1)
-        # ... and that event should be the public one.
-        self.assertEqual(res['rows'][0]['id'], self.public_event.id)
-
     #--------------------------------------------------------------------------
     #--------------------------------------------------------------------------
     # Tests of event annotation
@@ -489,16 +457,6 @@ class TestPerms(TestCase):
         for user in User.objects.all():
             response = request_event_creation(self.client, user, test=True)
             self.assertEqual(response.status_code, 302)
-
-    @override_settings(GRACEDB_DATA_DIR=TMP_DATA_DIR)
-    def test_search_on_new_event(self):
-        """Test the availability of a newly created event via search"""
-        response = request_event_creation(self.client, self.pipeline_user)
-        redirect_url = response['Location']
-        graceid = redirect_url.split('/')[-1]
-        res = self.search_helper(graceid, self.internal_user)
-        # You should get exactly one record.
-        self.assertEqual(res['records'],1)
 
     # Actually, you can only replace an event that you yourself created.
     # Thus, not sure if we really need this.

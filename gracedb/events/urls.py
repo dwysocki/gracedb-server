@@ -34,11 +34,6 @@ urlpatterns = [
     url(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>\d+)/tag/(?P<tagname>.*)$',
         views.taglogentry, name="taglogentry"),
 
-    # old event-only searches
-    url(r'^latest/$', views.latest, name="eventlatest"),
-    url(r'^search/(?P<format>(json|flex))?$', views.search,
-        name="eventsearch"),
-
     # Legacy URLs
     url(r'^view/(?P<graceid>[GEHMT]\d+)', views.view, name="legacyview"),
     url(r'^(?P<graceid>[GEHMT]\d+)$', views.view, name="legacyview2"),

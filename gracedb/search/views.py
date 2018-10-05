@@ -1,26 +1,19 @@
+import logging
+
 from django import forms
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect, \
-    HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
-from django.urls import reverse
-from django.utils.html import escape
 from django.views.decorators.http import require_GET
 
 from guardian.shortcuts import get_objects_for_user
 
 from .forms import MainSearchForm
-from .utils import get_search_results_as_ligolw
-from core.http import check_and_serve_file
-
-from events.models import Event
-from events.view_utils import flexigridResponse as events_flex
-from superevents.models import Superevent
-from superevents.search_flex import flexigridResponse as superevents_flex
+from .utils import get_search_results_as_ligolw, event_flexigrid_response, \
+    superevent_flexigrid_response
 
 
-import os
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 
@@ -61,10 +54,10 @@ def search(request):
                 # Flex format
                 if query_type == 'S':
                     # Superevent query
-                    flex_func = superevents_flex
+                    flex_func = superevent_flexigrid_response
                 elif query_type == 'E':
                     # Event query
-                    flex_func = events_flex
+                    flex_func = event_flexigrid_response
                 else:
                     # TODO: raise error
                     pass 

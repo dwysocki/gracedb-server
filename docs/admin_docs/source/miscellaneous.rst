@@ -107,7 +107,7 @@ A good starting point is to search the GraceDB server code for "L1" to see where
 
 Specifics (assume X1 is the IFO code):
 
-1. Add X1OPS, X1OK, X1NO labels, update ``gracedb/templates/gracedb/event_detail_script.js`` with description, and update ``gracedb/templates/gracedb/query_help_frag.html``
+1. Add X1OPS, X1OK, X1NO labels, update ``gracedb/templates/gracedb/event_detail_script.js`` with description, and update ``gracedb/templates/search/query_help_frag.html``
 2. Add to instruments in ``gracedb/events/buildVOEvent.py``
 3. Update ifoList in ``gracedb/events/query.py``
 4. Add entry to ``CONTROL_ROOM_IPS`` in ``gracedb/config/settings/base.py``
