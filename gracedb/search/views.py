@@ -52,6 +52,12 @@ def search(request):
 
             # Get call from template for populating flexigrid table
             if _format == 'F':
+                if not request.is_ajax():
+                    err_msg = ("You have tried to access an internal view "
+                        "which is used for generating JavaScript search "
+                        "results. Set 'results_format' to 'S' in your "
+                        "query parameters.")
+                    return HttpResponseBadRequest(err_msg)
                 # Flex format
                 if query_type == 'S':
                     # Superevent query
