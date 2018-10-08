@@ -1,3 +1,7 @@
+import datetime
+import logging
+import pytz
+
 from django.db.models import Q
 from django.db.models.query import QuerySet
 
@@ -8,13 +12,14 @@ from events.nltime import nlTimeExpression as nltime_
 from events.query_utils import maybeRange, getLabelQ, RUN_MAP
 from .models import Superevent
 
-import datetime
-import pytz
 from pyparsing import Word, nums, Literal, CaselessLiteral, delimitedList, \
     Suppress, QuotedString, Keyword, Combine, Or, Optional, OneOrMore, \
     ZeroOrMore, alphas, alphanums, Regex, opAssoc, operatorPrecedence, \
     oneOf, stringStart,  stringEnd, FollowedBy, ParseResults, ParseException, \
     CaselessKeyword
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 # Function for parsing matched superevent ID tokens
 def parse_superevent_id(name, toks, filter_prefix=None):
@@ -127,12 +132,12 @@ parameter_dicts = {
         'keyword': 'created',
         'keywordOptional': True,
         'doRange': True,
-        'value': Combine(Word(nums, exact=4) + Suppress('-') + \
+        'value': (Word(nums, exact=4) + Suppress('-') + \
             Word(nums, exact=2) + Suppress('-') + Word(nums, exact=2) + \
             Optional(Word(nums, exact=2) + Suppress(':') + \
             Word(nums, exact=2) + Optional(Suppress(':') + \
             Word(nums, exact=2)))).setParseAction(lambda toks:
-            pytz.utc.localize(datetime.datetime(*(map(int, toks))))),
+            pytz.utc.localize(datetime.datetime(*map(int, toks)))),
         'parseAction': maybeRange("created"),
     },
     # test OR category: test
@@ -147,6 +152,7 @@ parameter_dicts = {
               if t[1].lower()==toks[0].lower()][0])),
     },
 }
+
 
 # Compile a list of expressions to try to match
 expr_list = []
