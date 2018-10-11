@@ -902,11 +902,13 @@ def modify_signoff(request, event):
         # Remove the request label.
         for l in event.labelling_set.all():
             if l.label.name == req_label:
-                delete_label(event, request, req_label)
+                delete_label(event, request, req_label,
+                    can_remove_protected=False)
 
         # Create a new label.
         label_name = label_stem + status
-        create_label(event, request, label_name, doAlert=False, doXMPP=False)
+        create_label(event, request, label_name, can_add_protected=True,
+            doAlert=False, doXMPP=False)
 
         # Create a log message
         msg = "%s signoff certified status as %s" % (signoff_type, status)
@@ -950,10 +952,11 @@ def modify_signoff(request, event):
             label_name = label_stem + signoff.status
             existing_label = event.labelling_set.get(
                 label__name=label_name).label.name
-            delete_label(event, request, existing_label)
+            delete_label(event, request, existing_label,
+                can_remove_protected=True)
 
             # also restore the label
-            create_label(event, request, req_label)
+            create_label(event, request, req_label, can_add_protected=False)
 
             # Create a log message
             msg = "deleted %s signoff status" % signoff_type
@@ -981,11 +984,12 @@ def modify_signoff(request, event):
                 label_name = label_stem + signoff.status
                 existing_label = event.labelling_set.get(
                     label__name=label_name).label.name
-                delete_label(event, request, existing_label)
+                delete_label(event, request, existing_label,
+                    can_remove_protected=True)
                 # Create a new label.
                 label_name = label_stem + status
-                create_label(event, request, label_name, doAlert=False,
-                    doXMPP=False)
+                create_label(event, request, label_name,
+                    can_add_protected=True, doAlert=False, doXMPP=False)
 
             # update the values
             signoff.status = status

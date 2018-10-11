@@ -1,3 +1,5 @@
+import logging
+
 from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
@@ -10,6 +12,9 @@ from django.forms import ModelForm
 from .fields import GraceQueryField
 from .query import parseQuery, filter_for_labels
 from pyparsing import ParseException
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 htmlEntityStar = "&#9733;"
 htmlEntityRightPointingHand = "&#9758;"
@@ -38,6 +43,19 @@ class CreateEventForm(forms.Form):
     # This ensures backwards-compatibility for client versions which
     # don't specify this parameter.
     offline = forms.BooleanField(required=False)
+
+    def clean(self):
+        cleaned_data = super(CreateEventForm, self).clean()
+
+        # Don't allow protected labels
+        labels = cleaned_data.get('labels')
+        protected_labels = labels.filter(protected=True)
+        if protected_labels.exists():
+            raise forms.ValidationError({'labels': 'The following label(s) are'
+                ' managed automatically and cannot be manually applied: {0}'
+                .format(', '.join([l.name for l in protected_labels]))})
+
+        return cleaned_data
 
 class EventSearchForm(forms.Form):
 

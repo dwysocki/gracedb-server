@@ -188,14 +188,22 @@ def _createEventFromForm(request, form):
         event = None
     return event, warnings
 
-def create_label(event, request, labelName, doAlert=True, doXMPP=True):
+
+def create_label(event, request, labelName, can_add_protected=False,
+    doAlert=True, doXMPP=True):
+
     creator = request.user
-    event_url = request.build_absolute_uri(reverse('view', args=[event.graceid()]))
     d = {}
     try:
         label = Label.objects.filter(name=labelName)[0]
     except IndexError:
         raise ValueError("No such Label '%s'" % labelName)
+
+    # Check if label is protected
+    if label.protected and not can_add_protected:
+        err_msg = ('The \'{label}\' label is managed as part of an automated '
+            'process and cannot be applied manually').format(label=label.name)
+        raise Label.ProtectedLabelError(err_msg)
 
     # Don't add a label more than once.
     # track whether label is actually created so as to
@@ -231,11 +239,12 @@ def create_label(event, request, labelName, doAlert=True, doXMPP=True):
     # and label_created bool
     return json.dumps(d), label_created
 
-def delete_label(event, request, labelName, doXMPP=True):
+def delete_label(event, request, labelName, can_remove_protected=False,
+    doXMPP=True):
+
     # This function deletes a label. It starts out a lot like the create
     # label function. First get user and event info:
     creator = request.user
-    event_url = request.build_absolute_uri(reverse('view', args=[event.graceid()]))
     d = {}
 
     # First,throw out an error if the label doesn't exist in the list of available
@@ -244,6 +253,12 @@ def delete_label(event, request, labelName, doXMPP=True):
         label = Label.objects.filter(name=labelName)[0]
     except IndexError:
         raise ValueError("No such Label '%s'" % labelName)
+
+    # Check if label is protected
+    if label.protected and not can_remove_protected:
+        err_msg = ('The \'{label}\' label is managed as part of an automated '
+            'process and cannot be removed manually').format(label=label.name)
+        raise Label.ProtectedLabelError(err_msg)
 
     # Next, check if the label is in the list of labels for the event. Throw out an
     # error if it isn't. There might be a more elegant way of doing this.

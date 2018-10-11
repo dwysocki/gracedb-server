@@ -98,7 +98,19 @@ class Label(models.Model):
     def __unicode__(self):
         return self.name
 
+    class ProtectedLabelError(Exception):
+        # To be raised when an attempt is made to apply or remove a
+        # protected label to/from an event or superevent
+        pass
+
+    class RelatedSignoffExistsError(Exception):
+        # To be raised when an attempt is made to apply a "signoff request"
+        # label (like ADVREQ, H1OPS, etc.) when a signoff of that type already
+        # exists (example: an advocate signoff exists and ADVOK or ADVNO is
+        # applied, but a user tries to apply 'ADVREQ')
+        pass
 DEFAULT_PIPELINE_ID = 1
+
 
 class Event(models.Model):
 

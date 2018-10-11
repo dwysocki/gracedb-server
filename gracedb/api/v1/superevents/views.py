@@ -43,7 +43,7 @@ from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
 from .viewsets import SupereventNestedViewSet
 from ..filters import DjangoObjectAndGlobalPermissionsFilter
-from ..mixins import SafeCreateMixin, SafeDestroyMixin
+from ..mixins import SafeCreateMixin, SafeDestroyMixin, ValidateDestroyMixin
 from ..paginators import BasePaginationFactory, CustomLabelPagination, \
     CustomLogTagPagination
 from ...utils import api_reverse
@@ -118,7 +118,6 @@ class SupereventEventViewSet(SafeDestroyMixin,
     destroy_error_classes = (Superevent.PreferredEventRemovalError,)
     destroy_error_response_status = status.HTTP_400_BAD_REQUEST
     list_view_order_by = ('pk',)
-    # TODO: do we need to filter events by user?
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
@@ -137,7 +136,8 @@ class SupereventEventViewSet(SafeDestroyMixin,
             add_event_log=True, issue_alert=True)
 
 
-class SupereventLabelViewSet(SupereventNestedViewSet):
+class SupereventLabelViewSet(ValidateDestroyMixin,
+                             SupereventNestedViewSet):
     """Superevent labels"""
     serializer_class = SupereventLabelSerializer
     pagination_class = CustomLabelPagination
@@ -146,6 +146,16 @@ class SupereventLabelViewSet(SupereventNestedViewSet):
     lookup_url_kwarg = 'label_name'
     lookup_field = 'label__name'
     list_view_order_by = ('label__name',)
+
+    def validate_destroy(self, request, instance):
+        # Don't allow removal of protected labels
+        if instance.label.protected:
+            err_msg = ('The label \'{label}\' is managed by an automated '
+                'process and cannot be removed manually').format(
+                label=instance.label.name)
+            return False, err_msg
+        else:
+            return True, None
 
     def perform_destroy(self, instance):
         remove_label_from_superevent(instance, self.request.user,

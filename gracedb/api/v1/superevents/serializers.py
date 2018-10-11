@@ -34,7 +34,10 @@ class SupereventSerializer(serializers.ModelSerializer):
                             'Superevent'),
         'category_mismatch': _('Event {graceid} is of type \'{e_category}\', '
                                'and cannot be assigned to a superevent of '
-                                'type \'{s_category}\''),
+                               'type \'{s_category}\''),
+        'protected_label': _('The following label(s) are managed by an'
+                             'automated process and cannot be manually added: '
+                             '{labels}'),
     }
 
     # Fields
@@ -71,6 +74,7 @@ class SupereventSerializer(serializers.ModelSerializer):
         preferred_event = data.get('preferred_event')
         events = data.get('events')
         category = data.get('category')
+        labels = data.get('labels')
         category_display = \
             dict(Superevent.SUPEREVENT_CATEGORY_CHOICES)[category]
 
@@ -96,6 +100,13 @@ class SupereventSerializer(serializers.ModelSerializer):
                     self.fail('category_mismatch', graceid=ev.graceid(),
                         e_category=ev.get_event_category(),
                         s_category=category_display)
+
+        # Can't add protected labels to a superevent
+        if labels:
+            protected_labels = [l.name for l in labels if l.protected]
+            if protected_labels:
+                self.fail('protected_label',
+                    labels=', '.join(protected_labels))
 
         return data
 
@@ -251,6 +262,13 @@ class SupereventEventSerializer(serializers.ModelSerializer):
 
 
 class SupereventLabelSerializer(serializers.ModelSerializer):
+    default_error_messages = {
+        'protected_label': _('The label \'{label}\' is managed by an automated'
+                             ' process and cannot be manually added'),
+        'bad_signoff_request_label': _('The \'{label}\' label cannot be '
+                                       'applied to request a signoff because '
+                                       'a related signoff already exists.'),
+    }
     # Read only fields
     self = serializers.SerializerMethodField(read_only=True)
     created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
@@ -259,7 +277,7 @@ class SupereventLabelSerializer(serializers.ModelSerializer):
         read_only=True)
     # Read/write
     name = serializers.SlugRelatedField(source='label', slug_field='name',
-        queryset=Label.objects.all())
+        queryset=Label.objects.all(), required=True)
     # Write only fields (submitter used to set creator for created instance)
     submitter = serializers.HiddenField(write_only=True,
         default=serializers.CurrentUserDefault())
@@ -275,6 +293,32 @@ class SupereventLabelSerializer(serializers.ModelSerializer):
         return api_reverse('superevents:superevent-label-detail', args=[
             obj.superevent.superevent_id, obj.label.name],
             request=self.context.get('request', None))
+
+    def validate(self, data):
+        data = super(SupereventLabelSerializer, self).validate(data)
+        label = data.get('label')
+        superevent = data.get('superevent')
+
+        # Don't allow protected labels to be applied
+        if label.protected:
+            self.fail('protected_label', label=label.name)
+
+        # If a label exists for a signoff status, users shouldn't be
+        # able to reapply the related "request signoff" label. Example:
+        # ADVOK is already applied since an advocate signoff with 'OK'
+        # status exists. So users shouldn't be able to apply 'ADVREQ' in
+        # this case.
+        req_labels = {
+            'ADVREQ': ['ADVNO', 'ADVOK'],
+            'H1OPS': ['H1NO', 'H1OK'],
+            'L1OPS': ['L1NO', 'L1OK'],
+            'V1OPS': ['V1NO', 'V1OK'],
+        }
+        if (label.name in req_labels and superevent.labels.filter(
+            name__in=req_labels[label.name]).exists()):
+            self.fail('bad_signoff_request_label', label=label.name)
+
+        return data
 
     def create(self, validated_data):
         # Function-level import to prevent circular import in alerts

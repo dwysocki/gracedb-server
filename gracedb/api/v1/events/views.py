@@ -703,7 +703,7 @@ class EventLabel(APIView):
     def put(self, request, event, label):
         try:
             rv, label_created = create_label(event, request, label)
-        except ValueError, e:
+        except (ValueError, Label.ProtectedLabelError) as e:
             return Response(e.message,
                         status=status.HTTP_400_BAD_REQUEST)
 
@@ -717,7 +717,7 @@ class EventLabel(APIView):
     def delete(self, request, event, label):
         try:
             rv = delete_label(event, request, label)
-        except ValueError, e:
+        except (ValueError, Label.ProtectedLabelError) as e:
             return Response(e.message,
                         status=status.HTTP_400_BAD_REQUEST)
 
