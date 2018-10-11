@@ -109,7 +109,6 @@ class Label(models.Model):
         # exists (example: an advocate signoff exists and ADVOK or ADVNO is
         # applied, but a user tries to apply 'ADVREQ')
         pass
-DEFAULT_PIPELINE_ID = 1
 
 
 class Event(models.Model):
@@ -145,7 +144,6 @@ class Event(models.Model):
     # that creates this column. After that, we can safely remove it.
     # The presence or absence of the default value has no effect on the DB
     # tables, so removing it does not necessitate a migration.
-    #pipeline = models.ForeignKey(Pipeline, default=DEFAULT_PIPELINE_ID)
     pipeline = models.ForeignKey(Pipeline) 
     search = models.ForeignKey(Search, null=True)
 
