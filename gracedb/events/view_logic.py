@@ -150,22 +150,8 @@ def _createEventFromForm(request, form):
                     warnings.append("Event {0} already labeled with '{1}'" \
                         .format(event.graceid(), label))
                 else:
-                    # Otherwise, create label
-                    labelling = Labelling(event=event, label=label,
-                        creator=event.submitter)
-                    labelling.save()
-                    # Create log message about label
-                    message = "Event created with label: {0}".format(label)
-                    log = EventLog(event=event, issuer=event.submitter,
-                        comment=message)
-                    log.save()
-                    # Issue label alerts
-                    try:
-                        EventLabelAlertIssuer(labelling,
-                            alert_type='label_added').issue_alerts()
-                    except Exception as e:
-                        logger.exception('Problem issuing alert (%s)' % str(e))
-                        d['warning'] = "Problem issuing alert (%s)" % str(e)
+                    create_label(event, request, label.name,
+                        can_add_protected=False)
 
         except Exception, e:
             message = "Problem scanning data. No alert issued (%s)" % e
