@@ -538,7 +538,8 @@ def create_emobservation_for_superevent(superevent, submitter, ra_list,
 
     # Create EMFootprint objects
     for ra, dec, ra_width, dec_width, start_time, exposure_time in \
-        zip(ra_list, dec_list, ra_width_list, dec_width_list, start_time_list, duration_list):
+        zip(ra_list, dec_list, ra_width_list, dec_width_list, start_time_list,
+        duration_list):
 
         emf = EMFootprint.objects.create(observation=emo, ra=ra, dec=dec,
             raWidth=ra_width, decWidth=dec_width, start_time=start_time,
@@ -619,27 +620,46 @@ def create_signoff(superevent, user, signoff_type, signoff_instrument,
         instrument=signoff_instrument, signoff_type=signoff_type,
         status=signoff_status, comment=signoff_comment)
 
+    # Remove label which requested signoff
+    labelling_to_remove = superevent.labelling_set.filter(label__name=
+        signoff.get_req_label_name()).first()
+    if labelling_to_remove is not None:
+        remove_label_from_superevent(labelling_to_remove, user,
+            add_log_message=False, issue_alert=False)
+
+    # Add new label depending on signoff status
+    label_to_add = Label.objects.get(name=signoff.get_status_label_name())
+    add_label_to_superevent(superevent, label_to_add, user,
+        add_log_message=False, issue_alert=issue_alert)
+
     # Create log message to document the signoff
     if add_log_message:
+
+        # Compile a comment
         signoff_type_full = dict(Signoff.SIGNOFF_TYPE_CHOICES)[signoff_type]
         comment = "{signoff_type} signoff certified status as {status}".format(
             signoff_type=signoff_type_full.capitalize(), status=signoff_status)
         if signoff_instrument:
             comment += " for {inst}".format(inst=signoff_instrument)
         comment += ": '{comment}'".format(comment=signoff_comment)
+
+        # Label-related comments
+        label_removed_comment = ""
+        if labelling_to_remove is not None:
+            label_removed_comment = " label {l} removed and".format(
+                l=labelling_to_remove.label.name)
+        label_comment = ";{label_removed_comment} label {new_label} applied" \
+            .format(label_removed_comment=label_removed_comment,
+            new_label=label_to_add.name)
+        # Add to full comment
+        comment += label_comment
+
+        # Add em_follow tag
         em_follow = Tag.objects.get(name='em_follow')
+
+        # Create log
         signoff_log = create_log(user, comment, superevent, issue_alert=False,
             tags=[em_follow])
-
-    # Remove label which requested signoff
-    labelling_to_remove = superevent.labelling_set.filter(label__name=
-        signoff.get_req_label_name()).first()
-    if labelling_to_remove is not None:
-        remove_label_from_superevent(labelling_to_remove, user)
-
-    # Add new label depending on signoff status
-    label_to_add = Label.objects.get(name=signoff.get_status_label_name())
-    add_label_to_superevent(superevent, label_to_add, user)
 
     # Issue alert
     if issue_alert:
@@ -676,13 +696,13 @@ def update_signoff(signoff, user, status, comment, add_log_message=True,
             signoff.get_opposite_status_label_name()).first()
         if labelling_to_remove is not None:
             remove_label_from_superevent(labelling_to_remove, user,
-                add_log_message=False, issue_alert=True)
+                add_log_message=False, issue_alert=issue_alert)
 
         # If label for current status doesn't exist, add it
         label_to_add = Label.objects.get(name=signoff.get_status_label_name())
         if label_to_add not in superevent.labels.all():
             add_label_to_superevent(superevent, label_to_add, user,
-                add_log_message=False, issue_alert=True)
+                add_log_message=False, issue_alert=issue_alert)
 
     # Create log message to document the update
     if add_log_message:
