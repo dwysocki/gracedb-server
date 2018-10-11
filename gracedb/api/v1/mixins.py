@@ -49,6 +49,7 @@ class SafeCreateMixin(mixins.CreateModelMixin):
         try:
             self.perform_create(serializer)
         except self.create_error_classes as e:
+            logger.error(e)
             err_msg = self.create_error_message or e.__str__()
             return Response(err_msg, status=self.create_error_response_status)
         headers = self.get_success_headers(serializer.data)
