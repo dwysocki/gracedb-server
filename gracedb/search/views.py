@@ -72,6 +72,7 @@ def search(request):
             context['query_type'] = query_type
             context['get_neighbors'] = get_neighbors
     else:
+        # Initial page with no query
         form = MainSearchForm()
 
     # Update context
@@ -89,7 +90,7 @@ def latest(request):
     if "query" in request.GET:
         form = MainSearchForm(request.GET)
     else:
-        form = MainSearchForm({'query': "", 'query_type': 'E'})
+        form = MainSearchForm({'query': "", 'query_type': 'S'})
 
     # Hide get_neighbors widget
     form.fields['get_neighbors'].widget = forms.HiddenInput()
