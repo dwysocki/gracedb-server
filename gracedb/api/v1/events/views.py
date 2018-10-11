@@ -189,7 +189,7 @@ def event_perm_object_required(view):
 #
 #    def get_labels(self,obj):
 #        request = self.context['request']
-#        graceid = obj.graceid()
+#        graceid = obj.graceid
 #        return dict([
 #            (labelling.label.name,
 #                reverse("labels",
@@ -199,7 +199,7 @@ def event_perm_object_required(view):
 #
 #    def get_links(self,obj):
 #        request = self.context['request']
-#        graceid = obj.graceid()
+#        graceid = obj.graceid
 #        return {
 #            "neighbors" : reverse("neighbors", args=[graceid], request=request),
 #            "log"   : reverse("eventlog-list", args=[graceid], request=request),
@@ -485,7 +485,7 @@ class EventList(APIView):
                 response = Response(rv, status=status.HTTP_201_CREATED)
                 response["Location"] = api_reverse(
                         'events:event-detail',
-                        args=[event.graceid()],
+                        args=[event.graceid],
                         request=request)
                 return response
             else: # no event created
@@ -663,7 +663,7 @@ class EventNeighbors(APIView):
                 'links' : {
                     'self': request.build_absolute_uri(),
                     'event': api_reverse("events:event-detail",
-                        args=[event.graceid()], request=request),
+                        args=[event.graceid], request=request),
                     }
                 })
 
@@ -693,7 +693,7 @@ class EventLabel(APIView):
                 'links' : [{
                     'self': request.build_absolute_uri(),
                     'event': api_reverse("events:event-detail",
-                        args=[event.graceid()],
+                        args=[event.graceid],
                         request=request),
                     }],
                 'labels': labels
@@ -835,7 +835,7 @@ class EventLogList(APIView):
                     request.data['displayName'] = displayNames[i]
 
                 tmp = EventLogTagDetail()
-                retval = tmp.put(request, event.graceid(), n, tagname) 
+                retval = tmp.put(request, event.graceid, n, tagname) 
                 # XXX This seems like a bizarre way of getting an error message out.
                 if retval.status_code != 201:
                     return Response(('Log message created, but error creating '
@@ -1043,18 +1043,18 @@ def tagToDict(tag, columns=None, request=None, event=None, n=None):
             # We want a link to the self only.  End of the line.
             rv['links'] = {
                             "self" : api_reverse("events:eventlogtag-detail",
-                                             args=[event.graceid(),n,tag.name],
+                                             args=[event.graceid,n,tag.name],
                                              request=request)
                           }
         else:
             # Links to all log messages of the event with this tag.
             rv['links'] = {
                             "logs" : [api_reverse("events:eventlog-detail", 
-                                              args=[event.graceid(),log.N], 
+                                              args=[event.graceid,log.N], 
                                               request=request) 
                                       for log in event.getLogsForTag(tag.name)],
                             "self" : api_reverse("events:eventtag-detail",
-                                             args=[event.graceid(),tag.name],
+                                             args=[event.graceid,tag.name],
                                              request=request)
                           }
     else:
@@ -1063,7 +1063,7 @@ def tagToDict(tag, columns=None, request=None, event=None, n=None):
         pass
 #         rv['links'] = {
 #                         "events" : [reverse("event-detail", 
-#                                             args=[event.graceid()], 
+#                                             args=[event.graceid], 
 #                                             request=request) 
 #                                     for event in tag.getEvents()],
 #                         "self"   : reverse("tag-detail",
@@ -1104,7 +1104,7 @@ class EventTagList(APIView):
                 'tags' : [
                     {
                         'self': api_reverse("events:eventtag-detail",
-                            args=[event.graceid(), tag.name], request=request),
+                            args=[event.graceid, tag.name], request=request),
                         'name': tag.name,
                         'displayName': tag.displayName
                     }
@@ -1142,7 +1142,7 @@ class EventLogTagList(APIView):
                 'tags' : [
                     {
                         'self': api_reverse("events:eventlogtag-detail",
-                            args=[event.graceid(), eventlog.N, tag.name],
+                            args=[event.graceid, eventlog.N, tag.name],
                             request=request),
                         'name': tag.name,
                         'displayName': tag.displayName
@@ -1277,7 +1277,7 @@ class EventPermissionList(APIView):
         links['groupeventpermissions'] = out_dict
         for group in groups:
             out_dict[group.name] = api_reverse("events:groupeventpermission-list", 
-                args=[event.graceid(),group.name], request=request) 
+                args=[event.graceid,group.name], request=request) 
         return Response(rv, status=status.HTTP_200_OK)            
 
 class GroupEventPermissionList(APIView):
@@ -1454,7 +1454,7 @@ class Files(APIView):
     def get(self, request, event, filename=""):
         # Do not filename to be None.  That messes up later os.path.join
         filename = filename or ""
-        graceid = event.graceid()
+        graceid = event.graceid
 
         filepath = os.path.join(event.datadir, filename)
 
@@ -1533,7 +1533,7 @@ class Files(APIView):
             longname = fdest.name
             shortname = longname[longname.rfind(filename):]
             rv['permalink'] = api_reverse(
-                    "events:files", args=[event.graceid(), shortname], request=request)
+                    "events:files", args=[event.graceid, shortname], request=request)
             response = Response(rv, status=status.HTTP_201_CREATED)
         except Exception, e:
             # XXX This needs some thought.
@@ -1647,7 +1647,7 @@ class VOEventList(APIView):
             return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
 
         voevent_display_type = dict(VOEvent.VOEVENT_TYPE_CHOICES)[voevent_type].capitalize()
-        filename = "%s-%d-%s.xml" % (event.graceid(), voevent.N, voevent_display_type)
+        filename = "%s-%d-%s.xml" % (event.graceid, voevent.N, voevent_display_type)
         filepath = os.path.join(event.datadir, filename)
         fdest = VersionedFile(filepath, 'w')
         fdest.write(voevent_text)
@@ -1671,11 +1671,11 @@ class VOEventList(APIView):
             logentry.save()
         except Exception as e:
             rv['warnings'] = 'Problem saving log entry for VOEvent %s of %s' % (voevent.N, 
-                event.graceid()) 
+                event.graceid) 
 
         # Tag log entry as 'em_follow')
         tmp = EventLogTagDetail()
-        retval = tmp.put(request, event.graceid(), logentry.N, 'em_follow')
+        retval = tmp.put(request, event.graceid, logentry.N, 'em_follow')
         # XXX This seems like a bizarre way of getting an error message out.
         if retval.status_code != 201:
             return Response(('VOEvent log message created, but error tagging '

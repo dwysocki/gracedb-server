@@ -246,7 +246,7 @@ class TestPerms(TestCase):
     def test_internal_event_access(self):
         """Test viewing of events by LIGO users"""
         for e in Event.objects.all():
-            url = reverse('view', args=[e.graceid()])
+            url = reverse('view', args=[e.graceid])
             response = self.client.get(url, **extra_args(self.internal_user))
             self.assertEqual(response.status_code, 200)
 
@@ -255,9 +255,9 @@ class TestPerms(TestCase):
 
         # Only the internal event should not be viewable for LV-EM
         for e in Event.objects.all():
-            url = reverse('view', args=[e.graceid()])
+            url = reverse('view', args=[e.graceid])
             response = self.client.get(url, **extra_args(self.lvem_user))
-            if (e.graceid() != self.internal_event.graceid()):
+            if (e.graceid != self.internal_event.graceid):
                 self.assertEqual(response.status_code, 200)
             else:
                 self.assertEqual(response.status_code, 403)
@@ -267,9 +267,9 @@ class TestPerms(TestCase):
 
         # Only the public event should be viewable for public users
         for e in Event.objects.all():
-            url = reverse('view', args=[e.graceid()])
+            url = reverse('view', args=[e.graceid])
             response = self.client.get(url, **extra_args(self.public_user))
-            if (e.graceid() == self.public_event.graceid()):
+            if (e.graceid == self.public_event.graceid):
                 self.assertEqual(response.status_code, 200)
             else:
                 self.assertEqual(response.status_code, 403)
@@ -295,7 +295,7 @@ class TestPerms(TestCase):
     def test_internal_log_creation(self):
         """Test annotation of events by LIGO users"""
         for e in Event.objects.all():
-            url = reverse('logentry', args=[e.graceid(), ''])
+            url = reverse('logentry', args=[e.graceid, ''])
             input_dict = {
                 'comment' : 'This is a test.',
                 'tagname' : 'test_tag',
@@ -310,7 +310,7 @@ class TestPerms(TestCase):
         """Test annotation of events by LV-EM users"""
         # Should be able to annotate the LV-EM and public events
         for e in Event.objects.all():
-            url = reverse('logentry', args=[e.graceid(), ''])
+            url = reverse('logentry', args=[e.graceid, ''])
             input_dict = {
                 'comment' : 'This is a test.',
                 'tagname' : 'test_tag',
@@ -329,7 +329,7 @@ class TestPerms(TestCase):
         # Public user should not be able to annotate any events,
         # even publicly viewable ones
         event = self.public_event
-        url = reverse('logentry', args=[event.graceid(), ''])
+        url = reverse('logentry', args=[event.graceid, ''])
         input_dict = {
             'comment': 'This is a test.',
             'tagname': 'test_tag',
@@ -342,7 +342,7 @@ class TestPerms(TestCase):
         """Test event log tagging by internal user"""
         for e in Event.objects.all():
             # Try to add 'test_tag' to the first log entry.
-            url = reverse('taglogentry', args=[e.graceid(), 1, 'test_tag'])
+            url = reverse('taglogentry', args=[e.graceid, 1, 'test_tag'])
             input_dict = {'displayName': 'test_tag',}
             response = self.client.post(url, input_dict,
                 **extra_args(self.internal_user))
@@ -354,7 +354,7 @@ class TestPerms(TestCase):
         # Should be able to tag the LV-EM and public event's logs.
         for e in Event.objects.all():
             # Try to add 'test_tag' to the first log entry.
-            url = reverse('taglogentry', args=[e.graceid(), 1, 'test_tag'])
+            url = reverse('taglogentry', args=[e.graceid, 1, 'test_tag'])
             input_dict = {'displayName': 'test_tag',}
             response = self.client.post(url, input_dict,
                 **extra_args(self.lvem_user))
@@ -371,7 +371,7 @@ class TestPerms(TestCase):
         # publicly viewable events
         for e in Event.objects.all():
             # Try to add 'test_tag' to the first log entry.
-            url = reverse('taglogentry', args=[e.graceid(), 1, 'test_tag'])
+            url = reverse('taglogentry', args=[e.graceid, 1, 'test_tag'])
             input_dict = {'displayName': 'test_tag',}
             response = self.client.post(url, input_dict,
                 **extra_args(self.public_user))
@@ -381,7 +381,7 @@ class TestPerms(TestCase):
         """Test EEL creation by internal user"""
         # Internal user should be able to create EELs for all events
         for e in Event.objects.all():
-            url = reverse('embblogentry', args=[e.graceid(), ''])
+            url = reverse('embblogentry', args=[e.graceid, ''])
             input_dict = {
                 'group': TEST_NAMES['emgroup'],
                 'waveband': 'em.gamma',
@@ -401,7 +401,7 @@ class TestPerms(TestCase):
         """Test EEL creation by LV-EM user"""
         # LV-EM user should be able to create EELs for LV-EM and public events
         for e in Event.objects.all():
-            url = reverse('embblogentry', args=[e.graceid(), ''])
+            url = reverse('embblogentry', args=[e.graceid, ''])
             input_dict = {
                 'group': TEST_NAMES['emgroup'],
                 'waveband': 'em.gamma',
@@ -421,7 +421,7 @@ class TestPerms(TestCase):
         """Test EEL creation by public user"""
         # Public user should not be able to create EELs
         event = self.public_event
-        url = reverse('embblogentry', args=[event.graceid(), ''])
+        url = reverse('embblogentry', args=[event.graceid, ''])
         # Test, em.gamma, FO, TE, instrument='Test', comment='Test'
         input_dict = {
             'group': TEST_NAMES['emgroup'],
@@ -475,7 +475,7 @@ class TestPerms(TestCase):
             # choose any event
             event = self.internal_event
             # try POST to permission creation URL
-            url = reverse('modify_permissions', args=[event.graceid()])
+            url = reverse('modify_permissions', args=[event.graceid])
             input_dict = {
                 'action': 'expose',
                 'group_name': settings.LVEM_GROUP,

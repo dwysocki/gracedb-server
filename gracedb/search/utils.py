@@ -111,9 +111,9 @@ def superevent_flexigrid_response(request, objects):
                 object.superevent_id]), object.superevent_id),
             #Labels
             " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();" style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name) for label in object.labelling_set.all()]),
-            ev_link(object.preferred_event.graceid()),
-            ", ".join([ev_link(ev.graceid()) for ev in object.get_internal_events()]),
-            ", ".join([ev_link(ev.graceid()) for ev in object.get_external_events()]),
+            ev_link(object.preferred_event.graceid),
+            ", ".join([ev_link(ev.graceid) for ev in object.get_internal_events()]),
+            ", ".join([ev_link(ev.graceid) for ev in object.get_external_events()]),
             t_start_times.get('gps', ""),
             t_0_times.get('gps', ""),
             t_end_times.get('gps', ""),
@@ -205,7 +205,7 @@ def event_flexigrid_response(request, objects):
                 display_far = "< %s" % scientific(settings.VOEVENT_FAR_FLOOR)
 
         cell_values = [ '<a href="%s">%s</a>' %
-                            (django_reverse("view", args=[object.graceid()]), object.graceid()),
+                            (django_reverse("view", args=[object.graceid]), object.graceid),
                          #Labels
                         " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();"  style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name)
                                 for label in object.labelling_set.all()]),
@@ -233,7 +233,7 @@ def event_flexigrid_response(request, objects):
         if get_neighbors:
             # Links to neighbors
             cell_values.insert(2, ', '.join([ '<a href="%s">%s</a>' %
-                (django_reverse("view", args=[n.graceid()]), n.graceid()) for n in object.neighbors()]))
+                (django_reverse("view", args=[n.graceid]), n.graceid) for n in object.neighbors()]))
 
         rows.append(
             { 'id' : object.id,

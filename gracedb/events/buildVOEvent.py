@@ -65,7 +65,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     # Let's convert that voevent_type to something nicer looking
     voevent_type = VOEVENT_TYPE_DICT[voevent_type]
 
-    objid = event.graceid()
+    objid = event.graceid
 
     # Now build the IVORN. 
     # XXX This will have the string '-Retraction' appended if it is a retraction,

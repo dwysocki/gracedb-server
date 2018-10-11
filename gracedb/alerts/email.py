@@ -74,12 +74,12 @@ def issueAlertForLabel(event, label, doxmpp, serialized_event=None, event_url=No
                 phoneRecips.append(recip)
 
     if event.search:
-        subject = "[gracedb] %s / %s / %s / %s" % (label.name, event.pipeline.name, event.search.name, event.graceid())
+        subject = "[gracedb] %s / %s / %s / %s" % (label.name, event.pipeline.name, event.search.name, event.graceid)
     else:
-        subject = "[gracedb] %s / %s / %s" % (label.name, event.pipeline.name, event.graceid())
+        subject = "[gracedb] %s / %s / %s" % (label.name, event.pipeline.name, event.graceid)
 
     message = "A %s event with graceid %s was labeled with %s" % \
-              (event.pipeline.name, event.graceid(), label.name)
+              (event.pipeline.name, event.graceid, label.name)
     if event_url:
         message += '\n\n%s' % event_url
 
@@ -141,7 +141,7 @@ def issueEmailAlert(event, event_url):
                     if recip.email:
                         bccaddresses.append(recip.email)
 
-    subject = "[gracedb] %s event. ID: %s" % (event.pipeline.name, event.graceid())
+    subject = "[gracedb] %s event. ID: %s" % (event.pipeline.name, event.graceid)
     message = """
 New Event
 %s / %s
@@ -154,7 +154,7 @@ Event Summary:
 """
     message %= (event.group.name,
                 event.pipeline.name,
-                event.graceid(),
+                event.graceid,
                 event_url,
                 event.weburl(),
                 "%s %s" % (event.submitter.first_name, event.submitter.last_name),
@@ -205,12 +205,12 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
         nodename = nodename + "_%s" % event.search.name.lower()
         nodenames.append(nodename)
 
-    log.debug('issueXMPPAlert: %s' % event.graceid())
+    log.debug('issueXMPPAlert: %s' % event.graceid)
 
     # Create the output dictionary and serialize as JSON.
     lva_data = {
         'file': location,
-        'uid': event.graceid(),
+        'uid': event.graceid,
         'alert_type': alert_type,
         # The following string cast is necessary because sometimes 
         # description is a label object!
@@ -232,7 +232,7 @@ def issueXMPPAlert(event, location, alert_type="new", description="", serialized
             if settings.USE_LVALERT_OVERSEER:
                 # Calculate unique message_id and log
                 message_id = sha1(nodename + msg).hexdigest()
-                log.info("issueXMPPAlert: sending %s,%s,%s to node %s" % (event.graceid(), alert_type, message_id, nodename))
+                log.info("issueXMPPAlert: sending %s,%s,%s to node %s" % (event.graceid, alert_type, message_id, nodename))
 
                 rdict = manager.dict()
                 msg_dict = {'node_name': nodename, 'message': msg, 'action': 'push'}

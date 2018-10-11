@@ -129,7 +129,7 @@ def reverse(name, *args, **kw):
 def eventToDict(event, columns=None, request=None, is_alert=False):
     """Convert an Event to a dictionary."""
     rv = {}
-    graceid = event.graceid()
+    graceid = event.graceid
     try:
       rv['submitter'] = event.submitter.username
     except:
@@ -366,10 +366,10 @@ def eventLogToDict(log, request=None):
 
     # Get some links
     uri = api_reverse("events:eventlog-detail",
-            args=[log.event.graceid(), log.N],
+            args=[log.event.graceid, log.N],
             request=request)
     taglist_uri = api_reverse("events:eventlogtag-list",
-            args=[log.event.graceid(), log.N],
+            args=[log.event.graceid, log.N],
             request=request)
     if log.filename:
         actual_filename = log.filename
@@ -381,7 +381,7 @@ def eventLogToDict(log, request=None):
         #filename = urlquote(actual_filename)
         filename = actual_filename
         file_uri = api_reverse("events:files",
-            args=[log.event.graceid(), filename],
+            args=[log.event.graceid, filename],
             request=request)
 
     # This is purely for convenience in working with the web interface.
@@ -416,7 +416,7 @@ def labelToDict(labelling, request=None):
             "created" : labelling.created.strftime(
                       settings.GRACE_STRFTIME_FORMAT),
             "self" : api_reverse("events:labels",
-                args=[labelling.event.graceid(), labelling.label.name],
+                args=[labelling.event.graceid, labelling.label.name],
                 request=request),
            }
 
@@ -425,7 +425,7 @@ def embbEventLogToDict(eel, request=None):
       uri = None
       if request:
           uri = api_reverse("events:embbeventlog-detail",
-                  args=[eel.event.graceid(), eel.N],
+                  args=[eel.event.graceid, eel.N],
                   request=request)
       return {
                   "N"       : eel.N,
@@ -461,7 +461,7 @@ def embbEventLogToDict(eel, request=None):
 # EMObservation serializer.
 def emObservationToDict(emo, request=None):
     uri = api_reverse("events:emobservation-detail",
-        args=[emo.event.graceid(), emo.N], request=request)
+        args=[emo.event.graceid, emo.N], request=request)
 
     # User display name
     # Show full name for web interface views (fetched via AJAX), unless it's
@@ -492,7 +492,7 @@ def emFootprintToDict(emf, request=None):
 #      uri = None
 #      if request:
 #          uri = api_reverse("events:emfootprint-detail",
-#                  args=[emf.emobservation.event.graceid(), emf.emobservation.N, emf.N],
+#                  args=[emf.emobservation.event.graceid, emf.emobservation.N, emf.N],
 #                  request=request)
       
       return {
@@ -513,7 +513,7 @@ def emFootprintToDict(emf, request=None):
 # EMObservation serializer for the skymap Viewer
 def skymapViewerEMObservationToDict(emo, request=None):
     uri = api_reverse("events:emobservation-detail",
-        args=[emo.event.graceid(), emo.N],
+        args=[emo.event.graceid, emo.N],
         request=request)
 
     # Keys we want:
@@ -574,10 +574,10 @@ def voeventToDict(voevent, request=None):
     filename = '%s,%d' % (voevent.filename, voevent.file_version)
 
     uri = api_reverse("events:voevent-detail",
-        args=[voevent.event.graceid(), voevent.N],
+        args=[voevent.event.graceid, voevent.N],
         request=request)
     file_uri = api_reverse("events:files",
-        args=[voevent.event.graceid(), filename],
+        args=[voevent.event.graceid, filename],
         request=request)
 
     issuer = voevent.issuer.username
@@ -639,13 +639,13 @@ def groupeventpermissionToDict(gop, event=None, request=None):
     rv = {}
     rv['group'] = gop.group.name
     rv['permission'] = gop.permission.codename
-    #rv['graceid'] = event.graceid()
+    #rv['graceid'] = event.graceid
     #perm_shortname = gop.permission.codename.split('_')[0]
     #rv['permission'] = perm_shortname
     # We want a link to the self only.  End of the line.
     #rv['links'] = {
     #                "self" : api_reverse("events:groupeventpermission-detail",
-    #                                 args=[event.graceid(),gop.group.name,perm_shortname],
+    #                                 args=[event.graceid,gop.group.name,perm_shortname],
     #                                 request=request)
     #              }
     return rv
@@ -779,7 +779,7 @@ def get_recent_events_string(request):
         return ''
 
     event_list = [ {'pipeline': e.pipeline.name,
-                    'graceid': e.graceid(),
+                    'graceid': e.graceid,
                     'created': e.created.isoformat() } for e in events ]
 
     return json.dumps(event_list)

@@ -81,12 +81,12 @@ class SupereventSerializer(serializers.ModelSerializer):
         # Make sure preferred_event is not already assigned
         if (preferred_event.superevent or hasattr(preferred_event,
             'superevent_preferred_for')):
-            self.fail('event_assigned', graceid=preferred_event.graceid())
+            self.fail('event_assigned', graceid=preferred_event.graceid)
 
         # Check that preferred_event has the correct type for the superevent
         # it's being assigned to
         if not Superevent.event_category_check(preferred_event, category):
-            self.fail('category_mismatch', graceid=preferred_event.graceid(),
+            self.fail('category_mismatch', graceid=preferred_event.graceid,
                 e_category=preferred_event.get_event_category(),
                 s_category=category_display)
 
@@ -94,10 +94,10 @@ class SupereventSerializer(serializers.ModelSerializer):
         if events:
             for ev in events:
                 if (ev.superevent or hasattr(ev, 'superevent_preferred_for')):
-                    self.fail('event_assigned', graceid=ev.graceid())
+                    self.fail('event_assigned', graceid=ev.graceid)
                 # Check each event for type compatibility
                 if not Superevent.event_category_check(ev, category):
-                    self.fail('category_mismatch', graceid=ev.graceid(),
+                    self.fail('category_mismatch', graceid=ev.graceid,
                         e_category=ev.get_event_category(),
                         s_category=category_display)
 
@@ -122,10 +122,10 @@ class SupereventSerializer(serializers.ModelSerializer):
 
     # Custom method fields ----------------------------------------------------
     def get_gw_events(self, obj):
-        return [ev.graceid() for ev in obj.get_internal_events()]
+        return [ev.graceid for ev in obj.get_internal_events()]
 
     def get_em_events(self, obj):
-        return [ev.graceid() for ev in obj.get_external_events()]
+        return [ev.graceid for ev in obj.get_external_events()]
 
     def get_links(self, obj):
         bound_reverse = functools.partial(api_reverse,
@@ -186,7 +186,7 @@ class SupereventUpdateSerializer(SupereventSerializer):
                 self.instance) or hasattr(preferred_event,
                 'superevent_preferred_for') and \
                 preferred_event.superevent_preferred_for != self.instance):
-                self.fail('event_assigned', graceid=preferred_event.graceid())
+                self.fail('event_assigned', graceid=preferred_event.graceid)
 
         return updated_attributes
 
@@ -227,7 +227,7 @@ class SupereventEventSerializer(serializers.ModelSerializer):
         fields = ('self', 'graceid', 'event', 'superevent', 'user')
 
     def get_self(self, obj):
-        return api_reverse('events:event-detail', args=[obj.graceid()],
+        return api_reverse('events:event-detail', args=[obj.graceid],
             request=self.context.get('request', None))
 
     def validate(self, data):
@@ -237,12 +237,12 @@ class SupereventEventSerializer(serializers.ModelSerializer):
 
         # Check if event is already assigned to a superevent
         if (event.superevent or hasattr(event, 'superevent_preferred_for')):
-            self.fail('event_assigned', graceid=event.graceid())
+            self.fail('event_assigned', graceid=event.graceid)
 
         # Check that event has the correct type for the superevent it's being
         # assigned to
         if not superevent.event_compatible(event):
-            self.fail('category_mismatch', graceid=event.graceid(),
+            self.fail('category_mismatch', graceid=event.graceid,
                 e_category=event.get_event_category(),
                 s_category=superevent.get_category_display())
 

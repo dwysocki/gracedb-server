@@ -76,12 +76,8 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
     # Determine LVAlert node names
     node_names = get_xmpp_node_names(event_or_superevent)
 
-    # Get uid - FIXME when graceid is switched to a property for events
-    # instead of a callable
-    if is_event(event_or_superevent):
-        uid = event_or_superevent.graceid()
-    else:
-        uid = event_or_superevent.graceid
+    # Get uid
+    uid = event_or_superevent.graceid
 
     # Create the output dictionary and serialize as JSON.
     lva_data = {

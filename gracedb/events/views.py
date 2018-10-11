@@ -116,8 +116,8 @@ def index(request):
         older_events = events.filter(created__lt=one_day_ago)
 
         # Put into context dict for template rendering
-        context['new_signoff_graceids'] = [e.graceid() for e in new_events]
-        context['older_signoff_graceids'] = [e.graceid() for e in older_events]
+        context['new_signoff_graceids'] = [e.graceid for e in new_events]
+        context['older_signoff_graceids'] = [e.graceid for e in older_events]
 
         # TODO: ensure not test or MDC types once those are implemented
         # Superevent signoffs
@@ -203,7 +203,7 @@ def _create(request):
                 # problem creating event...  XXX need an error page for this.
                 raise Exception("\n".join(warnings))
 
-            return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
+            return HttpResponseRedirect(reverse(view, args=[event.graceid]))
         else:
             rv['form'] = form
     return rv
@@ -317,7 +317,7 @@ def logentry(request, event, num=None):
         return HttpResponseBadRequest
 
     if not request.is_ajax():
-        return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
+        return HttpResponseRedirect(reverse(view, args=[event.graceid]))
 
     rv = {}
     rv['comment'] = elog.comment
@@ -568,7 +568,7 @@ def taglogentry(request, event, num, tagname):
 
     # Hopefully, this will only ever be called from inside a script.  Just in case...
     if not request.is_ajax():
-        return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
+        return HttpResponseRedirect(reverse(view, args=[event.graceid]))
 
     # no need for a JSON response. 
     msg = "Successfully applied tag %s to log message %s." % (tagname, num)
@@ -613,8 +613,8 @@ def file_list(request, event):
 
     context = {}
     context['file_list'] = f
-    context['title'] = 'Files for %s' % event.graceid() 
-    context['graceid'] = event.graceid() 
+    context['title'] = 'Files for %s' % event.graceid 
+    context['graceid'] = event.graceid 
         
     return render(request, 'gracedb/event_filelist.html', context=context)
 
@@ -729,7 +729,7 @@ def modify_permissions(request, event):
         update_event_perms_for_group(underlying_event, g, action)
 
     # Finished. Redirect back to the event.
-    return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
+    return HttpResponseRedirect(reverse("view", args=[event.graceid]))
 
 # A view to create embb log entries
 @event_and_auth_required
@@ -743,7 +743,7 @@ def embblogentry(request, event, num=None):
         except Exception, e:
             return HttpResponseServerError(str(e))
 
-        return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
+        return HttpResponseRedirect(reverse(view, args=[event.graceid]))
     else:
         return HttpResponseBadRequest("This URL only supports POST.")
 
@@ -788,7 +788,7 @@ def emobservation_entry(request, event, num=None):
         except Exception, e:
             return HttpResponseServerError(str(e))
 
-        return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
+        return HttpResponseRedirect(reverse(view, args=[event.graceid]))
     else:
         return HttpResponseBadRequest("This URL only supports POST.")
 
@@ -825,7 +825,7 @@ def modify_t90(request, event):
     event.save()
     
     # Finished. Redirect back to the event.
-    return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
+    return HttpResponseRedirect(reverse("view", args=[event.graceid]))
 
 
 def get_signoff_type(stype):
@@ -1016,5 +1016,5 @@ def modify_signoff(request, event):
                 pass
 
     # Finished. Redirect back to the event.
-    return HttpResponseRedirect(reverse("view", args=[event.graceid()]))
+    return HttpResponseRedirect(reverse("view", args=[event.graceid]))
 

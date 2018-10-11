@@ -60,7 +60,7 @@ class EventFeed(Feed):
         return reverse("home")
 
     def item_link(self, obj):
-        return reverse(view, args=[obj.graceid()])
+        return reverse(view, args=[obj.graceid])
 
     def item_author_name(self, obj):
         return u"{0} {1}".format(obj.submitter.first_name, obj.submitter.last_name)

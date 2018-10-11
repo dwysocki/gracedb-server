@@ -64,7 +64,7 @@ def issue_phone_alerts(event, contacts, label=None):
     # Compile Twilio voice URL and message body
     msg_params = {
         'pipeline': event.pipeline.name,
-        'graceid': event.graceid(),
+        'graceid': event.graceid,
         'server': hostname,
     }
     if alert_type == "label_added":

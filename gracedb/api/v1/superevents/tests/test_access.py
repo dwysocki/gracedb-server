@@ -103,15 +103,15 @@ class TestSupereventListPost(SupereventManagersGroupAndUserSetup,
             't_end': 2,
         }
         cls.production_superevent_data = {
-            'preferred_event': p_ev.graceid(),
+            'preferred_event': p_ev.graceid,
             'category': Superevent.SUPEREVENT_CATEGORY_PRODUCTION,
         }
         cls.test_superevent_data = {
-            'preferred_event': t_ev.graceid(),
+            'preferred_event': t_ev.graceid,
             'category': Superevent.SUPEREVENT_CATEGORY_TEST,
         }
         cls.mdc_superevent_data = {
-            'preferred_event': m_ev.graceid(),
+            'preferred_event': m_ev.graceid,
             'category': Superevent.SUPEREVENT_CATEGORY_MDC,
         }
         cls.production_superevent_data.update(base_superevent_data)
@@ -782,7 +782,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
             self.assertEqual(len(response.data['events']), s.events.count())
             graceid_list = [ev['graceid'] for ev in response.data['events']]
             for ev in s.events.all():
-                self.assertIn(ev.graceid(), graceid_list)
+                self.assertIn(ev.graceid, graceid_list)
 
     def test_lvem_get_no_view_perms(self):
         """LV-EM user can't see events for internal-only superevent"""
@@ -807,7 +807,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
             self.lvem_superevent.events.count())
         graceid_list = [ev['graceid'] for ev in data['events']]
         for ev in self.lvem_superevent.events.all():
-            self.assertIn(ev.graceid(), graceid_list)
+            self.assertIn(ev.graceid, graceid_list)
 
     def test_public_get_no_view_perms(self):
         """Public user can't see events for non-public superevents"""
@@ -843,7 +843,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
         url = v_reverse('superevents:superevent-event-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user,
-            data={'event': ev.graceid()})
+            data={'event': ev.graceid})
         self.assertEqual(response.status_code, 403)
 
     def test_basic_internal_post_mdc(self):
@@ -858,7 +858,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
         url = v_reverse('superevents:superevent-event-list',
             args=[s.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user,
-            data={'event': ev.graceid()})
+            data={'event': ev.graceid})
         self.assertEqual(response.status_code, 403)
 
     def test_basic_internal_post_test(self):
@@ -873,9 +873,9 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
         url = v_reverse('superevents:superevent-event-list',
             args=[s.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user,
-            data={'event': ev.graceid()})
+            data={'event': ev.graceid})
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data['graceid'], ev.graceid())
+        self.assertEqual(response.data['graceid'], ev.graceid)
 
     def test_privileged_internal_post_production(self):
         """Privileged internal user can add events to production superevents"""
@@ -887,9 +887,9 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
         url = v_reverse('superevents:superevent-event-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.sm_user,
-            data={'event': ev.graceid()})
+            data={'event': ev.graceid})
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data['graceid'], ev.graceid())
+        self.assertEqual(response.data['graceid'], ev.graceid)
 
     def test_privileged_internal_post_mdc(self):
         """Privileged internal user can add events to mdc superevents"""
@@ -903,9 +903,9 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
         url = v_reverse('superevents:superevent-event-list',
             args=[s.superevent_id])
         response = self.request_as_user(url, "POST", self.sm_user,
-            data={'event': ev.graceid()})
+            data={'event': ev.graceid})
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data['graceid'], ev.graceid())
+        self.assertEqual(response.data['graceid'], ev.graceid)
 
     def test_privileged_internal_post_test(self):
         """Privileged internal user can add events to test superevents"""
@@ -919,9 +919,9 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
         url = v_reverse('superevents:superevent-event-list',
             args=[s.superevent_id])
         response = self.request_as_user(url, "POST", self.sm_user,
-            data={'event': ev.graceid()})
+            data={'event': ev.graceid})
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data['graceid'], ev.graceid())
+        self.assertEqual(response.data['graceid'], ev.graceid)
 
     def test_lvem_user_post(self):
         """LV-EM user can't add events to superevents"""
@@ -934,14 +934,14 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
         url = v_reverse('superevents:superevent-event-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
-            data={'event': ev.graceid()})
+            data={'event': ev.graceid})
         self.assertEqual(response.status_code, 404)
 
         # Expose superevent and retry, should get 403 now
         assign_perm('superevent.view_superevent', self.lvem_group,
             obj=self.internal_superevent)
         response = self.request_as_user(url, "POST", self.lvem_user,
-            data={'event': ev.graceid()})
+            data={'event': ev.graceid})
         self.assertEqual(response.status_code, 403)
 
     def test_public_user_post(self):
@@ -955,7 +955,7 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
         url = v_reverse('superevents:superevent-event-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST",
-            data={'event': ev.graceid()})
+            data={'event': ev.graceid})
         self.assertEqual(response.status_code, 403)
         # TODO: this is 403 for now, will be 404 in the future
 
@@ -986,18 +986,18 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
             for ev in s.events.all():
                 # Set up URL
                 url = v_reverse('superevents:superevent-event-detail',
-                    args=[s.superevent_id, ev.graceid()])
+                    args=[s.superevent_id, ev.graceid])
                 # Get response and check code
                 response = self.request_as_user(url, "GET", self.internal_user)
                 self.assertEqual(response.status_code, 200)
                 # Check event number and graceids
-                self.assertEqual(response.data['graceid'], ev.graceid())
+                self.assertEqual(response.data['graceid'], ev.graceid)
 
     def test_lvem_get_no_view_perms(self):
         """LV-EM user can't see events for internal-only superevent"""
         for ev in self.internal_superevent.events.all():
             url = v_reverse('superevents:superevent-event-detail',
-                args=[self.internal_superevent.superevent_id, ev.graceid()])
+                args=[self.internal_superevent.superevent_id, ev.graceid])
             response = self.request_as_user(url, "GET", self.lvem_user)
             # Should get 404 response - because of filtering, this superevent
             # should be excluded from the queryset
@@ -1009,18 +1009,18 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         #       don't show events in the list if they aren't exposed?
         for ev in self.lvem_superevent.events.all():
             url = v_reverse('superevents:superevent-event-detail',
-                args=[self.lvem_superevent.superevent_id, ev.graceid()])
+                args=[self.lvem_superevent.superevent_id, ev.graceid])
             response = self.request_as_user(url, "GET", self.lvem_user)
             self.assertEqual(response.status_code, 200)
             # Check response data
-            self.assertEqual(response.data['graceid'], ev.graceid())
+            self.assertEqual(response.data['graceid'], ev.graceid)
 
     def test_public_get_no_view_perms(self):
         """Public user can't see events for non-public superevents"""
         # Internal superevent
         for ev in self.internal_superevent.events.all():
             url = v_reverse('superevents:superevent-event-detail',
-                args=[self.internal_superevent.superevent_id, ev.graceid()])
+                args=[self.internal_superevent.superevent_id, ev.graceid])
             response = self.request_as_user(url, "GET")
             # Should get 404 response - because of filtering, this superevent
             # should be excluded from the queryset
@@ -1029,7 +1029,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
 
         for ev in self.lvem_superevent.events.all():
             url = v_reverse('superevents:superevent-event-detail',
-                args=[self.lvem_superevent.superevent_id, ev.graceid()])
+                args=[self.lvem_superevent.superevent_id, ev.graceid])
             response = self.request_as_user(url, "GET")
             # Should get 404 response - because of filtering, this superevent
             # should be excluded from the queryset
@@ -1047,7 +1047,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         """
         url = v_reverse('superevents:superevent-event-detail',
             args=[self.internal_superevent.superevent_id,
-            self.event1.graceid()])
+            self.event1.graceid])
         response = self.request_as_user(url, "DELETE", self.internal_user)
         self.assertEqual(response.status_code, 403)
 
@@ -1064,7 +1064,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
 
         # Set up URL, make request, check response code
         url = v_reverse('superevents:superevent-event-detail',
-            args=[s.superevent_id, ev.graceid()])
+            args=[s.superevent_id, ev.graceid])
         response = self.request_as_user(url, "DELETE", self.internal_user)
         self.assertEqual(response.status_code, 403)
 
@@ -1081,7 +1081,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
 
         # Set up URL, make request, check response code
         url = v_reverse('superevents:superevent-event-detail',
-            args=[s.superevent_id, ev.graceid()])
+            args=[s.superevent_id, ev.graceid])
         response = self.request_as_user(url, "DELETE", self.internal_user)
         self.assertEqual(response.status_code, 204)
 
@@ -1091,7 +1091,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         """
         url = v_reverse('superevents:superevent-event-detail',
             args=[self.internal_superevent.superevent_id,
-            self.event1.graceid()])
+            self.event1.graceid])
         response = self.request_as_user(url, "DELETE", self.sm_user)
         self.assertEqual(response.status_code, 204)
 
@@ -1108,7 +1108,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
 
         # Set up URL, make request, check response code
         url = v_reverse('superevents:superevent-event-detail',
-            args=[s.superevent_id, ev.graceid()])
+            args=[s.superevent_id, ev.graceid])
         response = self.request_as_user(url, "DELETE", self.sm_user)
         self.assertEqual(response.status_code, 204)
 
@@ -1125,7 +1125,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
 
         # Set up URL, make request, check response code
         url = v_reverse('superevents:superevent-event-detail',
-            args=[s.superevent_id, ev.graceid()])
+            args=[s.superevent_id, ev.graceid])
         response = self.request_as_user(url, "DELETE", self.sm_user)
         self.assertEqual(response.status_code, 204)
 
@@ -1134,14 +1134,14 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         # Internal superevent
         url = v_reverse('superevents:superevent-event-detail',
             args=[self.internal_superevent.superevent_id,
-            self.event1.graceid()])
+            self.event1.graceid])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
         self.assertEqual(response.status_code, 404)
 
         # Exposed superevent
         url = v_reverse('superevents:superevent-event-detail',
             args=[self.lvem_superevent.superevent_id,
-            self.event2.graceid()])
+            self.event2.graceid])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
         self.assertEqual(response.status_code, 403)
 
@@ -1152,7 +1152,7 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
         # Internal superevent
         url = v_reverse('superevents:superevent-event-detail',
             args=[self.internal_superevent.superevent_id,
-            self.event1.graceid()])
+            self.event1.graceid])
         response = self.request_as_user(url, "DELETE")
         self.assertEqual(response.status_code, 403)
         # TODO: will be 404 in the future

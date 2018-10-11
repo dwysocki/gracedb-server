@@ -148,7 +148,7 @@ def _createEventFromForm(request, form):
                 # Append a warning message.
                 if label in event.labels.all():
                     warnings.append("Event {0} already labeled with '{1}'" \
-                        .format(event.graceid(), label))
+                        .format(event.graceid, label))
                 else:
                     create_label(event, request, label.name,
                         can_add_protected=False)
@@ -157,7 +157,7 @@ def _createEventFromForm(request, form):
             message = "Problem scanning data. No alert issued (%s)" % e
             logger.warning(message)
             warnings += [message]
-        #return HttpResponseRedirect(reverse(view, args=[event.graceid()]))
+        #return HttpResponseRedirect(reverse(view, args=[event.graceid]))
     except Exception, e:
         # something went wrong.
         # XXX We need to make sure we clean up EVERYTHING.
@@ -196,7 +196,7 @@ def create_label(event, request, labelName, can_add_protected=False,
     # send the correct HTTP response code
     label_created = False
     if label in event.labels.all():
-        d['warning'] = "Event %s already labeled with '%s'" % (event.graceid(), labelName)
+        d['warning'] = "Event %s already labeled with '%s'" % (event.graceid, labelName)
     else:
         labelling = Labelling(
                 event = event,
@@ -249,8 +249,8 @@ def delete_label(event, request, labelName, can_remove_protected=False,
     # Next, check if the label is in the list of labels for the event. Throw out an
     # error if it isn't. There might be a more elegant way of doing this.
     if label not in event.labels.all():
-            d['warning'] = "No label '%s' associated with event %s" % (labelName, event.graceid())
-            raise ValueError("No label '%s' associated with event %s" % (labelName, event.graceid()))
+            d['warning'] = "No label '%s' associated with event %s" % (labelName, event.graceid)
+            raise ValueError("No label '%s' associated with event %s" % (labelName, event.graceid))
     else:
         this_label = Labelling.objects.get(
                 event = event,

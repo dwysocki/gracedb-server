@@ -60,7 +60,7 @@ for all gstlal events during O1::
     if f.is_valid():
         objects = form.cleaned_data['query']
         for object in objects:
-            f.write('%s\n' % object.graceid())
+            f.write('%s\n' % object.graceid)
     f.close()
 
 Now, go to the data directory root ``/opt/gracedb/data`` and temporarily 

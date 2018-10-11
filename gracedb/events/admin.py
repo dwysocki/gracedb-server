@@ -5,7 +5,7 @@ from django.contrib import admin
 
 class EventAdmin(admin.ModelAdmin):
     def graceid(obj):
-        return obj.graceid()
+        return obj.graceid
     graceid.admin_order_field = 'id'
 
     list_display = [ graceid, 'group', 'pipeline', 'search', 'submitter'  ]

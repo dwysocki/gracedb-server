@@ -181,6 +181,7 @@ class Event(models.Model):
     class Meta:
         ordering = ["-id"]
 
+    @property
     def graceid(self):
         if self.group.name == "Test":
             return "T%04d" % self.id
@@ -194,7 +195,7 @@ class Event(models.Model):
 
     def weburl(self):
         # XXX Not good.  But then, it never was.
-        return reverse('file_list', args=[self.graceid()])
+        return reverse('file_list', args=[self.graceid])
 
     @property
     def datadir(self):
@@ -284,7 +285,7 @@ class Event(models.Model):
         raise cls.DoesNotExist("Event matching query does not exist")
 
     def __unicode__(self):
-        return self.graceid()
+        return self.graceid
 
     # Return a list of distinct tags associated with the log messages of this
     # event.
@@ -416,7 +417,7 @@ class EventLog(CleanSaveModel, LogBase, AutoIncrementModel):
 
     def fileurl(self):
         if self.filename:
-            return reverse('file-download', args=[self.event.graceid(),
+            return reverse('file-download', args=[self.event.graceid,
                 self.versioned_filename])
         else:
             return None
@@ -512,7 +513,7 @@ class EMObservation(EMObservationBase, AutoIncrementModel):
 
     def __unicode__(self):
         return "{event_id} | {group} | {N}".format(
-            event_id=self.event.graceid(), group=self.group.name, N=self.N)
+            event_id=self.event.graceid, group=self.group.name, N=self.N)
 
     def calculateCoveringRegion(self):
         footprints = self.emfootprint_set.all()
@@ -568,7 +569,7 @@ class Labelling(m2mThroughBase):
     label = models.ForeignKey(Label)
 
     def __unicode__(self):
-        return "{graceid} | {label}".format(graceid=self.event.graceid(),
+        return "{graceid} | {label}".format(graceid=self.event.graceid,
             label=self.label.name)
 
 
@@ -928,7 +929,7 @@ class VOEvent(VOEventBase, AutoIncrementModel):
             actual_filename = self.filename
             if self.file_version >= 0:
                 actual_filename += ',%d' % self.file_version
-            return reverse('file-download', args=[self.event.graceid(),
+            return reverse('file-download', args=[self.event.graceid,
                 actual_filename])
         else:
             return None
@@ -1033,7 +1034,7 @@ class Signoff(SignoffBase):
         unique_together = ('event', 'instrument')
 
     def __unicode__(self):
-        return "%s | %s | %s" % (self.event.graceid(), self.instrument,
+        return "%s | %s | %s" % (self.event.graceid, self.instrument,
             self.status)
 
 EMSPECTRUM = (
@@ -1102,7 +1103,7 @@ class EMBBEventLog(AutoIncrementModel):
         unique_together = ("event","N")
 
     def __unicode__(self):
-        return "%s-%s-%d" % (self.event.graceid(), self.group.name, self.N)
+        return "%s-%s-%d" % (self.event.graceid, self.group.name, self.N)
 
     # A counter for Eels associated with a given event. This is 
     # important for addressibility.
