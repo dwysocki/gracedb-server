@@ -29,7 +29,7 @@ LABELS = [
     {'name': 'ADVNO', 'defaultColor': 'red', 'description': 'EM advocate says event is not okay.'},
     {'name': 'EM_Throttled', 'defaultColor': 'black', 'description': 'GraceID is ignored by automatic processing because the corresponding pipeline submitted too many events too quickly.'},
     {'name': 'EM_Selected', 'defaultColor': 'black', 'description': 'GraceID automatically chosen as the most promising candidate out of a set of entries thought to correspond to the same physical event. '},
-    {'name': 'EM_Superseded ', 'defaultColor': 'black', 'description': 'GraceID automatically passed over because another entry was thought to be more promising and to correspond to the same physical event. '},
+    {'name': 'EM_Superseded', 'defaultColor': 'black', 'description': 'GraceID automatically passed over because another entry was thought to be more promising and to correspond to the same physical event. '},
     {'name': 'EM_COINC', 'defaultColor': 'black', 'description': 'Signifies that a coincidence was found between gravitational-wave candidates and External triggers.'},
     {'name': 'GRB_ONLINE', 'defaultColor': 'black', 'description': 'Indicates that online triggered GRB searches found something coincident with this event.'},
     {'name': 'GRB_OFFLINE', 'defaultColor': 'black', 'description': 'Indicates that offline triggered GRB searches found something coincident with this event.'},
