@@ -32,10 +32,40 @@ class SafeDestroyMixin(mixins.DestroyModelMixin):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class ValidateDestroyMixin(object):
+    """
+    Performs some validations on the instance or request data before
+    the instance is destroyed.
+    """
+    def validate_destroy(self, request, instance):
+        """
+        Takes in request and instance for optional validation. This method
+        should be overridden by subclasses.
+
+        Output:
+            Boolean indicating whether validation succeeded or not
+            String indicating reason for failure (if success, return None)
+        """
+        return True, None
+
+    def destroy(self, request, *args, **kwargs):
+        # Get instance to be destroyed
+        instance = self.get_object()
+
+        # Perform validation
+        is_ok, err_msg = self.validate_destroy(request, instance)
+        if not is_ok:
+            return Response(err_msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # If validated, destroy the instance and return 204
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class SafeCreateMixin(mixins.CreateModelMixin):
     """
     Copy of rest_framework's CreateModelMixin which wraps
-    the call to perform_destroy() in a try-except block for
+    the call to perform_create() in a try-except block for
     proper error handling.
     """
     create_error_classes = \
