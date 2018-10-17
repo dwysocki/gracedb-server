@@ -2,6 +2,8 @@ import logging
 from multiprocessing import Process
 import os
 from subprocess import Popen, PIPE
+
+from ligo.lvalert import LVAlertClient
 from ligo.overseer.overseer_client import send_to_overseer
 
 # Set up logger
@@ -31,6 +33,21 @@ def send_with_lvalert_overseer(node_name, message, manager, port):
     return True if rdict.get('success', None) is not None else False
 
 
+def send_with_lvalert_client(node, message, server):
+
+    # Instantiate client
+    client = LVAlertClient(server=server)
+
+    # Client setup
+    client.connect(reattempt=False)
+    client.auto_reconnect = False
+    client.process(block=False)
+
+    # Send message
+    client.publish(node, message)
+
+
+# OLD
 def send_with_lvalert_send(node, message, server):
 
     # Set up environment for running lvalert_send executable

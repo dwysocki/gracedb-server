@@ -13,7 +13,7 @@ from events.permission_utils import is_external
 from events.query import filter_for_labels
 from events.shortcuts import is_event
 from superevents.shortcuts import is_superevent
-from .lvalert import send_with_lvalert_overseer, send_with_lvalert_send
+from .lvalert import send_with_lvalert_overseer, send_with_lvalert_client
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -129,11 +129,11 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
                         "LVAlert Overseer failed, trying lvalert_send"))
 
             # If not using LVAlert Overseer or if sending with overseer failed,
-            # use basic lvalert_send executable (gross)
+            # use basic lvalert-client send
             if (not settings.USE_LVALERT_OVERSEER) or (not success):
-                success, err = send_with_lvalert_send(node_name, msg, server)
-
-                if not success:
+                try:
+                    send_with_lvalert_client(node_name, msg, server)
+                except Exception as e:
                     logger.critical(("issue_xmpp_alerts: error sending "
-                        "message with lvalert_send: {e}").format(e=err))
+                        "message with lvalert client: {e}").format(e=e))
 
