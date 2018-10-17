@@ -103,13 +103,13 @@ Edit the migration to do what you want it to do. You could use this as a templat
     ]
 
     def create_robots(apps, schema_editor):
-        LocalUser = apps.get_model('ligoauth', 'LocalUser')
+        RobotUser = apps.get_model('ligoauth', 'RobotUser')
         X509Cert = apps.get_model('ligoauth', 'X509Cert')
         Group = apps.get_model('auth', 'Group')
         lvc_group = Group.objects.get(name=settings.LVC_GROUP)
 
         for entry in ROBOTS:
-            user, created = LocalUser.objects.get_or_create(username=entry['username'])
+            user, created = RobotUser.objects.get_or_create(username=entry['username'])
             if created:
                 user.first_name = entry['first_name']
                 user.last_name = entry['last_name']
@@ -133,13 +133,13 @@ Edit the migration to do what you want it to do. You could use this as a templat
             lvc_group.user_set.add(user)
 
     def delete_robots(apps, schema_editor):
-        LocalUser = apps.get_model('ligoauth', 'LocalUser')
+        RobotUser = apps.get_model('ligoauth', 'RobotUser')
         X509Cert = apps.get_model('ligoauth', 'X509Cert')
 
         for entry in ROBOTS:
             for dn in entry['dns']:
                 X509Cert.objects.get(subject=dn).delete()
-            LocalUser.objects.get(username=entry['username']).delete()
+            RobotUser.objects.get(username=entry['username']).delete()
 
     class Migration(migrations.Migration):
 

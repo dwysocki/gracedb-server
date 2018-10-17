@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 # There seems to be a LOT of duplication here and I don't know
 # if that is good or bad.  Normally, that seems bad...
 #
-# The thing is, LigoLdapUser and LocalUser (and whatever we might add later)
+# The thing is, LigoLdapUser and RobotUser (and whatever we might add later)
 # are actual entities that we want synched with the Django User, so they *are*
 # separate could conceivably have different first_name's, say, yet still refer
 # to the same (abstract) user entity.  Not likely, and not initially, but
@@ -58,7 +58,8 @@ class LigoLdapUser(User):
         return u"{0} {1}".format(self.first_name, self.last_name).encode('utf-8')
 
 
-class LocalUser(User):
+# Class for robot accounts
+class RobotUser(User):
     pass
 
 class X509Cert(models.Model):
