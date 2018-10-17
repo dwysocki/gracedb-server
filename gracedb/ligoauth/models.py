@@ -63,7 +63,7 @@ class RobotUser(User):
     pass
 
 class X509Cert(models.Model):
-    subject = models.CharField(max_length=200)
+    subject = models.CharField(max_length=300)
     users = models.ManyToManyField(User)
 
 class AlternateEmail(models.Model):
