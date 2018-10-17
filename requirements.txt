@@ -8,28 +8,26 @@ django-model-utils==3.1.1
 django-silk==3.0.1
 django-twilio==0.9.0
 djangorestframework==3.8.2
-dnspython==1.15.0
 flake8==3.5.0
 gunicorn==19.7.1
 html5lib==1.0.1
 ipdb==0.10.2
 ipython==5.5.0
-ligo-lvalert==1.4.3
+ligo-lvalert==1.5.4
 ligo-lvalert-overseer==0.1.2
 lxml==4.2.0
 mock==2.0.0
 mysql-python==1.2.5
 packaging==17.1
 phonenumbers==8.8.11
-pyasn1==0.4.2
-pycrypto==2.6.1
-pyopenssl==17.5.0
-pyrxp==2.1.0
-pysqlite==2.8.3
 python-ldap==2.5.2
 python-memcached==1.59
-requests==2.18.4
 service_identity==17.0.0
 simplejson==3.15.0
 Sphinx==1.7.0
 twilio==6.10.3
+# Fixed at old versions to prevent bugs:
+# https://github.com/fritzy/SleekXMPP/issues/477
+# https://github.com/etingof/pyasn1/issues/112
+pyasn1==0.3.6
+pyasn1-modules==0.1.5
