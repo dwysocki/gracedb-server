@@ -99,17 +99,28 @@ LVEM_GROUP = 'gw-astronomy:LV-EM'
 LVEM_OBSERVERS_GROUP = 'gw-astronomy:LV-EM:Observers'
 PUBLIC_GROUP = 'public_users'
 
+# Group names
 # Executives group name
 EXEC_GROUP = 'executives'
+# Access managers - will replace executives eventually. For now,
+# membership will be the same.
+ACCESS_MANAGERS_GROUP = 'access_managers'
 # EM Advocate group name
 EM_ADVOCATE_GROUP = 'em_advocates'
+# Superevent managers
+SUPEREVENT_MANAGERS_GROUP = 'superevent_managers'
 
 # Analysis groups
 # Analysis group name for non-GW events
 EXTERNAL_ANALYSIS_GROUP = 'External'
 
 # Groups directly managed by GraceDB admins
-ADMIN_MANAGED_GROUPS = [EM_ADVOCATE_GROUP, 'executives']
+ADMIN_MANAGED_GROUPS = [EM_ADVOCATE_GROUP, EXEC_GROUP,
+    SUPEREVENT_MANAGERS_GROUP, ACCESS_MANAGERS_GROUP]
+# NOTE: soon, only superevent_managers will be fully managed by us. The other
+# groups will be managed by the LIGO auth infrastructure for human users. But
+# we will still have to still manage robot account membership in these groups:
+# access_managers, executives, and em_advocates.
 
 # Tag to apply to log messages to allow EM partners to view
 EXTERNAL_ACCESS_TAGNAME = 'lvem'
