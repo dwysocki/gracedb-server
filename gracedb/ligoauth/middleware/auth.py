@@ -135,7 +135,10 @@ class LigoAuthMiddleware(MiddlewareMixin):
             stored_user_group_names = set([g.name for g in user.groups.all()])
 
             # Take necessary action if the group sets differ
-            if user_group_names != stored_user_group_names:
+            # NOTE: we only do this for human users.  Robot user group
+            # memberships are fully managed within GraceDB.
+            if (not hasattr(user, 'robotuser') and
+                user_group_names != stored_user_group_names):
                 # If the user has acquired a new group membership, add it.
                 for group_name in user_group_names - stored_user_group_names:
                     try:
