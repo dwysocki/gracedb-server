@@ -1,4 +1,5 @@
 
+from django.contrib.auth.decorators import login_required
 from django.http import (HttpResponse, HttpResponseRedirect, 
     HttpResponseNotFound, Http404, HttpResponseForbidden,
     HttpResponseBadRequest)
@@ -31,6 +32,7 @@ from search.query.labels import labelQuery
 
 # Let's let everybody onto the index view.
 #@internal_user_required
+@login_required
 def index(request):
     triggers = Trigger.objects.filter(user=request.user)
     contacts = Contact.objects.filter(user=request.user)

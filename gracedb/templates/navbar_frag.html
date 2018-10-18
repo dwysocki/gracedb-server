@@ -8,9 +8,9 @@
         <li id="nav-feeds"><a href="{% url "feeds" %}">RSS</a></li> 
     {% endif %}
     <li id="nav-latest"><a href="{% url "latest" %}">Latest</a></li>
-    {# if user_is_internal #}
+    {% if user.is_authenticated %}
     <li id="nav-userprofile"><a href="{% url "userprofile-home" %}">Options</a></li>
-    {# endif #}
+    {% endif %}
     <li id="nav-docs"><a href="{% url "home" %}documentation/">Documentation</a></li>
     {% if user %}
         {% if user.is_staff %}
