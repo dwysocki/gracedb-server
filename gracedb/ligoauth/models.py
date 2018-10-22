@@ -70,12 +70,6 @@ class AlternateEmail(models.Model):
     user = models.ForeignKey(User)
     email = models.EmailField(max_length=254)
 
-def shibid_to_user(shibid):
-    try:
-        return User.objects.get(username=shibid)
-    except User.DoesNotExist:
-        return None
-
 def certdn_to_user(dn, username=None):
     try:
         possible_users = X509Cert.objects.get(subject=dn).users

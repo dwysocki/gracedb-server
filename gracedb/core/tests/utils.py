@@ -25,7 +25,14 @@ TEST_DATA_DIR = os.path.join('/tmp', 'test_data')
     GRACEDB_DATA_DIR=TEST_DATA_DIR,
 )
 class DefineTestSettings(TestCase):
-    """Defines base settings for testing and creates a data directory"""
+    """
+    Defines base settings for testing and creates a data directory.
+
+    NOTE: we technically should be checking for and creating/deleting
+    settings.GRACEDB_DATA_DIR since we are overriding it.  But we use
+    TEST_DATA_DIR instead just to be totally safe and not accidentally
+    delete all of the real data.
+    """
 
     def setUp(self):
         super(DefineTestSettings, self).setUp()

@@ -62,7 +62,7 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
 
         # Otherwise, we are seeing this user for the first time in this,
         # session, so we attempt to authenticate the user. The backend will
-        # create user accounts for unknown users (TBD)
+        # create user accounts for unknown users with session information.
         user = auth.authenticate(request, remote_user=username)
 
         # If user not found in database, create user account

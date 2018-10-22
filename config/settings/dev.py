@@ -18,6 +18,7 @@ MIDDLEWARE += [
     debug_middleware,
     #'silk.middleware.SilkyMiddleware',
     #'core.middleware.profiling.ProfileMiddleware',
+    #'core.middleware.admin.AdminsOnlyMiddleware',
 ]
 
 # Add to installed apps

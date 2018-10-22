@@ -82,7 +82,7 @@ class TestSupereventDetailView(SignoffGroupsAndUsersSetup,
     def test_advocate_view_superevent(self):
         """EM advocate user can see advocate signoff form on superevent page"""
 
-        # Apply H1OPS label so we can do a full test
+        # Apply ADVREQ label so we can do a full test
         advreq = Label.objects.create(name='ADVREQ')
         self.internal_superevent.labelling_set.create(label=advreq,
             creator=self.internal_user)

@@ -1,9 +1,6 @@
-
-# Changed for Django 1.11 upgrade
 from django.conf import settings
 from django.conf.urls import url, include
 
-# Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 from django.contrib.auth.views import logout
 from django.views.generic import TemplateView
@@ -11,9 +8,6 @@ from django.views.generic import TemplateView
 # Import feeds
 import core.views
 from events.feeds import EventFeed, feedview
-
-# After Django 1.10, have to import views directly, rather
-# than just using a string
 import events.reports
 import events.views
 from ligoauth.views import pre_login, post_login, shib_logout

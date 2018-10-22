@@ -9,4 +9,4 @@ def LigoAuthContext(request):
         if set(list(internal_groups)) & set(list(request.user.groups.all())):
             user_is_internal = True
 
-    return { 'user' : request.user, 'user_is_internal' : user_is_internal }
+    return {'user': request.user, 'user_is_internal': user_is_internal}
