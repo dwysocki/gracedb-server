@@ -27,6 +27,9 @@ MAINTENANCE_MODE = False
 # Number of results to show on latest page
 LATEST_RESULTS_NUMBER = 50
 
+# Path to root URLconf
+ROOT_URLCONF = '{module}.urls'.format(module=os.path.basename(CONFIG_ROOT))
+
 # Used for running unit tests
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
@@ -261,27 +264,36 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 # Extra additions
                 'django.template.context_processors.request',
+                'django.contrib.messages.context_processors.messages',
                 'events.context_processors.LigoAuthContext',
                 'core.context_processors.LigoDebugContext',
-                'ligoauth.context_processors.shib_login_url',
             ],
         },
     },
 ]
 
+# Authentication settings -----------------------------------------------------
+# Headers to use for Shibboleth authentication and user updates
+SHIB_USER_HEADER = 'HTTP_REMOTE_USER'
+SHIB_GROUPS_HEADER = 'HTTP_ISMEMBEROF'
+SHIB_ATTRIBUTE_MAP = {
+    'email': 'HTTP_MAIL',
+    'first_name': 'HTTP_GIVENNAME',
+    'last_name': 'HTTP_SN',
+}
+
+# Headers to use for X509 authentication
+X509_SUBJECT_DN_HEADER = 'HTTP_SSL_CLIENT_S_DN'
+X509_ISSUER_DN_HEADER = 'HTTP_SSL_CLIENT_I_DN'
+
 # List of authentication backends to use when attempting to authenticate
-# a user.  Will be used in this order
-AUTHENTICATION_BACKENDS = (
-#   'events.middleware.auth.LigoAuthBackend',
-    'ligoauth.middleware.auth.LigoX509Backend',
-    'ligoauth.middleware.auth.LigoShibBackend',
-    'ligoauth.middleware.auth.LigoBasicBackend',
+# a user.  Will be used in this order.  Authentication for the API is
+# handled by the REST_FRAMEWORK dictionary.
+AUTHENTICATION_BACKENDS = [
+    'ligoauth.backends.ShibbolethRemoteUserBackend',
     'ligoauth.backends.GraceDbModelBackend',
-#   'ligoauth.middleware.auth.RemoteUserBackend',
-#   'ligodjangoauth.LigoShibbolethAuthBackend',
-#   'django.contrib.auth.backends.ModelBackend',
     'guardian.backends.ObjectPermissionBackend',
-)
+]
 
 # List of middleware classes to use.
 MIDDLEWARE = [
@@ -292,7 +304,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'ligoauth.middleware.auth.LigoAuthMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'ligoauth.middleware.ShibbolethWebAuthMiddleware',
+    'ligoauth.middleware.ControlRoomMiddleware',
     'maintenance_mode.middleware.MaintenanceModeMiddleware',
 ]
 
@@ -357,7 +371,9 @@ REST_FRAMEWORK = {
         'annotation'    : '10/second',
     },
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'api.backends.LigoAuthentication',
+        'api.backends.GraceDbShibAuthentication',
+        'api.backends.GraceDbX509Authentication',
+        'api.backends.GraceDbBasicAuthentication',
     ),
     'COERCE_DECIMAL_TO_STRING': False,
     'EXCEPTION_HANDLER':
@@ -427,13 +443,6 @@ GUARDIAN_MONKEY_PATCH = False
 
 # URL of Shibboleth login page
 LOGIN_URL = '/Shibboleth.sso/Login'
-
-# If these are left at default, when the Shibboleth middleware
-# creates a new auth_user, they will get admin privs.
-# TP (4 Aug 2017): can't find where these are used anywhere in the code.
-# But I'll leave them in for now (may want to ask Scott K. about it)
-ADMIN_GROUP_HEADER = None
-ADMIN_GROUP = None
 
 # Basic auth passwords for LVEM scripted access expire after 365 days.
 PASSWORD_EXPIRATION_TIME = timedelta(days=365)

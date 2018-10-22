@@ -13,7 +13,6 @@ from rest_framework.reverse import reverse as drf_reverse
 from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
-from api.backends import LigoAuthentication
 from api.utils import api_reverse
 from events.models import Group, Pipeline, Search, Tag, Label, EMGroup, \
     VOEvent, EMBBEventLog, EMSPECTRUM, SignoffBase
@@ -25,7 +24,6 @@ from ..superevents.url_templates import construct_url_templates
 class TagList(APIView):
     """Tag List Resource
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
@@ -44,7 +42,6 @@ class GracedbRoot(APIView):
     """
     Root of the Gracedb REST API
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,)
     parser_classes = ()
 
@@ -148,7 +145,6 @@ class PerformanceInfo(APIView):
     """
     Serialized performance information
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,)
     parser_classes = (parsers.MultiPartParser,)
 

@@ -1,0 +1,319 @@
+from django.conf import settings
+from django.test import RequestFactory
+from django.test.utils import override_settings, modify_settings
+from django.contrib.auth.models import Group, User, AnonymousUser
+from django.urls import reverse
+from django.core.exceptions import ImproperlyConfigured
+from django.contrib.sessions.middleware import SessionMiddleware
+
+from ligoauth.middleware import ShibbolethWebAuthMiddleware
+
+# See this test class for information about what groups and users
+# are already defined for use.
+from core.tests.utils import GraceDbTestBase
+
+
+class TestControlRoomMiddleware(GraceDbTestBase):
+    """
+    Test the behavior of the ControlRoomMiddleware. Because this is a new-style
+    middleware, some of the tests get a response and check the context to
+    verify that the middleware operated as expected. Not ideal because it
+    depends on other middleware for authentication, but it's the best we can do
+    """
+    ifo = 'H1'
+
+    @classmethod
+    def setUpClass(cls):
+        # Make sure middleware is installed
+        if not any(['ControlRoomMiddleware' in m for m in
+           settings.MIDDLEWARE]):
+            raise ImproperlyConfigured(
+                'ControlRoomMiddleware must be installed in MIDDLEWARE')
+
+    @classmethod
+    def setUpTestData(cls):
+        # Call base class setUpTestData
+        super(TestControlRoomMiddleware, cls).setUpTestData()
+
+        # Create control room group
+        cls.control_room_group, _ = Group.objects.get_or_create(
+            name=cls.ifo.lower() + '_control_room')
+
+    def test_lvc_user_control_room(self):
+        """Verify that user is correctly added to control room group"""
+
+        # Prepare dict for making request and GET the home page 
+        request_dict = {
+            settings.SHIB_USER_HEADER: self.internal_user.username,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+            'REMOTE_ADDR': settings.CONTROL_ROOM_IPS[self.ifo],
+        }
+        response = self.client.get(reverse('home'), **request_dict)
+
+        # Ensure that the page is rendered properly, the user is authorized
+        # for signoffs, and that the signoff_instrument is correct
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['signoff_authorized'])
+        self.assertEqual(response.context['signoff_instrument'], self.ifo)
+
+    def test_lvc_user_non_control_room(self):
+        """Verify that user is correctly not added to control room group"""
+
+        # Prepare dict for making request and GET the home page 
+        request_dict = {
+            settings.SHIB_USER_HEADER: self.internal_user.username,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+            'REMOTE_ADDR': '1.2.3.4',
+        }
+        response = self.client.get(reverse('home'), **request_dict)
+
+        # Ensure that the page is rendered properly, the user is not authorized
+        # for signoffs, and that the signoff_instrument is None
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['signoff_authorized'])
+        self.assertTrue(response.context['signoff_instrument'] is None)
+
+    def test_lvem_user_control_room(self):
+        """Test lvem user in control room"""
+        request_dict = {
+            settings.SHIB_USER_HEADER: self.lvem_user.username,
+            settings.SHIB_GROUPS_HEADER: self.lvem_group.name,
+            'REMOTE_ADDR': settings.CONTROL_ROOM_IPS[self.ifo],
+        }
+        response = self.client.get(reverse('home'), **request_dict)
+
+        # Ensure that the page is rendered properly, the user is not authorized
+        # for signoffs, and that the signoff_instrument is None
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['signoff_authorized'])
+        self.assertTrue(response.context['signoff_instrument'] is None)
+
+    def test_public_user_control_room(self):
+        """Test public user in control room"""
+        request_dict = {
+            'REMOTE_ADDR': settings.CONTROL_ROOM_IPS[self.ifo],
+        }
+        response = self.client.get(reverse('home'), **request_dict)
+
+        # Ensure that the page is rendered properly, the user is not authorized
+        # for signoffs, and that the signoff_instrument is None
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['signoff_authorized'])
+        self.assertTrue(response.context['signoff_instrument'] is None)
+
+class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
+    """Test authentication using Shibboleth credentials in a web browser"""
+
+    @classmethod
+    def setUpClass(cls):
+        # Make sure middleware is installed
+        if not any(['ShibbolethWebAuthMiddleware' in m for m in
+           settings.MIDDLEWARE]):
+            raise ImproperlyConfigured(
+                'ShibbolethWebAuthMiddleware must be installed in MIDDLEWARE')
+
+        # Attach request factory to class
+        cls.factory = RequestFactory()
+
+        # Attach middleware to class
+        cls.middleware = ShibbolethWebAuthMiddleware()
+
+    @classmethod
+    def setUpTestData(cls):
+        # Call base class setUpTestData
+        super(TestShibbolethWebAuthMiddleware, cls).setUpTestData()
+
+    @classmethod
+    def setUp(cls):
+        cls.request = cls.factory.get(reverse('home'))
+        cls.request.user = AnonymousUser()
+        SessionMiddleware().process_request(cls.request)
+        cls.request.session.save()
+
+    def test_internal_authentication(self):
+        """Test internal user authentication"""
+        self.request.META = {
+            settings.SHIB_USER_HEADER: self.internal_user.username,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+        }
+        self.middleware.process_request(self.request)
+
+        # Make sure user is authenticated and was authenticated by
+        # the shibboleth backend and that the internal group is
+        # attached to the user account
+        self.assertTrue(self.request.user.is_authenticated)
+        self.assertEqual(self.request.user.backend,
+            'ligoauth.backends.ShibbolethRemoteUserBackend')
+        self.assertIn(self.internal_group, self.request.user.groups.all())
+
+    def test_lvem_authentication(self):
+        """Test lvem user authentication"""
+        self.request.META = {
+            settings.SHIB_USER_HEADER: self.lvem_user.username,
+            settings.SHIB_GROUPS_HEADER: self.lvem_group.name,
+        }
+        self.middleware.process_request(self.request)
+
+        # Make sure user is authenticated and was authenticated by
+        # the shibboleth backend and that the lvem group is
+        # attached to the user account and that the internal group
+        # is NOT attached to the user account
+        self.assertTrue(self.request.user.is_authenticated)
+        self.assertEqual(self.request.user.backend,
+            'ligoauth.backends.ShibbolethRemoteUserBackend')
+        self.assertIn(self.lvem_group, self.request.user.groups.all())
+        self.assertNotIn(self.internal_group, self.request.user.groups.all())
+
+    def test_public_authentication(self):
+        """Test middleware on public user"""
+        self.middleware.process_request(self.request)
+
+        # Make sure user is not authenticated and is anonymous,
+        # auth backend is not set, and the user has no groups
+        self.assertFalse(self.request.user.is_authenticated)
+        self.assertTrue(self.request.user.is_anonymous)
+        self.assertFalse(hasattr(self.request.user, 'backend'))
+        self.assertTrue(self.request.user.groups.count() == 0)
+
+    def test_internal_user_creation(self):
+        """Test creating a new internal user in the auth framework"""
+        new_user_dict = {
+            'username': 'new_internal.user',
+            'email': 'new_internal.user@group.org',
+        }
+        self.request.META = {
+            settings.SHIB_USER_HEADER: new_user_dict['username'],
+            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+            settings.SHIB_ATTRIBUTE_MAP['email']: new_user_dict['email'],
+        }
+        self.middleware.process_request(self.request)
+
+        # Make sure user is authenticated and was authenticated by
+        # the shibboleth backend and that the internal group is
+        # attached to the user account
+        self.assertTrue(self.request.user.is_authenticated)
+        self.assertEqual(self.request.user.backend,
+            'ligoauth.backends.ShibbolethRemoteUserBackend')
+
+        # Make sure user information is correct
+        new_user = User.objects.get(username=new_user_dict['username'])
+        self.assertIn(self.internal_group, new_user.groups.all())
+        self.assertEqual(new_user.username, new_user_dict['username'])
+        self.assertEqual(new_user.email, new_user_dict['email'])
+
+    def test_lvem_user_creation(self):
+        """Test creating a new lvem user in the auth framework"""
+        new_user_dict = {
+            'username': 'new_lvem.user',
+            'email': 'new_lvem.user@group.org',
+        }
+        self.request.META = {
+            settings.SHIB_USER_HEADER: new_user_dict['username'],
+            settings.SHIB_GROUPS_HEADER: self.lvem_group.name,
+            settings.SHIB_ATTRIBUTE_MAP['email']: new_user_dict['email'],
+        }
+        self.middleware.process_request(self.request)
+
+        # Make sure user is authenticated and was authenticated by
+        # the shibboleth backend and that the internal group is
+        # attached to the user account
+        self.assertTrue(self.request.user.is_authenticated)
+        self.assertEqual(self.request.user.backend,
+            'ligoauth.backends.ShibbolethRemoteUserBackend')
+
+        # Make sure user information is correct
+        new_user = User.objects.get(username=new_user_dict['username'])
+        self.assertIn(self.lvem_group, new_user.groups.all())
+        self.assertEqual(new_user.username, new_user_dict['username'])
+        self.assertEqual(new_user.email, new_user_dict['email'])
+
+    def test_group_addition(self):
+        """Test group addition in middleware"""
+        # Create new group for testing
+        new_group = Group.objects.create(name='new_group')
+
+        delim = ShibbolethWebAuthMiddleware.group_delimiter
+        groups_str = delim.join([self.internal_group.name, new_group.name])
+        self.request.META = {
+            settings.SHIB_USER_HEADER: self.internal_user.username,
+            settings.SHIB_GROUPS_HEADER: groups_str,
+        }
+
+        # Make sure user just has internal group initially
+        self.assertTrue(self.internal_user.groups.count() == 1)
+        self.assertTrue(self.internal_user.groups.all()[0] == 
+            self.internal_group)
+
+        # Process request
+        self.middleware.process_request(self.request)
+
+        # Make sure user is authenticated and was authenticated by
+        # the shibboleth backend and that the two groups attached are what
+        # we expect
+        self.assertTrue(self.request.user.is_authenticated)
+        self.assertEqual(self.request.user.backend,
+            'ligoauth.backends.ShibbolethRemoteUserBackend')
+        self.assertTrue(self.internal_user.groups.count() == 2)
+        self.assertIn(self.internal_group, self.internal_user.groups.all())
+        self.assertIn(new_group, self.internal_user.groups.all())
+
+    def test_group_removal(self):
+        """Test group addition in middleware"""
+        # Create new group, add to user
+        new_group = Group.objects.create(name='new_group')
+        self.internal_user.groups.add(new_group)
+
+        # Shib session doesn't have new_group in it
+        self.request.META = {
+            settings.SHIB_USER_HEADER: self.internal_user.username,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+        }
+
+        # Make sure user just has internal group initially
+        self.assertTrue(self.internal_user.groups.count() == 2)
+        self.assertIn(self.internal_group, self.internal_user.groups.all())
+        self.assertIn(new_group, self.internal_user.groups.all())
+
+        # Process request
+        self.middleware.process_request(self.request)
+
+        # Make sure user is authenticated and was authenticated by
+        # the shibboleth backend and only the internal group is attached
+        # to the user
+        self.assertTrue(self.request.user.is_authenticated)
+        self.assertEqual(self.request.user.backend,
+            'ligoauth.backends.ShibbolethRemoteUserBackend')
+        self.assertTrue(self.internal_user.groups.count() == 1)
+        self.assertTrue(self.internal_user.groups.all()[0] == 
+            self.internal_group)
+        self.assertNotIn(new_group, self.internal_user.groups.all())
+
+    def test_user_update(self):
+        """Test user information update in middleware"""
+        email1 = 'email1@email.com'
+        email2 = 'email2@email.com'
+        self.internal_user.email = email1
+        self.internal_user.save()
+
+        self.request.META = {
+            settings.SHIB_USER_HEADER: self.internal_user.username,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+            settings.SHIB_ATTRIBUTE_MAP['email']: email2,
+        }
+
+        # Check email just to be sure
+        self.assertEqual(email1, self.internal_user.email)
+
+        # Process request
+        self.middleware.process_request(self.request)
+
+        # Make sure user is authenticated and was authenticated by
+        # the shibboleth backend and that the internal group is
+        # attached to the user account
+        self.assertTrue(self.request.user.is_authenticated)
+        self.assertEqual(self.request.user.backend,
+            'ligoauth.backends.ShibbolethRemoteUserBackend')
+
+        # Make sure email is changed as expected
+        self.internal_user.refresh_from_db()
+        self.assertEqual(email2, self.internal_user.email)

@@ -34,7 +34,6 @@ from rest_framework.views import APIView
 
 from alerts.events.utils import EventAlertIssuer, EventLogAlertIssuer, \
     EventVOEventAlertIssuer, EventPermissionsAlertIssuer
-from api.backends import LigoAuthentication
 from core.http import check_and_serve_file
 from core.vfile import VersionedFile
 from events.buildVOEvent import buildVOEvent, VOEventBuilderException
@@ -346,7 +345,6 @@ class EventList(APIView):
     """
     #model = Event
     #serializer_class = EventSerializer
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForPipeline)
     parser_classes = (parsers.MultiPartParser,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LigoLwRenderer, TSVRenderer,)
@@ -520,7 +518,6 @@ class LigoLwParser(parsers.MultiPartParser):
         return data
 
 class EventDetail(APIView):
-    authentication_classes = (LigoAuthentication,)
     #parser_classes = (LigoLwParser, RawdataParser)
     parser_classes = (parsers.MultiPartParser,)
     #serializer_class = EventSerializer
@@ -633,7 +630,6 @@ class EventNeighbors(APIView):
     neighbors in the (inclusive) GPS time range [x-N,x+N] or [x-N, x+M],
     where x is the GPS time of the event in question.
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     # XXX Since this returns an event list, we could add the LigoLW
@@ -675,7 +671,6 @@ class EventNeighbors(APIView):
 
 class EventLabel(APIView):
     """Event Label"""
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -732,7 +727,6 @@ class EventLogList(APIView):
 
     POST param 'message'
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
     throttle_classes = (AnnotationThrottle,)
 
@@ -857,7 +851,6 @@ class EventLogList(APIView):
         return response
 
 class EventLogDetail(APIView):
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -880,7 +873,6 @@ class EMBBEventLogList(APIView):
 
     POST param 'message'
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
     throttle_classes = (AnnotationThrottle,)
 
@@ -925,7 +917,6 @@ class EMBBEventLogList(APIView):
         return response
 
 class EMBBEventLogDetail(APIView):
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -947,7 +938,6 @@ class EMObservationList(APIView):
 
     POST param 'message'
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
     throttle_classes = (AnnotationThrottle,)
 
@@ -1010,7 +1000,6 @@ class EMObservationList(APIView):
         return response
 
 class EMObservationDetail(APIView):
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -1078,7 +1067,6 @@ def tagToDict(tag, columns=None, request=None, event=None, n=None):
 # class TagDetail(APIView):
 #     """Tag Detail Resource
 #     """
-#     authentication_classes = (LigoAuthentication,)
 #     permission_classes = (IsAuthenticated,)
 # 
 #     def get(self, request, tagname):
@@ -1092,7 +1080,6 @@ def tagToDict(tag, columns=None, request=None, event=None, n=None):
 class EventTagList(APIView):
     """Event Tag List Resource
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -1117,7 +1104,6 @@ class EventTagList(APIView):
 class EventTagDetail(APIView):
     """Event Tag List Resource
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -1133,7 +1119,6 @@ class EventTagDetail(APIView):
 class EventLogTagList(APIView):
     """Event Log Tag List Resource
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -1157,7 +1142,6 @@ class EventLogTagList(APIView):
 class EventLogTagDetail(APIView):
     """Event Log Tag Detail Resource
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -1261,7 +1245,6 @@ def getContentType(event):
 class EventPermissionList(APIView):
     """Event Permission List Resource
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -1284,7 +1267,6 @@ class EventPermissionList(APIView):
 class GroupEventPermissionList(APIView):
     """Group Event Permission List Resource
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -1303,7 +1285,6 @@ class GroupEventPermissionList(APIView):
 class GroupEventPermissionDetail(APIView):
     """Group Event Permission List Resource
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -1446,7 +1427,6 @@ class GroupEventPermissionDetail(APIView):
 class Files(APIView):
     """Files Resource"""
 
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
     #parser_classes = (RawdataParser,)
     parser_classes = (parsers.MultiPartParser,)
@@ -1578,7 +1558,6 @@ class Files(APIView):
 class VOEventList(APIView):
     """VOEvent List Resource
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
     throttle_classes = (AnnotationThrottle,)
 
@@ -1691,7 +1670,6 @@ class VOEventList(APIView):
         return response
 
 class VOEventDetail(APIView):
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -1711,7 +1689,6 @@ class OperatorSignoffList(APIView):
 
     At present, this only supports GET
     """
-    authentication_classes = (LigoAuthentication,)
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
     throttle_classes = (AnnotationThrottle,)
 
