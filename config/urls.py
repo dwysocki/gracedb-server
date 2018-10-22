@@ -6,6 +6,7 @@ from django.conf import settings
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
+from django.views.generic import TemplateView
 
 # Import feeds
 from events.feeds import EventFeed, feedview
@@ -20,12 +21,17 @@ feeds = {
     'latest' : EventFeed
 }
 
+
 urlpatterns = [
     url(r'^$', events.views.index, name="home"),
-    url(r'^navbar_only$', events.views.navbar_only, name="navbar-only"),
-    url(r'^SPInfo', events.views.spinfo, name="spinfo"),
-    url(r'^SPPrivacy', events.views.spprivacy, name="spprivacy"),
-    url(r'^DiscoveryService', events.views.discovery, name="discovery"),
+    url(r'^navbar_only$', TemplateView.as_view(
+        template_name='navbar_only.html'), name="navbar-only"),
+    url(r'^SPInfo', TemplateView.as_view(template_name='gracedb/spinfo.html'),
+         name="spinfo"),
+    url(r'^SPPrivacy', TemplateView.as_view(
+        template_name='gracedb/spprivacy.html'), name="spprivacy"),
+    url(r'^DiscoveryService', TemplateView.as_view(
+        template_name='discovery.html'), name="discovery"),
     url(r'^events/', include('events.urls')),
     url(r'^superevents/', include('superevents.urls')),
     url(r'^options/', include('userprofile.urls')),

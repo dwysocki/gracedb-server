@@ -134,19 +134,6 @@ def index(request):
     
     return render(request, 'gracedb/index.html', context=context)
 
-def navbar_only(request):
-    return render(request, 'navbar_only.html')
-
-# SP Info and Privacy pages are required for Federation with InCommon. 
-def spinfo(request):
-    return render(request, 'gracedb/spinfo.html')
-
-def spprivacy(request):
-    return render(request, 'gracedb/spprivacy.html')
-
-def discovery(request):
-    return render(request, 'discovery.html')
-
 @event_and_auth_required
 def voevent(request, event):
     # Default VOEvent type is 'preliminary'
