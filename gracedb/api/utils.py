@@ -83,4 +83,23 @@ def api_reverse(viewname, args=None, kwargs=None, request=None, format=None,
     if request is None:
         url = build_absolute_uri(url)
    
-    return url 
+    return url
+
+
+def is_api_request(request_path, namespace='x509'):
+    """
+    Returns True/False based on whether the request is directed to the API
+    The namespace variable determines whether we should be testing for the
+    'normal' API (x509 auth), basic auth API, or web API.
+
+    These namespaces are specified in the root urlconf (config/urls.py).
+    """
+
+    # This is hard-coded because things break if we try to import it from .urls
+    api_app_name = 'api'
+
+    resolver_match = resolve(request_path)
+    if (resolver_match.app_name == api_app_name and
+        resolver_match.namespace == namespace):
+        return True
+    return False
