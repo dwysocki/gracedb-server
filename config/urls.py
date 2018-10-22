@@ -1,11 +1,11 @@
 
 # Changed for Django 1.11 upgrade
-from django.conf.urls import url, include
 from django.conf import settings
+from django.conf.urls import url, include
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
-admin.autodiscover()
+from django.contrib.auth.views import logout
 from django.views.generic import TemplateView
 
 # Import feeds
@@ -13,9 +13,13 @@ from events.feeds import EventFeed, feedview
 
 # After Django 1.10, have to import views directly, rather
 # than just using a string
-import events.views
-import search.views
 import events.reports
+import events.views
+from ligoauth.views import gracedb_login
+import search.views
+
+# Django admin auto-discover
+admin.autodiscover()
 
 feeds = {
     'latest' : EventFeed
@@ -43,6 +47,8 @@ urlpatterns = [
     url(r'^reports/cbc_report/(?P<format>(json|flex))?$',
         events.reports.cbc_report, name="cbc_report"),
     url(r'^latest/$', search.views.latest, name="latest"),
+    url(r'^login/$', gracedb_login, name='login'),
+    url(r'^logout/$', logout, {'next_page': '/'}, name='logout'),
     #(r'^reports/(?P<path>.+)$', 'django.views.static.serve',
     #        {'document_root': settings.LATENCY_REPORT_DEST_DIR}),
     url(r'^search/$', search.views.search, name="mainsearch"),
