@@ -24,7 +24,6 @@ from ..superevents.url_templates import construct_url_templates
 class TagList(APIView):
     """Tag List Resource
     """
-    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         # Return a list of links to all tag objects.
@@ -42,7 +41,6 @@ class GracedbRoot(APIView):
     """
     Root of the Gracedb REST API
     """
-    permission_classes = (IsAuthenticated,)
     parser_classes = ()
 
     def get(self, request):
