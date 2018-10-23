@@ -7,6 +7,8 @@ from rest_framework import status, mixins
 from rest_framework.exceptions import ValidationError as \
     RestFrameworkValidationError
 from rest_framework.response import Response
+from rest_framework.settings import api_settings
+from rest_framework.views import APIView
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -116,3 +118,16 @@ class OrderedListModelMixin(object):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class InheritDefaultPermissionsMixin(object):
+    """
+    Prepends default permissions from settings to list of class permissions.
+    """
+    permission_classes = ()
+
+    def get_permissions(self):
+        # Cast to lists to be safe, since these might be tuples
+        permission_list = list(api_settings.DEFAULT_PERMISSION_CLASSES) + \
+            list(self.permission_classes)
+        return [permission() for permission in permission_list]

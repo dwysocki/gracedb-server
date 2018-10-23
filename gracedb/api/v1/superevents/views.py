@@ -43,7 +43,8 @@ from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
 from .viewsets import SupereventNestedViewSet
 from ..filters import DjangoObjectAndGlobalPermissionsFilter
-from ..mixins import SafeCreateMixin, SafeDestroyMixin, ValidateDestroyMixin
+from ..mixins import SafeCreateMixin, SafeDestroyMixin, ValidateDestroyMixin, \
+    InheritDefaultPermissionsMixin
 from ..paginators import BasePaginationFactory, CustomLabelPagination, \
     CustomLogTagPagination
 from ...utils import api_reverse
@@ -52,7 +53,8 @@ from ...utils import api_reverse
 logger = logging.getLogger(__name__)
 
 
-class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
+class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
+    viewsets.ModelViewSet):
     """
     View for listing all Superevents, retrieving individual superevents,
     creating new superevents, and updating existing superevents.
@@ -60,8 +62,8 @@ class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
     queryset = Superevent.objects.all()
     serializer_class = SupereventSerializer
     pagination_class = CustomSupereventPagination
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-        SupereventModelPermissions, SupereventObjectPermissions,)
+    permission_classes = (SupereventModelPermissions,
+        SupereventObjectPermissions,)
     lookup_url_kwarg = SUPEREVENT_LOOKUP_URL_KWARG
     lookup_value_regex = SUPEREVENT_LOOKUP_REGEX
     filter_backends = (DjangoObjectAndGlobalPermissionsFilter,
@@ -108,12 +110,11 @@ class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
 
 
 class SupereventEventViewSet(ValidateDestroyMixin,
-                             SupereventNestedViewSet):
+    InheritDefaultPermissionsMixin, SupereventNestedViewSet):
     """View for events attached to a superevent"""
     serializer_class = SupereventEventSerializer
     pagination_class = BasePaginationFactory(results_name='events')
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-        EventParentSupereventPermissions,)
+    permission_classes = (EventParentSupereventPermissions,)
     lookup_url_kwarg = 'graceid'
     list_view_order_by = ('pk',)
 
@@ -150,12 +151,11 @@ class SupereventEventViewSet(ValidateDestroyMixin,
 
 
 class SupereventLabelViewSet(ValidateDestroyMixin,
-                             SupereventNestedViewSet):
+    InheritDefaultPermissionsMixin, SupereventNestedViewSet):
     """Superevent labels"""
     serializer_class = SupereventLabelSerializer
     pagination_class = CustomLabelPagination
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-        SupereventLabellingModelPermissions,)
+    permission_classes = (SupereventLabellingModelPermissions,)
     lookup_url_kwarg = 'label_name'
     lookup_field = 'label__name'
     list_view_order_by = ('label__name',)
@@ -175,8 +175,8 @@ class SupereventLabelViewSet(ValidateDestroyMixin,
             add_log_message=True, issue_alert=True)
 
 
-class SupereventLogViewSet(SafeCreateMixin,
-                           SupereventNestedViewSet):
+class SupereventLogViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
+    SupereventNestedViewSet):
     """
     View for log messages attached to a superevent.
     """
@@ -184,23 +184,22 @@ class SupereventLogViewSet(SafeCreateMixin,
     serializer_class = SupereventLogSerializer
     pagination_class = BasePaginationFactory(results_name='log')
     filter_backends = (DjangoObjectAndGlobalPermissionsFilter,)
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-        SupereventLogModelPermissions, ParentSupereventAnnotatePermissions,)
+    permission_classes = (SupereventLogModelPermissions,
+        ParentSupereventAnnotatePermissions,)
     lookup_url_kwarg = 'N'
     lookup_field = 'N'
     list_view_order_by = ('N',)
 
 
-class SupereventLogTagViewSet(SafeCreateMixin,
-                              SafeDestroyMixin,
-                              SupereventNestedViewSet):
+class SupereventLogTagViewSet(SafeCreateMixin, SafeDestroyMixin,
+    InheritDefaultPermissionsMixin, SupereventNestedViewSet):
     """
     View for tags attached to a log message which is attached to a superevent.
     """
     serializer_class = SupereventLogTagSerializer
     pagination_class = CustomLogTagPagination
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-        SupereventLogTagModelPermissions, SupereventLogTagObjectPermissions,)
+    permission_classes = (SupereventLogTagModelPermissions,
+        SupereventLogTagObjectPermissions,)
     lookup_url_kwarg = 'tag_name'
     lookup_field = 'name'
     list_view_order_by = ('name',)
@@ -235,7 +234,8 @@ class SupereventLogTagViewSet(SafeCreateMixin,
             add_log_message=True, issue_alert=False)
 
 
-class SupereventFileViewSet(SupereventNestedViewSet):
+class SupereventFileViewSet(InheritDefaultPermissionsMixin,
+    SupereventNestedViewSet):
     """Superevent files"""
     lookup_url_kwarg = 'file_name'
 
@@ -299,15 +299,14 @@ class SupereventFileViewSet(SupereventNestedViewSet):
         return check_and_serve_file(request, file_path, ResponseClass=Response)
 
 
-class SupereventVOEventViewSet(SafeCreateMixin,
-                               SupereventNestedViewSet):
+class SupereventVOEventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
+    SupereventNestedViewSet):
     """
     View for VOEvents attached to a superevent.
     """
     serializer_class = SupereventVOEventSerializer
     pagination_class = BasePaginationFactory(results_name='voevents')
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-        SupereventVOEventModelPermissions,)
+    permission_classes = (SupereventVOEventModelPermissions,)
     create_error_classes = (VOEventBuilderException)
     lookup_url_kwarg = 'N'
     lookup_field = 'N'
@@ -315,21 +314,20 @@ class SupereventVOEventViewSet(SafeCreateMixin,
 
 
 class SupereventEMObservationViewSet(SafeCreateMixin,
-                                     SupereventNestedViewSet):
+    InheritDefaultPermissionsMixin, SupereventNestedViewSet):
     """
     View for EMObservations attached to a superevent.
     """
     serializer_class = SupereventEMObservationSerializer
     pagination_class = BasePaginationFactory(results_name='observations')
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-        ParentSupereventAnnotatePermissions,)
+    permission_classes = (ParentSupereventAnnotatePermissions,)
     lookup_url_kwarg = 'N'
     lookup_field = 'N'
     list_view_order_by = ('N',)
 
 
-class SupereventSignoffViewSet(SafeCreateMixin,
-                               SupereventNestedViewSet):
+class SupereventSignoffViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
+    SupereventNestedViewSet):
     """
     View for signoffs associated with a superevent.
     """
@@ -337,8 +335,7 @@ class SupereventSignoffViewSet(SafeCreateMixin,
     pagination_class = BasePaginationFactory(results_name='signoffs')
     # Order of the 'model' and 'type' permissions matters for the
     # error messages to make sense.
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-        SupereventSignoffModelPermissions,
+    permission_classes = (SupereventSignoffModelPermissions,
         SupereventSignoffTypeModelPermissions,
         SupereventSignoffTypeObjectPermissions,)
     lookup_url_kwarg = 'typeinst' # signoff_type + instrument
@@ -377,15 +374,13 @@ class SupereventSignoffViewSet(SafeCreateMixin,
 
 
 class SupereventGroupObjectPermissionViewSet(SafeCreateMixin,
-                                             SafeDestroyMixin,
-                                             SupereventNestedViewSet):
+    SafeDestroyMixin, InheritDefaultPermissionsMixin, SupereventNestedViewSet):
     """
     View for object permissions associated with exposing/hiding
     a superevent to/from LV-EM users or the public.
     """
     serializer_class = SupereventGroupObjectPermissionSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-        SupereventGroupObjectPermissionPermissions,)
+    permission_classes = (SupereventGroupObjectPermissionPermissions,)
     pagination_class = BasePaginationFactory(results_name='permissions')
     list_view_order_by = ('group',)
 
