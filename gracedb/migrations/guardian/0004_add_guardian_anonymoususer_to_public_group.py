@@ -13,7 +13,8 @@ def add_to_group(apps, schema_editor):
     Group = apps.get_model('auth', 'Group')
 
     # Get anonymous user
-    user = User.objects.get(username=guardian_settings.ANONYMOUS_USER_NAME)
+    user, created = User.objects.get_or_create(username=
+        guardian_settings.ANONYMOUS_USER_NAME)
 
     # Get public group
     group = Group.objects.get(name=settings.PUBLIC_GROUP)
