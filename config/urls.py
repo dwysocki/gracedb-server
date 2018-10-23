@@ -15,7 +15,7 @@ from events.feeds import EventFeed, feedview
 # than just using a string
 import events.reports
 import events.views
-from ligoauth.views import gracedb_login
+from ligoauth.views import pre_login, shib_login, shib_logout
 import search.views
 
 # Django admin auto-discover
@@ -47,8 +47,9 @@ urlpatterns = [
     url(r'^reports/cbc_report/(?P<format>(json|flex))?$',
         events.reports.cbc_report, name="cbc_report"),
     url(r'^latest/$', search.views.latest, name="latest"),
-    url(r'^login/$', gracedb_login, name='login'),
-    url(r'^logout/$', logout, {'next_page': '/'}, name='logout'),
+    url(r'^login/$', pre_login, name='login'),
+    url(r'^post_login/$', shib_login, name='post-login'),
+    url(r'^logout/$', shib_logout, name='logout'),
     #(r'^reports/(?P<path>.+)$', 'django.views.static.serve',
     #        {'document_root': settings.LATENCY_REPORT_DEST_DIR}),
     url(r'^search/$', search.views.search, name="mainsearch"),
