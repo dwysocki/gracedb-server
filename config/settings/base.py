@@ -16,6 +16,11 @@ BASE_DIR = abspath(join(dirname(__file__), "..", ".."))
 CONFIG_ROOT = join(BASE_DIR, "config")
 PROJECT_ROOT = join(BASE_DIR, "gracedb")
 
+# Unauthenticated access ------------------------------------------------------
+# This variable controls whether unauthenticated access is allowed *ANYWHERE*
+# on this service, except the home page, which is always public.
+UNAUTHENTICATED_ACCESS = True
+
 # Miscellaneous settings ------------------------------------------------------
 # Debug mode is off by default
 DEBUG = False
@@ -379,9 +384,13 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER':
         'api.exceptions.gracedb_exception_handler',
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        'rest_framework.permissions.IsAuthenticated',
     )
 }
+# Change default permission classes based on UNAUTHENTICATED_ACCESS setting
+if UNAUTHENTICATED_ACCESS is True:
+    REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = \
+        ('rest_framework.permissions.IsAuthenticatedOrReadOnly',)
 
 # Location of packages installed by bower
 BOWER_DIR = join(BASE_DIR, "..", "bower_components")
