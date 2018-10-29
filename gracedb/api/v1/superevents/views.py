@@ -374,6 +374,7 @@ class SupereventGroupObjectPermissionViewSet(SafeCreateMixin,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
         SupereventGroupObjectPermissionPermissions,)
     pagination_class = BasePaginationFactory(results_name='permissions')
+    list_view_order_by = ('group',)
 
     @action(methods=['post'], detail=False)
     def modify(self, request, superevent_id):
