@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 
+from guardian.conf import settings as guardian_settings
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
 # Set up user model
@@ -258,7 +259,10 @@ class SignoffGroupsAndUsersSetup(TestCase):
 
 
 class PublicGroupSetup(TestCase):
-    """Base class which creates a public group"""
+    """
+    Base class which creates a public group and the guardian AnonymousUser,
+    and puts that user in the public group.
+    """
 
     @classmethod
     def setUpTestData(cls):
@@ -268,6 +272,11 @@ class PublicGroupSetup(TestCase):
         # Get or create public group
         cls.public_group, _ = Group.objects.get_or_create(
             name=settings.PUBLIC_GROUP)
+
+        # Create guardian AnonymousUser and add to group
+        anonymous_user, _ = UserModel.objects.get_or_create(username=
+            guardian_settings.ANONYMOUS_USER_NAME)
+        cls.public_group.user_set.add(anonymous_user)
 
 
 class GraceDbTestBase(DefineTestSettings, InternalGroupAndUserSetup,
