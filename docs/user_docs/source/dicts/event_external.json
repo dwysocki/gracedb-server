@@ -23,13 +23,13 @@
         }
     },
     "links": {
-        "neighbors": "https://gracedb.ligo.org/apiweb/events/E8840/neighbors/",
-        "files": "https://gracedb.ligo.org/apiweb/events/E8840/files/",
-        "log": "https://gracedb.ligo.org/apiweb/events/E8840/log/",
-        "tags": "https://gracedb.ligo.org/apiweb/events/E8840/tag/",
-        "self": "https://gracedb.ligo.org/apiweb/events/E8840",
-        "labels": "https://gracedb.ligo.org/apiweb/events/E8840/labels/",
-        "emobservations": "https://gracedb.ligo.org/apiweb/events/E8840/emobservation/"
+        "neighbors": "https://gracedb.ligo.org/api/events/E8840/neighbors/",
+        "files": "https://gracedb.ligo.org/api/events/E8840/files/",
+        "log": "https://gracedb.ligo.org/api/events/E8840/log/",
+        "tags": "https://gracedb.ligo.org/api/events/E8840/tag/",
+        "self": "https://gracedb.ligo.org/api/events/E8840",
+        "labels": "https://gracedb.ligo.org/api/events/E8840/labels/",
+        "emobservations": "https://gracedb.ligo.org/api/events/E8840/emobservation/"
     },
     "created": "2018-09-01 16:00:12 UTC",
     "far": null,
