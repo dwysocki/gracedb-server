@@ -295,19 +295,20 @@ class GraceDbTestBase(DefineTestSettings, InternalGroupAndUserSetup,
             raise ValueError('{method} is not a valid HTTP method'.format(
                 method=method))
 
-        if user is not None:
-            # Set up user dict
-            user_dict = {
-                'HTTP_REMOTE_USER': user.username,
-                'HTTP_ISMEMBEROF': ';'.join([g.name for g in
-                    user.groups.all()]),
-            }
-            if kwargs:
-                user_dict.update(**kwargs)
+        # If we have a user account
+        if user:
+            # We use force_login because it's faster and the details of the
+            # login process aren't relevant.  We will explicitly test that
+            # process in a set of unit tests.
+            self.client.force_login(user)
 
-            # Make request and return response
-            return method_func(url, data, **user_dict)
-        else:
-            # Anonymous user
-            return method_func(url, data)
+        # Make request
+        response = method_func(url, data)
 
+        # Log user out, otherwise session persists throughout the current unit
+        # test.  This could lead to mistakes, so we are playing it safe here.
+        if user:
+            self.client.logout()
+
+        # Return response
+        return response
