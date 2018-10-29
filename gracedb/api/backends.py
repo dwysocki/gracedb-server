@@ -1,3 +1,6 @@
+import logging
+import re
+
 from django.contrib.auth import get_user_model, authenticate
 from django.conf import settings
 from django.http import HttpResponseForbidden
@@ -5,19 +8,16 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.urls import resolve
 
-from rest_framework.authentication import BaseAuthentication, \
-    BasicAuthentication, get_authorization_header
-from rest_framework import exceptions
+from rest_framework import authentication, exceptions
 
 from ligoauth.models import X509Cert
 from .utils import is_api_request
 
-import re
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 
-class GraceDbBasicAuthentication(BasicAuthentication):
+class GraceDbBasicAuthentication(authentication.BasicAuthentication):
     api_only = False
 
     def authenticate(self, request, *args, **kwargs):
@@ -33,28 +33,18 @@ class GraceDbBasicAuthentication(BasicAuthentication):
             return None
 
         # Call base class authenticate() method
-        return super(GraceDbBasicAuthentication, self).authenticate(request,
-            *args, **kwargs)
+        return super(GraceDbBasicAuthentication, self).authenticate(request)
 
-    def authenticate_credentials(self, userid, password):
+    def authenticate_credentials(self, userid, password, request=None):
         """
-        Mostly copied from rest_framework.authentication.BasicAuthentication,
-        but we needed to add the hacky password expiration check at the end.
+        Add a hacky password expiration check to the inherited method.
         """
-        credentials = {
-            get_user_model().USERNAME_FIELD: userid,
-            'password': password
-        }
         logger.debug("{0}: attempting to authenticate {1}".format(self.__class__.__name__, userid))
-        user = authenticate(**credentials)
+        user, other = super(GraceDbBasicAuthentication, self) \
+            .authenticate_credentials(userid, password, request)
+
         if user:
             logger.debug("{0}: user {1} authenticated".format(self.__class__.__name__, userid))
-
-        if user is None:
-            raise exceptions.AuthenticationFailed(_('Invalid username/password.'))
-
-        if not user.is_active:
-            raise exceptions.AuthenticationFailed(_('User inactive or deleted.'))
 
         # Check password expiration
         # NOTE: This is super hacky because we are using date_joined to store
@@ -69,7 +59,7 @@ class GraceDbBasicAuthentication(BasicAuthentication):
         return (user, None)
 
 
-class GraceDbX509Authentication(BaseAuthentication):
+class GraceDbX509Authentication(authentication.BaseAuthentication):
     www_authenticate_realm = 'api'
     api_only = False
     subject_dn_header = getattr(settings, 'X509_SUBJECT_DN_HEADER',
@@ -86,7 +76,7 @@ class GraceDbX509Authentication(BaseAuthentication):
             logger.debug("{0}: request not directed to x509 API".format(self.__class__.__name__))
             return None
 
-        # Try to get credentials from request headers
+        # Try to get credentials from request headers.
         user_cert_dn = self.get_cert_dn_from_request(request)
 
         # If no user dn is found, pass on to the next auth method
@@ -111,15 +101,11 @@ class GraceDbX509Authentication(BaseAuthentication):
         # signers' subject, so we remove those to get the original identity's
         # certificate DN
         if certdn and certdn.startswith(issuer):
-            certdn = self.proxy_pattern.match(issuer).group(1)
+            certdn = cls.proxy_pattern.match(issuer).group(1)
 
         return certdn
 
     def authenticate_credentials(self, user_cert_dn):
-        """
-        Mostly copied from rest_framework.authentication.BasicAuthentication,
-        but we needed to add the hacky password expiration check at the end.
-        """
         logger.debug("{0}: attempting to authenticate {1}".format(self.__class__.__name__, user_cert_dn))
 
         cert = X509Cert.objects.get(subject=user_cert_dn)
@@ -139,7 +125,7 @@ class GraceDbX509Authentication(BaseAuthentication):
         return (user, None)
 
 
-class GraceDbShibAuthentication(BaseAuthentication):
+class GraceDbShibAuthentication(authentication.BaseAuthentication):
     """
     If user is already authenticated by the main Django middleware,
     don't make them authenticate again.
@@ -148,6 +134,7 @@ class GraceDbShibAuthentication(BaseAuthentication):
     """
     def authenticate(self, request):
         logger.debug("{0}: beginning auth attempt".format(self.__class__.__name__))
+        logger.debug(request._request.user)
         if (request._request.user.is_authenticated and
             is_api_request(request.path)):
             logger.debug("{0}: user {1} already authenticated".format(self.__class__.__name__, request._request.user.username))
