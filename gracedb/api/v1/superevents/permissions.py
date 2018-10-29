@@ -12,8 +12,14 @@ from ..permissions import FunctionalModelPermissions, \
 # Set up logger
 logger = logging.getLogger(__name__)
 
-# NOTE: considering only LVC and lv-em users for now.  Will have to
-# think about public in the future.
+# NOTE: unauthenticated access is controlled by a top-level settings variable
+# called 'UNAUTHENTICATED_ACCESS'.  The 'unauthenticated_users_only' parameter
+# which is part of several of the following classes handles specific cases
+# only when UNAUTHENTICATED_ACCESS == True.  However, it's kind of redundant
+# since unauthenticated users won't have the required Django permissions to
+# pass the checks that would be implemented after the
+# 'authenticated_users_only' value is checked.  But we still use it anyway just
+# for completeness.
 
 
 class SupereventModelPermissions(FunctionalModelPermissions):
@@ -26,6 +32,7 @@ class SupereventModelPermissions(FunctionalModelPermissions):
     required, since otherwise we would get a 405 error before checking
     object permissions.
     """
+    authenticated_users_only = False
     allowed_methods = ['GET', 'OPTIONS', 'HEAD', 'POST', 'PATCH']
 
     def get_post_permissions(self, request):
@@ -73,6 +80,7 @@ class SupereventObjectPermissions(FunctionalObjectPermissions):
     POST: confirm superevent as GW
     PATCH: superevent updates
     """
+    authenticated_users_only = False
     allowed_methods = ['GET', 'OPTIONS', 'HEAD', 'POST', 'PATCH']
     
     def get_patch_object_permissions(self, request, obj):
@@ -116,6 +124,7 @@ class EventParentSupereventPermissions(FunctionalParentObjectPermissions):
     We required different permissions for adding events to a superevent,
     depending on the category.
     """
+    authenticated_users_only = False
     allowed_methods = ['GET', 'OPTIONS', 'HEAD', 'POST', 'DELETE']
 
     def get_post_object_permissions(self, request, parent_obj):
@@ -170,6 +179,8 @@ class EventParentSupereventPermissions(FunctionalParentObjectPermissions):
 
 class ParentSupereventAnnotatePermissions(FunctionalParentObjectPermissions):
     """For adding log messages and EMObservations"""
+    authenticated_users_only = False
+    allowed_methods = ['OPTIONS', 'HEAD', 'GET', 'POST']
 
     def get_post_object_permissions(self, request, parent_obj):
         return ['superevents.annotate_superevent']
@@ -180,6 +191,7 @@ class SupereventLabellingModelPermissions(FunctionalModelPermissions):
     Permissions for adding a label to a superevent i.e., (creating a
     Labelling object).
     """
+    authenticated_users_only = False
     allowed_methods = ['OPTIONS', 'HEAD', 'GET', 'POST', 'DELETE']
 
     def get_post_permissions(self, request):
@@ -188,12 +200,17 @@ class SupereventLabellingModelPermissions(FunctionalModelPermissions):
         return ['superevents.add_labelling']
 
     def get_delete_permissions(self, request):
-        self.message = ('You do not have permissions to remove labels from '
+        self.message = ('You do not have permission to remove labels from '
             'superevents.')
         return ['superevents.delete_labelling']
 
 
 class SupereventLogModelPermissions(FunctionalModelPermissions):
+    """
+    Permissions for adding a log to a superevent. Also handles
+    possible case where a log is created with tags attached.
+    """
+    authenticated_users_only = False
     allowed_methods = ['OPTIONS', 'HEAD', 'GET', 'POST']
     tag_data_field = 'tagname'
 
@@ -212,7 +229,7 @@ class SupereventLogModelPermissions(FunctionalModelPermissions):
             # that's fine.
             pass
         elif tag_names:
-            # If any tags, require add_tag permission.
+            # If any tags, require tag_log permission.
             required_permissions.append('superevents.tag_log')
 
             if (settings.EXTERNAL_ACCESS_TAGNAME in tag_names or
@@ -239,7 +256,14 @@ class SupereventLogModelPermissions(FunctionalModelPermissions):
 
 
 class SupereventLogTagModelPermissions(FunctionalModelPermissions):
+    """
+    Model-level permissions for superevent log tags. Primarilyl covers
+    addition of tags to a log, but also allows GET requests without
+    permissions.  DELETE requests are allowed without permissions here since
+    those are checked at the object level (see the following class).
+    """
     # DELETE needed for object permissions below
+    authenticated_users_only = False
     allowed_methods = ['OPTIONS', 'HEAD', 'GET', 'POST', 'DELETE']
     tag_data_field = 'name'
 
@@ -273,6 +297,11 @@ class SupereventLogTagModelPermissions(FunctionalModelPermissions):
 
 
 class SupereventLogTagObjectPermissions(FunctionalObjectPermissions):
+    """
+    Object-level permissions for superevent log tags. Covers removal of
+    tags from a log.  Also allows individual tag retrieval without permissions.
+    """
+    authenticated_users_only = False
     allowed_methods = ['OPTIONS', 'HEAD', 'GET', 'DELETE']
 
     def get_delete_object_permissions(self, request, obj):
@@ -325,8 +354,9 @@ class SupereventLogTagObjectPermissions(FunctionalObjectPermissions):
 
 class SupereventVOEventModelPermissions(permissions.DjangoModelPermissions):
     """
-    Permissions for adding a label to a superevent i.e., (creating a
-    Labelling object).
+    Model-level permissions for VOEvents attached to a superevent. Checks
+    permissions for creating VOEvents and allows permissionless retrieval and
+    listing of VOEvents.
     """
     perms_map = {
         'GET': [],
@@ -334,25 +364,18 @@ class SupereventVOEventModelPermissions(permissions.DjangoModelPermissions):
         'HEAD': [],
         'POST': ['superevents.add_voevent'],
     }
+    authenticated_users_only = False
     message = 'You do not have permission to create VOEvents.'
 
 
-class SupereventVOEventModelPermissions(permissions.DjangoModelPermissions):
+class SupereventGroupObjectPermissionPermissions(FunctionalModelPermissions):
     """
-    Permissions for adding a label to a superevent i.e., (creating a
-    Labelling object).
+    Permissions for accessing and managing superevent group object permissions.
+
+    Handles GET requests to view the group object permissions and POST requests
+    to change them.
     """
-    perms_map = {
-        'GET': [],
-        'OPTIONS': [],
-        'HEAD': [],
-        'POST': ['superevents.add_voevent'],
-    }
-    message = 'You do not have permission to create VOEvents.'
-
-
-class SupereventGroupObjectPermissionPermissions(
-    FunctionalModelPermissions):
+    authenticated_users_only = True
     allowed_methods = ['OPTIONS', 'HEAD', 'GET', 'POST']
 
     def get_get_permissions(self, request):
@@ -378,6 +401,18 @@ class SupereventGroupObjectPermissionPermissions(
 
 
 class SupereventSignoffModelPermissions(FunctionalModelPermissions):
+    """
+    Model-level permissions for superevent signoffs. Manages permissions for
+    taking certain actions related to signoffs.
+
+    Checks permissions for GET requests (viewing signoffs), POST requests
+    (creating signoffs), PATCH requests (updating signoffs), and DELETE
+    requests (deleting signoffs).
+
+    Does not check any signoff type-based permissions (see
+    SupereventSignoffTypeModelPermissions).
+    """
+    authenticated_users_only = True
     allowed_methods = ['OPTIONS', 'HEAD', 'GET', 'POST', 'PATCH', 'DELETE']
 
     def get_get_permissions(self, request):
@@ -403,8 +438,19 @@ class SupereventSignoffModelPermissions(FunctionalModelPermissions):
 
 def get_signoff_type_permissions(signoff_type, instrument):
     """
-    Helper function for returning permissions and error message for
+    Helper function for returning permissions and error messages for
     superevent signoff actions.
+
+    Based on the type of signoff that is being done (ADV or OP), and
+    the instrument (for OP signoffs), returns the permissions that
+    the user should have to take signoff-related actions for that
+    instrument/signoff type.
+
+    Does not check that they have permission for each action (create, update,
+    etc.); that is handled by SupereventSignoffModelPermissions).
+
+    Used by SupereventSignoffTypeModelPermissions and
+    SupereventSignoffTypeObjectPermissions.
     """
 
     # Base permissions and error message
@@ -433,6 +479,7 @@ class SupereventSignoffTypeModelPermissions(FunctionalModelPermissions):
     """
     Enforces signoff type-based permissions for signoff creation (POST).
     """
+    authenticated_users_only = True
     allowed_methods = SupereventSignoffModelPermissions.allowed_methods
 
     def get_post_permissions(self, request):
@@ -453,6 +500,7 @@ class SupereventSignoffTypeObjectPermissions(FunctionalObjectPermissions):
     Enforces signoff type-based permissions for signoff updates and
     deletion (PATCH and DELETE).
     """
+    authenticated_users_only = True
     allowed_methods = SupereventSignoffModelPermissions.allowed_methods
 
     def _get_signoff_type_permissions_for_object(self, request, obj):
