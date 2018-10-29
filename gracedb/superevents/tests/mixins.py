@@ -1,10 +1,11 @@
 from __future__ import absolute_import
 import os
 
+from core.permission_utils import assign_perms_to_obj
 from core.tests.utils import GraceDbTestBase
 from events.tests.mixins import EventCreateMixin
 from superevents.models import Superevent
-from superevents.utils import expose_superevent
+from superevents.utils import expose_superevent, SUPEREVENT_PERMS
 
 
 class SupereventCreateMixin(EventCreateMixin):
@@ -39,10 +40,19 @@ class SupereventSetup(GraceDbTestBase, SupereventCreateMixin):
     def setUpTestData(cls):
         super(SupereventSetup, cls).setUpTestData()
 
-        # Create two superevents
+        # Create three superevents
         cls.internal_superevent = cls.create_superevent(cls.internal_user)
         cls.lvem_superevent = cls.create_superevent(cls.internal_user)
+        cls.public_superevent = cls.create_superevent(cls.internal_user)
+
+        # Expose one to LV-EM only - a little hacky since our utility
+        # function for exposing a superevent only is capable of
+        # exposing it to both LV-EM and the public.
+        assign_perms_to_obj(SUPEREVENT_PERMS[cls.lvem_group.name],
+            cls.lvem_group, cls.lvem_superevent)
+        cls.lvem_superevent.is_exposed = True
+        cls.lvem_superevent.save(update_fields=['is_exposed'])
 
         # Expose one to LV-EM and public, and assign relevant permissions
-        expose_superevent(cls.lvem_superevent, cls.internal_user,
+        expose_superevent(cls.public_superevent, cls.internal_user,
             add_log_message=False, issue_alert=False)
