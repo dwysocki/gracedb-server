@@ -273,18 +273,21 @@ def construct_voevent_file(superevent, voevent, request=None,
         # Skymaps. Create group and set particular fits and image file names
         g = Group('GW_SKYMAP', skymap_type)
 
+        # We have only one API now for all authorization types.
+        # But the VOEvents are still expected to contain
         # shib, x509, and basic API urls for fits skymap file
-        # Temp function for reversing superevent file detail API resource
-        file_abs_reverse = lambda ns, file_name: build_absolute_uri(
-            reverse(ns + ":default:superevents:superevent-file-detail",
-            args=[superevent.superevent_id, file_name]), request)
-        shib_fits_skymap_url = file_abs_reverse('shib', fits_name)
-        x509_fits_skymap_url = file_abs_reverse('x509', fits_name)
-        basic_fits_skymap_url = file_abs_reverse('basic', fits_name)
+        # TODO: figure out if we can change this functionality going forward
+        shib_fits_skymap_url = build_absolute_uri(reverse(
+            "api:default:superevents:superevent-file-detail",
+            args=[superevent.superevent_id, fits_name]), request)
+        x509_fits_skymap_url = shib_fits_skymap_url
+        basic_fits_skymap_url = shib_fits_skymap_url
         if img_name:
-            shib_png_skymap_url = file_abs_reverse('shib', img_name)
-            x509_png_skymap_url = file_abs_reverse('x509', img_name)
-            basic_png_skymap_url = file_abs_reverse('basic', img_name)
+            shib_png_skymap_url = build_absolute_uri(reverse(
+                "api:default:superevents:superevent-file-detail",
+                args=[superevent.superevent_id, img_name]), request)
+            x509_png_skymap_url = shib_png_skymap_url
+            basic_png_skymap_url = shib_png_skymap_url
 
         # Add parameters to the skymap group
         g.add_Param(Param(name="skymap_fits_shib", 

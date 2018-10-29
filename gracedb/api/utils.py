@@ -1,105 +1,76 @@
 import logging
 
-from django.urls import resolve
+from django.urls import resolve, reverse as django_reverse
 from rest_framework.settings import api_settings
-from rest_framework.reverse import reverse as drf_reverse
 
 from core.urls import build_absolute_uri
 
 # Set up logger
 logger = logging.getLogger(__name__)
 
-# some default values
-AUTH_NAMESPACES = ['api', 'x509', 'shib', 'basic']
-DEFAULT_AUTH_NAMESPACE = 'api'
+# Some default values
+API_NAMESPACE = 'api'
 
 
 def api_reverse(viewname, args=None, kwargs=None, request=None, format=None,
-    **extra):
+    absolute_path=True, **extra):
     """
-    Reverse which handles different API auth schemes and versions. If a
-    request is provided, we want to send back URLs which use the same
-    auth type and version as the user was using. If not, we send back
-    the "default" auth scheme (currently 'x509') and version ('default').
-
-    Standard usage:
-        api_reverse('events:event-list', request=request)
+    Usage:
+        # No request and no version in viewname uses default version
+        # Same for case when request points to a non-API url
+        api_reverse('api:events:event-list')
         api_reverse('events:event-list')
+        api_reverse('api:events:event-list', request=request)
+        api_reverse('events:event-list', request=request)
+            /api/events/
 
-    Not sure if we would ever *want* to specify the auth and version
-    namespaces manually when a request is not provided, but if so, we
-    can. The following are OK, too:
-        api_reverse('default:events:event-list')
-        api_reverse('v1:events:event-list')
-        api_reverse('api:default:events:event-list')
+        # No request but with version in viewname uses the specified version
+        # Same for case when request points to a non-API url
         api_reverse('api:v1:events:event-list')
-        api_reverse('x509:default:events:event-list')
-        api_reverse('x509:v1:events:event-list')
+        api_reverse('api:v1:events:event-list', request=request)
+            /api/v1/events/
+        api_reverse('v2:events:event-list')
+        api_reverse('v2:events:event-list', request=request)
+            /api/v2/events/
+
+        # Request pointing to an API URL uses the specified version in the
+        # viewname. If a version is not specified in the viewname, the version
+        # is determined from the request.
+        api_reverse('api:v1:events:event-list, request=request)
+        api_reverse('v1:events:event-list, request=request)
+            /api/v1/events/ (request.path is like /api/(any version)/*)
+
+        api_reverse('api:events:event-list, request=request)
+        api_reverse('events:event-list, request=request)
+            /api/v2/events (request.path is like /api/v2/*)
     """
-    namespaces = []
-    if request:
-        resolver_match = resolve(request.path)
 
-        # We have to be careful here because this function is sometimes used
-        # for requests whose path is not in the API.  I.e., when web views
-        # try to serialize stuff (like EventLogToDict). The 'else' statement
-        # handles that case
-        if resolver_match.namespaces:
-            # We only add the *first* namespace because it specifies the auth
-            # namespace.  The version namespace will be handled by the
-            # versioning class in this case.
-            namespaces.append(resolver_match.namespaces[0])
-        else:
-            namespaces.append(DEFAULT_AUTH_NAMESPACE)
-            namespaces.append(api_settings.DEFAULT_VERSION)
-    else:
-        # Otherwise, we check the viewname and add in the auth and version
-        # namespaces as needed. Note that we have to add version namespaces (if
-        # the code doesn't specify them) because there is no request, so
-        # drf_reverse won't trigger the versioning class.
+    # Prepend 'api:' if viewname doesn't start with it.
+    if not viewname.startswith(API_NAMESPACE + ':'):
+        viewname = API_NAMESPACE + ':' + viewname
 
-        # Split provided viewname to determine possible namespaces that are
-        # already included
-        possible_namespaces = viewname.split(':')[:-1]
+    # Handle versioning. Nothing is done by the versioning_class if the
+    # viewname already has a version namespace.
+    versioning_class = api_settings.DEFAULT_VERSIONING_CLASS()
+    viewname = versioning_class.get_versioned_viewname(viewname, request)
 
-        # Check if any auth namespaces were provided already; if not,
-        # set to default using app_name
-        if not any([v in possible_namespaces for v in AUTH_NAMESPACES]):
-            namespaces.append(DEFAULT_AUTH_NAMESPACE)
-
-        # Check if any version namespaces were provided already; if not,
-        # set to default
-        if not any([v in possible_namespaces for v in
-            api_settings.ALLOWED_VERSIONS]):
-            namespaces.append(api_settings.DEFAULT_VERSION)
-
-    # Join namespaces to viewname    
-    viewname = ':'.join(namespaces + [viewname])
-
-    # Use rest_framework reverse to get url
-    url = drf_reverse(viewname, args, kwargs, request, format, **extra)
-
-    # Use sites to build absolute url if request is not available
-    if request is None:
+    # Get URL
+    url = django_reverse(viewname, args=args, kwargs=kwargs, **extra)
+    if absolute_path:
         url = build_absolute_uri(url)
-   
+
     return url
 
 
-def is_api_request(request_path, namespace='x509'):
+def is_api_request(request_path):
     """
     Returns True/False based on whether the request is directed to the API
-    The namespace variable determines whether we should be testing for the
-    'normal' API (x509 auth), basic auth API, or web API.
-
-    These namespaces are specified in the root urlconf (config/urls.py).
     """
 
     # This is hard-coded because things break if we try to import it from .urls
     api_app_name = 'api'
 
     resolver_match = resolve(request_path)
-    if (resolver_match.app_name == api_app_name and
-        resolver_match.namespace == namespace):
+    if (resolver_match.app_name == api_app_name):
         return True
     return False

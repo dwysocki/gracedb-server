@@ -291,24 +291,22 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         g = Group('GW_SKYMAP', skymap_type)
 
         # shib urls.
+        # For some reason we use the web URL rather than the API.
+        # TODO: fix it.
         shib_fits_skymap_url = get_url(request, objid, "file-download", fits_name)
         if img_name:
             shib_png_skymap_url  = get_url(request, objid, "file-download", img_name)
 
-        # x509 urls. Hafta specify the api namespace.
+        # API urls: even though we only have one API endpoint now, we still
+        # populate all of these different URLs. Maybe we can change this in the
+        # future (TODO).
         x509_fits_skymap_url = get_url(request, objid,
-            "x509:default:events:files", fits_name)
+            "api:default:events:files", fits_name)
+        basic_fits_skymap_url = x509_fits_skymap_url
         if img_name:
-            x509_png_skymap_url  = get_url(request, objid,
-                "x509:default:events:files", img_name)
-
-        # basic urls. Hafta specify the api namespace.
-        basic_fits_skymap_url = get_url(request, objid,
-            "basic:default:events:files", fits_name)
-        if img_name:
-            basic_png_skymap_url  = get_url(request, objid,
-                "basic:default:events:files", img_name)
-        
+            x509_png_skymap_url = get_url(request, objid,
+                "api:default:events:files", img_name)
+            basic_png_skymap_url = x509_png_skymap_url
 
         # Add parameters to the skymap group
         g.add_Param(Param(name="skymap_fits_shib", 

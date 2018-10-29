@@ -27,8 +27,8 @@ class GraceDbBasicAuthentication(BasicAuthentication):
         """
         logger.debug("{0}: beginning auth attempt".format(self.__class__.__name__))
 
-        # Make sure this request is directed to the basic auth API
-        if self.api_only and not is_api_request(request.path, 'basic'):
+        # Make sure this request is directed to the API
+        if self.api_only and not is_api_request(request.path):
             logger.debug("{0}: request not directed to basic auth API".format(self.__class__.__name__))
             return None
 
@@ -81,8 +81,8 @@ class GraceDbX509Authentication(BaseAuthentication):
     def authenticate(self, request):
         logger.debug("{0}: beginning auth attempt".format(self.__class__.__name__))
 
-        # Make sure this request is directed to the basic auth API
-        if self.api_only and not is_api_request(request.path, 'x509'):
+        # Make sure this request is directed to the API
+        if self.api_only and not is_api_request(request.path):
             logger.debug("{0}: request not directed to x509 API".format(self.__class__.__name__))
             return None
 
@@ -149,8 +149,7 @@ class GraceDbShibAuthentication(BaseAuthentication):
     def authenticate(self, request):
         logger.debug("{0}: beginning auth attempt".format(self.__class__.__name__))
         if (request._request.user.is_authenticated and
-            is_api_request(request.path, 'shib')):
-
+            is_api_request(request.path)):
             logger.debug("{0}: user {1} already authenticated".format(self.__class__.__name__, request._request.user.username))
             return (request._request.user, None)
         else:

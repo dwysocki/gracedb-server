@@ -71,7 +71,7 @@ client class is specially formulated for basic auth::
 
     from ligo.gracedb.rest import GraceDbBasic, HTTPError
  
-    service_url = 'https://gracedb.ligo.org/apibasic/'
+    service_url = 'https://gracedb.ligo.org/api/'
     client = GraceDbBasic(service_url)
   
     try:
@@ -108,7 +108,7 @@ This file can be retrieved in the following way::
     out_filename = grace_id + '_' + filename
 
     # Instantiate the GraceDB client
-    service_url = 'https://gracedb.ligo.org/apibasic/'
+    service_url = 'https://gracedb.ligo.org/api/'
     client = GraceDbBasic(service_url)
 
     # Grab the file from the server and write it 

@@ -83,7 +83,7 @@ response.  If there is an error (such as an authentication failure), the
 status code and a response body in JSON. The ``json`` method on the response
 object simply decodes the JSON content. In this particular case, the response
 code should be 200 (meaning "OK") and the body contains a large dictionary
-of information representing the `API Root resource <https://gracedb.ligo.org/apiweb/>`__.
+of information representing the `API Root resource <https://gracedb.ligo.org/api/>`__.
 Most of the examples below will ignore the error handling shown here for the 
 sake of brevity.
 
@@ -143,9 +143,9 @@ out the chirp mass? The best way is to look at the structure of an example
 event in the *browseable* REST API. Here some example events from the different
 subclasses to demonstrate the structure of the event dictionaries.
 
-- `Test gstlal MDC <https://gracedb.ligo.org/apiweb/events/T125738>`__ (a CBC event)
-- `Test cWB MDC <https://gracedb.ligo.org/apiweb/events/T153811>`__ (a Burst event)
-- `External Swift GRB <https://gracedb.ligo.org/apiweb/events/E160846>`__ (a GRB event)
+- `Test gstlal MDC <https://gracedb.ligo.org/api/events/T125738>`__ (a CBC event)
+- `Test cWB MDC <https://gracedb.ligo.org/api/events/T153811>`__ (a Burst event)
+- `External Swift GRB <https://gracedb.ligo.org/api/events/E160846>`__ (a GRB event)
 
 Creating new events
 ====================================

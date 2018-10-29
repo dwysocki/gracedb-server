@@ -11,8 +11,8 @@ class NestedNamespaceVersioning(versioning.NamespaceVersioning):
 
     def reverse(self, viewname, args=None, kwargs=None, request=None,
         format=None, **extra):
-        if request.version is not None:
-            viewname = self.get_versioned_viewname(viewname, request)
+
+        viewname = self.get_versioned_viewname(viewname, request)
         return super(NestedNamespaceVersioning, self).reverse(
             viewname, args, kwargs, request, format, **extra
         )
@@ -24,17 +24,22 @@ class NestedNamespaceVersioning(versioning.NamespaceVersioning):
         viewname_only = viewname_parts[-1]
 
         # Get version
-        if request and request.version:
+        if request and hasattr(request, 'version'):
             version = request.version
         else:
             # The 'default_version' attribute is set by the BaseVersioning
             # class
             version = self.default_version
 
-        # Add version into namespaces
-        if version not in namespaces:
+        # Insert the version unless there are at least (version_nest_level)
+        # namespaces and the one at the (version_nest_level - 1)th index is
+        # an allowed version.
+        insert_version_namespace = True
+        if (len(namespaces) >= self.version_nest_level and
+            self.is_allowed_version(namespaces[self.version_nest_level - 1])):
+            insert_version_namespace = False
+        if insert_version_namespace:
             namespaces.insert(self.version_nest_level - 1, version)
 
         versioned_viewname = ':'.join(namespaces + [viewname_only])
         return versioned_viewname
-

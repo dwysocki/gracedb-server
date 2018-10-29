@@ -55,10 +55,10 @@ urlpatterns = [
     url(r'^search/$', search.views.search, name="mainsearch"),
 
     # API URLs
-    url(r'^apibasic/', include('api.urls', namespace="basic")),
-    url(r'^apiweb/', include('api.urls', namespace="shib")),
-    url(r'^api/', include('api.urls', namespace="x509")),
-    #url(r'^apinew/', include('api.urls')), # one place for all auth schemes
+    url(r'^api/', include('api.urls')),
+    # Legacy API URLs: can we get rid of these at some point? (TODO)
+    url(r'^apibasic/', include('api.urls', namespace='legacy_apibasic')),
+    url(r'^apiweb/', include('api.urls', namespace='legacy_apiweb')),
 
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
     # to INSTALLED_APPS to enable admin documentation:

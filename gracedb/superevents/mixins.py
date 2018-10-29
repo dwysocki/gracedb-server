@@ -165,7 +165,7 @@ class AdvocateSignoffMixin(ContextMixin):
 class ExposeHideMixin(ContextMixin):
     expose_perm_name = 'superevents.expose_superevent'
     hide_perm_name = 'superevents.hide_superevent'
-    form_url_view_name = 'shib:default:superevents:superevent-permissions'
+    form_url_view_name = 'api:default:superevents:superevent-permissions'
 
     def get_context_data(self, **kwargs):
 

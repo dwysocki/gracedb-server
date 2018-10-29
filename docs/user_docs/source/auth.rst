@@ -7,21 +7,17 @@ Authentication and Authorization
 Authentication methods
 ========================================
 
-GraceDB supports three different types of authentication methods depending
-on the entry point:
+GraceDB supports three different types of authentication methods depending on the entry point:
 
-- **Web Interface**: ``gracedb.ligo.org/`` supports Shibboleth with
+- **Web interface**: ``gracedb.ligo.org/`` supports Shibboleth with
   federated identities.
-- **REST API**: The API has three entry points:
-    - **X509**: ``gracedb.ligo.org/api/``
-    - **Shibboleth**: ``gracedb.ligo.org/apiweb/``
-    - **Basic**: ``gracedb.ligo.org/apibasic/``
+- **REST API**: The API has a single entry point which can handle the following types of authentication:
+    - **Shibboleth**
+    - **X509**
+    - **Basic (password-based)**
 
-The X509 URL listed above is the default for the Python client. But users
-with robot Kerberos keytabs will want to point to the Shibboleth URL.
-(The same URL can also be accessed with a web browser to browse the API.)
-Similarly, LV-EM users accessing the API will want to point to the URL
-for basic auth.
+Unauthenticated, read-only access is also available for both the web interface and the API.
+Only a limited set of information is available to unauthenticated users.
 
 GraceDB permissions
 =========================================
@@ -72,11 +68,10 @@ Shibbolized client as follows::
 
     from ligo.gracedb.rest import GraceDb, HTTPError
 
-    SERVICE = "https://gracedb.ligo.org/apiweb/"
+    SERVICE = "https://gracedb.ligo.org/api/"
     SHIB_SESSION_ENDPOINT = "https://gracedb.ligo.org/Shibboleth.sso/Session"
 
     client = GraceDb(SERVICE, SHIB_SESSION_ENDPOINT)
-    client.initialize()
 
     try:
         r = client.ping()

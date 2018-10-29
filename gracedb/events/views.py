@@ -466,7 +466,7 @@ def view(request, event):
 #-----------------------------------------------------------------------------------
 # For tags.  A new view function.  We need this because the API one would want users
 # to have certs stored in their browser.
-# XXX Get rid of this and use apiweb views instead?
+# XXX Get rid of this and use api views instead?
 #-----------------------------------------------------------------------------------
 
 @event_and_auth_required

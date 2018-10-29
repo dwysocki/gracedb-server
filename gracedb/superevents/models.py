@@ -462,7 +462,7 @@ class Log(CleanSaveModel, LogBase, AutoIncrementModel):
         return os.path.join(self.superevent.datadir, self.versioned_filename)
 
     def fileurl(self):
-        return reverse("shib:default:superevents:superevent-file-detail",
+        return reverse("api:default:superevents:superevent-file-detail",
             args=[self.superevent.superevent_id, self.versioned_filename])
 
 

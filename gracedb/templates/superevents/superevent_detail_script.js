@@ -156,13 +156,13 @@ var hasImage = function(object) {
 }
 
 // some URLs. Usage of Django template syntax should be limited to here
-var tagListUrl          = '{% url "shib:default:tag-list" %}';
-var tagCreateUrlPattern = '{% url "shib:default:superevents:superevent-log-tag-list" superevent.superevent_id "000" %}';
-var tagDeleteUrlPattern = '{% url "shib:default:superevents:superevent-log-tag-detail" superevent.superevent_id "000" "FAKE_TAG_NAME" %}';
-var logListUrl     = '{% url "shib:default:superevents:superevent-log-list" superevent.superevent_id %}';
-var logSaveUrl     = '{% url "shib:default:superevents:superevent-log-list" superevent.superevent_id %}';
-var emObservationListUrl = '{% url "shib:default:superevents:superevent-emobservation-list" superevent.superevent_id %}';
-var fileDownloadUrl     = '{% url "shib:default:superevents:superevent-file-detail" superevent.superevent_id "FAKE_FILE_NAME" %}';
+var tagListUrl          = '{% url "api:default:tag-list" %}';
+var tagCreateUrlPattern = '{% url "api:default:superevents:superevent-log-tag-list" superevent.superevent_id "000" %}';
+var tagDeleteUrlPattern = '{% url "api:default:superevents:superevent-log-tag-detail" superevent.superevent_id "000" "FAKE_TAG_NAME" %}';
+var logListUrl     = '{% url "api:default:superevents:superevent-log-list" superevent.superevent_id %}';
+var logSaveUrl     = '{% url "api:default:superevents:superevent-log-list" superevent.superevent_id %}';
+var emObservationListUrl = '{% url "api:default:superevents:superevent-emobservation-list" superevent.superevent_id %}';
+var fileDownloadUrl     = '{% url "api:default:superevents:superevent-file-detail" superevent.superevent_id "FAKE_FILE_NAME" %}';
 var skymapViewerUrl     = '{{ SKYMAP_VIEWER_SERVICE_URL }}';
 
 // This little list determines the priority ordering of the digest sections.

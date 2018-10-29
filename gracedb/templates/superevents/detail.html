@@ -57,7 +57,7 @@
 
 {% if show_gw_status_form %}
 <div class="content-area">
-<form action="{% url "shib:default:superevents:superevent-confirm-as-gw" superevent.superevent_id %}" method="POST" id="confirm_as_gw_form">
+<form action="{% url "api:default:superevents:superevent-confirm-as-gw" superevent.superevent_id %}" method="POST" id="confirm_as_gw_form">
     <input type="submit" value="Confirm this superevent as a GW" class="permButtonClass" disabled>
 </form>
 <div><b>Note:</b> this action is irreversible without manual intervention by an admin.</div>
@@ -70,7 +70,7 @@
 {#-- XXX This next bit is super hacky. #}
 {% if can_modify_permissions %}
 <div class="content-area">
-<form action="{% url "shib:default:superevents:superevent-permission-modify" superevent.superevent_id %}" method="POST" id="permissions_form">
+<form action="{% url "api:default:superevents:superevent-permission-modify" superevent.superevent_id %}" method="POST" id="permissions_form">
     <input type="hidden" name="action" value="{{ permissions_action }}">
     <input type="submit" value="{{ permissions_form_button_text }}" class="permButtonClass" disabled>
 </form>
@@ -95,11 +95,11 @@
             {# inputs are disabled here, enabled by jquery code on page load. Otherwise users who click quickly can activate the form before the jquery is fully loaded #}
             {% if operator_signoff_exists %}
             {% with operator_signoff_type|add:operator_signoff_instrument as typeinst %}
-                <input type="submit" formaction="{% url "shib:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Update signoff" class="searchButtonClass" id="update" disabled>
-                <input type="submit" formaction="{% url "shib:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Delete signoff" class="searchButtonClass" id="delete" disabled>
+                <input type="submit" formaction="{% url "api:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Update signoff" class="searchButtonClass" id="update" disabled>
+                <input type="submit" formaction="{% url "api:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Delete signoff" class="searchButtonClass" id="delete" disabled>
             {% endwith %}
             {% else %}
-            <input type="submit" value="Create signoff" class="searchButtonClass" formaction={% url "shib:default:superevents:superevent-signoff-list" superevent.superevent_id %} disabled>
+            <input type="submit" value="Create signoff" class="searchButtonClass" formaction={% url "api:default:superevents:superevent-signoff-list" superevent.superevent_id %} disabled>
             {% endif %}
             </td>
         </tr>
@@ -129,11 +129,11 @@
             {# inputs are disabled here, enabled by jquery code on page load. Otherwise users who click quickly can activate the form before the jquery is fully loaded #}
             {% if advocate_signoff_exists %}
             {% with advocate_signoff_type|add:advocate_signoff_instrument as typeinst %}
-                <input type="submit" formaction="{% url "shib:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Update signoff" class="searchButtonClass" id="update" disabled>
-                <input type="submit" formaction="{% url "shib:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Delete signoff" class="searchButtonClass" id="delete" disabled>
+                <input type="submit" formaction="{% url "api:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Update signoff" class="searchButtonClass" id="update" disabled>
+                <input type="submit" formaction="{% url "api:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Delete signoff" class="searchButtonClass" id="delete" disabled>
             {% endwith %}
             {% else %}
-            <input type="submit" value="Create signoff" class="searchButtonClass" formaction={% url "shib:default:superevents:superevent-signoff-list" superevent.superevent_id %} disabled>
+            <input type="submit" value="Create signoff" class="searchButtonClass" formaction={% url "api:default:superevents:superevent-signoff-list" superevent.superevent_id %} disabled>
             {% endif %}
             </td>
         </tr>
