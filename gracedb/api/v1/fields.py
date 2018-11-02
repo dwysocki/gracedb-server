@@ -1,14 +1,16 @@
 from __future__ import absolute_import
+import decimal
 import logging
-import six
 
-from rest_framework import serializers
+from django.utils import six
+
+from rest_framework import fields
 
 # Set up logger
 logger = logging.getLogger(__name__)
 
 
-class CustomHiddenDefault(serializers.CurrentUserDefault):
+class CustomHiddenDefault(fields.CurrentUserDefault):
     context_key = None
 
     def __init__(self, *args, **kwargs):
@@ -46,7 +48,7 @@ class ParentObjectDefault(CustomHiddenDefault):
         return value
 
 
-class DelimitedOrListField(serializers.ListField):
+class DelimitedOrListField(fields.ListField):
     default_style = {'base_template': 'input.html'}
     initial = '' # prevent '[]' being shown in default form in web
     delim = ','
@@ -79,7 +81,7 @@ class DelimitedOrListField(serializers.ListField):
         return super(DelimitedOrListField, self).to_internal_value(data)
 
 
-class ChoiceDisplayField(serializers.ChoiceField):
+class ChoiceDisplayField(fields.ChoiceField):
     """
     Same as standard choice field, but return a choice's display_value
     instead of the key when serializing the field.
@@ -89,7 +91,7 @@ class ChoiceDisplayField(serializers.ChoiceField):
         return self._choices[value]
 
 
-class GenericField(serializers.Field):
+class GenericField(fields.Field):
     # Field, property, or callable of the object which will be used to
     # generate the representation of the object.
     to_repr = None
@@ -126,3 +128,17 @@ class GenericField(serializers.Field):
 
     def get_model_dict(self, data):
         return {self.lookup_field: data}
+
+
+class CustomDecimalField(fields.DecimalField):
+
+    def to_internal_value(self, data):
+        # Proper handling of floats: convert to quantized decimal.Decimal
+        # and then back to a string, so that the rest of the processing
+        # can continue
+        if isinstance(data, float):
+            data = decimal.Decimal(data).quantize(
+                decimal.Decimal(10)**(-1 * self.decimal_places))
+            data = data.to_eng_string()
+
+        return super(CustomDecimalField, self).to_internal_value(data)
