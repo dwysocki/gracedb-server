@@ -21,6 +21,7 @@ from pyparsing import Word, nums, Literal, CaselessLiteral, delimitedList, \
 # Set up logger
 logger = logging.getLogger(__name__)
 
+
 # Function for parsing matched superevent ID tokens
 def parse_superevent_id(name, toks, filter_prefix=None):
     # toks = matched superevent id
@@ -119,6 +120,22 @@ parameter_dicts = {
         'value': Or([CaselessLiteral(b) for b in ['true', 'false']]),
         'parseAction': lambda toks: ("is_gw", Q(is_gw=(toks[0] == "true"))),
     },
+    # is_public: true|false OR is_exposed: true|false
+    'is_public': {
+        'keyword': ['is_public', 'is_exposed'],
+        'keywordOptional': False,
+        'value': Or([CaselessLiteral(b) for b in ['true', 'false']]),
+        'parseAction': lambda toks: ("is_exposed",
+            Q(is_exposed=(toks[0] == "true"))),
+    },
+    # status: internal|public OR internal|public
+    'public': {
+        'keyword': 'status',
+        'keywordOptional': True,
+        'value': Or([CaselessLiteral(b) for b in ['public', 'internal']]),
+        'parseAction': lambda toks: ("is_exposed",
+            Q(is_exposed=(toks[0] == "public"))),
+    },
     # created: yesterday .. now (uses events.nltime.nltimeExpression)
     'created_nl': {
         'keyword': 'created',
@@ -152,7 +169,6 @@ parameter_dicts = {
               if t[1].lower()==toks[0].lower()][0])),
     },
 }
-
 
 # Compile a list of expressions to try to match
 expr_list = []
