@@ -6,9 +6,10 @@ import os
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as AuthGroup
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from rest_framework import serializers, validators
+from rest_framework import fields, serializers, validators
 from rest_framework.exceptions import ValidationError
 
 from events.models import Event, Label, Tag, EMGroup
@@ -16,7 +17,7 @@ from superevents.models import Superevent, Labelling, Log, VOEvent, \
     EMObservation, EMFootprint, Signoff, SupereventGroupObjectPermission
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG
 from ..fields import ParentObjectDefault, DelimitedOrListField, \
-    ChoiceDisplayField
+    ChoiceDisplayField, CustomDecimalField
 from ..events.fields import EventGraceidField
 from ...utils import api_reverse
 
@@ -39,6 +40,10 @@ class SupereventSerializer(serializers.ModelSerializer):
                              'automated process and cannot be manually added: '
                              '{labels}'),
     }
+    # Use CustomDecimalField for underlying model DecimalFields
+    serializer_field_mapping = \
+        serializers.ModelSerializer.serializer_field_mapping
+    serializer_field_mapping[models.DecimalField] = CustomDecimalField
 
     # Fields
     submitter = serializers.SlugRelatedField(slug_field='username',
