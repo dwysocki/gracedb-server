@@ -214,7 +214,10 @@ def parseSupereventQuery(s):
     matches = (stringStart + OneOrMore(q) + stringEnd).parseString(s).asList()
 
     # Append default category query if category is not specified in the query
-    if 'category' not in [m[0] for m in matches]:
+    # OR if a superevent ID is not directly specified in the query
+    match_keys = [m[0] for m in matches]
+    no_default_category_keys = ['category', 'superevent_id']
+    if not any([k in match_keys for k in no_default_category_keys]):
         matches.append(('category', default_Q))
 
     return reduce(Q.__and__, [m[1] for m in matches], Q())
