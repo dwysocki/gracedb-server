@@ -5,14 +5,18 @@
 {% block branding %}
 GraceDB &mdash; REST API
     {% if config_name %}
-      <span style="color: red;">
-          ({{ config_name }})
-      </span>
+      <div style="color: red; display: inline;">({{ config_name }})</div>
     {% endif %}
 {% endblock %}
 
 {% block userlinks %}
-   {% if user %}<li>Authenticated as: {{ user.first_name }} {{ user.last_name }}</li>{% endif %}
+    <li>
+    {% if user.is_authenticated %}
+    Authenticated as: {{ user.first_name }} {{ user.last_name }}
+    {% else %}
+    <a href="{% url "login" %}"><b>Login</b></a>
+    {% endif %}
+    </li>
 {% endblock %}
 
     {% block breadcrumbs %}
