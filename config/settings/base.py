@@ -2,7 +2,6 @@ import os, time, logging
 from os.path import abspath, dirname, join
 from datetime import datetime, timedelta
 from cloghandler import ConcurrentRotatingFileHandler
-from core.time_utils import posixToGpsTime
 
 # Get local settings:
 # SERVER_HOSTNAME, SERVER_FQDN, IS_PRODUCTION_SERVER, ADMINS, GRACEDB_PATHS
