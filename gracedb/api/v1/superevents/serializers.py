@@ -115,9 +115,6 @@ class SupereventSerializer(serializers.ModelSerializer):
         from superevents.utils import create_superevent
         submitter = validated_data.pop('user')
 
-        # TODO: 
-        # Check user permissions here, or somewhere else? Maybe just on viewset
-        # create resource
         return create_superevent(submitter, **validated_data)
 
     # Custom method fields ----------------------------------------------------
