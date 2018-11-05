@@ -54,7 +54,7 @@ console (i.e., ``./manage.py shell``). Suppose I want to move the data
 for all gstlal events during O1::
 
     from events.models import Event
-    from events.forms import SimpleSearchForm
+    from search.forms import SimpleSearchForm
     f = SimpleSearchForm({'query': 'gstlal O1'})
     outfile = open('/home/gracedb/query_graceids.txt', 'w')
     if f.is_valid():

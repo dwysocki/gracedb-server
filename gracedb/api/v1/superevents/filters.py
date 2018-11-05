@@ -6,7 +6,7 @@ from django.http import HttpResponseBadRequest
 
 from rest_framework import filters, exceptions
 
-from superevents.query import parseSupereventQuery
+from search.query.superevents import parseSupereventQuery
 
 # Set up logger
 logger = logging.getLogger(__name__)

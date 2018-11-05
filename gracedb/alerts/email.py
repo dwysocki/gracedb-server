@@ -10,10 +10,9 @@ from django.core.mail import EmailMessage
 from django.conf import settings
 
 from core.time_utils import gpsToUtc
-
 from events.models import Event
 from events.permission_utils import is_external
-from events.query import filter_for_labels
+from search.query.labels import filter_for_labels
 
 # Set up logger
 log = logging.getLogger(__name__)

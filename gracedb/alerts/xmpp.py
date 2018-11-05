@@ -10,8 +10,8 @@ from django.conf import settings
 
 from core.time_utils import gpsToUtc
 from events.permission_utils import is_external
-from events.query import filter_for_labels
 from events.shortcuts import is_event
+from search.query.labels import filter_for_labels
 from superevents.shortcuts import is_superevent
 from .lvalert import send_with_lvalert_overseer, send_with_lvalert_client
 

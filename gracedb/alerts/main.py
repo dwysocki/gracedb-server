@@ -14,8 +14,8 @@ from django.db.models import QuerySet, Q
 from core.time_utils import gpsToUtc
 from events.models import Event
 from events.permission_utils import is_external
-from events.query import filter_for_labels
 from events.shortcuts import is_event
+from search.query.labels import filter_for_labels
 from superevents.shortcuts import is_superevent
 from userprofile.models import Contact
 from .phone import issue_phone_alerts

@@ -1,17 +1,21 @@
+from __future__ import absolute_import
+import os
+import logging
+from pyparsing import ParseException
+
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 
 from events.models import Event
-from events.query import parseQuery, filter_for_labels
 from superevents.models import Superevent
-from superevents.query import parseSupereventQuery
+from .fields import GraceQueryField
+from .query.events import parseQuery
+from .query.superevents import parseSupereventQuery
+from .query.labels import filter_for_labels
 
-from pyparsing import ParseException
-
-import os
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 htmlEntityStar = "&#9733;"
@@ -85,3 +89,11 @@ class MainSearchForm(forms.Form):
             # What could this be and how can we handle it better? XXX
             logger.error('{t}: {e}'.format(t=str(type(e)), e=str(e)))
             raise forms.ValidationError(str(e))
+
+
+# NOTE: this form is from the old events-only search, but is used in several
+# other places.  We should remove it once the events rework is done.
+class SimpleSearchForm(forms.Form):
+    query = GraceQueryField(required=False,
+        widget=forms.TextInput(attrs={'size': 60}))
+    get_neighbors = forms.BooleanField(required=False)

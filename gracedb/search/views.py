@@ -9,9 +9,8 @@ from django.views.decorators.http import require_GET
 from guardian.shortcuts import get_objects_for_user
 
 from .forms import MainSearchForm
-from .utils import get_search_results_as_ligolw, event_flexigrid_response, \
+from .response import get_search_results_as_ligolw, event_flexigrid_response, \
     superevent_flexigrid_response
-
 
 # Set up logger
 logger = logging.getLogger(__name__)

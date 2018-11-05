@@ -9,8 +9,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import FieldError
 from django.forms import ModelForm
 
-from .fields import GraceQueryField
-from .query import parseQuery, filter_for_labels
 from pyparsing import ParseException
 
 # Set up logger
@@ -24,9 +22,6 @@ htmlEntityRightArrow = "&rarr;"
 
 errorMarker = '<span style="color:red;">'+htmlEntityStar+'</span>'
 
-class SimpleSearchForm(forms.Form):
-    query = GraceQueryField(required=False, widget=forms.TextInput(attrs={'size':60})) 
-    get_neighbors = forms.BooleanField(required=False)
 
 class CreateEventForm(forms.Form):
     eventFile = forms.FileField()
@@ -57,31 +52,6 @@ class CreateEventForm(forms.Form):
 
         return cleaned_data
 
-class EventSearchForm(forms.Form):
-
-    graceidStart = forms.CharField(required=False)
-    graceidEnd = forms.CharField(required=False)
-    group = forms.ModelChoiceField(queryset=Group.objects.all(),
-        required=False)
-    pipeline = forms.ModelChoiceField(queryset=Pipeline.objects.all(),
-        required=False)
-    search = forms.ModelChoiceField(queryset=Search.objects.all(),
-        required=False)
-    gpsStart = forms.IntegerField(min_value=0, required=False, label="GPS Start")
-    gpsEnd = forms.IntegerField(min_value=0, required=False, label="GPS End")
-    submitter = forms.ModelChoiceField(required=False,
-        queryset=User.objects.exclude(event__isnull=True) \
-        .order_by('last_name', 'first_name'))
-
-    labels = forms.ModelMultipleChoiceField(queryset=Label.objects.all(),
-        required=False)
-    get_neighbors = forms.BooleanField(required=False)
-
-    offline = forms.NullBooleanField(
-        required=False,
-        help_text=("Select \"Unknown\" to search for both online and offline "
-            "events.")
-    )
 
 class SignoffForm(ModelForm):
     class Meta:

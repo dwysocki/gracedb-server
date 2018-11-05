@@ -1,4 +1,3 @@
-
 #   nifos: INTEGER
 #   [ifo:] IFO[,IFO]*
 # . [group:] GROUP[|GROUP]*
@@ -8,35 +7,27 @@
 # . [gpstime:] GPSTIME[..GPSTIME]
 # ~ [label:] LABEL[|LABEL]
 # ~ [label:] LABEL[,LABEL]
-
-#import pyparsing as p
-
-# (weak) natural language time parsing.
-from .nltime import nlTimeExpression as nltime_
-nltime = nltime_.setParseAction(lambda toks: toks["calculatedTime"])
-from .models import Group, Pipeline, Search, Label
-from .query_utils import maybeRange, getLabelQ, RUN_MAP
-from superevents.query import parse_superevent_id, superevent_expr
-
-#import time, datetime
+from __future__ import absolute_import
 import datetime
-from django.db.models import Q
-from django.db.models.query import QuerySet
-import pytz
-
 from pyparsing import Word, nums, Literal, CaselessLiteral, delimitedList, \
     Suppress, QuotedString, Keyword, Combine, Or, Optional, OneOrMore, \
     ZeroOrMore, alphas, alphanums, Regex, opAssoc, operatorPrecedence, \
     oneOf, stringStart,  stringEnd, FollowedBy, ParseResults, ParseException, \
     CaselessKeyword
+import pytz
 
-def convertToGps(dateStr):
-    return 12
+from django.db.models import Q
+from django.db.models.query import QuerySet
 
-def doDate(toks):
-    if len(toks) == 1:
-        return "gpstime", Q("gpstime", convertToGps(toks[0]))
-    return "gpstime", Q("gpstime__range", map(convertToGps(toks.toList())))
+# (weak) natural language time parsing.
+from events.nltime import nlTimeExpression as nltime_
+nltime = nltime_.setParseAction(lambda toks: toks["calculatedTime"])
+from events.models import Group, Pipeline, Search, Label
+from .labels import getLabelQ
+from .superevents import parse_superevent_id, superevent_expr
+from ..constants import RUN_MAP, EXPR_OPERATORS
+from ..utils import maybeRange
+
 
 # hasfar flag
 hasfarQ = CaselessLiteral("hasfar")
@@ -159,14 +150,6 @@ createdQ = createdQ.setParseAction(maybeRange("created"))
 lparen = Suppress('(')
 rparen = Suppress(')')
 
-exprOperators = { "<" :  "__lt",
-                  "<=":  "__lte",
-                  "=" :  "",
-                  ":" :  "",
-                  ">" :  "__gt",
-                  ">=":  "__gte",
-                }
-
 tableTranslations = {
         'si': 'singleinspiral',
         'ci': 'coincinspiralevent',
@@ -195,8 +178,8 @@ lhs = delimitedList(Word(alphanums+'_'), '.')
 lhs.setParseAction(buildDjangoQueryField)
 rhs = afloat | QuotedString('"')
 
-op = Or(map(Literal, exprOperators.keys()))
-op.setParseAction(lambda toks: exprOperators[toks[0]])
+op = Or(map(Literal, EXPR_OPERATORS.keys()))
+op.setParseAction(lambda toks: EXPR_OPERATORS[toks[0]])
 
 simpleTerm = lhs + op + rhs
 simpleTerm.setParseAction(lambda toks: Q(**{toks[0]+toks[1]: toks[2]}))
@@ -355,142 +338,3 @@ def parseQuery(s):
         d["id"] = d["id"] | d["hid"]
         del d["hid"]
     return reduce(Q.__and__, d.values(), Q())
-
-#--------------------------------------------------------------------------
-# Given a query string, separate out the label-related part, and return it
-# as a list of Q objects and separators.
-#--------------------------------------------------------------------------
-def labelQuery(s, names=False):
-    labelNames = [l.name for l in Label.objects.all()]
-    #label = Or([CaselessLiteral(n) for n in labelNames])
-    label = Or([CaselessKeyword(n) for n in labelNames])
-    # If the filter objects are going to be applied to Lable 
-    # objects to retrieve labels by name, names = True.
-    # This is useful for the label query in userprofile.models.Trigger
-    if names:
-        label.setParseAction( lambda toks: Q(name=toks[0]) )
-    else:
-        label.setParseAction( lambda toks: Q(labels__name=toks[0]) )
-    andop   = oneOf(", &")
-    orop    = Literal("|")
-    minusop = oneOf("- ~")
-    op = Or([andop,orop,minusop])
-    oplabel = OneOrMore(op) + label
-    labelQ_ = Optional(minusop) + label + ZeroOrMore(oplabel)
-    labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
-    toks = labelQ.searchString(s).asList()
-    # This list will have either 1 or 0 elements.
-    if len(toks):
-        return toks[0]
-    return toks
-
-# The following version is used only for validation. Just to check that
-# the query strictly conforms to the requirements of a label query.
-def parseLabelQuery(s):
-    labelNames = [l.name for l in Label.objects.all()]
-    #label = Or([CaselessLiteral(n) for n in labelNames])
-    label = Or([CaselessKeyword(n) for n in labelNames])
-    andop   = oneOf(", &")
-    orop    = Literal("|")
-    minusop = oneOf("- ~")
-    op = Or([andop,orop,minusop])
-    oplabel = OneOrMore(op) + label
-    labelQ_ = Optional(minusop) + label + ZeroOrMore(oplabel)
-    labelQ = (Optional(Suppress(Keyword("label:"))) + labelQ_.copy())
-    return labelQ.parseString(s).asList()
-
-#--------------------------------------------------------------------------
-# Given a list of the tokens, go through the list until you hit an AND or
-# OR operator. Then apply the operator to the two surrounding query sets
-# and send back a new list. The list will be shorter by 2 elements, since
-# 'QuerySet, op, QuerySet' has been replaced by a single QuerySet.
-#--------------------------------------------------------------------------
-def handle_binary_ops(toks, op="or"):
-
-    # Find the indices of the relevant operators.
-    if op == "or":
-        indices = [i for i, x in enumerate(toks) if x is '|']
-    elif op == "and":
-        indices = [i for i, x in enumerate(toks) if x == '&' or x==',']
-    else:
-        raise ValueError("Unknown operator")
-
-    if len(indices) > 0:
-        # Found the operator we're looking for
-        updated = True
-        i = indices[0]  # index of the first operator in the list
-        leftQS = toks[i-1]
-        rightQS = toks[i+1]
-
-        # Check. The list items surrounding our operator need to be QuerySets
-        if (not isinstance(leftQS, QuerySet)
-            or not isinstance(rightQS, QuerySet)):
-            raise ValueError("problem with query. Orphaned operator?")
-
-        # Combine the two QuerySets
-        if op=="or":
-            outputQ = leftQS | rightQS
-        elif op=="and":
-            outputQ = leftQS & rightQS
-
-        # Build up the new list of tokens to return. 
-        new_toks = []
-        for j in range(len(toks)):
-            if j == i-1:
-                new_toks.append(outputQ)
-            elif j==i or j==i+1:
-                continue
-            else:
-                new_toks.append(toks[j])
-
-    else:
-        # No such operator found, return the list of tokens unmodified.
-        updated = False
-        new_toks = toks
-
-    return new_toks, updated
-
-#--------------------------------------------------------------------------
-# Given a queryset and a queryString (which may contain label search terms),
-# filter the queryset for those label terms.
-#--------------------------------------------------------------------------
-def filter_for_labels(qs, queryString):
-    if not queryString or len(queryString)==0:
-        return qs
-
-    # Parse the label part of the query string into its individual tokens.
-    toks = labelQuery(queryString)
-    if len(toks)==0:
-        return qs
-
-    # Handle the NOTs first.
-    not_indices = [i for i, x in enumerate(toks) if x == '~' or x=='-']
-    for i in not_indices:
-        if not isinstance(toks[i+1], Q):
-            raise ValueError("NOT operator should precede a Label name."
-                             " Bad Query.")
-        toks[i+1] = ~toks[i+1]
-
-    # Now that we've applied the NOTs, remove them from the list
-    toks = [x for x in toks if x not in ['-','~']]
-        
-    # Now the list of tokens consists of filter objects and separators. 
-    # So next, we replace the filters with filtered querysets.
-    toks = [ qs.filter(f) if isinstance(f,Q) else f for f in toks ]
-        
-    # Handle the ORs. We take the union of all QuerySets separated by 
-    # OR operators.
-    updated = True
-    while updated:
-        toks, updated = handle_binary_ops(toks,"or")
-
-    # Handle the ANDs. Same kinda thang.
-    updated = True
-    while updated:
-        toks, updated = handle_binary_ops(toks,"and")
-
-    # By this time, the list of tokens should be down to a single QuerySet.
-    if len(toks)>1:
-        raise ValueError("The label query didn't reduce properly.")
-
-    return toks[0]

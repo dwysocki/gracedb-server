@@ -6,7 +6,7 @@ from django.forms.utils import ErrorList
 from django.core.exceptions import NON_FIELD_ERRORS
 
 from .models import Trigger, Contact
-from events.query import parseLabelQuery
+from search.query.labels import parseLabelQuery
 
 from pyparsing import ParseException
 from collections import defaultdict

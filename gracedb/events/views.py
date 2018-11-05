@@ -9,7 +9,7 @@ from django.shortcuts import render
 from core.http import check_and_serve_file
 from .models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
 from .models import EMGroup, Signoff
-from .forms import CreateEventForm, EventSearchForm, SimpleSearchForm, SignoffForm
+from .forms import CreateEventForm, SignoffForm
 
 from django.contrib.auth.models import User, Permission
 from django.contrib.auth.models import Group as AuthGroup
@@ -55,7 +55,6 @@ from django.utils.functional import wraps
 # for checking queries in the evnet that the user is external
 #
 from .view_utils import BadFARRange, check_query_far_range
-from .query import parseQuery, ParseException
 
 #
 # A wrapper for retrieving an event and replacing graceid 

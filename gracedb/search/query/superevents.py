@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import datetime
 import logging
 import pytz
@@ -9,8 +10,10 @@ from core.utils import letters_to_int
 from events.models import Group, Pipeline, Search, Label
 # (weak) natural language time parsing.
 from events.nltime import nlTimeExpression as nltime_
-from events.query_utils import maybeRange, getLabelQ, RUN_MAP
-from .models import Superevent
+from superevents.models import Superevent
+from .labels import getLabelQ
+from ..constants import RUN_MAP
+from ..utils import maybeRange
 
 from pyparsing import Word, nums, Literal, CaselessLiteral, delimitedList, \
     Suppress, QuotedString, Keyword, Combine, Or, Optional, OneOrMore, \

@@ -3,7 +3,8 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 from events.models import Event, Label, Labelling
 from events.models import Group, Pipeline
-from events.query import parseQuery, filter_for_labels
+from search.query.events import parseQuery
+from search.query.labels import filter_for_labels
 
 QUERY_CASES = {
     'all_ors'             : { 'query': 'A_LABEL | B_LABEL | C_LABEL',    'pk_list': [2,3,4,5,6,7,8] },

@@ -22,11 +22,12 @@ log = logging.getLogger(__name__)
 
 from .models import Trigger, Contact
 from .forms import ContactForm, triggerFormFactory, TriggerForm
+from alerts.phone import get_twilio_from
 from events.permission_utils import internal_user_required, \
     lvem_user_required, is_external
-from events.query import labelQuery
 from events.models import Label
-from alerts.phone import get_twilio_from
+from search.query.labels import labelQuery
+
 
 # Let's let everybody onto the index view.
 #@internal_user_required

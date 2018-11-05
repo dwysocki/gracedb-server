@@ -12,8 +12,8 @@ from django.db.models import Q
 from django.urls import reverse
 
 from .models import CoincInspiralEvent
-from .forms import SimpleSearchForm
-from .query import parseQuery
+from search.forms import SimpleSearchForm
+from search.query.events import parseQuery
 
 
 from django.db.models import Max, Min

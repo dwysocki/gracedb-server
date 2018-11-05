@@ -1,257 +1,67 @@
-import json
 import logging
-import os
+from pyparsing import Keyword, CaselessKeyword, oneOf, Literal, Or, \
+    OneOrMore, ZeroOrMore, Optional, Suppress
 
-from django.conf import settings
-from django.http import HttpResponse, HttpResponseBadRequest, \
-    HttpResponseServerError
-from django.urls import reverse as django_reverse
-
-from glue.ligolw import utils
-
-from events.permission_utils import is_external
-from events.templatetags.scientific import scientific
-from events.templatetags.timeutil import timeSelections
-from events.view_utils import assembleLigoLw
+from django.db.models import Q, QuerySet
 
 # Set up logger
 logger = logging.getLogger(__name__)
 
-# The maximum number of rows to be returned by flexigridResponse
-# in the event that the user asks for all of them.
-MAX_FLEXI_ROWS = 250
 
+def maybeRange(name, dbname=None):
+    dbname = dbname or name
+    def f(toks):
+        if len(toks) == 1:
+            return name, Q(**{dbname: toks[0]})
+        return name, Q(**{dbname+"__range": toks.asList()})
+    return f
 
-# Limit on number of LIGOLW results
-RESULTS_LIMIT = 1000
+# Given a list of the tokens, go through the list until you hit an AND or
+# OR operator. Then apply the operator to the two surrounding query sets
+# and send back a new list. The list will be shorter by 2 elements, since
+# 'QuerySet, op, QuerySet' has been replaced by a single QuerySet.
+#--------------------------------------------------------------------------
+def handle_binary_ops(toks, op="or"):
 
-
-def get_search_results_as_ligolw(objects):
-
-    if objects.count() > RESULTS_LIMIT:
-        return HttpResponseBadRequest(("Sorry -- no more than {0} events "
-            "currently allowed").format(RESULTS_LIMIT))
-
-    # Only valid for events, not superevents
-    if objects.model.__name__ == "Superevent":
-        return HttpResponseBadRequest("LigoLw tables are not available "
-            "for superevents")
-
-    try:
-        xmldoc = assembleLigoLw(objects)
-    except IOError as e:
-        msg = ("At least one of the query results has no associated coinc.xml "
-            "file. LigoLw tables are only available for queries which return "
-            "only coinc inspiral events. Please try your query again.")
-        return HttpResponseBadRequest(msg)
-    except Exception as e:
-        msg = ("An error occured while trying to compile LigoLw "
-            "results: {0}").format(e)
-        return HttpResponseServerError(msg)
-
-    response = HttpResponse(content_type='application/xml')
-    response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
-    utils.write_fileobj(xmldoc, response)
-    return response
-
-
-def superevent_flexigrid_response(request, objects):
-    response = HttpResponse(content_type='application/json')
-
-    sortname = request.GET.get('sidx', None)    # get index row - i.e. user click to sort
-    sortorder = request.GET.get('sord', 'desc') # get the direction
-    page = int(request.GET.get('page', 1))      # get the requested page
-    rp = int(request.GET.get('rows', 10))       # get how many rows we want to have into the grid
-
-    # select related objects to reduce the number of queries.
-    objects = objects.select_related('submitter', 'preferred_event')
-    objects = objects.prefetch_related('events', 'labels')
-
-    if sortname:
-        if sortorder == "desc":
-            sortname = "-" + sortname
-        objects = objects.order_by(sortname)
-
-    total = objects.count()
-    rows = []
-    if rp > -1:
-        start = (page-1) * rp
-
-        if total:
-            total_pages = (total / rp) + 1
-        else:
-            total_pages = 0
-
-        if page > total_pages:
-            page = total_pages
-
-        end = start+rp
+    # Find the indices of the relevant operators.
+    if op == "or":
+        indices = [i for i, x in enumerate(toks) if x is '|']
+    elif op == "and":
+        indices = [i for i, x in enumerate(toks) if x == '&' or x==',']
     else:
-        start = 0
-        total_pages = 1
-        page = 1
-        end = total-1
+        raise ValueError("Unknown operator")
 
-        if total > MAX_FLEXI_ROWS:
-            return HttpResponseBadRequest("Too many rows! Please try loading a smaller number.")
+    if len(indices) > 0:
+        # Found the operator we're looking for
+        updated = True
+        i = indices[0]  # index of the first operator in the list
+        leftQS = toks[i-1]
+        rightQS = toks[i+1]
 
-    # Function for constructing HTML link to event page from graceid
-    ev_link = lambda gid: '<a href="{url}">{graceid}</a>'.format(
-        url=django_reverse("view", args=[gid]), graceid=gid)
+        # Check. The list items surrounding our operator need to be QuerySets
+        if (not isinstance(leftQS, QuerySet)
+            or not isinstance(rightQS, QuerySet)):
+            raise ValueError("problem with query. Orphaned operator?")
 
-    for object in objects[start:end]:
-        t_start_times = timeSelections(object.t_start)
-        t_0_times = timeSelections(object.t_0)
-        t_end_times = timeSelections(object.t_end)
-        created_times = timeSelections(object.created)
+        # Combine the two QuerySets
+        if op=="or":
+            outputQ = leftQS | rightQS
+        elif op=="and":
+            outputQ = leftQS & rightQS
 
-        cell_values = [
-            '<a href="{0}">{1}</a>'.format(
-                django_reverse("superevents:view", args=[
-                object.superevent_id]), object.superevent_id),
-            #Labels
-            " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();" style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name) for label in object.labelling_set.all()]),
-            ev_link(object.preferred_event.graceid),
-            ", ".join([ev_link(ev.graceid) for ev in object.get_internal_events()]),
-            ", ".join([ev_link(ev.graceid) for ev in object.get_external_events()]),
-            t_start_times.get('gps', ""),
-            t_0_times.get('gps', ""),
-            t_end_times.get('gps', ""),
-            str(object.is_gw),
-            '<a href="%s">Data</a>' % '#', # TODO: fix this #object.weburl(),
-            created_times.get('utc', ""),
-            "%s %s" % (object.submitter.first_name, object.submitter.last_name)
-        ]
+        # Build up the new list of tokens to return.
+        new_toks = []
+        for j in range(len(toks)):
+            if j == i-1:
+                new_toks.append(outputQ)
+            elif j==i or j==i+1:
+                continue
+            else:
+                new_toks.append(toks[j])
 
-        rows.append({
-            'id' : object.id,
-            'cell': cell_values,
-        })
-
-    d = {
-        'page': page,
-        'total': total_pages,
-        'records': total,
-        'rows': rows,
-    }
-
-    try:
-        msg = json.dumps(d)
-    except Exception:
-        # XXX Not right not right not right.
-        msg = "{}"
-    response['Content-length'] = len(msg)
-    response.write(msg)
-
-    return response
-
-
-def event_flexigrid_response(request, objects):
-    response = HttpResponse(content_type='application/json')
-
-    sortname = request.GET.get('sidx', None)    # get index row - i.e. user click to sort
-    sortorder = request.GET.get('sord', 'desc') # get the direction
-    page = int(request.GET.get('page', 1))      # get the requested page
-    rp = int(request.GET.get('rows', 10))       # get how many rows we want to have into the grid
-
-    get_neighbors = request.GET.get('get_neighbors', False) # whether to retrieve the neighbors
-    if get_neighbors in ['True', 'true', 'T', 't', 1, '1']:
-        get_neighbors = True
     else:
-        get_neighbors = False
+        # No such operator found, return the list of tokens unmodified.
+        updated = False
+        new_toks = toks
 
-    # select related objects to reduce the number of queries.
-    objects = objects.select_related('group', 'pipeline', 'search', 'submitter')
-
-    if sortname:
-        if sortorder == "desc":
-            sortname = "-" + sortname
-        objects = objects.order_by(sortname)
-
-    total = objects.count()
-    rows = []
-    if rp > -1:
-        start = (page-1) * rp
-
-        if total:
-            total_pages = (total / rp) + 1
-        else:
-            total_pages = 0
-
-        if page > total_pages:
-            page = total_pages
-
-        end = start+rp
-    else:
-        start = 0
-        total_pages = 1
-        page = 1
-        end = total-1
-
-        if total > MAX_FLEXI_ROWS:
-            return HttpResponseBadRequest("Too many rows! Please try loading a smaller number.")
-
-    for object in objects[start:end]:
-        event_times = timeSelections(object.gpstime)
-        created_times = timeSelections(object.created)
-        if object.search:
-            search_name = object.search.name
-        else:
-            search_name = ''
-
-        display_far = scientific(object.far)
-        if object.far and is_external(request.user):
-            if object.far < settings.VOEVENT_FAR_FLOOR:
-                display_far = "< %s" % scientific(settings.VOEVENT_FAR_FLOOR)
-
-        cell_values = [ '<a href="%s">%s</a>' %
-                            (django_reverse("view", args=[object.graceid]), object.graceid),
-                         #Labels
-                        " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();"  style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name)
-                                for label in object.labelling_set.all()]),
-                        object.group.name,
-                        object.pipeline.name,
-                        search_name,
-
-                        event_times.get('gps',""),
-                        #event_times['utc'],
-
-                        object.instruments,
-
-                        #scientific(display_far),
-                        display_far,
-
-                        '<a href="%s">Data</a>' % object.weburl(),
-
-                        #created_times['gps'],
-                        created_times.get('utc',""),
-
-                        "%s %s" % (object.submitter.first_name, object.submitter.last_name)
-
-                      ]
-
-        if get_neighbors:
-            # Links to neighbors
-            cell_values.insert(2, ', '.join([ '<a href="%s">%s</a>' %
-                (django_reverse("view", args=[n.graceid]), n.graceid) for n in object.neighbors()]))
-
-        rows.append(
-            { 'id' : object.id,
-              'cell': cell_values,
-            }
-        )
-    d = {
-            'page': page,
-            'total': total_pages,
-            'records': total,
-            'rows': rows,
-        }
-    try:
-        msg = json.dumps(d)
-    except Exception:
-        # XXX Not right not right not right.
-        msg = "{}"
-    response['Content-length'] = len(msg)
-    response.write(msg)
-
-    return response
+    return new_toks, updated

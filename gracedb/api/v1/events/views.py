@@ -38,8 +38,7 @@ from api.backends import LigoAuthentication
 from core.http import check_and_serve_file
 from core.vfile import VersionedFile
 from events.buildVOEvent import buildVOEvent, VOEventBuilderException
-from events.forms import SimpleSearchForm, CreateEventForm
-from events.query import parseQuery, ParseException
+from events.forms import CreateEventForm
 from events.models import Event, Group, Search, Pipeline, EventLog, Tag, \
     Label, EMGroup, EMBBEventLog, EMSPECTRUM, VOEvent
 from events.permission_utils import user_has_perm, filter_events_for_user, \
@@ -51,6 +50,8 @@ from events.view_utils import eventToDict, eventLogToDict, labelToDict, \
     embbEventLogToDict, voeventToDict, emObservationToDict, signoffToDict, \
     skymapViewerEMObservationToDict, BadFARRange, check_query_far_range, \
     groupeventpermissionToDict
+from search.forms import SimpleSearchForm
+from search.query.events import parseQuery, ParseException
 from superevents.models import Superevent
 from .throttles import EventCreationThrottle, AnnotationThrottle
 from ...utils import api_reverse

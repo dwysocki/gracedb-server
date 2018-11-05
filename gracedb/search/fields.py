@@ -1,25 +1,18 @@
-
-from django import forms
-from django.utils.safestring import mark_safe
-from django.utils.html import escape
-from django.contrib.auth.models import User
-from django.core.exceptions import FieldError
-from django.forms import ModelForm
-from django.db.models import Q
-
-from .models import Event, Group, Label
-from .models import Pipeline, Search, Signoff
-from .query import parseQuery, filter_for_labels
-
+from __future__ import absolute_import
 from pyparsing import ParseException
 
-htmlEntityStar = "&#9733;"
-htmlEntityRightPointingHand = "&#9758;"
-htmlEntitySkullAndCrossbones = "&#9760;"
-htmlEntityTriangularBuller = "&#8227;"
-htmlEntityRightArrow = "&rarr;"
-errorMarker = '<span style="color:red;">'+htmlEntityStar+'</span>'
+from django import forms
+from django.core.exceptions import FieldError
+from django.utils.safestring import mark_safe
+from django.utils.html import escape
 
+from search.query.events import parseQuery
+from search.query.labels import filter_for_labels
+from events.models import Event
+
+
+# NOTE: this is only used in SimpleSearchForm and should be removed
+# when that form is removed.
 class GraceQueryField(forms.CharField):
 
     def do_filtering(self, query_string):
