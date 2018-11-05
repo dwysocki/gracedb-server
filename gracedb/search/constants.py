@@ -1,13 +1,18 @@
+from pyparsing import Literal, Or
 
-# Translate comparison operators to Django queryset filter keywords
+# Create a parser for translating comparison operators to
+# Django queryset filter keywords
 EXPR_OPERATORS = {
     "<" :  "__lt",
     "<=":  "__lte",
     "=" :  "",
+    "==" :  "",
     ":" :  "",
     ">" :  "__gt",
     ">=":  "__gte",
 }
+ExpressionOperator = Or(map(Literal, EXPR_OPERATORS.keys()))
+ExpressionOperator.setParseAction(lambda toks: EXPR_OPERATORS[toks[0]])
 
 
 # Dict of LIGO run names (keys) and GPS time range tuples (values)

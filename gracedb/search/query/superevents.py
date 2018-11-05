@@ -12,14 +12,14 @@ from events.models import Group, Pipeline, Search, Label
 from events.nltime import nlTimeExpression as nltime_
 from superevents.models import Superevent
 from .labels import getLabelQ
-from ..constants import RUN_MAP
+from ..constants import RUN_MAP, ExpressionOperator
 from ..utils import maybeRange
 
 from pyparsing import Word, nums, Literal, CaselessLiteral, delimitedList, \
     Suppress, QuotedString, Keyword, Combine, Or, Optional, OneOrMore, \
     ZeroOrMore, alphas, alphanums, Regex, opAssoc, operatorPrecedence, \
     oneOf, stringStart,  stringEnd, FollowedBy, ParseResults, ParseException, \
-    CaselessKeyword
+    CaselessKeyword, pyparsing_common
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -171,6 +171,25 @@ parameter_dicts = {
             Q(category=[t[0] for t in Superevent.SUPEREVENT_CATEGORY_CHOICES
               if t[1].lower()==toks[0].lower()][0])),
     },
+    # far: 1e-5 SAME AS far == 1e-5. Other options like: far > 1e-5
+    'far': {
+        'doRange': False,
+        'value': Suppress(CaselessLiteral('far')) + ExpressionOperator + \
+            pyparsing_common.number,
+        'parseAction': lambda toks: ("far",
+            Q(**{'preferred_event__far' + toks[0]: toks[1]})),
+    },
+    # far in 1e-5, 1e-4 OR far: 1e-5 - 1e-4 OR far: 1e-5 .. 1e-4
+    'far_range': {
+        'doRange': False,
+        'value': Suppress(CaselessLiteral('far')) + \
+            Suppress(Or([CaselessLiteral(d) for d in ['in', ':']])) + \
+            pyparsing_common.number + \
+            Suppress(Or([CaselessLiteral(op) for op in [',', '..', '-']])) + \
+            pyparsing_common.number,
+        'parseAction': lambda toks: ("far_range",
+            Q(**{'preferred_event__far__range': toks.asList()})),
+    },
 }
 
 # Compile a list of expressions to try to match
@@ -180,33 +199,35 @@ for k,p in parameter_dicts.iteritems():
     # Define val and set name
     val = p['value']
     val.setName(k)
+    expr = val
 
     # Add keyword. Format is keyword: value
-    if isinstance(p['keyword'], list):
-        if p.has_key('keywordOptional') and p['keywordOptional']:
-            keyword_list = [Optional(Suppress(Keyword(k + ":"))) for k in
-                p['keyword']]
+    if p.has_key('keyword'):
+        if isinstance(p['keyword'], list):
+            if p.has_key('keywordOptional') and p['keywordOptional']:
+                keyword_list = [Optional(Suppress(Keyword(k + ":"))) for k in
+                    p['keyword']]
+            else:
+                keyword_list = [Suppress(Keyword(k + ":")) for k in p['keyword']]
+            keyword = reduce(lambda x,y: x^y, keyword_list)
         else:
-            keyword_list = [Suppress(Keyword(k + ":")) for k in p['keyword']]
-        keyword = reduce(lambda x,y: x^y, keyword_list)
-    else:
-        keyword = Suppress(Keyword(p['keyword'] + ":"))
-        if p.has_key('keywordOptional') and p['keywordOptional']:
-            keyword = Optional(keyword)
+            keyword = Suppress(Keyword(p['keyword'] + ":"))
+            if p.has_key('keywordOptional') and p['keywordOptional']:
+                keyword = Optional(keyword)
+
+        # Combine keyword and value into a single expression
+        expr = keyword + expr
 
     # Add range with format: parameter .. parameter
     if p.has_key('doRange') and p['doRange']:
         range_val = val + Suppress("..") + val
         val ^= range_val
 
-    # Combine keyword and value into a single expression
-    full_expr = keyword + val
-
     # Set parse action
-    full_expr = full_expr.setParseAction(p['parseAction'])
+    expr = expr.setParseAction(p['parseAction'])
 
     # Append to list of all expressions
-    expr_list.append(full_expr)
+    expr_list.append(expr)
 
 # Compile a combined expression by Or-ing all of the individual expressions
 combined_expr = Or(expr_list)

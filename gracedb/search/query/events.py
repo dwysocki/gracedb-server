@@ -25,7 +25,7 @@ nltime = nltime_.setParseAction(lambda toks: toks["calculatedTime"])
 from events.models import Group, Pipeline, Search, Label
 from .labels import getLabelQ
 from .superevents import parse_superevent_id, superevent_expr
-from ..constants import RUN_MAP, EXPR_OPERATORS
+from ..constants import RUN_MAP, ExpressionOperator
 from ..utils import maybeRange
 
 
@@ -178,10 +178,8 @@ lhs = delimitedList(Word(alphanums+'_'), '.')
 lhs.setParseAction(buildDjangoQueryField)
 rhs = afloat | QuotedString('"')
 
-op = Or(map(Literal, EXPR_OPERATORS.keys()))
-op.setParseAction(lambda toks: EXPR_OPERATORS[toks[0]])
 
-simpleTerm = lhs + op + rhs
+simpleTerm = lhs + ExpressionOperator + rhs
 simpleTerm.setParseAction(lambda toks: Q(**{toks[0]+toks[1]: toks[2]}))
 
 rangeTerm = lhs + Suppress('in') + rhs + Suppress(",") + rhs
