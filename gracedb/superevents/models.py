@@ -415,9 +415,9 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
         # one that datetime can't parse or that the regex won't match
         pass
 
-    class EventTypeMismatchError(Exception):
+    class EventCategoryMismatchError(Exception):
         # To be raised when an attempt is made to add an event with an
-        # incompatible type
+        # incompatible category
         pass
 
 # Classes for direct foreign key lookups of permissions. Should
