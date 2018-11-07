@@ -53,8 +53,8 @@ class ValidateDestroyMixin(object):
         instance = self.get_object()
 
         # Perform validation
-        is_ok, err_msg = self.validate_destroy(request, instance)
-        if not is_ok:
+        request_ok, err_msg = self.validate_destroy(request, instance)
+        if not request_ok:
             return Response(err_msg, status=status.HTTP_400_BAD_REQUEST)
 
         # If validated, destroy the instance and return 204
