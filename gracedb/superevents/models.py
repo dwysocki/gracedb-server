@@ -410,10 +410,6 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
     def __unicode__(self):
         return self.superevent_id
 
-    class PreferredEventRemovalError(Exception):
-        # To be raised when an attempt is made to remove the preferred event.
-        pass
-
     class DateIdError(Exception):
         # To be raised when the superevent date ID is in a bad format; i.e.,
         # one that datetime can't parse or that the regex won't match

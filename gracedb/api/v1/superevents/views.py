@@ -107,7 +107,7 @@ class SupereventViewSet(SafeCreateMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class SupereventEventViewSet(SafeDestroyMixin,
+class SupereventEventViewSet(ValidateDestroyMixin,
                              SupereventNestedViewSet):
     """View for events attached to a superevent"""
     serializer_class = SupereventEventSerializer
@@ -115,8 +115,6 @@ class SupereventEventViewSet(SafeDestroyMixin,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
         EventParentSupereventPermissions,)
     lookup_url_kwarg = 'graceid'
-    destroy_error_classes = (Superevent.PreferredEventRemovalError,)
-    destroy_error_response_status = status.HTTP_400_BAD_REQUEST
     list_view_order_by = ('pk',)
 
     def get_object(self):
@@ -129,6 +127,21 @@ class SupereventEventViewSet(SafeDestroyMixin,
         self.check_object_permissions(self.request, event)
 
         return event
+
+    def validate_destroy(self, request, instance):
+        # Don't allow removal of preferred events
+
+        # NOTE: instance should be an event attached to the superevent
+        # in question.  All other events are filtered out when we get
+        # and filter the queryset.  So if instance has the
+        # superevent_preferred_for attribute, it must be the preferred event.
+        if hasattr(instance, 'superevent_preferred_for'):
+            err_msg = ("Event {gid} can't be removed from superevent {sid} "
+                "because it is the preferred event").format(
+                gid=instance.graceid, sid=instance.superevent.graceid)
+            return False, err_msg
+        else:
+            return True, None
 
     def perform_destroy(self, instance):
         remove_event_from_superevent(instance.superevent, instance,
