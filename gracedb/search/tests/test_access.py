@@ -56,7 +56,7 @@ class TestEventSearch(EventCreateMixin, GraceDbTestBase, SearchTestingBase):
         assign_default_event_perms(cls.internal_event)
         assign_default_event_perms(cls.lvem_event)
 
-        # Expose an event to LV-EM
+        # Expose events
         lvem_group = AuthGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
         update_event_perms_for_group(cls.lvem_event, lvem_group, 'expose')
 
@@ -65,7 +65,7 @@ class TestEventSearch(EventCreateMixin, GraceDbTestBase, SearchTestingBase):
         response = self.request_as_user(self.full_url, "GET",
             self.internal_user)
         # Response status
-        self.assertEqual(response.status_code, 200) 
+        self.assertEqual(response.status_code, 200)
         # Make sure all events are shown
         for e in Event.objects.all():
             self.assertIn(e, response.context['objs'])
@@ -75,15 +75,21 @@ class TestEventSearch(EventCreateMixin, GraceDbTestBase, SearchTestingBase):
         response = self.request_as_user(self.full_url, "GET",
             self.lvem_user)
         # Response status
-        self.assertEqual(response.status_code, 200) 
+        self.assertEqual(response.status_code, 200)
         # Make sure only exposed events are shown
         self.assertIn(self.lvem_event, response.context['objs'])
         self.assertEqual(len(response.context['objs']), 1)
 
     def test_public_user_search(self):
-        """Public user sees only exposed events in search results"""
-        # TODO
-        pass
+        """
+        Public user sees NO events since we don't expose them publicly
+        at present
+        """
+        response = self.request_as_user(self.full_url, "GET")
+        # Response status
+        self.assertEqual(response.status_code, 200)
+        # Make sure only exposed events are shown
+        self.assertEqual(len(response.context['objs']), 0)
 
 
 class TestSupereventSearch(SupereventSetup, GraceDbTestBase,
@@ -118,12 +124,17 @@ class TestSupereventSearch(SupereventSetup, GraceDbTestBase,
         self.assertEqual(response.status_code, 200) 
         # Make sure only exposed superevents are shown
         self.assertIn(self.lvem_superevent, response.context['objs'])
-        self.assertEqual(len(response.context['objs']), 1)
+        self.assertIn(self.public_superevent, response.context['objs'])
+        self.assertEqual(len(response.context['objs']), 2)
 
     def test_public_user_search(self):
         """Public user sees only exposed superevents in search results"""
-        # TODO
-        pass
+        response = self.request_as_user(self.full_url, "GET")
+        # Response status
+        self.assertEqual(response.status_code, 200) 
+        # Make sure only exposed superevents are shown
+        self.assertIn(self.public_superevent, response.context['objs'])
+        self.assertEqual(len(response.context['objs']), 1)
 
 
 class TestEventLatest(EventCreateMixin, GraceDbTestBase):
@@ -188,9 +199,16 @@ class TestEventLatest(EventCreateMixin, GraceDbTestBase):
         self.assertEqual(len(response.context['events']), 1)
 
     def test_public_user_latest(self):
-        """Public user sees only exposed events on latest page"""
-        # TODO
-        pass
+        """
+        Public user sees NO events on latest page since we don't expose events
+        publicly at the moment
+        """
+        response = self.request_as_user(self.full_url, "GET")
+        # Response status
+        self.assertEqual(response.status_code, 200) 
+        # Make sure only exposed events are shown
+        self.assertIn('events', response.context.keys())
+        self.assertEqual(len(response.context['events']), 0)
 
 
 class TestSupereventLatest(SupereventSetup, GraceDbTestBase):
@@ -228,10 +246,15 @@ class TestSupereventLatest(SupereventSetup, GraceDbTestBase):
         # Make sure only exposed superevents are shown
         self.assertIn('superevents', response.context.keys())
         self.assertIn(self.lvem_superevent, response.context['superevents'])
-        self.assertEqual(len(response.context['superevents']), 1)
+        self.assertIn(self.public_superevent, response.context['superevents'])
+        self.assertEqual(len(response.context['superevents']), 2)
 
     def test_public_user_latest(self):
         """Public user sees only exposed superevents on latest page"""
-        # TODO
-        pass
-
+        response = self.request_as_user(self.full_url, "GET")
+        # Response status
+        self.assertEqual(response.status_code, 200) 
+        # Make sure only exposed superevents are shown
+        self.assertIn('superevents', response.context.keys())
+        self.assertIn(self.public_superevent, response.context['superevents'])
+        self.assertEqual(len(response.context['superevents']), 1)
