@@ -29,15 +29,15 @@ class TestSupereventDetailView(SignoffGroupsAndUsersSetup,
         # Test context
         context = response.context
         # Make sure user status is correct
-        self.assertEqual(context['user_is_internal'], True)
-        self.assertEqual(context['user_is_external'], False)
+        self.assertTrue(context['user_is_internal'])
+        self.assertFalse(context['user_is_external'])
         # GW status form not shown for basic internal user
-        self.assertEqual(context['show_gw_status_form'], False)
+        self.assertFalse(context['show_gw_status_form'])
         # No 'expose/hide' form for basic internal user
-        self.assertEqual(context['can_modify_permissions'], False)
+        self.assertFalse(context['can_modify_permissions'])
         # No signoff forms shown for basic internal user
-        self.assertEqual(context['advocate_signoff_authorized'], False)
-        self.assertEqual(context['operator_signoff_authorized'], False)
+        self.assertFalse(context['advocate_signoff_authorized'])
+        self.assertFalse(context['operator_signoff_authorized'])
 
     def test_H1_control_room_view_superevent(self):
         """
@@ -60,19 +60,19 @@ class TestSupereventDetailView(SignoffGroupsAndUsersSetup,
         # Test context
         context = response.context
         # Make sure user status is correct
-        self.assertEqual(context['user_is_internal'], True)
-        self.assertEqual(context['user_is_external'], False)
+        self.assertTrue(context['user_is_internal'])
+        self.assertFalse(context['user_is_external'])
         # GW status form not shown for basic internal user
-        self.assertEqual(context['show_gw_status_form'], False)
+        self.assertFalse(context['show_gw_status_form'])
         # No 'expose/hide' form for basic internal user
-        self.assertEqual(context['can_modify_permissions'], False)
+        self.assertFalse(context['can_modify_permissions'])
         # Only H1 operator signoff form shown
-        self.assertEqual(context['advocate_signoff_authorized'], False)
-        self.assertEqual(context['operator_signoff_authorized'], True)
+        self.assertFalse(context['advocate_signoff_authorized'])
+        self.assertTrue(context['operator_signoff_authorized'])
 
         # Test signoff details
-        self.assertEqual(context['operator_signoff_active'], True)
-        self.assertEqual(context['operator_signoff_exists'], False)
+        self.assertTrue(context['operator_signoff_active'])
+        self.assertFalse(context['operator_signoff_exists'])
         self.assertEqual(context['operator_signoff_type'],
             self.internal_superevent.signoff_set.model.SIGNOFF_TYPE_OPERATOR)
         self.assertEqual(context['operator_signoff_instrument'],
@@ -98,19 +98,19 @@ class TestSupereventDetailView(SignoffGroupsAndUsersSetup,
         # Test context
         context = response.context
         # Make sure user status is correct
-        self.assertEqual(context['user_is_internal'], True)
-        self.assertEqual(context['user_is_external'], False)
+        self.assertTrue(context['user_is_internal'])
+        self.assertFalse(context['user_is_external'])
         # GW status form not shown for basic internal user
-        self.assertEqual(context['show_gw_status_form'], False)
+        self.assertFalse(context['show_gw_status_form'])
         # No 'expose/hide' form for basic internal user
-        self.assertEqual(context['can_modify_permissions'], False)
+        self.assertFalse(context['can_modify_permissions'])
         # Only H1 operator signoff form shown
-        self.assertEqual(context['advocate_signoff_authorized'], True)
-        self.assertEqual(context['operator_signoff_authorized'], False)
+        self.assertTrue(context['advocate_signoff_authorized'])
+        self.assertFalse(context['operator_signoff_authorized'])
 
         # Test signoff details
-        self.assertEqual(context['advocate_signoff_active'], True)
-        self.assertEqual(context['advocate_signoff_exists'], False)
+        self.assertTrue(context['advocate_signoff_active'])
+        self.assertFalse(context['advocate_signoff_exists'])
         self.assertEqual(context['advocate_signoff_type'],
             self.internal_superevent.signoff_set.model.SIGNOFF_TYPE_ADVOCATE)
         self.assertEqual(context['advocate_signoff_instrument'], '')
@@ -134,27 +134,61 @@ class TestSupereventDetailView(SignoffGroupsAndUsersSetup,
         # Test context
         context = response.context
         # Make sure user status is correct
-        self.assertEqual(context['user_is_internal'], False)
-        self.assertEqual(context['user_is_external'], True)
-        # GW status form not shown for basic internal user
-        self.assertEqual(context['show_gw_status_form'], False)
-        # No 'expose/hide' form for basic internal user
-        self.assertEqual(context['can_modify_permissions'], False)
-        # No signoff forms shown for basic internal user
-        self.assertEqual(context['advocate_signoff_authorized'], False)
+        self.assertFalse(context['user_is_internal'])
+        self.assertTrue(context['user_is_external'])
+        self.assertTrue(context['user'].is_authenticated)
+        # GW status form not shown
+        self.assertFalse(context['show_gw_status_form'])
+        # No 'expose/hide' form
+        self.assertFalse(context['can_modify_permissions'])
+        # No signoff forms shown
+        self.assertFalse(context['advocate_signoff_authorized'])
+        self.assertFalse(context['advocate_signoff_authorized'])
+
+        # Public superevent
+        url = reverse('superevents:view',
+            args=[self.public_superevent.superevent_id])
+
+        # Get response and check status code
+        response = self.request_as_user(url, "GET", self.lvem_user)
+        self.assertEqual(response.status_code, 200)
 
     def test_public_user_view_hidden_superevent(self):
-        """Public user can't view hidden superevent"""
+        """Public user can't view hidden superevents"""
+        # Internal superevent
         url = reverse('superevents:view',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET")
-        self.assertEqual(response.status_code, 403)
-        # TODO: this will be a 404 error in the future
+        self.assertEqual(response.status_code, 404)
+
+        # LV-EM superevent
+        url = reverse('superevents:view',
+            args=[self.lvem_superevent.superevent_id])
+        response = self.request_as_user(url, "GET")
+        self.assertEqual(response.status_code, 404)
 
     def test_public_user_view_exposed_superevent(self):
         """Public user can view exposed superevent"""
-        # TODO
-        pass
+        url = reverse('superevents:view',
+            args=[self.public_superevent.superevent_id])
+
+        # Get response and check status code
+        response = self.request_as_user(url, "GET")
+        self.assertEqual(response.status_code, 200)
+
+        # Test context
+        context = response.context
+        # Make sure user status is correct
+        self.assertFalse(context['user_is_internal'])
+        self.assertTrue(context['user_is_external'])
+        self.assertFalse(context['user'].is_authenticated)
+        # GW status form not shown
+        self.assertFalse(context['show_gw_status_form'])
+        # No 'expose/hide' form
+        self.assertFalse(context['can_modify_permissions'])
+        # No signoff forms shown
+        self.assertFalse(context['advocate_signoff_authorized'])
+        self.assertFalse(context['operator_signoff_authorized'])
 
 
 class TestSupereventFileListView(SupereventSetup, GraceDbTestBase):
@@ -179,6 +213,12 @@ class TestSupereventFileListView(SupereventSetup, GraceDbTestBase):
                 data_file=SimpleUploadedFile.from_dict(cls.file1))
             log4 = create_log(cls.internal_user, 'upload file2',
                 cls.lvem_superevent, filename=cls.file2['filename'],
+                data_file=SimpleUploadedFile.from_dict(cls.file2))
+            log5 = create_log(cls.internal_user, 'upload file1',
+                cls.public_superevent, filename=cls.file1['filename'],
+                data_file=SimpleUploadedFile.from_dict(cls.file1))
+            log6 = create_log(cls.internal_user, 'upload file2',
+                cls.public_superevent, filename=cls.file2['filename'],
                 data_file=SimpleUploadedFile.from_dict(cls.file2))
 
     def test_internal_user_view_superevent_files(self):
@@ -214,9 +254,9 @@ class TestSupereventFileListView(SupereventSetup, GraceDbTestBase):
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 404)
 
-
     def test_lvem_user_view_files_for_exposed_superevent(self):
         """LV-EM user can view exposed files for exposed superevent"""
+        # LV-EM superevent
         # Expose a non-symlinked log
         log = self.lvem_superevent.log_set.get(filename=self.file1['filename'],
             file_version=1)
@@ -230,15 +270,81 @@ class TestSupereventFileListView(SupereventSetup, GraceDbTestBase):
         self.assertEqual(len(response.context['file_list']), 1)
         self.assertIn(log.versioned_filename, response.context['file_list'])
 
+        # Public superevent
+        # Expose a non-symlinked log
+        log = self.public_superevent.log_set.get(
+            filename=self.file1['filename'], file_version=1)
+        expose_log_to_lvem(log)
+ 
+        # Make request and check response
+        url = reverse('superevents:file-list',
+            args=[self.public_superevent.superevent_id])
+        response = self.request_as_user(url, "GET", self.lvem_user)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['file_list']), 1)
+        self.assertIn(log.versioned_filename, response.context['file_list'])
+
+    def test_lvem_user_view_symlinked_files_for_exposed_superevent(self):
+        """LV-EM user can view symlinked files for exposed superevent"""
+        # Expose a symlinked log
+        fname = self.file1['filename']
+        file_logs = self.lvem_superevent.log_set.filter(filename=fname)
+        max_version = max(file_logs.values_list('file_version', flat=True))
+        log = file_logs.get(file_version=max_version)
+        expose_log_to_lvem(log)
+ 
+        # Make request and check response
+        url = reverse('superevents:file-list',
+            args=[self.lvem_superevent.superevent_id])
+        response = self.request_as_user(url, "GET", self.lvem_user)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['file_list']), 2)
+        self.assertIn(log.versioned_filename, response.context['file_list'])
+        self.assertIn(log.filename, response.context['file_list'])
+
     def test_public_user_view_files_for_hidden_superevent(self):
         """Public user can't view files for hidden superevent"""
+        # Internal superevent
         url = reverse('superevents:file-list',
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "GET")
-        self.assertEqual(response.status_code, 403)
-        # TODO: this will be a 404 error in the future
+        self.assertEqual(response.status_code, 404)
+
+        # LV-EM superevent
+        url = reverse('superevents:file-list',
+            args=[self.lvem_superevent.superevent_id])
+        response = self.request_as_user(url, "GET")
+        self.assertEqual(response.status_code, 404)
 
     def test_public_user_view_files_for_exposed_superevent(self):
         """Public user can view exposed files for exposed superevent"""
-        # TODO
-        pass
+        # Expose a non-symlinked log
+        log = self.public_superevent.log_set.get(
+            filename=self.file1['filename'], file_version=1)
+        expose_log_to_public(log)
+ 
+        # Make request and check response
+        url = reverse('superevents:file-list',
+            args=[self.public_superevent.superevent_id])
+        response = self.request_as_user(url, "GET")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['file_list']), 1)
+        self.assertIn(log.versioned_filename, response.context['file_list'])
+
+    def test_public_user_view_symlinked_files_for_exposed_superevent(self):
+        """Public user can view symlinked files for exposed superevent"""
+        # Expose a symlinked log
+        fname = self.file1['filename']
+        file_logs = self.public_superevent.log_set.filter(filename=fname)
+        max_version = max(file_logs.values_list('file_version', flat=True))
+        log = file_logs.get(file_version=max_version)
+        expose_log_to_public(log)
+ 
+        # Make request and check response
+        url = reverse('superevents:file-list',
+            args=[self.public_superevent.superevent_id])
+        response = self.request_as_user(url, "GET")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['file_list']), 2)
+        self.assertIn(log.versioned_filename, response.context['file_list'])
+        self.assertIn(log.filename, response.context['file_list'])
