@@ -66,6 +66,11 @@ USE_TZ = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', SERVER_FQDN,
     '{0}.ligo.org'.format(SERVER_HOSTNAME)]
 
+# Sessions settings -----------------------------------------------------------
+SESSION_COOKIE_AGE = 3600
+SESSION_ENGINE = 'user_sessions.backends.db'
+LOGOUT_REDIRECT_URL = '/'
+
 # LVAlert and LVAlert Overseer settings ---------------------------------------
 # Switches which control whether alerts are sent out
 SEND_XMPP_ALERTS = False
@@ -307,7 +312,8 @@ MIDDLEWARE = [
     'core.middleware.api.ClientVersionMiddleware',
     'core.middleware.api.CliExceptionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'core.middleware.proxy.XForwardedForMiddleware',
+    'user_sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'ligoauth.middleware.ShibbolethWebAuthMiddleware',
@@ -326,7 +332,7 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.admin',
     'django.contrib.contenttypes',
-    'django.contrib.sessions',
+    'user_sessions',
     'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.messages',
@@ -342,6 +348,7 @@ INSTALLED_APPS = [
     'guardian',
     'django_twilio',
     'django_extensions',
+    'django.contrib.sessions',
 ]
 
 # Aliases for django-extensions shell_plus

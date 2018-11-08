@@ -65,6 +65,9 @@ urlpatterns = [
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', admin.site.urls),
 
+    # sessions
+    #url(r'', include('user_sessions.urls', 'user_sessions')),
+
 ]
 
 # We don't require settings.DEBUG for django-silk since running unit tests

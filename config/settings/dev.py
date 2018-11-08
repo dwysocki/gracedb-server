@@ -38,12 +38,6 @@ if 'silk' in INSTALLED_APPS:
     # prevent DOS attacks, so should not be changed in production.
     DATA_UPLOAD_MAX_MEMORY_SIZE = 20*(1024**2)
 
-# Add XForwardedFor middleware directly before debug_toolbar middleware
-# if debug_toolbar is enabled and DEBUG is True.
-if DEBUG and debug_middleware in MIDDLEWARE:
-    MIDDLEWARE.insert(MIDDLEWARE.index(debug_middleware),
-        'core.middleware.proxy.XForwardedForMiddleware')
-
 # Tuple of IPs which are marked as internal, useful for debugging.
 # Tanner (5 Dec. 2017): DON'T CHANGE THIS! Django Debug Toolbar exposes
 # some headers which we want to keep hidden.  So to be safe, we only allow
