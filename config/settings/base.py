@@ -69,7 +69,14 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', SERVER_FQDN,
 # Sessions settings -----------------------------------------------------------
 SESSION_COOKIE_AGE = 3600
 SESSION_ENGINE = 'user_sessions.backends.db'
-LOGOUT_REDIRECT_URL = '/'
+
+# Login/logout settings -------------------------------------------------------
+# Login pages
+# URL of Shibboleth login page
+LOGIN_URL = 'login'
+SHIB_LOGIN_URL = '/Shibboleth.sso/Login'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'home'
 
 # LVAlert and LVAlert Overseer settings ---------------------------------------
 # Switches which control whether alerts are sent out
@@ -457,8 +464,6 @@ GUARDIAN_RENDER_403 = True
 # See http://django-guardian.readthedocs.io/en/latest/userguide/custom-user-model.html
 GUARDIAN_MONKEY_PATCH = False
 
-# URL of Shibboleth login page
-LOGIN_URL = '/Shibboleth.sso/Login'
 
 # Basic auth passwords for LVEM scripted access expire after 365 days.
 PASSWORD_EXPIRATION_TIME = timedelta(days=365)

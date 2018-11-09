@@ -1,18 +1,29 @@
+import logging
+
 from django.conf import settings
 from django.contrib.auth import logout
 from django.http import HttpResponseRedirect
+from django.shortcuts import resolve_url
 from django.urls import reverse
 
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 
 ORIGINAL_PAGE_KEY = 'login_from_page'
 
+# Three steps in login process:
+#   1. Pre-login view where we try to cache the page that the user was just on
+#      and redirect to the Shibboleth SSO page for login through an IdP
+#   2. Login through IdP, redirect to post-login view.
+#   3. Post-login view, where Apache puts the user's attributes into the
+#      session.  Our Django middleware and auth backends consume the attributes
+#      and use them to log into a user account in the database.  The user is
+#      then redirected to the original page where they logged in from.
 
 def pre_login(request):
     """
-    Sends user to settings.LOGIN_URL (Shibboleth login) and sets up a
+    Sends user to settings.SHIB_LOGIN_URL (Shibboleth login) and sets up a
     redirect target to the actual login page where we parse the shib session
     attributes.  Saves the current page (where the login button was clicked
     from) in the session so that our login page can then redirect back to
@@ -21,24 +32,30 @@ def pre_login(request):
     If original URL is not found, redirect to the home page
     """
 
-    # Set target for shibboleth to redirect to
+    # Set target for SSO page to redirect to
     shib_target = reverse('post-login')
 
-    # Get original url (page where the login button was clicked)
-    original_url = request.META.get('HTTP_REFERER', reverse('home'))
+    # Get original url (page where the login button was clicked).
+    # First try to get referer header. If not available, try to get the 'next
+    # query string parameter (that's how the Django login_required
+    # handles it)
+    original_url = request.META.get('HTTP_REFERER', None)
+    if original_url is None:
+        original_url = request.GET.get('next',
+            resolve_url(settings.LOGIN_REDIRECT_URL))
 
     # Store original url in session
     request.session[ORIGINAL_PAGE_KEY] = original_url
 
     # Set up url for shibboleth login with redirect target
-    full_login_url = "{base}?target={target}".format(base=settings.LOGIN_URL,
-        target=shib_target)
+    full_login_url = "{base}?target={target}".format(
+        base=settings.SHIB_LOGIN_URL, target=shib_target)
 
     # Redirect to the shibboleth login
     return HttpResponseRedirect(full_login_url)
 
 
-def shib_login(request):
+def post_login(request):
     """
     pre_login should redirect to the URL which corresponds to this view.
 
@@ -51,7 +68,8 @@ def shib_login(request):
     redirect to the home page.
     """
 
-    original_url = request.session.get(ORIGINAL_PAGE_KEY, reverse('home'))
+    original_url = request.session.get(ORIGINAL_PAGE_KEY,
+        resolve_url(settings.LOGIN_REDIRECT_URL))
 
     # Redirect to the original url
     return HttpResponseRedirect(original_url)
@@ -63,6 +81,7 @@ def shib_logout(request):
     logout(request)
 
     # Get original url where the logout button was pressed from
-    original_url = request.META.get('HTTP_REFERER', reverse('home'))
+    original_url = request.META.get('HTTP_REFERER',
+        resolve_url(settings.LOGOUT_REDIRECT_URL))
 
     return HttpResponseRedirect(original_url)
