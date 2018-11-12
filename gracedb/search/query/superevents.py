@@ -70,7 +70,7 @@ parameter_dicts = {
     't_0': {
         'keyword': ['t_0', 'gpstime'],
         'keywordOptional': True,
-        'value': Word(nums+'.'),
+        'value': pyparsing_common.number,
         'doRange': True,
         'parseAction': maybeRange('t_0'),
     },
@@ -78,7 +78,7 @@ parameter_dicts = {
     't_start': {
         'keyword': 't_start',
         'keywordOptional': False,
-        'value': Word(nums+'.'),
+        'value': pyparsing_common.number,
         'doRange': True,
         'parseAction': maybeRange('t_start'),
     },
@@ -86,7 +86,7 @@ parameter_dicts = {
     't_end': {
         'keyword': 't_end',
         'keywordOptional': False,
-        'value': Word(nums+'.'),
+        'value': pyparsing_common.number,
         'doRange': True,
         'parseAction': maybeRange('t_end'),
     },
@@ -199,7 +199,11 @@ for k,p in parameter_dicts.iteritems():
     # Define val and set name
     val = p['value']
     val.setName(k)
-    expr = val
+
+    # Add range with format: parameter .. parameter
+    if p.has_key('doRange') and p['doRange']:
+        range_val = val + Suppress("..") + val
+        val ^= range_val
 
     # Add keyword. Format is keyword: value
     if p.has_key('keyword'):
@@ -216,12 +220,9 @@ for k,p in parameter_dicts.iteritems():
                 keyword = Optional(keyword)
 
         # Combine keyword and value into a single expression
-        expr = keyword + expr
-
-    # Add range with format: parameter .. parameter
-    if p.has_key('doRange') and p['doRange']:
-        range_val = val + Suppress("..") + val
-        val ^= range_val
+        expr = keyword + val
+    else:
+        expr = val
 
     # Set parse action
     expr = expr.setParseAction(p['parseAction'])
