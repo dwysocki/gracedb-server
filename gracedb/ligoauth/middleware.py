@@ -1,12 +1,15 @@
+import logging
+import re
+
 from django.conf import settings
-from django.contrib.auth.middleware import PersistentRemoteUserMiddleware
 from django.contrib import auth
+from django.contrib.auth.middleware import PersistentRemoteUserMiddleware
+from django.contrib.auth.models import Group
 from django.core.exceptions import ImproperlyConfigured
 
-from django.contrib.auth.models import Group
+from core.http import request_is_for_view
 
-import re
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 
@@ -26,6 +29,11 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
     group_delimiter = ';'
 
     def process_request(self, request):
+
+        # This middleware should *only* be active at the post-login URL
+        # where shibboleth is also active.
+        if not request_is_for_view('post-login', request):
+            return
 
         # AuthenticationMiddleware is required so that request.user exists.
         if not hasattr(request, 'user'):
