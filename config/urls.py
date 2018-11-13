@@ -9,6 +9,7 @@ from django.contrib.auth.views import logout
 from django.views.generic import TemplateView
 
 # Import feeds
+import core.views
 from events.feeds import EventFeed, feedview
 
 # After Django 1.10, have to import views directly, rather
@@ -61,6 +62,9 @@ urlpatterns = [
     # Legacy API URLs: can we get rid of these at some point? (TODO)
     url(r'^apibasic/', include('api.urls', namespace='legacy_apibasic')),
     url(r'^apiweb/', include('api.urls', namespace='legacy_apiweb')),
+
+    # Heartbeat URL
+    url(r'^heartbeat/$', core.views.heartbeat, name='heartbeat'),
 
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
     # to INSTALLED_APPS to enable admin documentation:
