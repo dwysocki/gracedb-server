@@ -1,6 +1,7 @@
 # Needed because our local events and superevents modules (for the API)
 # shadow the names of the events and superevents apps.
 from __future__ import absolute_import
+import logging
 
 from django.conf import settings
 from django.contrib.auth.models import Group as AuthGroup
@@ -19,6 +20,9 @@ from events.models import Group, Pipeline, Search, Tag, Label, EMGroup, \
 from events.view_logic import get_performance_info
 from superevents.models import Superevent
 from ..superevents.url_templates import construct_url_templates
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 
 class TagList(APIView):
