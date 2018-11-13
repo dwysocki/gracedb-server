@@ -1,8 +1,9 @@
-from django.utils.six import string_types
-
+import logging
 import string
 
-import logging
+from django.utils.six import string_types
+
+# Set up logger
 logger = logging.getLogger(__name__)
 
 # Get lowercase alphabet as string
@@ -10,9 +11,11 @@ ALPHABET = string.ascii_lowercase
 BASE = len(ALPHABET)
 ASCII_ALPHABET_START = ord('a') - 1
 
+
 def int_to_letters(num, positive_only=True):
     """
-    Enumeration starts at 1 (i.e., 1 => 'a')
+    Convert a base 10 int to a base 26 representation using the English
+    alphabet.  Enumeration starts at 1 (i.e., 1 => 'a')
     """
 
     # Argument checking
@@ -33,12 +36,23 @@ def int_to_letters(num, positive_only=True):
 
 
 def letters_to_int(letters):
-    # TODO: remove assert statement!
-    assert isinstance(letters, string_types), "letters is not a string"
+    """
+    Converts string of English letters from base 26 to a base 10 int.
+    Uppercase letters are converted to lowercase.
+    """
+
+    # Require string-type input
+    if not isinstance(letters, string_types):
+        raise TypeError('input should be a string')
 
     # Convert to lowercase
     letters = letters.lower()
 
+    # Make sure all characters are in ALPHABET
+    if not set(letters).issubset(ALPHABET):
+        raise ValueError('input should be in a-z')
+
+    # Do the actual conversion
     num = sum([(BASE**i)*(ord(l)-ASCII_ALPHABET_START) for i,l in
         enumerate(letters[::-1])])
 
