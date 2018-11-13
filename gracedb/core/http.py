@@ -1,10 +1,13 @@
 # Request/response utilities
+import logging
+import os
+
 from django.http import HttpResponse
+from django.urls import resolve, Resolver404
 
 from .vfile import VersionedFile
 
-import os
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 
@@ -74,3 +77,19 @@ def check_and_serve_file(request, file_path, ResponseClass=HttpResponse):
         response = serve_file(file_path, ResponseClass)
 
     return response
+
+
+def request_is_for_view(viewname, request):
+    """
+    Returns True/False depending on whether the request is directed to
+    the view function corresponding to viewname.
+    """
+    try:
+        resolver_match = resolve(request.path)
+    except Resolver404:
+        return None
+
+    if (resolver_match.view_name == viewname):
+        return True
+    else:
+        return False
