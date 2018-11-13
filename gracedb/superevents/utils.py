@@ -15,7 +15,7 @@ from alerts.superevents.utils import SupereventAlertIssuer, \
     SupereventLogAlertIssuer, SupereventLabelAlertIssuer, \
     SupereventVOEventAlertIssuer, SupereventEMObservationAlertIssuer, \
     SupereventSignoffAlertIssuer, SupereventPermissionsAlertIssuer
-from core.permission_utils import expose_log_to_lvem, expose_log_to_public, \
+from core.permissions import expose_log_to_lvem, expose_log_to_public, \
     hide_log_from_lvem, hide_log_from_public, assign_perms_to_obj, \
     remove_perms_from_obj
 from core.vfile import create_versioned_file

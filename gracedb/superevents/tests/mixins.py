@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import os
 
-from core.permission_utils import assign_perms_to_obj
+from core.permissions import assign_perms_to_obj
 from core.tests.utils import GraceDbTestBase
 from events.tests.mixins import EventCreateMixin
 from superevents.models import Superevent

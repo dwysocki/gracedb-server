@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
-from core.permission_utils import expose_log_to_lvem, expose_log_to_public
+from core.permissions import expose_log_to_lvem, expose_log_to_public
 from core.tests.utils import GraceDbTestBase, SignoffGroupsAndUsersSetup, \
     AccessManagersGroupAndUserSetup
 from events.models import Label
