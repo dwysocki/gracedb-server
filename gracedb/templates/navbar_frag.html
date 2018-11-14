@@ -17,14 +17,17 @@
             <li id="nav-admin-docs"><a href="{% url "home" %}admin_docs/">Admin docs</a></li>
         {% endif %}
     {% endif %}
-    {% if user %}
+    {% if user.is_authenticated %}
+        <li id="nav-logout"><a href="{% url "logout" %}">Logout</a></li>
+        <li id="nav-user">Authenticated as:
         {% if user.first_name %}
-            <li id="nav-user">Authenticated as: {{ user.first_name }} {{user.last_name }}</li>
+            {{ user.get_full_name }}
         {% else %}
-            <li id="nav-user">Authenticated as: {{ user.username }}</li>
+            {{ user.username }}
         {% endif %}
+        </li>
     {% else %}
-        <li id="nav-login"><a href="{{ login_url }}">Login</a></li>
+        <li id="nav-login"><a href="{% url "login" %}">Login</a></li>
     {% endif %}
 </ul>
 

@@ -282,9 +282,9 @@ span.coinc-0,
     /* text-shadow: 2px 2px 2px #555; */
 }
 
-#nav #nav-login
-{
+#nav #nav-login, #nav #nav-logout {
     float: right;
+    border-left: 1px solid black;
 }
 
 #nav li {

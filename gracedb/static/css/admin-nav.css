@@ -1,3 +1,7 @@
+#header {
+    height: auto;
+}
+
 /* Nav */
 #nav {
     margin:0;
@@ -20,6 +24,11 @@
     font:bold 1em/1em Arial, Helvetica, sans-serif;
     text-transform:uppercase;
     /* text-shadow: 2px 2px 2px #555; */
+}
+
+#nav #nav-logout {
+    float: right;
+    border-left: 1px solid black;
 }
 
 #nav li {
