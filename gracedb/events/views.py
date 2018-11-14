@@ -134,28 +134,6 @@ def index(request):
     
     return render(request, 'gracedb/index.html', context=context)
 
-@event_and_auth_required
-def voevent(request, event):
-    # Default VOEvent type is 'preliminary'
-    voevent_type=request.GET.get('voevent_type', 'preliminary')
-    internal=request.GET.get('internal', 1)
-    try:
-        # Tanner (10/25/2016): need to modify this call to buildVOEvent,
-        # second argument should be a serial_number.
-        voevent = buildVOEvent(event, voevent_type=voevent_type,
-                               request=request, internal=internal)
-
-        # Issue alert
-        EventVOEventAlertIssuer(voevent, alert_type='voevent').issue_alerts()
-    # Exceptions caused by user errors of some sort.
-    except VOEventBuilderException, e:
-        return HttpResponseBadRequest(str(e))
-    # All other exceptions return 500.
-    except Exception, e:
-        return HttpResponseServerError(str(e))
-         
-    return HttpResponse(voevent, content_type="application/xml")
-
 def create(request):
     d = _create(request)
     if isinstance(d, HttpResponse):

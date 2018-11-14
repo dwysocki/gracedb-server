@@ -15,9 +15,6 @@ urlpatterns = [
     # Event detail page
     url(r'^(?P<graceid>[GEHMT]\d+)/view/$', views.view, name="view"),
 
-    # Event VOEvent creation page
-    url(r'^(?P<graceid>[GEHMT]\d+)/voevent/$', views.voevent, name="voevent"),
-
     # Event file list and file download
     url(r'^(?P<graceid>[GEHMT]\d+)/files/$', views.file_list,
         name="file_list"),
@@ -55,10 +52,6 @@ urlpatterns = [
     # Event detail
     url(r'^view/(?P<graceid>[GEHMT]\d+)', views.view, name="legacyview"),
     url(r'^(?P<graceid>[GEHMT]\d+)$', views.view, name="legacyview2"),
-
-    # VOEvent creation
-    url(r'^voevent/(?P<graceid>[GEHMT]\d+)', views.voevent,
-        name="legacyvoevent"),
 
     # Neighbors
     url((r'^neighbors/(?P<graceid>[GEHMT]\d+)/\(?(?P<delta1>[-+]?\d+)'
