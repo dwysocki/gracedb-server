@@ -500,7 +500,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
         self.assertEqual(response.status_code, 404)
 
         # Expose it, should get 403 now
-        assign_perm('superevents.view_superevent', self.lvem_group,
+        assign_perm('superevents.view_superevent', self.lvem_obs_group,
             obj=self.production_superevent)
         response = self.request_as_user(url, "POST", self.lvem_user)
         self.assertEqual(response.status_code, 403)
@@ -517,7 +517,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
         self.assertEqual(response.status_code, 404)
 
         # Expose it, should get 403 now
-        assign_perm('superevents.view_superevent', self.lvem_group,
+        assign_perm('superevents.view_superevent', self.lvem_obs_group,
             obj=self.mdc_superevent)
         response = self.request_as_user(url, "POST", self.lvem_user)
         self.assertEqual(response.status_code, 403)
@@ -534,7 +534,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
         self.assertEqual(response.status_code, 404)
 
         # Expose it, should get 403 now
-        assign_perm('superevents.view_superevent', self.lvem_group,
+        assign_perm('superevents.view_superevent', self.lvem_obs_group,
             obj=self.test_superevent)
         response = self.request_as_user(url, "POST", self.lvem_user)
         self.assertEqual(response.status_code, 403)
@@ -3142,7 +3142,6 @@ class TestSupereventFileDetail(SupereventSetup, GraceDbApiTestBase):
             args=[self.lvem_superevent.superevent_id, log.versioned_filename])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
-        data1 = response.data
 
         # Try with a different version (not exposed)
         log2 = self.lvem_superevent.log_set.get(filename=
@@ -3158,7 +3157,7 @@ class TestSupereventFileDetail(SupereventSetup, GraceDbApiTestBase):
         LV-EM user can get exposed files for exposed superevents, including
         symlinks
         """
-        # Expose a non-symlinked log
+        # Expose a symlinked log
         log = self.lvem_superevent.log_set.get(filename=self.file1['filename'],
             file_version=3)
         expose_log_to_lvem(log)

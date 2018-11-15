@@ -87,24 +87,30 @@ class InternalGroupAndUserSetup(TestCase):
 
 class LvemGroupAndUserSetup(TestCase):
     """
-    Base class which sets up LV-EM group and adds a user to it.
-    These are accessible with self.lvem_group and self.lvem_user.
+    Base class which sets up LV-EM group, LV-EM observers group, and adds a
+    user to them. These are accessible with self.lvem_group,
+    self.lvem_obs_group, and self.lvem_user.
     """
     @classmethod
     def setUpTestData(cls):
         # Run super
         super(LvemGroupAndUserSetup, cls).setUpTestData()
 
-        # Get or create LV-EM observers group
+        # Get or create LV-EM group
         cls.lvem_group, _ = Group.objects.get_or_create(
+            name=settings.LVEM_GROUP)
+
+        # Get or create LV-EM observers group
+        cls.lvem_obs_group, _ = Group.objects.get_or_create(
             name=settings.LVEM_OBSERVERS_GROUP)
 
         # Get or create user
         cls.lvem_user, _ = UserModel.objects.get_or_create(
             username='lvem.user')
 
-        # Add user to group
+        # Add user to groups
         cls.lvem_group.user_set.add(cls.lvem_user)
+        cls.lvem_obs_group.user_set.add(cls.lvem_user)
 
 
 class SupereventManagersGroupAndUserSetup(TestCase):

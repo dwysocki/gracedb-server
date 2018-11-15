@@ -48,8 +48,8 @@ class SupereventSetup(GraceDbTestBase, SupereventCreateMixin):
         # Expose one to LV-EM only - a little hacky since our utility
         # function for exposing a superevent only is capable of
         # exposing it to both LV-EM and the public.
-        assign_perms_to_obj(SUPEREVENT_PERMS[cls.lvem_group.name],
-            cls.lvem_group, cls.lvem_superevent)
+        assign_perms_to_obj(SUPEREVENT_PERMS[cls.lvem_obs_group.name],
+            cls.lvem_obs_group, cls.lvem_superevent)
         cls.lvem_superevent.is_exposed = True
         cls.lvem_superevent.save(update_fields=['is_exposed'])
 

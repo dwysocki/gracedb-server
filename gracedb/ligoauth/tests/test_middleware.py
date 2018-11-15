@@ -77,7 +77,7 @@ class TestControlRoomMiddleware(GraceDbTestBase):
         """Test lvem user in control room"""
         request_dict = {
             settings.SHIB_USER_HEADER: self.lvem_user.username,
-            settings.SHIB_GROUPS_HEADER: self.lvem_group.name,
+            settings.SHIB_GROUPS_HEADER: self.lvem_obs_group.name,
             'REMOTE_ADDR': settings.CONTROL_ROOM_IPS[self.ifo],
         }
         response = self.client.get(reverse('home'), **request_dict)
@@ -150,7 +150,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         """Test lvem user authentication"""
         self.request.META = {
             settings.SHIB_USER_HEADER: self.lvem_user.username,
-            settings.SHIB_GROUPS_HEADER: self.lvem_group.name,
+            settings.SHIB_GROUPS_HEADER: self.lvem_obs_group.name,
         }
         self.middleware.process_request(self.request)
 
@@ -161,7 +161,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.assertTrue(self.request.user.is_authenticated)
         self.assertEqual(self.request.user.backend,
             'ligoauth.backends.ShibbolethRemoteUserBackend')
-        self.assertIn(self.lvem_group, self.request.user.groups.all())
+        self.assertIn(self.lvem_obs_group, self.request.user.groups.all())
         self.assertNotIn(self.internal_group, self.request.user.groups.all())
 
     def test_public_authentication(self):
@@ -209,7 +209,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         }
         self.request.META = {
             settings.SHIB_USER_HEADER: new_user_dict['username'],
-            settings.SHIB_GROUPS_HEADER: self.lvem_group.name,
+            settings.SHIB_GROUPS_HEADER: self.lvem_obs_group.name,
             settings.SHIB_ATTRIBUTE_MAP['email']: new_user_dict['email'],
         }
         self.middleware.process_request(self.request)
@@ -223,7 +223,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
 
         # Make sure user information is correct
         new_user = User.objects.get(username=new_user_dict['username'])
-        self.assertIn(self.lvem_group, new_user.groups.all())
+        self.assertIn(self.lvem_obs_group, new_user.groups.all())
         self.assertEqual(new_user.username, new_user_dict['username'])
         self.assertEqual(new_user.email, new_user_dict['email'])
 
