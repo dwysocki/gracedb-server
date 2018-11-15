@@ -18,7 +18,6 @@
 {% for contact in contacts %}
     <ul>
         <li>
-            <!-- <a href="{% url "userprofile-edit-contact" contact.id %}">Edit</a> -->
             <a href="{% url "userprofile-test-contact" contact.id %}">Test</a>
             <a href="{% url "userprofile-delete-contact" contact.id %}">Delete</a>
             {% comment %}
@@ -53,7 +52,6 @@
 {% for trigger in triggers %}
    <ul>
      <li> 
-        <!-- <a href="{% url "userprofile-edit" trigger.id  %}">Edit</a> -->
         <a href="{% url "userprofile-delete" trigger.id %}">Delete</a>
         {{ trigger.userlessDisplay }}
      </li>
