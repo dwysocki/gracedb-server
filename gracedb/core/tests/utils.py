@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 
@@ -284,7 +285,19 @@ class GraceDbTestBase(DefineTestSettings, InternalGroupAndUserSetup,
     """
     Combines all test base classes and defines method for easily making
     requests with a specfic user account.
+
+    Also disables logging.
     """
+
+    @classmethod
+    def setUpClass(cls):
+        super(GraceDbTestBase, cls).setUpClass()
+        logging.disable(logging.CRITICAL)
+
+    @classmethod
+    def tearDownClass(cls):
+        super(GraceDbTestBase, cls).tearDownClass()
+        logging.disable(logging.NOTSET)
 
     def request_as_user(self, url, method, user=None, data=None, **kwargs):
         """Shortcut function for making a request"""
