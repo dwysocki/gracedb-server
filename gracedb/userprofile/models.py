@@ -75,7 +75,7 @@ class Contact(models.Model):
             raise ValidationError(err_dict)
 
     # Override save method by requiring fully_cleaned objects.
-    def save(self):
+    def save(self, *args, **kwargs):
         self.full_clean()
         super(Contact, self).save()
 
