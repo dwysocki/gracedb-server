@@ -6,6 +6,7 @@ from django.template import RequestContext
 from django.urls import reverse
 from django.shortcuts import render
 
+from core.file_utils import get_file_list
 from core.http import check_and_serve_file
 from .models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
 from .models import EMGroup, Signoff
@@ -578,20 +579,12 @@ def performance(request):
 @event_and_auth_required
 def file_list(request, event):
     f = []
+
+    # Filter file list for external users
     if is_external(request.user):
-        # Construct the file list, filtering as necessary:
-        for l in event.eventlog_set.all():
-            filename = l.filename
-            if len(filename):
-                version = l.file_version
-                tagnames = [t.name for t in l.tags.all()]
-                if settings.EXTERNAL_ACCESS_TAGNAME not in tagnames:
-                    continue
-                if version>=0:
-                    f.append(filename + ',' + str(version))
-                # We only want the unadorned filename once.
-                if filename not in f:
-                    f.append(filename)
+        viewable_logs = event.eventlog_set.filter(
+            tags__name=settings.EXTERNAL_ACCESS_TAGNAME)
+        f.extend(get_file_list(viewable_logs, event.datadir))
     else:
         for dirname, dirnames, filenames in os.walk(event.datadir):
             f.extend(filenames)
