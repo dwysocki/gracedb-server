@@ -688,50 +688,6 @@ def modify_permissions(request, event):
     # Finished. Redirect back to the event.
     return HttpResponseRedirect(reverse("view", args=[event.graceid]))
 
-# A view to create embb log entries
-@event_and_auth_required
-def embblogentry(request, event, num=None):
-    if request.method == "POST":
-        try:
-            # Alert is issued inside this function
-            create_eel(request.POST, event, request.user)
-        except ValueError, e:
-            return HttpResponseBadRequest(str(e))
-        except Exception, e:
-            return HttpResponseServerError(str(e))
-
-        return HttpResponseRedirect(reverse(view, args=[event.graceid]))
-    else:
-        return HttpResponseBadRequest("This URL only supports POST.")
-
-#        if not user_has_perm(request.user, 'view', event):
-#              return HttpResponseForbidden("Forbidden")
-#        if not num:
-#            eels = event.embbeventlog_set.all()
-#            ceels = []
-#            for eel in eels:
-#                color = md5(eel.group.name).hexdigest()[:6]
-#                ceels.append([color, eel])
-#            context = {"ceels":ceels}
-#            return render_to_response('gracedb/embb.json', context, 
-#                context_instance=RequestContext(request), mimetype="application/json")
-#        else:
-#            return HttpResponse(content="Individual EEL view in web interface not implemented.", 
-#                status=501)
-#            try:
-#                eel = event.embbeventlog_set.filter(N=num)[0]
-#            except Exception:
-#                raise Http404
-#    if not request.is_ajax():
-#            context = {"eel":eel}
-#            return render_to_response('gracedb/eel_detail.html', context, context_instance=RequestContext(request))
-
-#        return HttpResponseRedirect(reverse(view, args=[graceid]))
-#    rv = {}
-#    rv['comment'] = eel.comment
-#    rv['submitter'] = eel.issuer.username
-#    rv['created'] = eel.created.isoformat()
-#    return HttpResponse(json.dumps(rv), content_type="application/json")
 
 # A view to create embb log entries
 @event_and_auth_required

@@ -377,64 +377,6 @@ class TestPerms(TestCase):
                 **extra_args(self.public_user))
             self.assertEqual(response.status_code, 403)
 
-    def test_internal_eel_creation(self):
-        """Test EEL creation by internal user"""
-        # Internal user should be able to create EELs for all events
-        for e in Event.objects.all():
-            url = reverse('embblogentry', args=[e.graceid, ''])
-            input_dict = {
-                'group': TEST_NAMES['emgroup'],
-                'waveband': 'em.gamma',
-                'eel_status': 'FO',
-                'obs_status': 'TE',
-                'comment': 'Test',
-                'instrument': 'Test',
-            }
-            response = self.client.post(url, input_dict,
-                **extra_args(self.internal_user))
-
-            # Should get a 302 since the view redirects to the
-            # event page on success
-            self.assertEqual(response.status_code, 302)
-
-    def test_lvem_eel_creation(self):
-        """Test EEL creation by LV-EM user"""
-        # LV-EM user should be able to create EELs for LV-EM and public events
-        for e in Event.objects.all():
-            url = reverse('embblogentry', args=[e.graceid, ''])
-            input_dict = {
-                'group': TEST_NAMES['emgroup'],
-                'waveband': 'em.gamma',
-                'eel_status': 'FO',
-                'obs_status': 'TE',
-                'comment': 'Test',
-                'instrument': 'Test',
-            }
-            response = self.client.post(url, input_dict,
-                **extra_args(self.lvem_user))
-            if (e.id != self.internal_event.id):
-                self.assertEqual(response.status_code, 302)
-            else:                    
-                self.assertEqual(response.status_code, 403)
-
-    def test_public_eel_creation(self):
-        """Test EEL creation by public user"""
-        # Public user should not be able to create EELs
-        event = self.public_event
-        url = reverse('embblogentry', args=[event.graceid, ''])
-        # Test, em.gamma, FO, TE, instrument='Test', comment='Test'
-        input_dict = {
-            'group': TEST_NAMES['emgroup'],
-            'waveband': 'em.gamma',
-            'eel_status': 'FO',
-            'obs_status': 'TE',
-            'comment': 'Test',
-            'instrument': 'Test',
-        }
-        response = self.client.post(url, input_dict,
-            **extra_args(self.public_user))
-        self.assertEqual(response.status_code, 403)
-
     #--------------------------------------------------------------------------
     #--------------------------------------------------------------------------
     # Tests of event creation/replacement

@@ -41,9 +41,6 @@ urlpatterns = [
     # Add tag to log
     url(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>\d+)/tag/(?P<tagname>.*)$',
         views.taglogentry, name="taglogentry"),
-    # Process EMBBEventLog
-    url(r'^(?P<graceid>[GEHMT]\d+)/embblog/(?P<num>([\d]*|preview))$',
-        views.embblogentry, name="embblogentry"),
     # Process EMObservation
     url(r'^(?P<graceid>[GEHMT]\d+)/emobservation/(?P<num>([\d]*|preview))$',
         views.emobservation_entry, name="emobservation_entry"),
