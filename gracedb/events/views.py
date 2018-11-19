@@ -134,6 +134,7 @@ def index(request):
     
     return render(request, 'gracedb/index.html', context=context)
 
+@internal_user_required
 def create(request):
     d = _create(request)
     if isinstance(d, HttpResponse):
