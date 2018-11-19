@@ -283,7 +283,7 @@ def logentry(request, event, num=None):
         return HttpResponseBadRequest
 
     if not request.is_ajax():
-        return HttpResponseRedirect(reverse(view, args=[event.graceid]))
+        return HttpResponseRedirect(reverse('view', args=[event.graceid]))
 
     rv = {}
     rv['comment'] = elog.comment
@@ -534,7 +534,7 @@ def taglogentry(request, event, num, tagname):
 
     # Hopefully, this will only ever be called from inside a script.  Just in case...
     if not request.is_ajax():
-        return HttpResponseRedirect(reverse(view, args=[event.graceid]))
+        return HttpResponseRedirect(reverse('view', args=[event.graceid]))
 
     # no need for a JSON response. 
     msg = "Successfully applied tag %s to log message %s." % (tagname, num)
@@ -702,7 +702,7 @@ def emobservation_entry(request, event, num=None):
         except Exception, e:
             return HttpResponseServerError(str(e))
 
-        return HttpResponseRedirect(reverse(view, args=[event.graceid]))
+        return HttpResponseRedirect(reverse('view', args=[event.graceid]))
     else:
         return HttpResponseBadRequest("This URL only supports POST.")
 
