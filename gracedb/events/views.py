@@ -705,6 +705,11 @@ def modify_permissions(request, event):
 # A view to create embb log entries
 @event_and_auth_required
 def emobservation_entry(request, event, num=None):
+
+    # Boot out non-authenticated users
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden('Forbidden')
+
     if request.method == "POST":
         try:
             # Alert is issued in this function
