@@ -491,7 +491,7 @@ def taglogentry(request, event, num, tagname):
         # Check if tag already exists in the database. If not, create it.
         db_tags = Tag.objects.filter(name=tagname)
         if not db_tags:
-            displayName = request.POST['displayName']
+            displayName = request.POST.get('displayName', None)
             tag = Tag(name=tagname, displayName=displayName)
             tag.save()
         else:
@@ -529,7 +529,7 @@ def taglogentry(request, event, num, tagname):
             return HttpResponseBadRequest(msg)
 
         # Create a log entry to document the tag deletion.
-        msg = "Removed tag %s for message %s. " % (tagname, num)
+        msg = "Removed tag %s for message %s." % (tagname, num)
         logentry = EventLog(event=event,
                             issuer=request.user,
                             comment=msg)
