@@ -454,8 +454,20 @@ def taglogentry(request, event, num, tagname):
     # gracedb/templates/gracedb/event_detail_script.js,
     # specifically lines 461-575, as of 2017/02/28.
 
+    # Boot out unauthenticated users right away
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden('Forbidden')
+
     # Get relevant log entry
     eventlog = event.eventlog_set.filter(N=num)[0]
+
+    # Handle access for LV-EM users - if log is not tagged with 'lvem', they
+    # shouldn't be able to see it or interact with it.
+    if is_external(request.user):
+        log_exposed = eventlog.tags.filter(
+            name=settings.EXTERNAL_ACCESS_TAGNAME).exists()
+        if not log_exposed:
+            return HttpResponseForbidden('Forbidden')
 
     if request.method == "POST":
         # Handle cases where a user leaves the tagname blank.
