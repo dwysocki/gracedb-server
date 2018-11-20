@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class GraceDbBasicAuthentication(authentication.BasicAuthentication):
-    api_only = False
+    api_only = True
 
     def authenticate(self, request, *args, **kwargs):
         """
@@ -60,8 +60,8 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
 
 
 class GraceDbX509Authentication(authentication.BaseAuthentication):
+    api_only = True
     www_authenticate_realm = 'api'
-    api_only = False
     subject_dn_header = getattr(settings, 'X509_SUBJECT_DN_HEADER',
         'SSL_CLIENT_S_DN')
     issuer_dn_header = getattr(settings, 'X509_ISSUER_DN_HEADER',
@@ -73,7 +73,7 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
 
         # Make sure this request is directed to the API
         if self.api_only and not is_api_request(request.path):
-            logger.debug("{0}: request not directed to x509 API".format(self.__class__.__name__))
+            logger.debug("{0}: request not directed to API".format(self.__class__.__name__))
             return None
 
         # Try to get credentials from request headers.
@@ -132,11 +132,17 @@ class GraceDbShibAuthentication(authentication.BaseAuthentication):
 
     This is only used for the web-based API.
     """
+    api_only = True
+
     def authenticate(self, request):
         logger.debug("{0}: beginning auth attempt".format(self.__class__.__name__))
-        logger.debug(request._request.user)
-        if (request._request.user.is_authenticated and
-            is_api_request(request.path)):
+
+        # Make sure this request is directed to the API
+        if self.api_only and not is_api_request(request.path):
+            logger.debug("{0}: request not directed to API".format(self.__class__.__name__))
+            return None
+
+        if request._request.user.is_authenticated:
             logger.debug("{0}: user {1} already authenticated".format(self.__class__.__name__, request._request.user.username))
             return (request._request.user, None)
         else:
