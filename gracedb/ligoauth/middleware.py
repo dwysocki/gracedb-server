@@ -24,7 +24,7 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
     Some of the content is taken from Django's RemoteUserMiddleware and from
     the django-shibboleth-remoteuser package.
     """
-    header = getattr(settings, 'SHIB_USER_HEADER', 'REMOTE_USER')
+    user_header = getattr(settings, 'SHIB_USER_HEADER', 'REMOTE_USER')
     group_header = getattr(settings, 'SHIB_GROUPS_HEADER', 'isMemberOf')
     group_delimiter = ';'
 
@@ -45,7 +45,7 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
                 " before the RemoteUserMiddleware class.")
 
         # Get username from request headers
-        username = request.META.get(self.header, None)
+        username = request.META.get(self.user_header, None)
 
         # If the header is blank or doesn't exist, return
         if username is None:
