@@ -46,18 +46,15 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
 
         # Get username from request headers
         username = request.META.get(self.header, None)
-        logger.debug("{0}: attempting to authenticate {1}".format(self.__class__.__name__, username))
 
         # If the header is blank or doesn't exist, return
-        if not username:
-            logger.debug("{0}: username not found, returning".format(self.__class__.__name__))
+        if username is None:
             return
 
         # If shib headers are available and the user is already authenticated,
-        # double-check that the request user and the shib user are the same
+        # double-check that the request user and the shib user are the same.
         if request.user.is_authenticated and (request.user.get_username() ==
             self.clean_username(username, request)):
-            logger.debug("{0}: user {1} already authenticationed, returning".format(self.__class__.__name__, username))
             return
 
         # Otherwise, we are seeing this user for the first time in this,
@@ -69,7 +66,6 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
         if user:
             # User is valid.  Set request.user and persist user in the session
             # by logging the user in.
-            logger.debug("{0}: successfully authenticated user {1}".format(self.__class__.__name__, user.username))
             request.user = user
             auth.login(request, user)
 
@@ -121,15 +117,12 @@ class ControlRoomMiddleware(object):
         # Code to be executed for requests ------------------------------------
 
         # Make sure user is authenticated
-        logger.debug("{0}: checking auth status".format(self.__class__.__name__))
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return self.get_response(request)
-        logger.debug("{0}: user {1} is authenticated".format(self.__class__.__name__, request.user.username))
 
         # Make sure user is in LVC group
         if not settings.LVC_GROUP in [g.name for g in request.user.groups.all()]:
             return self.get_response(request)
-        logger.debug("{0}: user {1} is in group {2}".format(self.__class__.__name__, request.user.username, settings.LVC_GROUP))
 
         # Check IP address
         user_ip = self.get_client_ip(request)
@@ -137,7 +130,6 @@ class ControlRoomMiddleware(object):
         # Add user to control room group(s)
         for ifo, ip in settings.CONTROL_ROOM_IPS.iteritems():
             if (ip == user_ip):
-                logger.debug("{0}: adding user {1} to group {2}".format(self.__class__.__name__, request.user.username, ifo.lower() + self.control_room_group_suffix))
                 request.user.groups.add(Group.objects.get(name=
                     ifo.lower() + self.control_room_group_suffix))
 
@@ -148,12 +140,8 @@ class ControlRoomMiddleware(object):
 
         # Remove user from control room group(s)
         if request.user.is_authenticated:
-            gname = request.user.groups.filter(name__contains=self.control_room_group_suffix)
-            logger.debug(request.user)
-            request.user.groups.remove(*request.user.groups.filter(name__contains=
-                self.control_room_group_suffix))
-            if gname:
-                logger.debug("{0}: successfully removed user {1} from group {2}".format(self.__class__.__name__, request.user.username, gname[0].name))
+            request.user.groups.remove(*request.user.groups.filter(
+                name__contains=self.control_room_group_suffix))
 
         return response
 

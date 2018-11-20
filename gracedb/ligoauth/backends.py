@@ -57,7 +57,6 @@ class ShibbolethRemoteUserBackend(backends.RemoteUserBackend):
         DEFAULT_SHIB_ATTRIBUTES)
 
     def authenticate(self, request, remote_user):
-        logger.debug("Authenticating with {0}".format(self.__class__.__name__))
 
         if not remote_user:
             return
@@ -98,7 +97,6 @@ class ShibbolethRemoteUserBackend(backends.RemoteUserBackend):
     @classmethod
     def update_user(cls, request, user, save=True):
         """Updates a user with information from the Shibboleth session"""
-        logger.debug("Updating user {0}".format(user.username))
 
         # Extract user data from shib session
         shib_user_attr = {}
