@@ -312,7 +312,7 @@ class GraceDbTestBase(DefineTestSettings, InternalGroupAndUserSetup,
         super(GraceDbTestBase, cls).tearDownClass()
         logging.disable(logging.NOTSET)
 
-    def request_as_user(self, url, method, user=None, data=None, **kwargs):
+    def request_as_user(self, url, method, user=None, data=None, **extra):
         """Shortcut function for making a request"""
         # Get client method for HTTP method requested
         try:
@@ -329,7 +329,7 @@ class GraceDbTestBase(DefineTestSettings, InternalGroupAndUserSetup,
             self.client.force_login(user)
 
         # Make request
-        response = method_func(url, data)
+        response = method_func(url, data=data, **extra)
 
         # Log user out, otherwise session persists throughout the current unit
         # test.  This could lead to mistakes, so we are playing it safe here.
