@@ -107,23 +107,16 @@ class ControlRoomMiddleware(object):
     corresponding to instrument control rooms.  If the user appears to be
     in a control room, we add them to the corresponding control room group
     for the duration of the request.
+
+    We split up the request and response processing into separate functions
+    so that unit testing is easier.
     """
     control_room_group_suffix = '_control_room'
 
     def __init__(self, get_response):
         self.get_response = get_response
 
-    def __call__(self, request):
-        # Code to be executed for requests ------------------------------------
-
-        # Make sure user is authenticated
-        if not request.user.is_authenticated:
-            return self.get_response(request)
-
-        # Make sure user is in LVC group
-        if not settings.LVC_GROUP in [g.name for g in request.user.groups.all()]:
-            return self.get_response(request)
-
+    def process_request(self, request):
         # Check IP address
         user_ip = self.get_client_ip(request)
 
@@ -133,15 +126,28 @@ class ControlRoomMiddleware(object):
                 request.user.groups.add(Group.objects.get(name=
                     ifo.lower() + self.control_room_group_suffix))
 
-        # Get response --------------------------------------------------------
-        response = self.get_response(request)
+        return request
 
-        # Code to be executed for responses -----------------------------------
-
+    def process_response(self, request, response):
         # Remove user from control room group(s)
         if request.user.is_authenticated:
             request.user.groups.remove(*request.user.groups.filter(
                 name__contains=self.control_room_group_suffix))
+        return response
+
+    def __call__(self, request):
+        # Code to be executed for requests ------------------------------------
+
+        # Make sure user is authenticated and in LVC group --------------------
+        if not (request.user.is_authenticated and request.user.groups.filter(
+            name=settings.LVC_GROUP).exists()):
+            return self.get_response(request)
+
+        # Process request -----------------------------------------------------
+        response = self.get_response(self.process_request(request))
+
+        # Process response ----------------------------------------------------
+        response = self.process_response(request, response)
 
         return response
 
