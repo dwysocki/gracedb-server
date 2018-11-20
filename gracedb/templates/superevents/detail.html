@@ -236,7 +236,10 @@
     </tr>
 </table>
 {% endblock %}
+
+{% if user.is_authenticated %}
 {% include "superevents/emo_form_frag.html" %}
+{% endif %}
 
 </div> <!-- end event_detail_content div -->
 {% endblock %}

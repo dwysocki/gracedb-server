@@ -513,20 +513,15 @@ require([
     var logContentDiv = put(annotationsDiv, 'div#log_content');
 
     // Create the form for adding a new log entry.
+    {% if user.is_authenticated %}
     var logAddDiv = put(logContentDiv, 'div#new_log_entry_form');
     put(logAddDiv, 'div#previewer');
     put(logAddDiv, 'div#editor');
     put(logAddDiv, 'div#upload_form_container');
-
-    // Create handlers for upload success and failture
-    var uploadSuccess = function(result) {
-        alert(result);
-    };
-    var uploadError = function(error) {
-        alert(error);
-    };
-
     createExpandingSection(logTitleDiv, logContentDiv, logAddDiv, 'Superevent Log Messages', true);
+    {% else %}
+    createExpandingSectionNoForm(logTitleDiv, logContentDiv, 'Superevent Log Messages', true);
+    {% endif %}
 
     //----------------------------------------------------------------------------------------
     //----------------------------------------------------------------------------------------
@@ -869,6 +864,7 @@ require([
                 logContentDiv.appendChild(emo_tp.domNode);
     
                 var emoDiv = dom.byId(pane_contents_id);
+                {% if user.is_authenticated %}
                 // Create the section for adding EMObservation records. First an outer container:
                 var emoAddDiv = put(emoDiv, 'div#add_emo_container');
                 // The order is important. First the toggling form display button, then the form.
@@ -893,6 +889,7 @@ require([
                 var emoFormContents = oldEmoFormDiv.innerHTML;               
                 domConstruct.destroy('emoFormContainer');
                 emoAddFormDiv.innerHTML = emoFormContents;
+                {% endif %}
                 
                 // Create the div for our grid to attach to
                 put(emoDiv, 'div#emo-grid');
@@ -934,23 +931,28 @@ require([
                             if (object.filename) put(commentDiv, 'a[href=$]', fileDownloadUrl.replace("FAKE_FILE_NAME", object.filename + "," + object.file_version), object.filename);
                             // Create tag-related features
                             var tagButtonContainer = put(commentDiv, 'div.tagButtonContainerClass');
+
                             // For each existing tag on a log message, we will make a little widget
                             // to delete it.
                             object.tag_names.forEach( function(tag_name) {
                                 var delDiv = put(tagButtonContainer, 'div.tagDelButtonDivClass');
+                                {% if user.is_authenticated %}
                                 var del_button_id = "del_button_" + object.N + '_' + tag_name.replace(/ /g, "_");
                                 var delButton = put(delDiv, 'button.modButtonClass.left#' + del_button_id);
                                 put(delButton, '[data-dojo-type="dijit/form/Button"]');
                                 // It looks like an 'x', so people will know that this means 'delete'
                                 delButton.innerHTML = '&times;';
+                                {% endif %}
                                 var labButton = put(delDiv, 'button.modButtonClass.right', tag_name); 
-                            }); 
+                            });
+                            {% if user.is_authenticated %}
                             // Create a button for adding a new tag.
                             var add_button_id = 'addtag_' + object.N;
                             var addButton = put(tagButtonContainer, 'button.modButtonClass#' + add_button_id);
                             put(addButton, '[data-dojo-type="dijit/form/Button"]');
                             // Put a plus sign in there.
                             addButton.innerHTML = '&#43;';
+                            {% endif %}
 
                             // The div is finally ready. Return it.
                             return commentDiv;
@@ -1030,19 +1032,23 @@ require([
                             // to delete it.
                             object.tag_names.forEach( function(tag_name) {
                                 var delDiv = put(tagButtonContainer, 'div.tagDelButtonDivClass');
+                                {% if user.is_authenticated %}
                                 var del_button_id = "del_button_" + object.N + '_' + tag_name.replace(/ /g, "_");
                                 var delButton = put(delDiv, 'button.modButtonClass.left#' + del_button_id);
                                 put(delButton, '[data-dojo-type="dijit/form/Button"]');
                                 // It looks like an 'x', so people will know that this means 'delete'
                                 delButton.innerHTML = '&times;';
+                                {% endif %}
                                 var labButton = put(delDiv, 'button.modButtonClass.right', tag_name); 
                             }); 
+                            {% if user.is_authenticated %}
                             // Create a button for adding a new tag.
                             var add_button_id = 'addtag_' + object.N;
                             var addButton = put(tagButtonContainer, 'button.modButtonClass#' + add_button_id);
                             put(addButton, '[data-dojo-type="dijit/form/Button"]');
                             // Put a plus sign in there.
                             addButton.innerHTML = '&#43;';
+                            {% endif %}
 
                             // The div is finally ready. Return it.
                             return commentDiv;
@@ -1290,6 +1296,7 @@ require([
 
             //-------------------------------------------------------------------------------------
             //-------------------------------------------------------------------------------------
+            {% if user.is_authenticated %}
             // The following section is for file attachments
             // The idea of this form is to allow a user to attach a file to a log entry, but
             // still submit the log entry via the usual save button. 
@@ -1307,7 +1314,7 @@ require([
             var i2 = put(f, 'input[id="hidden_comment"][name="comment"][type="hidden"]');
             var i3 = put(f, 'input[id="hidden_tagname"][name="tagname"][type="hidden"]');
             put(upload_div, 'br');
-
+            {% endif %}
 
             $("#emo_submit_form").submit(function(e) {
                 e.preventDefault();
@@ -1350,6 +1357,7 @@ require([
             //-------------------------------------------------------------------------------------
 
             // For each log, attach callbacks for the tag delete and add buttons.
+            {% if user.is_authenticated %}
             logs.forEach( function(log) {
                 // Attach a delete callback for each tag.
                 log.tag_names.forEach( function(tag_name) {
@@ -1363,7 +1371,8 @@ require([
                 on(dom.byId(add_button_id), "click", getTagAddCallback(log.N));
                 new Tooltip({ connectId: add_button_id, label: "tag this log message" });
 
-            });                 
+            });
+            {% endif %}
 
             var nodeList = query('.sV_button');
             for(var i=0; i<nodeList.length; i++){
