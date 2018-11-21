@@ -25,11 +25,8 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
         Same as base class, except we require the request to be directed
         toward the basic auth API.
         """
-        logger.debug("{0}: beginning auth attempt".format(self.__class__.__name__))
-
         # Make sure this request is directed to the API
         if self.api_only and not is_api_request(request.path):
-            logger.debug("{0}: request not directed to basic auth API".format(self.__class__.__name__))
             return None
 
         # Call base class authenticate() method
@@ -39,15 +36,11 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
         """
         Add a hacky password expiration check to the inherited method.
         """
-        logger.debug("{0}: attempting to authenticate {1}".format(self.__class__.__name__, userid))
         user, other = super(GraceDbBasicAuthentication, self) \
             .authenticate_credentials(userid, password, request)
 
-        if user:
-            logger.debug("{0}: user {1} authenticated".format(self.__class__.__name__, userid))
-
         # Check password expiration
-        # NOTE: This is super hacky because we are using date_joined to store
+        # NOTE: This is *super* hacky because we are using date_joined to store
         # the date when the password was set. See managePassword() in 
         # userprofile.views.
         password_expiry = user.date_joined + settings.PASSWORD_EXPIRATION_TIME
@@ -69,11 +62,9 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
     proxy_pattern = re.compile(r'^(.*?)(/CN=\d+)*$')
 
     def authenticate(self, request):
-        logger.debug("{0}: beginning auth attempt".format(self.__class__.__name__))
 
         # Make sure this request is directed to the API
         if self.api_only and not is_api_request(request.path):
-            logger.debug("{0}: request not directed to API".format(self.__class__.__name__))
             return None
 
         # Try to get credentials from request headers.
@@ -106,7 +97,6 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
         return certdn
 
     def authenticate_credentials(self, user_cert_dn):
-        logger.debug("{0}: attempting to authenticate {1}".format(self.__class__.__name__, user_cert_dn))
 
         cert = X509Cert.objects.get(subject=user_cert_dn)
         num_users = cert.users.count()
@@ -119,8 +109,6 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
                 'certificate'))
 
         user = cert.users.first()
-        if user:
-            logger.debug("{0}: user {1} authenticated".format(self.__class__.__name__, user.username))
 
         return (user, None)
 
@@ -135,15 +123,12 @@ class GraceDbShibAuthentication(authentication.BaseAuthentication):
     api_only = True
 
     def authenticate(self, request):
-        logger.debug("{0}: beginning auth attempt".format(self.__class__.__name__))
 
         # Make sure this request is directed to the API
         if self.api_only and not is_api_request(request.path):
-            logger.debug("{0}: request not directed to API".format(self.__class__.__name__))
             return None
 
         if request._request.user.is_authenticated:
-            logger.debug("{0}: user {1} already authenticated".format(self.__class__.__name__, request._request.user.username))
             return (request._request.user, None)
         else:
             return None
