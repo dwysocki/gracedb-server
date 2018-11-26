@@ -139,8 +139,8 @@ class ControlRoomMiddleware(object):
         # Code to be executed for requests ------------------------------------
 
         # Make sure user is authenticated and in LVC group --------------------
-        if not (request.user.is_authenticated and request.user.groups.filter(
-            name=settings.LVC_GROUP).exists()):
+        if not (request.user.is_authenticated and request.user.is_active and
+            request.user.groups.filter(name=settings.LVC_GROUP).exists()):
             return self.get_response(request)
 
         # Process request -----------------------------------------------------
