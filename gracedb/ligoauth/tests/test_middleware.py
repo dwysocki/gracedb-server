@@ -93,6 +93,22 @@ class TestControlRoomMiddlewareHomeView(GraceDbTestBase):
         self.assertFalse(response.context['signoff_authorized'])
         self.assertTrue(response.context['signoff_instrument'] is None)
 
+    def test_inactive_internal_user_in_control_room(self):
+        """Inactive internal user in control room is not authenticated"""
+        # Set user as inactive
+        self.internal_user.is_active = False
+        self.internal_user.save(update_fields=['is_active'])
+
+        # Make request
+        response = self.request_as_user(self.url, "GET", self.internal_user,
+            data=None, **self.headers)
+        # Should be a 200 response, but with anonymous user
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['signoff_authorized'])
+        self.assertTrue(response.context['signoff_instrument'] is None)
+        self.assertTrue(response.context['user'].is_anonymous)
+        self.assertFalse(response.context['user'].is_authenticated)
+
 
 class TestControlRoomMiddleware(GraceDbTestBase):
     """
@@ -170,6 +186,36 @@ class TestControlRoomMiddleware(GraceDbTestBase):
 
         # Test request after processing
         self.assertNotIn(self.control_room_group, request.user.groups.all())
+
+        # Process response (fake response object since it's not used at all
+        # in ControlRoomMiddleware.process_response)
+        response = self.mw_instance.process_response(request, None)
+
+        # User not in control room group after response cycle processing
+        self.assertNotIn(self.control_room_group, request.user.groups.all())
+
+    def test_inactive_internal_user_in_control_room(self):
+        """
+        Inactive internal user in control room is not added to control room
+        group
+        """
+        # Set user as inactive
+        self.internal_user.is_active = False
+        self.internal_user.save(update_fields=['is_active'])
+
+        # Set up request
+        request = self.factory.get(self.url)
+        request.user = self.internal_user
+        request.META['REMOTE_ADDR'] = settings.CONTROL_ROOM_IPS[self.ifo]
+
+        # User not in control room group before processing
+        self.assertNotIn(self.control_room_group, request.user.groups.all())
+
+        # Process request
+        request = self.mw_instance.process_request(request)
+
+        # Test request after processing
+        self.assertIn(self.control_room_group, request.user.groups.all())
 
         # Process response (fake response object since it's not used at all
         # in ControlRoomMiddleware.process_response)
@@ -526,3 +572,28 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         # Make sure email is changed as expected
         self.internal_user.refresh_from_db()
         self.assertEqual(email2, self.internal_user.email)
+
+
+    def test_inactive_internal_user_authentication_post_login(self):
+        """
+        Inactive internal user can't authenticate at post-login view even
+        with Shibboleth credentials in the request headers
+        """
+        # Set user as inactive
+        self.internal_user.is_active = False
+        self.internal_user.save(update_fields=['is_active'])
+
+        # Set up request
+        request = self.factory.get(self.url)
+        request.META.update(**{
+            settings.SHIB_USER_HEADER: self.internal_user.username,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+        })
+        # Necessary pre-processing middleware
+        SessionMiddleware().process_request(request)
+        AuthenticationMiddleware().process_request(request)
+        self.mw_instance.process_request(request)
+
+        # User should be anonymous/not authenticated
+        self.assertFalse(request.user.is_authenticated)
+        self.assertTrue(request.user.is_anonymous)
