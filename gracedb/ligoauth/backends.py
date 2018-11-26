@@ -36,16 +36,6 @@ class ModelPermissionsForObjectBackend(backends.ModelBackend):
             perm, obj=None)
 
 
-class GraceDbModelBackend(ModelPermissionsForObjectBackend):
-    """
-    Main permission-checking backend for GraceDB.  We remove the ability
-    for this backend to authenticate users, since that is handled by other
-    auth backends.
-    """
-    def authenticate(self, request, username=None, password=None, **kwargs):
-        return None
-
-
 class ShibbolethRemoteUserBackend(backends.RemoteUserBackend):
     """
     Almost completely taken from Django's RemoteUserBackend, but we have to

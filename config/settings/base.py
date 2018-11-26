@@ -308,7 +308,7 @@ X509_ISSUER_DN_HEADER = 'HTTP_SSL_CLIENT_I_DN'
 # handled by the REST_FRAMEWORK dictionary.
 AUTHENTICATION_BACKENDS = [
     'ligoauth.backends.ShibbolethRemoteUserBackend',
-    'ligoauth.backends.GraceDbModelBackend',
+    'ligoauth.backends.ModelPermissionsForObjectBackend',
     'guardian.backends.ObjectPermissionBackend',
 ]
 
