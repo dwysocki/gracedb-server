@@ -390,7 +390,7 @@ REST_FRAMEWORK = {
         'annotation'    : '10/second',
     },
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'api.backends.GraceDbShibAuthentication',
+        'api.backends.GraceDbAuthenticatedAuthentication',
         'api.backends.GraceDbX509Authentication',
         'api.backends.GraceDbBasicAuthentication',
     ),

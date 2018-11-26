@@ -36,8 +36,9 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
         """
         Add a hacky password expiration check to the inherited method.
         """
-        user, other = super(GraceDbBasicAuthentication, self) \
+        user_auth_tuple = super(GraceDbBasicAuthentication, self) \
             .authenticate_credentials(userid, password, request)
+        user = user_auth_tuple[0]
 
         # Check password expiration
         # NOTE: This is *super* hacky because we are using date_joined to store
@@ -49,7 +50,7 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
                 'interface and request another.')
             raise exceptions.AuthenticationFailed(_(msg))
 
-        return (user, None)
+        return user_auth_tuple
 
 
 class GraceDbX509Authentication(authentication.BaseAuthentication):
@@ -86,39 +87,48 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
 
         # Get subject and issuer DN from SSL headers
         certdn = request.META.get(cls.subject_dn_header, None)
-        issuer = request.META.get(cls.issuer_dn_header, None)
+        issuer = request.META.get(cls.issuer_dn_header, '')
 
         # Proxies can be signed by proxies; each level adds '/CN=[0-9]+' to the
         # signers' subject, so we remove those to get the original identity's
         # certificate DN
-        if certdn and certdn.startswith(issuer):
+        if certdn and issuer and certdn.startswith(issuer):
             certdn = cls.proxy_pattern.match(issuer).group(1)
 
         return certdn
 
     def authenticate_credentials(self, user_cert_dn):
+        certs = X509Cert.objects.filter(subject=user_cert_dn)
+        if not certs.exists():
+            raise exceptions.AuthenticationFailed(_('Invalid certificate '
+                'subject'))
+        cert = certs.first()
 
-        cert = X509Cert.objects.get(subject=user_cert_dn)
+        # Handle incorrect number of users for a certificate
         num_users = cert.users.count()
-
         if (num_users > 1):
             raise exceptions.AuthenticationFailed(_('Multiple users have the '
                 'same certificate subject'))
         elif (num_users == 0):
             raise exceptions.AuthenticationFailed(_('No user found for this '
                 'certificate'))
-
         user = cert.users.first()
+
+        # Check if user is active
+        if not user.is_active:
+            raise exceptions.AuthenticationFailed(
+                _('User inactive or deleted'))
 
         return (user, None)
 
 
-class GraceDbShibAuthentication(authentication.BaseAuthentication):
+class GraceDbAuthenticatedAuthentication(authentication.BaseAuthentication):
     """
     If user is already authenticated by the main Django middleware,
     don't make them authenticate again.
 
-    This is only used for the web-based API.
+    This is mostly (only?) used for access to the web-browsable API when
+    the user is already authenticated via Shibboleth.
     """
     api_only = True
 
@@ -128,7 +138,9 @@ class GraceDbShibAuthentication(authentication.BaseAuthentication):
         if self.api_only and not is_api_request(request.path):
             return None
 
-        if request._request.user.is_authenticated:
+        if (hasattr(request, '_request') and hasattr(request._request, 'user')
+            and hasattr(request._request.user, 'is_authenticated') and
+            request._request.user.is_authenticated):
             return (request._request.user, None)
         else:
             return None
