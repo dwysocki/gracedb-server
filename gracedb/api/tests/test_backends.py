@@ -3,6 +3,7 @@ from base64 import b64encode
 from django.conf import settings
 from django.contrib.auth.middleware import AuthenticationMiddleware
 from django.urls import reverse
+from django.utils import timezone
 
 from rest_framework import exceptions
 from rest_framework.request import Request
@@ -65,6 +66,25 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
 
         # Authentication attempt should fail
         with self.assertRaises(exceptions.AuthenticationFailed):
+            user, other = self.backend_instance.authenticate(request)
+
+    def test_user_authenticate_to_api_with_expired_password(self):
+        """User can't authenticate with expired password"""
+        # Set user's password date (date_joined) so that it is expired
+        self.lvem_user.date_joined = timezone.now() - \
+            2*settings.PASSWORD_EXPIRATION_TIME
+        self.lvem_user.save(update_fields=['date_joined'])
+
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+        user_and_pass = b64encode(b"{username}:{password}".format(
+            username=self.lvem_user.username, password=self.password)) \
+            .decode("ascii")
+        request.META['HTTP_AUTHORIZATION'] = 'Basic {0}'.format(user_and_pass)
+
+        # Authentication attempt should fail
+        with self.assertRaisesRegexp(exceptions.AuthenticationFailed,
+            'Your password has expired'):
             user, other = self.backend_instance.authenticate(request)
 
     def test_user_authenticate_non_api(self):

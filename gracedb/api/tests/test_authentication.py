@@ -2,6 +2,7 @@ from base64 import b64encode
 
 from django.conf import settings
 from django.urls import reverse
+from django.utils import timezone
 
 from api.backends import (
     GraceDbBasicAuthentication, GraceDbX509Authentication,
@@ -61,6 +62,27 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
         # Check response
         self.assertEqual(response.status_code, 403)
         self.assertIn('Invalid username/password', response.content)
+
+    def test_user_authenticate_to_api_with_expired_password(self):
+        """User can't authenticate with expired password"""
+        # Set password to be expired
+        self.lvem_user.date_joined = timezone.now() - \
+            2*settings.PASSWORD_EXPIRATION_TIME
+        self.lvem_user.save(update_fields=['date_joined'])
+
+        # Set up and make request
+        url = api_reverse('api:root')
+        user_and_pass = b64encode(b"{username}:{password}".format(
+            username=self.lvem_user.username, password=self.password)) \
+            .decode("ascii")
+        headers = {
+            'HTTP_AUTHORIZATION': 'Basic {0}'.format(user_and_pass),
+        }
+        response = self.client.get(url, data=None, **headers)
+
+        # Check response
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('Your password has expired', response.content)
 
 
 class TestGraceDbX509Authentication(GraceDbApiTestBase):
