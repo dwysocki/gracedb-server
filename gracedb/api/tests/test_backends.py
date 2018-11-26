@@ -1,286 +1,233 @@
+from base64 import b64encode
+
 from django.conf import settings
-from django.test import RequestFactory
-from django.test.utils import override_settings, modify_settings
-from django.contrib.auth.models import Group, User, AnonymousUser
+from django.contrib.auth.middleware import AuthenticationMiddleware
 from django.urls import reverse
-from django.core.exceptions import ImproperlyConfigured
-from django.contrib.sessions.middleware import SessionMiddleware
 
+from rest_framework import exceptions
+from rest_framework.request import Request
+from rest_framework.test import APIRequestFactory
+from user_sessions.middleware import SessionMiddleware
+
+from api.backends import (
+    GraceDbBasicAuthentication, GraceDbX509Authentication,
+    GraceDbAuthenticatedAuthentication,
+)
+from api.tests.utils import GraceDbApiTestBase
+from api.utils import api_reverse
 from ligoauth.middleware import ShibbolethWebAuthMiddleware
+from ligoauth.models import X509Cert
 
-# See this test class for information about what groups and users
-# are already defined for use.
-from core.tests.utils import GraceDbTestBase
 
-class TestX509Authentication(GraceDbTestBase):
-    """
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        # Make sure middleware is installed
-        if not any(['GraceDbX509Authentication' in m for m in
-           settings.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES']]):
-            raise ImproperlyConfigured(('GraceDbX509Authentication must be '
-                'installed in the DEFAULT_AUTHENTICATION_CLASSES element '
-                'of the REST_FRAMEWORK dictionary in your project settings'))
-
-        # Attach request factory to class
-        cls.factory = RequestFactory()
-
-        # Attach middleware to class
-        #cls.middleware = ShibbolethWebAuthMiddleware()
-
-    @classmethod
-    def setUpTestData(cls):
-        # Call base class setUpTestData
-        super(TestX509Authentication, cls).setUpTestData()
-
-    @classmethod
-    def setUp(cls):
-        cls.request = cls.factory.get(reverse('home'))
-        cls.request.user = AnonymousUser()
-        SessionMiddleware().process_request(cls.request)
-        cls.request.session.save()
-
-    def test_web_path(self):
-        pass
-
-    def test_basic_api_path(self):
-        pass
-
-    def test_internal_user_auth(self):
-        # Can we check backend with this type of setup?
-        pass
-
-    def test_lvem_user_auth(self):
-        pass
-
-    def test_public_user_auth(self):
-        pass
-
-    def test_proxy_auth(self):
-        # test proxy pattern thing
-        pass
-
-#class TestBasicAuthentication(GraceDbTestBase):
 # Make sure to test password expiration
-
-class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
+class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
+    """Test basic auth backend for API"""
 
     @classmethod
     def setUpClass(cls):
-        # Make sure middleware is installed
-        if not any(['ShibbolethWebAuthMiddleware' in m for m in
-           settings.MIDDLEWARE]):
-            raise ImproperlyConfigured(
-                'ShibbolethWebAuthMiddleware must be installed in MIDDLEWARE')
+        super(TestGraceDbBasicAuthentication, cls).setUpClass()
 
         # Attach request factory to class
-        cls.factory = RequestFactory()
-
-        # Attach middleware to class
-        cls.middleware = ShibbolethWebAuthMiddleware()
+        cls.backend_instance = GraceDbBasicAuthentication()
+        cls.factory = APIRequestFactory()
 
     @classmethod
     def setUpTestData(cls):
-        # Call base class setUpTestData
-        super(TestShibbolethWebAuthMiddleware, cls).setUpTestData()
+        super(TestGraceDbBasicAuthentication, cls).setUpTestData()
+
+        # Set up password for LV-EM user account
+        cls.password = 'passw0rd'
+        cls.lvem_user.set_password(cls.password)
+        cls.lvem_user.save()
+
+    def test_user_authenticate_to_api_with_password(self):
+        """User can authenticate to API with correct password"""
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+        user_and_pass = b64encode(b"{username}:{password}".format(
+            username=self.lvem_user.username, password=self.password)) \
+            .decode("ascii")
+        request.META['HTTP_AUTHORIZATION'] = 'Basic {0}'.format(user_and_pass)
+
+        # Authentication attempt
+        user, other = self.backend_instance.authenticate(request)
+
+        # Check authenticated user
+        self.assertEqual(user, self.lvem_user)
+
+    def test_user_authenticate_to_api_with_bad_password(self):
+        """User can't authenticate with wrong password"""
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+        user_and_pass = b64encode(b"{username}:{password}".format(
+            username=self.lvem_user.username, password='b4d')).decode("ascii")
+        request.META['HTTP_AUTHORIZATION'] = 'Basic {0}'.format(user_and_pass)
+
+        # Authentication attempt should fail
+        with self.assertRaises(exceptions.AuthenticationFailed):
+            user, other = self.backend_instance.authenticate(request)
+
+    def test_user_authenticate_non_api(self):
+        """User can't authenticate to a non-API URL path"""
+        # Set up request
+        request = self.factory.get(reverse('home'))
+        user_and_pass = b64encode(b"{username}:{password}".format(
+            username=self.lvem_user.username, password=self.password)) \
+            .decode("ascii")
+        request.META['HTTP_AUTHORIZATION'] = 'Basic {0}'.format(user_and_pass)
+
+        # Try to authenticate
+        user_auth_tuple = self.backend_instance.authenticate(request)
+        self.assertEqual(user_auth_tuple, None)
+
+    def test_inactive_user_authenticate(self):
+        """Inactive user can't authenticate"""
+        # Set LV-EM user to inactive
+        self.lvem_user.is_active = False
+        self.lvem_user.save(update_fields=['is_active'])
+
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+        user_and_pass = b64encode(b"{username}:{password}".format(
+            username=self.lvem_user.username, password=self.password)) \
+            .decode("ascii")
+        request.META['HTTP_AUTHORIZATION'] = 'Basic {0}'.format(user_and_pass)
+
+        # Authentication attempt should fail
+        with self.assertRaises(exceptions.AuthenticationFailed):
+            user, other = self.backend_instance.authenticate(request)
+
+
+class TestGraceDbX509Authentication(GraceDbApiTestBase):
+    """Test X509 certificate auth backend for API"""
 
     @classmethod
-    def setUp(cls):
-        cls.request = cls.factory.get(reverse('home'))
-        cls.request.user = AnonymousUser()
-        SessionMiddleware().process_request(cls.request)
-        cls.request.session.save()
+    def setUpClass(cls):
+        super(TestGraceDbX509Authentication, cls).setUpClass()
 
-    def test_internal_authentication(self):
-        """Test internal user authentication"""
-        self.request.META = {
-            settings.SHIB_USER_HEADER: self.internal_user.username,
-            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
-        }
-        self.middleware.process_request(self.request)
+        # Attach request factory to class
+        cls.backend_instance = GraceDbX509Authentication()
+        cls.factory = APIRequestFactory()
 
-        # Make sure user is authenticated and was authenticated by
-        # the shibboleth backend and that the internal group is
-        # attached to the user account
-        self.assertTrue(self.request.user.is_authenticated)
-        self.assertEqual(self.request.user.backend,
-            'ligoauth.backends.ShibbolethRemoteUserBackend')
-        self.assertIn(self.internal_group, self.request.user.groups.all())
+    @classmethod
+    def setUpTestData(cls):
+        super(TestGraceDbX509Authentication, cls).setUpTestData()
 
-    def test_lvem_authentication(self):
-        """Test lvem user authentication"""
-        self.request.META = {
-            settings.SHIB_USER_HEADER: self.lvem_user.username,
-            settings.SHIB_GROUPS_HEADER: self.lvem_obs_group.name,
-        }
-        self.middleware.process_request(self.request)
+        # Set up certificate for internal user account
+        cls.x509_subject = '/x509_subject'
+        cert = X509Cert.objects.create(subject=cls.x509_subject)
+        cert.users.add(cls.internal_user)
 
-        # Make sure user is authenticated and was authenticated by
-        # the shibboleth backend and that the lvem group is
-        # attached to the user account and that the internal group
-        # is NOT attached to the user account
-        self.assertTrue(self.request.user.is_authenticated)
-        self.assertEqual(self.request.user.backend,
-            'ligoauth.backends.ShibbolethRemoteUserBackend')
-        self.assertIn(self.lvem_obs_group, self.request.user.groups.all())
-        self.assertNotIn(self.internal_group, self.request.user.groups.all())
+    def test_user_authenticate_to_api_with_x509_cert(self):
+        """User can authenticate to API with valid X509 certificate"""
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+        request.META[GraceDbX509Authentication.subject_dn_header] = \
+            self.x509_subject
 
-    def test_public_authentication(self):
-        """Test middleware on public user"""
-        self.middleware.process_request(self.request)
+        # Authentication attempt
+        user, other = self.backend_instance.authenticate(request)
 
-        # Make sure user is not authenticated and is anonymous,
-        # auth backend is not set, and the user has no groups
-        self.assertFalse(self.request.user.is_authenticated)
-        self.assertTrue(self.request.user.is_anonymous)
-        self.assertFalse(hasattr(self.request.user, 'backend'))
-        self.assertTrue(self.request.user.groups.count() == 0)
+        # Check authenticated user
+        self.assertEqual(user, self.internal_user)
 
-    def test_internal_user_creation(self):
-        """Test creating a new internal user in the auth framework"""
-        new_user_dict = {
-            'username': 'new_internal.user',
-            'email': 'new_internal.user@group.org',
-        }
-        self.request.META = {
-            settings.SHIB_USER_HEADER: new_user_dict['username'],
-            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
-            settings.SHIB_ATTRIBUTE_MAP['email']: new_user_dict['email'],
-        }
-        self.middleware.process_request(self.request)
+    def test_user_authenticate_to_api_with_bad_x509_cert(self):
+        """User can't authenticate with invalid X509 certificate subject"""
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+        request.META[GraceDbX509Authentication.subject_dn_header] = \
+            'bad subject'
 
-        # Make sure user is authenticated and was authenticated by
-        # the shibboleth backend and that the internal group is
-        # attached to the user account
-        self.assertTrue(self.request.user.is_authenticated)
-        self.assertEqual(self.request.user.backend,
-            'ligoauth.backends.ShibbolethRemoteUserBackend')
+        # Authentication attempt should fail
+        with self.assertRaises(exceptions.AuthenticationFailed):
+            user, other = self.backend_instance.authenticate(request)
 
-        # Make sure user information is correct
-        new_user = User.objects.get(username=new_user_dict['username'])
-        self.assertIn(self.internal_group, new_user.groups.all())
-        self.assertEqual(new_user.username, new_user_dict['username'])
-        self.assertEqual(new_user.email, new_user_dict['email'])
+    def test_user_authenticate_non_api(self):
+        """User can't authenticate to a non-API URL path"""
+        # Set up request
+        request = self.factory.get(reverse('home'))
+        request.META[GraceDbX509Authentication.subject_dn_header] = \
+            self.x509_subject
 
-    def test_lvem_user_creation(self):
-        """Test creating a new lvem user in the auth framework"""
-        new_user_dict = {
-            'username': 'new_lvem.user',
-            'email': 'new_lvem.user@group.org',
-        }
-        self.request.META = {
-            settings.SHIB_USER_HEADER: new_user_dict['username'],
-            settings.SHIB_GROUPS_HEADER: self.lvem_obs_group.name,
-            settings.SHIB_ATTRIBUTE_MAP['email']: new_user_dict['email'],
-        }
-        self.middleware.process_request(self.request)
+        # Try to authenticate
+        user_auth_tuple = self.backend_instance.authenticate(request)
+        self.assertEqual(user_auth_tuple, None)
 
-        # Make sure user is authenticated and was authenticated by
-        # the shibboleth backend and that the internal group is
-        # attached to the user account
-        self.assertTrue(self.request.user.is_authenticated)
-        self.assertEqual(self.request.user.backend,
-            'ligoauth.backends.ShibbolethRemoteUserBackend')
+    def test_inactive_user_authenticate(self):
+        """Inactive user can't authenticate"""
+        # Set internal user to inactive
+        self.internal_user.is_active = False
+        self.internal_user.save(update_fields=['is_active'])
 
-        # Make sure user information is correct
-        new_user = User.objects.get(username=new_user_dict['username'])
-        self.assertIn(self.lvem_obs_group, new_user.groups.all())
-        self.assertEqual(new_user.username, new_user_dict['username'])
-        self.assertEqual(new_user.email, new_user_dict['email'])
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+        request.META[GraceDbX509Authentication.subject_dn_header] = \
+            self.x509_subject
 
-    def test_group_addition(self):
-        """Test group addition in middleware"""
-        # Create new group for testing
-        new_group = Group.objects.create(name='new_group')
+        # Authentication attempt should fail
+        with self.assertRaises(exceptions.AuthenticationFailed):
+            user, other = self.backend_instance.authenticate(request)
 
-        delim = ShibbolethWebAuthMiddleware.group_delimiter
-        groups_str = delim.join([self.internal_group.name, new_group.name])
-        self.request.META = {
-            settings.SHIB_USER_HEADER: self.internal_user.username,
-            settings.SHIB_GROUPS_HEADER: groups_str,
-        }
+    def test_authenticate_cert_with_proxy(self):
+        """User can authenticate to API with proxied X509 certificate"""
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+        #request.META[GraceDbX509Authentication.subject_dn_header] = \
+        #    '/CN=123' + self.x509_subject
+        #request.META[GraceDbX509Authentication.issuer_dn_header] = \
+        #    '/CN=123'
 
-        # Make sure user just has internal group initially
-        self.assertTrue(self.internal_user.groups.count() == 1)
-        self.assertTrue(self.internal_user.groups.all()[0] == 
-            self.internal_group)
+        # Authentication attempt
+        #user, other = self.backend_instance.authenticate(request)
 
-        # Process request
-        self.middleware.process_request(self.request)
+        # Check authenticated user
+        #self.assertEqual(user, self.internal_user)
 
-        # Make sure user is authenticated and was authenticated by
-        # the shibboleth backend and that the two groups attached are what
-        # we expect
-        self.assertTrue(self.request.user.is_authenticated)
-        self.assertEqual(self.request.user.backend,
-            'ligoauth.backends.ShibbolethRemoteUserBackend')
-        self.assertTrue(self.internal_user.groups.count() == 2)
-        self.assertIn(self.internal_group, self.internal_user.groups.all())
-        self.assertIn(new_group, self.internal_user.groups.all())
 
-    def test_group_removal(self):
-        """Test group addition in middleware"""
-        # Create new group, add to user
-        new_group = Group.objects.create(name='new_group')
-        self.internal_user.groups.add(new_group)
+class TestGraceDbAuthenticatedAuthentication(GraceDbApiTestBase):
+    """Test shibboleth auth backend for API"""
 
-        # Shib session doesn't have new_group in it
-        self.request.META = {
-            settings.SHIB_USER_HEADER: self.internal_user.username,
-            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
-        }
+    @classmethod
+    def setUpClass(cls):
+        super(TestGraceDbAuthenticatedAuthentication, cls).setUpClass()
 
-        # Make sure user just has internal group initially
-        self.assertTrue(self.internal_user.groups.count() == 2)
-        self.assertIn(self.internal_group, self.internal_user.groups.all())
-        self.assertIn(new_group, self.internal_user.groups.all())
+        # Attach request factory to class
+        cls.backend_instance = GraceDbAuthenticatedAuthentication()
+        cls.factory = APIRequestFactory()
 
-        # Process request
-        self.middleware.process_request(self.request)
+    def test_user_authenticate_to_api(self):
+        """User can authenticate if already authenticated"""
+        # Need to convert request to a rest_framework Request,
+        # as would be done in a view's initialize_request() method.
+        request = self.factory.get(api_reverse('api:root'))
+        request.user = self.internal_user
+        request = Request(request=request)
 
-        # Make sure user is authenticated and was authenticated by
-        # the shibboleth backend and only the internal group is attached
-        # to the user
-        self.assertTrue(self.request.user.is_authenticated)
-        self.assertEqual(self.request.user.backend,
-            'ligoauth.backends.ShibbolethRemoteUserBackend')
-        self.assertTrue(self.internal_user.groups.count() == 1)
-        self.assertTrue(self.internal_user.groups.all()[0] == 
-            self.internal_group)
-        self.assertNotIn(new_group, self.internal_user.groups.all())
+        # Try to authenticate user
+        user, other = self.backend_instance.authenticate(request)
+        self.assertEqual(user, self.internal_user)
 
-    def test_user_update(self):
-        """Test user information update in middleware"""
-        email1 = 'email1@email.com'
-        email2 = 'email2@email.com'
-        self.internal_user.email = email1
-        self.internal_user.save()
+    def test_user_not_authenticated_to_api(self):
+        """User can't authenticate if not already authenticated"""
+        # Need to convert request to a rest_framework Request,
+        # as would be done in a view's initialize_request() method.
+        request = self.factory.get(api_reverse('api:root'))
+        # Preprocessing to set request.user to anonymous
+        SessionMiddleware().process_request(request)
+        AuthenticationMiddleware().process_request(request)
+        request = Request(request=request)
 
-        self.request.META = {
-            settings.SHIB_USER_HEADER: self.internal_user.username,
-            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
-            settings.SHIB_ATTRIBUTE_MAP['email']: email2,
-        }
+        # Try to authenticate user
+        user_auth_tuple = self.backend_instance.authenticate(request)
+        self.assertEqual(user_auth_tuple, None)
 
-        # Check email just to be sure
-        self.assertEqual(email1, self.internal_user.email)
+    def test_user_authenticate_to_non_api(self):
+        """User can't authenticate to non-API URL path"""
+        # Need to convert request to a rest_framework Request,
+        # as would be done in a view's initialize_request() method.
+        request = self.factory.get(reverse('home'))
+        request = Request(request=request)
 
-        # Process request
-        self.middleware.process_request(self.request)
-
-        # Make sure user is authenticated and was authenticated by
-        # the shibboleth backend and that the internal group is
-        # attached to the user account
-        self.assertTrue(self.request.user.is_authenticated)
-        self.assertEqual(self.request.user.backend,
-            'ligoauth.backends.ShibbolethRemoteUserBackend')
-
-        # Make sure email is changed as expected
-        self.internal_user.refresh_from_db()
-        self.assertEqual(email2, self.internal_user.email)
-
-    def test_webapi(self):
-        pass
+        # Try to authenticate user
+        user_auth_tuple = self.backend_instance.authenticate(request)
+        self.assertEqual(user_auth_tuple, None)
