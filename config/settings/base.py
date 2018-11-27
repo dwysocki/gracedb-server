@@ -67,7 +67,8 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', SERVER_FQDN,
     '{0}.ligo.org'.format(SERVER_HOSTNAME)]
 
 # Sessions settings -----------------------------------------------------------
-SESSION_COOKIE_AGE = 3600
+SESSION_COOKIE_AGE = 3600*2
+SESSION_COOKIE_SECURE = True
 SESSION_ENGINE = 'user_sessions.backends.db'
 
 # Login/logout settings -------------------------------------------------------
