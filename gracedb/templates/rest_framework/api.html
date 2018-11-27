@@ -13,6 +13,8 @@ GraceDB &mdash; REST API
     <li>
     {% if user.is_authenticated %}
     Authenticated as: {{ user.first_name }} {{ user.last_name }}
+    </li>
+    <li><a href="{% url "logout" %}">Logout</a></li>
     {% else %}
     <a href="{% url "login" %}"><b>Login</b></a>
     {% endif %}
