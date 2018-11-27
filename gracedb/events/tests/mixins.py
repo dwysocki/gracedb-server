@@ -7,7 +7,7 @@ from django.contrib.auth.models import Group as AuthGroup, Permission
 from django.contrib.contenttypes.models import ContentType
 
 from core.tests.utils import GraceDbTestBase
-from ..models import Event, Group, Pipeline, Search, Tag
+from events.models import Event, Group, Pipeline, Search, Tag
 from ..permission_utils import assign_default_event_perms
 from ..views import update_event_perms_for_group
 
