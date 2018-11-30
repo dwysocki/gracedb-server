@@ -114,7 +114,8 @@ class SupereventEventViewSet(ValidateDestroyMixin,
     """View for events attached to a superevent"""
     serializer_class = SupereventEventSerializer
     pagination_class = BasePaginationFactory(results_name='events')
-    permission_classes = (EventParentSupereventPermissions,)
+    permission_classes = (EventParentSupereventPermissions,
+        permissions.IsAuthenticated,)
     lookup_url_kwarg = 'graceid'
     list_view_order_by = ('pk',)
 
