@@ -8,8 +8,8 @@ from django.contrib.contenttypes.models import ContentType
 
 from core.tests.utils import GraceDbTestBase
 from events.models import Event, Group, Pipeline, Search, Tag
-from ..permission_utils import assign_default_event_perms
-from ..views import update_event_perms_for_group
+from events.permission_utils import assign_default_event_perms
+from events.views import update_event_perms_for_group
 
 UserModel = get_user_model()
 

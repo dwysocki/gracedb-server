@@ -15,10 +15,11 @@ from core.tests.utils import GraceDbTestBase, SignoffGroupsAndUsersSetup, \
 from events.models import (
     Event, Label, Group, Pipeline, Search, GrbEvent, Signoff, Tag, EMGroup,
 )
+
+from events.permission_utils import assign_default_event_perms
+from events.views import update_event_perms_for_group
 from superevents.utils import create_log
 from .mixins import EventSetup, ExposeLogMixin
-from ..permission_utils import assign_default_event_perms
-from ..views import update_event_perms_for_group
 
 
 class TestEventDetailView(SignoffGroupsAndUsersSetup, EventSetup,
