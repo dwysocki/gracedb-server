@@ -56,6 +56,7 @@ class SupereventSerializer(serializers.ModelSerializer):
         choices=Superevent.SUPEREVENT_CATEGORY_CHOICES)
 
     # Add custom fields
+    superevent_id = serializers.SerializerMethodField(read_only=True)
     gw_events = serializers.SerializerMethodField(read_only=True)
     em_events = serializers.SerializerMethodField(read_only=True)
     links = serializers.SerializerMethodField(read_only=True)
@@ -70,9 +71,9 @@ class SupereventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Superevent
-        fields = ('superevent_id', 'category', 'created', 'submitter',
+        fields = ('superevent_id', 'gw_id', 'category', 'created', 'submitter',
             'preferred_event', 'events', 't_start', 't_0', 't_end',
-            'gw_events', 'em_events', 'labels', 'links', 'user')
+            'gw_events', 'em_events', 'far', 'labels', 'links', 'user')
 
     def validate(self, data):
         data = super(SupereventSerializer, self).validate(data)
@@ -123,6 +124,10 @@ class SupereventSerializer(serializers.ModelSerializer):
         return create_superevent(submitter, **validated_data)
 
     # Custom method fields ----------------------------------------------------
+    def get_superevent_id(self, obj):
+        """Override superevent_id (flexible) with default_superevent_id"""
+        return obj.default_superevent_id
+
     def get_gw_events(self, obj):
         return [ev.graceid for ev in obj.get_internal_events()]
 
@@ -143,7 +148,23 @@ class SupereventSerializer(serializers.ModelSerializer):
             'emobservations': bound_reverse(
                 'superevents:superevent-emobservation-list'),
         }
+        request = self.context.get('request', None)
+        # Remove events link for anonymous users
+        if request and request.user.is_anonymous:
+            link_dict.pop('events')
         return link_dict
+
+    def to_representation(self, instance):
+        # Get default serializer response
+        ret = super(SupereventSerializer, self).to_representation(instance)
+
+        # Customize display for unauthenticated users
+        request = self.context.get('request', None)
+        if request and request.user.is_anonymous:
+            ret.pop('gw_events')
+            ret.pop('em_events')
+            ret.pop('preferred_event')
+        return ret
 
 
 class SupereventUpdateSerializer(SupereventSerializer):

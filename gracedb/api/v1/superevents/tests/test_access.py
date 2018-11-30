@@ -458,7 +458,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
         self.assertEqual(response.status_code, 200)
 
         # Check data
-        self.assertTrue('GW' in response.data['superevent_id'])
+        self.assertIsNotNone(response.data['gw_id'])
 
     def test_privileged_internal_user_confirm_production_superevent(self):
         """Privileged internal user can confirm production superevent as GW"""
@@ -468,7 +468,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
         self.assertEqual(response.status_code, 200)
 
         # Check data
-        self.assertTrue('GW' in response.data['superevent_id'])
+        self.assertIsNotNone(response.data['gw_id'])
 
     def test_privileged_internal_user_confirm_mdc_superevent(self):
         """Privileged internal user can confirm MDC superevent as GW"""
@@ -478,7 +478,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
         self.assertEqual(response.status_code, 200)
 
         # Check data
-        self.assertTrue('GW' in response.data['superevent_id'])
+        self.assertIsNotNone(response.data['gw_id'])
 
     def test_privileged_internal_user_confirm_test_superevent(self):
         """Privileged internal user can confirm test superevent as GW"""
@@ -488,7 +488,7 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
         self.assertEqual(response.status_code, 200)
 
         # Check data
-        self.assertTrue('GW' in response.data['superevent_id'])
+        self.assertIsNotNone(response.data['gw_id'])
 
     def test_lvem_user_confirm_production_superevent(self):
         """LV-EM user can't confirm production superevent as GW"""
@@ -1004,18 +1004,20 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
         self.assertEqual(response.status_code, 404)
 
     def test_public_get_event_list_with_view_perms(self):
-        """Public user can see events for public superevents"""
+        """Public user can't see events for public superevents"""
+        # It's not really a security risk but they can't access the
+        # the events, so there is no point.
         url = v_reverse('superevents:superevent-event-list',
             args=[self.public_superevent.superevent_id])
         response = self.request_as_user(url, "GET")
-        self.assertEqual(response.status_code, 200)
-        # Check response data
-        data = response.data
-        self.assertEqual(len(data['events']),
-            self.public_superevent.events.count())
-        graceid_list = [ev['graceid'] for ev in data['events']]
-        for ev in self.public_superevent.events.all():
-            self.assertIn(ev.graceid, graceid_list)
+        self.assertEqual(response.status_code, 403)
+        ## Check response data
+        #data = response.data
+        #self.assertEqual(len(data['events']),
+        #    self.public_superevent.events.count())
+        #graceid_list = [ev['graceid'] for ev in data['events']]
+        #for ev in self.public_superevent.events.all():
+        #    self.assertIn(ev.graceid, graceid_list)
 
     def test_basic_internal_add_event_to_production_superevent(self):
         """Basic internal user can't add events to production superevents"""
@@ -1238,14 +1240,14 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
             self.assertEqual(response.status_code, 404)
 
     def test_public_user_get_event_list_with_view_perms(self):
-        """Public user can see events for public superevents"""
+        """Public user can't see events for public superevents"""
+        # It's not really a security risk but they can't access the
+        # the events, so there is no point.
         for ev in self.public_superevent.events.all():
             url = v_reverse('superevents:superevent-event-detail',
                 args=[self.public_superevent.superevent_id, ev.graceid])
             response = self.request_as_user(url, "GET")
-            self.assertEqual(response.status_code, 200)
-            # Check response data
-            self.assertEqual(response.data['graceid'], ev.graceid)
+            self.assertEqual(response.status_code, 403)
 
     def test_basic_internal_user_remove_event_from_production_superevent(self):
         """

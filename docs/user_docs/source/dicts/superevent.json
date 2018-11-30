@@ -4,10 +4,12 @@
     "em_events": [
         "E0155"
     ],
+    "far": 0.0000342353,
     "gw_events": [
         "T0133",
         "T0142"
     ],
+    "gw_id": null,
     "labels": [],
     "links": {
         "emobservations": "https://gracedb.ligo.org/api/superevents/TS170101z/emobservations/",
