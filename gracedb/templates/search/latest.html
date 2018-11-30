@@ -85,12 +85,14 @@
     <tr>
         <th valign="top">UID</th>
         <th>Labels</th>
+        {% if user.is_authenticated %}
         <th>Preferred Event</th>
         <th>GW Events</th>
+        {% endif %}
         <th>t_start</th>
         <th>t_0</th>
         <th>t_end</th>
-        <th>Preferred event's FAR (Hz)</th>
+        <th>FAR (Hz)</th>
         <th>
             {{"created"|timeselect:"utc" }}
             Created
@@ -105,6 +107,7 @@
                 <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
              {% endfor %}
         </td>
+        {% if user.is_authenticated %}
         <td><a href="{% url "view" s.preferred_event.graceid %}">{{ s.preferred_event.graceid }}</a></td>
         <td>
         {% for ev in s.get_internal_events %}
@@ -115,6 +118,7 @@
             {% endif %}
         {% endfor %}
         </td>
+        {% endif %}
         <td>{{ s.t_start }} </td>
         <td>{{ s.t_0 }} </td>
         <td>{{ s.t_end }} </td>

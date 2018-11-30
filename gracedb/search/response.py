@@ -113,9 +113,7 @@ def superevent_flexigrid_response(request, objects):
                 object.superevent_id]), object.superevent_id),
             #Labels
             " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();" style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name) for label in object.labelling_set.all()]),
-            ev_link(object.preferred_event.graceid),
-            ", ".join([ev_link(ev.graceid) for ev in object.get_internal_events()]),
-            ", ".join([ev_link(ev.graceid) for ev in object.get_external_events()]),
+            str(object.far),
             t_start_times.get('gps', ""),
             t_0_times.get('gps', ""),
             t_end_times.get('gps', ""),
@@ -124,6 +122,12 @@ def superevent_flexigrid_response(request, objects):
             created_times.get('utc', ""),
             "%s %s" % (object.submitter.first_name, object.submitter.last_name)
         ]
+        if request.user.is_authenticated:
+            cell_values.insert(3, ev_link(object.preferred_event.graceid))
+            cell_values.insert(4, ", ".join([ev_link(ev.graceid) for ev in
+                object.get_internal_events()]))
+            cell_values.insert(5, ", ".join([ev_link(ev.graceid) for ev in
+                object.get_external_events()]))
 
         rows.append({
             'id' : object.id,
