@@ -1,0 +1,44 @@
+{% load timeutil %}
+{% load scientific %}
+<table class="superevent">
+    <tr>
+        <th>Superevent ID</th>
+        {% if superevent.is_gw %}
+        <th>GW ID</th>
+        {% endif %}
+        <th>Category</th>
+        <th>Labels</th>
+        <th>FAR (Hz)</th>
+        <th>FAR (yr<sup>-1</sup>)</th>
+        <th>t_start</th>
+        <th>t_0</th>
+        <th>t_end</th>
+        <th>
+            <div id="superevent_created_ts"></div>
+            <div>Submission time</div>
+        </th>
+        <th>Links</th>
+    </tr>
+    <tr>
+        <td>{{ superevent.default_superevent_id }}</td>
+        {% if superevent.is_gw %}
+        <td>{{ superevent.gw_id }}</td>
+        {% endif %}
+        <td>{{ superevent.get_category_display }}</td>
+        <td>
+        {% for labelling in superevent.labelling_set.all %}
+            <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();" style="color: {{labelling.label.defaultColor}};" class="label">
+                {{ labelling.label.name }}
+            </div>
+       {% endfor %}
+        </td>
+        <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
+        <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_hr }}</td>
+        <td>{{ superevent.t_start }}</td>
+        <td>{{ superevent.t_0 }}</td>
+        <td>{{ superevent.t_end }}</td>
+        <td>{{ superevent.created|multiTime:"superevent_created" }}</td>
+        <td><a href="{% url "superevents:file-list" superevent.superevent_id %}">Data</a></td>
+    </tr>
+</table>
+

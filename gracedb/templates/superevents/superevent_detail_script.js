@@ -472,10 +472,9 @@ require([
     //----------------------------------------------------------------------------------------
     // Take care of stray time selects
     //----------------------------------------------------------------------------------------
-    createTimeSelect(dom.byId('basic_info_event_ts'), 'gps', 'gps', true);
-    createTimeSelect(dom.byId('basic_info_created_ts'), 'created', 'utc', true);
-    createTimeSelect(dom.byId('neighbors_event_ts'), 'ngps', 'gps', true);
-    createTimeSelect(dom.byId('neighbors_created_ts'), 'ncreated', 'utc', true);
+    createTimeSelect(dom.byId('preferred_event_gps_ts'), 'pref_event_gps', 'gps', true);
+    createTimeSelect(dom.byId('preferred_event_created_ts'), 'pref_event_created', 'utc', true);
+    createTimeSelect(dom.byId('superevent_created_ts'), 'superevent_created', 'utc', true);
 
     //----------------------------------------------------------------------------------------
     // Section for EMBB 

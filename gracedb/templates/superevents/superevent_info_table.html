@@ -1,0 +1,57 @@
+{% load timeutil %}
+<table class="superevent">
+    <tr>
+        <th>Superevent ID</th>
+        {% if superevent.is_gw %}
+        <th>GW ID</th>
+        {% endif %}
+        <th>Category</th>
+        <th>Labels</th>
+        <th>Preferred event</th>
+        <th>GW events</th>
+        <th>External events</th>
+        <th>t_start</th>
+        <th>t_0</th>
+        <th>t_end</th>
+        <th>
+            <div id="superevent_created_ts"></div>
+            <div>Submission time</div>
+        </th>
+        <th>Links</th>
+    </tr>
+    <tr>
+        <td>{{ superevent.default_superevent_id }}</td>
+        {% if superevent.is_gw %}
+        <td>{{ superevent.gw_id }}</td>
+        {% endif %}
+        <td>{{ superevent.get_category_display }}</td>
+        <td>
+        {% for labelling in superevent.labelling_set.all %}
+            <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();" style="color: {{labelling.label.defaultColor}};" class="label">
+                {{ labelling.label.name }}
+            </div>
+       {% endfor %}
+        </td>
+        <td><a href="{% url "view" preferred_event.graceid %}">{{ preferred_event.graceid }}</a></td>
+        <td>
+            <div>
+            {% for graceid in internal_events %}
+            <a href="{% url "view" graceid %}">{{ graceid }}</a>
+            {% endfor %}
+            </div>
+        </td>
+        <td>
+            <div>
+            {% for graceid in external_events %}
+            <a href="{% url "view" graceid %}">{{ graceid }}</a>
+            {% endfor %}
+            </div>
+        </td>
+        <td>{{ superevent.t_start }}</td>
+        <td>{{ superevent.t_0 }}</td>
+        <td>{{ superevent.t_end }}</td>
+        <td>{{ superevent.created|multiTime:"superevent_created" }}</td>
+        <td><a href="{% url "superevents:file-list" superevent.superevent_id %}">Data</a></td>
+    </tr>
+</table>
+

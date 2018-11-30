@@ -1,6 +1,4 @@
 {% extends "base.html" %}
-{% load timeutil %}
-{% load scientific %}
 {% load sanitize_html %}
 {% load logtags %}
 {% block heading %}{% endblock %}
@@ -147,44 +145,11 @@
 <div class="content-area">
 {% block superevent_info %}
 <h2>Superevent Info</h2>
-<table class="superevent">
-    <tr>
-        <th>Superevent ID</th>
-        <th>Superevent category</th>
-        <th>Labels</th>
-        <th>Preferred event</th>
-        <th>GW events</th>
-        <th>External events</th>
-        <th>Links</th>
-    </tr>
-    <tr>
-        <td>{{ superevent.superevent_id }}</td>
-        <td>{{ superevent.get_category_display }}</td>
-        <td>{% for labelling in superevent.labelling_set.all %}
-            <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}};" class="label">{{ labelling.label.name }}</div>
-            {% endfor %}
-        </td>
-
-        <td>
-            <a href="{% url "view" preferred_event.graceid %}">{{ preferred_event.graceid }}</a>
-        </td>
-        <td>
-            <div>
-            {% for graceid in internal_events %}
-            <a href="{% url "view" graceid %}">{{ graceid }}</a>
-            {% endfor %}
-            </div>
-        </td>
-        <td>
-            <div>
-            {% for graceid in external_events %}
-            <a href="{% url "view" graceid %}">{{ graceid }}</a>
-            {% endfor %}
-            </div>
-        </td>
-        <td><a href="{% url "superevents:file-list" superevent.superevent_id %}">Data</a></td>
-    </tr>
-</table>
+    {% if user.is_authenticated %}
+        {% include "superevents/superevent_info_table.html" %}
+    {% else %}
+        {% include "superevents/superevent_info_table_public.html" %}
+    {% endif %}
 {% endblock %}
 
 <br />
@@ -192,49 +157,11 @@
 
 {% block basic_info %}
 <h2>Preferred Event Info</h2>
-
-<table class="event">
-    <tr>
-        <th valign="top">UID</th>
-        <th>Labels</th>
-        <th>Group</th>
-        <th>Pipeline</th>
-        <th>Search</th>
-        <th>Instruments</th>
-        <th>
-            <div id="basic_info_event_ts"></div>
-            <div> Event Time </div>
-        </th>
-        <th>FAR (Hz)</th>
-        <th>FAR (yr<sup>-1</sup>)</th>
-        <th>Links</th>
-        <th>
-            <div id="basic_info_created_ts"></div>
-            <div> Submitted </div>
-        </th>
-    </tr>
-    <tr>
-        <td><a href="{% url "view" preferred_event.graceid %}">{{ preferred_event.graceid }}</a></td>
-        <td>
-             {% for labelling in preferred_event_labelling %}
-                <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}};" class="label">{{ labelling.label.name }}</div>
-             {% endfor %}
-        </td>
-        <td>{{ preferred_event.group.name }} </td>
-        <td>{{ preferred_event.pipeline.name }} </td>
-        <td>{{ preferred_event.search.name }} </td>
-        <td>{{ preferred_event.instruments }}</td>
-        <td>{% if preferred_event.gpstime %}
-                <!-- <span title="{{ preferred_event.gpstime|gpsdate }}">{{ preferred_event.gpstime }}</span> -->
-                {{ preferred_event.gpstime|multiTime:"gps" }}
-            {% endif %}</td>
-        {# NOTE: XXX Using event_far so it can be floored for external users. #}
-        <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
-        <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_hr }}</td>
-        <td><a href="{{ preferred_event.weburl }}">Data</a></td>
-        <td>{{ preferred_event.created|multiTime:"created" }}</td>
-    </tr>
-</table>
+    {% if user.is_authenticated %}
+        {% include "superevents/preferred_event_info_table.html" %}
+    {% else %}
+        {% include "superevents/preferred_event_info_table_public.html" %}
+    {% endif %}
 {% endblock %}
 
 {% if user.is_authenticated %}

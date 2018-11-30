@@ -1,0 +1,47 @@
+{% load timeutil %}
+{% load scientific %}
+<table class="event">
+    <tr>
+        <th>UID</th>
+        <th>Labels</th>
+        <th>Group</th>
+        <th>Pipeline</th>
+        <th>Search</th>
+        <th>Instruments</th>
+        <th>
+            <div id="basic_info_event_ts"></div>
+            <div> Event Time </div>
+        </th>
+        <th>FAR (Hz)</th>
+        <th>FAR (yr<sup>-1</sup>)</th>
+        <th>Links</th>
+        <th>
+            <div id="basic_info_created_ts"></div>
+            <div>Submitted</div>
+        </th>
+    </tr>
+    <tr>
+        <td><a href="{% url "view" preferred_event.graceid %}">{{ preferred_event.graceid }}</a></td>
+        <td>
+        {% for labelling in preferred_event_labelling %}
+            <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();" style="color: {{labelling.label.defaultColor}};" class="label">
+                {{ labelling.label.name }}
+            </div>
+        {% endfor %}
+        </td>
+        <td>{{ preferred_event.group.name }} </td>
+        <td>{{ preferred_event.pipeline.name }} </td>
+        <td>{{ preferred_event.search.name }} </td>
+        <td>{{ preferred_event.instruments }}</td>
+        <td>
+            {% if preferred_event.gpstime %}
+            {{ preferred_event.gpstime|multiTime:"gps" }}
+            {% endif %}
+        </td>
+        <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
+        <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_hr }}</td>
+        <td><a href="{{ preferred_event.weburl }}">Data</a></td>
+        <td>{{ preferred_event.created|multiTime:"created" }}</td>
+    </tr>
+</table>
+

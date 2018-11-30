@@ -1,0 +1,30 @@
+{% load timeutil %}
+<table class="event">
+    <tr>
+        <th>Group</th>
+        <th>Pipeline</th>
+        <th>Search</th>
+        <th>Instruments</th>
+        <th>
+            <div id="preferred_event_gps_ts"></div>
+            <div>Event time</div>
+        </th>
+        <th>
+            <div id="preferred_event_created_ts"></div>
+            <div>Submission time</div>
+        </th>
+    </tr>
+    <tr>
+        <td>{{ preferred_event.group.name }} </td>
+        <td>{{ preferred_event.pipeline.name }} </td>
+        <td>{{ preferred_event.search.name }} </td>
+        <td>{{ preferred_event.instruments }}</td>
+        <td>
+            {% if preferred_event.gpstime %}
+            {{ preferred_event.gpstime|multiTime:"pref_event_gps" }}
+            {% endif %}
+        </td>
+        <td>{{ preferred_event.created|multiTime:"pref_event_created" }}</td>
+    </tr>
+</table>
+
