@@ -364,18 +364,35 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
     @property
     def superevent_id(self):
         if self.is_gw:
-            id_prefix = self.GW_ID_PREFIX
-            letter_suffix = self.gw_letter_suffix
+            return self.gw_id
         else:
-            id_prefix = self.DEFAULT_ID_PREFIX
-            letter_suffix = self.base_letter_suffix
+            return self.default_superevent_id
+
+    @property
+    def default_superevent_id(self):
+        id_prefix = self.DEFAULT_ID_PREFIX
+        letter_suffix = self.base_letter_suffix
 
         # Prepend category prefix (if not production)
+        pre_prefix = ""
         if self.category != self.SUPEREVENT_CATEGORY_PRODUCTION:
-            id_prefix = self.category + id_prefix
+            pre_prefix = self.category
 
-        return id_prefix + self.t_0_date.strftime(self.DATE_STR_FMT) + \
-            letter_suffix
+        return pre_prefix + self.DEFAULT_ID_PREFIX + \
+            self.t_0_date.strftime(self.DATE_STR_FMT) + self.base_letter_suffix
+
+    @property
+    def gw_id(self):
+        if not self.is_gw:
+            return None
+
+        # Prepend category prefix (if not production)
+        pre_prefix = ""
+        if self.category != self.SUPEREVENT_CATEGORY_PRODUCTION:
+            pre_prefix = self.category
+
+        return pre_prefix + self.GW_ID_PREFIX + \
+            self.t_0_date.strftime(self.DATE_STR_FMT) + self.gw_letter_suffix
 
     @property
     def graceid(self):
@@ -386,6 +403,11 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
     def gpstime(self):
         """Alias for t_0"""
         return self.t_0
+
+    @property
+    def far(self):
+        """Alias the FAR from the preferred_event"""
+        return self.preferred_event.far
 
     # Custom methods ----------------------------------------------------------
     def get_external_events(self, related_fields=['group']):
