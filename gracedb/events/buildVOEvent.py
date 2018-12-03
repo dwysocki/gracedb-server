@@ -33,6 +33,14 @@ import os
 class VOEventBuilderException(Exception):
     pass
 
+# Used to create the Packet_Type parameter block
+PACKET_TYPES = {
+    GraceDBVOEvent.VOEVENT_TYPE_PRELIMINARY: (150, 'LVC_PRELIMINARY'),
+    GraceDBVOEvent.VOEVENT_TYPE_INITIAL: (151, 'LVC_INITIAL'),
+    GraceDBVOEvent.VOEVENT_TYPE_UPDATE: (152, 'LVC_UPDATE'),
+    GraceDBVOEvent.VOEVENT_TYPE_RETRACTION: (153, 'LVC_RETRACTION'),
+}
+
 VOEVENT_TYPE_DICT = dict(GraceDBVOEvent.VOEVENT_TYPE_CHOICES)
 
 def get_voevent_type(short_name):
@@ -57,6 +65,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         raise VOEventBuilderException("voevent_type must be preliminary, initial, update, or retraction")
 
     # Let's convert that voevent_type to something nicer looking
+    default_voevent_type = voevent_type
     voevent_type = VOEVENT_TYPE_DICT[voevent_type]
 
     objid = event.graceid
@@ -143,10 +152,18 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     #
     # basically, a string that makes sense to humans about what units a value is. eg. "m/s"
 
+    # Add Packet_Type for GCNs
+    w.add_Param(Param(name="Packet_Type",
+        value=PACKET_TYPES[default_voevent_type][0], dataType="int",
+        Description=[("The Notice Type number is assigned/used within GCN, eg "
+        "type={typenum} is an {typedesc} notice").format(
+        typenum=PACKET_TYPES[default_voevent_type][0],
+        typedesc=PACKET_TYPES[default_voevent_type][1])]))
+
     # Whether the alert is internal or not
     w.add_Param(Param(name="internal", value=int(internal), dataType="int",
         Description=['Indicates whether this event should be distributed to LSC/Virgo members only']))
-    
+
     # The serial number
     w.add_Param(Param(name="Pkt_Ser_Num", value=serial_number))
 
