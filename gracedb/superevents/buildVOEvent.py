@@ -176,11 +176,11 @@ def construct_voevent_file(superevent, voevent, request=None,
         Description=["VOEvent alert type"]))
 
     w.add_Param(Param(name="Retraction",
-        dataType="string",
-        ucd="meta.code",
+        dataType="int",
+        ucd="meta.number",
         unit="",
-        value= "true" if voevent_type == 'retraction' else "false",
-        Description=["Set to true if the event is retracted."]))
+        value=(1 if voevent_type == 'retraction' else 0),
+        Description=["Set to 1 if the event is retracted, otherwise 0"]))
 
     # Whether the event is a hardware injection or not
     w.add_Param(Param(name="HardwareInj",
