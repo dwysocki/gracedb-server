@@ -182,7 +182,6 @@ def construct_voevent_file(superevent, voevent, request=None,
         value= "true" if voevent_type == 'retraction' else "false",
         Description=["Set to true if the event is retracted."]))
 
-    # Shib protected event page
     # Whether the event is a hardware injection or not
     w.add_Param(Param(name="HardwareInj",
         dataType="int",
@@ -205,7 +204,7 @@ def construct_voevent_file(superevent, voevent, request=None,
         value=int(open_alert),
         Description=['Indicates that this event is an open alert if 1, no if 0']))
 
-    # TODO: fix for superevent
+    # Superevent page
     w.add_Param(Param(name="EventPage",
         ucd="meta.ref.url",
         value=build_absolute_uri(reverse("superevents:view",
@@ -273,61 +272,23 @@ def construct_voevent_file(superevent, voevent, request=None,
         # Skymaps. Create group and set particular fits and image file names
         g = Group('GW_SKYMAP', skymap_type)
 
-        # We have only one API now for all authorization types.
-        # But the VOEvents are still expected to contain
-        # shib, x509, and basic API urls for fits skymap file
-        # TODO: figure out if we can change this functionality going forward
-        shib_fits_skymap_url = build_absolute_uri(reverse(
+        fits_skymap_url = build_absolute_uri(reverse(
             "api:default:superevents:superevent-file-detail",
             args=[superevent.superevent_id, fits_name]), request)
-        x509_fits_skymap_url = shib_fits_skymap_url
-        basic_fits_skymap_url = shib_fits_skymap_url
         if img_name:
-            shib_png_skymap_url = build_absolute_uri(reverse(
+            png_skymap_url = build_absolute_uri(reverse(
                 "api:default:superevents:superevent-file-detail",
                 args=[superevent.superevent_id, img_name]), request)
-            x509_png_skymap_url = shib_png_skymap_url
-            basic_png_skymap_url = shib_png_skymap_url
 
         # Add parameters to the skymap group
-        g.add_Param(Param(name="skymap_fits_shib", 
-            dataType="string",
-            ucd="meta.ref.url", 
-            unit="",
-            value=shib_fits_skymap_url,
-            Description=["Sky Map FITS Shibboleth protected"]))
-        g.add_Param(Param(name="skymap_fits_x509", 
-            dataType="string",
-            ucd="meta.ref.url", 
-            unit="",
-            value=x509_fits_skymap_url,
-            Description=["Sky Map FITS X509 protected"]))
-        g.add_Param(Param(name="skymap_fits_basic", 
-            dataType="string",
-            ucd="meta.ref.url", 
-            unit="",
-            value=basic_fits_skymap_url,
-            Description=["Sky Map FITS basic auth protected"]))
+        g.add_Param(Param(name="skymap_fits", dataType="string",
+            ucd="meta.ref.url", unit="", value=fits_skymap_url,
+            Description=["Sky Map FITS"]))
 
         if img_name:
-            g.add_Param(Param(name="skymap_png_shib", 
-                dataType="string",
-                ucd="meta.ref.url", 
-                unit="",
-                value=shib_png_skymap_url,
-                Description=["Sky Map image Shibboleth protected"]))
-            g.add_Param(Param(name="skymap_png_x509", 
-                dataType="string",
-                ucd="meta.ref.url", 
-                unit="",
-                value=x509_png_skymap_url,
-                Description=["Sky Map image X509 protected"]))
-            g.add_Param(Param(name="skymap_png_basic", 
-                dataType="string",
-                ucd="meta.ref.url", 
-                unit="",
-                value=basic_png_skymap_url,
-                Description=["Sky Map image basic auth protected"]))
+            g.add_Param(Param(name="skymap_png", dataType="string",
+                ucd="meta.ref.url", unit="", value=png_skymap_url,
+                Description=["Sky Map image"]))
 
         w.add_Group(g)
 

@@ -20,6 +20,7 @@ from VOEventLib.VOEvent import ObsDataLocation, WhereWhen
 from VOEventLib.VOEvent import Time, TimeInstant
 
 from core.time_utils import gpsToUtc
+from core.urls import build_absolute_uri
 from django.utils import timezone
 from django.conf import settings
 from django.urls import reverse
@@ -31,13 +32,6 @@ import os
 
 class VOEventBuilderException(Exception):
     pass
-
-def get_url(request, graceid, view_name, file_name=None):
-    args = [graceid,]
-    if file_name:
-        args.append(file_name)
-    rel_url = reverse(view_name, args=args)
-    return request.build_absolute_uri(rel_url)
 
 VOEVENT_TYPE_DICT = dict(GraceDBVOEvent.VOEVENT_TYPE_CHOICES)
 
@@ -217,7 +211,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
 
     w.add_Param(Param(name="EventPage",
         ucd="meta.ref.url",
-        value=get_url(request, objid, "view"),
+        value=build_absolute_uri(reverse('view', args=[objid]), request),
         Description=["Web page for evolving status of this candidate event"]))
 
     if voevent_type != 'retraction':
@@ -290,63 +284,21 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         # Skymaps. Create group and set particular fits and image file names
         g = Group('GW_SKYMAP', skymap_type)
 
-        # shib urls.
-        # For some reason we use the web URL rather than the API.
-        # TODO: fix it.
-        shib_fits_skymap_url = get_url(request, objid, "file-download", fits_name)
+        fits_skymap_url = build_absolute_uri(reverse(
+            "api:default:events:files", args=[objid, fits_name]), request)
         if img_name:
-            shib_png_skymap_url  = get_url(request, objid, "file-download", img_name)
-
-        # API urls: even though we only have one API endpoint now, we still
-        # populate all of these different URLs. Maybe we can change this in the
-        # future (TODO).
-        x509_fits_skymap_url = get_url(request, objid,
-            "api:default:events:files", fits_name)
-        basic_fits_skymap_url = x509_fits_skymap_url
-        if img_name:
-            x509_png_skymap_url = get_url(request, objid,
-                "api:default:events:files", img_name)
-            basic_png_skymap_url = x509_png_skymap_url
+            png_skymap_url = build_absolute_uri(reverse(
+                "api:default:events:files", args=[objid, img_name]), request)
 
         # Add parameters to the skymap group
-        g.add_Param(Param(name="skymap_fits_shib", 
-            dataType="string",
-            ucd="meta.ref.url", 
-            unit="",
-            value=shib_fits_skymap_url,
-            Description=["Sky Map FITS Shibboleth protected"]))
-        g.add_Param(Param(name="skymap_fits_x509", 
-            dataType="string",
-            ucd="meta.ref.url", 
-            unit="",
-            value=x509_fits_skymap_url,
-            Description=["Sky Map FITS X509 protected"]))
-        g.add_Param(Param(name="skymap_fits_basic", 
-            dataType="string",
-            ucd="meta.ref.url", 
-            unit="",
-            value=basic_fits_skymap_url,
-            Description=["Sky Map FITS basic auth protected"]))
+        g.add_Param(Param(name="skymap_fits", dataType="string",
+            ucd="meta.ref.url", unit="", value=fits_skymap_url,
+            Description=["Sky Map FITS"]))
 
         if img_name:
-            g.add_Param(Param(name="skymap_png_shib", 
-                dataType="string",
-                ucd="meta.ref.url", 
-                unit="",
-                value=shib_png_skymap_url,
-                Description=["Sky Map image Shibboleth protected"]))
-            g.add_Param(Param(name="skymap_png_x509", 
-                dataType="string",
-                ucd="meta.ref.url", 
-                unit="",
-                value=x509_png_skymap_url,
-                Description=["Sky Map image X509 protected"]))
-            g.add_Param(Param(name="skymap_png_basic", 
-                dataType="string",
-                ucd="meta.ref.url", 
-                unit="",
-                value=basic_png_skymap_url,
-                Description=["Sky Map image basic auth protected"]))
+            g.add_Param(Param(name="skymap_png", dataType="string",
+                ucd="meta.ref.url", unit="", value=png_skymap_url,
+                Description=["Sky Map image"]))
 
         w.add_Group(g)
 
