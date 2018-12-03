@@ -180,11 +180,11 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         Description=["VOEvent alert type"]))
 
     w.add_Param(Param(name="Retraction",
-        dataType="string",
-        ucd="meta.code",
+        dataType="int",
+        ucd="meta.number",
         unit="",
-        value= "true" if voevent_type == 'retraction' else "false",
-        Description=["Set to true if the event is retracted."]))
+        value=(1 if voevent_type == 'retraction' else 0),
+        Description=["Set to 1 if the event is retracted, otherwise 0"]))
 
     # Shib protected event page
     # Whether the event is a hardware injection or not
