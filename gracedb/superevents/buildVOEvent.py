@@ -36,6 +36,13 @@ VOEVENT_TYPE_DICT = dict(GraceDBVOEvent.VOEVENT_TYPE_CHOICES)
 class VOEventBuilderException(Exception):
     pass
 
+# Used to create the Packet_Type parameter block
+PACKET_TYPES = {
+    GraceDBVOEvent.VOEVENT_TYPE_PRELIMINARY: (150, 'LVC_PRELIMINARY'),
+    GraceDBVOEvent.VOEVENT_TYPE_INITIAL: (151, 'LVC_INITIAL'),
+    GraceDBVOEvent.VOEVENT_TYPE_UPDATE: (152, 'LVC_UPDATE'),
+    GraceDBVOEvent.VOEVENT_TYPE_RETRACTION: (153, 'LVC_RETRACTION'),
+}
 
 def get_voevent_type(short_name):
     for t in GraceDBVOEvent.VOEVENT_TYPE_CHOICES:
@@ -138,6 +145,14 @@ def construct_voevent_file(superevent, voevent, request=None,
     # [25] http://vizier.u-strasbg.fr/doc/catstd-3.2.htx
     #
     # basically, a string that makes sense to humans about what units a value is. eg. "m/s"
+
+    # Add Packet_Type for GCNs
+    w.add_Param(Param(name="Packet_Type",
+        value=PACKET_TYPES[voevent.voevent_type][0], dataType="int",
+        Description=[("The Notice Type number is assigned/used within GCN, eg "
+        "type={typenum} is an {typedesc} notice").format(
+        typenum=PACKET_TYPES[voevent.voevent_type][0],
+        typedesc=PACKET_TYPES[voevent.voevent_type][1])]))
 
     # Whether the alert is internal or not
     w.add_Param(Param(name="internal", value=int(internal), dataType="int",
