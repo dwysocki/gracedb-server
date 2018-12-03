@@ -556,7 +556,6 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
     skymap_filename = serializers.CharField(write_only=True, required=False)
     skymap_image_filename = serializers.CharField(write_only=True,
         required=False)
-    vetted = serializers.BooleanField(write_only=True, default=False)
     internal = serializers.BooleanField(write_only=True, default=True)
     open_alert = serializers.BooleanField(write_only=True, default=False)
     hardware_inj = serializers.BooleanField(write_only=True, default=False)
@@ -570,7 +569,7 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         model = VOEvent
         fields = ('voevent_type', 'file_version', 'ivorn', 'created',
             'issuer', 'filename', 'N', 'links', 'skymap_type',
-            'skymap_filename', 'skymap_image_filename', 'vetted', 'internal',
+            'skymap_filename', 'skymap_image_filename', 'internal',
             'open_alert', 'hardware_inj', 'CoincComment', 'ProbHasNS',
             'ProbHasRemnant', 'superevent', 'user')
 
@@ -599,7 +598,6 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         data = super(SupereventVOEventSerializer, self).validate(data)
-
         # Get data
         superevent = data.get('superevent')
         voevent_type = data.get('voevent_type')
