@@ -2435,7 +2435,6 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
         cls.voevent_data = {
             'voevent_type': VOEvent.VOEVENT_TYPE_PRELIMINARY,
             'internal': True,
-            'vetted': False,
             'open_alert': False,
             'hardware_inj': False,
             'CoincComment': False,

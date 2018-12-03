@@ -53,8 +53,8 @@ def get_voevent_type(short_name):
 
 def construct_voevent_file(superevent, voevent, request=None,
     skymap_filename=None, skymap_type=None, skymap_image_filename=None,
-    internal=True, vetted=False, open_alert=False, hardware_inj=False, 
-    CoincComment=False, ProbHasNS=None, ProbHasRemnant=None):
+    internal=True, open_alert=False, hardware_inj=False, CoincComment=False,
+    ProbHasNS=None, ProbHasRemnant=None):
 
     # Set preferred_event as event to be used in most of this
     event = superevent.preferred_event
@@ -204,13 +204,6 @@ def construct_voevent_file(superevent, voevent, request=None,
         unit="",
         value=int(hardware_inj),
         Description=['Indicates that this event is a hardware injection if 1, no if 0']))
-
-    w.add_Param(Param(name="Vetted",
-        dataType="int",
-        ucd = "meta.number",
-        unit="",
-        value=int(vetted),
-        Description=['Indicates whether this candidate has undergone basic vetting by humans']))
 
     w.add_Param(Param(name="OpenAlert",
         dataType="int",
