@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ligoauth', '0013_make_gstlal-spiir-gpu_robotuser'),
+        ('ligoauth', '0012_rename_localuser_to_robotuser'),
     ]
 
     operations = [

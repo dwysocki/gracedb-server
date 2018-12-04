@@ -36,7 +36,7 @@ def remove_cert(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ligoauth', '0014_x509cert_subject_longer'),
+        ('ligoauth', '0013_x509cert_subject_longer'),
     ]
 
     operations = [

@@ -146,8 +146,9 @@ def add_permissions(apps, schema_editor):
         # Loop over users
         for username in pp_dict['usernames']:
 
-            # Robot users should be created already by ligoauth 0002
-            user, created = User.objects.get_or_create(username=username)
+            # Robot users should have been already created by ligoauth 0003,
+            # but we have to create human user accounts here
+            user, _ = User.objects.get_or_create(username=username)
 
             # Create UserObjectPermission
             uop, uop_created = UserObjectPermission.objects.get_or_create(

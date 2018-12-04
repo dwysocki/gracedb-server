@@ -37,10 +37,11 @@ def update_accounts(apps, schema_editor):
     user.x509cert_set.add(new_cert)
 
     # Delete gstlal-spiir-gpu user and associated cert(s)
-    gpu_user = LocalUser.objects.get(username=GSTLAL_SPIIR_GPU['username'])
+    gpu_user = LocalUser.objects.get(username=GSTLAL_SPIIR_GPU['username']).user_ptr
     for cert in gpu_user.x509cert_set.all():
         cert.delete()
     gpu_user.delete()
+
 
 def rollback_accounts(apps, schema_editor):
     LocalUser = apps.get_model('ligoauth', 'LocalUser')
@@ -70,6 +71,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('ligoauth', '0003_initial_localuser_and_x509cert_data'),
+        ('guardian', '0002_authorize_users_to_populate_pipelines'),
     ]
 
     operations = [
