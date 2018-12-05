@@ -54,7 +54,8 @@ def get_voevent_type(short_name):
 def construct_voevent_file(superevent, voevent, request=None,
     skymap_filename=None, skymap_type=None, skymap_image_filename=None,
     internal=True, open_alert=False, hardware_inj=False, CoincComment=False,
-    ProbHasNS=None, ProbHasRemnant=None):
+    ProbHasNS=None, ProbHasRemnant=None, BNS=None, NSBH=None, BBH=None,
+    Terrestrial=None):
 
     # Set preferred_event as event to be used in most of this
     event = superevent.preferred_event
@@ -302,6 +303,12 @@ def construct_voevent_file(superevent, voevent, request=None,
 
     # Analysis specific attributes
     if voevent_type != 'retraction':
+        classification_group = Group('Classification', Description=["Source "
+            "classification: binary neutron star (BNS), neutron star-black"
+            "hole (NSBH), binary black hole (BBH), or terrestrial (noise)"])
+        properties_group = Group('Properties', Description=["Qualitative "
+            "properties of the source, conditioned on the assumption that the "
+            "signal is an astrophysical compact binary merger"])
         if isinstance(event, CoincInspiralEvent) and voevent_type != 'retraction':
             # get mchirp and mass
             mchirp = float(event.mchirp)
@@ -310,21 +317,44 @@ def construct_voevent_file(superevent, voevent, request=None,
             eta = pow((mchirp/mass),5.0/3.0)
 
             # EM-Bright mass classifier information for CBC event candidates
-            if ProbHasNS!=None:
-                w.add_Param(Param(name="ProbHasNS",
-                    dataType="float",
-                    ucd="stat.probability",
-                    unit="",
-                    value=ProbHasNS,
-                    Description=["Probability that at least one object in the binary is less than 3 solar masses"]))
+            if ProbHasNS is not None:
+                properties_group.add_Param(Param(name="HasNS",
+                    dataType="float", ucd="stat.probability", unit="",
+                    value=ProbHasNS, Description=["Probability that at least "
+                    "one object in the binary has a mass that is less than "
+                    "3 solar masses"]))
 
-            if ProbHasRemnant!=None:
-                w.add_Param(Param(name="ProbHasRemnant",
-                    dataType="float",
-                    ucd="stat.probability",
-                    unit="",
-                    value=ProbHasRemnant,
-                    Description=["Probability that there is matter in the surroundings of the central object"]))
+            if ProbHasRemnant is not None:
+                properties_group.add_Param(Param(name="HasRemnant",
+                    dataType="float", ucd="stat.probability",
+                    unit="", value=ProbHasRemnant,
+                    Description=["Probability that a nonzero mass was ejected "
+                    "outside the central remnant object"]))
+
+            if BNS is not None:
+                classification_group.add_Param(Param(name="BNS",
+                    dataType="float", ucd="stat.probability",
+                    unit="", value=BNS, Description=["Probability that the "
+                    "source is a binary neutron star merger"]))
+
+            if NSBH is not None:
+                classification_group.add_Param(Param(name="NSBH",
+                    dataType="float", ucd="stat.probability",
+                    unit="", value=NSBH, Description=["Probability that the "
+                    "source is a neutron star - black hole merger"]))
+
+            if BBH is not None:
+                classification_group.add_Param(Param(name="BBH",
+                    dataType="float", ucd="stat.probability",
+                    unit="", value=BBH, Description=["Probability that the "
+                    "source is a binary black hole merger"]))
+
+            if Terrestrial is not None:
+                classification_group.add_Param(Param(name="Terrestrial",
+                    dataType="float", ucd="stat.probability",
+                    unit="", value=Terrestrial, Description=["Probability "
+                    "that the source is terrestrial (i.e., a background noise "
+                    "fluctuation or a glitch)"]))
 
             # build up MaxDistance. event.singleinspiral_set.all()?
             # Each detector calculates an effective distance assuming the inspiral is 
@@ -415,6 +445,10 @@ def construct_voevent_file(superevent, voevent, request=None,
                     Description=["Estimated fluence of GW burst signal"]))
             except Exception as e:
                 logger.exception(e)
+
+        # Add Groups to What block
+        w.add_Group(classification_group)
+        w.add_Group(properties_group)
 
     v.set_What(w)
 

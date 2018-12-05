@@ -560,8 +560,9 @@ def create_emobservation_for_superevent(superevent, submitter, ra_list,
 def create_voevent_for_superevent(superevent, issuer, voevent_type,
     skymap_type=None, skymap_filename=None, skymap_image_filename=None,
     internal=True, open_alert=False, hardware_inj=False,
-    CoincComment=False, ProbHasNS=None, ProbHasRemnant=None,
-    add_log_message=True, issue_alert=True):
+    CoincComment=False, ProbHasNS=None, ProbHasRemnant=None, BNS=None,
+    NSBH=None, BBH=None, Terrestrial=None, add_log_message=True,
+    issue_alert=True):
 
     # Instantiate VOEvent object
     voevent = VOEvent.objects.create(superevent=superevent, issuer=issuer,
@@ -573,7 +574,8 @@ def create_voevent_for_superevent(superevent, issuer, voevent_type,
         skymap_image_filename=skymap_image_filename, internal=internal,
         open_alert=open_alert, hardware_inj=hardware_inj,
         CoincComment=CoincComment, ProbHasNS=ProbHasNS,
-        ProbHasRemnant=ProbHasRemnant)
+        ProbHasRemnant=ProbHasRemnant, BNS=BNS, NSBH=NSBH, BBH=BBH,
+        Terrestrial=Terrestrial)
 
     # Save versioned VOEvent file
     voevent_display_type = dict(VOEvent.VOEVENT_TYPE_CHOICES) \

@@ -1599,6 +1599,10 @@ class VOEventList(APIView):
         CoincComment = request.data.get('CoincComment', None)
         ProbHasNS = request.data.get('ProbHasNS', None)
         ProbHasRemnant = request.data.get('ProbHasRemnant', None)
+        BNS = request.data.get('BNS', None)
+        NSBH = request.data.get('NSBH', None)
+        BBH = request.data.get('BBH', None)
+        Terrestrial = request.data.get('Terrestrial', None)
 
         if (skymap_filename and not skymap_type) or (skymap_type and not skymap_filename):
             msg = "Both or neither of skymap_time and skymap_filename must be specified."
@@ -1619,7 +1623,9 @@ class VOEventList(APIView):
                 skymap_filename = skymap_filename, skymap_type = skymap_type,
                 skymap_image_filename = skymap_image_filename, internal = internal,
                 open_alert=open_alert, hardware_inj=hardware_inj,
-                CoincComment=CoincComment, ProbHasNS=ProbHasNS, ProbHasRemnant=ProbHasRemnant)
+                CoincComment=CoincComment, ProbHasNS=ProbHasNS,
+                ProbHasRemnant=ProbHasRemnant, BNS=BNS, NSBH=NSBH, BBH=BBH,
+                Terrestrial=Terrestrial)
 
         except VOEventBuilderException, e:
             msg = "Problem building VOEvent: %s" % str(e)

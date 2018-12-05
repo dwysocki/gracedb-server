@@ -564,6 +564,14 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         max_value=1, required=False)
     ProbHasRemnant = serializers.FloatField(write_only=True, min_value=0,
         max_value=1, required=False)
+    BNS = serializers.FloatField(write_only=True, min_value=0, max_value=1,
+        required=False)
+    NSBH = serializers.FloatField(write_only=True, min_value=0, max_value=1,
+        required=False)
+    BBH = serializers.FloatField(write_only=True, min_value=0, max_value=1,
+        required=False)
+    Terrestrial = serializers.FloatField(write_only=True, min_value=0,
+        max_value=1, required=False)
 
     class Meta:
         model = VOEvent
@@ -571,7 +579,8 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
             'issuer', 'filename', 'N', 'links', 'skymap_type',
             'skymap_filename', 'skymap_image_filename', 'internal',
             'open_alert', 'hardware_inj', 'CoincComment', 'ProbHasNS',
-            'ProbHasRemnant', 'superevent', 'user')
+            'ProbHasRemnant', 'BNS', 'NSBH', 'BBH', 'Terrestrial',
+            'superevent', 'user')
 
     def __init__(self, *args, **kwargs):
         super(SupereventVOEventSerializer, self).__init__(*args, **kwargs)
