@@ -159,7 +159,7 @@ def construct_voevent_file(superevent, voevent, request=None,
 
     if voevent_type == 'retraction':
         try:
-            last_voevent = event.voevent_set.order_by('-N')[1] 
+            last_voevent = superevent.voevent_set.order_by('-N')[1]
             alert_type = get_voevent_type(last_voevent.voevent_type)
         except:
             # XXX We have failed to obtain the last voevent for some reason, so
