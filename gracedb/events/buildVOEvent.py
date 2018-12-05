@@ -193,14 +193,12 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     w.add_Param(Param(name="AlertType",
         dataType="string",
         ucd="meta.version",
-        unit="",
         value = alert_type.capitalize(),
         Description=["VOEvent alert type"]))
 
     w.add_Param(Param(name="Retraction",
         dataType="int",
         ucd="meta.number",
-        unit="",
         value=(1 if voevent_type == 'retraction' else 0),
         Description=["Set to 1 if the event is retracted, otherwise 0"]))
 
@@ -209,14 +207,12 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     w.add_Param(Param(name="HardwareInj",
         dataType="int",
         ucd="meta.number",
-        unit="",
         value=int(hardware_inj),
         Description=['Indicates that this event is a hardware injection if 1, no if 0']))
 
     w.add_Param(Param(name="OpenAlert",
         dataType="int",
         ucd="meta.number",
-        unit="",
         value=int(open_alert),
         Description=['Indicates that this event is an open alert if 1, no if 0']))
 
@@ -246,7 +242,6 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         w.add_Param(Param(name="Group", 
             dataType="string", 
             ucd="meta.code",
-            unit="",
             value=event.group.name,
             Description=["Data analysis working group"]))
 
@@ -254,7 +249,6 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         w.add_Param(Param(name="Pipeline", 
             dataType="string", 
             ucd="meta.code",
-            unit="",
             value=event.pipeline.name,
             Description=["Low-latency data analysis pipeline"]))
 
@@ -262,7 +256,6 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         if event.search:
             w.add_Param(Param(name="Search", 
                 ucd="meta.code",
-                unit="",
                 dataType="string", 
                 value=event.search.name,
                 Description=["Specific low-latency search"]))
@@ -303,12 +296,12 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
 
         # Add parameters to the skymap group
         g.add_Param(Param(name="skymap_fits", dataType="string",
-            ucd="meta.ref.url", unit="", value=fits_skymap_url,
+            ucd="meta.ref.url", value=fits_skymap_url,
             Description=["Sky Map FITS"]))
 
         if img_name:
             g.add_Param(Param(name="skymap_png", dataType="string",
-                ucd="meta.ref.url", unit="", value=png_skymap_url,
+                ucd="meta.ref.url", value=png_skymap_url,
                 Description=["Sky Map image"]))
 
         w.add_Group(g)
@@ -331,40 +324,39 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             # EM-Bright mass classifier information for CBC event candidates
             if ProbHasNS is not None:
                 properties_group.add_Param(Param(name="HasNS",
-                    dataType="float", ucd="stat.probability", unit="",
-                    value=ProbHasNS, Description=["Probability that at least "
-                    "one object in the binary has a mass that is less than "
-                    "3 solar masses"]))
+                    dataType="float", ucd="stat.probability", value=ProbHasNS,
+                    Description=["Probability that at least one object in the "
+                    "binary has a mass that is less than 3 solar masses"]))
 
             if ProbHasRemnant is not None:
                 properties_group.add_Param(Param(name="HasRemnant",
                     dataType="float", ucd="stat.probability",
-                    unit="", value=ProbHasRemnant,
-                    Description=["Probability that a nonzero mass was ejected "
-                    "outside the central remnant object"]))
+                    value=ProbHasRemnant, Description=["Probability that a "
+                    "nonzero mass was ejected outside the central remnant "
+                    "object"]))
 
             if BNS is not None:
                 classification_group.add_Param(Param(name="BNS",
                     dataType="float", ucd="stat.probability",
-                    unit="", value=BNS, Description=["Probability that the "
+                    value=BNS, Description=["Probability that the "
                     "source is a binary neutron star merger"]))
 
             if NSBH is not None:
                 classification_group.add_Param(Param(name="NSBH",
                     dataType="float", ucd="stat.probability",
-                    unit="", value=NSBH, Description=["Probability that the "
+                    value=NSBH, Description=["Probability that the "
                     "source is a neutron star - black hole merger"]))
 
             if BBH is not None:
                 classification_group.add_Param(Param(name="BBH",
                     dataType="float", ucd="stat.probability",
-                    unit="", value=BBH, Description=["Probability that the "
+                    value=BBH, Description=["Probability that the "
                     "source is a binary black hole merger"]))
 
             if Terrestrial is not None:
                 classification_group.add_Param(Param(name="Terrestrial",
                     dataType="float", ucd="stat.probability",
-                    unit="", value=Terrestrial, Description=["Probability "
+                    value=Terrestrial, Description=["Probability "
                     "that the source is terrestrial (i.e., a background noise "
                     "fluctuation or a glitch)"]))
 
