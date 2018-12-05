@@ -24,10 +24,10 @@ try:
     if IS_PRODUCTION_SERVER:
         settings_file = 'production'
     else:
-        # If ./local.py is not found or IS_PRODUCTION_SERVER
-        # is not defined, use development/test settings
+        # If IS_PRODUCTION_SERVER is not defined, use development/test settings
         settings_file = 'dev'
-except NameError:
+except ImportError:
+    # If local.py does not exist, use development/test settings
     settings_file = 'dev'
 settings_module = __import__(settings_file, globals(), locals())
 

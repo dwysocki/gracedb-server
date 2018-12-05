@@ -18,9 +18,10 @@ sys.path.append(BASE_DIR)
 sys.path.append(join(BASE_DIR, PROJECT_ROOT_NAME))
 
 # Activate the virtual environment
-VIRTUALENV_ACTIVATOR = abspath(join(BASE_DIR, '..', VENV_NAME, 'bin',
-    'activate_this.py'))
-execfile(VIRTUALENV_ACTIVATOR, dict(__file__=VIRTUALENV_ACTIVATOR))
+if ('VIRTUAL_ENV' not in os.environ):
+    VIRTUALENV_ACTIVATOR = abspath(join(BASE_DIR, '..', VENV_NAME, 'bin',
+        'activate_this.py'))
+    execfile(VIRTUALENV_ACTIVATOR, dict(__file__=VIRTUALENV_ACTIVATOR))
 
 # Matplotlib config directory
 os.environ['MPLCONFIGDIR'] = '/tmp/'

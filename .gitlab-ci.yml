@@ -1,0 +1,29 @@
+---
+image: docker:latest
+
+variables:
+  DOCKER_DRIVER: overlay
+  DOCKER_BRANCH: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+  DOCKER_LATEST: $CI_REGISTRY_IMAGE:latest
+
+stages:
+  - branch
+  - latest
+
+branch_image:
+  stage: branch
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build --pull -t $DOCKER_BRANCH .
+    - docker push $DOCKER_BRANCH
+
+latest_image:
+  stage: latest
+  dependencies:
+    - branch_image
+  only:
+    refs:
+      - master
+  script:
+    - docker tag $DOCKER_BRANCH $DOCKER_LATEST
+    - docker push $DOCKER_LATEST

@@ -16,6 +16,9 @@ BASE_DIR = abspath(join(dirname(__file__), "..", ".."))
 CONFIG_ROOT = join(BASE_DIR, "config")
 PROJECT_ROOT = join(BASE_DIR, "gracedb")
 
+# Other useful paths
+PROJECT_DATA_DIR = join(BASE_DIR, "..", "project_data")
+
 # Unauthenticated access ------------------------------------------------------
 # This variable controls whether unauthenticated access is allowed *ANYWHERE*
 # on this service, except the home page, which is always public.
@@ -196,16 +199,15 @@ SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
 # Stuff related to report/plot generation -------------------------------------
 
 # Latency histograms.  Where they go and max latency to bin.
-LATENCY_REPORT_DEST_DIR = GRACEDB_PATHS["latency"]
+LATENCY_REPORT_DEST_DIR = PROJECT_DATA_DIR
 LATENCY_MAXIMUM_CHARTED = 1800
-LATENCY_REPORT_WEB_PAGE_FILE_PATH = join(LATENCY_REPORT_DEST_DIR,
-    "latency.inc")
+LATENCY_REPORT_WEB_PAGE_FILE_PATH = join(PROJECT_DATA_DIR, "latency.inc")
 
 # Uptime reporting
-UPTIME_REPORT_DIR = GRACEDB_PATHS["uptime"]
+UPTIME_REPORT_DIR = PROJECT_DATA_DIR
 
 # Rate file location
-RATE_INFO_FILE = join(GRACEDB_PATHS["data"], "rate_info.json")
+RATE_INFO_FILE = join(PROJECT_DATA_DIR, "rate_info.json")
 
 # URL prefix for serving report information (usually plots and tables)
 # This is aliased to GRACEDB_PATHS["latency"] in the Apache virtualhost
@@ -213,11 +215,11 @@ RATE_INFO_FILE = join(GRACEDB_PATHS["data"], "rate_info.json")
 REPORT_INFO_URL_PREFIX = "/report_info/"
 
 # Directory for CBC IFAR Reports
-REPORT_IFAR_IMAGE_DIR = GRACEDB_PATHS["latency"]
+REPORT_IFAR_IMAGE_DIR = PROJECT_DATA_DIR
 
 # Stuff for the new rates plot
 BINNED_COUNT_PIPELINES = ['gstlal', 'MBTAOnline', 'CWB', 'oLIB', 'spiir']
-BINNED_COUNT_FILE = join(GRACEDB_PATHS["data"], "binned_counts.json")
+BINNED_COUNT_FILE = join(PROJECT_DATA_DIR, "binned_counts.json")
 
 # Defaults for RSS feed
 FEED_MAX_RESULTS = 50
@@ -238,7 +240,7 @@ DATABASES = {
 }
 
 # Location of database
-GRACEDB_DATA_DIR = GRACEDB_PATHS["database_data"]
+GRACEDB_DATA_DIR = join(BASE_DIR, "..", "db_data")
 # First level subdirs with 2 chars, second level with 1 char
 # These DIR_DIGITS had better add up to a number less than 40 (which is
 # the length of a SHA-1 hexdigest. Actually, it should be way less than
@@ -465,7 +467,7 @@ PASSWORD_EXPIRATION_TIME = timedelta(days=365)
 
 # IP addresses of IFO control rooms
 # Used to display signoff pages for operators
-# TP (10 Apr 2017): Virgo IP received from Florent Robinet, Franco Carbognani, 
+# TP (10 Apr 2017): Virgo IP received from Florent Robinet, Franco Carbognani,
 # and Sarah Antier. Corresponds to ctrl1.virgo.infn.it.
 CONTROL_ROOM_IPS = {
     'H1': '198.129.208.178',
@@ -481,6 +483,7 @@ LOG_FILE_BAK_CT = 10
 LOG_FORMAT = 'extra_verbose'
 LOG_LEVEL = 'DEBUG'
 LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
+LOG_DIR = abspath(join(BASE_DIR, "..", "logs"))
 
 # Note that mode for log files is 'a' (append) by default
 # The 'level' specifier on the handle is optional, and we
@@ -511,7 +514,7 @@ LOGGING = {
         'debug_file': {
             'class': 'logging.handlers.ConcurrentRotatingFileHandler',
             'formatter': LOG_FORMAT,
-            'filename': join(GRACEDB_PATHS["logs"], "gracedb_debug.log"),
+            'filename': join(LOG_DIR, "gracedb_debug.log"),
             'maxBytes': (20*1024*1024),
             'backupCount': LOG_FILE_BAK_CT,
             'level': 'DEBUG',
@@ -519,7 +522,7 @@ LOGGING = {
         'error_file': {
             'class': 'logging.handlers.ConcurrentRotatingFileHandler',
             'formatter': LOG_FORMAT,
-            'filename': join(GRACEDB_PATHS["logs"], "gracedb_error.log"),
+            'filename': join(LOG_DIR, "gracedb_error.log"),
             'maxBytes': LOG_FILE_SIZE,
             'backupCount': LOG_FILE_BAK_CT,
             'level': 'ERROR',
@@ -529,7 +532,7 @@ LOGGING = {
             'maxBytes': 1024*1024,
             'backupCount': 1,
             'formatter': 'simple',
-            'filename': join(GRACEDB_PATHS["logs"], "gracedb_performance.log"),
+            'filename': join(LOG_DIR, "gracedb_performance.log"),
         },
         'mail_admins': {
             'level': 'ERROR',
