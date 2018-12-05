@@ -10,10 +10,12 @@ stages:
   - branch
   - latest
 
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+
 branch_image:
   stage: branch
   script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker build --pull -t $DOCKER_BRANCH .
     - docker push $DOCKER_BRANCH
 
