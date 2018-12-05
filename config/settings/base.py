@@ -25,10 +25,6 @@ UNAUTHENTICATED_ACCESS = True
 # Debug mode is off by default
 DEBUG = False
 
-# Maintenance mode: used by django-maintenance-mode package.
-# Set to off by default
-MAINTENANCE_MODE = False
-
 # Number of results to show on latest page
 LATEST_RESULTS_NUMBER = 50
 
@@ -326,7 +322,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'ligoauth.middleware.ShibbolethWebAuthMiddleware',
     'ligoauth.middleware.ControlRoomMiddleware',
-    'maintenance_mode.middleware.MaintenanceModeMiddleware',
 ]
 
 # Path to root URLconf
@@ -344,7 +339,6 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.messages',
-    'maintenance_mode',
     'alerts',
     'api',
     'events',
