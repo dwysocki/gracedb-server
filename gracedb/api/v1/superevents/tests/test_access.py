@@ -2438,6 +2438,9 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
             'open_alert': False,
             'hardware_inj': False,
             'CoincComment': False,
+            'ProbHasRemnant': 0.5,
+            'BBH': 0.2,
+            'Terrestrial': 0.9,
         }
 
     def test_internal_user_get_voevent_list(self):
