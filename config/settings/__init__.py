@@ -16,24 +16,3 @@ Description of settings files:
     dev.py        - defines settings for a development or testing server.
                     Imports base.py settings and overrides/adds settings.
 """
-
-
-# Import either production or test settings
-try:
-    from .local import IS_PRODUCTION_SERVER
-    if IS_PRODUCTION_SERVER:
-        settings_file = 'production'
-    else:
-        # If IS_PRODUCTION_SERVER is not defined, use development/test settings
-        settings_file = 'dev'
-except ImportError:
-    # If local.py does not exist, use development/test settings
-    settings_file = 'dev'
-settings_module = __import__(settings_file, globals(), locals())
-
-# Put these settings into the local scope
-for setting in dir(settings_module):
-    # Only add uppercase variables. We use lowercase as
-    # temporary variables in the settings files.
-    if setting == setting.upper():
-        locals()[setting] = getattr(settings_module, setting)

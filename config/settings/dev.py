@@ -1,7 +1,8 @@
-# Settings for a test GraceDB instance.
-# Starts with base.py settings and overrides or adds to them.
-from .base import *
+# Settings for a test/dev GraceDB instance running on a VM with Puppet
+# provisioning. Starts with vm.py settings (which inherits from base.py
+# settings) and overrides or adds to them.
 import socket
+from .vm import *
 
 CONFIG_NAME = "TEST"
 
@@ -45,5 +46,5 @@ if 'silk' in INSTALLED_APPS:
 # it to be used through this server.  You need to configure a SOCKS proxy
 # on your local machine to use DJDT (see admin docs).
 INTERNAL_IPS = [
-    socket.gethostbyname(socket.gethostname()),
+    socket.gethostbyname(SERVER_HOSTNAME),
 ]

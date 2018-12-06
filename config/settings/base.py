@@ -1,15 +1,8 @@
+from cloghandler import ConcurrentRotatingFileHandler
+from datetime import datetime, timedelta
 import os, time, logging
 from os.path import abspath, dirname, join
-from datetime import datetime, timedelta
-from cloghandler import ConcurrentRotatingFileHandler
-
-# Get local settings:
-# SERVER_HOSTNAME, SERVER_FQDN, IS_PRODUCTION_SERVER, ADMINS, GRACEDB_PATHS
-from .local import *
-# Get secret settings:
-# DEFAULT_DB_PASSWORD, DEFAULT_SECRET_KEY, TWILIO_ACCOUNT_SID,
-# TWILIO_AUTH_TOKEN, TWIML_BIN
-from .secret import *
+import socket
 
 # Set up path to root of project
 BASE_DIR = abspath(join(dirname(__file__), "..", ".."))
@@ -18,6 +11,10 @@ PROJECT_ROOT = join(BASE_DIR, "gracedb")
 
 # Other useful paths
 PROJECT_DATA_DIR = join(BASE_DIR, "..", "project_data")
+
+# Server hostname and FQDN
+SERVER_HOSTNAME = socket.gethostname()
+SERVER_FQDN = socket.getfqdn()
 
 # Unauthenticated access ------------------------------------------------------
 # This variable controls whether unauthenticated access is allowed *ANYWHERE*
@@ -40,6 +37,9 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 # ADMINS defines who gets code error notifications.
 # MANAGERS defines who gets broken link notifications when
 # BrokenLinkEmailsMiddleware is enabled
+ADMINS = [
+    ("Tanner Prestegard", "tanner.prestegard@ligo.org"),
+]
 MANAGERS = ADMINS
 
 # Client versions allowed - pip-like specifier strings,
@@ -55,6 +55,12 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Base URL for TwiML bins (for Twilio phone/text alerts)
 TWIML_BASE_URL = 'https://handler.twilio.com/twiml/'
+# TwiML bin SIDs (for Twilio)
+TWIML_BIN = {
+    'create': 'EH761b6a35102737e3d21830a484a98a08',
+    'label': 'EHb596a53b9c92a41950ce1a47335fd834',
+    'test': 'EH6c0a168b0c6b011047afa1caeb49b241',
+}
 
 # Use timezone-aware datetimes internally
 USE_TZ = True
@@ -206,8 +212,6 @@ UPTIME_REPORT_DIR = PROJECT_DATA_DIR
 RATE_INFO_FILE = join(PROJECT_DATA_DIR, "rate_info.json")
 
 # URL prefix for serving report information (usually plots and tables)
-# This is aliased to GRACEDB_PATHS["latency"] in the Apache virtualhost
-# configuration.  If you change this, you will need to change that.
 REPORT_INFO_URL_PREFIX = "/report_info/"
 
 # Directory for CBC IFAR Reports
@@ -221,19 +225,6 @@ BINNED_COUNT_FILE = join(PROJECT_DATA_DIR, "binned_counts.json")
 FEED_MAX_RESULTS = 50
 
 # Django and server settings --------------------------------------------------
-
-# Nested dict of settings for all databases
-DATABASES = {
-    'default' : {
-        'NAME'     : 'gracedb',
-        'ENGINE'   : 'django.db.backends.mysql',
-        'USER'     : 'gracedb',
-        'PASSWORD' : DEFAULT_DB_PASSWORD,
-        'OPTIONS'  : {
-                         'init_command': 'SET storage_engine=MyISAM',
-                     },
-    }
-}
 
 # Location of database
 GRACEDB_DATA_DIR = join(BASE_DIR, "..", "db_data")
@@ -251,10 +242,6 @@ CACHES = {
         'LOCATION': '127.0.0.1:11211',
     }
 }
-
-# Secret key for a Django installation
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = DEFAULT_SECRET_KEY
 
 # List of settings for all template engines. Each item is a dict
 # containing options for an individual engine

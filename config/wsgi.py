@@ -3,12 +3,12 @@ import sys
 from os.path import abspath, dirname, join
 
 # Parameters
-SETTINGS_MODULE = 'config.settings'
+DEFAULT_SETTINGS_MODULE = 'config.settings.dev'
 PROJECT_ROOT_NAME = 'gracedb'
 VENV_NAME = 'djangoenv'
 
 # Set DJANGO_SETTINGS_MODULE environment variable if not already set
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', SETTINGS_MODULE)
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', DEFAULT_SETTINGS_MODULE)
 
 # Set up base dir of repository
 BASE_DIR = abspath(join(dirname(__file__), ".."))

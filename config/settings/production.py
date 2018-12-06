@@ -1,14 +1,7 @@
-# Settings for a production GraceDB instance.
-# Starts with base.py settings and overrides or adds to them.
-from .base import *
-
-# TP 12/22/2016: I don't think we need this anymore.
-#SHIB_AUTHENTICATION_SESSION_INITIATOR = 'https://archie.phys.uwm.edu/Shibboleth.sso/Login'
-
-CONFIG_NAME = "PRODUCTION"
-
-# TP 12/22/2016: Doesn't seem to be used anywhere.
-SITE_ID = 3
+# Settings for a production GraceDB instance running on a VM with Puppet
+# provisioning. Starts with vm.py settings (which inherits from base.py
+# settings) and overrides or adds to them.
+from .vm import *
 
 # LVAlert Overseer settings
 ALERT_XMPP_SERVERS = ["lvalert.cgca.uwm.edu"]

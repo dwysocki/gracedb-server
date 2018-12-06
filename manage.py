@@ -5,12 +5,12 @@ from os.path import abspath, dirname, join
 import sys
 
 # Parameters
-SETTINGS_MODULE = 'config.settings'
+DEFAULT_SETTINGS_MODULE = 'config.settings.dev'
 PROJECT_ROOT_NAME = 'gracedb'
 VENV_NAME = 'djangoenv'
 
 if __name__ == '__main__':
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', SETTINGS_MODULE)
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', DEFAULT_SETTINGS_MODULE)
 
     # Add the project root to the python path.
     BASE_DIR = abspath(dirname(__file__))
