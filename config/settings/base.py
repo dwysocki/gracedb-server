@@ -92,10 +92,6 @@ ALERT_XMPP_SERVERS = ["lvalert-test.cgca.uwm.edu"]
 LVALERT_OVERSEER_PORTS = {
     "lvalert-test.cgca.uwm.edu": 8001,
 }
-# Path to lvalert_send executable, for failover in case
-# LVAlert Overseer is not running.
-LVALERT_SEND_EXECUTABLE = join(GRACEDB_PATHS["virtualenv"], "bin",
-    "lvalert_send")
 
 # Email settings --------------------------------------------------------------
 EMAIL_HOST = 'localhost'
