@@ -1,0 +1,81 @@
+ServerName ${DJANGO_PRIMARY_FQDN}
+
+<VirtualHost *:80>
+  ServerName ${DJANGO_PRIMARY_FQDN}
+  ServerSignature On
+  ErrorLog /dev/stderr
+  Transferlog /dev/stdout
+
+  ServerAdmin cgca-admins@uwm.edu
+
+  ## Vhost docroot
+  DocumentRoot "/var/www/html"
+
+  ## Directories, there should at least be a declaration for /var/www/html
+
+  <Directory "/var/www/html">
+    Options Indexes FollowSymLinks MultiViews
+    AllowOverride None
+    Require all granted
+  </Directory>
+
+  ## Custom fragment
+  # gUnicorn edits
+  Alias /shibboleth-ds/idpselect_config.js /etc/shibboleth-ds/idpselect_config.js
+  Alias /shibboleth-ds/idpselect.js /etc/shibboleth-ds/idpselect.js
+  Alias /shibboleth-ds/idpselect.css /etc/shibboleth-ds/idpselect.css
+  Alias /static/ "/home/gracedb/gracedb_project/static_root/"
+  # Aliases for docs and admin_docs
+  Alias /documentation/ "/home/gracedb/gracedb_project/docs/user_docs/build/"
+  Alias /admin_docs/ "/home/gracedb/gracedb_project/docs/admin_docs/build/"
+  ProxyPass "/robots.txt" "!"
+  ProxyPass "/shibboleth-ds" "!"
+  ProxyPass "/Shibboleth.sso" "!"
+  ProxyPass "/static" "!"
+  ProxyPass "/documentation" "!"
+  ProxyPass "/admin_docs" "!"
+  ProxyPass "/" "http://localhost:8080/"
+
+  # Unset certain headers to help prevent spoofing
+  RequestHeader unset REMOTE_USER
+  RequestHeader unset ISMEMBEROF
+  RequestHeader unset X_FORWARDED_FOR
+  RequestHeader unset REMOTE_ADDR
+  RequestHeader unset SSL_CLIENT_S_DN
+  RequestHeader unset SSL_CLIENT_I_DN
+  RequestHeader unset X_FORWARDED_PROTO
+
+  # Get a few of them from the environment
+  RequestHeader set X_FORWARDED_FOR "%{X_FORWARDED_FOR}e" env=X_FORWARDED_FOR
+  RequestHeader set REMOTE_ADDR "%{REMOTE_ADDR}e" env=REMOTE_ADDR
+
+  # Set X_FORWARDED_PROTO to https
+  RequestHeader set X_FORWARDED_PROTO "https"
+
+  # Set up mod_xsendfile for serving static event files as directed by Django
+  XSendFile On
+  XSendFilePath /opt/gracedb/data
+
+  Alias /shibboleth-ds/idpselect_config.js /etc/shibboleth-ds/idpselect_config.js
+  Alias /shibboleth-ds/idpselect.js /etc/shibboleth-ds/idpselect.js
+  Alias /shibboleth-ds/idpselect.css /etc/shibboleth-ds/idpselect.css
+
+  <Directory /etc/shibboleth-ds>
+      Require all granted
+  </Directory>
+
+  # Deny access to the DocumentRoot. This makes it possible to upload
+  # large files. See notes.
+  <Directory "/var/www/">
+      Require all denied
+  </Directory>
+
+  <Directory "/home/gracedb/gracedb_project/static_root/">
+      AllowOverride None
+      Options None
+      Require all granted
+  </Directory>
+
+  Alias /robots.txt /home/gracedb/gracedb_project/static_root/robots.txt
+
+</VirtualHost>

@@ -4,12 +4,9 @@ LABEL name="LIGO GraceDB Django application" \
       date="20181206"
 ARG SETTINGS_MODULE="config.settings.container.dev"
 
-COPY docker/SWITCHaai-swdistrib.gpg /etc/apt/trusted.gpg.d
-RUN echo 'deb http://pkg.switch.ch/switchaai/debian stretch main' > /etc/apt/sources.list.d/shibboleth.list
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
-# the previous command executes apt-get update; if it is removed
-# one must add RUN apt-get update
-RUN apt-get install --install-recommends --assume-yes \
+RUN apt-get update
+RUN apt-get install --no-install-recommends --assume-yes \
         apache2 \
         gcc \
         git \
@@ -36,11 +33,7 @@ RUN apt-get install --install-recommends --assume-yes \
 
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker/supervisord-apache2.conf /etc/supervisor/conf.d/apache2.conf
-COPY docker/shibboleth-ds /etc/shibboleth-ds
 COPY docker/apache-config /etc/apache2/sites-available/gracedb.conf
-COPY docker/login.ligo.org.cert.LIGOCA.pem /etc/shibboleth/login.ligo.org.cert.LIGOCA.pem
-COPY docker/inc-md-cert.pem /etc/shibboleth/inc-md-cert.pem
-
 RUN a2dissite 000-default.conf && \
     a2ensite gracedb.conf && \
     a2enmod headers proxy proxy_http rewrite xsendfile
@@ -48,10 +41,12 @@ RUN a2dissite 000-default.conf && \
 # this line is unfortunate because "." updates for nearly any change to the
 # repository and therefore docker build rarely caches the steps below
 ADD . /app/gracedb_project
-
-# install gracedb application itself
 WORKDIR /app/gracedb_project
+
+# Set up bower components
 RUN bower install --allow-root
+
+# Install Python packages
 RUN pip install --upgrade setuptools wheel && \
     pip install -r requirements.txt
 
