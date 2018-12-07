@@ -12,10 +12,6 @@ PROJECT_ROOT = join(BASE_DIR, "gracedb")
 # Other useful paths
 PROJECT_DATA_DIR = join(BASE_DIR, "..", "project_data")
 
-# Server hostname and FQDN
-SERVER_HOSTNAME = socket.gethostname()
-SERVER_FQDN = socket.getfqdn()
-
 # Unauthenticated access ------------------------------------------------------
 # This variable controls whether unauthenticated access is allowed *ANYWHERE*
 # on this service, except the home page, which is always public.
@@ -68,8 +64,7 @@ USE_TZ = True
 # Allow this site to be served on localhost, the FQDN of this server, and
 # hostname.ligo.org. Security measure for preventing cache poisoning and
 # stopping requests submitted with a fake HTTP Host header.
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', SERVER_FQDN,
-    '{0}.ligo.org'.format(SERVER_HOSTNAME)]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Sessions settings -----------------------------------------------------------
 SESSION_COOKIE_AGE = 3600*23
@@ -98,20 +93,6 @@ ALERT_XMPP_SERVERS = ["lvalert-test.cgca.uwm.edu"]
 LVALERT_OVERSEER_PORTS = {
     "lvalert-test.cgca.uwm.edu": 8001,
 }
-
-# Email settings --------------------------------------------------------------
-EMAIL_HOST = 'localhost'
-SERVER_EMAIL = 'GraceDB <gracedb@{fqdn}>'.format(fqdn=SERVER_FQDN)
-ALERT_EMAIL_FROM = SERVER_EMAIL
-ALERT_EMAIL_TO = []
-ALERT_EMAIL_BCC = []
-ALERT_TEST_EMAIL_FROM = SERVER_EMAIL
-ALERT_TEST_EMAIL_TO = []
-# EMBB email settings
-EMBB_MAIL_ADDRESS = 'embb@{fqdn}.ligo.org'.format(fqdn=SERVER_FQDN)
-EMBB_SMTP_SERVER = 'localhost'
-EMBB_MAIL_ADMINS = [admin[1] for admin in ADMINS]
-EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@{fqdn}'.format(fqdn=SERVER_FQDN)]
 
 # Access and authorization ----------------------------------------------------
 # Some proper names related to authorization
