@@ -3,7 +3,7 @@
 
 import os
 from django.core.exceptions import ImproperlyConfigured
-from .base import *
+from ..base import *
 
 # Get required variables from environment variables ---------------------------
 # Get database password from environment and check

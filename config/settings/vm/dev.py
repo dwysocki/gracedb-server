@@ -2,7 +2,7 @@
 # provisioning. Starts with vm.py settings (which inherits from base.py
 # settings) and overrides or adds to them.
 import socket
-from .vm import *
+from .base import *
 
 CONFIG_NAME = "TEST"
 

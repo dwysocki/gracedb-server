@@ -1,7 +1,7 @@
 # Settings for a production GraceDB instance running on a VM with Puppet
 # provisioning. Starts with vm.py settings (which inherits from base.py
 # settings) and overrides or adds to them.
-from .vm import *
+from .base import *
 
 # LVAlert Overseer settings
 ALERT_XMPP_SERVERS = ["lvalert.cgca.uwm.edu"]

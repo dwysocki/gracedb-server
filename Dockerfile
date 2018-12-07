@@ -2,7 +2,7 @@ FROM ligo/base:stretch
 LABEL name="LIGO GraceDB Django application" \
       maintainer="tanner.prestegard@ligo.org" \
       date="20181206"
-ARG SETTINGS_MODULE="config.settings.container"
+ARG SETTINGS_MODULE="config.settings.container.dev"
 WORKDIR /app
 ADD . /app/gracedb_project
 
@@ -39,7 +39,6 @@ RUN pip install -r requirements.txt
 
 # Give pip-installed packages priority over distribution packages
 ENV PYTHONPATH /usr/local/lib/python2.7/dist-packages:$PYTHONPATH
-ENV VIRTUAL_ENV dummy
 
 # Collect static components. First step: set settings module and
 # fake a few other required environment variables
