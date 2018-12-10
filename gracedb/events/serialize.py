@@ -3,7 +3,6 @@
 from math import log
 from time import gmtime, strftime
 
-from pylal import Fr
 from glue.lal import LIGOTimeGPS
 from glue.ligolw import ligolw
 from glue.ligolw import table
@@ -119,137 +118,6 @@ def get_ifos_for_cwb(cwb_ifos):
 #          table populators
 #
 ##############################################################################
-
-def populate_inspiral_tables(MBTA_frame, set_keys = MBTA_set_keys, \
-                             event_id_dict = insp_event_id_dict):
-  """
-  create xml file and populate the SnglInspiral and CoincInspiral tables from a
-  coinc .gwf file from MBTA
-  xmldoc: xml file to append the tables to
-  MBTA_frame: frame file to get info about triggers from
-  set_keys: columns in the SnglInspiral Table to set
-  process_id: process_id
-  event_id_dict: {ifo:event_id} dictionary to assign event_id's
-  coinc_event_id: coinc_event_id
-  detectors: detectors participating in the coinc
-
-  returns xmldoc and contents of the comment field
-  """
-  #initialize xml document
-  xmldoc = ligolw.Document()
-  xmldoc.appendChild(ligolw.LIGO_LW())
-  #dictionaries to store about individual triggers
-  end_time = {}
-  snr = {}
-  mass1 = {}
-  mass2 = {}
-  Deff = {}
-  mchirp = {}
-  eta = {}
-
-  #extract the information from the frame file
-  events = Fr.frgetevent(MBTA_frame)
-  #get the ifos from the event name
-  for event in events:
-    if 'MbtaHLV' in event['name']:
-      detectors = H1L1V1_detlist
-    elif 'MbtaHL' in event['name']:
-      detectors = H1L1_detlist
-    elif 'MbtaHV' in event['name']:
-      detectors = H1V1_detlist
-    elif 'MbtaH' in event['name']:
-      detectors = H1_detlist
-    elif 'MbtaLV' in event['name']:
-      detectors = L1V1_detlist
-    elif 'MbtaL' in event['name']:
-      detectors = L1_detlist
-    elif 'MbtaV' in event['name']:
-      detectors = V1_detlist
-    else:
-      raise ValueError, "Invalid FrEvent name"
-
-    log_data = event['comment'] + '\n'
-    try:
-      far = 1/(float(event['IFAR_year'])*365.0*24*60*60)
-    except KeyError:
-        far = None
-    for ifo in detectors:
-      end_time[ifo] = LIGOTimeGPS(event[ifo+':end_time'])
-      snr[ifo] = float(event[ifo+':SNR'])
-      mass1[ifo] = float(event[ifo+':mass1'])
-      mass2[ifo] = float(event[ifo+':mass2'])
-      mchirp[ifo], eta[ifo] = compute_mchirp_eta(mass1[ifo],mass2[ifo])
-      Deff[ifo] = float(event[ifo+':eff_distance'])
-
-  #fill the SnglInspiralTable
-  sin_table = lsctables.New(lsctables.SnglInspiralTable)
-  xmldoc.childNodes[0].appendChild(sin_table)
-  process_id = lsctables.ProcessTable.get_next_id()
-  for ifo in detectors:
-    row = sin_table.RowType()
-    row.ifo = ifo
-    row.search = 'MBTA'
-    row.end_time = end_time[ifo].seconds
-    row.end_time_ns = end_time[ifo].nanoseconds
-    row.mass1 = mass1[ifo]
-    row.mass2 = mass2[ifo]
-    row.mchirp = mchirp[ifo]
-    row.mtotal = mass1[ifo] + mass2[ifo]
-    row.eta = eta[ifo]
-    row.snr = snr[ifo]
-    row.eff_distance = Deff[ifo]
-    row.event_id = event_id_dict[ifo]
-    row.process_id = process_id
-    row.channel = ''
-    #zero out the rest of the columns
-    #should work in chi2 and chi2cut 
-    for key in sin_table.validcolumns.keys():
-      if key not in set_keys:
-        setattr(row,key,None)
-    sin_table.append(row)
-
-  #CoincInspiralTable
-  #using the conventions found in:
-  #https://www.lsc-group.phys.uwm.edu/ligovirgo/cbcnote/S6Plan/ 
-  #090505160219S6PlanningNotebookCoinc_and_Experiment_Tables_ihope_implementation?
-  #highlight=%28coinc%29|%28table%29
-  
-  temp_data_loc = None
-
-  if len(detectors) < 2:
-    return xmldoc, log_data, temp_data_loc
-    
-  #coinc_event_id = coinc_event_id_base + str(UID)
-
-  #this next line is to guard against future violence to the table definitions
-  cintcols = ['coinc_event_id','ifos','end_time','end_time_ns','mass','mchirp','snr','false_alarm_rate','combined_far']
-  cin_table = lsctables.New(lsctables.CoincInspiralTable,columns=cintcols)
-  xmldoc.childNodes[0].appendChild(cin_table)
-  row = cin_table.RowType()
-  row.set_ifos(detectors)
-  cid = lsctables.CoincTable.get_next_id()
-  row.coinc_event_id = cid
-  representative_detector = detectors[0]
-  row.end_time = end_time[representative_detector].seconds
-  row.end_time_ns = end_time[representative_detector].nanoseconds
-  row.mass = (sum(mass1.values()) + sum(mass2.values()))/len(detectors)
-  row.mchirp = sum(mchirp.values())/len(detectors)
-  #the snr here is really the snr NOT effective snr
-  row.snr = pow(sum([x*x for x in snr.values()]),0.5)
-  if far is not None:
-      #far is triggers in Hz
-      row.combined_far = float(far)
-  else:
-      row.combined_far = None
-  row.false_alarm_rate = None
-
-  cin_table.append(row)
-
-
-  xmldoc = populate_coinc_tables(xmldoc,cid,insp_event_id_dict,\
-                                 InspiralCoincDef,detectors)
-    
-  return xmldoc, log_data, temp_data_loc
 
 def populate_omega_tables(datafile, set_keys = Omega_set_keys):
   """
@@ -421,20 +289,3 @@ def populate_coinc_tables(xmldoc, coinc_event_id, event_id_dict,\
     coinc_def_table.append(row)
     
     return xmldoc 
-  
-
-##############################################################################
-#
-#          usage example
-#
-##############################################################################
-
-#here's how it works for inspirals
-#populate the tables
-#xmldoc, log_data, temp_data_loc = populate_inspiral_tables("MbtaFake-930909680-16.gwf")
-#write the output
-#write_output_files('.', xmldoc, log_data)
-
-#here's how it works for bursts
-#xmldoc, log_data, temp_data_loc = populate_burst_tables("initial.data")
-#write_output_files('.', final_xmldoc, log_data)

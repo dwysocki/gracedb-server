@@ -19,7 +19,6 @@ RUN apt-get install --assume-yes gcc \
         libxml2-dev \
         libsqlite3-dev \
         python-glue \
-        python-pylal \
         python-voeventlib
 
 # Install npm, bower, bower_components
