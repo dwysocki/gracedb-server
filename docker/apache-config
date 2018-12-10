@@ -95,10 +95,15 @@ ServerName ${DJANGO_PRIMARY_FQDN}
     Require shibboleth
     ShibRequestSetting requireSession true
     ShibUseHeaders On
-    # Set shibboleth headers used for authentication. Differences are
-    # due to the fact that REMOTE_USER is apparently a special case and
-    # not a standard environment variable.
-    RequestHeader set REMOTE_USER "%{REMOTE_USER}s" "expr=-n %{REMOTE_USER}"
+
+    # use funky method to get REMOTE_USER variable
+    RewriteEngine On
+    RewriteCond %{LA-U:REMOTE_USER} (.+)
+    RewriteRule . - [E=RU:%1]
+    RequestHeader set REMOTE_USER %{RU}e
+
+    # this way only works with SSLEngine On because REMOTE_USER is secure variable
+    #RequestHeader set REMOTE_USER %{REMOTE_USER}s
     RequestHeader set ISMEMBEROF "%{ISMEMBEROF}e" env=ISMEMBEROF
   </Location>
 
