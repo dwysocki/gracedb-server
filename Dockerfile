@@ -40,19 +40,14 @@ RUN pip install -r requirements.txt
 # Give pip-installed packages priority over distribution packages
 ENV PYTHONPATH /usr/local/lib/python2.7/dist-packages:$PYTHONPATH
 
-# Collect static components. First step: set settings module and
-# fake a few other required environment variables
-ENV DJANGO_SETTINGS_MODULE ${SETTINGS_MODULE}
-ENV DJANGO_DB_PASSWORD fake_password
-ENV DJANGO_SECRET_KEY fake_key
-ENV DJANGO_PRIMARY_FQDN fake_fqdn
-RUN python manage.py collectstatic --noinput
-
-# Unset faked environment variables
-RUN unset DJANGO_SETTINGS_MODULE \
-    DJANGO_DB_PASSWORD \
-    DJANGO_SECRET_KEY \
-    DJANGO_PRIMARY_FQDN
+# Collect static components. Have to set a settings module envvar
+# and fake a few other required environment variables
+RUN DJANGO_SETTINGS_MODULE=${SETTINGS_MODULE} \
+    DJANGO_DB_NAME=fake_name \
+    DJANGO_DB_PASSWORD=fake_password \
+    DJANGO_SECRET_KEY=fake_key \
+    DJANGO_PRIMARY_FQDN=fake_fqdn \
+    python manage.py collectstatic --noinput
 
 # Expose port and run Gunicorn
 EXPOSE 8000

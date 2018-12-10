@@ -7,9 +7,14 @@ from ..base import *
 
 # Get required variables from environment variables ---------------------------
 # Get database password from environment and check
-DB_PASSWORD = os.environ.get('DJANGO_DB_PASSWORD', None)
-if DB_PASSWORD is None:
+db_password = os.environ.get('DJANGO_DB_PASSWORD', None)
+if db_password is None:
     raise ImproperlyConfigured('Could not get database password from envvars.')
+
+# Get database name from environment and check
+db_name = os.environ.get('DJANGO_DB_NAME', None)
+if db_name is None:
+    raise ImproperlyConfigured('Could not get database name from envvars.')
 
 # Secret key for a Django installation
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', None)
@@ -29,10 +34,10 @@ TWILIO_AUTH_TOKEN = os.environ.get('DJANGO_TWILIO_AUTH_TOKEN', 'abcd')
 # Database settings -----------------------------------------------------------
 DATABASES = {
     'default' : {
-        'NAME': 'gracedb',
+        'NAME': db_name,
         'ENGINE': 'django.db.backends.mysql',
         'USER': os.environ.get('DJANGO_DB_USER', 'gracedb'),
-        'PASSWORD': DB_PASSWORD,
+        'PASSWORD': db_password,
         'HOST': os.environ.get('DJANGO_DB_HOST', ''),
         'PORT': os.environ.get('DJANGO_DB_PORT', ''),
         'OPTIONS': {
