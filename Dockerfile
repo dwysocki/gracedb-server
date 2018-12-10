@@ -36,6 +36,7 @@ RUN apt-get install --install-recommends --assume-yes \
 
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker/supervisord-apache2.conf /etc/supervisor/conf.d/apache2.conf
+COPY docker/shibboleth-ds /etc/shibboleth-ds
 COPY docker/apache-config /etc/apache2/sites-available/gracedb.conf
 COPY docker/login.ligo.org.cert.LIGOCA.pem /etc/shibboleth/login.ligo.org.cert.LIGOCA.pem
 COPY docker/inc-md-cert.pem /etc/shibboleth/inc-md-cert.pem
