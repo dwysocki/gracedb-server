@@ -48,12 +48,10 @@ RUN a2dissite 000-default.conf && \
 # this line is unfortunate because "." updates for nearly any change to the
 # repository and therefore docker build rarely caches the steps below
 ADD . /app/gracedb_project
+
+# install gracedb application itself
 WORKDIR /app/gracedb_project
-
-# Set up bower components
 RUN bower install --allow-root
-
-# Install Python packages
 RUN pip install --upgrade setuptools wheel && \
     pip install -r requirements.txt
 
