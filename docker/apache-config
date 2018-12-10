@@ -1,7 +1,8 @@
 ServerName ${DJANGO_PRIMARY_FQDN}
 
 <VirtualHost *:80>
-  ServerName ${DJANGO_PRIMARY_FQDN}
+  ServerName https://${DJANGO_PRIMARY_FQDN}:443
+  UseCanonicalName On
   ServerSignature On
   ErrorLog /dev/stderr
   Transferlog /dev/stdout
@@ -63,21 +64,54 @@ ServerName ${DJANGO_PRIMARY_FQDN}
   Alias /shibboleth-ds/idpselect.css /etc/shibboleth-ds/idpselect.css
 
   <Directory /etc/shibboleth-ds>
-      Require all granted
+    Require all granted
   </Directory>
 
   # Deny access to the DocumentRoot. This makes it possible to upload
   # large files. See notes.
   <Directory "/var/www/">
-      Require all denied
+    Require all denied
   </Directory>
 
   <Directory "/app/gracedb_project/static_root/">
-      AllowOverride None
-      Options None
-      Require all granted
+    AllowOverride None
+    Options None
+    Require all granted
   </Directory>
 
   Alias /robots.txt /home/gracedb/gracedb_project/static_root/robots.txt
+
+  <Location /Shibboleth.sso>
+    SetHandler shib
+    Require all granted
+  </Location>
+
+  <Location /shibboleth-sp>
+    Require all granted
+  </Location>
+
+  <Location "/post-login/">
+    AuthType Shibboleth
+    Require shibboleth
+    ShibRequestSetting requireSession true
+    ShibUseHeaders On
+    # Set shibboleth headers used for authentication. Differences are
+    # due to the fact that REMOTE_USER is apparently a special case and
+    # not a standard environment variable.
+    RequestHeader set REMOTE_USER "%{REMOTE_USER}s" "expr=-n %{REMOTE_USER}"
+    RequestHeader set ISMEMBEROF "%{ISMEMBEROF}e" env=ISMEMBEROF
+  </Location>
+
+  <Directory "/app/gracedb_project/docs/user_docs/build/">
+    Require all granted
+  </Directory>
+
+  # Restrict access to admin documentation
+  <Location "/admin_docs/">
+    AuthType Shibboleth
+    ShibRequestSetting requireSession true
+    ShibUseHeaders On
+    Require user tanner.prestegard@LIGO.ORG alexander.pace@LIGO.ORG patrick.brady@LIGO.ORG thomas.downes@LIGO.ORG
+  </Location>
 
 </VirtualHost>
