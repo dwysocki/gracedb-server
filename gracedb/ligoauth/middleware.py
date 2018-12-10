@@ -47,8 +47,11 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
         # Get username from request headers
         username = request.META.get(self.user_header, None)
 
-        # If the header is blank or doesn't exist, return
-        if username is None:
+        # If the header is blank or doesn't exist, return. We also catch
+        # case where the username is '(null)', meaning the corresponding
+        # Apache environment variable was empty but it still put the value
+        # in the header (for some reason)
+        if (username is None or username == '(null)'):
             return
 
         # If shib headers are available and the user is already authenticated,
