@@ -10,6 +10,9 @@ from search.query.events import parseQuery
 from search.query.labels import filter_for_labels
 from events.models import Event
 
+htmlEntityStar = "&#9733;"
+errorMarker = '<span style="color:red;">'+htmlEntityStar+'</span>'
+
 
 # NOTE: this is only used in SimpleSearchForm and should be removed
 # when that form is removed.
