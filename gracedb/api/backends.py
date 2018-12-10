@@ -1,5 +1,9 @@
+import base64
 import logging
+import OpenSSL.crypto
+import OpenSSL.SSL
 import re
+import urlparse
 
 from django.contrib.auth import get_user_model, authenticate
 from django.conf import settings
@@ -54,6 +58,10 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
 
 
 class GraceDbX509Authentication(authentication.BaseAuthentication):
+    """
+    Authentication based on X509 certificate subject.
+    Certificate should be verified by Apache already.
+    """
     api_only = True
     www_authenticate_realm = 'api'
     subject_dn_header = getattr(settings, 'X509_SUBJECT_DN_HEADER',
@@ -120,6 +128,90 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
                 _('User inactive or deleted'))
 
         return (user, None)
+
+
+class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
+    """
+    Authentication based on a full X509 certificate. We verify the
+    certificate here.
+    """
+    api_only = True
+    www_authenticate_realm = 'api'
+    cert_header = getattr(settings, 'X509_CERT_HEADER',
+        'X_FORWARDED_TLS_CLIENT_CERT')
+
+    def authenticate(self, request):
+
+        # Make sure this request is directed to the API
+        if self.api_only and not is_api_request(request.path):
+            return None
+
+        # Try to get certificate from request headers
+        cert_data = self.get_certificate_data_from_request(request)
+
+        # If no certificate is found, abort
+        if not cert_data:
+            return None
+
+        # Verify certificate
+        try:
+            certificate = self.verify_certificate_chain(cert_data)
+        except exceptions.AuthenticationFailed as e:
+            raise
+        except Exception as e:
+            raise exceptions.AuthenticationFailed(_('Certificate could not be '
+                'verified'))
+
+        return self.authenticate_credentials(certificate)
+
+    @classmethod
+    def get_certificate_data_from_request(cls, request):
+        """Get certificate data from request"""
+        cert_quoted = request.META.get(cls.cert_header, None)
+        if cert_quoted is None:
+            return None
+
+        # Process the certificate a bit
+        cert_b64 = urlparse.unquote(cert_quoted)
+        cert_der = base64.b64decode(cert_b64)
+
+        return cert_der
+
+    def verify_certificate_chain(self, cert_data,
+        trusted_certs='/etc/grid-security/certificates'):
+
+        # Load certificate data
+        certificate = OpenSSL.crypto.load_certificate(
+            OpenSSL.crypto.FILETYPE_ASN1, cert_data)
+
+        # Set up context and get certificate store 
+        ctx = OpenSSL.SSL.Context(OpenSSL.SSL.TLSv1_METHOD)
+        ctx.load_verify_locations(None, capath=trusted_certs)
+        store = ctx.get_cert_store()
+
+        # Verify certificate
+        store_ctx = OpenSSL.crypto.X509StoreContext(store, certificate)
+        store_ctx.verify_certificate()
+
+        # Check if expired
+        if certificate.has_expired():
+            raise exceptions.AuthenticationFailed(_('Certificate has expired'))
+
+        return certificate
+
+    def authenticate_credentials(self, certificate):
+        # Convert certificate to subject
+        subject = self.get_certificate_subject_string(certificate)
+
+        return super(GraceDbX509FullCertAuthentication, self) \
+            .authenticate_credentials(subject)
+
+    @staticmethod
+    def get_certificate_subject_string(certificate):
+        subject = certificate.get_subject()
+        subject_string = '/' + "/".join(["=".join(c) for c in
+            subject.get_components()])
+        return subject_string
 
 
 class GraceDbAuthenticatedAuthentication(authentication.BaseAuthentication):

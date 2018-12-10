@@ -49,6 +49,13 @@ DATABASES = {
 # Main server "hostname" - a little hacky but OK
 SERVER_HOSTNAME = SERVER_FQDN.split('.')[0]
 
+# Use full client certificate to authenticate
+REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = (
+    'api.backends.GraceDbAuthenticatedAuthentication',
+    'api.backends.GraceDbX509FullCertAuthentication',
+    'api.backends.GraceDbBasicAuthentication',
+)
+
 # Update allowed hosts from environment variables -----------------------------
 hosts_from_env = os.environ.get('DJANGO_ALLOWED_HOSTS', None)
 if hosts_from_env is not None:
