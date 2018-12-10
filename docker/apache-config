@@ -29,6 +29,7 @@ ServerName ${DJANGO_PRIMARY_FQDN}
   Alias /documentation/ "/home/gracedb/gracedb_project/docs/user_docs/build/"
   Alias /admin_docs/ "/home/gracedb/gracedb_project/docs/admin_docs/build/"
   ProxyPreserveHost on
+  ProxyAddHeaders off
   ProxyPass "/robots.txt" "!"
   ProxyPass "/shibboleth-ds" "!"
   ProxyPass "/Shibboleth.sso" "!"
