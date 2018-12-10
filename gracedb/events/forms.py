@@ -14,14 +14,6 @@ from pyparsing import ParseException
 # Set up logger
 logger = logging.getLogger(__name__)
 
-htmlEntityStar = "&#9733;"
-htmlEntityRightPointingHand = "&#9758;"
-htmlEntitySkullAndCrossbones = "&#9760;"
-htmlEntityTriangularBuller = "&#8227;"
-htmlEntityRightArrow = "&rarr;"
-
-errorMarker = '<span style="color:red;">'+htmlEntityStar+'</span>'
-
 
 class CreateEventForm(forms.Form):
     eventFile = forms.FileField()
