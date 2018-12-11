@@ -10,6 +10,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.mail import EmailMessage
 from django.db.models import QuerySet, Q
+from django.urls import reverse
 
 from core.time_utils import gpsToUtc
 from events.models import Event
@@ -18,6 +19,7 @@ from events.shortcuts import is_event
 from search.query.labels import filter_for_labels
 from superevents.shortcuts import is_superevent
 from userprofile.models import Contact
+from .email import issue_email_alerts
 from .phone import issue_phone_alerts
 from .xmpp import issue_xmpp_alerts
 
@@ -126,7 +128,10 @@ def issue_alerts(event_or_superevent, alert_type, serialized_object,
         if event.offline:
             return
 
-    # Compile phone and email recipients for alert
+    # Compile phone and email recipients for new or label alerts
+    if alert_type not in ["new", "label"]:
+        return
+
     if alert_type == "new":
         email_recips, phone_recips = get_alert_recips(event_or_superevent)
         # Force label = None for new alerts
@@ -136,7 +141,8 @@ def issue_alerts(event_or_superevent, alert_type, serialized_object,
             get_alert_recips_for_label(event_or_superevent, label)
 
     if settings.SEND_EMAIL_ALERTS:
-        issueEmailAlert(event_or_superevent, url)
+        url = reverse('view', args=[event_or_superevent.graceid])
+        issue_email_alerts(event_or_superevent, url)
 
     if settings.SEND_PHONE_ALERTS and phone_recips:
         issue_phone_alerts(event_or_superevent, phone_recips, label=label)
