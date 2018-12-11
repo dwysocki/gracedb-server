@@ -12,6 +12,7 @@ Contents:
    models
    web
    rest
+   labels
    lvalert
    lvem
    auth
