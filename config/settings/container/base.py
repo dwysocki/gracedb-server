@@ -26,6 +26,27 @@ SERVER_FQDN = os.environ.get('DJANGO_PRIMARY_FQDN', None)
 if SERVER_FQDN is None:
     raise ImproperlyConfigured('Could not get FQDN from envvars.')
 
+# Get LVAlert server
+lvalert_server = os.environ.get('LVALERT_SERVER', None)
+if lvalert_server is None:
+    raise ImproperlyConfigured('Could not get LVAlert server from envvars.')
+
+# Get LVAlert Overseer listen port
+lvalert_overseer_port = os.environ.get('LVALERT_OVERSEER_PORT', None)
+if lvalert_overseer_port is None:
+    raise ImproperlyConfigured('Could not get LVAlert overseer port '
+        'from envvars.')
+
+# Get LVAlert username
+lvalert_user = os.environ.get('LVALERT_USER', None)
+if lvalert_user is None:
+    raise ImproperlyConfigured('Could not get LVAlert username from envvars.')
+
+# Get LVAlert password
+lvalert_password = os.environ.get('LVALERT_PASSWORD', None)
+if lvalert_password is None:
+    raise ImproperlyConfigured('Could not get LVAlert password from envvars.')
+
 # Get Twilio account information from environment
 # FIXME
 TWILIO_ACCOUNT_SID = os.environ.get('DJANGO_TWILIO_ACCOUNT_SID', 'abcd')
@@ -48,6 +69,16 @@ DATABASES = {
 
 # Main server "hostname" - a little hacky but OK
 SERVER_HOSTNAME = SERVER_FQDN.split('.')[0]
+
+# LVAlert Overseer settings - get from environment
+LVALERT_OVERSEER_INSTANCES = [
+    {
+        "lvalert_server": lvalert_server,
+        "listen_port": int(lvalert_overseer_port),
+        "username": lvalert_user,
+        "password": lvalert_password,
+    },
+]
 
 # Use full client certificate to authenticate
 REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = (

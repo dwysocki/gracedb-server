@@ -4,10 +4,12 @@
 from .base import *
 
 # LVAlert Overseer settings
-ALERT_XMPP_SERVERS = ["lvalert.cgca.uwm.edu"]
-LVALERT_OVERSEER_PORTS = {
-    "lvalert.cgca.uwm.edu": 8000,
-}
+LVALERT_OVERSEER_INSTANCES = [
+    {
+        "lvalert_server": "lvalert.cgca.uwm.edu",
+        "listen_port": 8000,
+    },
+]
 
 # Turn on alerts
 SEND_XMPP_ALERTS = True

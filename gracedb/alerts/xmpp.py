@@ -102,8 +102,9 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
         manager = Manager()
 
     # Loop over LVAlert servers and nodes, issuing the alert to each
-    for server in settings.ALERT_XMPP_SERVERS:
-        port = settings.LVALERT_OVERSEER_PORTS[server]
+    for overseer_instance in settings.LVALERT_OVERSEER_INSTANCES:
+        server = overseer_instance.get('lvalert_server')
+        port = overseer_instance.get('listen_port')
         for node_name in node_names:
             
             # Calculate unique message_id and log
@@ -132,7 +133,10 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
             # use basic lvalert-client send
             if (not settings.USE_LVALERT_OVERSEER) or (not success):
                 try:
-                    send_with_lvalert_client(node_name, msg, server)
+                    lvalert_settings_dict = overseer_instance.copy()
+                    server = lvalert_settings_dict.pop('lvalert_server')
+                    send_with_lvalert_client(node_name, msg, server,
+                        **lvalert_settings_dict)
                 except Exception as e:
                     logger.critical(("issue_xmpp_alerts: error sending "
                         "message with lvalert client: {e}").format(e=e))

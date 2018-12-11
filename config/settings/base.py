@@ -86,13 +86,16 @@ SEND_PHONE_ALERTS = False
 SEND_EMAIL_ALERTS = False
 # Use LVAlert Overseer?
 USE_LVALERT_OVERSEER = True
-# LVAlert servers
-ALERT_XMPP_SERVERS = ["lvalert-test.cgca.uwm.edu"]
 # For each LVAlert server, a separate instance of LVAlert Overseer
 # must be running and listening on a distinct port.
-LVALERT_OVERSEER_PORTS = {
-    "lvalert-test.cgca.uwm.edu": 8001,
-}
+#   lvalert_server: LVAlert server which overseer sends messages to
+#   listen_port: port which that instance of overseer is listening on
+LVALERT_OVERSEER_INSTANCES = [
+    {
+        "lvalert_server": "lvalert-test.cgca.uwm.edu",
+        "listen_port": 8001,
+    },
+]
 
 # Access and authorization ----------------------------------------------------
 # Some proper names related to authorization

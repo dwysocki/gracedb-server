@@ -33,10 +33,20 @@ def send_with_lvalert_overseer(node_name, message, manager, port):
     return True if rdict.get('success', None) is not None else False
 
 
-def send_with_lvalert_client(node, message, server):
+def send_with_lvalert_client(node, message, server, username=None,
+    password=None, **kwargs):
+
+    # Set up for initializing LVAlertClient instance
+    client_settings = {
+        'server': server
+    }
+    if username is not None:
+        client_settings['username'] = username
+    if password is not None:
+        client_settings['password'] = password
 
     # Instantiate client
-    client = LVAlertClient(server=server)
+    client = LVAlertClient(**client_settings)
 
     # Client setup
     client.connect(reattempt=False)
@@ -45,6 +55,9 @@ def send_with_lvalert_client(node, message, server):
 
     # Send message
     client.publish(node, message)
+
+    # Disconnect
+    client.disconnect()
 
 
 # OLD
