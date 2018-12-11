@@ -10,20 +10,6 @@ onload="document.search_form.query.focus();"
 {% block heading %}{% endblock %} #}
 {% block pageid %}CBC Report{% endblock %}
 
-{% block jscript %}
-    <script type="text/javascript">
-    <!--
-        function toggle_visibility(id) {
-           var e = document.getElementById(id);
-           if(e.style.display == 'block')
-              e.style.display = 'none';
-           else
-              e.style.display = 'block';
-        }
-    //-->
-    </script>
-{% endblock %}
-
 {% block content %}
 
 <div class="content-area">
@@ -35,9 +21,7 @@ onload="document.search_form.query.focus();"
     <form method="POST" name="search_form">
       <table>
         {{ form.as_table }}
-        <tr><td/><td><a onClick="toggle_visibility('hints');">Hints on querying</a></td>
-        </tr>
-        <tr><td/><td>{% include "search/query_help_frag.html" %}</td></tr>
+        <tr><td/><td><a href="/documentation/queries.html">Query help</a>
       </table>
     </form>
 
