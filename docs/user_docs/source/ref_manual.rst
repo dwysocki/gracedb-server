@@ -12,6 +12,7 @@ Contents:
    models
    web
    rest
+   queries
    labels
    lvalert
    lvem
