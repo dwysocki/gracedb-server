@@ -114,10 +114,10 @@ The following table shows the ``alert_type`` and ``data`` for different actions:
 Superevent alerts
 -----------------
 
-For alerts related to events, the following things are always true:
+For alerts related to superevents, the following things are always true:
 
 - ``uid`` is always the superevent's ``superevent_id`` (example: S800106D).
-- ``object`` is always a dictionary corresponding to the event which is affected by the label, log, VOEvent, etc.
+- ``object`` is always a dictionary corresponding to the superevent which is affected by the label, log, VOEvent, etc.
 
 
 The following table shows the ``alert_type`` and ``data`` for different actions:
