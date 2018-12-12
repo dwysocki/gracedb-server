@@ -40,20 +40,6 @@ def histo(request):
     except IOError:
         table = None
 
-    # XXX The old nagios scraping code no longer works. It scrapes sentry anyway, instead
-    # of dashboard.ligo.org. Anyway, the reports page here isn't really the place for this
-    # kind of information.
-    #try:
-    #    uptime = open(settings.UPTIME_REPORT_DIR + "/ytd.html", "r").read()
-    #except IOError:
-    #    uptime = None
-
-    # Rate information
-    #try:
-    #    rate_info = open(settings.RATE_INFO_FILE).read()
-    #except IOError:
-    #    rate_info = None
-
     # For the binned counts, read in the contents of the file.
     try:
         f = open(settings.BINNED_COUNT_FILE, 'r')

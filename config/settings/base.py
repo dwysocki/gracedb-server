@@ -201,9 +201,6 @@ LATENCY_MAXIMUM_CHARTED = 1800
 LATENCY_REPORT_WEB_PAGE_FILE_PATH = join(LATENCY_REPORT_DEST_DIR,
     "latency.inc")
 
-# Uptime reporting
-UPTIME_REPORT_DIR = GRACEDB_PATHS["uptime"]
-
 # Rate file location
 RATE_INFO_FILE = join(GRACEDB_PATHS["data"], "rate_info.json")
 
