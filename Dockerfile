@@ -68,6 +68,8 @@ RUN sphinx-build -b html source build
 WORKDIR /app/gracedb_project/docs/admin_docs
 RUN sphinx-build -b html source build
 
+RUN mkdir /app/logs /app/project_data
+
 WORKDIR /app/gracedb_project
 RUN DJANGO_SETTINGS_MODULE=${SETTINGS_MODULE} \
     DJANGO_DB_NAME=fake_name \
