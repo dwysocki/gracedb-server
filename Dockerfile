@@ -62,9 +62,6 @@ ENV VIRTUAL_ENV dummy
 # Expose port and run Gunicorn
 EXPOSE 8000
 
-# Volumes
-VOLUME /app/logs /app/project_data
-
 # Generate documentation
 WORKDIR /app/gracedb_project/docs/user_docs
 RUN sphinx-build -b html source build
