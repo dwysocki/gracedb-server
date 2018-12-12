@@ -83,4 +83,6 @@ RUN rm -rf /app/logs/* /app/project_data/*
 RUN groupadd -g 503 django_writers && \
     useradd -M -u 50001 -g django_writers -s /bin/false gracedb
 
+RUN chown gracedb:django_writers /app/logs /app/project_data
+
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
