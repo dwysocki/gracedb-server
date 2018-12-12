@@ -78,6 +78,8 @@ RUN DJANGO_SETTINGS_MODULE=${SETTINGS_MODULE} \
     DJANGO_PRIMARY_FQDN=fake_fqdn \
     python manage.py collectstatic --noinput
 
+RUN rm -rf /app/logs/* /app/project_data/*
+
 RUN groupadd -g 503 django_writers && \
     useradd -M -u 50001 -g django_writers -s /bin/false gracedb
 
