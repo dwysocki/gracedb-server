@@ -14,7 +14,7 @@ The different types of events in GraceDB are distinguished by the following para
 - ``Pipeline``: the data analysis software tool used make the detection 
     - values: ``MBTAOnline``, ``CWB``, ``CWB2G``, ``gstlal``, ``spiir``, ``HardwareInjection``, ``Fermi``, ``Swift``, ``SNEWS``, ``oLIB``
 - ``Search``: the search activity which led to the detection 
-    - values: ``AllSky``, ``AllSkyLong``, ``LowMass``, ``HighMass``, ``GRB``, ``Supernova``, ``MDC``
+    - values: ``AllSky``, ``AllSkyLong``, ``LowMass``, ``HighMass``, ``GRB``, ``Supernova``, ``MDC``, ``BBH``
 
 An individual "event stream" is specified by setting the values of these three parameters.
 For example, choosing ``Group=CBC``, ``Pipeline=gstlal``, and ``Search=LowMass`` selects the event stream consisting of low-mass inspiral events detected by the gstlal pipeline from the CBC group.
