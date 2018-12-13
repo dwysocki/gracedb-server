@@ -41,6 +41,9 @@ DATABASES = {
     }
 }
 
+# Main server "hostname" - a little hacky but OK
+SERVER_HOSTNAME = SERVER_FQDN.split('.')[0]
+
 # Update allowed hosts from environment variables -----------------------------
 hosts_from_env = os.environ.get('DJANGO_ALLOWED_HOSTS', None)
 if hosts_from_env is not None:
