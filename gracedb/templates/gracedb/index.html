@@ -91,10 +91,11 @@ follow-ups. </p>
 
 <!--XXX Infrastructure for human signoffs. Hopefully this will not be permanent. -->
 {% if signoff_authorized %}
-    {% if new_signoff_graceids|length or older_signoff_graceids|length %}
+    {% if signoff_superevent_ids|length or new_signoff_graceids|length or older_signoff_graceids|length %}
     <div class="signoff-area">
-        <h2>Attention {{signoff_instrument}} Operator</h2>
-        <br />
+    <h2>Attention {{signoff_instrument}} Operator</h2>
+    <br />
+    {% if signoff_superevent_ids|length %}
         <h3>The following superevents require your signoff:</h3>
         {% if signoff_superevent_ids|length %}
         <ul>
@@ -103,6 +104,8 @@ follow-ups. </p>
         {% endfor %}
         </ul>
         {% endif %}
+    {% endif %}
+    {% if new_signoff_graceids|length or older_signoff_graceids|length %}
         <h3>The following events require your sign-off:</h3>
         {% if new_signoff_graceids|length %}
         <p>Events submitted within the last 24 hours:</p>
@@ -120,7 +123,8 @@ follow-ups. </p>
         {% endfor %}
         </ul>
         {% endif %}
-        <p>Please click on the link(s) above and use the form at the top of the page.</p>
+    {% endif %}
+    <p>Please click on the link(s) above and use the form at the top of the page.</p>
     </div>
     {% endif %}
 {% endif %}
