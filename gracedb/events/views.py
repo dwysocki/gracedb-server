@@ -119,10 +119,10 @@ def index(request):
         context['new_signoff_graceids'] = [e.graceid for e in new_events]
         context['older_signoff_graceids'] = [e.graceid for e in older_events]
 
-        # TODO: ensure not test or MDC types once those are implemented
         # Superevent signoffs
         context['signoff_superevent_ids'] = [s.superevent_id for s in
-            Superevent.objects.filter(labelling__label__name=label_name)]
+            Superevent.objects.filter(labelling__label__name=label_name,
+                category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION)]
 
     recent_events = '' 
     if request.user and not is_external(request.user) and settings.SHOW_RECENT_EVENTS_ON_HOME:
