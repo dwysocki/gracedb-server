@@ -56,6 +56,12 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Base URL for TwiML bins (for Twilio phone/text alerts)
 TWIML_BASE_URL = 'https://handler.twilio.com/twiml/'
+# TwiML bin SIDs (for Twilio)
+TWIML_BIN = {
+    'new': 'EH761b6a35102737e3d21830a484a98a08',
+    'label_added': 'EHb596a53b9c92a41950ce1a47335fd834',
+    'test': 'EH6c0a168b0c6b011047afa1caeb49b241',
+}
 
 # Use timezone-aware datetimes internally
 USE_TZ = True
