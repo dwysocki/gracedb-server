@@ -3,7 +3,11 @@ import logging
 import socket
 
 from django.conf import settings
+from django.urls import reverse
+
 from django_twilio.client import twilio_client
+
+from core.urls import build_absolute_uri
 from events.permission_utils import is_external
 
 # Set up logger
@@ -20,13 +24,11 @@ TWIML_ARG_STR = {
               '&server={server}'),
 }
 
-# TODO: fix these by using reverse
 # Dict for managing Twilio message contents.
 TWILIO_MSG_CONTENT = {
-    'new': ('A {pipeline} event with GraceDB ID {graceid} was created.'
-               ' https://{server}.ligo.org/events/view/{graceid}'),
+    'new': 'A {pipeline} event with GraceDB ID {graceid} was created. {url}',
     'label_added': ('A {pipeline} event with GraceDB ID {graceid} was labeled '
-              'with {label}. https://{server}.ligo.org/events/view/{graceid}')
+              'with {label}. {url}'),
 }
 
 
@@ -55,9 +57,6 @@ def issue_phone_alerts(event, contacts, label=None):
     else:
         alert_type = "new"
 
-    # Get server name.
-    hostname = socket.gethostname()
-
     # Get "from" phone number.
     from_ = get_twilio_from()
 
@@ -65,7 +64,8 @@ def issue_phone_alerts(event, contacts, label=None):
     msg_params = {
         'pipeline': event.pipeline.name,
         'graceid': event.graceid,
-        'server': hostname,
+        'server': settings.SERVER_HOSTNAME,
+        'url': build_absolute_uri(reverse('view', args=[event.graceid])),
     }
     if alert_type == "label_added":
         msg_params['label'] = label.name

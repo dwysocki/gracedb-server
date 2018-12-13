@@ -39,7 +39,7 @@ def get_alert_recips(event_or_superevent):
         # Filter on FAR threshold requirements
         query = Q(farThresh__isnull=True)
         if event.far:
-            query |= Q(farThresh__lt=event.far)
+            query |= Q(farThresh__gt=event.far)
         triggers = triggers.filter(query)
         # Contacts for all triggers, make sure user is in LVC group (safeguard)
         contacts = Contact.objects.filter(trigger__in=triggers,
@@ -52,8 +52,8 @@ def get_alert_recips(event_or_superevent):
 
 def get_alert_recips_for_label(event_or_superevent, label):
     # Blank QuerySets for recipients
-    email_recips = QuerySet()
-    phone_recips = QuerySet()
+    email_recips = Contact.objects.none()
+    phone_recips = Contact.objects.none()
 
     # Construct a queryset containing only this object; needed for
     # call to filter_for_labels
@@ -97,7 +97,7 @@ def get_alert_recips_for_label(event_or_superevent, label):
 
 
 def issue_alerts(event_or_superevent, alert_type, serialized_object,
-    serialized_parent=None):
+    serialized_parent=None, label=None):
 
     # Send XMPP alert
     if settings.SEND_XMPP_ALERTS:
@@ -128,21 +128,14 @@ def issue_alerts(event_or_superevent, alert_type, serialized_object,
         if event.offline:
             return
 
-    # Compile phone and email recipients for new or label alerts
-    if alert_type not in ["new", "label"]:
-        return
-
     if alert_type == "new":
         email_recips, phone_recips = get_alert_recips(event_or_superevent)
-        # Force label = None for new alerts
-        label = None
-    elif alert_type == "label":
+    elif alert_type == "label_added":
         email_recips, phone_recips = \
             get_alert_recips_for_label(event_or_superevent, label)
 
-    if settings.SEND_EMAIL_ALERTS:
-        url = reverse('view', args=[event_or_superevent.graceid])
-        issue_email_alerts(event_or_superevent, url)
+    if settings.SEND_EMAIL_ALERTS and email_recips.exists():
+        issue_email_alerts(event_or_superevent, email_recips, label=label)
 
-    if settings.SEND_PHONE_ALERTS and phone_recips:
+    if settings.SEND_PHONE_ALERTS and phone_recips.exists():
         issue_phone_alerts(event_or_superevent, phone_recips, label=label)

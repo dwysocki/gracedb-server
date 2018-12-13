@@ -43,6 +43,11 @@ class SupereventLabelAlertIssuer(AlertIssuerWithParentSuperevent):
     serializer_class = SupereventLabelSerializer
     alert_types = ['label_added', 'label_removed']
 
+    def issue_alerts(self):
+        issue_alerts(self.get_parent_obj(), self.alert_type,
+            self.serialize_obj(), self.serialize_parent(),
+            label=self.obj.label)
+
 
 class SupereventVOEventAlertIssuer(AlertIssuerWithParentSuperevent):
     serializer_class = SupereventVOEventSerializer

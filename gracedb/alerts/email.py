@@ -1,17 +1,38 @@
 from __future__ import absolute_import
 import logging
 
-from django.core.mail import EmailMessage
 from django.conf import settings
+from django.core.mail import EmailMessage
+from django.urls import reverse
 
 from core.time_utils import gpsToUtc
+from core.urls import build_absolute_uri
 
 # Set up logger
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+EMAIL_SUBJECT_NEW = "[gracedb] {pipeline} event. ID: {graceid}"
+EMAIL_MESSAGE_NEW = """
+New Event
+{group} / {pipeline}
+GRACEID:   {graceid}
+Info:      {url}
+Data:      {file_url}
+Submitter: {submitter}
+Event Summary:
+{summary}
+"""
+
+EMAIL_SUBJECT_LABEL = "[gracedb] {label} / {pipeline} / {search} / {graceid}"
+EMAIL_SUBJECT_LABEL_NOSEARCH = "[gracedb] {label} / {pipeline} / {graceid}"
+EMAIL_MESSAGE_LABEL = """
+A {pipeline} event with graceid {graceid} was labeled with {label}: {url}
+"""
 
 
 def indent(nindent, text):
     return "\n".join([(nindent*' ')+line for line in text.split('\n')])
+
 
 def prepareSummary(event):
     gpstime = event.gpstime
@@ -31,60 +52,47 @@ def prepareSummary(event):
     Component masses: %.2f, %.2f """ % (si.mass1, si.mass2)
     return summary
 
-def issue_email_alerts(event, event_url):
 
-    # Check settings switch for turning off email alerts
-    if not settings.SEND_EMAIL_ALERTS:
-        return
+def issue_email_alerts(event, recips, label=None):
 
-    # The right way of doing this is to make the email alerts filter-able
-    # by search. But this is a low priority dev task. For now, we simply 
-    # short-circuit in case this is an MDC event.
-    if event.search and event.search.name == 'MDC':
-        return
+    # Prepare URLs for email message body
+    event_url = build_absolute_uri(reverse("view", args=[event.graceid]))
+    file_url = build_absolute_uri(reverse("file_list", args=[event.graceid]))
 
-    # Gather Recipients
-    if event.group.name == 'Test':
-        fromaddress = settings.ALERT_TEST_EMAIL_FROM
-        toaddresses = settings.ALERT_TEST_EMAIL_TO
-        bccaddresses = []
+    # Compile subject and message content
+    if label is None:
+        # Alert for new event
+        subject = EMAIL_SUBJECT_NEW.format(pipeline=event.pipeline.name,
+            graceid=event.graceid)
+        message = EMAIL_MESSAGE_NEW.format(group=event.group.name,
+            pipeline=event.pipeline.name, graceid=event.graceid,
+            url=event_url, file_url=file_url,
+            submitter=event.submitter.get_full_name(),
+            summary=indent(3, prepareSummary(event)))
     else:
-        fromaddress = settings.ALERT_EMAIL_FROM
-        toaddresses = settings.ALERT_EMAIL_TO
-        # XXX Bizarrely, this settings.ALERT_EMAIL_BCC seems to be overwritten in a 
-        # persistent way between calls, so that you can get alerts going out to the 
-        # wrong contacts. I find that it works if you just start with an empty list
-        # See: https://bugs.ligo.org/redmine/issues/2185
-        #bccaddresses = settings.ALERT_EMAIL_BCC
-        bccaddresses = []
-        pipeline = event.pipeline
-        triggers = pipeline.trigger_set.filter(labels=None)
-        for trigger in triggers:
-            for recip in trigger.contacts.all():
-                if ((event.far and event.far < trigger.farThresh)
-                    or not trigger.farThresh):
-                    if recip.email:
-                        bccaddresses.append(recip.email)
+        # Alert for label
+        if event.search:
+            subject = EMAIL_SUBJECT_LABEL.format(label=label.name,
+                pipeline=event.pipeline.name, search=event.search.name,
+                graceid=event.graceid)
+        else:
+            subject = EMAIL_SUBJECT_LABEL_NOSEARCH.format(label=label.name,
+                pipeline=event.pipeline.name, graceid=event.graceid)
+        message = EMAIL_MESSAGE_LABEL.format(pipeline=event.pipeline.name,
+            graceid=event.graceid, label=label.name, url=event_url)
 
-    subject = "[gracedb] %s event. ID: %s" % (event.pipeline.name, event.graceid)
-    message = """
-New Event
-%s / %s
-GRACEID:   %s
-Info:      %s
-Data:      %s
-Submitter: %s
-Event Summary:
-%s
-"""
-    message %= (event.group.name,
-                event.pipeline.name,
-                event.graceid,
-                event_url,
-                event.weburl(),
-                "%s %s" % (event.submitter.first_name, event.submitter.last_name),
-                indent(3, prepareSummary(event))
-               )
+    # Actual recipients should be BCC'd
+    bcc_addresses = [recip.email for recip in recips]
 
-    email = EmailMessage(subject, message, fromaddress, toaddresses, bccaddresses)
+    # Compile from/to addresses
+    from_address = settings.ALERT_EMAIL_FROM
+    to_addresses = settings.ALERT_EMAIL_TO
+
+    # Log email recipients
+    logger.debug("Sending email to {recips}".format(
+        recips=", ".join(bcc_addresses)))
+
+    # Send email
+    email = EmailMessage(subject, message, from_address, to_addresses,
+        bcc_addresses)
     email.send()
