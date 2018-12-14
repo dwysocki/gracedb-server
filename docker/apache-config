@@ -24,10 +24,10 @@ ServerName ${DJANGO_PRIMARY_FQDN}
   Alias /shibboleth-ds/idpselect_config.js /etc/shibboleth-ds/idpselect_config.js
   Alias /shibboleth-ds/idpselect.js /etc/shibboleth-ds/idpselect.js
   Alias /shibboleth-ds/idpselect.css /etc/shibboleth-ds/idpselect.css
-  Alias /static/ "/home/gracedb/gracedb_project/static_root/"
+  Alias /static/ "/app/gracedb_project/static_root/"
   # Aliases for docs and admin_docs
-  Alias /documentation/ "/home/gracedb/gracedb_project/docs/user_docs/build/"
-  Alias /admin_docs/ "/home/gracedb/gracedb_project/docs/admin_docs/build/"
+  Alias /documentation/ "/app/gracedb_project/docs/user_docs/build/"
+  Alias /admin_docs/ "/app/gracedb_project/docs/admin_docs/build/"
   ProxyPreserveHost on
   ProxyAddHeaders off
   ProxyPass "/robots.txt" "!"
@@ -72,7 +72,7 @@ ServerName ${DJANGO_PRIMARY_FQDN}
       Require all denied
   </Directory>
 
-  <Directory "/home/gracedb/gracedb_project/static_root/">
+  <Directory "/app/gracedb_project/static_root/">
       AllowOverride None
       Options None
       Require all granted
