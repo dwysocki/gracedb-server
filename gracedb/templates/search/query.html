@@ -37,9 +37,9 @@ onload="document.search_form.query.focus();"
         colModel : [
            {name: 'id', index: 'id', width: 30, sortable: true, align: 'left', hidden: false},
            {name: 'labels', index: 'labels', width: 40, sortable: true, align: 'left'},
-           {name: 'far', index: 'far', width: 40, sortable: true, align: 'left'},
+           {name: 'far', index: 'preferred_event__far', width: 40, sortable: true, align: 'left'},
            {% if user.is_authenticated %}
-           {name: 'preferred_event', index: 'preferred_event', width: 20, sortable: true, align: 'left', hidden: false},
+           {name: 'preferred_event', index: 'preferred_event__id', width: 20, sortable: true, align: 'left', hidden: false},
            {name: 'gw_events', index: 'gw_events', width: 50, sortable: false, align: 'left', hidden: false},
            {name: 'em_events', index: 'em_events', width: 50, sortable: false, align: 'left', hidden: true},
            {% endif %}
