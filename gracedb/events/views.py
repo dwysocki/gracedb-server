@@ -1,4 +1,5 @@
 
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, Http404
 from django.http import HttpResponseForbidden, HttpResponseServerError
@@ -74,10 +75,14 @@ def event_and_auth_required(view):
         # maps to 'view', and unsafe methods map to 'CHANGE'
         if request.method=='GET':
             if not user_has_perm(request.user, 'view', event):
-                return HttpResponseForbidden("Forbidden")
+                msg = ('You do not have permission to view this event. '
+                    'If you think you should be able to view it, make sure '
+                    'you are logged in.')
+                return render(request, '403.html', status=403,
+                    context={'graceid': graceid, 'message': msg})
         elif request.method in ['POST', 'DELETE']:                
             if not user_has_perm(request.user, 'change', event):
-                return HttpResponseForbidden("Forbidden")
+                raise PermissionDenied
 
         return view(request, event, *args, **kwargs)
     return inner
