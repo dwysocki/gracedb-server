@@ -97,7 +97,7 @@ parameter_dicts = {
         'value': QuotedString('"'),
         'parseAction': lambda toks: ("submitter",
             Q(submitter__username__icontains=toks[0]) |
-            Q(submitter_last_name__icontains=toks[0])),
+            Q(submitter__last_name__icontains=toks[0])),
     },
     # preferred_event: G123456, preferred_event: G1234 .. G2234
     'preferred_event': {
