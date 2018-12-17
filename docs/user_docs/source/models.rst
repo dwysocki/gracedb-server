@@ -88,7 +88,8 @@ Data model
 ----------
 The main attributes of the superevent data model are:
 
-- ``superevent_id``: a unique date-based ID (Examples: ``S180912b``, ``GW180915BC``; more information below in :ref:`superevent_date_ids`)
+- ``superevent_id``: a unique date-based ID (Example: ``S180912b``; more information below in :ref:`superevent_date_ids`)
+- ``gw_id``: a unique date-based ID only assigned to superevents which are confirmed GWs (Example: ``GW180915BC``; more information below in :ref:`superevent_date_ids`)
 - ``category``: superevent category (``Production``, ``Test``, or ``MDC``); more information below in :ref:`superevent_categories` 
 - ``gw_events``: list of graceids corresponding to Event objects which are part of this superevent and were submitted by GW analysis pipelines
 - ``em_events``: list of graceids corresponding to Event objects which are part of this superevent and are in the "External" group (i.e., were observed by electromagnetic or neutrino telescopes)
