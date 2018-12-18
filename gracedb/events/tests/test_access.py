@@ -533,14 +533,14 @@ class TestEventModifyT90(EventSetup, GraceDbTestBase):
         response = self.request_as_user(url, "POST", self.lvem_user,
                 data=self.t90_data)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, "Forbidden")
+        self.assertEqual(response.templates[0].name, '403.html')
 
     def test_public_user_t90(self):
         """Public user can't t90 GRB events"""
         url = reverse('modify_t90', args=[self.grb_event.graceid])
         response = self.request_as_user(url, "POST", data=self.t90_data)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, "Forbidden")
+        self.assertEqual(response.templates[0].name, '403.html')
 
 
 class TestEventModifyPermissions(EventSetup, GraceDbTestBase):
@@ -611,7 +611,7 @@ class TestEventModifyPermissions(EventSetup, GraceDbTestBase):
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=self.perm_data)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, "Forbidden")
+        self.assertEqual(response.templates[0].name, '403.html')
 
     def test_lvem_user_modify_permissions_for_exposed_event(self):
         """LV-EM user can't modify exposed event permissions"""
@@ -627,7 +627,7 @@ class TestEventModifyPermissions(EventSetup, GraceDbTestBase):
         url = reverse('modify_permissions', args=[self.internal_event.graceid])
         response = self.request_as_user(url, "POST", data=self.perm_data)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, "Forbidden")
+        self.assertEqual(response.templates[0].name, '403.html')
 
 
 class TestEventModifySignoff(SignoffGroupsAndUsersSetup, EventSetup,
@@ -688,7 +688,7 @@ class TestEventModifySignoff(SignoffGroupsAndUsersSetup, EventSetup,
         response = self.request_as_user(url, "POST", self.lvem_user,
             self.op_signoff_data)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, "Forbidden")
+        self.assertEqual(response.templates[0].name, '403.html')
 
         # Exposed event
         url = reverse('modify_signoff', args=[self.lvem_event.graceid])
@@ -703,7 +703,7 @@ class TestEventModifySignoff(SignoffGroupsAndUsersSetup, EventSetup,
         url = reverse('modify_signoff', args=[self.internal_event.graceid])
         response = self.request_as_user(url, "POST", data=self.op_signoff_data)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, "Forbidden")
+        self.assertEqual(response.templates[0].name, '403.html')
 
 
 class TestEventCreateLog(EventSetup, GraceDbTestBase):
@@ -741,7 +741,7 @@ class TestEventCreateLog(EventSetup, GraceDbTestBase):
 
         # Check response and content
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, 'Forbidden')
+        self.assertEqual(response.templates[0].name, '403.html')
 
     def test_lvem_user_create_log_exposed_event(self):
         """LV-EM user can create log for exposed event"""
@@ -768,7 +768,7 @@ class TestEventCreateLog(EventSetup, GraceDbTestBase):
 
         # Check response and content
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, 'Forbidden')
+        self.assertEqual(response.templates[0].name, '403.html')
 
 
 class TestEventLogTag(EventSetup, GraceDbTestBase):
@@ -824,7 +824,7 @@ class TestEventLogTag(EventSetup, GraceDbTestBase):
             log.N, self.tag_name])
         response = self.request_as_user(url, "POST", self.lvem_user)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, 'Forbidden')
+        self.assertEqual(response.templates[0].name, '403.html')
 
         # Exposed log on hidden event
         log = self.internal_event.eventlog_set.get(
@@ -833,7 +833,7 @@ class TestEventLogTag(EventSetup, GraceDbTestBase):
             log.N, self.tag_name])
         response = self.request_as_user(url, "POST", self.lvem_user)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, 'Forbidden')
+        self.assertEqual(response.templates[0].name, '403.html')
 
     def test_lvem_user_tag_log_exposed_event(self):
         """LV-EM user can only tag exposed logs for exposed events"""
@@ -870,7 +870,7 @@ class TestEventLogTag(EventSetup, GraceDbTestBase):
                     self.tag_name])
                 response = self.request_as_user(url, "POST")
                 self.assertEqual(response.status_code, 403)
-                self.assertEqual(response.content, 'Forbidden')
+                self.assertEqual(response.templates[0].name, '403.html')
 
 
 class TestEventLogUntag(EventSetup, GraceDbTestBase):
@@ -927,7 +927,7 @@ class TestEventLogUntag(EventSetup, GraceDbTestBase):
             log.N, self.test_tag.name])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, 'Forbidden')
+        self.assertEqual(response.templates[0].name, '403.html')
 
         # Exposed log on hidden event
         log = self.internal_event.eventlog_set.get(
@@ -936,7 +936,7 @@ class TestEventLogUntag(EventSetup, GraceDbTestBase):
             log.N, self.test_tag.name])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, 'Forbidden')
+        self.assertEqual(response.templates[0].name, '403.html')
 
     def test_lvem_user_untag_log_exposed_event(self):
         """
@@ -974,7 +974,7 @@ class TestEventLogUntag(EventSetup, GraceDbTestBase):
                     self.test_tag.name])
                 response = self.request_as_user(url, "DELETE")
                 self.assertEqual(response.status_code, 403)
-                self.assertEqual(response.content, 'Forbidden')
+                self.assertEqual(response.templates[0].name, '403.html')
 
 
 class TestEventCreateEMObservation(EventSetup, GraceDbTestBase):
@@ -1034,7 +1034,7 @@ class TestEventCreateEMObservation(EventSetup, GraceDbTestBase):
 
         # Check response and content
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, 'Forbidden')
+        self.assertEqual(response.templates[0].name, '403.html')
 
     def test_lvem_user_create_emobservation_exposed_event(self):
         """LV-EM user can create emobservation for exposed event"""

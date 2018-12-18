@@ -75,11 +75,8 @@ def event_and_auth_required(view):
         # maps to 'view', and unsafe methods map to 'CHANGE'
         if request.method=='GET':
             if not user_has_perm(request.user, 'view', event):
-                msg = ('You do not have permission to view this event. '
-                    'If you think you should be able to view it, make sure '
-                    'you are logged in.')
-                return render(request, '403.html', status=403,
-                    context={'graceid': graceid, 'message': msg})
+                return render(request, 'gracedb/403.html', status=403,
+                    context={'graceid': graceid})
         elif request.method in ['POST', 'DELETE']:                
             if not user_has_perm(request.user, 'change', event):
                 raise PermissionDenied

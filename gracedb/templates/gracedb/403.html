@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}403 &ndash; Forbidden{% endblock %}
+{% block heading %}Forbidden {{ graceid }}{% endblock %}
+
+{% block content %}
+    <p>
+    You do not have permission to view event {{ graceid }} or the related data.
+    If you think that you should be able to view it, make sure you are logged in.
+    </p>
+{% endblock %}
