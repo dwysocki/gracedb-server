@@ -192,17 +192,33 @@ class TestGraceDbX509Authentication(GraceDbApiTestBase):
         """User can authenticate to API with proxied X509 certificate"""
         # Set up request
         request = self.factory.get(api_reverse('api:root'))
-        #request.META[GraceDbX509Authentication.subject_dn_header] = \
-        #    '/CN=123' + self.x509_subject
-        #request.META[GraceDbX509Authentication.issuer_dn_header] = \
-        #    '/CN=123'
+        request.META[GraceDbX509Authentication.subject_dn_header] = \
+            self.x509_subject + '/CN=123456789'
+        request.META[GraceDbX509Authentication.issuer_dn_header] = \
+            self.x509_subject
 
         # Authentication attempt
-        #user, other = self.backend_instance.authenticate(request)
+        user, other = self.backend_instance.authenticate(request)
 
         # Check authenticated user
-        #self.assertEqual(user, self.internal_user)
+        self.assertEqual(user, self.internal_user)
 
+    def test_authenticate_cert_with_double_proxy(self):
+        """User can authenticate to API with double-proxied X509 certificate"""
+        proxied_x509_subject = self.x509_subject + '/CN=123456789'
+
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+        request.META[GraceDbX509Authentication.subject_dn_header] = \
+            proxied_x509_subject + '/CN=987654321'
+        request.META[GraceDbX509Authentication.issuer_dn_header] = \
+            proxied_x509_subject
+
+        # Authentication attempt
+        user, other = self.backend_instance.authenticate(request)
+
+        # Check authenticated user
+        self.assertEqual(user, self.internal_user)
 
 class TestGraceDbAuthenticatedAuthentication(GraceDbApiTestBase):
     """Test shibboleth auth backend for API"""

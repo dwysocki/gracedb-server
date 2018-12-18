@@ -71,7 +71,6 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
     proxy_pattern = re.compile(r'^(.*?)(/CN=\d+)*$')
 
     def authenticate(self, request):
-
         # Make sure this request is directed to the API
         if self.api_only and not is_api_request(request.path):
             return None
@@ -97,13 +96,45 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
         certdn = request.META.get(cls.subject_dn_header, None)
         issuer = request.META.get(cls.issuer_dn_header, '')
 
-        # Proxies can be signed by proxies; each level adds '/CN=[0-9]+' to the
-        # signers' subject, so we remove those to get the original identity's
-        # certificate DN
-        if certdn and issuer and certdn.startswith(issuer):
-            certdn = cls.proxy_pattern.match(issuer).group(1)
+        # Handled proxied certificates
+        certdn = cls.extract_subject_from_proxied_cert(certdn, issuer)
 
         return certdn
+
+    @classmethod
+    def extract_subject_from_proxied_cert(cls, subject, issuer):
+        """
+        Handles the case of "impersonation proxies", where /CN=[0-9]+ is
+        appended to the end of the certificate subject. This occurs when you
+        generate a certificate and it "follows" you to another machine - you
+        effectively self-sign a copy of the certificate to use on the other
+        machine.
+
+        Example:
+
+        Albert generates a certificate with ligo-proxy-init on his laptop.
+
+        Subject and issuer when he pings the GraceDB server from his laptop:
+        /DC=org/DC=cilogon/C=US/O=LIGO/CN=Albert Einstein albert.einstein@ligo.org
+        /DC=org/DC=cilogon/C=US/O=CILogon/CN=CILogon Basic CA 1
+
+        Subject and issuer when he gsisshs to an LDG cluster and then pings the
+        GraceDB server from there:
+        /DC=org/DC=cilogon/C=US/O=LIGO/CN=Albert Einstein albert.einstein@ligo.org/CN=1492637212
+        /DC=org/DC=cilogon/C=US/O=LIGO/CN=Albert Einstein albert.einstein@ligo.org
+
+        If he then gsisshs to *another* machine from there and repeats this,
+        he would get:
+        /DC=org/DC=cilogon/C=US/O=LIGO/CN=Albert Einstein albert.einstein@ligo.org/CN=1492637212/CN=28732493
+        /DC=org/DC=cilogon/C=US/O=LIGO/CN=Albert Einstein albert.einstein@ligo.org/CN=1492637212
+        """
+        if subject and issuer and subject.startswith(issuer):
+            # If we get here, we have an impersonation proxy, so we extract
+            # the proxy /CN=12345... part from the subject.  Could also
+            # do it from the issuer (see above examples)
+            subject = cls.proxy_pattern.match(subject).group(1)
+
+        return subject
 
     def authenticate_credentials(self, user_cert_dn):
         certs = X509Cert.objects.filter(subject=user_cert_dn)
