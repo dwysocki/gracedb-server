@@ -24,7 +24,6 @@ RUN apt-get install --install-recommends --assume-yes \
         python2.7 \
         python2.7-dev \
         python-glue \
-        python-matplotlib \
         python-pip \
         python-voeventlib \
         procps \

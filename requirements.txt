@@ -16,6 +16,7 @@ ipython==5.5.0
 ligo-lvalert==1.5.4
 ligo-lvalert-overseer==0.1.2
 lxml==4.2.0
+matplotlib==2.0.0
 mock==2.0.0
 mysql-python==1.2.5
 packaging==17.1
