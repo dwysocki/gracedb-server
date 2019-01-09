@@ -133,7 +133,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
                 'GW'),
             ('confirm_gw_mdc_superevent', 'Can confirm MDC superevent as GW'),
             ('annotate_superevent', 'Can add log messages and '
-                'EM observation data to uperevent'),
+                'EM observation data to superevent'),
             ('expose_superevent', 'Can expose a superevent to be viewed by '
                 'external users'),
             ('hide_superevent', 'Can hide a superevent from external users'),
