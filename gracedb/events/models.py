@@ -843,8 +843,8 @@ class SimInspiralEvent(Event):
     eff_dist_t           = models.FloatField(null=True)
     eff_dist_v           = models.FloatField(null=True)
     # Additional desired attributes that are not in the SimInspiral table
-    source_channel       = models.CharField(max_length=50, blank=True, default="")
-    destination_channel  = models.CharField(max_length=50, blank=True, default="")
+    source_channel       = models.CharField(max_length=50, blank=True, default="", null=True)
+    destination_channel  = models.CharField(max_length=50, blank=True, default="", null=True)
 
     @classmethod
     def field_names(cls):

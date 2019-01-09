@@ -12,73 +12,73 @@
 <!-- there are 59 total attributes. Let's split into two tables. -->
 
 <div style="display:table-cell;float:left;width:50%;">
-<table> 
-    <tr> <th> Source Channel </th> <td> {{object.source_channel}} </td> </tr>
-    <tr> <th> Destination Channel </th> <td> {{object.destination_channel}} </td> </tr> 
-    <tr> <th> mass1 </th> <td> {{object.mass1|floatformat:"-4"}} </td> </tr>
-    <tr> <th> mass2 </th> <td> {{object.mass2|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> eta </th> <td> {{object.eta|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> mchirp </th> <td> {{object.mchirp|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> amp_order </th> <td> {{object.amp_order|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> coa_phase </th> <td> {{object.coa_phase|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> spin1x </th> <td> {{object.spin1x|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> spin1y </th> <td> {{object.spin1y|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> spin1z </th> <td> {{object.spin1z|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> spin2x </th> <td> {{object.spin2x|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> spin2y </th> <td> {{object.spin2y|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> spin2z </th> <td> {{object.spin2z|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> geocent_end_time </th> <td> {{object.geocent_end_time}} </td> </tr> 
-    <tr> <th> geocent_end_time_ns </th> <td> {{object.geocent_end_time_ns}} </td> </tr> 
-    <tr> <th> end_time_gmst </th> <td> {{object.end_time_gmst}} </td> </tr> 
-    <tr> <th> f_lower </th> <td> {{object.f_lower|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> f_final </th> <td> {{object.f_final|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> distance </th> <td> {{object.distance|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> latitude </th> <td> {{object.latitude|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> longitude </th> <td> {{object.longitude|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> polarization </th> <td> {{object.polarization|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> inclination </th> <td> {{object.inclination|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> theta0 </th> <td> {{object.theta0|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> phi0 </th> <td> {{object.phi0|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> waveform </th> <td> {{object.waveform}} </td> </tr> 
-    <tr> <th> numrel_mode_min </th> <td> {{object.numrel_mode_min}} </td> </tr> 
-    <tr> <th> numrel_mode_max </th> <td> {{object.numrel_mode_max}} </td> </tr> 
+<table>
+    <tr> <th> Source Channel </th> <td> {% if object.source_channel != None %} {{ object.source_channel }} {% endif %} </td> </tr>
+    <tr> <th> Destination Channel </th> <td> {% if object.destination_channel != None %} {{ object.destination_channel }} {% endif %} </td> </tr>
+    <tr> <th> mass1 </th> <td> {% if object.mass1 != None %} {{ object.mass1|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> mass2 </th> <td> {% if object.mass2 != None %} {{ object.mass2|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> eta </th> <td> {% if object.eta != None %} {{ object.eta|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> mchirp </th> <td> {% if object.mchirp != None %} {{ object.mchirp|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> amp_order </th> <td> {% if object.amp_order != None %} {{ object.amp_order|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> coa_phase </th> <td> {% if object.coa_phase != None %} {{ object.coa_phase|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> spin1x </th> <td> {% if object.spin1x != None %} {{ object.spin1x|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> spin1y </th> <td> {% if object.spin1y != None %} {{ object.spin1y|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> spin1z </th> <td> {% if object.spin1z != None %} {{ object.spin1z|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> spin2x </th> <td> {% if object.spin2x != None %} {{ object.spin2x|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> spin2y </th> <td> {% if object.spin2y != None %} {{ object.spin2y|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> spin2z </th> <td> {% if object.spin2z != None %} {{ object.spin2z|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> geocent_end_time </th> <td> {% if object.geocent_end_time != None %} {{ object.geocent_end_time }} {% endif %} </td> </tr>
+    <tr> <th> geocent_end_time_ns </th> <td> {% if object.geocent_end_time_ns != None %} {{ object.geocent_end_time_ns }} {% endif %} </td> </tr>
+    <tr> <th> end_time_gmst </th> <td> {% if object.end_time_gmst != None %} {{ object.end_time_gmst }} {% endif %} </td> </tr>
+    <tr> <th> f_lower </th> <td> {% if object.f_lower != None %} {{ object.f_lower|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> f_final </th> <td> {% if object.f_final != None %} {{ object.f_final|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> distance </th> <td> {% if object.distance != None %} {{ object.distance|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> latitude </th> <td> {% if object.latitude != None %} {{ object.latitude|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> longitude </th> <td> {% if object.longitude != None %} {{ object.longitude|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> polarization </th> <td> {% if object.polarization != None %} {{ object.polarization|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> inclination </th> <td> {% if object.inclination != None %} {{ object.inclination|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> theta0 </th> <td> {% if object.theta0 != None %} {{ object.theta0|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> phi0 </th> <td> {% if object.phi0 != None %} {{ object.phi0|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> waveform </th> <td> {% if object.waveform != None %} {{ object.waveform }} {% endif %} </td> </tr>
+    <tr> <th> numrel_mode_min </th> <td> {% if object.numrel_mode_min != None %} {{ object.numrel_mode_min }} {% endif %} </td> </tr>
+    <tr> <th> numrel_mode_max </th> <td> {% if object.numrel_mode_max != None %} {{ object.numrel_mode_max }} {% endif %} </td> </tr>
 </table>
 </div>
 
 <div style="display:table-cell;float:right;width:50%">
 
 <table>
-    <tr> <th> numrel_data </th> <td> {{object.numrel_data}} </td> </tr> 
-    <tr> <th> source </th> <td> {{object.source}} </td> </tr> 
-    <tr> <th> taper </th> <td> {{object.taper}} </td> </tr> 
-    <tr> <th> bandpass </th> <td> {{object.bandpass}} </td> </tr> 
-    <tr> <th> alpha </th> <td> {{object.alpha|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> beta </th> <td> {{object.beta|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> psi0 </th> <td> {{object.psi0|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> psi3 </th> <td> {{object.psi3|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> alpha1 </th> <td> {{object.alpha1|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> alpha2 </th> <td> {{object.alpha2|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> alpha3 </th> <td> {{object.alpha3|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> alpha4 </th> <td> {{object.alpha4|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> alpha5 </th> <td> {{object.alpha5|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> alpha6 </th> <td> {{object.alpha6|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> g_end_time </th> <td> {{object.g_end_time}} </td> </tr> 
-    <tr> <th> g_end_time_ns </th> <td> {{object.g_end_time_ns}} </td> </tr> 
-    <tr> <th> h_end_time </th> <td> {{object.h_end_time}} </td> </tr> 
-    <tr> <th> h_end_time_ns </th> <td> {{object.h_end_time_ns}} </td> </tr> 
-    <tr> <th> l_end_time </th> <td> {{object.l_end_time}} </td> </tr> 
-    <tr> <th> l_end_time_ns </th> <td> {{object.l_end_time_ns}} </td> </tr> 
-    <tr> <th> t_end_time </th> <td> {{object.t_end_time}} </td> </tr> 
-    <tr> <th> t_end_time_ns </th> <td> {{object.t_end_time_ns}} </td> </tr> 
-    <tr> <th> v_end_time </th> <td> {{object.v_end_time}} </td> </tr> 
-    <tr> <th> v_end_time_ns </th> <td> {{object.v_end_time_ns}} </td> </tr> 
-    <tr> <th> eff_dist_g </th> <td> {{object.eff_dist_g|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> eff_dist_h </th> <td> {{object.eff_dist_h|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> eff_dist_l </th> <td> {{object.eff_dist_l|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> eff_dist_t </th> <td> {{object.eff_dist_t|floatformat:"-4"}} </td> </tr> 
-    <tr> <th> eff_dist_v </th> <td> {{object.eff_dist_v|floatformat:"-4"}} </td> </tr> 
+    <tr> <th> numrel_data </th> <td> {% if object.numrel_data != None %} {{ object.numrel_data }} {% endif %} </td> </tr>
+    <tr> <th> source </th> <td> {% if object.source != None %} {{ object.source }} {% endif %} </td> </tr>
+    <tr> <th> taper </th> <td> {% if object.taper != None %} {{ object.taper }} {% endif %} </td> </tr>
+    <tr> <th> bandpass </th> <td> {% if object.bandpass != None %} {{ object.bandpass }} {% endif %} </td> </tr>
+    <tr> <th> alpha </th> <td> {% if object.alpha != None %} {{ object.alpha|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> beta </th> <td> {% if object.beta != None %} {{ object.beta|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> psi0 </th> <td> {% if object.psi0 != None %} {{ object.psi0|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> psi3 </th> <td> {% if object.psi3 != None %} {{ object.psi3|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> alpha1 </th> <td> {% if object.alpha1 != None %} {{ object.alpha1|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> alpha2 </th> <td> {% if object.alpha2 != None %} {{ object.alpha2|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> alpha3 </th> <td> {% if object.alpha3 != None %} {{ object.alpha3|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> alpha4 </th> <td> {% if object.alpha4 != None %} {{ object.alpha4|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> alpha5 </th> <td> {% if object.alpha5 != None %} {{ object.alpha5|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> alpha6 </th> <td> {% if object.alpha6 != None %} {{ object.alpha6|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> g_end_time </th> <td> {% if object.g_end_time != None %} {{ object.g_end_time }} {% endif %} </td> </tr>
+    <tr> <th> g_end_time_ns </th> <td> {% if object.g_end_time_ns != None %} {{ object.g_end_time_ns }} {% endif %} </td> </tr>
+    <tr> <th> h_end_time </th> <td> {% if object.h_end_time != None %} {{ object.h_end_time }} {% endif %} </td> </tr>
+    <tr> <th> h_end_time_ns </th> <td> {% if object.h_end_time_ns != None %} {{ object.h_end_time_ns }} {% endif %} </td> </tr>
+    <tr> <th> l_end_time </th> <td> {% if object.l_end_time != None %} {{ object.l_end_time }} {% endif %} </td> </tr>
+    <tr> <th> l_end_time_ns </th> <td> {% if object.l_end_time_ns != None %} {{ object.l_end_time_ns }} {% endif %} </td> </tr>
+    <tr> <th> t_end_time </th> <td> {% if object.t_end_time != None %} {{ object.t_end_time }} {% endif %} </td> </tr>
+    <tr> <th> t_end_time_ns </th> <td> {% if object.t_end_time_ns != None %} {{ object.t_end_time_ns }} {% endif %} </td> </tr>
+    <tr> <th> v_end_time </th> <td> {% if object.v_end_time != None %} {{ object.v_end_time }} {% endif %} </td> </tr>
+    <tr> <th> v_end_time_ns </th> <td> {% if object.v_end_time_ns != None %} {{ object.v_end_time_ns }} {% endif %} </td> </tr>
+    <tr> <th> eff_dist_g </th> <td> {% if object.eff_dist_g != None %} {{ object.eff_dist_g|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> eff_dist_h </th> <td> {% if object.eff_dist_h != None %} {{ object.eff_dist_h|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> eff_dist_l </th> <td> {% if object.eff_dist_l != None %} {{ object.eff_dist_l|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> eff_dist_t </th> <td> {% if object.eff_dist_t != None %} {{ object.eff_dist_t|floatformat:"-4" }} {% endif %} </td> </tr>
+    <tr> <th> eff_dist_v </th> <td> {% if object.eff_dist_v != None %} {{ object.eff_dist_v|floatformat:"-4" }} {% endif %} </td> </tr>
 </table>
-</div> 
+</div>
 
 </div>
 </div> <!-- container -->

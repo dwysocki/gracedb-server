@@ -78,7 +78,8 @@ def _createEventFromForm(request, form):
         if pipeline.name in ['HardwareInjection',]:
             event.source_channel = request.POST.get('source_channel', None)
             event.destination_channel = request.POST.get('destination_channel', None)
-            event.instruments = request.POST.get('instrument', None)
+            event.instruments = request.POST.get('instrument',
+                request.POST.get('instruments', None))
 
         #  ARGH.  We don't get a graceid until we save,
         #  but we don't know in advance if we can actually
@@ -99,31 +100,23 @@ def _createEventFromForm(request, form):
         event.refresh_perms()
 
         # Create data directory/directories
-        #    Save uploaded file.
-        # Write the event data file to disk. 
+        eventDir = event.datadir
+        os.makedirs(eventDir)
 
-        # But there are way too many hardware injections to save them to disk
-
+        # Write the event data file to disk.
         f = request.FILES['eventFile']
-        if pipeline.name not in ['HardwareInjection',]:
-            eventDir = event.datadir
-            os.makedirs( eventDir )
-            uploadDestination = os.path.join(eventDir, f.name)
-            fdest = VersionedFile(uploadDestination, 'w')
-            for chunk in f.chunks():
-                fdest.write(chunk)
-            fdest.close()
-            file_contents = None
-        else:
-            uploadDestination = None
-            file_contents = f.read()
-        # Create WIKI page
+        uploadDestination = os.path.join(eventDir, f.name)
+        fdest = VersionedFile(uploadDestination, 'w')
+        for chunk in f.chunks():
+            fdest.write(chunk)
+        fdest.close()
+        file_contents = None
 
         # Extract Info from uploaded data
         # Temp (ha!) hack to deal with
         # out of band data from Omega to LUMIN.
         try:
-            temp_data_loc, translator_warnings  = handle_uploaded_data(event, uploadDestination, 
+            temp_data_loc, translator_warnings = handle_uploaded_data(event, uploadDestination, 
                 file_contents = file_contents)
             warnings += translator_warnings
 
