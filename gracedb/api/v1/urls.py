@@ -2,13 +2,16 @@ from __future__ import absolute_import
 
 from django.conf.urls import url, include
 
-from .main.views import GracedbRoot, PerformanceInfo, TagList
+from .main.views import GracedbRoot, PerformanceInfo, TagList, UserInfoView
 
 
 urlpatterns = [
     # Root level API resources ------------------------------------------------
     # API root
     url(r'^$', GracedbRoot.as_view(), name="root"),
+
+    # User information
+    url(r'^user-info/', UserInfoView.as_view(), name='user-info'),
 
     # Tags
     url(r'^tag/', TagList.as_view(), name='tag-list'),

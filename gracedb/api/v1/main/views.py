@@ -4,6 +4,7 @@ from __future__ import absolute_import
 import logging
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as AuthGroup
 from django.http import HttpResponse, HttpResponseForbidden
 
@@ -13,14 +14,19 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse as drf_reverse
 from rest_framework.settings import api_settings
 from rest_framework.views import APIView
+from rest_framework.generics import RetrieveAPIView
 
 from api.utils import api_reverse
 from events.models import Group, Pipeline, Search, Tag, Label, EMGroup, \
     VOEvent, EMBBEventLog, EMSPECTRUM, SignoffBase
 from events.view_logic import get_performance_info
 from superevents.models import Superevent
+from .serializers import UserSerializer
 from ..mixins import InheritDefaultPermissionsMixin
 from ..superevents.url_templates import construct_url_templates
+
+# Set up user model
+UserModel = get_user_model()
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -123,6 +129,7 @@ class GracedbRoot(APIView):
                 "events"      : api_reverse("events:event-list", request=request),
                 "self"        : api_reverse("root", request=request),
                 "performance" : api_reverse("performance-info", request=request),
+                "user-info": api_reverse("user-info", request=request),
                 },
             "templates" : templates,
             "groups"    : [group.name for group in Group.objects.all()],
@@ -172,3 +179,23 @@ class PerformanceInfo(InheritDefaultPermissionsMixin, APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(performance_info, status=status.HTTP_200_OK)
+
+
+class UserInfoView(RetrieveAPIView):
+    serializer_class = UserSerializer
+
+    #def get_serializer_class(self):
+    #    # Override so we can use custom behavior for unauthenticated users
+    #    if self.request.user.is_anonymous():
+    #        return AnonymousUserSerializer
+    #    else:
+    #        return self.serializer_class
+
+    def retrieve(self, request, *args, **kwargs):
+        if request.user.is_anonymous():
+            output = {'username': 'AnonymousUser'}
+        else:
+            instance = request.user
+            serializer = self.get_serializer(instance)
+            output = serializer.data
+        return Response(output)
