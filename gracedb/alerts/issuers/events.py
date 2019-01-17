@@ -11,7 +11,7 @@ from events.view_utils import eventToDict, eventLogToDict, signoffToDict, \
     emObservationToDict, embbEventLogToDict, groupeventpermissionToDict, \
     labelToDict, voeventToDict
 from ..main import issue_alerts
-from ..utils import AlertIssuerWithParentObject
+from .base import AlertIssuerWithParentObject
 
 # Set up logger
 logger = logging.getLogger(__name__)

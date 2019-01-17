@@ -16,7 +16,7 @@ from .view_utils import eventToDict, eventLogToDict, emObservationToDict, \
     labelToDict
 from .permission_utils import assign_default_event_perms
 
-from alerts.events.utils import EventAlertIssuer, EventLabelAlertIssuer, \
+from alerts.issuers.events import EventAlertIssuer, EventLabelAlertIssuer, \
     EventEMObservationAlertIssuer, EventEMBBEventLogAlertIssuer
 from core.vfile import VersionedFile
 

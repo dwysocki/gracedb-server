@@ -32,7 +32,7 @@ from rest_framework.renderers import BaseRenderer, JSONRenderer, \
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from alerts.events.utils import EventAlertIssuer, EventLogAlertIssuer, \
+from alerts.issuers.events import EventAlertIssuer, EventLogAlertIssuer, \
     EventVOEventAlertIssuer, EventPermissionsAlertIssuer
 from api.throttling import BurstAnonRateThrottle
 from core.http import check_and_serve_file

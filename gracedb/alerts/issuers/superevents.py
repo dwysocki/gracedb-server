@@ -3,7 +3,7 @@ from api.v1.superevents.serializers import SupereventSerializer, \
     SupereventVOEventSerializer, SupereventEMObservationSerializer, \
     SupereventSignoffSerializer, SupereventGroupObjectPermissionSerializer
 from ..main import issue_alerts
-from ..utils import AlertIssuerWithParentObject
+from .base import AlertIssuerWithParentObject
 
 
 class AlertIssuerWithParentSuperevent(AlertIssuerWithParentObject):

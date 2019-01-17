@@ -31,7 +31,7 @@ from .view_utils import get_file
 from .view_utils import get_recent_events_string
 from .view_utils import eventLogToDict
 from .view_utils import signoffToDict
-from alerts.events.utils import EventAlertIssuer, EventLogAlertIssuer, \
+from alerts.issuers.events import EventAlertIssuer, EventLogAlertIssuer, \
     EventSignoffAlertIssuer, EventPermissionsAlertIssuer
 from superevents.models import Superevent
 
