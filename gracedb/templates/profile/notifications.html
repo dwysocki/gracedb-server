@@ -49,11 +49,11 @@
 <br/><br/>
 
 <h2>Notifications (LVC Users)</h2>
-{% for trigger in triggers %}
+{% for notification in notifications %}
    <ul>
      <li> 
-        <a href="{% url "userprofile-delete" trigger.id %}">Delete</a>
-        {{ trigger.userlessDisplay }}
+        <a href="{% url "userprofile-delete" notification.id %}">Delete</a>
+        {{ notification.userlessDisplay }}
      </li>
    </ul>
 {% endfor %}

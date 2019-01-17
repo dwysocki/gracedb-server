@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand, CommandError
 
-from alerts.models import Contact, Trigger
+from alerts.models import Contact, Notification
 
 
 class Command(BaseCommand):
@@ -18,19 +18,20 @@ class Command(BaseCommand):
         verbose = not options['quiet']
 
         if verbose:
-            self.stdout.write(('Checking inactive users\' triggers and '
+            self.stdout.write(('Checking inactive users\' notifications and '
                 'contacts at {0}').format(datetime.datetime.utcnow()))
 
-        # Get contacts and triggers whose user is no longer in the LVC
+        # Get contacts and notifications whose user is no longer in the LVC
         lvc = Group.objects.get(name=settings.LVC_GROUP)
-        triggers = Trigger.objects.exclude(user__groups=lvc)
+        notifications = Notification.objects.exclude(user__groups=lvc)
         contacts = Contact.objects.exclude(user__groups=lvc)
 
         # Generate log message
         if verbose:
-            if triggers.exists():
-                t_log_msg = "Deleting {0} triggers: ".format(triggers.count())\
-                    + " | ".join([t.__str__() for t in triggers])
+            if notifications.exists():
+                t_log_msg = "Deleting {0} notifications: ".format(
+                    notifications.count()) + " | ".join([t.__str__()
+                    for t in notifications])
                 self.stdout.write(t_log_msg)
             if contacts.exists():
                 c_log_msg = "Deleting {0} contacts: ".format(contacts.count())\
@@ -38,5 +39,5 @@ class Command(BaseCommand):
                 self.stdout.write(c_log_msg)
 
         # Delete
-        triggers.delete()
+        notifications.delete()
         contacts.delete()

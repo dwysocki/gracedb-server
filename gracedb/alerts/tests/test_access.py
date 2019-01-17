@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group as AuthGroup
 from django.urls import reverse
 
 from core.tests.utils import GraceDbTestBase
-from alerts.models import Contact, Trigger
+from alerts.models import Contact, Notification
 
 
 class TestIndexView(GraceDbTestBase):
@@ -192,16 +192,16 @@ class TestNotificationDeleteView(GraceDbTestBase):
     def setUpTestData(cls):
         super(TestNotificationDeleteView, cls).setUpTestData()
 
-        # Create a contact and a trigger (notification)
+        # Create a contact and a notification
         cls.contact = Contact.objects.create(user=cls.internal_user,
             desc='test contact', email='test@test.com')
-        cls.notification = Trigger.objects.create(user=cls.internal_user)
+        cls.notification = Notification.objects.create(user=cls.internal_user)
         cls.notification.contacts.add(cls.contact)
 
-        # Create another contact and trigger (notification)
+        # Create another contact and notification
         cls.other_contact = Contact.objects.create(user=cls.lvem_user,
             desc='test contact', email='test@test.com')
-        cls.other_notification = Trigger.objects.create(user=cls.lvem_user)
+        cls.other_notification = Notification.objects.create(user=cls.lvem_user)
         cls.other_notification.contacts.add(cls.other_contact)
 
     def test_internal_user_delete(self):
@@ -228,14 +228,14 @@ class TestNotificationDeleteView(GraceDbTestBase):
 
     def test_lvem_user_delete(self):
         """LV-EM user can't delete notifications"""
-        for t in Trigger.objects.all():
+        for t in Notification.objects.all():
             url = reverse('userprofile-delete', args=[t.id])
             response = self.request_as_user(url, "GET", self.lvem_user)
             self.assertEqual(response.status_code, 403)
 
     def test_public_user_delete(self):
         """Public user can't get delete notifications"""
-        for t in Trigger.objects.all():
+        for t in Notification.objects.all():
             url = reverse('userprofile-delete', args=[t.id])
             response = self.request_as_user(url, "GET")
             self.assertEqual(response.status_code, 403)

@@ -21,8 +21,8 @@ import socket
 import logging
 log = logging.getLogger(__name__)
 
-from .models import Trigger, Contact
-from .forms import ContactForm, triggerFormFactory
+from .models import Notification, Contact
+from .forms import ContactForm, notificationFormFactory
 from alerts.phone import get_twilio_from
 from events.permission_utils import internal_user_required, \
     lvem_user_required, is_external
@@ -34,9 +34,9 @@ from search.query.labels import labelQuery
 #@internal_user_required
 @login_required
 def index(request):
-    triggers = Trigger.objects.filter(user=request.user)
+    notifications = Notification.objects.filter(user=request.user)
     contacts = Contact.objects.filter(user=request.user)
-    d = { 'triggers': triggers, 'contacts': contacts }
+    d = { 'notifications': notifications, 'contacts': contacts }
 
     return render(request, 'profile/notifications.html', context=d)
 
@@ -78,21 +78,21 @@ def managePassword(request):
 
 @internal_user_required
 def create(request):
-    """Create a notification (Trigger) via the web interface"""
+    """Create a notification (Notification) via the web interface"""
 
     if request.method == "POST":
-        form = triggerFormFactory(request.POST, user=request.user)
+        form = notificationFormFactory(request.POST, user=request.user)
         if form.is_valid():
-            # Create the Trigger
-            t = Trigger(user=request.user)
+            # Create the Notification
+            t = Notification(user=request.user)
             labels = form.cleaned_data['labels']
             pipelines = form.cleaned_data['pipelines']
             contacts = form.cleaned_data['contacts']
-            farThresh = form.cleaned_data['farThresh']
+            far_threshold = form.cleaned_data['far_threshold']
             label_query = form.cleaned_data['label_query']
 
             # TODO: properly handle negated labels
-            # If we've got a label query defined for this trigger, then we want
+            # If we've got a label query defined for this notification, then we want
             # each label mentioned in the query to be listed in the event's
             # labels. It would be smarter to make sure the label isn't being
             # negated, but we can just leave that for later.
@@ -119,7 +119,7 @@ def create(request):
                 t.labels = labels
                 t.pipelines = pipelines
                 t.contacts = contacts
-                t.farThresh = farThresh
+                t.far_threshold = far_threshold
                 t.label_query = label_query
                 t.save()
                 messages.info(request, 'Created notification: {n}.'.format(
@@ -131,7 +131,7 @@ def create(request):
 
             return HttpResponseRedirect(reverse(index))
     else:
-        form = triggerFormFactory(user=request.user)
+        form = notificationFormFactory(user=request.user)
     return render(request, 'profile/createNotification.html',
         context={"form": form})
 
@@ -142,8 +142,8 @@ def edit(request, id):
 @internal_user_required
 def delete(request, id):
     try:
-        t = Trigger.objects.get(id=id)
-    except Trigger.DoesNotExist:
+        t = Notification.objects.get(id=id)
+    except Notification.DoesNotExist:
         raise Http404
     if request.user != t.user:
         return HttpResponseForbidden(("You are not allowed to modify another "

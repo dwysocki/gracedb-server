@@ -170,12 +170,12 @@ On the new server, as yourself, import the database using the ``gracedb`` user's
 
 Note that files related to the events aren't part of the database and won't exist on the new server unless you copy them over, too (see :ref:`copying_event_data` for more information).
 
-Next, become the ``gracedb`` user, enter the Django manager shell, and delete all Contacts and Triggers so that people don't get phone or email alerts from this instance without signing up for them::
+Next, become the ``gracedb`` user, enter the Django manager shell, and delete all Contacts and Notifications so that people don't get phone or email alerts from this instance without signing up for them::
 
-    from userprofile.models import Contact, Trigger
-    for c in Contacts.objects.iterator():
+    from alerts.models import Contact, Notification
+    for c in Contact.objects.iterator():
         c.delete()
-    for t in Trigger.objects.iterator():
+    for t in Notification.objects.iterator():
         t.delete()
 
 You might want to delete the Events, too, especially if you copy the production database.

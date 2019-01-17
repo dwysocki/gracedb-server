@@ -1,17 +1,14 @@
-
-from .models import Contact, Trigger
-
 from django.contrib import admin
+
+from .models import Contact, Notification
+
 
 class ContactManager(admin.ModelAdmin):
     pass
-#   list_display = [ 'user', 'desc' ]
 
-class TriggerManager(admin.ModelAdmin):
+class NotificationManager(admin.ModelAdmin):
     pass
-#   exclude = [ 'labels' ]
-#   list_display = [ 'user', ]
 
 admin.site.register(Contact, ContactManager)
-admin.site.register(Trigger, TriggerManager)
+admin.site.register(Notification, NotificationManager)
 

@@ -181,6 +181,6 @@ See :ref:`sql_tips` for how to do this.
 
 A few things that you may want to do after copying the database, but before beginning your debugging:
 
-* Turn off phone alerts! Obviously the Contact and Trigger instances are part of the database you just copied and will trigger and annoy people if you submit events for testing.  The easiest solution is probably to just delete all of the Contact and/or Trigger objects (in the copied database) through the Django shell.
+* Turn off phone alerts! Obviously the Contact and Notification instances are part of the database you just copied and will trigger and annoy people if you submit events for testing.  The easiest solution is probably to just delete all of the Contact and/or Notification objects (in the copied database) through the Django shell.
 * You may want to turn off XMPP alerts just to be safe.
 

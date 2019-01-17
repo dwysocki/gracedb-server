@@ -34,15 +34,15 @@ def get_alert_recips(event_or_superevent):
         pass
     elif is_event(event_or_superevent):
         event = event_or_superevent
-        # Queryset of all triggers for this pipeline
-        triggers = event.pipeline.trigger_set.filter(labels=None)
+        # Queryset of all notifications for this pipeline
+        notifications = event.pipeline.notification_set.filter(labels=None)
         # Filter on FAR threshold requirements
-        query = Q(farThresh__isnull=True)
+        query = Q(far_threshold__isnull=True)
         if event.far:
-            query |= Q(farThresh__gt=event.far)
-        triggers = triggers.filter(query)
-        # Contacts for all triggers, make sure user is in LVC group (safeguard)
-        contacts = Contact.objects.filter(trigger__in=triggers,
+            query |= Q(far_threshold__gt=event.far)
+        notifications = notifications.filter(query)
+        # Contacts for all notifications, make sure user is in LVC group (safeguard)
+        contacts = Contact.objects.filter(notification__in=notifications,
             user__groups__name=settings.LVC_GROUP).select_related('user')
         email_recips = contacts.exclude(email="")
         phone_recips = contacts.exclude(phone="")
@@ -60,7 +60,7 @@ def get_alert_recips_for_label(event_or_superevent, label):
     qs = event_or_superevent._meta.model.objects.filter(
         pk=event_or_superevent.pk)
 
-    # Triggers on given label matching pipeline OR with no pipeline;
+    # Notifications on given label matching pipeline OR with no pipeline;
     # no pipeline indicates that pipeline is irrelevant
     if is_superevent(event_or_superevent):
         # TODO: fix this
@@ -69,26 +69,26 @@ def get_alert_recips_for_label(event_or_superevent, label):
         event = event_or_superevent
         query = Q(pipelines=event.pipeline) | Q(pipelines=None)
 
-    # Iterate over triggers found from the label query
+    # Iterate over notifications found from the label query
     # TODO: this doesn't work quite correctly since negated labels aren't
-    # properly handled in the view function which creates triggers.
-    # Example: a trigger with '~INJ' as the label_query has INJ in its labels
+    # properly handled in the view function which creates notifications.
+    # Example: a notification with '~INJ' as the label_query has INJ in its labels
     # Idea: have filter_for_labels return a Q object generated from the
     #       label query
-    triggers = label.trigger_set.filter(query).prefetch_related('contacts')
-    for trigger in triggers:
+    notifications = label.notification_set.filter(query).prefetch_related('contacts')
+    for notification in notifications:
 
-        if len(trigger.label_query) > 0:
-            qs_out = filter_for_labels(qs, trigger.label_query)
+        if len(notification.label_query) > 0:
+            qs_out = filter_for_labels(qs, notification.label_query)
 
             # If the label query cleans out our query set, we'll continue
             # without adding the recipient.
             if not qs_out.exists():
                 continue
 
-        # Compile a list of recipients from the trigger's contacts.
+        # Compile a list of recipients from the notification's contacts.
         # Require that the user is in the LVC group as a safeguard
-        contacts = trigger.contacts.filter(user__groups__name=
+        contacts = notification.contacts.filter(user__groups__name=
             settings.LVC_GROUP)
         email_recips |= contacts.exclude(email="").select_related('user')
         phone_recips |= contacts.exclude(phone="").select_related('user')

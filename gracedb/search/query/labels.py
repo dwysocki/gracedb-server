@@ -44,7 +44,7 @@ def labelQuery(s, names=False):
     label = Or([CaselessKeyword(n) for n in labelNames])
     # If the filter objects are going to be applied to Lable
     # objects to retrieve labels by name, names = True.
-    # This is useful for the label query in userprofile.models.Trigger
+    # This is useful for the label query in alerts.models.Notification
     if names:
         label.setParseAction( lambda toks: Q(name=toks[0]) )
     else:

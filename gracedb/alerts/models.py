@@ -61,16 +61,12 @@ class Contact(models.Model):
                 self.call_phone, self.text_phone))
 
 
-class Trigger(models.Model):
-    # TP 6 Jul 2017: TYPES and triggerType don't seem to be used anywhere...
-    TYPES = ( ("create", "create"), ("change","change"), ("label","label") )
-    triggerType = models.CharField(max_length=20, choices=TYPES, blank=True)
-
+class Notification(models.Model):
     user = models.ForeignKey(UserModel, null=False)
     labels = models.ManyToManyField(Label, blank=True)
     pipelines = models.ManyToManyField(Pipeline, blank=True)
     contacts = models.ManyToManyField(Contact, blank=False)
-    farThresh = models.FloatField(blank=True, null=True)
+    far_threshold = models.FloatField(blank=True, null=True)
     label_query = models.CharField(max_length=100, blank=True)
 
     def __unicode__(self):
@@ -81,8 +77,8 @@ class Trigger(models.Model):
 
     def userlessDisplay(self):
         thresh = ""
-        if self.farThresh:
-            thresh = " & (far < %s)" % self.farThresh
+        if self.far_threshold:
+            thresh = " & (far < %s)" % self.far_threshold
 
         if self.label_query:
             label_disp = self.label_query

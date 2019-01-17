@@ -5,7 +5,7 @@ from django.utils.html import conditional_escape
 from django.forms.utils import ErrorList
 from django.core.exceptions import NON_FIELD_ERRORS
 
-from .models import Trigger, Contact
+from .models import Notification, Contact
 from search.query.labels import parseLabelQuery
 
 from pyparsing import ParseException
@@ -13,13 +13,13 @@ from collections import defaultdict
 import logging
 log = logging.getLogger(__name__)
 
-def triggerFormFactory(postdata=None, user=None):
+def notificationFormFactory(postdata=None, user=None):
     class TF(forms.ModelForm):
-        farThresh = forms.FloatField(label='FAR Threshold (Hz)',
+        far_threshold = forms.FloatField(label='FAR Threshold (Hz)',
             required=False)
         class Meta:
-            model = Trigger
-            fields = ['contacts', 'pipelines', 'farThresh', 'labels', 'label_query']
+            model = Notification
+            fields = ['contacts', 'pipelines', 'far_threshold', 'labels', 'label_query']
             widgets = {'label_query': forms.TextInput(attrs={'size': 50})} 
 
             help_texts = {
