@@ -22,7 +22,7 @@ import logging
 log = logging.getLogger(__name__)
 
 from .models import Trigger, Contact
-from .forms import ContactForm, triggerFormFactory, TriggerForm
+from .forms import ContactForm, triggerFormFactory
 from alerts.phone import get_twilio_from
 from events.permission_utils import internal_user_required, \
     lvem_user_required, is_external

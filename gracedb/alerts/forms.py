@@ -102,13 +102,6 @@ def triggerFormFactory(postdata=None, user=None):
     else:
         return TF()
 
-# 11/29/2016 (TP): pretty sure this is deprecated in favor of
-# triggerFormFactory; may remove at a later date.
-class TriggerForm(forms.ModelForm):
-    class Meta:
-        model = Trigger
-        exclude = ['user', 'triggerType']
-
 def process_errors(err):
     """Processes and formats errors in ContactForms."""
     out_errs = []
