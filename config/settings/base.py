@@ -326,7 +326,6 @@ INSTALLED_APPS = [
     'ligoauth',
     'search',
     'superevents',
-    'userprofile',
     'rest_framework',
     'guardian',
     'django_twilio',
@@ -576,11 +575,6 @@ LOGGING = {
             'level': LOG_LEVEL,
         },
         'alerts': {
-            'handlers': ['debug_file','error_file'],
-            'propagate': True,
-            'level': LOG_LEVEL,
-        },
-        'userprofile': {
             'handlers': ['debug_file','error_file'],
             'propagate': True,
             'level': LOG_LEVEL,

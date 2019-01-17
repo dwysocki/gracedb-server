@@ -18,7 +18,7 @@ from events.permission_utils import is_external
 from events.shortcuts import is_event
 from search.query.labels import filter_for_labels
 from superevents.shortcuts import is_superevent
-from userprofile.models import Contact
+from .models import Contact
 from .email import issue_email_alerts
 from .phone import issue_phone_alerts
 from .xmpp import issue_xmpp_alerts

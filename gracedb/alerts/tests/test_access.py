@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group as AuthGroup
 from django.urls import reverse
 
 from core.tests.utils import GraceDbTestBase
-from userprofile.models import Contact, Trigger
+from alerts.models import Contact, Trigger
 
 
 class TestIndexView(GraceDbTestBase):

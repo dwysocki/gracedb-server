@@ -33,7 +33,7 @@ urlpatterns = [
         template_name='discovery.html'), name="discovery"),
     url(r'^events/', include('events.urls')),
     url(r'^superevents/', include('superevents.urls')),
-    url(r'^options/', include('userprofile.urls')),
+    url(r'^options/', include('alerts.urls')),
     url(r'^feeds/(?P<url>.*)/$', EventFeed()),
     url(r'^feeds/$', feedview, name="feeds"),
 

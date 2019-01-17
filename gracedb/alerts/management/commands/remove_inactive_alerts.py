@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand, CommandError
 
-from userprofile.models import Contact, Trigger
+from alerts.models import Contact, Trigger
 
 
 class Command(BaseCommand):
