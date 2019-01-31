@@ -1,7 +1,7 @@
 from django.conf import settings
 
-
 def LigoAuthContext(request):
+
     user_is_internal = False
     user_is_lvem = False
     if request.user:
