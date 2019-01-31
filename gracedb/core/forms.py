@@ -40,3 +40,12 @@ class ModelFormUpdateMixin(forms.ModelForm):
         for key in self.fields.keys():
             if not self.data.has_key(key) and instance_data[key]:
                 self.data[key] = instance_data[key]
+
+
+class MultipleForm(forms.Form):
+    key = None
+    key_field = forms.CharField(max_length=30, widget=forms.HiddenInput())
+
+    def __init__(self, *args, **kwargs):
+        super(MultipleForm, self).__init__(*args, **kwargs)
+        self.fields['key_field'].initial = self.key
