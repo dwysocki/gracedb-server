@@ -7,6 +7,16 @@ html, body {
   padding: 0;
 }
 
+/* style for form errors */
+ul.errorlist {
+    list-style-type: none;
+    padding-left: 0px;
+}
+ul.errorlist li {
+    color: red;
+    font-weight: bold;
+}
+
 /* div style for flash messages */
 div.flash {
     text-align: center;
