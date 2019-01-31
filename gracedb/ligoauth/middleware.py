@@ -6,8 +6,7 @@ from django.contrib import auth
 from django.contrib.auth.middleware import PersistentRemoteUserMiddleware
 from django.contrib.auth.models import Group
 from django.core.exceptions import ImproperlyConfigured
-
-from core.http import request_is_for_view
+from django.urls import reverse_lazy
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -27,12 +26,13 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
     user_header = getattr(settings, 'SHIB_USER_HEADER', 'REMOTE_USER')
     group_header = getattr(settings, 'SHIB_GROUPS_HEADER', 'isMemberOf')
     group_delimiter = ';'
+    active_url = reverse_lazy('post-login')
 
     def process_request(self, request):
 
         # This middleware should *only* be active at the post-login URL
         # where shibboleth is also active.
-        if not request_is_for_view('post-login', request):
+        if not (request.path == self.active_url):
             return
 
         # AuthenticationMiddleware is required so that request.user exists.
