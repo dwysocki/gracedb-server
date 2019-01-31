@@ -22,8 +22,8 @@ DATABASES = {
 # Set up allowed hosts
 SERVER_FQDN = socket.getfqdn()
 SERVER_HOSTNAME = INTERNAL_HOSTNAME
-ALLOWED_HOSTS += [SERVER_FQDN, '{hostname}.ligo.org'.format(
-    hostname=SERVER_HOSTNAME)]
+LIGO_FQDN = '{hostname}.ligo.org'.format(hostname=SERVER_HOSTNAME)
+ALLOWED_HOSTS += [SERVER_FQDN, LIGO_FQDN]
 
 # Email settings - dependent on server hostname and FQDN ----------------------
 EMAIL_HOST = 'localhost'

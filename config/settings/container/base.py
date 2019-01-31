@@ -29,6 +29,7 @@ if SECRET_KEY is None:
 SERVER_FQDN = os.environ.get('DJANGO_PRIMARY_FQDN', None)
 if SERVER_FQDN is None:
     raise ImproperlyConfigured('Could not get FQDN from envvars.')
+LIGO_FQDN = SERVER_FQDN
 
 # Get LVAlert server
 lvalert_server = os.environ.get('LVALERT_SERVER', None)
