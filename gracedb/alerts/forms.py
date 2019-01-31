@@ -1,17 +1,23 @@
-from django import forms
-from django.utils.safestring import mark_safe
-from django.utils.encoding import force_text
-from django.utils.html import conditional_escape
-from django.forms.utils import ErrorList
-from django.core.exceptions import NON_FIELD_ERRORS
-
-from .models import Notification, Contact
-from search.query.labels import parseLabelQuery
-
-from pyparsing import ParseException
 from collections import defaultdict
 import logging
-log = logging.getLogger(__name__)
+from pyparsing import ParseException
+
+from django import forms
+from django.core.exceptions import NON_FIELD_ERRORS
+from django.forms.utils import ErrorList
+from django.utils import timezone
+from django.utils.encoding import force_text
+from django.utils.html import conditional_escape
+from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
+
+from core.forms import MultipleForm
+from search.query.labels import parseLabelQuery
+from .models import Notification, Contact
+
+# Set up logger
+logger =  logging.getLogger(__name__)
+
 
 def notificationFormFactory(postdata=None, user=None):
     class TF(forms.ModelForm):
@@ -117,58 +123,62 @@ def process_errors(err):
 
     return "\n".join(out_errs)
 
-class ContactForm(forms.ModelForm):
-    # Adjust labels.
-    desc = forms.CharField(label='Description', required=True)
-    call_phone = forms.BooleanField(label='Call', initial=False,
-                                    required=False)
-    text_phone = forms.BooleanField(label='Text', initial=False,
-                                    required=False)
+
+class PhoneContactForm(forms.ModelForm, MultipleForm):
+    key = 'phone'
 
     class Meta:
         model = Contact
-        fields = ['desc','email','phone','call_phone','text_phone']
-        help_texts = {
-            'phone': 'Prototype service: may not be available in the future.'
-        }
+        fields = ['description', 'phone', 'phone_method', 'key_field']
 
-    # Custom generator for table format.
-    def as_table(self):
-        row_head = '<tr><th><label for="id_{0}">{1}:</label></th>'
-        row_err = '<td>{2}'
-        row_input = '<input id="id_{0}" name="{0}" type="{3}" /></td></tr>'
-        row_str = row_head + row_err + row_input
-        table_data = {}
+    def __init__(self, *args, **kwargs):
+        super(PhoneContactForm, self).__init__(*args, **kwargs)
+        self.fields['phone_method'].required = True
 
-        # Build table -----------------------------
-        # Description/email
-        for field in ['desc','email']:
-            table_data[field] = row_str.format(field,self[field].label,
-                process_errors(self[field].errors),"text")
 
-        # Phone number
-        table_data['phone'] = (row_head + row_err +
-            '<input id="id_{0}" name="{0}" type="text" />').format(
-            'phone',self['phone'].label,process_errors(self['phone'].errors))
-        # Add call/text checkboxes.
-        table_data['phone'] += '<br />'
-        table_data['phone'] += ('{1}?<input id="id_{0}" name="{0}"'
-            'type="checkbox" />&nbsp;&nbsp;'.format('call_phone',
-            self['call_phone'].label))
-        table_data['phone'] += ('{1}?<input id="id_{0}" name="{0}"'
-            'type="checkbox" />'.format('text_phone',self['text_phone'].label))
+class EmailContactForm(forms.ModelForm, MultipleForm):
+    key = 'email'
 
-        # Add phone help text.
-        table_data['phone'] += ('<br /><span class="helptext">{0}</span>'
-            '</td></tr>\n'.format(self['phone'].help_text))
+    class Meta:
+        model = Contact
+        fields = ['description', 'email', 'key_field']
 
-        # Compile table_data dict into a list.
-        td = [table_data[k] for k in ['desc','email','phone']]
 
-        # Add non-field errors to beginning.
-        nfe = self.non_field_errors()
-        if nfe:
-            td.insert(0,'<tr><td colspan="2">' \
-                + process_errors(nfe) + '</td></tr>')
+class VerifyContactForm(forms.ModelForm):
+    code = forms.CharField(required=True, label='Verification code')
 
-        return mark_safe('\n'.join(td))
+    class Meta:
+        model = Contact
+        fields = ['code']
+
+    def clean(self):
+        data = super(VerifyContactForm, self).clean()
+
+        # Already verified
+        if self.instance.verified:
+            raise forms.ValidationError(_('This contact is already verified.'))
+
+        if (self.instance.verification_code is None):
+            raise forms.ValidationError(_('No verification code has been '
+                'generated. Please request one before attempted to verify '
+                'this contact.'))
+
+        if (timezone.now() > self.instance.verification_expiration):
+            raise forms.ValidationError(_('This verification code has '
+                'expired. Please request a new one.'))
+
+        return data
+
+    def clean_code(self):
+        code = self.cleaned_data['code']
+
+        # Convert to an int
+        try:
+            code = int(code)
+        except:
+            raise forms.ValidationError(_('Incorrect verification code.'))
+
+        if (code != self.instance.verification_code):
+            raise forms.ValidationError(_('Incorrect verification code.'))
+
+        return code

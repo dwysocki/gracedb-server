@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block headcontents %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static "jquery-ui/themes/base/jquery-ui.min.css" %}" />
+{% endblock %}
+
+{% block jscript %}
+<script src="{% static "jquery/dist/jquery.min.js" %}"></script>
+<script src="{% static "jquery-ui/jquery-ui.min.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#tabs").toggle();
+    $("#tabs").tabs({active: {{ idx }}});
+});
+</script>
+{% endblock %}
+
+{% block title %}Options | Create Contact{% endblock %}
+{% block heading %}Create Contact{% endblock %}
+{% block pageid %}userprofile{% endblock %}
+
+
+
+{% block content %}
+
+<br />
+<div style="padding: 10px;">
+<h3>Instructions</h3>
+<ul>
+    <li>Choose an email or phone alert.</li>
+    <li>A description is required.</li>
+    <li>For phone alerts, choose call, text, or both.</li>
+    <li><b>IMPORTANT: after your contact is created, it must be verified before you can receive alerts. You can verify contacts on the previous page where a list of your available contacts is shown.</b></li>
+</ul>
+</div>
+
+<div id="tabs" style="min-width: 300px; max-width: 400px; display: none;">
+  <ul>
+    {% for form in forms %}
+    <li><a href="#tab-{{ forloop.counter }}">{{ form.key|title }} alert</a></li>
+    {% endfor %}
+  </ul>
+  {% for form in forms %}
+  <div id="tab-{{ forloop.counter }}">
+    <form method="POST" class="contactform">
+      <table>
+        {{ form.as_table }}
+      </table>
+      <input type="submit" value="Submit" />
+    </form>
+  </div>
+  {% endfor %}
+</div>
+
+
+{% endblock %}

@@ -1,30 +1,38 @@
-
-# Changed for Django 1.11
 from django.conf.urls import url
+
 from . import views
+
+app_name = 'alerts'
+
 
 urlpatterns = [
     # Base /options/ URL
-    url(r'^$', views.index, name="userprofile-home"),
+    url(r'^$', views.index, name="index"),
 
-    # /options/contact/
-    url(r'^contact/create$', views.createContact,
-        name="userprofile-create-contact"),
-    url(r'^contact/delete/(?P<id>[\d]+)$', views.deleteContact,
-        name="userprofile-delete-contact"),
-    url(r'^contact/test/(?P<id>[\d]+)$', views.testContact,
-        name="userprofile-test-contact"),
-    #url(r'^contact/edit/(?P<id>[\d]+)$', views.editContact,
-    #    name="userprofile-edit-contact"),
+    # Contacts
+    url(r'^contact/create/', views.CreateContactView.as_view(),
+        name='create-contact'),
+    url(r'^contact/(?P<pk>\d+)/edit/$', views.EditContactView.as_view(),
+        name="edit-contact"),
+    url(r'^contact/(?P<pk>\d+)/delete/$', views.DeleteContactView.as_view(),
+        name="delete-contact"),
+    url(r'^contact/(?P<pk>\d+)/test/$', views.TestContactView.as_view(),
+        name="test-contact"),
+    url(r'^contact/(?P<pk>\d+)/request-code/$',
+        views.RequestVerificationCodeView.as_view(),
+        name="request-verification-code"),
+    url(r'^contact/(?P<pk>\d+)/verify/$', views.VerifyContactView.as_view(),
+        name="verify-contact"),
 
-    # /options/notification/
-    url(r'^notification/create$', views.create, name="userprofile-create"),
+    # Notifications
+    url(r'^notification/create/$', views.create, name="create-notification"),
     url(r'^notification/delete/(?P<id>[\d]+)$', views.delete,
-        name="userprofile-delete"),
-    #url(r'^notification/edit/(?P<id>[\d]+)$', views.edit, name="userprofile-edit"),
+        name="delete-notification"),
+    #url(r'^notification/edit/(?P<id>[\d]+)$', views.edit,
+    #    name="edit-notification"),
 
-    # /options/manage_password
-    url(r'^manage_password$', views.managePassword,
-        name="userprofile-manage-password"),
+    # Manage password
+    url(r'^manage_password/$', views.managePassword,
+        name="manage-password"),
 
 ]

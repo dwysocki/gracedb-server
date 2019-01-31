@@ -4,6 +4,12 @@
 {% block heading %}<!-- leave heading blank -->{% endblock %}
 {% block pageid %}userprofile{% endblock %}
 
+{% load static %}
+{% block headcontents %}
+    <link rel="stylesheet" href="{% static "css/bootstrap_buttons.css" %}"></script>
+    {{ block.super }}
+{% endblock %}
+
 {% block content %}
 
 {% if messages %}
@@ -14,55 +20,74 @@
 </div>
 {% endif %}
 
-<h2>Contacts (LVC Users)</h2>
+{# Show contacts and notification to internal users only#}
+{% if user_is_internal %}
+<h2>Contacts</h2>
+{% if contacts %}
+<ul style="list-style-type: none; padding-left: 10px;">
 {% for contact in contacts %}
-    <ul>
-        <li>
-            <a href="{% url "userprofile-test-contact" contact.id %}">Test</a>
-            <a href="{% url "userprofile-delete-contact" contact.id %}">Delete</a>
-            {% comment %}
-            This next part is gross but necessary due to Django whitespace messiness.
-            {% endcomment %}
-            {{contact.desc}} |
-            {% if contact.email and contact.call_phone and contact.text_phone %}
-                Email {{contact.email}}, call/text {{contact.phone}}
-            {% elif contact.email and contact.call_phone %}
-                Email {{contact.email}}, call {{contact.phone}}
-            {% elif contact.email and contact.text_phone %}
-                Email {{contact.email}}, text {{contact.phone}}
-            {% elif contact.email %}
-                Email {{contact.email}}
-            {% elif contact.call_phone and contact.text_phone %}
+    <li style="padding-bottom: 5px;">
+        {% if contact.verified %}
+            <a class="btn btn-primary" href="{% url "alerts:test-contact" contact.id %}">Test</a>
+        {% else %}
+            <button class="btn btn-primary" disabled>Test</button>
+        {% endif %}
+        <a class="btn btn-secondary" href="{% url "alerts:edit-contact" contact.id %}">Edit</a>
+        <a class="btn btn-danger" href="{% url "alerts:delete-contact" contact.id %}">Delete</a>
+        <b>{{ contact.description }}</b> |
+        {% if contact.email %}
+            Email {{ contact.email }}
+        {% elif contact.phone %}
+            {% if contact.phone_method == 'B' %}
                 Call/text {{contact.phone}}
-            {% elif contact.call_phone %}
-                Call {{contact.phone}}
-            {% elif contact.text_phone %}
+            {% elif contact.phone_method == 'T' %}
                 Text {{contact.phone}}
-            {% else %}
-                ERROR: this contact has no contact method.
+            {% elif contact.phone_method == 'C' %}
+                Call {{contact.phone}}
             {% endif %}
-        </li>
-    </ul>
+        {% else %}
+            <b>ERROR: no contact method found.</b>
+        {% endif %}
+        <b>
+        {% if contact.verified %}
+        <div style="color: green; display: inline-block;">Verified</div>
+        {% else %}
+        <div style="color: red; display: inline-block;">Not verified</div>
+        <a class="btn btn-warning" href="{% url "alerts:verify-contact" contact.id %}">Verify</a>
+        {% endif %}
+        </b>
+    </li>
 {% endfor %}
+</ul>
+{% endif %}
 
-<a href="{% url "userprofile-create-contact" %}">Create New Contact</a>
+<a href="{% url "alerts:create-contact" %}">Create New Contact</a>
 <br/><br/>
 
-<h2>Notifications (LVC Users)</h2>
+<h2>Notifications</h2>
+{% if notifications %}
+<ul>
 {% for notification in notifications %}
-   <ul>
-     <li> 
-        <a href="{% url "userprofile-delete" notification.id %}">Delete</a>
+    <li> 
+        <a href="{% url "alerts:delete-notification" notification.id %}">Delete</a>
         {{ notification.userlessDisplay }}
-     </li>
-   </ul>
+    </li>
 {% endfor %}
+</ul>
+{% endif %}
 
-<a href="{% url "userprofile-create" %}">Create New Notification (LVC users)</a>
+<a href="{% url "alerts:create-notification" %}">Create New Notification</a>
 <br/><br/>
+{% endif %}
 
-<h2>Passwords for Scripted Access (LV-EM users)</h2>
-
-<a href="{% url "userprofile-manage-password" %}">Manage Password</a>
+{# Show password page only to LV-EM users who are not also internal #}
+{# But let the admins (superusers) see it with some additions #}
+{% if user_is_lvem and not user_is_internal or user.is_superuser %}
+    {% if user.is_superuser %}
+    <h2 style="border: 2px solid red; color: red; display: inline-block;"><b>The following section is only visible to non-internal LV-EM members. You can see it (and this message) because you are a superuser.</b></h2>
+    {% endif %}
+<h2>Passwords for Scripted Access</h2>
+<a href="{% url "alerts:manage-password" %}">Manage Password</a>
+{% endif %}
 
 {% endblock %}

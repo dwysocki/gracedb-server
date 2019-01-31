@@ -1,37 +1,46 @@
+import logging
 
-from django.contrib.auth.decorators import login_required
-from django.http import (HttpResponse, HttpResponseRedirect, 
-    HttpResponseNotFound, Http404, HttpResponseForbidden,
-    HttpResponseBadRequest)
 from django.conf import settings
-from django.urls import reverse 
-from django.core.mail import EmailMessage
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.mail import EmailMessage
+from django.db.models import Q
+from django.http import (
+    HttpResponse, HttpResponseRedirect, HttpResponseNotFound,
+    Http404, HttpResponseForbidden, HttpResponseBadRequest
+)
 from django.template import RequestContext
 from django.shortcuts import render
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.utils.http import urlencode
 from django.utils.safestring import mark_safe
-from django.db.models import Q
-
-from django.contrib import messages
+from django.views.generic.edit import FormView, DeleteView, UpdateView
+from django.views.generic.base import ContextMixin
+from django.views.generic.detail import SingleObjectMixin, DetailView
 
 from django_twilio.client import twilio_client
-import socket
-# Set up logger
-import logging
-log = logging.getLogger(__name__)
 
-from .models import Notification, Contact
-from .forms import ContactForm, notificationFormFactory
-from alerts.phone import get_twilio_from
-from events.permission_utils import internal_user_required, \
-    lvem_user_required, is_external
+from core.views import MultipleFormView
+from events.permission_utils import lvem_user_required, is_external
 from events.models import Label
+from ligoauth.decorators import internal_user_required
 from search.query.labels import labelQuery
+from .forms import (
+    PhoneContactForm, EmailContactForm, VerifyContactForm,
+    notificationFormFactory,
+)
+from .models import Notification, Contact
+from .phone import get_twilio_from
 
 
-# Let's let everybody onto the index view.
-#@internal_user_required
+# Set up logger
+logger = log = logging.getLogger(__name__)
+
+
+
 @login_required
 def index(request):
     notifications = Notification.objects.filter(user=request.user)
@@ -39,6 +48,7 @@ def index(request):
     d = { 'notifications': notifications, 'contacts': contacts }
 
     return render(request, 'profile/notifications.html', context=d)
+
 
 @lvem_user_required
 def managePassword(request):
@@ -75,6 +85,7 @@ def managePassword(request):
         d['has_password'] = False
 
     return render(request, 'profile/manage_password.html', context=d)
+
 
 @internal_user_required
 def create(request):
@@ -129,7 +140,7 @@ def create(request):
                     '{e}.').format(n=t.userlessDisplay(), e=e))
                 t.delete()
 
-            return HttpResponseRedirect(reverse(index))
+            return HttpResponseRedirect(reverse('alerts:index'))
     else:
         form = notificationFormFactory(user=request.user)
     return render(request, 'profile/createNotification.html',
@@ -151,108 +162,208 @@ def delete(request, id):
     messages.info(request,'Notification "{nname}" has been deleted.' \
         .format(nname=t.userlessDisplay()))
     t.delete()
-    return HttpResponseRedirect(reverse(index))
+    return HttpResponseRedirect(reverse('alerts:index'))
 
-#--------------
-#-- Contacts --
-#--------------
 
-@internal_user_required
-def createContact(request):
+###############################################################################
+# Contact views ###############################################################
+###############################################################################
+@method_decorator(internal_user_required, name='dispatch')
+class CreateContactView(MultipleFormView):
+    """Create a contact"""
+    template_name = 'alerts/create_contact.html'
+    success_url = reverse_lazy('alerts:index')
+    form_classes = [PhoneContactForm, EmailContactForm]
 
-    # Handle form.
-    if request.method == "POST":
-        form = ContactForm(request.POST)
-        if form.is_valid():
-            # Create the Contact
-            c = Contact(
-                    user = request.user,
-                    desc = form.cleaned_data['desc'],
-                    email = form.cleaned_data['email'],
-                    phone = form.cleaned_data['phone'],
-                    call_phone = form.cleaned_data['call_phone'],
-                    text_phone = form.cleaned_data['text_phone'],
-                )
-            c.save()
-            messages.info(request, 'Created contact "{cname}".'.format(
-                cname=c.desc))
-            return HttpResponseRedirect(reverse(index))
-    else:
-        form = ContactForm()
-    return render(request, 'profile/createContact.html',
-        context={"form": form})
+    def get_context_data(self, **kwargs):
+        kwargs['idx'] = 0
+        if (self.request.method in ('POST', 'PUT')):
+            form_keys = [f.key for f in self.form_classes]
+            idx = form_keys.index(self.request.POST['key_field'])
+            kwargs['idx'] = idx
+        return kwargs
 
-@internal_user_required
-def testContact(request, id):
-    """Users can test their Contacts through the web interface"""
-    try:
-        c = Contact.objects.get(id=id)
-    except Contact.DoesNotExist:
-        raise Http404
-    if request.user != c.user:
-        return HttpResponseForbidden("Can't test a Contact that isn't yours.")
-    else:
-        messages.info(request, 'Testing contact "{0}".'.format(c.desc))
-        hostname = socket.gethostname()
-        if c.email:
-            # Send test e-mail
-            try:
-                subject = 'Test of contact "{0}" from {1}' \
-                    .format(c.desc, hostname)
-                msg = ('This is a test of contact "{0}" from '
-                    'https://{1}.ligo.org.').format(c.desc, hostname)
-                email = EmailMessage(subject, msg,
-                    from_email=settings.ALERT_EMAIL_FROM, to=[c.email])
-                email.send()
-                log.debug('Sent test e-mail to {0}'.format(c.email))
-            except Exception as e:
-                messages.error(request, ("Error sending test e-mail to {0}: "
-                    "{1}.").format(c.email, e))
-                log.exception('Error sending test e-mail to {0}'.format(c.email))
+    def form_valid(self, form):
 
-        if c.phone:
-            # Send test phone alert
-            try:
-                # Get "from" phone number.
-                from_ = get_twilio_from()
+        # Remove key_field, add user, and save form
+        if form.cleaned_data.has_key('key_field'):
+            form.cleaned_data.pop('key_field')
+        form.instance.user = self.request.user
+        form.save()
+
+        # Generate message and return
+        messages.info(self.request, 'Created contact "{cname}".'.format(
+            cname=form.instance.description))
+        return super(CreateContactView, self).form_valid(form)
+
+    email_form_valid = phone_form_valid = form_valid
+
+
+@method_decorator(internal_user_required, name='dispatch')
+class EditContactView(UpdateView):
+    """
+    Edit a contact. Users shouldn't be able to edit the actual email address
+    or phone number since that would allow them to circumvent the verification
+    process.
+    """
+    template_name = 'alerts/edit_contact.html'
+    # Have to provide form_class, but it will be dynamically selected below in
+    # get_form()
+    form_class = PhoneContactForm
+    success_url = reverse_lazy('alerts:index')
+
+    def get_form_class(self):
+        if self.object.phone is not None:
+            return PhoneContactForm
+        else:
+            return EmailContactForm
+        return self.form_class
+
+    def get_form(self, form_class=None):
+        form = super(EditContactView, self).get_form(form_class)
+        if isinstance(form, PhoneContactForm):
+            form.fields['phone'].disabled = True
+        elif isinstance(form, EmailContactForm):
+            form.fields['email'].disabled = True
+        return form
+
+    def get_queryset(self):
+        return self.request.user.contact_set.all()
+
+
+@method_decorator(internal_user_required, name='dispatch')
+class DeleteContactView(DeleteView):
+    """Delete a contact"""
+    model = Contact
+    success_url = reverse_lazy('alerts:index')
+
+    def get(self, request, *args, **kwargs):
+        # Override this so that we don't require a confirmation page
+        # for deletion
+        return self.delete(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        response = super(DeleteContactView, self).delete(request, *args,
+            **kwargs)
+        messages.info(request, 'Contact "{cname}" has been deleted.'.format(
+            cname=self.object.description))
+        return response
+
+    def get_queryset(self):
+        # Queryset should only contain the user's contacts
+        return self.request.user.contact_set.all()
+
+
+@method_decorator(internal_user_required, name='dispatch')
+class TestContactView(DetailView):
+    """Test a contact (must be verified already)"""
+    # Send alerts to all contact methods
+    model = Contact
+    success_url = reverse_lazy('alerts:index')
+
+    def get_queryset(self):
+        return self.request.user.contact_set.all()
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        # Handle case where contact is not verified
+        if not self.object.verified:
+            msg = ('Contact "{desc}" must be verified before it can be '
+                'tested.').format(desc=self.object.description)
+            messages.info(request, msg)
+            return HttpResponseRedirect(self.success_url)
+
+        # Send test notifications
+        msg = 'This is a test of contact "{desc}" from {host}.'.format(
+            desc=self.object.description, host=settings.LIGO_FQDN)
+        if self.object.email:
+            subject = 'Test of contact "{desc}" from {host}'.format(
+                desc=self.object.description, host=settings.LIGO_FQDN)
+            email = EmailMessage(subject, msg, settings.ALERT_EMAIL_FROM,
+                [self.object.email], [])
+            email.send()
+        if self.object.phone:
+            # Get "from" phone number.
+            from_ = get_twilio_from()
+            # Send test call
+            if (self.object.phone_method == Contact.CONTACT_PHONE_CALL or
+                self.object.phone_method == Contact.CONTACT_PHONE_BOTH):
+
                 # Construct URL of TwiML bin
-                if c.call_phone:
-                    twiml_url = settings.TWIML_BASE_URL \
-                                + settings.TWIML_BIN['test']
-                    twiml_url += "?server={0}".format(hostname)
-                    # Make call
-                    twilio_client.calls.create(to=c.phone, from_=from_,
-                        url=twiml_url, method='GET')
-                    log.debug('Making test call to {0}'.format(c.phone))
+                twiml_url = '{base}{twiml_bin}'.format(
+                    base=settings.TWIML_BASE_URL,
+                    twiml_bin=settings.TWIML_BIN['test'])
 
-                if c.text_phone:
-                    twilio_client.messages.create(to=c.phone, from_=from_,
-                        body=('This is a test message from https://{0}'
-                              '.ligo.org.').format(hostname))
-                    log.debug('Sending test text to {0}'.format(c.phone))
-            except Exception as e:
-                messages.error(request, "Error contacting {0}: {1}." \
-                    .format(c.phone, e))
-                log.exception('Error contacting {0}: {1}'.format(c.phone, e))
+                # Make call
+                twilio_client.calls.create(to=self.object.phone, from_=from_,
+                    url=twiml_url, method='GET')
 
-        return HttpResponseRedirect(reverse(index))
+            if (self.object.phone_method == Contact.CONTACT_PHONE_TEXT or
+                self.object.phone_method == Contact.CONTACT_PHONE_BOTH):
+        
+                twilio_client.messages.create(to=self.object.phone,
+                    from_=from_, body=msg)
 
-@internal_user_required
-def editContact(request, id):
-    raise Http404
+        # Message for web view
+        messages.info(request, 'Testing contact "{desc}".'.format(
+            desc=self.object.description))
 
-@internal_user_required
-def deleteContact(request, id):
-    """Users can delete their Contacts through the web interface"""
-    try:
-        c = Contact.objects.get(id=id)
-    except Contact.DoesNotExist:
-        raise Http404
-    if request.user != c.user:
-        return HttpResponseForbidden(("You are not authorized to modify "
-            "another user's Contacts."))
-    messages.info(request, 'Contact "{cname}" has been deleted.' \
-        .format(cname=c.desc))
-    c.delete()
-    return HttpResponseRedirect(reverse(index))
+        return HttpResponseRedirect(self.success_url)
 
+
+@method_decorator(internal_user_required, name='dispatch')
+class VerifyContactView(UpdateView):
+    """Request a verification code or verify a contact"""
+    template_name = 'alerts/verify_contact.html'
+    form_class = VerifyContactForm
+    success_url = reverse_lazy('alerts:index')
+
+    def get_queryset(self):
+        return self.request.user.contact_set.all()
+
+    def form_valid(self, form):
+        self.object.verify()
+        msg = 'Contact "{cname}" successfully verified.'.format(
+            cname=self.object.description)
+        messages.info(self.request, msg)
+        return super(VerifyContactView, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super(VerifyContactView, self).get_context_data(**kwargs)
+
+        # Determine if verification code exists and is expired
+        if (self.object.verification_code is not None and
+            timezone.now() > self.object.verification_expiration):
+            context['code_expired'] = True
+
+        return context
+
+
+@method_decorator(internal_user_required, name='dispatch')
+class RequestVerificationCodeView(DetailView):
+    """Redirect view for requesting a contact verification code"""
+    model = Contact
+
+    def get_queryset(self):
+        return self.request.user.contact_set.all()
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+
+        # Handle case where contact is already verified
+        if self.object.verified:
+            msg = 'Contact "{desc}" is already verified.'.format(
+                desc=self.object.description)
+            messages.info(request, msg)
+            return HttpResponseRedirect(reverse('alerts:index'))
+
+        # Otherwise, set up verification code for contact
+        self.object.generate_verification_code()
+
+        # Send verification code
+        self.object.send_verification_code()
+
+        messages.info(request, "Verification code sent.")
+        return HttpResponseRedirect(reverse('alerts:verify-contact',
+            args=[self.object.pk]))

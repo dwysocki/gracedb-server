@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block headcontents %}
+    <link rel="stylesheet" href="{% static "css/bootstrap_buttons.css" %}"></script>
+    {{ block.super }}
+{% endblock %}
+
+{% block title %}Verify contact{% endblock %}
+{% block heading %}
+Verify contact &quot;{{ contact.description }}&quot;
+{% endblock %}
+
+
+{% block content %}
+
+<br />
+{% if messages %}
+<div class="flash">
+    {% for m in messages %}
+        <p>{{ m }}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if object.verified %}
+This contact is already verified.
+{% else %}
+    <h3>A verification code will be sent via:</h3>
+    <ul>
+        <li>Email for email contacts</li>
+        <li>Text message for phone contacts who have specified &quot;text&quot; or &quot;call and text&quot;</li>
+        <li>Voice call for phone contacts who have specified &quot;call&quot;</li>
+    </ul>
+    <a class="btn btn-primary" href="{% url "alerts:request-verification-code" object.pk %}">
+    {% if contact.verification_code %}
+        Request a new verification code
+    {% else %}
+        Request a verification code
+    {% endif %}
+    </a>
+    {% if contact.verification_code %}
+    <br />
+    <br />
+        {% if code_expired %}
+            Your verification code has expired.  Use the button above to request a new one.
+        {% else %}
+            Your current verification code expires in <b>{{ contact.verification_expiration|timeuntil }}</b>.
+            <form method="POST">
+                <table>{{ form.as_table }}</table>
+                <input type="submit" value="Submit" />
+            </form>
+        {% endif %}
+    {% endif %}
+{% endif %}
+
+{% endblock %}

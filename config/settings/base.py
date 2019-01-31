@@ -57,6 +57,7 @@ TWIML_BIN = {
     'new': 'EH761b6a35102737e3d21830a484a98a08',
     'label_added': 'EHb596a53b9c92a41950ce1a47335fd834',
     'test': 'EH6c0a168b0c6b011047afa1caeb49b241',
+    'verify': 'EHfaea274d4d87f6ff152ac39fea3a87d4',
 }
 
 # Use timezone-aware datetimes internally
@@ -443,6 +444,8 @@ GUARDIAN_RENDER_403 = True
 # See http://django-guardian.readthedocs.io/en/latest/userguide/custom-user-model.html
 GUARDIAN_MONKEY_PATCH = False
 
+# Lifetime of verification codes for contacts
+VERIFICATION_CODE_LIFETIME = timedelta(hours=1)
 
 # Basic auth passwords for LVEM scripted access expire after 365 days.
 PASSWORD_EXPIRATION_TIME = timedelta(days=365)
