@@ -177,7 +177,7 @@ GRB_PIPELINES = [
                 ]
 
 # SkyAlert stuff - used for VOEvents (?) --------------------------------------
-SKYALERT_IVORN_PATTERN = "ivo://gwnet/gcn_sender#%s"
+IVORN_PREFIX = "ivo://gwnet/LVC#"
 SKYALERT_ROLE          = "test"
 SKYALERT_DESCRIPTION   = "Report of a candidate gravitational wave event"
 SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']

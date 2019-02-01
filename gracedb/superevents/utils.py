@@ -579,7 +579,7 @@ def create_voevent_for_superevent(superevent, issuer, voevent_type,
     voevent_display_type = dict(VOEvent.VOEVENT_TYPE_CHOICES) \
         [voevent.voevent_type].capitalize()
     voevent_filename = "{superevent}-{N}-{voevent_type}.xml".format(
-        superevent=superevent.superevent_id, N=voevent.N,
+        superevent=superevent.default_superevent_id, N=voevent.N,
         voevent_type=voevent_display_type)
     version = create_versioned_file(voevent_filename, superevent.datadir,
         voevent_text)

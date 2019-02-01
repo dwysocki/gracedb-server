@@ -87,7 +87,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             type_string = 'Preliminary-Retraction'
 
     event_id = "%s-%d-%s" % (objid, serial_number, type_string)
-    ivorn = settings.SKYALERT_IVORN_PATTERN % event_id
+    ivorn = settings.IVORN_PREFIX + event_id
 
     ############ VOEvent header ############################
     v = VOEvent(version="2.0")

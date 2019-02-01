@@ -87,8 +87,9 @@ def construct_voevent_file(superevent, voevent, request=None,
             # important. 
             type_string = 'Preliminary-Retraction'
 
-    voevent_id = "%s-%d-%s" % (superevent.superevent_id, voevent.N, type_string)
-    ivorn = settings.SKYALERT_IVORN_PATTERN % voevent_id
+    voevent_id = '{s_id}-{N}-{type_str}'.format(type_str=type_string,
+        s_id=superevent.default_superevent_id, N=voevent.N)
+    ivorn = settings.IVORN_PREFIX + voevent_id
 
     ############ VOEvent header ############################
     v = VOEvent(version="2.0")
@@ -165,7 +166,7 @@ def construct_voevent_file(superevent, voevent, request=None,
     w.add_Param(Param(name="GraceID",
         dataType="string",
         ucd="meta.id", 
-        value=superevent.superevent_id, 
+        value=superevent.default_superevent_id,
         Description=["Identifier in GraceDB"]))
 
     # XXX if voevent_type == 'retraction' the AlertType will be the type of the
@@ -206,7 +207,7 @@ def construct_voevent_file(superevent, voevent, request=None,
     w.add_Param(Param(name="EventPage",
         ucd="meta.ref.url",
         value=build_absolute_uri(reverse("superevents:view",
-            args=[superevent.superevent_id]), request),
+            args=[superevent.default_superevent_id]), request),
         Description=["Web page for evolving status of this GW candidate"]))
 
     if voevent_type != 'retraction':
@@ -261,7 +262,7 @@ def construct_voevent_file(superevent, voevent, request=None,
 
         fits_skymap_url = build_absolute_uri(reverse(
             "api:default:superevents:superevent-file-detail",
-            args=[superevent.superevent_id, fits_name]), request)
+            args=[superevent.default_superevent_id, fits_name]), request)
 
         # Add parameters to the skymap group
         g.add_Param(Param(name="skymap_fits", dataType="string",
