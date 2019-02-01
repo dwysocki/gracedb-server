@@ -451,9 +451,9 @@ def construct_voevent_file(superevent, voevent, request=None,
     v.set_WhereWhen(ww)
 
     ############ Citation ############################
-    if event.voevent_set.count()>1:
+    if superevent.voevent_set.count() > 1:
         c = Citations()
-        for ve in event.voevent_set.all():
+        for ve in superevent.voevent_set.all():
             # Oh, actually we need to exclude *this* voevent.
             if ve.N == voevent.N:
                 continue
