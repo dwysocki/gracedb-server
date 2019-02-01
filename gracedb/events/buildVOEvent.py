@@ -50,10 +50,9 @@ def get_voevent_type(short_name):
     return None
 
 def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filename=None,
-                 skymap_type=None, skymap_image_filename=None, internal=True,
-                 open_alert=False, hardware_inj=False, CoincComment=False,
-                 ProbHasNS=None, ProbHasRemnant=None, BNS=None, NSBH=None,
-                 BBH=None, Terrestrial=None):
+    skymap_type=None, internal=True, open_alert=False, hardware_inj=False,
+    CoincComment=False, ProbHasNS=None, ProbHasRemnant=None, BNS=None,
+    NSBH=None, BBH=None, Terrestrial=None):
 
 # XXX Branson commenting out. Reed's MDC events do not have FAR for some reason.
 #    if not event.far:
@@ -273,36 +272,19 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         if not os.path.exists(fits_path):
             raise VOEventBuilderException("Skymap file does not exist: %s" % skymap_filename)
 
-        # Let's try to get an image.
-        img_name = skymap_image_filename
-        if not img_name:
-            stem = '.'.join(fits_name.split('.')[:-1])
-            img_name = stem + '.png'
-            img_path = os.path.join(event.datadir, img_name)
-            if not os.path.exists(img_path):
-                img_name = None
-
         if not skymap_type:
             raise VOEventBuilderException("Skymap type must be provided.")
 
-        # Skymaps. Create group and set particular fits and image file names
+        # Skymaps. Create group and set fits file name
         g = Group('GW_SKYMAP', skymap_type)
 
         fits_skymap_url = build_absolute_uri(reverse(
             "api:default:events:files", args=[objid, fits_name]), request)
-        if img_name:
-            png_skymap_url = build_absolute_uri(reverse(
-                "api:default:events:files", args=[objid, img_name]), request)
 
         # Add parameters to the skymap group
         g.add_Param(Param(name="skymap_fits", dataType="string",
             ucd="meta.ref.url", value=fits_skymap_url,
             Description=["Sky Map FITS"]))
-
-        if img_name:
-            g.add_Param(Param(name="skymap_png", dataType="string",
-                ucd="meta.ref.url", value=png_skymap_url,
-                Description=["Sky Map image"]))
 
         w.add_Group(g)
 

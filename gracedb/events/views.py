@@ -32,8 +32,7 @@ from .view_utils import get_recent_events_string
 from .view_utils import eventLogToDict
 from .view_utils import signoffToDict
 from alerts.events.utils import EventAlertIssuer, EventLogAlertIssuer, \
-    EventSignoffAlertIssuer, EventVOEventAlertIssuer, \
-    EventPermissionsAlertIssuer
+    EventSignoffAlertIssuer, EventPermissionsAlertIssuer
 from superevents.models import Superevent
 
 # Set up logging
@@ -43,7 +42,6 @@ log = logging.getLogger(__name__)
 import os
 from django.conf import settings
 
-from .buildVOEvent import buildVOEvent, VOEventBuilderException
 from core.vfile import VersionedFile
 
 # XXX This should be configurable / moddable or something

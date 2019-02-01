@@ -52,10 +52,9 @@ def get_voevent_type(short_name):
 
 
 def construct_voevent_file(superevent, voevent, request=None,
-    skymap_filename=None, skymap_type=None, skymap_image_filename=None,
-    internal=True, open_alert=False, hardware_inj=False, CoincComment=False,
-    ProbHasNS=None, ProbHasRemnant=None, BNS=None, NSBH=None, BBH=None,
-    Terrestrial=None):
+    skymap_filename=None, skymap_type=None, internal=True, open_alert=False,
+    hardware_inj=False, CoincComment=False, ProbHasNS=None,
+    ProbHasRemnant=None, BNS=None, NSBH=None, BBH=None, Terrestrial=None):
 
     # Set preferred_event as event to be used in most of this
     event = superevent.preferred_event
@@ -262,35 +261,18 @@ def construct_voevent_file(superevent, voevent, request=None,
        (voevent_type == "preliminary" and skymap_filename != None)):
 
         fits_name = skymap_filename
-        # Let's try to get an image.
-        img_name = skymap_image_filename
-        if not img_name:
-            stem = '.'.join(fits_name.split('.')[:-1])
-            img_name = stem + '.png'
-            img_path = os.path.join(event.datadir, img_name)
-            if not os.path.exists(img_path):
-                img_name = None
 
-        # Skymaps. Create group and set particular fits and image file names
+        # Skymaps. Create group and set fits file name
         g = Group('GW_SKYMAP', skymap_type)
 
         fits_skymap_url = build_absolute_uri(reverse(
             "api:default:superevents:superevent-file-detail",
             args=[superevent.superevent_id, fits_name]), request)
-        if img_name:
-            png_skymap_url = build_absolute_uri(reverse(
-                "api:default:superevents:superevent-file-detail",
-                args=[superevent.superevent_id, img_name]), request)
 
         # Add parameters to the skymap group
         g.add_Param(Param(name="skymap_fits", dataType="string",
             ucd="meta.ref.url", value=fits_skymap_url,
             Description=["Sky Map FITS"]))
-
-        if img_name:
-            g.add_Param(Param(name="skymap_png", dataType="string",
-                ucd="meta.ref.url", value=png_skymap_url,
-                Description=["Sky Map image"]))
 
         w.add_Group(g)
 

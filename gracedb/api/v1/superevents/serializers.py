@@ -554,8 +554,6 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         default=ParentObjectDefault(context_key='superevent'))
     skymap_type = serializers.CharField(write_only=True, required=False)
     skymap_filename = serializers.CharField(write_only=True, required=False)
-    skymap_image_filename = serializers.CharField(write_only=True,
-        required=False)
     internal = serializers.BooleanField(write_only=True, default=True)
     open_alert = serializers.BooleanField(write_only=True, default=False)
     hardware_inj = serializers.BooleanField(write_only=True, default=False)
@@ -577,10 +575,9 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         model = VOEvent
         fields = ('voevent_type', 'file_version', 'ivorn', 'created',
             'issuer', 'filename', 'N', 'links', 'skymap_type',
-            'skymap_filename', 'skymap_image_filename', 'internal',
-            'open_alert', 'hardware_inj', 'CoincComment', 'ProbHasNS',
-            'ProbHasRemnant', 'BNS', 'NSBH', 'BBH', 'Terrestrial',
-            'superevent', 'user')
+            'skymap_filename', 'internal', 'open_alert', 'hardware_inj',
+            'CoincComment', 'ProbHasNS', 'ProbHasRemnant', 'BNS', 'NSBH',
+            'BBH', 'Terrestrial', 'superevent', 'user')
 
     def __init__(self, *args, **kwargs):
         super(SupereventVOEventSerializer, self).__init__(*args, **kwargs)
@@ -612,7 +609,6 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         voevent_type = data.get('voevent_type')
         skymap_filename = data.get('skymap_filename', None)
         skymap_type = data.get('skymap_type', None)
-        skymap_image_filename = data.get('skymap_image_filename', None)
 
         # Checks to do:
         # Preferred event must have gpstime
@@ -637,13 +633,6 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
                 skymap_filename)
             if not os.path.exists(full_skymap_path):
                 self.fail('skymap_not_found', filename=skymap_filename)
-
-            if skymap_image_filename:
-                full_skymap_image_path = os.path.join(superevent.datadir,
-                    skymap_image_filename)
-                if not os.path.exists(full_skymap_image_path):
-                    self.fail('skymap_image_not_found', filename=
-                        skymap_image_filename)
 
         return data
 
