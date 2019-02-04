@@ -71,21 +71,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     objid = event.graceid
 
     # Now build the IVORN. 
-    # XXX This will have the string '-Retraction' appended if it is a retraction,
-    # and the voevent_type will refer to the type of the *previous* voevent.
-    # This is highly objectionable.
     type_string = voevent_type.capitalize()
-    if voevent_type == 'retraction':
-        try:
-            last_voevent = event.voevent_set.order_by('-N')[1] 
-            type_string = get_voevent_type(last_voevent.voevent_type).capitalize()
-            type_string += '-Retraction'
-        except:
-            # XXX Somehow failed to get the previous VOEvent. This is a bad situation.
-            # But we can't just error out, because sending out the retraction is pretty
-            # important. 
-            type_string = 'Preliminary-Retraction'
-
     event_id = "%s-%d-%s" % (objid, serial_number, type_string)
     ivorn = settings.IVORN_PREFIX + event_id
 

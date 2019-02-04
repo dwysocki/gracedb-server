@@ -72,21 +72,7 @@ def construct_voevent_file(superevent, voevent, request=None,
     voevent_type = VOEVENT_TYPE_DICT[voevent.voevent_type]
 
     # Now build the IVORN. 
-    # XXX This will have the string '-Retraction' appended if it is a retraction,
-    # and the voevent_type will refer to the type of the *previous* voevent.
-    # This is highly objectionable.
     type_string = voevent_type.capitalize()
-    if voevent_type == 'retraction':
-        try:
-            last_voevent = superevent.voevent_set.get(N=(voevent.N-1))
-            type_string = get_voevent_type(last_voevent.voevent_type).capitalize()
-            type_string += '-Retraction'
-        except:
-            # XXX Somehow failed to get the previous VOEvent. This is a bad situation.
-            # But we can't just error out, because sending out the retraction is pretty
-            # important. 
-            type_string = 'Preliminary-Retraction'
-
     voevent_id = '{s_id}-{N}-{type_str}'.format(type_str=type_string,
         s_id=superevent.default_superevent_id, N=voevent.N)
     ivorn = settings.IVORN_PREFIX + voevent_id
