@@ -24,28 +24,32 @@
 {% if user_is_internal %}
 <h1>Contacts</h1>
 {% if contacts %}
-<ul style="list-style-type: none; padding-left: 10px;">
+<table style="padding-bottom: 10px">
 {% for contact in contacts %}
-    <li style="padding-bottom: 5px;">
+    <tr>
+        <td>
         {% if contact.verified %}
             <a class="btn btn-primary" href="{% url "alerts:test-contact" contact.pk %}">Test</a>
         {% else %}
             <button class="btn btn-primary" disabled>Test</button>
         {% endif %}
-        <a class="btn btn-secondary" href="{% url "alerts:edit-contact" contact.pk %}">Edit</a>
-        <a class="btn btn-danger" href="{% url "alerts:delete-contact" contact.pk %}">Delete</a>
-        <b>{{ contact.description }}</b> | {{ contact.display }}
-        <b>
-        {% if contact.verified %}
-        <div style="color: green; display: inline-block;">Verified</div>
-        {% else %}
-        <div style="color: red; display: inline-block;">Not verified</div>
-        <a class="btn btn-warning" href="{% url "alerts:verify-contact" contact.pk %}">Verify</a>
-        {% endif %}
-        </b>
-    </li>
+        </td>
+        <td><a class="btn btn-secondary" href="{% url "alerts:edit-contact" contact.pk %}">Edit</a></td>
+        <td><a class="btn btn-danger" href="{% url "alerts:delete-contact" contact.pk %}">Delete</a></td>
+        <td>
+            <b>{{ contact.description }}</b> | {{ contact.display }}
+            <b>
+                {% if contact.verified %}
+                    <div style="color: green; display: inline-block;">Verified</div>
+                {% else %}
+                    <div style="color: red; display: inline-block;">Not verified</div>
+                    <a class="btn btn-warning" href="{% url "alerts:verify-contact" contact.pk %}">Verify</a>
+                {% endif %}
+            </b>
+        </td>
+    </tr>
 {% endfor %}
-</ul>
+</table>
 {% endif %}
 
 <a class="btn btn-success" href="{% url "alerts:create-contact" %}">Create new contact</a>
@@ -53,15 +57,15 @@
 
 <h1>Notifications</h1>
 {% if notifications %}
-<ul style="list-style-type: none; padding-left: 10px;">
+<table style="padding-bottom: 10px;">
 {% for notification in notifications %}
-    <li style="padding-bottom: 5px;">
-        <a class="btn btn-secondary" href="{% url "alerts:edit-notification" notification.pk %}">Edit</a>
-        <a class="btn btn-danger" href="{% url "alerts:delete-notification" notification.pk %}">Delete</a>
-        <b>{{ notification.description }}</b> | {{ notification.display }}
-    </li>
+    <tr>
+        <td><a class="btn btn-secondary" href="{% url "alerts:edit-notification" notification.pk %}">Edit</a></td>
+        <td><a class="btn btn-danger" href="{% url "alerts:delete-notification" notification.pk %}">Delete</a></td>
+        <td><b>{{ notification.description }}</b> | {{ notification.display }}</td>
+    </tr>
 {% endfor %}
-</ul>
+</table>
 {% endif %}
 
 <a class="btn btn-success" href="{% url "alerts:create-notification" %}">Create new notification</a>
