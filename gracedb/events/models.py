@@ -209,6 +209,22 @@ class Event(models.Model):
         nodes.append(hdf.read())
         return os.path.join(settings.GRACEDB_DATA_DIR, *nodes)
 
+    def is_ns_candidate(self):
+        # Used for notifications
+        # Current condition: m2 < 3.0 M_sun
+
+        # Ensure that we have the base event class
+        event = self
+        if hasattr(self, 'event_ptr'):
+            event = self.event_ptr
+
+        # Check for single inspirals
+        if event.singleinspiral_set.exists():
+            si = event.singleinspiral_set.first()
+            if (si.mass2 > 0 and si.mass2 < 3):
+                return True
+        return False
+
     def is_test(self):
         return self.group.name == 'Test'
 

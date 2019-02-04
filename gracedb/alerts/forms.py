@@ -19,6 +19,40 @@ from .models import Notification, Contact
 logger =  logging.getLogger(__name__)
 
 
+class CleanNotificationFormMixin(object):
+
+    def clean(self):
+        data = super(CleanNotificationFormMixin, self).clean()
+        return data
+
+    def clean_label_query(self):
+        label_query = self.cleaned_data['label_query']
+        return label_query
+
+
+class SupereventNotificationForm(forms.ModelForm, MultipleForm,
+    CleanNotificationFormMixin):
+    key = 'superevent'
+    category = Notification.NOTIFICATION_CATEGORY_SUPEREVENT
+
+    class Meta:
+        model = Notification
+        fields = ['description', 'contacts', 'far_threshold', 'labels',
+            'label_query', 'ns_candidate', 'key_field']
+
+
+class EventNotificationForm(forms.ModelForm, MultipleForm,
+    CleanNotificationFormMixin):
+    key = 'event'
+    category = Notification.NOTIFICATION_CATEGORY_EVENT
+
+    class Meta:
+        model = Notification
+        fields = ['description', 'contacts', 'far_threshold', 'groups',
+            'pipelines', 'searches', 'labels', 'label_query', 'ns_candidate',
+            'key_field']
+
+
 def notificationFormFactory(postdata=None, user=None):
     class TF(forms.ModelForm):
         far_threshold = forms.FloatField(label='FAR Threshold (Hz)',

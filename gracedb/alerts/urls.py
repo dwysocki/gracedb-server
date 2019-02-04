@@ -25,11 +25,12 @@ urlpatterns = [
         name="verify-contact"),
 
     # Notifications
-    url(r'^notification/create/$', views.create, name="create-notification"),
-    url(r'^notification/delete/(?P<id>[\d]+)$', views.delete,
-        name="delete-notification"),
-    #url(r'^notification/edit/(?P<id>[\d]+)$', views.edit,
-    #    name="edit-notification"),
+    url(r'^notification/create/$', views.CreateNotificationView.as_view(),
+        name="create-notification"),
+    url(r'^notification/(?P<pk>\d+)/edit/$',
+        views.EditNotificationView.as_view(), name="edit-notification"),
+    url(r'^notification/(?P<pk>\d+)/delete/$',
+        views.DeleteNotificationView.as_view(), name="delete-notification"),
 
     # Manage password
     url(r'^manage_password/$', views.managePassword,

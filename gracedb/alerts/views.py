@@ -30,6 +30,7 @@ from ligoauth.decorators import internal_user_required
 from search.query.labels import labelQuery
 from .forms import (
     PhoneContactForm, EmailContactForm, VerifyContactForm,
+    EventNotificationForm, SupereventNotificationForm,
     notificationFormFactory,
 )
 from .models import Notification, Contact
@@ -43,11 +44,12 @@ logger = log = logging.getLogger(__name__)
 
 @login_required
 def index(request):
-    notifications = Notification.objects.filter(user=request.user)
-    contacts = Contact.objects.filter(user=request.user)
-    d = { 'notifications': notifications, 'contacts': contacts }
+    context = {
+        'notifications': request.user.notification_set.all(),
+        'contacts': request.user.contact_set.all(),
+    }
 
-    return render(request, 'profile/notifications.html', context=d)
+    return render(request, 'profile/notifications.html', context=context)
 
 
 @lvem_user_required
@@ -85,6 +87,83 @@ def managePassword(request):
         d['has_password'] = False
 
     return render(request, 'profile/manage_password.html', context=d)
+
+###############################################################################
+# Notification views ##########################################################
+###############################################################################
+@method_decorator(internal_user_required, name='dispatch')
+class CreateNotificationView(MultipleFormView):
+    """Create a notification"""
+    template_name = 'alerts/create_notification.html'
+    success_url = reverse_lazy('alerts:index')
+    form_classes = [SupereventNotificationForm, EventNotificationForm]
+
+    def get_context_data(self, **kwargs):
+        kwargs['idx'] = 0
+        if (self.request.method in ('POST', 'PUT')):
+            form_keys = [f.key for f in self.form_classes]
+            idx = form_keys.index(self.request.POST['key_field'])
+            kwargs['idx'] = idx
+        return kwargs
+
+    def form_valid(self, form):
+        if form.cleaned_data.has_key('key_field'):
+            form.cleaned_data.pop('key_field')
+
+        # Add user (from request) and category (stored on form class) to
+        # the form instance, then save
+        form.instance.user = self.request.user
+        form.instance.category = form.category
+        form.save()
+
+        # Add message and return
+        messages.info(self.request, 'Created notification: {n}.'.format(
+            n=form.instance.description))
+        return super(CreateNotificationView, self).form_valid(form)
+
+    superevent_form_valid = event_form_valid = form_valid
+
+
+@method_decorator(internal_user_required, name='dispatch')
+class EditNotificationView(UpdateView):
+    """Edit a notification"""
+    template_name = 'alerts/edit_notification.html'
+    # Have to provide form_class, but it will be dynamically selected below in
+    # get_form()
+    form_class = SupereventNotificationForm
+    success_url = reverse_lazy('alerts:index')
+
+    def get_form_class(self):
+        if self.object.category == Notification.NOTIFICATION_CATEGORY_EVENT:
+            return EventNotificationForm
+        else:
+            return SupereventNotificationForm
+
+    def get_queryset(self):
+        return self.request.user.notification_set.all()
+
+
+@method_decorator(internal_user_required, name='dispatch')
+class DeleteNotificationView(DeleteView):
+    """Delete a notification"""
+    model = Notification
+    success_url = reverse_lazy('alerts:index')
+
+    def get(self, request, *args, **kwargs):
+        # Override this so that we don't require a confirmation page
+        # for deletion
+        return self.delete(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        response = super(DeleteNotificationView, self).delete(request, *args,
+            **kwargs)
+        messages.info(request, 'Notification {n} has been deleted.'.format(
+            n=self.object.description))
+        return response
+
+    def get_queryset(self):
+        # Queryset should only contain the user's notifications
+        return self.request.user.notification_set.all()
 
 
 @internal_user_required
@@ -134,10 +213,10 @@ def create(request):
                 t.label_query = label_query
                 t.save()
                 messages.info(request, 'Created notification: {n}.'.format(
-                    n=t.userlessDisplay()))
+                    n=t.display()))
             except Exception as e:
                 messages.error(request, ('Error creating notification {n}: '
-                    '{e}.').format(n=t.userlessDisplay(), e=e))
+                    '{e}.').format(n=t.display(), e=e))
                 t.delete()
 
             return HttpResponseRedirect(reverse('alerts:index'))
@@ -145,24 +224,6 @@ def create(request):
         form = notificationFormFactory(user=request.user)
     return render(request, 'profile/createNotification.html',
         context={"form": form})
-
-@internal_user_required
-def edit(request, id):
-    raise Http404
-
-@internal_user_required
-def delete(request, id):
-    try:
-        t = Notification.objects.get(id=id)
-    except Notification.DoesNotExist:
-        raise Http404
-    if request.user != t.user:
-        return HttpResponseForbidden(("You are not allowed to modify another "
-            "user's notifications."))
-    messages.info(request,'Notification "{nname}" has been deleted.' \
-        .format(nname=t.userlessDisplay()))
-    t.delete()
-    return HttpResponseRedirect(reverse('alerts:index'))
 
 
 ###############################################################################

@@ -11,4 +11,3 @@ class NotificationManager(admin.ModelAdmin):
 
 admin.site.register(Contact, ContactManager)
 admin.site.register(Notification, NotificationManager)
-

@@ -1,15 +1,27 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block headcontents %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static "jquery-ui/themes/base/jquery-ui.min.css" %}" />
+{% endblock %}
+
+{% block jscript %}
+<script src="{% static "jquery/dist/jquery.min.js" %}"></script>
+<script src="{% static "jquery-ui/jquery-ui.min.js" %}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#tabs").toggle();
+    $("#tabs").tabs({active: {{ idx }}});
+});
+</script>
+{% endblock %}
 
 {% block title %}Options | Create Notification{% endblock %}
 {% block heading %}Create Notification{% endblock %}
 {% block pageid %}userprofile{% endblock %}
 
 {% block content %}
-
-<div style="color: red; padding-top: 20px;, padding-bottom: 5px;">
-<h3>Status of notifications</h3>
-<p>Notifications are <b>only</b> issued for events at present. Notifications for superevents will be added at the beginning of ER14.</p>
-</div>
 
 <br />
 <div style="padding: 10px;">
@@ -30,12 +42,22 @@
     <li>Phone and email notifications will not be issued outside of observing runs, in order to avoid potential accidents.</li>
 </ul>
 </div>
-
-<form method="POST">
-    <table>
+<div id="tabs" style="min-width: 300px; max-width: 400px; display: none;">
+  <ul>
+    {% for form in forms %}
+    <li><a href="#tab-{{ forloop.counter }}">{{ form.key|title }} alert</a></li>
+    {% endfor %}
+  </ul>
+  {% for form in forms %}
+  <div id="tab-{{ forloop.counter }}">
+    <form method="POST" class="contactform">
+      <table>
         {{ form.as_table }}
-    </table>
-    <input type="submit" value="Submit"/>
-</form>
+      </table>
+      <input type="submit" value="Submit" />
+    </form>
+  </div>
+  {% endfor %}
+</div>
 
 {% endblock %}

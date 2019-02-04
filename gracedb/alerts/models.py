@@ -14,7 +14,6 @@ from django.utils.http import urlencode
 from django_twilio.client import twilio_client
 
 from core.models import CleanSaveModel
-from events.models import Label, Pipeline
 from .fields import PhoneNumberField
 from .phone import get_twilio_from
 
@@ -25,7 +24,9 @@ logger = logging.getLogger(__name__)
 # Set up user model
 UserModel = get_user_model()
 
-
+###############################################################################
+# Contacts ####################################################################
+###############################################################################
 class Contact(CleanSaveModel):
     # Phone contact methods
     CONTACT_PHONE_CALL = 'C'
@@ -41,7 +42,7 @@ class Contact(CleanSaveModel):
 
     # Fields
     user = models.ForeignKey(UserModel, null=False)
-    description = models.CharField(max_length=20, blank=False, null=False)
+    description = models.CharField(max_length=30, blank=False, null=False)
     email = models.EmailField(blank=True, null=True)
     phone = PhoneNumberField(blank=True, max_length=255, null=True)
     phone_method = models.CharField(max_length=1, null=True, blank=True,
@@ -131,6 +132,17 @@ class Contact(CleanSaveModel):
         self.verified = True
         self.save(update_fields=['verified'])
 
+    def display(self):
+        if self.email:
+            return "Email {0}".format(self.email)
+        elif self.phone:
+            if self.phone_method == self.CONTACT_PHONE_BOTH:
+                return "Call and text {0}".format(self.phone)
+            elif self.phone_method == self.CONTACT_PHONE_CALL:
+                return "Call {0}".format(self.phone)
+            if self.phone_method == self.CONTACT_PHONE_TEXT:
+                return "Text {0}".format(self.phone)
+
     def print_info(self):
         """Prints information about Contact object; useful for debugging."""
         info_str = textwrap.dedent("""\
@@ -144,33 +156,92 @@ class Contact(CleanSaveModel):
         print(info_str)
 
 
+###############################################################################
+# Notifications ###############################################################
+###############################################################################
 class Notification(models.Model):
+    # Notification categories
+    NOTIFICATION_CATEGORY_EVENT = 'E'
+    NOTIFICATION_CATEGORY_SUPEREVENT = 'S'
+    NOTIFICATION_CATEGORY_CHOICES = (
+        (NOTIFICATION_CATEGORY_EVENT, 'Event'),
+        (NOTIFICATION_CATEGORY_SUPEREVENT, 'Superevent'),
+    )
     user = models.ForeignKey(UserModel, null=False)
-    labels = models.ManyToManyField(Label, blank=True)
-    pipelines = models.ManyToManyField(Pipeline, blank=True)
-    contacts = models.ManyToManyField(Contact, blank=False)
+    contacts = models.ManyToManyField(Contact)
+    description = models.CharField(max_length=40, blank=False, null=False)
     far_threshold = models.FloatField(blank=True, null=True)
-    label_query = models.CharField(max_length=100, blank=True)
+    labels = models.ManyToManyField('events.label', blank=True)
+    label_query = models.CharField(max_length=100, null=True, blank=True)
+    category = models.CharField(max_length=1, null=False, blank=False,
+        choices=NOTIFICATION_CATEGORY_CHOICES,
+        default=NOTIFICATION_CATEGORY_SUPEREVENT)
+    # Whether the event possibly has a neutron star in it.
+    # The logic for determining this is defined in a method below.
+    ns_candidate = models.BooleanField(default=False)
+    # Event-only fields
+    groups = models.ManyToManyField('events.group', blank=True)
+    pipelines = models.ManyToManyField('events.pipeline', blank=True)
+    searches = models.ManyToManyField('events.search', blank=True)
 
     def __unicode__(self):
         return (u"%s: %s") % (
             self.user.username,
-            self.userlessDisplay()
+            self.display()
         )
 
-    def userlessDisplay(self):
-        thresh = ""
-        if self.far_threshold:
-            thresh = " & (far < %s)" % self.far_threshold
+    def display(self):
+        kwargs = {}
+        if self.category == self.NOTIFICATION_CATEGORY_EVENT:
+            output = 'Event'
+        elif self.category == self.NOTIFICATION_CATEGORY_SUPEREVENT:
+            output = 'Superevent'
 
-        if self.label_query:
-            label_disp = self.label_query
+        # Add label stuff
+        if self.label_query or self.labels.exists():
+            action = 'labeled with {labels}'
+            if self.label_query:
+                labels = '({0})'.format(self.label_query)
+            else:
+                labels = " | ".join([l.name for l in self.labels.all()])
+                if self.labels.count() > 1:
+                    labels = '({0})'.format(labels)
+            action = action.format(labels=labels)
         else:
-            label_disp = "|".join([a.name for a in self.labels.all()]) or "creating"
+            action = 'created or updated'
+        output += ' {action}'.format(action=action)
 
-        return ("(%s) & (%s)%s -> %s") % (
-            "|".join([a.name for a in self.pipelines.all()]) or "any pipeline",
-            label_disp,
-            thresh,
-            ", ".join([x.description for x in self.contacts.all()])
-        )
+        # Add groups, pipelines, searches for event-type notifications
+        if self.category == self.NOTIFICATION_CATEGORY_EVENT:
+            output += ' & {groups} & {pipelines} & {searches}'
+            if self.groups.exists():
+                kwargs['groups'] = 'group=({0})'.format(
+                    " | ".join([g.name for g in self.groups.all()]))
+            else:
+                kwargs['groups'] = 'any group'
+            if self.pipelines.exists():
+                kwargs['pipelines'] = 'pipeline=({0})'.format(
+                    " | ".join([p.name for p in self.pipelines.all()]))
+            else:
+                kwargs['pipelines'] = 'any pipeline'
+            if self.searches.exists():
+                kwargs['searches'] = 'search=({0})'.format(
+                    " | ".join([s.name for s in self.searches.all()]))
+            else:
+                kwargs['searches'] = 'any search'
+
+        # Optionally add FAR threshold
+        if self.far_threshold:
+            output += ' & (FAR < {far_threshold})'
+            kwargs['far_threshold'] = self.far_threshold
+
+        # Optionally add NS candidate info
+        if self.ns_candidate:
+            output += ' & NS candidate'
+
+        # Add contacts
+        output += ' -> {contacts}'
+        kwargs['contacts'] = \
+            ", ".join([c.description for c in self.contacts.all()])
+
+        return output.format(**kwargs)
