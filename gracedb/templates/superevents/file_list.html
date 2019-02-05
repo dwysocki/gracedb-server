@@ -8,7 +8,7 @@
 
 <ul>
 {% for filename in file_list %}
-<li><a href="{% url "api:default:superevents:superevent-file-detail" object.superevent_id filename %}">{{ filename }}</a></li>
+<li><a href="{% url "legacy_apiweb:default:superevents:superevent-file-detail" object.superevent_id filename %}">{{ filename }}</a></li>
 {% endfor %}
 </ul>
 

@@ -53,7 +53,7 @@ urlpatterns = [
 
     # API URLs
     url(r'^api/', include('api.urls')),
-    # Legacy API URLs: can we get rid of these at some point? (TODO)
+    # Legacy API URLs - must be maintained!
     url(r'^apibasic/', include('api.urls', namespace='legacy_apibasic')),
     url(r'^apiweb/', include('api.urls', namespace='legacy_apiweb')),
 

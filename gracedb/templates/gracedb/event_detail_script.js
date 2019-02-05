@@ -156,14 +156,14 @@ var hasImage = function(object) {
 }
 
 // some URLs. Usage of Django template syntax should be limited to here
-var tagListUrl          = '{% url "api:default:tag-list" %}';
+var tagListUrl          = '{% url "legacy_apiweb:default:tag-list" %}';
 var tagUrlPattern       = '{% url "taglogentry" object.graceid "000" "temp" %}';
-var eventLogListUrl     = '{% url "api:default:events:eventlog-list" object.graceid %}';
+var eventLogListUrl     = '{% url "legacy_apiweb:default:events:eventlog-list" object.graceid %}';
 var eventLogSaveUrl     = '{% url "logentry" object.graceid "" %}';
-var embbEventLogListUrl = '{% url "api:default:events:embbeventlog-list" object.graceid %}';
-var emObservationListUrl = '{% url "api:default:events:emobservation-list" object.graceid %}';
+var embbEventLogListUrl = '{% url "legacy_apiweb:default:events:embbeventlog-list" object.graceid %}';
+var emObservationListUrl = '{% url "legacy_apiweb:default:events:emobservation-list" object.graceid %}';
 var fileDownloadUrl = '{% url "file-download" object.graceid "FAKE_FILE_NAME" %}';
-var skymapJsonUrl       = '{% url "api:default:events:files" object.graceid "" %}';
+var skymapJsonUrl       = '{% url "legacy_apiweb:default:events:files" object.graceid "" %}';
 var skymapViewerUrl     = '{{ SKYMAP_VIEWER_SERVICE_URL }}';
 
 // This little list determines the priority ordering of the digest sections.
