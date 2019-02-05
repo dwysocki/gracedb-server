@@ -139,12 +139,17 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
     rv['group'] = event.group.name
     rv['graceid'] = graceid
     rv['pipeline'] = event.pipeline.name
-    if event.search:
-        rv['search'] = event.search.name
     rv['gpstime'] = event.gpstime
     rv['instruments'] = event.instruments
     rv['nevents'] = event.nevents
     rv['offline'] = event.offline
+
+    # Search
+    if event.search:
+        search = event.search.name
+    else:
+        search = None
+    rv['search'] = search
 
     far_is_upper_limit = False
     display_far = event.far
