@@ -131,6 +131,12 @@ def index(request):
         except Exception, e:
             pass
     context['recent_events'] = recent_events
+
+    # Main heading
+    context['title'] = getattr(settings, 'INSTANCE_TITLE', None)
+
+    # Informational text
+    context['information'] = getattr(settings, 'INSTANCE_INFO', None)
     
     return render(request, 'gracedb/index.html', context=context)
 
