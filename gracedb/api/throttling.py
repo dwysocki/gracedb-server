@@ -1,7 +1,36 @@
-from rest_framework.throttling import UserRateThrottle
+from django.core.cache import caches
+
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
 
-class PostOrPutUserRateThrottle(UserRateThrottle):
+# NOTE: we have to use database-backed throttles to have a centralized location
+# where multiple workers (like in the production instance) can access and
+# update the same throttling information.
+
+
+###############################################################################
+# Base throttle classes #######################################################
+###############################################################################
+class DbCachedThrottleMixin(object):
+    """Uses a non-default (database-backed) cache"""
+    cache = caches['throttles']
+
+
+###############################################################################
+# Throttles for unauthenticated users #########################################
+###############################################################################
+class BurstAnonRateThrottle(DbCachedThrottleMixin, AnonRateThrottle):
+    scope = 'anon_burst'
+
+
+class SustainedAnonRateThrottle(DbCachedThrottleMixin, AnonRateThrottle):
+    scope = 'anon_sustained'
+
+
+###############################################################################
+# Throttles for authenticated users #########################################
+###############################################################################
+class PostOrPutUserRateThrottle(DbCachedThrottleMixin, UserRateThrottle):
 
     def allow_request(self, request, view):
         """

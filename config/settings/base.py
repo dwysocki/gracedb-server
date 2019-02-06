@@ -221,7 +221,11 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': '127.0.0.1:11211',
-    }
+    },
+    'throttles': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'api_throttle_cache', # Table name
+    },
 }
 
 # List of settings for all template engines. Each item is a dict
@@ -347,7 +351,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 1e7,
+    'DEFAULT_THROTTLE_CLASSES': (
+        'api.throttling.BurstAnonRateThrottle',
+    ),
     'DEFAULT_THROTTLE_RATES': {
+        'anon_burst': '3/second',
         'event_creation': '1/second',
         'annotation'    : '10/second',
     },

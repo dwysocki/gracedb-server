@@ -34,6 +34,7 @@ from rest_framework.views import APIView
 
 from alerts.events.utils import EventAlertIssuer, EventLogAlertIssuer, \
     EventVOEventAlertIssuer, EventPermissionsAlertIssuer
+from api.throttling import BurstAnonRateThrottle
 from core.http import check_and_serve_file
 from core.vfile import VersionedFile
 from events.buildVOEvent import buildVOEvent, VOEventBuilderException
@@ -52,7 +53,7 @@ from events.view_utils import eventToDict, eventLogToDict, labelToDict, \
 from search.forms import SimpleSearchForm
 from search.query.events import parseQuery, ParseException
 from superevents.models import Superevent
-from .throttles import EventCreationThrottle, AnnotationThrottle
+from .throttling import EventCreationThrottle, AnnotationThrottle
 from ...utils import api_reverse
 
 # Set up logger
@@ -348,7 +349,7 @@ class EventList(APIView):
     permission_classes = (IsAuthenticated,IsAuthorizedForPipeline)
     parser_classes = (parsers.MultiPartParser,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LigoLwRenderer, TSVRenderer,)
-    throttle_classes = (EventCreationThrottle,)
+    throttle_classes = (BurstAnonRateThrottle, EventCreationThrottle,)
 
     def get(self, request, *args, **kwargs):
 
@@ -728,7 +729,7 @@ class EventLogList(APIView):
     POST param 'message'
     """
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
-    throttle_classes = (AnnotationThrottle,)
+    throttle_classes = (BurstAnonRateThrottle, AnnotationThrottle,)
 
     @event_and_auth_required
     def get(self, request, event):
@@ -874,7 +875,7 @@ class EMBBEventLogList(APIView):
     POST param 'message'
     """
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
-    throttle_classes = (AnnotationThrottle,)
+    throttle_classes = (BurstAnonRateThrottle, AnnotationThrottle,)
 
     @event_and_auth_required
     def get(self, request, event):
@@ -939,7 +940,7 @@ class EMObservationList(APIView):
     POST param 'message'
     """
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
-    throttle_classes = (AnnotationThrottle,)
+    throttle_classes = (BurstAnonRateThrottle, AnnotationThrottle,)
 
     @event_and_auth_required
     def get(self, request, event):
@@ -1559,7 +1560,7 @@ class VOEventList(APIView):
     """VOEvent List Resource
     """
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
-    throttle_classes = (AnnotationThrottle,)
+    throttle_classes = (BurstAnonRateThrottle, AnnotationThrottle,)
 
     @event_and_auth_required
     def get(self, request, event):
@@ -1693,7 +1694,7 @@ class OperatorSignoffList(APIView):
     At present, this only supports GET
     """
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
-    throttle_classes = (AnnotationThrottle,)
+    throttle_classes = (BurstAnonRateThrottle, AnnotationThrottle,)
 
     @event_and_auth_required
     def get(self, request, event):
