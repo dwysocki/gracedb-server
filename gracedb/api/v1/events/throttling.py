@@ -1,4 +1,4 @@
-from ..throttles import PostOrPutUserRateThrottle
+from api.throttling import PostOrPutUserRateThrottle
 
 
 class EventCreationThrottle(PostOrPutUserRateThrottle):
