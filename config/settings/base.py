@@ -249,7 +249,7 @@ TEMPLATES = [
                 # Extra additions
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
-                'events.context_processors.LigoAuthContext',
+                'ligoauth.context_processors.LigoAuthContext',
                 'core.context_processors.LigoDebugContext',
             ],
         },
