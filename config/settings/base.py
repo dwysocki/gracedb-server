@@ -104,6 +104,7 @@ LVC_GROUP = 'Communities:LSCVirgoLIGOGroupMembers'
 LVEM_GROUP = 'gw-astronomy:LV-EM'
 LVEM_OBSERVERS_GROUP = 'gw-astronomy:LV-EM:Observers'
 PUBLIC_GROUP = 'public_users'
+PRIORITY_USERS_GROUP = 'priority_users'
 
 # Group names
 # Executives group name
