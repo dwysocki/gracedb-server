@@ -1,4 +1,4 @@
-from copy import deepcopy
+import mock
 
 from django.conf import settings
 from django.core.cache import caches
@@ -8,22 +8,13 @@ from django.urls import reverse
 from api.tests.utils import GraceDbApiTestBase
 
 
-# Copy REST_FRAMEWORK settings dict and override here
-drf_settings = settings.REST_FRAMEWORK.copy()
-drf_settings['DEFAULT_THROTTLE_RATES']['anon_burst'] = '1/hour'
-
-
 class TestThrottling(GraceDbApiTestBase):
     """Test API throttles"""
 
-    def tearDown(self):
-        super(TestThrottling, self).tearDown()
-
-        # Clear throttle cache
-        caches['throttles'].clear()
-
-    @override_settings(REST_FRAMEWORK=drf_settings)
-    def test_anon_burst_throttle(self):
+    @mock.patch('api.throttling.BurstAnonRateThrottle.get_rate',
+        return_value='1/hour'
+    )
+    def test_anon_burst_throttle(self, mock_get_rate):
         """Test anonymous user burst throttle"""
         url = reverse('api:default:root')
 
