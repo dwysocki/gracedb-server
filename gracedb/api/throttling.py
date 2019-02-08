@@ -37,6 +37,12 @@ class PostOrPutUserRateThrottle(DbCachedThrottleMixin, UserRateThrottle):
         This is mostly copied from the Rest Framework's SimpleRateThrottle
         except we now pass the request to throttle_success
         """
+
+        # Don't throttle superusers - causes problems with client
+        # integration tests
+        if request.user.is_superuser:
+            return True
+
         # We don't want to throttle any safe methods
         if request.method not in ['POST', 'PUT']:
             return True
