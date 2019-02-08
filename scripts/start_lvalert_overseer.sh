@@ -29,7 +29,3 @@ lvalert_overseer --username="${LVALERT_USER}" \
     --port="${LVALERT_OVERSEER_PORT}" \
     --audit-filename="${LOG_DIR}/overseer_audit.log" \
     --error-filename="${LOG_DIR}/overseer_error.log"
-
-#Send script to Tom with info about overseer stuff
-#fix lvalert failover to use - do we need .netrc file still? or can use env vars?
-#is the way in which the failover gets the credentials going to be any different from the way that the overseer script will?
