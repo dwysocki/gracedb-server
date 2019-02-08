@@ -54,6 +54,7 @@ from search.forms import SimpleSearchForm
 from search.query.events import parseQuery, ParseException
 from superevents.models import Superevent
 from .throttling import EventCreationThrottle, AnnotationThrottle
+from ..mixins import InheritDefaultPermissionsMixin
 from ...utils import api_reverse
 
 # Set up logger
@@ -67,9 +68,12 @@ REST_FRAMEWORK_SETTINGS = getattr(settings, 'REST_FRAMEWORK', {})
 PAGINATE_BY = REST_FRAMEWORK_SETTINGS.get('PAGINATE_BY', 10)
 
 
-#
+# Custom APIView class for inheriting default permissions
+class InheritPermissionsAPIView(InheritDefaultPermissionsMixin, APIView):
+    pass
+
+
 # A custom permission class for the EventDetail view. 
-#
 class IsAuthorizedForEvent(BasePermission):
     def has_object_permission(self, request, view, obj):
         # "Safe methods" only require view permission.
@@ -316,7 +320,7 @@ class TSVRenderer(BaseRenderer):
 #==================================================================
 # Events
 
-class EventList(APIView):
+class EventList(InheritPermissionsAPIView):
     """
     This resource represents the collection of all candidate events in GraceDB.
 
@@ -518,7 +522,7 @@ class LigoLwParser(parsers.MultiPartParser):
         data = parsers.MultiPartParser.parse(self, *args, **kwargs)
         return data
 
-class EventDetail(APIView):
+class EventDetail(InheritPermissionsAPIView):
     #parser_classes = (LigoLwParser, RawdataParser)
     parser_classes = (parsers.MultiPartParser,)
     #serializer_class = EventSerializer
@@ -622,7 +626,7 @@ class EventDetail(APIView):
 #==================================================================
 # Neighbors
 
-class EventNeighbors(APIView):
+class EventNeighbors(InheritPermissionsAPIView):
     """The neighbors of an event.
     ### GET
     The `neighborhood` parameter lets you select a GPS time
@@ -670,7 +674,7 @@ class EventNeighbors(APIView):
 
 # XXX NOT FINISHED
 
-class EventLabel(APIView):
+class EventLabel(InheritPermissionsAPIView):
     """Event Label"""
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
@@ -723,7 +727,7 @@ class EventLabel(APIView):
 #==================================================================
 # EventLog
 
-class EventLogList(APIView):
+class EventLogList(InheritPermissionsAPIView):
     """Event Log List Resource
 
     POST param 'message'
@@ -851,7 +855,7 @@ class EventLogList(APIView):
 
         return response
 
-class EventLogDetail(APIView):
+class EventLogDetail(InheritPermissionsAPIView):
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -869,7 +873,7 @@ class EventLogDetail(APIView):
 #==================================================================
 # EMBBEventLog (EEL)
 
-class EMBBEventLogList(APIView):
+class EMBBEventLogList(InheritPermissionsAPIView):
     """EMBB Event Log List Resource
 
     POST param 'message'
@@ -917,7 +921,7 @@ class EMBBEventLogList(APIView):
 
         return response
 
-class EMBBEventLogDetail(APIView):
+class EMBBEventLogDetail(InheritPermissionsAPIView):
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -934,7 +938,7 @@ class EMBBEventLogDetail(APIView):
 #==================================================================
 # EMObservation (EMO)
 
-class EMObservationList(APIView):
+class EMObservationList(InheritPermissionsAPIView):
     """EMObservation Record List Resource
 
     POST param 'message'
@@ -1000,7 +1004,7 @@ class EMObservationList(APIView):
         response['Location'] = rv['self']
         return response
 
-class EMObservationDetail(APIView):
+class EMObservationDetail(InheritPermissionsAPIView):
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -1065,7 +1069,7 @@ def tagToDict(tag, columns=None, request=None, event=None, n=None):
 
 
 # XXX Unclear what the tag detail resource should be.
-# class TagDetail(APIView):
+# class TagDetail(InheritPermissionsAPIView):
 #     """Tag Detail Resource
 #     """
 #     permission_classes = (IsAuthenticated,)
@@ -1078,7 +1082,7 @@ def tagToDict(tag, columns=None, request=None, event=None, n=None):
 #                     status=status.HTTP_404_NOT_FOUND)
 #         return Response(tagToDict(tag,request=request))
 
-class EventTagList(APIView):
+class EventTagList(InheritPermissionsAPIView):
     """Event Tag List Resource
     """
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
@@ -1102,7 +1106,7 @@ class EventTagList(APIView):
         }
         return Response(rv)
 
-class EventTagDetail(APIView):
+class EventTagDetail(InheritPermissionsAPIView):
     """Event Tag List Resource
     """
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
@@ -1117,7 +1121,7 @@ class EventTagDetail(APIView):
             return Response("No such tag for event.",
                     status=status.HTTP_404_NOT_FOUND)
 
-class EventLogTagList(APIView):
+class EventLogTagList(InheritPermissionsAPIView):
     """Event Log Tag List Resource
     """
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
@@ -1140,7 +1144,7 @@ class EventLogTagList(APIView):
 
         return Response(rv)
 
-class EventLogTagDetail(APIView):
+class EventLogTagDetail(InheritPermissionsAPIView):
     """Event Log Tag Detail Resource
     """
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
@@ -1243,7 +1247,7 @@ class EventLogTagDetail(APIView):
 def getContentType(event):
     return ContentType.objects.get_for_model(event)
 
-class EventPermissionList(APIView):
+class EventPermissionList(InheritPermissionsAPIView):
     """Event Permission List Resource
     """
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
@@ -1265,7 +1269,7 @@ class EventPermissionList(APIView):
                 args=[event.graceid,group.name], request=request) 
         return Response(rv, status=status.HTTP_200_OK)            
 
-class GroupEventPermissionList(APIView):
+class GroupEventPermissionList(InheritPermissionsAPIView):
     """Group Event Permission List Resource
     """
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
@@ -1283,7 +1287,7 @@ class GroupEventPermissionList(APIView):
         rv['groupeventpermissions'] = [groupeventpermissionToDict(gop,event,request) for gop in gops] 
         return Response(rv, status=status.HTTP_200_OK)            
 
-class GroupEventPermissionDetail(APIView):
+class GroupEventPermissionDetail(InheritPermissionsAPIView):
     """Group Event Permission List Resource
     """
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
@@ -1425,7 +1429,7 @@ class GroupEventPermissionDetail(APIView):
         return Response(rv, status=status.HTTP_200_OK)            
 
 
-class Files(APIView):
+class Files(InheritPermissionsAPIView):
     """Files Resource"""
 
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
@@ -1556,7 +1560,7 @@ class Files(APIView):
 #==================================================================
 # VOEvent Resources
 
-class VOEventList(APIView):
+class VOEventList(InheritPermissionsAPIView):
     """VOEvent List Resource
     """
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
@@ -1673,7 +1677,7 @@ class VOEventList(APIView):
         response['Location'] = rv['links']['self']
         return response
 
-class VOEventDetail(APIView):
+class VOEventDetail(InheritPermissionsAPIView):
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
@@ -1688,7 +1692,7 @@ class VOEventDetail(APIView):
 #==================================================================
 # OperatorSignoff 
 
-class OperatorSignoffList(APIView):
+class OperatorSignoffList(InheritPermissionsAPIView):
     """Operator Signoff List Resource
 
     At present, this only supports GET

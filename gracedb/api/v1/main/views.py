@@ -19,6 +19,7 @@ from events.models import Group, Pipeline, Search, Tag, Label, EMGroup, \
     VOEvent, EMBBEventLog, EMSPECTRUM, SignoffBase
 from events.view_logic import get_performance_info
 from superevents.models import Superevent
+from ..mixins import InheritDefaultPermissionsMixin
 from ..superevents.url_templates import construct_url_templates
 
 # Set up logger
@@ -143,7 +144,7 @@ class GracedbRoot(APIView):
         })
 
 
-class PerformanceInfo(APIView):
+class PerformanceInfo(InheritDefaultPermissionsMixin, APIView):
     """
     Serialized performance information
     """
