@@ -57,7 +57,7 @@ def send_with_lvalert_client(node, message, server, username=None,
     client.publish(node, message)
 
     # Disconnect
-    client.disconnect()
+    client.abort()
 
 
 # OLD
