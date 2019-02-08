@@ -40,6 +40,10 @@ def send_with_lvalert_client(node, message, server, username=None,
     client_settings = {
         'server': server
     }
+
+    # Username and password should be provided for container deployments.
+    # For VMs, they won't be, so it will look up the credentials in the
+    # .netrc file
     if username is not None:
         client_settings['username'] = username
     if password is not None:
