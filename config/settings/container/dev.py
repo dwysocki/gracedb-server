@@ -47,3 +47,8 @@ if 'silk' in INSTALLED_APPS:
 #INTERNAL_IPS = [
 #    socket.gethostbyname(SERVER_HOSTNAME),
 #]
+
+# Adjust ADMINS for dev instances
+ADMINS = [
+    ("Tanner Prestegard", "tanner.prestegard@ligo.org"),
+]
