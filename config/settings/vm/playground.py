@@ -1,7 +1,6 @@
 # Settings for a playground GraceDB instance (for user testing) running
 # on a VM with Puppet provisioning. Starts with vm.py settings (which inherits
 # from base.py settings) and overrides or adds to them.
-import textwrap
 from .base import *
 
 CONFIG_NAME = "USER TESTING"
@@ -48,3 +47,7 @@ A nightly cron job removes events older than 14 days.</li>
 <b>112</b>.</li>
 </ul>
 """
+
+# Safety check on debug mode for playground
+if (DEBUG == True):
+    raise RuntimeError("Turn off debug mode for playground")

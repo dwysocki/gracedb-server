@@ -3,6 +3,8 @@
 # settings) and overrides or adds to them.
 from .base import *
 
+DEBUG = False
+
 # LVAlert Overseer settings
 LVALERT_OVERSEER_INSTANCES = [
     {
@@ -15,3 +17,7 @@ LVALERT_OVERSEER_INSTANCES = [
 SEND_XMPP_ALERTS = True
 SEND_PHONE_ALERTS = True
 SEND_EMAIL_ALERTS = True
+
+# Safety check on debug mode for production
+if (DEBUG == True):
+    raise RuntimeError("Turn off debug mode for production")
