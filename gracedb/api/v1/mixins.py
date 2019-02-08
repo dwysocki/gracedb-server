@@ -127,7 +127,12 @@ class InheritDefaultPermissionsMixin(object):
     permission_classes = ()
 
     def get_permissions(self):
-        # Cast to lists to be safe, since these might be tuples
-        permission_list = list(api_settings.DEFAULT_PERMISSION_CLASSES) + \
-            list(self.permission_classes)
+        # Cast default permissions to a list
+        permission_list = list(api_settings.DEFAULT_PERMISSION_CLASSES)
+
+        # Add any class-level permissions that aren't already included
+        permission_list += [p for p in self.permission_classes
+            if p not in permission_list]
+
+        # Return full list of instantiated permissions
         return [permission() for permission in permission_list]
