@@ -5,15 +5,16 @@ Querying for events and superevents
 Introduction
 ===============================================
 
-Queries sometimes have a keyword.
-Some query types require the keyword, but others do not. More details below
-Query looks like ``keyword: value``.
+This section gives an introduction to searches in GraceDB.
+Searches can be done from the "Search" and "Latest" pages in the web interface or through the API when using the ``ligo-gracedb`` client package.
+In the web interface, use the dropdown menu to set the search type (superevent or event).
+When doing a search through the API with the client package, use the ``events()`` and ``superevents()`` methods to query for events and superevents, respectively.
 
-Note on binary operators and where they can be applied.
-Queries can be used from search page, latest page, or queries to the API.
+Queries sometimes have a keyword, which may or may not be required.
+In general, a query looks like ``keyword: value``.
+Multiple attributes can be included in a query (ex: ``key1: val1 key2: val``).
+The sections below show different attributes that can be queried on and the corresponding syntax.
 
-Use dropdown to set search type (superevent or event) in the web view
-Use the ``events()`` and ``superevents()`` methods from gracedb-client to query for events and superevents, respectively.
 
 Event queries
 =============
@@ -119,8 +120,10 @@ Examples:
 
 Superevent queries
 ==================
-Many the same, etc.
-Only production superevents returned by default
+Many of the queries for superevents are identical to that of events.
+Only production superevents are returned by default.
+See :ref:`superevent_query_category` for information on specifying Test or MDC superevents.
+
 
 By id
 -----
@@ -133,6 +136,9 @@ Examples:
 - ``superevent_id: S170817b``
 - ``GW180428C``
 - ``TS181212xz``
+
+
+.. _superevent_query_category:
 
 By category
 -----------
