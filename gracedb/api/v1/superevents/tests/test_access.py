@@ -1539,7 +1539,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
             'tagname': [settings.EXTERNAL_ACCESS_TAGNAME]
         }
         # Create tag
-        Tag.objects.create(name=settings.EXTERNAL_ACCESS_TAGNAME)
+        Tag.objects.get_or_create(name=settings.EXTERNAL_ACCESS_TAGNAME)
 
         # Make request
         url = v_reverse('superevents:superevent-log-list',
@@ -1559,7 +1559,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
             'tagname': [settings.PUBLIC_ACCESS_TAGNAME]
         }
         # Create tag
-        Tag.objects.create(name=settings.PUBLIC_ACCESS_TAGNAME)
+        Tag.objects.get_or_create(name=settings.PUBLIC_ACCESS_TAGNAME)
 
         # Make request
         url = v_reverse('superevents:superevent-log-list',
@@ -1579,7 +1579,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
             'tagname': [settings.EXTERNAL_ACCESS_TAGNAME]
         }
         # Create tag
-        Tag.objects.create(name=settings.EXTERNAL_ACCESS_TAGNAME)
+        Tag.objects.get_or_create(name=settings.EXTERNAL_ACCESS_TAGNAME)
 
         # Make request
         url = v_reverse('superevents:superevent-log-list',
@@ -1601,8 +1601,8 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         }
         # Create tag (have to create LV-EM too since it will be applied
         # along with the public tag)
-        Tag.objects.create(name=settings.PUBLIC_ACCESS_TAGNAME)
-        Tag.objects.create(name=settings.EXTERNAL_ACCESS_TAGNAME)
+        Tag.objects.get_or_create(name=settings.PUBLIC_ACCESS_TAGNAME)
+        Tag.objects.get_or_create(name=settings.EXTERNAL_ACCESS_TAGNAME)
 
         # Make request
         url = v_reverse('superevents:superevent-log-list',
@@ -1620,7 +1620,7 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
     def test_lvem_user_create_log(self):
         """LV-EM user can create logs for exposed superevents only"""
         # Create tag since external users' logs will be tagged with 'lvem'
-        Tag.objects.create(name=settings.EXTERNAL_ACCESS_TAGNAME)
+        Tag.objects.get_or_create(name=settings.EXTERNAL_ACCESS_TAGNAME)
         log_data = {'comment': 'test comment'}
 
         # Internal-only superevent
@@ -2003,7 +2003,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
     def test_internal_user_tag_log_with_lvem(self):
         """Basic internal user can't add external access tag"""
         # Create tag
-        Tag.objects.create(name=settings.EXTERNAL_ACCESS_TAGNAME)
+        Tag.objects.get_or_create(name=settings.EXTERNAL_ACCESS_TAGNAME)
 
         # Create a new log
         log = Log.objects.create(issuer=self.internal_user,
@@ -2023,7 +2023,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
     def test_internal_user_tag_log_with_public(self):
         """Basic internal user add public access tag"""
         # Create tag
-        Tag.objects.create(name=settings.PUBLIC_ACCESS_TAGNAME)
+        Tag.objects.get_or_create(name=settings.PUBLIC_ACCESS_TAGNAME)
 
         # Create a new log
         log = Log.objects.create(issuer=self.internal_user,
@@ -2043,7 +2043,7 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
     def test_access_manager_tag_log_with_lvem(self):
         """Access manager user can tag logs with external access tag"""
         # Create tag
-        Tag.objects.create(name=settings.EXTERNAL_ACCESS_TAGNAME)
+        Tag.objects.get_or_create(name=settings.EXTERNAL_ACCESS_TAGNAME)
 
         # Create a new log
         log = Log.objects.create(issuer=self.internal_user,
@@ -2063,8 +2063,8 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
         """Access manager user can tag logs with public access tag"""
         # Create tag (have to create LV-EM too since it will be applied
         # along with the public tag)
-        Tag.objects.create(name=settings.PUBLIC_ACCESS_TAGNAME)
-        Tag.objects.create(name=settings.EXTERNAL_ACCESS_TAGNAME)
+        Tag.objects.get_or_create(name=settings.PUBLIC_ACCESS_TAGNAME)
+        Tag.objects.get_or_create(name=settings.EXTERNAL_ACCESS_TAGNAME)
 
         # Create a new log
         log = Log.objects.create(issuer=self.internal_user,
@@ -2194,9 +2194,9 @@ class TestSupereventLogTagDetail(AccessManagersGroupAndUserSetup,
         # Create some tags
         cls.tag1 = Tag.objects.create(name='test_tag1')
         cls.tag2 = Tag.objects.create(name='test_tag2')
-        cls.lvem_tag = Tag.objects.create(
+        cls.lvem_tag, _ = Tag.objects.get_or_create(
             name=settings.EXTERNAL_ACCESS_TAGNAME)
-        cls.public_tag = Tag.objects.create(
+        cls.public_tag, _ = Tag.objects.get_or_create(
             name=settings.PUBLIC_ACCESS_TAGNAME)
 
         # Expose one log on each superevent to LV-EM only
@@ -2797,7 +2797,7 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
         # Have to create lvem tag since there will be a log created to
         # document the EMObservation creation and it will be tagged
         # with 'lvem' since it was created by an external user.
-        Tag.objects.create(name=settings.EXTERNAL_ACCESS_TAGNAME)
+        Tag.objects.get_or_create(name=settings.EXTERNAL_ACCESS_TAGNAME)
 
         # LV-EM superevent
         url = v_reverse('superevents:superevent-emobservation-list',
@@ -3621,7 +3621,7 @@ class TestSupereventSignoffCreation(SignoffGroupsAndUsersSetup,
         super(TestSupereventSignoffCreation, cls).setUpTestData()
 
         # Create a few labels for testing
-        h1ops, _ =Label.objects.get_or_create(name='H1OPS')
+        h1ops, _ = Label.objects.get_or_create(name='H1OPS')
         Label.objects.get_or_create(name='H1OK')
         Label.objects.get_or_create(name='H1NO')
         advreq, _ = Label.objects.get_or_create(name='ADVREQ')
