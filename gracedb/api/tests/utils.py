@@ -27,17 +27,25 @@ def fix_settings(key, value):
     return api_settings
 
 
-@mock.patch('api.throttling.BurstAnonRateThrottle.get_rate',
-    return_value='1000/second'
-)
 @override_settings(
     ALLOW_BLANK_USER_AGENT_TO_API=True,
 )
 class GraceDbApiTestBase(GraceDbTestBase):
     client_class = APIClient
 
+    def setUp(self):
+        super(GraceDbApiTestBase, self).setUp()
+        # Patch throttle and start patcher
+        self.patcher = mock.patch('api.throttling.BurstAnonRateThrottle.get_rate',
+            return_value='1000/second')
+        self.patcher.start()
+
+
     def tearDown(self):
         super(GraceDbApiTestBase, self).tearDown()
 
         # Clear throttle cache
         caches['throttles'].clear()
+
+        # Stop patcher
+        self.patcher.stop()
