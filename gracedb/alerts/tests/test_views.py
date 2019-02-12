@@ -51,6 +51,7 @@ class TestUpdateContactView(GraceDbTestBase):
             'key_field': 'phone',
             'description': 'new description',
             'phone': '23456789012',
+            'phone_method': Contact.CONTACT_PHONE_CALL,
         }
         original_phone = self.phone_contact.phone
         url = reverse('alerts:edit-contact', args=[self.phone_contact.pk])
@@ -60,7 +61,9 @@ class TestUpdateContactView(GraceDbTestBase):
         # Refresh from database
         self.phone_contact.refresh_from_db()
 
-        # Check values - description should be updated, but phone should not be
+        # Check values - description and method should be updated, but phone
+        # number should not be
         self.assertEqual(self.phone_contact.description, data['description'])
         self.assertNotEqual(self.phone_contact.phone, data['phone'])
         self.assertEqual(self.phone_contact.phone, original_phone)
+        self.assertEqual(self.phone_contact.phone_method, data['phone_method'])
