@@ -81,7 +81,7 @@ Most of the relevant code is in ``gracedb/events/alerts.py``, including the foll
 - ``issueAlertForLabel``
 - ``issueEmailAlert``
 
-There is also some relevant code in ``gracedb/userprofile/models.py``, which defines a ``PhoneNumberField`` for the ``Contact`` model and validates the phone number when a user signs up for this service.
+There is also some relevant code in ``gracedb/alerts/fields.py``, which defines a ``PhoneNumberField`` for the ``Contact`` model and validates the phone number when a user signs up for this service.
 
 The TwiML bin SIDs are used in ``make_twilio_calls`` to generate the URLs and make the POST request.
 These SIDs, along with the Account SID and Auth Token should **NOT** be saved in the git repository.
