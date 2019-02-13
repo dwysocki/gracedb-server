@@ -1,9 +1,12 @@
+from __future__ import absolute_import
 from collections import defaultdict
 import logging
-from pyparsing import ParseException
+import pyparsing
+import textwrap
 
 from django import forms
 from django.core.exceptions import NON_FIELD_ERRORS
+from django.db.models import Q
 from django.forms.utils import ErrorList
 from django.utils import timezone
 from django.utils.encoding import force_text
@@ -12,152 +15,113 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
 from core.forms import MultipleForm
-from search.query.labels import parseLabelQuery
+from events.models import Group, Search, Label
 from .models import Notification, Contact
+from .utils import parse_label_query
 
 # Set up logger
 logger =  logging.getLogger(__name__)
 
 
-class CleanNotificationFormMixin(object):
+###############################################################################
+# Notification forms ##########################################################
+###############################################################################
+class BaseNotificationForm(forms.ModelForm):
+    """
+    Base model for Notification forms. Should not be used on its own
+    (essentially an abstract model)
+    """
+    class Meta:
+        model = Notification
+        fields = ['description'] # dummy placeholder
+        labels = {
+            'far_threshold': 'FAR Threshold (Hz)',
+        }
+        help_texts = {
+            'contacts': ('If this box is empty, you must create and verify a '
+                'contact.'),
+            'label_query': textwrap.dedent("""\
+                Label names can be combined with binary AND: ('&amp;' or ',')
+                or binary OR: '|'. They can also be negated with '~' or '-'.
+                For N labels, there must be exactly N-1 binary operators.
+                Parentheses are not allowed.
+            """).rstrip()
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(BaseNotificationForm, self).__init__(*args, **kwargs)
+
+        # Dynamically set contacts queryset to be only contacts that:
+        #  a) belong to the user
+        #  b) are verified
+        if user is not None:
+            self.fields['contacts'].queryset = user.contact_set.filter(
+                verified=True)
 
     def clean(self):
-        data = super(CleanNotificationFormMixin, self).clean()
-        return data
+        cleaned_data = super(BaseNotificationForm, self).clean()
 
-    def clean_label_query(self):
-        label_query = self.cleaned_data['label_query']
-        return label_query
+        # Dict for holding errors. Keys are class members,
+        # values are lists of error messages
+        err_dict = defaultdict(list)
+
+        # Try to get fields from cleaned data
+        label_query = cleaned_data.get('label_query', None)
+        labels = cleaned_data.get('labels', None)
+
+        # Can't specify a label from the list and a label query
+        if label_query is not None and labels is not None:
+            err_msg = ('Cannot specify both labels and label query, '
+                'choose one or the other.')
+            err_dict[NON_FIELD_ERRORS].append(err_msg)
+
+        # If there is a label query, get the labels involved and store them
+        # in the labels attribute.  We use this in the alert generation code
+        # as an easy way of checking whether a notification might be triggered.
+        if label_query is not None:
+            try:
+                labels = parse_label_query(label_query)
+            except pyparsing.ParseException:
+                err_dict['label_query'].append('Invalid label query.')
+            else:
+                cleaned_data['labels'] = Label.objects.filter(name__in=labels)
+
+        # Raise errors, if any
+        if err_dict:
+            raise forms.ValidationError(err_dict)
+
+        return cleaned_data
 
 
-class SupereventNotificationForm(forms.ModelForm, MultipleForm,
-    CleanNotificationFormMixin):
+class SupereventNotificationForm(BaseNotificationForm, MultipleForm):
     key = 'superevent'
     category = Notification.NOTIFICATION_CATEGORY_SUPEREVENT
 
-    class Meta:
-        model = Notification
+    class Meta(BaseNotificationForm.Meta):
         fields = ['description', 'contacts', 'far_threshold', 'labels',
             'label_query', 'ns_candidate', 'key_field']
 
 
-class EventNotificationForm(forms.ModelForm, MultipleForm,
-    CleanNotificationFormMixin):
+class EventNotificationForm(BaseNotificationForm, MultipleForm):
     key = 'event'
     category = Notification.NOTIFICATION_CATEGORY_EVENT
+    # Remove 'Test' group
+    groups = forms.ModelMultipleChoiceField(queryset=
+        Group.objects.exclude(name='Test'))
+    # Remove 'MDC' and 'O2VirgoTest' searches
+    searches = forms.ModelMultipleChoiceField(queryset=
+        Search.objects.exclude(name__in=['MDC', 'O2VirgoTest']))
 
-    class Meta:
-        model = Notification
+    class Meta(BaseNotificationForm.Meta):
         fields = ['description', 'contacts', 'far_threshold', 'groups',
             'pipelines', 'searches', 'labels', 'label_query', 'ns_candidate',
             'key_field']
 
 
-def notificationFormFactory(postdata=None, user=None):
-    class TF(forms.ModelForm):
-        far_threshold = forms.FloatField(label='FAR Threshold (Hz)',
-            required=False)
-        class Meta:
-            model = Notification
-            fields = ['contacts', 'pipelines', 'far_threshold', 'labels', 'label_query']
-            widgets = {'label_query': forms.TextInput(attrs={'size': 50})} 
-
-            help_texts = {
-                'label_query': ("Label names can be combined with binary AND: "
-                                "'&amp;' or ','; or binary OR: '|'. For N "
-                                "labels, there must be exactly N-1 binary "
-                                "operators. Parentheses are not allowed. "
-                                "Additionally, any of the labels in a query "
-                                "string can be negated with '~' or '-'. "
-                                "Labels can either be selected with the select"
-                                " box at the top, or a query can be specified,"
-                                " <i>but not both</i>."),
-            }
-
-        contacts = forms.ModelMultipleChoiceField(
-                        queryset=Contact.objects.filter(user=user),
-                        required=True,
-                        help_text="If this box is empty, go back and create a contact first.",
-                        error_messages={'required': 'You must specify at least one contact.'})
-    
-        # XXX should probably override is_valid and check for
-        # truth of (atypes or labels)
-        # and set field error attributes appropriately.
-
-        def clean(self, *args, **kwargs):
-            cleaned_data = super(TF, self).clean(*args, **kwargs)
-
-            # Dict for holding errors. Keys are class members,
-            # values are lists of error messages
-            err_dict = defaultdict(list)
-
-            # Can't specify a label from the list and a label query
-            if (cleaned_data['label_query'] and cleaned_data['labels']):
-                err_msg = ('Cannot specify both labels and label query, '
-                    'choose one or the other.')
-                err_dict[NON_FIELD_ERRORS].append(err_msg)
-
-            # Notifications currently require a label or a pipeline to be
-            # specified. In the future, we should also allow the cases which
-            # have only a FAR threshold or a label query
-            if not (cleaned_data['labels'] or cleaned_data['pipelines']):
-                err_msg = ('Choose labels and/or pipelines for this '
-                    'notification.')
-                err_dict[NON_FIELD_ERRORS].append(err_msg)
-
-            # Make sure the label query is valid
-            if cleaned_data['label_query']:
-                # now try parsing it
-                try:
-                    parseLabelQuery(cleaned_data['label_query'])
-                except ParseException:
-                    err_dict['label_query'].append('Invalid label query')
-
-            # Raise errors, if any
-            if err_dict:
-                raise forms.ValidationError(err_dict)
-
-            return cleaned_data
-
-        def as_table(self, *args, **kwargs):
-            """
-            Overriding default as_table method to put non-field errors
-            at the top of the table. Allows removal of "flash message box".
-            """
-
-            # Get non-field errors and remove them from the error list
-            # to prevent duplicates.
-            nfe = self.non_field_errors()
-            self.errors[NON_FIELD_ERRORS] = []
-
-            # Generate table HTML and add non-field errors to beginning row
-            table_data = super(TF, self).as_table(*args, **kwargs)
-            if nfe:
-                table_data = '\n<tr><td colspan="2">\n' + \
-                    process_errors(nfe) + '\n</td></tr>\n' + table_data
-            return mark_safe(table_data)
-
-    if postdata is not None:
-        return TF(postdata)
-    else:
-        return TF()
-
-def process_errors(err):
-    """Processes and formats errors in ContactForms."""
-    out_errs = []
-    if isinstance(err,ErrorList):
-        for e in err:
-            out_errs.append('<p class="error">{0}</p>' \
-                .format(conditional_escape(e)))
-    elif isinstance(err,str):
-        out_errs.append('<p class="error">{0}</p>' \
-                .format(conditional_escape(err)))
-    else:
-        out_errs.append(force_text(err))
-
-    return "\n".join(out_errs)
-
-
+###############################################################################
+# Contact forms ###############################################################
+###############################################################################
 class PhoneContactForm(forms.ModelForm, MultipleForm):
     key = 'phone'
 

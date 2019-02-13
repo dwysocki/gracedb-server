@@ -22,7 +22,8 @@ class MultipleFormView(FormView):
     def get_forms(self, form_classes=None):
         if (form_classes is None):
             form_classes = self.form_classes
-        return [form(**self.get_form_kwargs(form.key)) for form in form_classes]
+        return [form(**self.get_form_kwargs(form.key)) for form in
+            form_classes]
 
     def get_form_kwargs(self, form_key):
         kwargs = {

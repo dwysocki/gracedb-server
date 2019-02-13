@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
-from django.db.models import Q
 from django.http import (
     HttpResponse, HttpResponseRedirect, HttpResponseNotFound,
     Http404, HttpResponseForbidden, HttpResponseBadRequest
@@ -27,19 +26,16 @@ from core.views import MultipleFormView
 from events.permission_utils import lvem_user_required, is_external
 from events.models import Label
 from ligoauth.decorators import internal_user_required
-from search.query.labels import labelQuery
 from .forms import (
     PhoneContactForm, EmailContactForm, VerifyContactForm,
     EventNotificationForm, SupereventNotificationForm,
-    notificationFormFactory,
 )
 from .models import Notification, Contact
 from .phone import get_twilio_from
 
 
 # Set up logger
-logger = log = logging.getLogger(__name__)
-
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -106,6 +102,12 @@ class CreateNotificationView(MultipleFormView):
             kwargs['idx'] = idx
         return kwargs
 
+    def get_form_kwargs(self, *args, **kwargs):
+        kw = super(CreateNotificationView, self).get_form_kwargs(
+            *args, **kwargs)
+        kw['user'] = self.request.user
+        return kw
+
     def form_valid(self, form):
         if form.cleaned_data.has_key('key_field'):
             form.cleaned_data.pop('key_field')
@@ -139,6 +141,12 @@ class EditNotificationView(UpdateView):
         else:
             return SupereventNotificationForm
 
+    def get_form_kwargs(self, *args, **kwargs):
+        kw = super(EditNotificationView, self).get_form_kwargs(
+            *args, **kwargs)
+        kw['user'] = self.request.user
+        return kw
+
     def get_queryset(self):
         return self.request.user.notification_set.all()
 
@@ -164,66 +172,6 @@ class DeleteNotificationView(DeleteView):
     def get_queryset(self):
         # Queryset should only contain the user's notifications
         return self.request.user.notification_set.all()
-
-
-@internal_user_required
-def create(request):
-    """Create a notification (Notification) via the web interface"""
-
-    if request.method == "POST":
-        form = notificationFormFactory(request.POST, user=request.user)
-        if form.is_valid():
-            # Create the Notification
-            t = Notification(user=request.user)
-            labels = form.cleaned_data['labels']
-            pipelines = form.cleaned_data['pipelines']
-            contacts = form.cleaned_data['contacts']
-            far_threshold = form.cleaned_data['far_threshold']
-            label_query = form.cleaned_data['label_query']
-
-            # TODO: properly handle negated labels
-            # If we've got a label query defined for this notification, then we want
-            # each label mentioned in the query to be listed in the event's
-            # labels. It would be smarter to make sure the label isn't being
-            # negated, but we can just leave that for later.
-            if len(label_query) > 0:
-                toks = labelQuery(label_query, names=True)
-                f = Q()
-                for tok in toks:
-                    # Note that all labels are being combined with OR
-                    if isinstance(tok,Q):
-                        f = f | tok
-                if len(f)==0:
-                    return HttpResponseBadRequest("Please enter a valid label query.")
-                labels = Label.objects.filter(f)
-
-            # If the form is valid, then we have at least one contact and
-            # either a label or pipeline.
-            # So let's create the contact object.
-
-            # Can't access many-to-many relationships before object is saved
-            t.save()
-
-            # Now populate fields
-            try:
-                t.labels = labels
-                t.pipelines = pipelines
-                t.contacts = contacts
-                t.far_threshold = far_threshold
-                t.label_query = label_query
-                t.save()
-                messages.info(request, 'Created notification: {n}.'.format(
-                    n=t.display()))
-            except Exception as e:
-                messages.error(request, ('Error creating notification {n}: '
-                    '{e}.').format(n=t.display(), e=e))
-                t.delete()
-
-            return HttpResponseRedirect(reverse('alerts:index'))
-    else:
-        form = notificationFormFactory(user=request.user)
-    return render(request, 'profile/createNotification.html',
-        context={"form": form})
 
 
 ###############################################################################

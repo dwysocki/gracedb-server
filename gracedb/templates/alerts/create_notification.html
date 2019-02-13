@@ -42,7 +42,7 @@ $(document).ready(function() {
     <li>Phone and email notifications will not be issued outside of observing runs, in order to avoid potential accidents.</li>
 </ul>
 </div>
-<div id="tabs" style="min-width: 300px; max-width: 400px; display: none;">
+<div id="tabs" style="min-width: 300px; max-width: 500px; display: none;">
   <ul>
     {% for form in forms %}
     <li><a href="#tab-{{ forloop.counter }}">{{ form.key|title }} alert</a></li>
