@@ -25,3 +25,26 @@ def internal_user_required(function=None, raise_exception=True, **kwargs):
     if function:
         return actual_decorator(function)
     return actual_decorator
+
+
+def lvem_observers_only(function=None, login_url=None, superuser_allowed=False,
+    raise_exception=True):
+    """Allow access only to non-LVC LV-EM observers"""
+
+    def check_groups(user):
+        in_lvem_obs = user.groups.filter(
+            name=settings.LVEM_OBSERVERS_GROUP).exists()
+        in_lvc = user.groups.filter(name=settings.LVC_GROUP).exists()
+
+        if ((in_lvem_obs and not in_lvc) or
+            (superuser_allowed and user.is_superuser)):
+            return True
+
+        if raise_exception:
+            raise PermissionDenied
+        return False
+
+    actual_decorator = user_passes_test(check_groups, login_url=login_url)
+    if function:
+        return actual_decorator(function)
+    return actual_decorator
