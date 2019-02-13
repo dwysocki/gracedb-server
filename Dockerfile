@@ -40,6 +40,7 @@ COPY docker/shibboleth-ds /etc/shibboleth-ds
 COPY docker/apache-config /etc/apache2/sites-available/gracedb.conf
 COPY docker/login.ligo.org.cert.LIGOCA.pem /etc/shibboleth/login.ligo.org.cert.LIGOCA.pem
 COPY docker/inc-md-cert.pem /etc/shibboleth/inc-md-cert.pem
+COPY docker/check_shibboleth_status /usr/local/bin/check_shibboleth_status
 
 RUN a2dissite 000-default.conf && \
     a2ensite gracedb.conf && \

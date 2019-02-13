@@ -1,0 +1,101 @@
+#!/usr/bin/python
+
+'''
+Pulls Shibboleth status.sso page, checks for:
+  1. Presence of <OK/> tags under Status and SessionCache,
+  2. Presence of required metadata feeds (see metadata_feeds).
+Run ./check_shibboleth_status -h for help.
+'''
+
+# Imports
+import argparse, urllib2, sys
+import xml.etree.ElementTree as ET
+
+# Parameters - may need to be modified in the future
+# if Shibboleth status pages change or new metadata
+# providers are added.
+tags_to_check = ["Status", "SessionCache"] # XML tags to check for "OK" status.
+# Metadata feeds.
+default_metadata_feeds = ["ligo-approved-idp-none", "incommon", "cirrus"]
+
+# Default arguments
+default_host = "localhost"
+default_urlpath = "Shibboleth.sso/Status"
+default_timeout = 10
+
+# Process arguments.
+parser = argparse.ArgumentParser(formatter_class=
+                                 argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument("-H", "--host", type=str,
+                    help="Hostname of gracedb server",
+                    default=default_host)
+parser.add_argument("-U", "--urlpath", type=str,
+                    help="Path to gracedb server Shibboleth status page",
+                    default=default_urlpath)
+parser.add_argument("-T", "--timeout", type=int,
+                    help="Maximum time (in sec.) to allow connecting to server",
+                    default=default_timeout)
+parser.add_argument("-F", "--feeds", type=str,
+                    help=("Comma-separated list of metadata feeds to check"
+                    "for the presence of"), default=",".join(
+                    default_metadata_feeds))
+args = parser.parse_args()
+host = "http://" + args.host
+urlpath = args.urlpath
+timeout = args.timeout
+metadata_feeds = args.feeds.split(",")
+
+# Get XML data from URL.
+host_url = host + "/" + urlpath
+try:
+    response = urllib2.urlopen(host_url, timeout=timeout)
+except urllib2.URLError:
+    print "Error opening Shibboleth status page (" + host_url + ")."
+    sys.exit(2)
+except:
+    print "Unknown error opening Shibboleth status page (" + host_url + ")."
+    sys.exit(3)
+
+# Convert from string to ElementTree
+try:
+    status_tree = ET.fromstring(response.read())
+except ET.ParseError:
+    # Error parsing response.
+    print "Error parsing response from server - not in XML format."
+    sys.exit(2)
+except:
+    # Error that is not ParseError.
+    print "Unknown error occurred when parsing response from server."
+    sys.exit(3)
+response.close()
+
+# Process XML. ----------------------------
+# Check 1: find <Status> and <SessionCache> tags, make sure
+# they both contain an <OK/> child.
+for tag in tags_to_check:
+    status_tag = status_tree.find(tag)
+    if (status_tag is None):
+        print "Error: tag \'" +  tag + "\' not found."
+        sys.exit(2)
+    else:
+        status_OK = status_tag.find('OK')
+        if (status_OK is None):
+            print "Error: tag \'" + tag + "\' is not OK."
+            sys.exit(2)
+
+# Check 2: make sure metadata feeds that we expect
+# are actually there.
+metaprov_tags = status_tree.findall("MetadataProvider")
+srcs = [element.attrib['source'] for element in metaprov_tags]
+for feed in metadata_feeds:
+    feed_found = [src.lower().find(feed) >= 0 for src in srcs]
+    if (sum(feed_found) < 1):
+        print "MetadataProvider " + feed + " not found."
+        sys.exit(2)
+    elif (sum(feed_found) < 1):
+        print "MetadataProvider " + feed + "found in multiple elements."
+        sys.exit(2)
+
+# If we make it to this point, everything is OK.
+print "All MetadataProviders found. Status and SessionCache are OK."
+sys.exit(0)
