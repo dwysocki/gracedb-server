@@ -2,35 +2,24 @@ import logging
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
-from django.http import (
-    HttpResponse, HttpResponseRedirect, HttpResponseNotFound,
-    Http404, HttpResponseForbidden, HttpResponseBadRequest
-)
-from django.template import RequestContext
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.decorators import method_decorator
-from django.utils.http import urlencode
-from django.utils.safestring import mark_safe
-from django.views.generic.edit import FormView, DeleteView, UpdateView
-from django.views.generic.base import ContextMixin
-from django.views.generic.detail import SingleObjectMixin, DetailView
+from django.views.generic.edit import DeleteView, UpdateView
+from django.views.generic.detail import DetailView
 
 from django_twilio.client import twilio_client
 
 from core.views import MultipleFormView
-from events.permission_utils import lvem_user_required, is_external
-from events.models import Label
 from ligoauth.decorators import internal_user_required
 from .forms import (
     PhoneContactForm, EmailContactForm, VerifyContactForm,
     EventNotificationForm, SupereventNotificationForm,
 )
-from .models import Notification, Contact
+from .models import Contact, Notification
 from .phone import get_twilio_from
 
 
@@ -38,51 +27,18 @@ from .phone import get_twilio_from
 logger = logging.getLogger(__name__)
 
 
-@login_required
+###############################################################################
+# Generic views ###############################################################
+###############################################################################
+@internal_user_required
 def index(request):
     context = {
         'notifications': request.user.notification_set.all(),
         'contacts': request.user.contact_set.all(),
     }
 
-    return render(request, 'profile/notifications.html', context=context)
+    return render(request, 'alerts/index.html', context=context)
 
-
-@lvem_user_required
-def managePassword(request):
-    # lvem_user_required only checks for LVEM group membership,
-    # not the absence of LVC membership.  We want this page to be
-    # forbidden to LVC members - they don't need passwords since they
-    # have certificate-based access to the API.
-    if not is_external(request.user):
-        return HttpResponseForbidden("Forbidden")
-
-    # Set up context dictionary
-    d = { 'username': request.user.username }
-
-    if request.method == "POST":
-        password = User.objects.make_random_password(length=20)
-        d['password'] = password
-        request.user.set_password(password)
-        request.user.date_joined = timezone.now()
-        request.user.save()
-
-    if request.user.has_usable_password():
-        d['has_password'] = True
-        # Check if password is expired
-        # NOTE: This is super hacky because we are using date_joined to store
-        # the date when the password was set.
-        password_expiry = request.user.date_joined + \
-            settings.PASSWORD_EXPIRATION_TIME - timezone.now()
-        if (password_expiry.total_seconds() < 0):
-            d['expired'] = True
-        else:
-            d['expired'] = False
-            d['expiration_days'] = password_expiry.days
-    else:
-        d['has_password'] = False
-
-    return render(request, 'profile/manage_password.html', context=d)
 
 ###############################################################################
 # Notification views ##########################################################
@@ -154,7 +110,6 @@ class EditNotificationView(UpdateView):
 @method_decorator(internal_user_required, name='dispatch')
 class DeleteNotificationView(DeleteView):
     """Delete a notification"""
-    model = Notification
     success_url = reverse_lazy('alerts:index')
 
     def get(self, request, *args, **kwargs):
@@ -243,7 +198,6 @@ class EditContactView(UpdateView):
 @method_decorator(internal_user_required, name='dispatch')
 class DeleteContactView(DeleteView):
     """Delete a contact"""
-    model = Contact
     success_url = reverse_lazy('alerts:index')
 
     def get(self, request, *args, **kwargs):
@@ -267,7 +221,6 @@ class DeleteContactView(DeleteView):
 class TestContactView(DetailView):
     """Test a contact (must be verified already)"""
     # Send alerts to all contact methods
-    model = Contact
     success_url = reverse_lazy('alerts:index')
 
     def get_queryset(self):
@@ -352,7 +305,6 @@ class VerifyContactView(UpdateView):
 @method_decorator(internal_user_required, name='dispatch')
 class RequestVerificationCodeView(DetailView):
     """Redirect view for requesting a contact verification code"""
-    model = Contact
 
     def get_queryset(self):
         return self.request.user.contact_set.all()

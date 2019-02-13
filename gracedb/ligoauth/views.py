@@ -1,10 +1,19 @@
 import logging
 
 from django.conf import settings
-from django.contrib.auth import logout
-from django.http import HttpResponseRedirect
-from django.shortcuts import resolve_url
+from django.contrib.auth import (
+    logout, get_user_model, update_session_auth_hash,
+)
+from django.http import HttpResponseRedirect, HttpResponseForbidden
+from django.shortcuts import resolve_url, render
 from django.urls import reverse
+from django.utils import timezone
+
+from .decorators import lvem_observers_only
+
+
+# Set up user model
+UserModel = get_user_model()
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -85,3 +94,34 @@ def shib_logout(request):
         resolve_url(settings.LOGOUT_REDIRECT_URL))
 
     return HttpResponseRedirect(original_url)
+
+
+@lvem_observers_only(superuser_allowed=True)
+def manage_password(request):
+    # Set up context dictionary
+    d = {}
+
+    if request.method == "POST":
+        password = UserModel.objects.make_random_password(length=20)
+        d['password'] = password
+        request.user.set_password(password)
+        request.user.date_joined = timezone.now()
+        request.user.save()
+        update_session_auth_hash(request, request.user)
+
+    if request.user.has_usable_password():
+        d['has_password'] = True
+        # Check if password is expired
+        # NOTE: This is super hacky because we are using date_joined to store
+        # the date when the password was set.
+        password_expiry = request.user.date_joined + \
+            settings.PASSWORD_EXPIRATION_TIME - timezone.now()
+        if (password_expiry.total_seconds() < 0):
+            d['expired'] = True
+        else:
+            d['expired'] = False
+            d['expiration_days'] = password_expiry.days
+    else:
+        d['has_password'] = False
+
+    return render(request, 'ligoauth/manage_password.html', context=d)

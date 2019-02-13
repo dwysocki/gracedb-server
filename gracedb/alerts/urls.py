@@ -31,9 +31,4 @@ urlpatterns = [
         views.EditNotificationView.as_view(), name="edit-notification"),
     url(r'^notification/(?P<pk>\d+)/delete/$',
         views.DeleteNotificationView.as_view(), name="delete-notification"),
-
-    # Manage password
-    url(r'^manage_password/$', views.managePassword,
-        name="manage-password"),
-
 ]

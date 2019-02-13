@@ -69,17 +69,6 @@
 {% endif %}
 
 <a class="btn btn-success" href="{% url "alerts:create-notification" %}">Create new notification</a>
-<br/><br/>
-{% endif %}
-
-{# Show password page only to LV-EM users who are not also internal #}
-{# But let the admins (superusers) see it with some additions #}
-{% if user_is_lvem and not user_is_internal or user.is_superuser %}
-    {% if user.is_superuser %}
-    <h2 style="border: 2px solid red; color: red; display: inline-block;"><b>The following section is only visible to non-internal LV-EM members. You can see it (and this message) because you are a superuser.</b></h2>
-    {% endif %}
-<h1>Passwords for Scripted Access</h1>
-<a class="btn btn-dark" href="{% url "alerts:manage-password" %}">Manage password</a>
 {% endif %}
 
 {% endblock %}

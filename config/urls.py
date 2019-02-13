@@ -10,7 +10,7 @@ import core.views
 from events.feeds import EventFeed, feedview
 import events.reports
 import events.views
-from ligoauth.views import pre_login, post_login, shib_logout
+from ligoauth.views import pre_login, post_login, shib_logout, manage_password
 import search.views
 
 # Django admin auto-discover
@@ -33,7 +33,7 @@ urlpatterns = [
         template_name='discovery.html'), name="discovery"),
     url(r'^events/', include('events.urls')),
     url(r'^superevents/', include('superevents.urls')),
-    url(r'^options/', include('alerts.urls')),
+    url(r'^alerts/', include('alerts.urls')),
     url(r'^feeds/(?P<url>.*)/$', EventFeed()),
     url(r'^feeds/$', feedview, name="feeds"),
 
@@ -50,6 +50,9 @@ urlpatterns = [
     url(r'^login/$', pre_login, name='login'),
     url(r'^post-login/$', post_login, name='post-login'),
     url(r'^logout/$', shib_logout, name='logout'),
+
+    # Password management
+    url('^manage-password/$', manage_password, name='manage-password'),
 
     # API URLs
     url(r'^api/', include('api.urls')),
