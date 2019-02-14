@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as AuthGroup
 from django.http import HttpResponse, HttpResponseForbidden
+from django.utils.http import unquote_plus
 
 from rest_framework import parsers, status
 from rest_framework.permissions import IsAuthenticated
@@ -16,6 +17,8 @@ from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView
 
+from api.backends import GraceDbX509FullCertAuthentication, \
+    GraceDbX509CertInfosAuthentication
 from api.utils import api_reverse
 from events.models import Group, Pipeline, Search, Tag, Label, EMGroup, \
     VOEvent, EMBBEventLog, EMSPECTRUM, SignoffBase
@@ -199,3 +202,88 @@ class UserInfoView(RetrieveAPIView):
             serializer = self.get_serializer(instance)
             output = serializer.data
         return Response(output)
+
+
+class CertDebug(APIView):
+    """
+    Certificate debugging
+    """
+
+    def get(self, request):
+        d = {}
+
+        # Set up backend
+        backend = GraceDbX509FullCertAuthentication()
+
+        # Raw cert data
+        d['raw_cert'] = str(request.META.get(backend.cert_header,
+            'Header not found'))
+
+        # Get certificate data
+        try:
+            cert_data = backend.get_certificate_data_from_request(request)
+        except Exception as e:
+            d['result'] = 'Error getting cert data from request: {0}'.format(e)
+            return Response(d)
+
+        if cert_data is None:
+            d['result'] = 'No cert data found'
+            return Response(d)
+
+        # Try to verify cert
+        try:
+            certificate = backend.verify_certificate_chain(cert_data)
+        except Exception as e:
+            d['result'] = "Error verifying certificate: {0}".format(e)
+            return Response(d)
+
+        # Add data to response
+        d['hash'] = certificate.get_subject().hash()
+        d['subject_components'] = certificate.get_subject().get_components()
+        d['subject'] = backend.get_certificate_subject_string(certificate)
+        d['issuer_components'] = certificate.get_issuer().get_components()
+        d['issuer'] = backend.get_certificate_issuer_string(certificate)
+
+        return Response(d)
+
+
+class CertInfosDebug(APIView):
+    """
+    Certificate infos debugging
+    """
+
+    def get(self, request):
+        d = {}
+
+        # Set up backend
+        backend = GraceDbX509CertInfosAuthentication()
+
+        # Raw cert data
+        raw_infos = request.META.get(backend.infos_header, None)
+        if raw_infos is None:
+            d['raw_infos'] = 'Header not found'
+            d['result'] = 'No cert infos found'
+            return Response(d)
+        d['raw_infos'] = str(raw_infos)
+
+        # Get certificate info
+        infos = request.META.get(backend.infos_header, None)
+
+        # Unquote (handle pluses -> spaces)
+        infos_unquoted = unquote_plus(infos)
+
+        # Extract subject and issuer
+        try:
+            subject, issuer = backend.infos_pattern.search(infos_unquoted).groups()
+        except Exception as e:
+            d['result'] = ("Couldn't match infos pattern to extract subject "
+                "and issuer: {0}").format(e)
+            return Response(d)
+
+        # Get "official" subject
+        subject = backend.get_cert_dn_from_request(request)
+
+        d['subject'] = subject
+        d['issuer'] = backend.convert_format(issuer)
+
+        return Response(d)
