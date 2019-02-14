@@ -161,6 +161,47 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
         return (user, None)
 
 
+class GraceDbX509CertInfosAuthentication(GraceDbX509Authentication):
+    """
+    Authentication based on X509 "infos" header.
+    Certificate should be verified by Traefik already.
+    """
+    api_only = True
+    infos_header = getattr(settings, 'X509_INFOS_HEADER',
+        'X_FORWARDED_TLS_CLIENT_CERT_INFOS')
+    infos_pattern = re.compile(r'Subject="(.*?)".*Issuer="(.*?)"')
+
+    @classmethod
+    def get_cert_dn_from_request(cls, request):
+        """Get SSL headers and return subject for user"""
+
+        # Get infos from request headers
+        infos = request.META.get(cls.infos_header, None)
+
+        # Unquote (handle pluses -> spaces)
+        infos_unquoted = unquote_plus(infos)
+
+        # Extract subject and issuer
+        subject, issuer = cls.infos_pattern.search(infos_unquoted).groups()
+
+        # Convert formats
+        subject = cls.convert_format(subject)
+        issuer = cls.convert_format(issuer)
+
+        # Handled proxied certificates
+        subject = cls.extract_subject_from_proxied_cert(subject, issuer)
+
+        return subject
+
+    @staticmethod
+    def convert_format(s):
+        # Convert subject or issuer strings from comma to slash format
+        s = s.replace(',', '/')
+        if not s.startswith('/'):
+            s = '/' + s
+        return s
+
+
 class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
     """
     Authentication based on a full X509 certificate. We verify the

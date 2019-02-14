@@ -272,6 +272,7 @@ SHIB_ATTRIBUTE_MAP = {
 X509_SUBJECT_DN_HEADER = 'HTTP_SSL_CLIENT_S_DN'
 X509_ISSUER_DN_HEADER = 'HTTP_SSL_CLIENT_I_DN'
 X509_CERT_HEADER = 'X_FORWARDED_TLS_CLIENT_CERT'
+X509_INFOS_HEADER = 'X_FORWARDED_TLS_CLIENT_CERT_INFOS'
 
 # List of authentication backends to use when attempting to authenticate
 # a user.  Will be used in this order.  Authentication for the API is
