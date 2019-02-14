@@ -7,9 +7,8 @@ ARG SETTINGS_MODULE="config.settings.container.dev"
 COPY docker/SWITCHaai-swdistrib.gpg /etc/apt/trusted.gpg.d
 RUN echo 'deb http://pkg.switch.ch/switchaai/debian stretch main' > /etc/apt/sources.list.d/shibboleth.list
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
-# the previous command executes apt-get update; if it is removed
-# one must add RUN apt-get update
-RUN apt-get install --install-recommends --assume-yes \
+RUN apt-get update && \
+    apt-get install --install-recommends --assume-yes \
         apache2 \
         gcc \
         git \
@@ -21,6 +20,7 @@ RUN apt-get install --install-recommends --assume-yes \
         libsqlite3-dev \
         mariadb-client \
         nodejs \
+        osg-ca-certs \
         python2.7 \
         python2.7-dev \
         python-glue \
