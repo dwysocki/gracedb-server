@@ -3,12 +3,12 @@ import logging
 import OpenSSL.crypto
 import OpenSSL.SSL
 import re
-import urlparse
 
 from django.contrib.auth import get_user_model, authenticate
 from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.utils import timezone
+from django.utils.http import unquote, unquote_plus
 from django.utils.translation import ugettext_lazy as _
 from django.urls import resolve
 
@@ -203,7 +203,7 @@ class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
             return None
 
         # Process the certificate a bit
-        cert_b64 = urlparse.unquote(cert_quoted)
+        cert_b64 = unquote(cert_quoted)
         cert_der = base64.b64decode(cert_b64)
 
         return cert_der
@@ -231,9 +231,14 @@ class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
         return certificate
 
     def authenticate_credentials(self, certificate):
-        # Convert certificate to subject
+        # Get subject and issuer
         subject = self.get_certificate_subject_string(certificate)
+        issuer = self.get_certificate_issuer_string(certificate)
 
+        # Handled proxied certificates
+        subject = self.extract_subject_from_proxied_cert(subject, issuer)
+
+        # Authenticate credentials
         return super(GraceDbX509FullCertAuthentication, self) \
             .authenticate_credentials(subject)
 
@@ -243,6 +248,14 @@ class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
         subject_string = '/' + "/".join(["=".join(c) for c in
             subject.get_components()])
         return subject_string
+
+    @staticmethod
+    def get_certificate_issuer_string(certificate):
+        issuer = certificate.get_issuer()
+        issuer_string = '/' + "/".join(["=".join(c) for c in
+            issuer.get_components()])
+        return issuer_string
+
 
 
 class GraceDbAuthenticatedAuthentication(authentication.BaseAuthentication):
