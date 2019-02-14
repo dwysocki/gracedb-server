@@ -168,7 +168,7 @@ class GraceDbX509CertInfosAuthentication(GraceDbX509Authentication):
     """
     api_only = True
     infos_header = getattr(settings, 'X509_INFOS_HEADER',
-        'X_FORWARDED_TLS_CLIENT_CERT_INFOS')
+        'HTTP_X_FORWARDED_TLS_CLIENT_CERT_INFOS')
     infos_pattern = re.compile(r'Subject="(.*?)".*Issuer="(.*?)"')
 
     @classmethod
@@ -210,7 +210,7 @@ class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
     api_only = True
     www_authenticate_realm = 'api'
     cert_header = getattr(settings, 'X509_CERT_HEADER',
-        'X_FORWARDED_TLS_CLIENT_CERT')
+        'HTTP_X_FORWARDED_TLS_CLIENT_CERT')
 
     def authenticate(self, request):
 
