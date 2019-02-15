@@ -57,7 +57,7 @@ ServerName ${DJANGO_PRIMARY_FQDN}
 
   # Set up mod_xsendfile for serving static event files as directed by Django
   XSendFile On
-  XSendFilePath /opt/gracedb/data
+  XSendFilePath /app/db_data/
 
   Alias /shibboleth-ds/idpselect_config.js /etc/shibboleth-ds/idpselect_config.js
   Alias /shibboleth-ds/idpselect.js /etc/shibboleth-ds/idpselect.js
