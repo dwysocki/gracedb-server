@@ -274,6 +274,9 @@ X509_ISSUER_DN_HEADER = 'HTTP_SSL_CLIENT_I_DN'
 X509_CERT_HEADER = 'HTTP_X_FORWARDED_TLS_CLIENT_CERT'
 X509_INFOS_HEADER = 'HTTP_X_FORWARDED_TLS_CLIENT_CERT_INFOS'
 
+# Path to CA store for X509 certificate verification
+CAPATH = '/etc/grid-security/certificates'
+
 # List of authentication backends to use when attempting to authenticate
 # a user.  Will be used in this order.  Authentication for the API is
 # handled by the REST_FRAMEWORK dictionary.

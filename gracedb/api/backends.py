@@ -249,16 +249,14 @@ class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
 
         return cert_der
 
-    def verify_certificate_chain(self, cert_data,
-        trusted_certs='/etc/grid-security/certificates'):
-
+    def verify_certificate_chain(self, cert_data, capath=settings.CAPATH):
         # Load certificate data
         certificate = OpenSSL.crypto.load_certificate(
             OpenSSL.crypto.FILETYPE_ASN1, cert_data)
 
         # Set up context and get certificate store 
         ctx = OpenSSL.SSL.Context(OpenSSL.SSL.TLSv1_METHOD)
-        ctx.load_verify_locations(None, capath=trusted_certs)
+        ctx.load_verify_locations(None, capath=capath)
         store = ctx.get_cert_store()
 
         # Verify certificate
