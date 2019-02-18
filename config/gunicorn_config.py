@@ -29,7 +29,7 @@ worker_type = 'sync'
 
 # Access log
 accesslog = join(LOG_DIR, "gunicorn_access.log")
-access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
+access_log_format = '%(t)s %(h)s %(l)s %(u)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
 
 # Error log
 errorlog = join(LOG_DIR, "gunicorn_error.log")
@@ -38,4 +38,3 @@ capture_output = True
 
 #forwarded_allow_ips = '127.0.0.1'
 #proxy_allow_ips = '127.0.0.1'
-
