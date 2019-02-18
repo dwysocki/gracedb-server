@@ -46,7 +46,7 @@ if 'silk' in INSTALLED_APPS:
 # it to be used through this server.  You need to configure a SOCKS proxy
 # on your local machine to use DJDT (see admin docs).
 INTERNAL_IPS = [
-    socket.gethostbyname(SERVER_HOSTNAME),
+    INTERNAL_IP_ADDRESS,
 ]
 
 # Adjust ADMINS for dev instances

@@ -43,10 +43,9 @@ if 'silk' in INSTALLED_APPS:
 # some headers which we want to keep hidden.  So to be safe, we only allow
 # it to be used through this server.  You need to configure a SOCKS proxy
 # on your local machine to use DJDT (see admin docs).
-# FIXME
-#INTERNAL_IPS = [
-#    socket.gethostbyname(SERVER_HOSTNAME),
-#]
+INTERNAL_IPS = [
+    INTERNAL_IP_ADDRESS,
+]
 
 # Adjust ADMINS for dev instances
 ADMINS = [

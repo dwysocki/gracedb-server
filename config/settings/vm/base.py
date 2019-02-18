@@ -21,7 +21,7 @@ DATABASES = {
 
 # Set up allowed hosts
 SERVER_FQDN = socket.getfqdn()
-SERVER_HOSTNAME = socket.gethostname()
+SERVER_HOSTNAME = INTERNAL_HOSTNAME
 ALLOWED_HOSTS += [SERVER_FQDN, '{hostname}.ligo.org'.format(
     hostname=SERVER_HOSTNAME)]
 

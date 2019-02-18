@@ -67,6 +67,10 @@ USE_TZ = True
 # stopping requests submitted with a fake HTTP Host header.
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+# Internal hostname and IP address
+INTERNAL_HOSTNAME = socket.gethostname()
+INTERNAL_IP_ADDRESS = socket.gethostbyname(INTERNAL_HOSTNAME)
+
 # Sessions settings -----------------------------------------------------------
 SESSION_COOKIE_AGE = 3600*23
 SESSION_COOKIE_SECURE = True
