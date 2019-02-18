@@ -88,7 +88,11 @@ RUN rm -rf /app/logs/* /app/project_data/*
 
 RUN useradd -M -u 50001 -g www-data -s /bin/false gracedb
 
+# set secure file/directory permissions. In particular, ADD command at
+# beginning of recipe inherits umask of user running the build
 RUN chown gracedb:www-data /app/logs /app/project_data && \
-    chmod 0750 /app/logs /app/project_data
+    chmod 0750 /app/logs /app/project_data && \
+    find /app/gracedb_project -type d -exec chmod 0755 {} + && \
+    find /app/gracedb_project -type f -exec chmod 0644 {} +
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
