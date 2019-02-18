@@ -473,7 +473,7 @@ LOG_DIR = abspath(join(BASE_DIR, "..", "logs"))
 # don't need it since we're using custom filters.
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'formatters': {
         'simple': {
             'format': '%(asctime)s | %(message)s',
