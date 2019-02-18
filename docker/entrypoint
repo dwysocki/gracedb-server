@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export LVALERT_OVERSEER_RESOURCE=${LVALERT_USER}_overseer_$(python  -c 'import uuid; print(uuid.uuid4().hex)')
+exec "$@"

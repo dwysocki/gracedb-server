@@ -34,6 +34,7 @@ RUN apt-get update && \
     apt-get clean && \
     npm install -g bower
 
+COPY docker/entrypoint /usr/local/bin/entrypoint
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker/supervisord-apache2.conf /etc/supervisor/conf.d/apache2.conf
 COPY docker/supervisord-lvalert-overseer.conf /etc/supervisor/conf.d/overseer.conf
@@ -92,9 +93,11 @@ RUN useradd -M -u 50001 -g www-data -s /bin/false gracedb
 
 # set secure file/directory permissions. In particular, ADD command at
 # beginning of recipe inherits umask of user running the build
-RUN chown gracedb:www-data /app/logs /app/project_data && \
+RUN chmod 0755 /usr/local/bin/entrypoint && \
+    chown gracedb:www-data /app/logs /app/project_data && \
     chmod 0750 /app/logs /app/project_data && \
     find /app/gracedb_project -type d -exec chmod 0755 {} + && \
     find /app/gracedb_project -type f -exec chmod 0644 {} +
 
+ENTRYPOINT [ "/usr/local/bin/entrypoint" ]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
