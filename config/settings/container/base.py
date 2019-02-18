@@ -106,3 +106,7 @@ EMBB_MAIL_ADDRESS = 'embb@{fqdn}.ligo.org'.format(fqdn=SERVER_FQDN)
 EMBB_SMTP_SERVER = 'localhost'
 EMBB_MAIL_ADMINS = [admin[1] for admin in ADMINS]
 EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@{fqdn}'.format(fqdn=SERVER_FQDN)]
+
+# Set up logging to stdout only
+for key in LOGGING['loggers']:
+    LOGGING['loggers'][key]['handlers'] = ['console']

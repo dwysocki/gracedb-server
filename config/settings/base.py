@@ -487,7 +487,14 @@ LOGGING = {
             'format': '%(asctime)s.%(msecs)03d | %(name)s | %(levelname)s | ' \
                       + '%(filename)s, line %(lineno)s | %(message)s',
             'datefmt': LOG_DATEFMT,
-        }
+        },
+        'console': {
+            'format': ('%(asctime)s.%(msecs)03d | {host} | {ip} | %(name)s | '
+                '%(levelname)s | %(filename)s, line %(lineno)s | '
+                '%(message)s').format(host=INTERNAL_HOSTNAME,
+                ip=INTERNAL_IP_ADDRESS),
+            'datefmt': LOG_DATEFMT,
+        },
     },
     'handlers': {
         'null': {
@@ -520,7 +527,12 @@ LOGGING = {
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'console',
+            'level': 'DEBUG',
+        },
     },
     'loggers': {
         'django': {
