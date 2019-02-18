@@ -24,6 +24,7 @@ RUN apt-get update && \
         python2.7 \
         python2.7-dev \
         python-glue \
+        python-libxml2 \
         python-pip \
         python-voeventlib \
         procps \
@@ -35,6 +36,7 @@ RUN apt-get update && \
 
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker/supervisord-apache2.conf /etc/supervisor/conf.d/apache2.conf
+COPY docker/supervisord-lvalert-overseer.conf /etc/supervisor/conf.d/overseer.conf
 COPY docker/supervisord-shibd.conf /etc/supervisor/conf.d/shibd.conf
 COPY docker/shibboleth-ds /etc/shibboleth-ds
 COPY docker/apache-config /etc/apache2/sites-available/gracedb.conf
