@@ -780,7 +780,7 @@ class EventLogList(InheritPermissionsAPIView):
         except:
             uploadedFile = None
 
-        filename = None
+        filename = ""
         file_version = None
         if uploadedFile:
             filename = uploadedFile.name 
