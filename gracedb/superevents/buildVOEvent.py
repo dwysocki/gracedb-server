@@ -266,7 +266,7 @@ def construct_voevent_file(superevent, voevent, request=None,
                 properties_group.add_Param(Param(name="HasNS",
                     dataType="float", ucd="stat.probability", value=ProbHasNS,
                     Description=["Probability that at least one object in the "
-                    "binary has a mass that is less than 3 solar masses"]))
+                    "binary has a mass that is less than 2.83 solar masses"]))
 
             if ProbHasRemnant is not None:
                 properties_group.add_Param(Param(name="HasRemnant",
@@ -279,19 +279,22 @@ def construct_voevent_file(superevent, voevent, request=None,
                 classification_group.add_Param(Param(name="BNS",
                     dataType="float", ucd="stat.probability",
                     value=BNS, Description=["Probability that the "
-                    "source is a binary neutron star merger"]))
+                    "source is a binary neutron star merger (both objects "
+                    "below 3 solar masses)"]))
 
             if NSBH is not None:
                 classification_group.add_Param(Param(name="NSBH",
                     dataType="float", ucd="stat.probability",
                     value=NSBH, Description=["Probability that the "
-                    "source is a neutron star - black hole merger"]))
+                    "source is a neutron star - black hole merger (heavier "
+                    "above 5, lighter below 3 solar masses)"]))
 
             if BBH is not None:
                 classification_group.add_Param(Param(name="BBH",
                     dataType="float", ucd="stat.probability",
                     value=BBH, Description=["Probability that the "
-                    "source is a binary black hole merger"]))
+                    "source is a binary black hole merger (both objects "
+                    "above 5 solar masses)"]))
 
             if Terrestrial is not None:
                 classification_group.add_Param(Param(name="Terrestrial",
