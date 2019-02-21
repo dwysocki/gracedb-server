@@ -151,7 +151,9 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         Description=['Indicates whether this event should be distributed to LSC/Virgo members only']))
 
     # The serial number
-    w.add_Param(Param(name="Pkt_Ser_Num", value=serial_number))
+    w.add_Param(Param(name="Pkt_Ser_Num", value=serial_number,
+        Description=["A number that increments by 1 each time a new revision "
+        "is issued for this event"]))
 
     # The GraceID
     w.add_Param(Param(name="GraceID", 
