@@ -570,6 +570,8 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         required=False)
     Terrestrial = serializers.FloatField(write_only=True, min_value=0,
         max_value=1, required=False)
+    MassGap = serializers.FloatField(write_only=True, min_value=0,
+        max_value=1, required=False)
 
     class Meta:
         model = VOEvent
@@ -577,7 +579,7 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
             'issuer', 'filename', 'N', 'links', 'skymap_type',
             'skymap_filename', 'internal', 'open_alert', 'hardware_inj',
             'CoincComment', 'ProbHasNS', 'ProbHasRemnant', 'BNS', 'NSBH',
-            'BBH', 'Terrestrial', 'superevent', 'user')
+            'BBH', 'Terrestrial', 'MassGap', 'superevent', 'user')
 
     def __init__(self, *args, **kwargs):
         super(SupereventVOEventSerializer, self).__init__(*args, **kwargs)

@@ -2441,6 +2441,7 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
             'ProbHasRemnant': 0.5,
             'BBH': 0.2,
             'Terrestrial': 0.9,
+            'MassGap': 0.4,
         }
 
     def test_internal_user_get_voevent_list(self):

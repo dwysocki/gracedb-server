@@ -1607,6 +1607,7 @@ class VOEventList(InheritPermissionsAPIView):
         NSBH = request.data.get('NSBH', None)
         BBH = request.data.get('BBH', None)
         Terrestrial = request.data.get('Terrestrial', None)
+        MassGap = request.data.get('MassGap', None)
 
         if (skymap_filename and not skymap_type) or (skymap_type and not skymap_filename):
             msg = "Both or neither of skymap_time and skymap_filename must be specified."
@@ -1628,7 +1629,7 @@ class VOEventList(InheritPermissionsAPIView):
                 internal = internal, open_alert=open_alert,
                 hardware_inj=hardware_inj, CoincComment=CoincComment,
                 ProbHasNS=ProbHasNS, ProbHasRemnant=ProbHasRemnant, BNS=BNS,
-                NSBH=NSBH, BBH=BBH, Terrestrial=Terrestrial)
+                NSBH=NSBH, BBH=BBH, Terrestrial=Terrestrial, MassGap=MassGap)
 
         except VOEventBuilderException, e:
             msg = "Problem building VOEvent: %s" % str(e)

@@ -52,7 +52,7 @@ def get_voevent_type(short_name):
 def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filename=None,
     skymap_type=None, internal=True, open_alert=False, hardware_inj=False,
     CoincComment=False, ProbHasNS=None, ProbHasRemnant=None, BNS=None,
-    NSBH=None, BBH=None, Terrestrial=None):
+    NSBH=None, BBH=None, Terrestrial=None, MassGap=None):
 
 # XXX Branson commenting out. Reed's MDC events do not have FAR for some reason.
 #    if not event.far:
@@ -321,6 +321,12 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                     value=Terrestrial, Description=["Probability "
                     "that the source is terrestrial (i.e., a background noise "
                     "fluctuation or a glitch)"]))
+
+            if MassGap is not None:
+                classification_group.add_Param(Param(name="MassGap",
+                    dataType="float", ucd="stat.probability",
+                    value=MassGap, Description=["Probability that the source "
+                    "has at least one object between 3 and 5 solar masses"]))
 
             # build up MaxDistance. event.singleinspiral_set.all()?
             # Each detector calculates an effective distance assuming the inspiral is 

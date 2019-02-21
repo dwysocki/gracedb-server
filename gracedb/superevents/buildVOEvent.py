@@ -54,7 +54,8 @@ def get_voevent_type(short_name):
 def construct_voevent_file(superevent, voevent, request=None,
     skymap_filename=None, skymap_type=None, internal=True, open_alert=False,
     hardware_inj=False, CoincComment=False, ProbHasNS=None,
-    ProbHasRemnant=None, BNS=None, NSBH=None, BBH=None, Terrestrial=None):
+    ProbHasRemnant=None, BNS=None, NSBH=None, BBH=None, Terrestrial=None,
+    MassGap=None):
 
     # Set preferred_event as event to be used in most of this
     event = superevent.preferred_event
@@ -310,6 +311,12 @@ def construct_voevent_file(superevent, voevent, request=None,
                     value=Terrestrial, Description=["Probability "
                     "that the source is terrestrial (i.e., a background noise "
                     "fluctuation or a glitch)"]))
+
+            if MassGap is not None:
+                classification_group.add_Param(Param(name="MassGap",
+                    dataType="float", ucd="stat.probability",
+                    value=MassGap, Description=["Probability that the source "
+                    "has at least one object between 3 and 5 solar masses"]))
 
             # build up MaxDistance. event.singleinspiral_set.all()?
             # Each detector calculates an effective distance assuming the inspiral is 
