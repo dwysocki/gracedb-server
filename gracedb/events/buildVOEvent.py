@@ -160,25 +160,11 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         value=objid, 
         Description=["Identifier in GraceDB"]))
 
-    # XXX if voevent_type == 'retraction' the AlertType will be the type of the
-    # last VOEvent sent out. This is highly objectionable.
-    alert_type = voevent_type
-
-    if voevent_type == 'retraction':
-        try:
-            last_voevent = event.voevent_set.order_by('-N')[1] 
-            alert_type = get_voevent_type(last_voevent.voevent_type)
-        except:
-            # XXX We have failed to obtain the last voevent for some reason, so 
-            # we don't know what the alert type should be. Let's just set it to
-            # preliminary, since we need to try not to error out of sending the
-            # retraction
-            alert_type = 'preliminary'
-
+    # Alert type parameter
     w.add_Param(Param(name="AlertType",
         dataType="string",
         ucd="meta.version",
-        value = alert_type.capitalize(),
+        value = voevent_type.capitalize(),
         Description=["VOEvent alert type"]))
 
     # Shib protected event page
