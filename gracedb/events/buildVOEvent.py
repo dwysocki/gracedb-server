@@ -259,8 +259,9 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     # Analysis specific attributes
     if voevent_type != 'retraction':
         classification_group = Group('Classification', Description=["Source "
-            "classification: binary neutron star (BNS), neutron star-black"
-            "hole (NSBH), binary black hole (BBH), or terrestrial (noise)"])
+            "classification: binary neutron star (BNS), neutron star-black "
+            "hole (NSBH), binary black hole (BBH), MassGap, or terrestrial "
+            "(noise)"])
         properties_group = Group('Properties', Description=["Qualitative "
             "properties of the source, conditioned on the assumption that the "
             "signal is an astrophysical compact binary merger"])
@@ -272,6 +273,42 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             eta = pow((mchirp/mass),5.0/3.0)
 
             # EM-Bright mass classifier information for CBC event candidates
+            if BNS is not None:
+                classification_group.add_Param(Param(name="BNS",
+                    dataType="float", ucd="stat.probability",
+                    value=BNS, Description=["Probability that the "
+                    "source is a binary neutron star merger (both objects "
+                    "lighter than 3 solar masses)"]))
+
+            if NSBH is not None:
+                classification_group.add_Param(Param(name="NSBH",
+                    dataType="float", ucd="stat.probability",
+                    value=NSBH, Description=["Probability that the "
+                    "source is a neutron star-black hole merger (primary "
+                    "heavier than 5 solar masses, secondary lighter than 3 "
+                    "solar masses)"]))
+
+            if BBH is not None:
+                classification_group.add_Param(Param(name="BBH",
+                    dataType="float", ucd="stat.probability",
+                    value=BBH, Description=["Probability that the "
+                    "source is a binary black hole merger (both objects "
+                    "heavier than 5 solar masses)"]))
+
+            if MassGap is not None:
+                classification_group.add_Param(Param(name="MassGap",
+                    dataType="float", ucd="stat.probability",
+                    value=MassGap, Description=["Probability that the source "
+                    "has at least one object between 3 and 5 solar masses"]))
+
+            if Terrestrial is not None:
+                classification_group.add_Param(Param(name="Terrestrial",
+                    dataType="float", ucd="stat.probability",
+                    value=Terrestrial, Description=["Probability "
+                    "that the source is terrestrial (i.e., a background noise "
+                    "fluctuation or a glitch)"]))
+
+            # Add to source properties group
             if ProbHasNS is not None:
                 properties_group.add_Param(Param(name="HasNS",
                     dataType="float", ucd="stat.probability", value=ProbHasNS,
@@ -284,40 +321,6 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                     value=ProbHasRemnant, Description=["Probability that a "
                     "nonzero mass was ejected outside the central remnant "
                     "object"]))
-
-            if BNS is not None:
-                classification_group.add_Param(Param(name="BNS",
-                    dataType="float", ucd="stat.probability",
-                    value=BNS, Description=["Probability that the "
-                    "source is a binary neutron star merger (both objects "
-                    "below 3 solar masses)"]))
-
-            if NSBH is not None:
-                classification_group.add_Param(Param(name="NSBH",
-                    dataType="float", ucd="stat.probability",
-                    value=NSBH, Description=["Probability that the "
-                    "source is a neutron star - black hole merger (heavier "
-                    "above 5, lighter below 3 solar masses)"]))
-
-            if BBH is not None:
-                classification_group.add_Param(Param(name="BBH",
-                    dataType="float", ucd="stat.probability",
-                    value=BBH, Description=["Probability that the "
-                    "source is a binary black hole merger (both objects "
-                    "above 5 solar masses)"]))
-
-            if Terrestrial is not None:
-                classification_group.add_Param(Param(name="Terrestrial",
-                    dataType="float", ucd="stat.probability",
-                    value=Terrestrial, Description=["Probability "
-                    "that the source is terrestrial (i.e., a background noise "
-                    "fluctuation or a glitch)"]))
-
-            if MassGap is not None:
-                classification_group.add_Param(Param(name="MassGap",
-                    dataType="float", ucd="stat.probability",
-                    value=MassGap, Description=["Probability that the source "
-                    "has at least one object between 3 and 5 solar masses"]))
 
             # build up MaxDistance. event.singleinspiral_set.all()?
             # Each detector calculates an effective distance assuming the inspiral is 
