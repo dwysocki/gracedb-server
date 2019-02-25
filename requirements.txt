@@ -13,7 +13,7 @@ gunicorn==19.7.1
 html5lib==1.0.1
 ipdb==0.10.2
 ipython==5.5.0
-ligo-lvalert==1.5.4
+ligo-lvalert==1.5.5
 # Temporary pin of overseer to git.ligo.org
 git+https://git.ligo.org/lscsoft/lvalert-overseer.git@aws_updates#egg=ligo-lvalert-overseer
 #ligo-lvalert-overseer==0.1.2
