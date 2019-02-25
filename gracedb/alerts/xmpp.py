@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import copy
 import logging
 import os
 import simplejson
@@ -133,7 +134,7 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
             # use basic lvalert-client send
             if (not settings.USE_LVALERT_OVERSEER) or (not success):
                 try:
-                    lvalert_settings_dict = overseer_instance.copy()
+                    lvalert_settings_dict = copy.deepcopy(overseer_instance)
                     server = lvalert_settings_dict.pop('lvalert_server')
                     send_with_lvalert_client(node_name, msg, server,
                         **lvalert_settings_dict)
