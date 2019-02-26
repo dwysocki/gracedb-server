@@ -48,9 +48,13 @@ if lvalert_password is None:
     raise ImproperlyConfigured('Could not get LVAlert password from envvars.')
 
 # Get Twilio account information from environment
-# FIXME
-TWILIO_ACCOUNT_SID = os.environ.get('DJANGO_TWILIO_ACCOUNT_SID', 'abcd')
-TWILIO_AUTH_TOKEN = os.environ.get('DJANGO_TWILIO_AUTH_TOKEN', 'abcd')
+TWILIO_ACCOUNT_SID = os.environ.get('DJANGO_TWILIO_ACCOUNT_SID', None)
+if TWILIO_ACCOUNT_SID is None:
+    raise ImproperlyConfigured('Could not get Twilio acct SID from envvars.')
+
+TWILIO_AUTH_TOKEN = os.environ.get('DJANGO_TWILIO_AUTH_TOKEN', None)
+if TWILIO_AUTH_TOKEN is None:
+    raise ImproperlyConfigured('Could not get Twilio auth token from envvars.')
 
 # Database settings -----------------------------------------------------------
 DATABASES = {

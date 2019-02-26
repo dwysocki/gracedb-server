@@ -87,6 +87,8 @@ RUN DJANGO_SETTINGS_MODULE=${SETTINGS_MODULE} \
     LVALERT_PASSWORD=fake_password \
     LVALERT_SERVER=fake_server \
     LVALERT_OVERSEER_PORT=2 \
+    DJANGO_TWILIO_ACCOUNT_SID=fake_sid \
+    DJANGO_TWILIO_AUTH_TOKEN=fake_token \
     python manage.py collectstatic --noinput
 
 RUN rm -rf /app/logs/* /app/project_data/*
