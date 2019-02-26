@@ -30,6 +30,8 @@ RUN apt-get update && \
         procps \
         shibboleth \
         supervisor \
+        libssl-dev \
+        swig \
         vim && \
     apt-get clean && \
     npm install -g bower
