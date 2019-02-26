@@ -56,6 +56,13 @@ TWILIO_AUTH_TOKEN = os.environ.get('DJANGO_TWILIO_AUTH_TOKEN', None)
 if TWILIO_AUTH_TOKEN is None:
     raise ImproperlyConfigured('Could not get Twilio auth token from envvars.')
 
+# Get email settings from environment
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST = os.environ.get('SMTP_HOST', 'localhost')
+EMAIL_HOST_USER = os.environ.get('SMTP_USERNAME', '')
+EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
+
 # Database settings -----------------------------------------------------------
 DATABASES = {
     'default' : {
@@ -98,7 +105,6 @@ if hosts_from_env is not None:
 ALLOWED_HOSTS += [SERVER_FQDN]
 
 # Email settings - dependent on server hostname and FQDN ----------------------
-EMAIL_HOST = 'localhost'
 SERVER_EMAIL = 'GraceDB <gracedb@{fqdn}>'.format(fqdn=SERVER_FQDN)
 ALERT_EMAIL_FROM = SERVER_EMAIL
 ALERT_EMAIL_TO = []
