@@ -1,4 +1,5 @@
 from base64 import b64encode
+import mock
 
 from django.conf import settings
 from django.urls import reverse
@@ -88,6 +89,18 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
 class TestGraceDbX509Authentication(GraceDbApiTestBase):
     """Test X509 certificate auth backend for API in full auth cycle"""
 
+    def setUp(self):
+        super(TestGraceDbX509Authentication, self).setUp()
+        # Patch auth classes to make sure the right one is active
+        self.auth_patcher = mock.patch(
+            'rest_framework.views.APIView.get_authenticators',
+            return_value=[GraceDbX509Authentication(),])
+        self.auth_patcher.start()
+
+    def tearDown(self):
+        super(TestGraceDbX509Authentication, self).tearDown()
+        self.auth_patcher.stop()
+
     @classmethod
     def setUpTestData(cls):
         super(TestGraceDbX509Authentication, cls).setUpTestData()
@@ -126,7 +139,7 @@ class TestGraceDbX509Authentication(GraceDbApiTestBase):
         response = self.client.get(url, data=None, **headers)
 
         # Check response
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         self.assertIn("Invalid certificate subject", response.content)
 
     def test_inactive_user_authenticate(self):
@@ -143,7 +156,7 @@ class TestGraceDbX509Authentication(GraceDbApiTestBase):
         response = self.client.get(url, data=None, **headers)
 
         # Check response
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         self.assertIn("User inactive or deleted", response.content)
 
     def test_authenticate_cert_with_proxy(self):
