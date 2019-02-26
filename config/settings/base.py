@@ -489,8 +489,8 @@ LOGGING = {
             'datefmt': LOG_DATEFMT,
         },
         'console': {
-            'format': ('%(asctime)s.%(msecs)03d | {host} | {ip} | %(name)s | '
-                '%(levelname)s | %(filename)s, line %(lineno)s | '
+            'format': ('DJANGO |%(asctime)s.%(msecs)03d | {host} | {ip} | '
+                '%(name)s | %(levelname)s | %(filename)s, line %(lineno)s | '
                 '%(message)s').format(host=INTERNAL_HOSTNAME,
                 ip=INTERNAL_IP_ADDRESS),
             'datefmt': LOG_DATEFMT,
