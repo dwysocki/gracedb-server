@@ -62,6 +62,10 @@ EMAIL_USE_TLS = True
 EMAIL_HOST = os.environ.get('SMTP_HOST', 'localhost')
 EMAIL_HOST_USER = os.environ.get('SMTP_USERNAME', '')
 EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
+ALERT_EMAIL_FROM = os.environ.get('DJANGO_ALERT_EMAIL_FROM', None)
+if ALERT_EMAIL_FROM is None:
+    raise ImproperlyConfigured(
+        "Could not get 'alert from email' from envvars.")
 
 # Database settings -----------------------------------------------------------
 DATABASES = {
@@ -106,7 +110,6 @@ ALLOWED_HOSTS += [SERVER_FQDN]
 
 # Email settings - dependent on server hostname and FQDN ----------------------
 SERVER_EMAIL = 'GraceDB <gracedb@{fqdn}>'.format(fqdn=SERVER_FQDN)
-ALERT_EMAIL_FROM = SERVER_EMAIL
 ALERT_EMAIL_TO = []
 ALERT_EMAIL_BCC = []
 ALERT_TEST_EMAIL_FROM = SERVER_EMAIL

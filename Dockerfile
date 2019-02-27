@@ -83,6 +83,7 @@ RUN DJANGO_SETTINGS_MODULE=${SETTINGS_MODULE} \
     DJANGO_DB_PASSWORD=fake_password \
     DJANGO_SECRET_KEY=fake_key \
     DJANGO_PRIMARY_FQDN=fake_fqdn \
+    DJANGO_ALERT_EMAIL_FROM=fake_email \
     LVALERT_USER=fake_user \
     LVALERT_PASSWORD=fake_password \
     LVALERT_SERVER=fake_server \
