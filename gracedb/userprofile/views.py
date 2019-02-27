@@ -201,8 +201,8 @@ def testContact(request, id):
                     .format(c.desc, hostname)
                 msg = ('This is a test of contact "{0}" from '
                     'https://{1}.ligo.org.').format(c.desc, hostname)
-                email = EmailMessage(subject, msg, settings.SERVER_EMAIL,
-                    [c.email], [])
+                email = EmailMessage(subject, msg,
+                    from_email=settings.ALERT_EMAIL_FROM, to=[c.email])
                 email.send()
                 log.debug('Sent test e-mail to {0}'.format(c.email))
             except Exception as e:
