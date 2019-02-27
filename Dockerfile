@@ -64,6 +64,7 @@ RUN pip install --upgrade setuptools wheel && \
 # Give pip-installed packages priority over distribution packages
 ENV PYTHONPATH /usr/local/lib/python2.7/dist-packages:$PYTHONPATH
 ENV ENABLE_SHIBD false
+ENV ENABLE_OVERSEER true
 ENV VIRTUAL_ENV dummy
 
 # Expose port and run Gunicorn
