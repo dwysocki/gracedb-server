@@ -365,7 +365,7 @@ REST_FRAMEWORK = {
         'api.throttling.BurstAnonRateThrottle',
     ),
     'DEFAULT_THROTTLE_RATES': {
-        'anon_burst': '3/second',
+        'anon_burst': '300/minute',
         'event_creation': '1/second',
         'annotation'    : '10/second',
     },
