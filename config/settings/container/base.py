@@ -123,3 +123,4 @@ EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@{fqdn}'.format(fqdn=SERVER_FQDN)]
 # Set up logging to stdout only
 for key in LOGGING['loggers']:
     LOGGING['loggers'][key]['handlers'] = ['console']
+LOGGING['loggers']['django.request']['handlers'].append('mail_admins')
