@@ -21,9 +21,9 @@ urlpatterns = [
     url(r'^performance/', PerformanceInfo.as_view(), name='performance-info'),
 
     # Certificate debugging
-    url(r'^cert-debug/', CertDebug.as_view(), name='cert-debug'),
-    url(r'^cert-infos-debug/', CertInfosDebug.as_view(),
-        name='cert-infos-debug'),
+    #url(r'^cert-debug/', CertDebug.as_view(), name='cert-debug'),
+    #url(r'^cert-infos-debug/', CertInfosDebug.as_view(),
+    #    name='cert-infos-debug'),
 
     # Events section of the API -----------------------------------------------
     url(r'^events/', include('api.v1.events.urls',
