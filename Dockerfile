@@ -81,6 +81,7 @@ RUN mkdir /app/logs /app/project_data
 WORKDIR /app/gracedb_project
 RUN DJANGO_SETTINGS_MODULE=${SETTINGS_MODULE} \
     DJANGO_DB_NAME=fake_name \
+    DJANGO_DB_USER=fake_user \
     DJANGO_DB_PASSWORD=fake_password \
     DJANGO_SECRET_KEY=fake_key \
     DJANGO_PRIMARY_FQDN=fake_fqdn \

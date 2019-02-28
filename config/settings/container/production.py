@@ -1,5 +1,4 @@
 # Settings for a production GraceDB instance running in a container
-import copy
 from django.core.exceptions import ImproperlyConfigured
 from .base import *
 
@@ -35,6 +34,10 @@ else:
     if replica_db_name is None:
         raise ImproperlyConfigured('Could not get replica database name from '
             'envvars.')
+    replica_db_user = os.environ.get('DJANGO_REPLICA_DB_USER', None)
+    if replica_db_user is None:
+        raise ImproperlyConfigured('Could not get replica database user '
+            'from envvars.')
     replica_db_password = os.environ.get('DJANGO_REPLICA_DB_PASSWORD', None)
     if replica_db_password is None:
         raise ImproperlyConfigured('Could not get replica database password '
@@ -44,7 +47,7 @@ else:
     read_replica = {
         'NAME': replica_db_name,
         'ENGINE': 'django.db.backends.mysql',
-        'USER': os.environ.get('DJANGO_REPLICA_DB_USER', 'gracedb'),
+        'USER': replica_db_user,
         'PASSWORD': replica_db_password,
         'HOST': os.environ.get('DJANGO_REPLICA_DB_HOST', ''),
         'PORT': os.environ.get('DJANGO_REPLICA_DB_PORT', ''),

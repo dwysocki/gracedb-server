@@ -1,11 +1,15 @@
 # For running a containerized version of the service that gets secrets
 # from environment variables. Builds on base.py settings.
-
 import os
 from django.core.exceptions import ImproperlyConfigured
 from ..base import *
 
 # Get required variables from environment variables ---------------------------
+# Get database user from environment and check
+db_user = os.environ.get('DJANGO_DB_USER', None)
+if db_user is None:
+    raise ImproperlyConfigured('Could not get database user from envvars.')
+
 # Get database password from environment and check
 db_password = os.environ.get('DJANGO_DB_PASSWORD', None)
 if db_password is None:
@@ -72,7 +76,7 @@ DATABASES = {
     'default' : {
         'NAME': db_name,
         'ENGINE': 'django.db.backends.mysql',
-        'USER': os.environ.get('DJANGO_DB_USER', 'gracedb'),
+        'USER': db_user,
         'PASSWORD': db_password,
         'HOST': os.environ.get('DJANGO_DB_HOST', ''),
         'PORT': os.environ.get('DJANGO_DB_PORT', ''),

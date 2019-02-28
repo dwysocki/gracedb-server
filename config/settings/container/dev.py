@@ -1,5 +1,4 @@
 # Settings for a test/dev GraceDB instance running in a container
-#import socket
 from .base import *
 
 CONFIG_NAME = "TEST"
