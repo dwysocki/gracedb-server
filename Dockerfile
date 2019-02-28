@@ -102,6 +102,7 @@ RUN useradd -M -u 50001 -g www-data -s /bin/false gracedb
 # set secure file/directory permissions. In particular, ADD command at
 # beginning of recipe inherits umask of user running the build
 RUN chmod 0755 /usr/local/bin/entrypoint && \
+    chmod 0755 /usr/local/bin/cleanup && \
     chown gracedb:www-data /app/logs /app/project_data && \
     chmod 0750 /app/logs /app/project_data && \
     find /app/gracedb_project -type d -exec chmod 0755 {} + && \
