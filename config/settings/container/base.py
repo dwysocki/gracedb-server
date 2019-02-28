@@ -109,10 +109,10 @@ if hosts_from_env is not None:
 ALLOWED_HOSTS += [SERVER_FQDN]
 
 # Email settings - dependent on server hostname and FQDN ----------------------
-SERVER_EMAIL = 'GraceDB <gracedb@{fqdn}>'.format(fqdn=SERVER_FQDN)
+SERVER_EMAIL = ALERT_EMAIL_FROM
 ALERT_EMAIL_TO = []
 ALERT_EMAIL_BCC = []
-ALERT_TEST_EMAIL_FROM = SERVER_EMAIL
+ALERT_TEST_EMAIL_FROM = ALERT_EMAIL_FROM
 ALERT_TEST_EMAIL_TO = []
 # EMBB email settings
 EMBB_MAIL_ADDRESS = 'embb@{fqdn}.ligo.org'.format(fqdn=SERVER_FQDN)
