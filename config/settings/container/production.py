@@ -28,27 +28,15 @@ if PRIORITY_SERVER:
 else:
     # If not a priority server, we use the read-only replica database
     # for reads and master for writes.
-
-    # Get information from environment variables
-    replica_db_name = os.environ.get('DJANGO_REPLICA_DB_NAME', None)
-    if replica_db_name is None:
-        raise ImproperlyConfigured('Could not get replica database name from '
-            'envvars.')
-    replica_db_user = os.environ.get('DJANGO_REPLICA_DB_USER', None)
-    if replica_db_user is None:
-        raise ImproperlyConfigured('Could not get replica database user '
-            'from envvars.')
-    replica_db_password = os.environ.get('DJANGO_REPLICA_DB_PASSWORD', None)
-    if replica_db_password is None:
-        raise ImproperlyConfigured('Could not get replica database password '
-            'from envvars.')
+    # The username, password, and database name are all replicated
+    # from the production database
 
     # Set up dict and add to DATABASES setting
     read_replica = {
-        'NAME': replica_db_name,
+        'NAME': DATABASES['default']['NAME'],
         'ENGINE': 'django.db.backends.mysql',
-        'USER': replica_db_user,
-        'PASSWORD': replica_db_password,
+        'USER': DATABASES['default']['USER'],
+        'PASSWORD': DATABASES['default']['PASSWORD'],
         'HOST': os.environ.get('DJANGO_REPLICA_DB_HOST', ''),
         'PORT': os.environ.get('DJANGO_REPLICA_DB_PORT', ''),
         'OPTIONS': {
