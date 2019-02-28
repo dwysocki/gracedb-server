@@ -37,6 +37,7 @@ RUN apt-get update && \
     npm install -g bower
 
 COPY docker/entrypoint /usr/local/bin/entrypoint
+COPY docker/cleanup /usr/local/bin/cleanup
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker/supervisord-apache2.conf /etc/supervisor/conf.d/apache2.conf
 COPY docker/supervisord-lvalert-overseer.conf /etc/supervisor/conf.d/overseer.conf
