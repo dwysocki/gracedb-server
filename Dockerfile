@@ -18,6 +18,7 @@ RUN apt-get update && \
         libsasl2-dev \
         libxml2-dev \
         libsqlite3-dev \
+        ligo-ca-certs \
         mariadb-client \
         nodejs \
         osg-ca-certs \
