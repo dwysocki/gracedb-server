@@ -4,7 +4,7 @@ import logging
 
 from django.utils import six
 
-from rest_framework import fields
+from rest_framework import exceptions, fields
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -124,7 +124,7 @@ class GenericField(fields.Field):
             error_msg = '{model} with {lf}={data} does not exist' \
                 .format(model=self.model.__name__, lf=model_dict.keys()[0],
                 data=model_dict.values()[0])
-            raise serializers.ValidationError(error_msg)
+            raise exceptions.ValidationError(error_msg)
 
     def get_model_dict(self, data):
         return {self.lookup_field: data}
