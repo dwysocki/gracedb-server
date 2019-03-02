@@ -90,9 +90,9 @@ def superevent_flexigrid_response(request, objects):
         end = start+rp
     else:
         start = 0
-        total_pages = 1
+        total_pages = 1 if (total > 0) else 0
         page = 1
-        end = total-1
+        end = max(total, 0)
 
         if total > MAX_FLEXI_ROWS:
             return HttpResponseBadRequest("Too many rows! Please try loading a smaller number.")
@@ -190,9 +190,9 @@ def event_flexigrid_response(request, objects):
         end = start+rp
     else:
         start = 0
-        total_pages = 1
+        total_pages = 1 if (total > 0) else 0
         page = 1
-        end = total-1
+        end = max(total, 0)
 
         if total > MAX_FLEXI_ROWS:
             return HttpResponseBadRequest("Too many rows! Please try loading a smaller number.")
