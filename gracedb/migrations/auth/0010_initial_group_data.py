@@ -31,7 +31,7 @@ def remove_groups(apps, schema_editor):
     for group_name in GROUPS:
         try:
             group = Group.objects.get(name=group_name)
-        except Group.DoesNotExit:
+        except Group.DoesNotExist:
             print("Error getting group {0} to delete, skipping".format(
                 group_name))
             break
