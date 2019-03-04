@@ -366,7 +366,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_THROTTLE_RATES': {
         'anon_burst': '300/minute',
-        'event_creation': '1/second',
+        'event_creation': '10/second',
         'annotation'    : '10/second',
     },
     'DEFAULT_AUTHENTICATION_CLASSES': (
