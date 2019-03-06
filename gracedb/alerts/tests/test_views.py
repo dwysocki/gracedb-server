@@ -22,6 +22,10 @@ class TestUpdateContactView(GraceDbTestBase):
             description='test phone', phone='12345678901',
             phone_method=Contact.CONTACT_PHONE_BOTH)
 
+        # Refresh from database to get formatted phone numbers
+        cls.email_contact.refresh_from_db()
+        cls.phone_contact.refresh_from_db()
+
     def test_edit_email(self):
         """Users should not be able to update contact email"""
         # (because it sidesteps the verification process)
@@ -34,6 +38,9 @@ class TestUpdateContactView(GraceDbTestBase):
         url = reverse('alerts:edit-contact', args=[self.email_contact.pk])
         response = self.request_as_user(url, "POST", self.internal_user,
             data=data)
+
+        # Response = 302 means success and redirect to main alerts page
+        self.assertEqual(response.status_code, 302)
 
         # Refresh from database
         self.email_contact.refresh_from_db()
@@ -57,6 +64,9 @@ class TestUpdateContactView(GraceDbTestBase):
         url = reverse('alerts:edit-contact', args=[self.phone_contact.pk])
         response = self.request_as_user(url, "POST", self.internal_user,
             data=data)
+
+        # Response = 302 means success and redirect to main alerts page
+        self.assertEqual(response.status_code, 302)
 
         # Refresh from database
         self.phone_contact.refresh_from_db()
