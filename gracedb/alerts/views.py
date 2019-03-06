@@ -126,7 +126,7 @@ class DeleteNotificationView(DeleteView):
     def delete(self, request, *args, **kwargs):
         response = super(DeleteNotificationView, self).delete(request, *args,
             **kwargs)
-        messages.info(request, 'Notification {n} has been deleted.'.format(
+        messages.info(request, 'Notification "{n}" has been deleted.'.format(
             n=self.object.description))
         return response
 
@@ -248,8 +248,8 @@ class TestContactView(DetailView):
         if self.object.email:
             subject = 'Test of contact "{desc}" from {host}'.format(
                 desc=self.object.description, host=settings.LIGO_FQDN)
-            email = EmailMessage(subject, msg, settings.ALERT_EMAIL_FROM,
-                [self.object.email], [])
+            email = EmailMessage(subject, msg,
+                from_email=settings.ALERT_EMAIL_FROM, to=[self.object.email])
             email.send()
         if self.object.phone:
             # Get "from" phone number.
