@@ -15,6 +15,7 @@ Contents:
    queries
    labels
    lvalert
+   notifications
    lvem
    auth
 
