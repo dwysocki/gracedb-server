@@ -25,6 +25,7 @@ RUN apt-get update && \
         python2.7 \
         python2.7-dev \
         python-glue=1.60.0-3+deb9u0 \
+        python-glue-common=1.60.0-3+deb9u0 \
         python-libxml2 \
         python-pip \
         python-voeventlib \
