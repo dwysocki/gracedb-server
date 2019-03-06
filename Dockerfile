@@ -24,7 +24,7 @@ RUN apt-get update && \
         osg-ca-certs \
         python2.7 \
         python2.7-dev \
-        python-glue \
+        python-glue=1.60.0-3+deb9u0 \
         python-libxml2 \
         python-pip \
         python-voeventlib \
