@@ -101,6 +101,12 @@ class EditNotificationView(UpdateView):
         kw = super(EditNotificationView, self).get_form_kwargs(
             *args, **kwargs)
         kw['user'] = self.request.user
+
+        # Cases that have a label query actually have labels in the database.
+        # But we don't want to include those in the form because
+        # a) it's confusing and b) it breaks the form
+        if self.object.label_query and self.object.labels.exists():
+            kw['initial']['labels'] = None
         return kw
 
     def get_queryset(self):
