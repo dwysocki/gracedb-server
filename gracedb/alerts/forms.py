@@ -36,21 +36,45 @@ class BaseNotificationForm(forms.ModelForm):
         fields = ['description'] # dummy placeholder
         labels = {
             'far_threshold': 'FAR Threshold (Hz)',
+            'ns_candidate': 'Neutron star candidate',
         }
         help_texts = {
-            'contacts': ('If this box is empty, you must create and verify a '
-                'contact.'),
+            'contacts': textwrap.dedent("""\
+                Select a contact or contacts to receive the notification.
+                If this box is empty, you must create and verify a contact.
+            """).rstrip(),
+            'far_threshold': textwrap.dedent("""\
+                Require that the candidate has FAR less than this threshold.
+                Leave blank to place no requirement on FAR.
+            """).rstrip(),
+            'labels': textwrap.dedent("""\
+                Require that a label or labels must be attached to the
+                candidate. You can specify labels here or in the label query,
+                but not both.
+            """).rstrip(),
             'label_query': textwrap.dedent("""\
+                Require that the candidate's set of labels matches this query.
                 Label names can be combined with binary AND: ('&amp;' or ',')
                 or binary OR: '|'. They can also be negated with '~' or '-'.
                 For N labels, there must be exactly N-1 binary operators.
                 Parentheses are not allowed.
-            """).rstrip()
+            """).rstrip(),
+            'ns_candidate': ('Require that the candidate has m<sub>2</sub> '
+                '< 3.0 M<sub>sun</sub>.'),
+        }
+        widgets = {
+            'contacts': forms.widgets.SelectMultiple(attrs={'size': 5}),
+            'far_threshold': forms.widgets.TextInput(),
+            'labels': forms.widgets.SelectMultiple(attrs={'size': 8}),
         }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super(BaseNotificationForm, self).__init__(*args, **kwargs)
+
+        # We need a user for this to work
+        assert user is not None
+        assert user.is_authenticated
 
         # Dynamically set contacts queryset to be only contacts that:
         #  a) belong to the user
@@ -58,6 +82,10 @@ class BaseNotificationForm(forms.ModelForm):
         if user is not None:
             self.fields['contacts'].queryset = user.contact_set.filter(
                 verified=True)
+
+        # Sort the queryset for labels by name
+        self.fields['labels'].queryset = \
+            self.fields['labels'].queryset.order_by('name')
 
     def clean(self):
         cleaned_data = super(BaseNotificationForm, self).clean()
@@ -71,7 +99,8 @@ class BaseNotificationForm(forms.ModelForm):
         labels = cleaned_data.get('labels', None)
 
         # Can't specify a label from the list and a label query
-        if label_query is not None and labels is not None:
+        # No label specified in the form looks like an empty queryset here
+        if label_query is not None and (labels is not None and labels.exists()):
             err_msg = ('Cannot specify both labels and label query, '
                 'choose one or the other.')
             err_dict[NON_FIELD_ERRORS].append(err_msg)
@@ -93,6 +122,19 @@ class BaseNotificationForm(forms.ModelForm):
 
         return cleaned_data
 
+    def clean_far_threshold(self):
+        far_threshold = self.cleaned_data['far_threshold']
+
+        # If it's set, make sure it's positive
+        if far_threshold is not None:
+            # We can assume it's a float due to previous
+            # validation/cleaning
+            if (far_threshold <= 0):
+                raise forms.ValidationError(
+                    'FAR threshold must be a positive number.')
+
+        return far_threshold
+
 
 class SupereventNotificationForm(BaseNotificationForm, MultipleForm):
     key = 'superevent'
@@ -108,15 +150,40 @@ class EventNotificationForm(BaseNotificationForm, MultipleForm):
     category = Notification.NOTIFICATION_CATEGORY_EVENT
     # Remove 'Test' group
     groups = forms.ModelMultipleChoiceField(queryset=
-        Group.objects.exclude(name='Test'))
+        Group.objects.exclude(name='Test').order_by('name'), required=False,
+        help_text=("Require that the analysis group for the candidate is "
+        "this group or in this set of groups. Leave blank to place no "
+        "requirement on group."))
     # Remove 'MDC' and 'O2VirgoTest' searches
     searches = forms.ModelMultipleChoiceField(queryset=
-        Search.objects.exclude(name__in=['MDC', 'O2VirgoTest']))
+        Search.objects.exclude(name__in=['MDC', 'O2VirgoTest']).order_by('name'),
+        required=False, widget=forms.widgets.SelectMultiple(attrs={'size': 6}),
+        help_text=("Require that the analysis search for the candidate is "
+        "this search or in this set of searches. Leave blank to place no "
+        "requirement on search."))
 
     class Meta(BaseNotificationForm.Meta):
         fields = ['description', 'contacts', 'far_threshold', 'groups',
             'pipelines', 'searches', 'labels', 'label_query', 'ns_candidate',
             'key_field']
+        help_texts = BaseNotificationForm.Meta.help_texts
+        help_texts.update({'pipelines': textwrap.dedent("""\
+            Require that the analysis pipeline for the candidate is this
+            pipeline or in this set of pipelines. Leave blank to place no
+            requirement on pipeline.
+            """).rstrip()
+        })
+        widgets = BaseNotificationForm.Meta.widgets
+        widgets.update({
+            'pipelines': forms.widgets.SelectMultiple(attrs={'size': 6}),
+        })
+
+    def __init__(self, *args, **kwargs):
+        super(EventNotificationForm, self).__init__(*args, **kwargs)
+
+        # Sort the queryset for pipelines by name
+        self.fields['pipelines'].queryset = \
+            self.fields['pipelines'].queryset.order_by('name')
 
 
 ###############################################################################
@@ -128,6 +195,13 @@ class PhoneContactForm(forms.ModelForm, MultipleForm):
     class Meta:
         model = Contact
         fields = ['description', 'phone', 'phone_method', 'key_field']
+        labels = {
+            'phone': 'Phone number',
+        }
+        help_texts = {
+            'phone': ('Non-US numbers should include the country code, '
+                'including the preceding \'+\'.'),
+        }
 
     def __init__(self, *args, **kwargs):
         super(PhoneContactForm, self).__init__(*args, **kwargs)
@@ -140,6 +214,9 @@ class EmailContactForm(forms.ModelForm, MultipleForm):
     class Meta:
         model = Contact
         fields = ['description', 'email', 'key_field']
+        labels = {
+            'email': 'Email address',
+        }
 
 
 class VerifyContactForm(forms.ModelForm):
