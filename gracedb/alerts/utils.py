@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from pyparsing import oneOf, Literal, Optional, ZeroOrMore, StringEnd, Suppress
+import re
 
 from django.db.models import Q
 
@@ -29,3 +30,17 @@ def parse_label_query(s):
         ZeroOrMore(im + label) + StringEnd()
     
     return labelQ.parseString(s).asList()
+
+
+def convert_superevent_id_to_speech(sid):
+    """Used for Twilio voice calls"""
+    grps = list(re.match('^(\w+)(\d{2})(\d{2})(\d{2})(\w+)$', sid).groups())
+
+    # Add spaces between all letters in prefix and suffix
+    grps[0] = " ".join(grps[0])
+    grps[-1] = " ".join(grps[-1])
+
+    # Join with spaces, replace leading zeroes with Os
+    # and make uppercase
+    twilio_str = " ".join(grps).replace(' 0', ' O').upper()
+    return twilio_str

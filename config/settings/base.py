@@ -54,8 +54,18 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 TWIML_BASE_URL = 'https://handler.twilio.com/twiml/'
 # TwiML bin SIDs (for Twilio)
 TWIML_BIN = {
-    'new': 'EH761b6a35102737e3d21830a484a98a08',
-    'label_added': 'EHb596a53b9c92a41950ce1a47335fd834',
+    'event': {
+        'new': 'EH761b6a35102737e3d21830a484a98a08',
+        'update': 'EH95d69491c166fbe8888a3b83b8aff4af',
+        'label_added': 'EHb596a53b9c92a41950ce1a47335fd834',
+        'label_removed': 'EH071c034f27f714bb7a832e85e6f82119',
+    },
+    'superevent': {
+        'new': 'EH5d4d61f5aee9f8687c5bc7d9d42acab9',
+        'update': 'EH35356707718e1b9a887c50359c3ab064',
+        'label_added': 'EH244c07ceeb152c6a374e4ffbd853e7a4',
+        'label_removed': 'EH9d796ce6a80e282a5c96e757e5c39406',
+    },
     'test': 'EH6c0a168b0c6b011047afa1caeb49b241',
     'verify': 'EHfaea274d4d87f6ff152ac39fea3a87d4',
 }
