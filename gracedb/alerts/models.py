@@ -203,41 +203,50 @@ class Notification(models.Model):
             if self.label_query:
                 labels = '({0})'.format(self.label_query)
             else:
-                labels = " | ".join([l.name for l in self.labels.all()])
+                labels = " & ".join([l.name for l in self.labels.all()])
                 if self.labels.count() > 1:
                     labels = '({0})'.format(labels)
             action = action.format(labels=labels)
         else:
-            action = 'created or updated'
+            if self.far_threshold or self.ns_candidate:
+                action = 'created or updated'
+            else:
+                action = 'created'
         output += ' {action}'.format(action=action)
 
         # Add groups, pipelines, searches for event-type notifications
         if self.category == self.NOTIFICATION_CATEGORY_EVENT:
             output += ' & {groups} & {pipelines} & {searches}'
             if self.groups.exists():
-                kwargs['groups'] = 'group=({0})'.format(
-                    " | ".join([g.name for g in self.groups.all()]))
+                grps = " | ".join([g.name for g in self.groups.all()])
+                if self.groups.count() > 1:
+                    grps = '({0})'.format(grps)
+                kwargs['groups'] = 'group={0}'.format(grps)
             else:
                 kwargs['groups'] = 'any group'
             if self.pipelines.exists():
-                kwargs['pipelines'] = 'pipeline=({0})'.format(
-                    " | ".join([p.name for p in self.pipelines.all()]))
+                pipelines = " | ".join([p.name for p in self.pipelines.all()])
+                if self.pipelines.count() > 1:
+                    pipelines = '({0})'.format(pipelines)
+                kwargs['pipelines'] = 'pipeline={0}'.format(pipelines)
             else:
                 kwargs['pipelines'] = 'any pipeline'
             if self.searches.exists():
-                kwargs['searches'] = 'search=({0})'.format(
-                    " | ".join([s.name for s in self.searches.all()]))
+                searches = " | ".join([s.name for s in self.searches.all()])
+                if self.searches.count() > 1:
+                    searches = '({0})'.format(searches)
+                kwargs['searches'] = 'search={0}'.format(searches)
             else:
                 kwargs['searches'] = 'any search'
 
         # Optionally add FAR threshold
         if self.far_threshold:
-            output += ' & (FAR < {far_threshold})'
+            output += ' & FAR < {far_threshold}'
             kwargs['far_threshold'] = self.far_threshold
 
         # Optionally add NS candidate info
         if self.ns_candidate:
-            output += ' & NS candidate'
+            output += ' & Is NS candidate'
 
         # Add contacts
         output += ' -> {contacts}'
