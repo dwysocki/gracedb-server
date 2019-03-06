@@ -13,7 +13,3 @@ def validate_phone(value):
     # Validate phone number
     if not phonenumbers.is_valid_number(phone):
         raise ValidationError('Not a valid phone number: {0}'.format(value))
-
-    # Return phone number as a formatted string
-    return phonenumbers.format_number(phone,
-        phonenumbers.PhoneNumberFormat.E164)
