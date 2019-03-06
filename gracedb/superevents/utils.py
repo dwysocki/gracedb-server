@@ -142,6 +142,7 @@ def update_superevent(superevent, updater, add_log_message=True,
 
     # Write a log message
     # 'if' statement to handle patch requests which don't change entire object
+    superevent_alert_kwargs = {}
     if add_log_message:
         updates = ["{name}: {old} -> {new}".format(name=k, old=old_params[k],
             new=new_params[k]) for k in new_params.keys()
@@ -177,9 +178,17 @@ def update_superevent(superevent, updater, add_log_message=True,
                 EventAlertIssuer(new_params['preferred_event'],
                     alert_type='selected_as_preferred').issue_alerts()
 
+            # If preferred event has changed, compile kwargs for superevent
+            # alert
+            superevent_alert_kwargs['old_far'] = \
+                old_params['preferred_event'].far
+            superevent_alert_kwargs['old_nscand'] = \
+                old_params['preferred_event'].is_ns_candidate()
+
     # Superevent alerts
     if issue_alert:
-        SupereventAlertIssuer(superevent, alert_type='update').issue_alerts()
+        SupereventAlertIssuer(superevent, alert_type='update').issue_alerts(
+            **superevent_alert_kwargs)
 
     return superevent
 

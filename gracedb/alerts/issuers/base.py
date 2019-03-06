@@ -5,7 +5,7 @@ class AlertIssuer(object):
     serializer_class = None
     alert_types = None
 
-    def __init__(self, obj, alert_type, *args, **kwargs):
+    def __init__(self, obj, alert_type):
         # Check alert type
         if alert_type not in self.alert_types:
             raise ValueError('alert_type should be in {0}'.format(
@@ -18,7 +18,7 @@ class AlertIssuer(object):
     def serialize_obj(self):
         return self.serializer_class(self.obj).data
 
-    def issue_alerts(self):
+    def issue_alerts(self, **kwargs):
         # Should be overridden in derived classes
         return NotImplemented
 

@@ -576,6 +576,10 @@ class EventDetail(InheritPermissionsAPIView):
         except Exception, e:
             return Response(str(e))
 
+        # Compile far and nscand for alerts
+        old_far = event.far
+        old_nscand = event.is_ns_candidate()
+
 #       messages = []
 #       if event.group.name != request.data['group']:
 #           messages += [
@@ -619,7 +623,8 @@ class EventDetail(InheritPermissionsAPIView):
         event.save()
 
         # Issue alert
-        EventAlertIssuer(event, alert_type='update').issue_alerts()
+        EventAlertIssuer(event, alert_type='update').issue_alerts(
+            old_far=old_far, old_nscand=old_nscand)
 
         return Response(status=status.HTTP_202_ACCEPTED)
 

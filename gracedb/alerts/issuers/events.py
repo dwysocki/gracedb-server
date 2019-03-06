@@ -38,9 +38,9 @@ class AlertIssuerWithParentEvent(AlertIssuerWithParentObject):
         # Make sure we have the event "subclass"
         return self.obj.event.get_subclass_or_self()
 
-    def issue_alerts(self):
+    def issue_alerts(self, **kwargs):
         issue_alerts(self.get_parent_obj(), self.alert_type,
-           self.serialize_obj(), self.serialize_parent())
+           self.serialize_obj(), self.serialize_parent(), **kwargs)
 
 
 class EventAlertIssuer(AlertIssuerWithParentEvent):
@@ -66,10 +66,10 @@ class EventLabelAlertIssuer(AlertIssuerWithParentEvent):
     serializer_class = staticmethod(labelToDict)
     alert_types = ['label_added', 'label_removed']
 
-    def issue_alerts(self):
+    def issue_alerts(self, **kwargs):
         issue_alerts(self.get_parent_obj(), self.alert_type,
             self.serialize_obj(), self.serialize_parent(),
-            label=self.obj.label)
+            label=self.obj.label, **kwargs)
 
 
 class EventVOEventAlertIssuer(AlertIssuerWithParentEvent):

@@ -20,9 +20,9 @@ class AlertIssuerWithParentSuperevent(AlertIssuerWithParentObject):
                 self.obj.__class__.__name__))
         return self.obj.superevent
 
-    def issue_alerts(self):
+    def issue_alerts(self, **kwargs):
         issue_alerts(self.get_parent_obj(), self.alert_type,
-            self.serialize_obj(), self.serialize_parent())
+            self.serialize_obj(), self.serialize_parent(), **kwargs)
 
 
 class SupereventAlertIssuer(AlertIssuerWithParentSuperevent):
@@ -43,10 +43,10 @@ class SupereventLabelAlertIssuer(AlertIssuerWithParentSuperevent):
     serializer_class = SupereventLabelSerializer
     alert_types = ['label_added', 'label_removed']
 
-    def issue_alerts(self):
+    def issue_alerts(self, **kwargs):
         issue_alerts(self.get_parent_obj(), self.alert_type,
             self.serialize_obj(), self.serialize_parent(),
-            label=self.obj.label)
+            label=self.obj.label, **kwargs)
 
 
 class SupereventVOEventAlertIssuer(AlertIssuerWithParentSuperevent):
