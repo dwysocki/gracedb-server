@@ -1,16 +1,18 @@
 {% extends "base.html" %}
 
 {% block title %}Options | Edit Notification{% endblock %}
-{% block heading %}Edit notification{% endblock %}
+{% block heading %}Edit notification &quot;{{ object.description }}&quot;{% endblock %}
 
 {% block content %}
 <br />
 
+<div style="min-width: 300px; max-width: 700px;">
 <form method="POST">
     <table>
         {{ form.as_table }}
     </table>
     <input type="submit" value="Submit" />
 </form>
+</div>
 
 {% endblock %}

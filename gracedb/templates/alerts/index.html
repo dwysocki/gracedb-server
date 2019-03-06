@@ -20,9 +20,18 @@
 </div>
 {% endif %}
 
-{# Show contacts and notification to internal users only#}
-{% if user_is_internal %}
-<h1>Contacts</h1>
+<h1>Phone and email alerts</h1>
+<div style="max-width: 1000px;">
+<p>
+This is the central page for managing phone and email alerts.
+From here, you can create new contacts and notifications, edit or delete existing ones, and test and verify contacts.
+Here's a link to some more detailed <a href="{% url "home" %}documentation/notifications.html">documentation</a> on phone and email alerts, including how to create contacts and notifications.
+</p>
+
+<p><b>Note:</b> email alerts in ER14 and O3 will come from the <b><code style="font-size: 1.8rem;">gravitationalwave.services</code></b> domain.</p>
+</div>
+
+<h2>Contacts</h2>
 {% if contacts %}
 <table style="padding-bottom: 10px">
 {% for contact in contacts %}
@@ -53,9 +62,9 @@
 {% endif %}
 
 <a class="btn btn-success" href="{% url "alerts:create-contact" %}">Create new contact</a>
-<br/><br/>
+<br /><br /><br />
 
-<h1>Notifications</h1>
+<h2>Notifications</h2>
 {% if notifications %}
 <table style="padding-bottom: 10px;">
 {% for notification in notifications %}
@@ -69,6 +78,4 @@
 {% endif %}
 
 <a class="btn btn-success" href="{% url "alerts:create-notification" %}">Create new notification</a>
-{% endif %}
-
 {% endblock %}
