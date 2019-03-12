@@ -239,6 +239,7 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
         'LOCATION': '127.0.0.1:11211',
     },
+    # For API throttles
     'throttles': {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
         'LOCATION': 'api_throttle_cache', # Table name
