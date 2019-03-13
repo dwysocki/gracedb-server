@@ -62,15 +62,15 @@ if TWILIO_AUTH_TOKEN is None:
     raise ImproperlyConfigured('Could not get Twilio auth token from envvars.')
 
 # Get email settings from environment
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST = os.environ.get('SMTP_HOST', 'localhost')
-EMAIL_HOST_USER = os.environ.get('SMTP_USERNAME', '')
-EMAIL_HOST_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
-ALERT_EMAIL_FROM = os.environ.get('DJANGO_ALERT_EMAIL_FROM', None)
-if ALERT_EMAIL_FROM is None:
-    raise ImproperlyConfigured(
-        "Could not get 'alert from email' from envvars.")
+EMAIL_BACKEND = 'django_ses.SESBackend'
+AWS_SES_ACCESS_KEY_ID = get_from_env('AWS_SES_ACCESS_KEY_ID')
+AWS_SES_SECRET_ACCESS_KEY = get_from_env('AWS_SES_SECRET_ACCESS_KEY')
+AWS_SES_REGION_NAME = get_from_env('AWS_SES_REGION_NAME',
+    default_value='us-west-2', fail_if_not_found=False)
+AWS_SES_REGION_ENDPOINT = get_from_env('AWS_SES_REGION_ENDPOINT',
+    default_value='email.us-west-2.amazonaws.com', fail_if_not_found=False)
+ALERT_EMAIL_FROM = get_from_env('DJANGO_ALERT_EMAIL_FROM')
+
 
 # Database settings -----------------------------------------------------------
 DATABASES = {

@@ -337,6 +337,7 @@ SITE_ID=1
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.admin',
+    'django_ses',
     'django.contrib.contenttypes',
     'user_sessions',
     'django.contrib.sites',
