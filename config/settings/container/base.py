@@ -72,6 +72,22 @@ AWS_SES_REGION_ENDPOINT = get_from_env('AWS_SES_REGION_ENDPOINT',
 ALERT_EMAIL_FROM = get_from_env('DJANGO_ALERT_EMAIL_FROM')
 
 
+# Priority server settings ----------------------------------------------------
+PRIORITY_SERVER = False
+is_priority_server = get_from_env('DJANGO_PRIORITY_SERVER', None,
+    fail_if_not_found=False)
+if (isinstance(is_priority_server, str) and
+    is_priority_server.lower() in ['true', 't']):
+    PRIORITY_SERVER = True
+
+# If priority server, only allow priority users to the API
+if PRIORITY_SERVER:
+    # Add custom permissions for the API
+    default_perms = list(REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'])
+    default_perms = ['api.permissions.IsPriorityUser'] + default_perms
+    REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = tuple(default_perms)
+
+
 # Database settings -----------------------------------------------------------
 DATABASES = {
     'default' : {
