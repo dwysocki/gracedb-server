@@ -22,8 +22,9 @@ def get_from_env(envvar, default_value=None, fail_if_not_found=True):
     return value
 
 # Unauthenticated access ------------------------------------------------------
-# This variable controls whether unauthenticated access is allowed *ANYWHERE*
-# on this service, except the home page, which is always public.
+# This variable should eventually control whether unauthenticated access is
+# allowed *ANYWHERE* on this service, except the home page, which is always
+# public. For now, it just controls the API.
 UNAUTHENTICATED_ACCESS = True
 
 # Miscellaneous settings ------------------------------------------------------
