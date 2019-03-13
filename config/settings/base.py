@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import os, time, logging
 from os.path import abspath, dirname, join
 import socket
+from django.core.exceptions import ImproperlyConfigured
 
 # Set up path to root of project
 BASE_DIR = abspath(join(dirname(__file__), "..", ".."))
@@ -11,6 +12,14 @@ PROJECT_ROOT = join(BASE_DIR, "gracedb")
 
 # Other useful paths
 PROJECT_DATA_DIR = join(BASE_DIR, "..", "project_data")
+
+# Useful function for getting environment variables
+def get_from_env(envvar, default_value=None, fail_if_not_found=True):
+    value = os.environ.get(envvar, default_value)
+    if (value == default_value and fail_if_not_found):
+        raise ImproperlyConfigured(
+            'Could not get environment variable {0}'.format(envvar))
+    return value
 
 # Unauthenticated access ------------------------------------------------------
 # This variable controls whether unauthenticated access is allowed *ANYWHERE*
