@@ -225,7 +225,7 @@ class VersionedFile(file):
 
     @staticmethod
     def guess_mimetype(filename):
-        TEXT_EXTENSIONS = ['.log']
+        TEXT_EXTENSIONS = ['.log', '.out']
         filename = VersionedFile.basename(filename)
         content_type, encoding = mimetypes.guess_type(filename)
         if content_type is None and '.' in filename:
