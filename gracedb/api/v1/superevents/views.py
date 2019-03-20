@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 
 from core.file_utils import get_file_list
 from core.http import check_and_serve_file
-from core.vfile import VersionedFile
+from core.vfile import VersionedFile, FileVersionError, FileVersionNameError
 from events.models import Event, Label
 from events.view_utils import reverse as gracedb_reverse
 from superevents.buildVOEvent import VOEventBuilderException
@@ -275,7 +275,17 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
         full_filename = self.kwargs.get(self.lookup_url_kwarg)
 
         # Try to split into name,version (for log lookup)
-        filename, version = Log.split_versioned_filename(full_filename)
+        try:
+            filename, version = Log.split_versioned_filename(full_filename)
+        except FileVersionError as e:
+            # Bad version specifier
+            return Response('File not found, version string should be an int',
+                status=status.HTTP_404_NOT_FOUND)
+        except FileVersionNameError as e:
+            # File name doesn't match versioning scheme (likely has a comma
+            # in it that isn't part of the versioning scheme)
+            return Response(('Invalid filename: filename should not contain '
+                'commas'), status=status.HTTP_400_BAD_REQUEST)
 
         # Get logs which are viewable by the current user and
         # have files attached

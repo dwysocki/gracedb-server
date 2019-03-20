@@ -13,6 +13,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class FileVersionError(Exception):
+    # Problem with file version (likely not an int)
+    pass
+
+
+class FileVersionNameError(Exception):
+    # Problem with filename (likely has an extra comma somewhere in the
+    # filename)
+    pass
+
+
 class VersionedFile(file):
     """
     Open a versioned file.
@@ -149,13 +160,19 @@ class VersionedFile(file):
         if len(result) == 2:
             filename = result[0]
             version = result[1]
+
+            # Version is a string here, try to convert it to an int
+            try:
+                version = int(version)
+            except ValueError as e:
+                raise FileVersionError('Bad version specifier')
         elif len(result) == 1:
             filename = result[0]
             version = None
         else:
             err = 'Filename {0} does not match versioning scheme'.format(
                 versioned_name)
-            raise ValueError(err)
+            raise FileVersionNameError(err)
 
         return filename, version
 
