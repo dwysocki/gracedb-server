@@ -7,6 +7,7 @@ buildVOEvent: Creates a complex VOEvent with tables
 See the VOEvent specification for details
 http://www.ivoa.net/Documents/latest/VOEvent.html
 """
+import math
 
 from VOEventLib.VOEvent import VOEvent, Who, Author, Param, How, What, Group
 from VOEventLib.VOEvent import Citations, EventIVORN
@@ -375,7 +376,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                 max_hrss = max(hrss_values)
                 # From Min-A Cho: fluence = pi*(c**3)*(freq**2)*(hrss_max**2)*(10**3)/(4*G)
                 # Note that hrss here actually has units of s^(-1/2)
-                pi = 3.14152
+                pi = math.pi
                 c = 2.99792E10
                 G = 6.674E-8
                 fluence = pi * pow(c,3) * pow(event.central_freq,2) 
@@ -403,7 +404,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             # Note that hrss here actually has units of s^(-1/2)
             # XXX obviously need to refactor here.
             try:
-                pi = 3.14152
+                pi = math.pi
                 c = 2.99792E10
                 G = 6.674E-8
                 fluence = pi * pow(c,3) * pow(event.frequency,2) 
