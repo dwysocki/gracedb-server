@@ -126,8 +126,11 @@ class ControlRoomMiddleware(object):
         # Add user to control room group(s)
         for ifo, ip in settings.CONTROL_ROOM_IPS.iteritems():
             if (ip == user_ip):
-                request.user.groups.add(Group.objects.get(name=
-                    ifo.lower() + self.control_room_group_suffix))
+                control_room_group = Group.objects.get(name=
+                    (ifo.lower() + self.control_room_group_suffix))
+                request.user.groups.through.objects.get_or_create(
+                    user=request.user, group=control_room_group)
+                break
 
         return request
 
