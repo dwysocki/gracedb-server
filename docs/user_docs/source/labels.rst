@@ -85,3 +85,14 @@ Here is a table showing the currently available labels and their meanings.
 +-----------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | V1OPS           | V1 operator signoff requested.                                                                                                         |
 +-----------------+----------------------------------------------------------------------------------------------------------------------------------------+
+
+
+Protected labels
+----------------
+A few labels are "protected"; i.e., they are only applied by GraceDB itself as part of another process.
+These labels **cannot** be applied manually by users and any requests to do so will be rejected by the server.
+
+At present, the following labels are protected as a part of the signoff infrastructure and are only applied by GraceDB after an operator or advocate signoff:
+
+- H1OK, L1OK, V1OK, ADVOK
+- H1NO, L1NO, V1NO, ADVNO
