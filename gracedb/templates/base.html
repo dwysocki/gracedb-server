@@ -4,6 +4,9 @@
 <head>
 {% load static %}
 {% block headcontents %}
+
+    {# remove requests for favicon #}
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="{% static "css/style.css" %}" />
     <title>GraceDb | {% block title %}{% endblock %}</title>
 <!-- START TESTING -->
