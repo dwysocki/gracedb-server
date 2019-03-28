@@ -3,7 +3,7 @@ import logging
 import textwrap
 
 from django.conf import settings
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, get_connection
 from django.urls import reverse
 
 from core.time_utils import gpsToUtc
@@ -143,10 +143,13 @@ def issue_email_alerts(event_or_superevent, alert_type, recipients,
     logger.debug("Sending email to {recips}".format(
         recips=", ".join([r.email for r in recipients])))
 
-    # Send mail individually so all emails are not rejected due to a single
-    # address being blacklisted
+    # Construct email messages
+    messages = []
     for recip in recipients:
-        # Send email
         email = EmailMessage(subject=subject, body=email_body,
             from_email=settings.ALERT_EMAIL_FROM, to=[recip.email])
-        email.send()
+        messages.append(email)
+
+    # Send email messages
+    backend = get_connection()
+    backend.send_messages(messages)

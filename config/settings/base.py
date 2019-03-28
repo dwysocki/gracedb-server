@@ -603,7 +603,7 @@ LOGGING = {
             'propagate': True,
             'level': LOG_LEVEL,
         },
-       'django.request': {
+        'django.request': {
             'handlers': ['mail_admins'],
             'level': 'ERROR',
             'propagate': False,
