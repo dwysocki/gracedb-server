@@ -17,8 +17,8 @@ bind = "127.0.0.1:{port}".format(port=GUNICORN_PORT)
 # Number of workers = 2*CPU + 1 (recommendation from Gunicorn documentation)
 workers = multiprocessing.cpu_count()*2 + 1
 
-# Worker type
-worker_type = 'sync'
+# Worker class
+worker_class = 'gevent'
 
 # Max requests settings - a worker restarts after handling this many
 # requests. May be useful if we have memory leak problems.

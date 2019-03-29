@@ -10,7 +10,7 @@ django-user-sessions==1.6.0
 djangorestframework==3.9.0
 dnspython==1.15.0
 flake8==3.5.0
-gunicorn==19.7.1
+gunicorn[gevent]==19.9.0
 html5lib==1.0.1
 ipdb==0.10.2
 ipython==5.5.0
