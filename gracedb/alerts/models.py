@@ -52,8 +52,8 @@ class Contact(CleanSaveModel):
     verification_expiration = models.DateTimeField(null=True, editable=False)
 
 
-    def __unicode__(self):
-        return u"{0}: {1}".format(self.user.username, self.description)
+    def __str__(self):
+        return "{0}: {1}".format(self.user.username, self.description)
 
     def clean(self):
         # Mostly used for preventing creation of bad Contact
@@ -251,6 +251,6 @@ class Notification(models.Model):
         # Add contacts
         output += ' -> {contacts}'
         kwargs['contacts'] = \
-            ", ".join([c.description for c in self.contacts.all()])
+            ", ".join([c.display() for c in self.contacts.all()])
 
         return output.format(**kwargs)

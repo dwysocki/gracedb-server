@@ -1,6 +1,7 @@
 import phonenumbers
 
 from django.db import models
+from django import forms
 
 from .validators import validate_phone
 
@@ -32,3 +33,8 @@ class PhoneNumberField(models.CharField):
         phone = phonenumbers.parse(value, 'US')
         return phonenumbers.format_number(phone,
             getattr(phonenumbers.PhoneNumberFormat, self.format))
+
+
+class ContactMultipleChoiceField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, obj):
+        return obj.display()

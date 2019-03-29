@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from core.forms import MultipleForm
 from events.models import Group, Search, Label
+from .fields import ContactMultipleChoiceField
 from .models import Notification, Contact
 from .utils import parse_label_query
 
@@ -31,6 +32,8 @@ class BaseNotificationForm(forms.ModelForm):
     Base model for Notification forms. Should not be used on its own
     (essentially an abstract model)
     """
+    contacts = ContactMultipleChoiceField(queryset=Contact.objects.all(),
+        required=False, widget=forms.widgets.SelectMultiple(attrs={'size': 6}))
     class Meta:
         model = Notification
         fields = ['description'] # dummy placeholder
@@ -63,7 +66,6 @@ class BaseNotificationForm(forms.ModelForm):
                 '< 3.0 M<sub>sun</sub>.'),
         }
         widgets = {
-            'contacts': forms.widgets.SelectMultiple(attrs={'size': 5}),
             'far_threshold': forms.widgets.TextInput(),
             'labels': forms.widgets.SelectMultiple(attrs={'size': 8}),
         }
