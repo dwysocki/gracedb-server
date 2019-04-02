@@ -348,6 +348,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'alerts',
     'api',
+    'core',
     'events',
     'ligoauth',
     'search',
