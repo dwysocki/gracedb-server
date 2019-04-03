@@ -253,6 +253,10 @@ class SignoffGroupsAndUsersSetup(TestCase):
             content_type__app_label='superevents',
             codename='do_adv_signoff')
         g.permissions.add(*p)
+        p = Permission.objects.filter(
+            content_type__app_label='events',
+            codename='manage_pipeline')
+        g.permissions.add(*p)
         # Also add user to internal group
         internal_group.user_set.add(user)
 

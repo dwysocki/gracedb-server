@@ -45,6 +45,14 @@ urlpatterns = [
     url(r'^(?P<graceid>[GEHMT]\d+)/emobservation/(?P<num>([\d]*|preview))$',
         views.emobservation_entry, name="emobservation_entry"),
 
+    # Manage pipelines
+    url(r'^pipelines/manage/$', views.PipelineManageView.as_view(),
+        name='manage-pipelines'),
+    url(r'^pipelines/(?P<pk>\d+)/enable/$', views.PipelineEnableView.as_view(),
+        name='enable-pipeline'),
+    url(r'^pipelines/(?P<pk>\d+)/disable/$',
+        views.PipelineDisableView.as_view(), name='disable-pipeline'),
+
     # Legacy URLs -------------------------------------------------------------
     # Event detail
     url(r'^view/(?P<graceid>[GEHMT]\d+)', views.view, name="legacyview"),

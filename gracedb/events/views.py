@@ -1,25 +1,31 @@
+from datetime import timedelta
 
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect, HttpResponseNotFound, HttpResponseBadRequest, Http404
 from django.http import HttpResponseForbidden, HttpResponseServerError
 from django.template import RequestContext
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
+from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.generic import ListView
+from django.views.generic.edit import UpdateView
 
 from core.file_utils import get_file_list
 from core.http import check_and_serve_file
 from .models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
-from .models import EMGroup, Signoff
+from .models import EMGroup, Signoff, PipelineLog
 from .forms import CreateEventForm, SignoffForm
 
+from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import User, Permission
 from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.contenttypes.models import ContentType
 from .permission_utils import filter_events_for_user, user_has_perm
-from .permission_utils import internal_user_required, is_external, \
-    check_external_file_access
+from .permission_utils import is_external, check_external_file_access
 from guardian.models import GroupObjectPermission
+from ligoauth.decorators import internal_user_required
 
 from .view_logic import _createEventFromForm
 from .view_logic import get_performance_info
@@ -169,6 +175,15 @@ def _create(request):
 
             if not user_has_perm(request.user, "populate", pipeline):
                 return HttpResponseForbidden("You do not have permission to submit events to this pipeline.")
+
+            # Get search since we won't block MDC event submissions even if
+            # the pipeline is disabled
+            search_name = request.POST.get('search', None)
+            if not pipeline.enabled and search_name != 'MDC':
+                err_msg = ('The {0} pipeline has been temporarily disabled by '
+                    'an EM advocate due to suspected misbehavior.').format(
+                    pipeline.name)
+                return HttpResponseBadRequest(err_msg)
 
         form = CreateEventForm(request.POST, request.FILES)
         if form.is_valid():
@@ -958,3 +973,94 @@ def modify_signoff(request, event):
     # Finished. Redirect back to the event.
     return HttpResponseRedirect(reverse("view", args=[event.graceid]))
 
+
+# Managing pipeline submissions -----------------------------------------------
+PIPELINE_LIST = ['gstlal', 'pycbc', 'MBTAOnline', 'CWB', 'oLIB', 'spiir']
+PIPELINE_LOG_ACTION_DICT = dict(PipelineLog.PIPELINE_LOG_ACTION_CHOICES)
+
+@method_decorator(internal_user_required(raise_exception=True),
+    name='dispatch')
+class PipelineManageView(ListView):
+    model = Pipeline
+    template_name = 'gracedb/manage_pipelines.html'
+    log_number = 10
+
+    def get_queryset(self):
+        qs = Pipeline.objects.filter(name__in=PIPELINE_LIST).order_by('name')
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super(PipelineManageView, self).get_context_data(**kwargs)
+
+        # Get number of events created in a few different time periods for
+        # each pipeline and last submission time
+        n_events_dict = {}
+        submission_dict = {}
+        now = timezone.now()
+        dts = [now-timedelta(minutes=1), now-timedelta(minutes=10),
+            now-timedelta(minutes=60), now-timedelta(days=1)]
+        for p in self.object_list:
+            n_events_dict[p.name] = [p.event_set.filter(created__gt=dt)
+                .exclude(group__name='Test').exclude(search__name='MDC')
+                .count() for dt in dts]
+            last_event = p.event_set.exclude(group__name='Test').exclude(
+                search__name='MDC').order_by('-pk').first()
+            submission_dict[p.name] = getattr(last_event, 'created', None)
+        context['n_events_dict'] = n_events_dict
+        context['submission_dict'] = submission_dict
+
+        # Get list of pipeline logs
+        context['logs'] = PipelineLog.objects.order_by('-created')[
+            :self.log_number]
+        log_message_template = '{pipeline} {action}d by {user} at {dt}'
+        context['log_messages'] = [log_message_template.format(
+            pipeline=log.pipeline.name, user=log.creator.get_full_name(),
+            dt=log.created.strftime('%H:%M:%S %Z on %B %e, %Y'),
+            action=PIPELINE_LOG_ACTION_DICT[log.action])
+            for log in context['logs']]
+
+        # Determine whether user can enable/disable pipelines
+        context['user_can_manage'] = self.request.user.has_perm(
+            'events.manage_pipeline')
+
+        return context
+
+
+@method_decorator(permission_required('events.manage_pipeline',
+    raise_exception=True), name='dispatch')
+class PipelineEnableView(UpdateView):
+    """Enable a pipeline"""
+    success_url = reverse_lazy('manage-pipelines')
+
+    def get_queryset(self):
+        qs = Pipeline.objects.filter(name__in=PIPELINE_LIST)
+        return qs
+
+    def get(self, request, *args, **kwargs):
+        return self.post(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if not self.object.enabled:
+            self.object.enabled = True
+            self.object.save(update_fields=['enabled'])
+            PipelineLog.objects.create(creator=request.user,
+                pipeline=self.object,
+                action=PipelineLog.PIPELINE_LOG_ACTION_ENABLE)
+        return HttpResponseRedirect(self.get_success_url())
+
+
+@method_decorator(permission_required('events.manage_pipeline',
+    raise_exception=True), name='dispatch')
+class PipelineDisableView(PipelineEnableView):
+    """Disable a pipeline"""
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.enabled:
+            self.object.enabled = False
+            self.object.save(update_fields=['enabled'])
+            PipelineLog.objects.create(creator=request.user,
+                pipeline=self.object,
+                action=PipelineLog.PIPELINE_LOG_ACTION_DISABLE)
+        return HttpResponseRedirect(self.get_success_url())

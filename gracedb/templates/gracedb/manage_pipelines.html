@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load util_tags %}
+
+{% block title %}Manage pipelines{% endblock %}
+{% block heading %}Enable/disable analysis pipelines{% endblock %}
+{% block pageid %}pipelines{% endblock %}
+
+{% load static %}
+{% block headcontents %}
+    <link rel="stylesheet" href="{% static "css/bootstrap_buttons.css" %}"></script>
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+
+<div style="padding-bottom: 20px;">
+<p>This page provides a brief summary of a pipeline's recent activity and provides the ability for EM advocates to disable (or enable) a pipeline's ability to submit events.
+When a pipeline is disabled, non-Test, non-MDC events cannot be submitted for it.
+This functionality is intended to mitigate the effects of a pipeline that is misbehaving and submitting erroneous event data.</p>
+<p>All users: if you suspect any problems with a pipeline, you should contact one of the EM advocates who is currently on duty. The EM advocate schedule for O3 is <a href="https://ldas-jobs.ligo.caltech.edu/~emfollow/followup-advocate-guide/roster.html#shift-calendar">here</a>.</p>
+<p>EM advocates: after you disable or enable a pipeline, you should contact the <a href="mailto:emfollow@ligo.org">low-latency group</a> to describe the action you have taken and the reasons for it.</p>
+</div>
+
+{% if user_can_manage %}
+<div align="center" style="padding-bottom: 20px;">
+<div style="background-color: red; color: white; display: inline-block; padding: 10px; border-radius: 5px;">
+<p align="center" style="font-weight: bold; font-size: 1.8rem; margin: 0;">WARNING: this page is live and any actions you take here will have consequences. Please be careful!</p>
+</div>
+</div>
+{% endif %}
+
+<div style="padding-bottom: 40px;">
+<table class="bootstrap-dark" align="center">
+<caption>Pipeline status</caption>
+    <tr>
+        <th></th>
+        <th></th>
+        <th style="text-align: center;" colspan="5">Recent submissions</th>
+        <th></th>
+    </tr>
+    <tr>
+        <th>Pipeline</th>
+        <th class="center">Current status</th>
+        <th class="center">Time of last submission (UTC)</th>
+        <th class="center">Last minute</th>
+        <th class="center">Last 10 minutes</th>
+        <th class="center">Last hour</th>
+        <th class="center">Last day</th>
+        <th class="center">Action</th>
+    </tr>
+    {% for pipeline in pipeline_list %}
+    <tr>
+        <td>{{ pipeline.name }}</td>
+        <td class="center">
+        {% if pipeline.enabled %}
+            <span style="color: green; font-weight: bold;">Enabled</span>
+        {% else %}
+            <span style="color: red; font-weight: bold;">Disabled</span>
+        {% endif %}
+        </td>
+        <td class="center">{{ submission_dict|get_item:pipeline.name }}</td>
+        {% with n_events_dict|get_item:pipeline.name as n_events_list %}
+            <td class="center">{{ n_events_list.0 }}</td>
+            <td class="center">{{ n_events_list.1 }}</td>
+            <td class="center">{{ n_events_list.2 }}</td>
+            <td class="center">{{ n_events_list.3 }}</td>
+        {% endwith %}
+        <td class="center">
+        {% if pipeline.enabled %}
+            {% if user_can_manage %}
+            <a class="btn btn-danger" href="{% url "disable-pipeline" pipeline.pk %}">Disable</a>
+            {% else %}
+            <button class="btn btn-danger" disabled>Disable</button>
+            {% endif %}
+        {% else %}
+            {% if user_can_manage %}
+            <a class="btn btn-success" href="{% url "enable-pipeline" pipeline.pk %}">Enable</a>
+            {% else %}
+            <button class="btn btn-success" disabled>Enable</button>
+            {% endif %}
+        {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+</div>
+
+{% if log_messages %}
+<div style="padding-bottom: 10px;">
+<table class="bootstrap-dark" align="center">
+<caption>Recent activity</caption>
+<tr>
+    <th>#</th>
+    <th>Comment</th>
+{% for log in log_messages %}
+<tr>
+    <td>{{ forloop.revcounter }}
+    <td>{{ log }}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+{% endif %}
+{% endblock %}

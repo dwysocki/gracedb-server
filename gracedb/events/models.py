@@ -69,9 +69,29 @@ class Group(models.Model):
 
 class Pipeline(models.Model):
     name = models.CharField(max_length=100)
+    enabled = models.BooleanField(default=True)
     # XXX Need any additional fields? Like a librarian email? Or perhaps even fk?
+    class Meta:
+        permissions = (
+            ('manage_pipeline', 'Can enable or disable pipeline'),
+        )
     def __unicode__(self):
         return self.name
+
+
+class PipelineLog(models.Model):
+    PIPELINE_LOG_ACTION_DISABLE = 'D'
+    PIPELINE_LOG_ACTION_ENABLE = 'E'
+    PIPELINE_LOG_ACTION_CHOICES = (
+        (PIPELINE_LOG_ACTION_DISABLE, 'disable'),
+        (PIPELINE_LOG_ACTION_ENABLE, 'enable'),
+    )
+    creator = models.ForeignKey(UserModel)
+    pipeline = models.ForeignKey(Pipeline)
+    created = models.DateTimeField(auto_now_add=True)
+    action = models.CharField(max_length=10,
+        choices=PIPELINE_LOG_ACTION_CHOICES)
+
 
 class Search(models.Model):
     name = models.CharField(max_length=100)

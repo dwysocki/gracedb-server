@@ -13,7 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseForbidden, \
-    HttpResponseNotFound, HttpResponseServerError
+    HttpResponseNotFound, HttpResponseServerError, HttpResponseBadRequest
 from django.http.request import QueryDict
 from django.utils.functional import wraps
 
@@ -468,6 +468,15 @@ class EventList(InheritPermissionsAPIView):
                     status = status.HTTP_400_BAD_REQUEST)
             if not user_has_perm(request.user, "populate", pipeline):
                 return HttpResponseForbidden("You don't have permission on this pipeline.")
+
+            # Get search since we won't block MDC event submissions even if the
+            # pipeline is disabled
+            search_name = request.data.get('search', None)
+            if not pipeline.enabled and search_name != 'MDC':
+                err_msg = ('The {0} pipeline has been temporarily disabled by '
+                    'an EM advocate due to suspected misbehavior.').format(
+                    pipeline.name)
+                return HttpResponseBadRequest(err_msg)
 
         # The following looks a bit funny but it is actually necessary. The 
         # django form expects a dict containing the POST data as the first
