@@ -104,6 +104,9 @@ h1.docnav {
 #home #nav-home a,
 #create #nav-create a,
 #search #nav-search a,
+#pipelines #nav-pipelines a,
+#alerts #nav-alerts a,
+#password #nav-password a,
 #doc #nav-doc a,
 #reports #nav-reports a,
 #feeds #nav-feeds a,
@@ -111,7 +114,6 @@ h1.docnav {
 #archive #nav-archive a,
 #lab #nav-lab a,
 #reviews #nav-reviews a,
-#userprofile #nav-userprofile a,
 #latest #nav-latest a,
 #contact #nav-contact a {
     background: #a9b0ba;  /* Nav selected color */
@@ -121,6 +123,9 @@ h1.docnav {
 #home #nav-home a:hover,
 #create #nav-create a,
 #search #nav-search a,
+#pipelines #nav-pipelines a,
+#alerts #nav-alerts a,
+#password #nav-password a,
 #doc #nav-doc a,
 #reports #nav-reports a,
 #feeds #nav-feeds a,
@@ -128,7 +133,6 @@ h1.docnav {
 #archive #nav-archive a:hover,
 #lab #nav-lab a:hover,
 #reviews #nav-reviews a:hover,
-#userprofile #nav-userprofile a:hover,
 #latest #nav-latest a:hover,
 #contact #nav-contact a:hover {
     /* background:#e35a00; */
