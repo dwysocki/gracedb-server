@@ -45,6 +45,7 @@ class ShibbolethRemoteUserBackend(backends.RemoteUserBackend):
     create_unknown_user = True
     attribute_map = getattr(settings, 'SHIB_ATTRIBUTE_MAP',
         DEFAULT_SHIB_ATTRIBUTES)
+    attribute_delimiter = ';'
 
     def authenticate(self, request, remote_user):
 
@@ -93,6 +94,8 @@ class ShibbolethRemoteUserBackend(backends.RemoteUserBackend):
         for user_attr, header in cls.attribute_map.items():
             value = request.META.get(header, None)
             if value:
+                # Check if there are multiple entries; if so, take the first
+                value = value.split(cls.attribute_delimiter)[0]
                 shib_user_attr[user_attr] = value
 
         # Update user with attributes from the shib session only if there are
