@@ -7,7 +7,7 @@ buildVOEvent: Creates a complex VOEvent with tables
 See the VOEvent specification for details
 http://www.ivoa.net/Documents/latest/VOEvent.html
 """
-import math
+from scipy.constants import c, G, pi
 
 
 from VOEventLib.VOEvent import VOEvent, Who, Author, Param, How, What, Group
@@ -359,9 +359,6 @@ def construct_voevent_file(superevent, voevent, request=None,
                 max_hrss = max(hrss_values)
                 # From Min-A Cho: fluence = pi*(c**3)*(freq**2)*(hrss_max**2)*(10**3)/(4*G)
                 # Note that hrss here actually has units of s^(-1/2)
-                pi = math.pi
-                c = 2.99792E10
-                G = 6.674E-8
                 fluence = pi * pow(c,3) * pow(event.central_freq,2) 
                 fluence = fluence * pow(max_hrss,2)
                 fluence = fluence / (4.0*G)
@@ -388,9 +385,6 @@ def construct_voevent_file(superevent, voevent, request=None,
             # Note that hrss here actually has units of s^(-1/2)
             # XXX obviously need to refactor here.
             try:
-                pi = math.pi
-                c = 2.99792E10
-                G = 6.674E-8
                 fluence = pi * pow(c,3) * pow(event.frequency,2) 
                 fluence = fluence * pow(event.hrss,2)
                 fluence = fluence / (4.0*G)
