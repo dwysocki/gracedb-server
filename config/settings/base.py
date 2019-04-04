@@ -513,7 +513,7 @@ LOGGING = {
             'datefmt': LOG_DATEFMT,
         },
         'console': {
-            'format': ('DJANGO |%(asctime)s.%(msecs)03d | {host} | {ip} | '
+            'format': ('DJANGO | %(asctime)s.%(msecs)03d | {host} | {ip} | '
                 '%(name)s | %(levelname)s | %(filename)s, line %(lineno)s | '
                 '%(message)s').format(host=INTERNAL_HOSTNAME,
                 ip=INTERNAL_IP_ADDRESS),
