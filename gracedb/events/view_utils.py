@@ -619,7 +619,7 @@ def singleInspiralToDict(single_inspiral):
     rv = {}
     for field_name in SingleInspiral.field_names():
         value = getattr(single_inspiral, field_name, None)
-        if value:
+        if value is not None:
             rv.update({ field_name: value })
     return rv
 
