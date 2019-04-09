@@ -231,8 +231,13 @@ def create_log(issuer, comment, event_or_superevent, filename="",
 
     # Create versioned file
     if data_file:
-        version = create_versioned_file(filename, event_or_superevent.datadir,
-            data_file)
+        try:
+            version = create_versioned_file(filename,
+                event_or_superevent.datadir, data_file)
+        except Exception as e:
+            # If creating the file fails, we want to delete the log entry
+            log.delete()
+            raise e
 
         # Update file_version
         log.file_version = version
