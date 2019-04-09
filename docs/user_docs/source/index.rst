@@ -13,6 +13,7 @@ Contents:
 
    ref_manual 
    tutorials
+   LIGO-Virgo Public Alert Guide <https://emfollow.docs.ligo.org/userguide/>
 
 
 Indices and tables
