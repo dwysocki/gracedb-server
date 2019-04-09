@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class GraceDbBasicAuthentication(authentication.BasicAuthentication):
+    allow_ajax = False
     api_only = True
 
     def authenticate(self, request, *args, **kwargs):
@@ -31,6 +32,11 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
         """
         # Make sure this request is directed to the API
         if self.api_only and not is_api_request(request.path):
+            return None
+
+        # Don't allow this auth type for AJAX requests, since we don't want it
+        # to work for API requests made by the web views.
+        if request.is_ajax() and not self.allow_ajax:
             return None
 
         # Call base class authenticate() method
@@ -62,6 +68,7 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
     Authentication based on X509 certificate subject.
     Certificate should be verified by Apache already.
     """
+    allow_ajax = False
     api_only = True
     www_authenticate_realm = 'api'
     subject_dn_header = getattr(settings, 'X509_SUBJECT_DN_HEADER',
@@ -73,6 +80,13 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         # Make sure this request is directed to the API
         if self.api_only and not is_api_request(request.path):
+            return None
+
+        # Don't allow this auth type for AJAX requests - this is because
+        # users with certificates in their browser can still authenticate via
+        # this mechanism in the web view (since it makes API queries), even
+        # when they are not logged in.
+        if request.is_ajax() and not self.allow_ajax:
             return None
 
         # Try to get credentials from request headers.
@@ -166,6 +180,7 @@ class GraceDbX509CertInfosAuthentication(GraceDbX509Authentication):
     Authentication based on X509 "infos" header.
     Certificate should be verified by Traefik already.
     """
+    allow_ajax = False
     api_only = True
     infos_header = getattr(settings, 'X509_INFOS_HEADER',
         'HTTP_X_FORWARDED_TLS_CLIENT_CERT_INFOS')
