@@ -6,6 +6,7 @@ from django.http import HttpResponseBadRequest
 
 from rest_framework import filters, exceptions
 
+from search.query.labels import filter_for_labels
 from search.query.superevents import parseSupereventQuery
 
 # Set up logger
@@ -35,10 +36,12 @@ class SupereventSearchFilter(filters.SearchFilter):
         # Do filtering
         try:
             filter_params = parseSupereventQuery(query)
+            qs = queryset.filter(filter_params)
+            qs = filter_for_labels(qs, query).distinct()
         except ParseException as e:
             raise exceptions.ParseError('Invalid query')
 
-        return queryset.filter(filter_params)
+        return qs
 
 
 class SupereventOrderingFilter(filters.OrderingFilter):
