@@ -96,6 +96,9 @@ def create_superevent(submitter, t_start, t_0, t_end, preferred_event,
             add_superevent_log=False, add_event_log=True,
             issue_alert=False)
 
+    # Create superevent data directory
+    os.makedirs(s.datadir)
+
     # Issue all relevant alerts
     if issue_alert:
         # Send "new" alert about superevent creation
@@ -114,9 +117,6 @@ def create_superevent(submitter, t_start, t_0, t_end, preferred_event,
     for label in labels:
         labelling, _ = add_label_to_superevent(s, label, submitter,
             add_log_message=True, issue_alert=issue_alert)
-
-    # Create superevent data directory
-    os.makedirs(s.datadir)
 
     return s
 
