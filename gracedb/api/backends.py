@@ -222,6 +222,7 @@ class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
     Authentication based on a full X509 certificate. We verify the
     certificate here.
     """
+    allow_ajax = False
     api_only = True
     www_authenticate_realm = 'api'
     cert_header = getattr(settings, 'X509_CERT_HEADER',
@@ -231,6 +232,13 @@ class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
 
         # Make sure this request is directed to the API
         if self.api_only and not is_api_request(request.path):
+            return None
+
+        # Don't allow this auth type for AJAX requests - this is because
+        # users with certificates in their browser can still authenticate via
+        # this mechanism in the web view (since it makes API queries), even
+        # when they are not logged in.
+        if request.is_ajax() and not self.allow_ajax:
             return None
 
         # Try to get certificate from request headers
