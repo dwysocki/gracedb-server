@@ -314,7 +314,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
                 properties_group.add_Param(Param(name="HasNS",
                     dataType="float", ucd="stat.probability", value=ProbHasNS,
                     Description=["Probability that at least one object in the "
-                    "binary has a mass that is less than 2.83 solar masses"]))
+                    "binary has a mass that is less than 3 solar masses"]))
 
             if ProbHasRemnant is not None:
                 properties_group.add_Param(Param(name="HasRemnant",
