@@ -1,0 +1,4 @@
+Explanation: shibboleth 3.0 dependencies
+Package: init-system-helpers libxerces-c3.2
+Pin: release a=stretch-backports
+Pin-Priority: 500
