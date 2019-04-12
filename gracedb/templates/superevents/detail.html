@@ -145,11 +145,13 @@
 <div class="content-area">
 {% block superevent_info %}
 <h2>Superevent Info</h2>
+    <div style="overflow-x: auto;">
     {% if user.is_authenticated %}
         {% include "superevents/superevent_info_table.html" %}
     {% else %}
         {% include "superevents/superevent_info_table_public.html" %}
     {% endif %}
+    </div>
 {% endblock %}
 
 <br />
@@ -157,11 +159,13 @@
 
 {% block basic_info %}
 <h2>Preferred Event Info</h2>
+    <div style="overflow-x: auto;">
     {% if user.is_authenticated %}
         {% include "superevents/preferred_event_info_table.html" %}
     {% else %}
         {% include "superevents/preferred_event_info_table_public.html" %}
     {% endif %}
+    </div>
 {% endblock %}
 
 {% if user.is_authenticated %}
