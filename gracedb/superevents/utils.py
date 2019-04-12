@@ -97,7 +97,11 @@ def create_superevent(submitter, t_start, t_0, t_end, preferred_event,
             issue_alert=False)
 
     # Create superevent data directory
+    logger.debug('Creating directory {d} for {sid}'.format(d=s.datadir,
+        sid=s.superevent_id))
     os.makedirs(s.datadir)
+    logger.debug('Directory {d} for {sid} should exist'.format(d=s.datadir,
+        sid=s.superevent_id))
 
     # Issue all relevant alerts
     if issue_alert:
