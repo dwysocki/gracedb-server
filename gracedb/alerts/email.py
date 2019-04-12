@@ -152,4 +152,10 @@ def issue_email_alerts(event_or_superevent, alert_type, recipients,
 
     # Send email messages
     backend = get_connection()
-    backend.send_messages(messages)
+    try:
+        backend.send_messages(messages)
+    except Exception as e:
+        # If there is a problem sending emails just log it and continue since
+        # email alerts aren't mission critical. But we log the information
+        # since we want to understand what is happening.
+        logger.error('Error sending email alerts: {e}'.format(e=e))
