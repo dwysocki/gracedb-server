@@ -69,12 +69,12 @@ def issue_alerts(event_or_superevent, alert_type, serialized_object,
     # Try to get label explicitly from kwargs
     label = kwargs.get('label', None)
 
-    # Issue email alerts
-    if settings.SEND_EMAIL_ALERTS and email_recipients.exists():
-        issue_email_alerts(event_or_superevent, alert_type, email_recipients,
-            label=label)
-
     # Issue phone alerts
     if settings.SEND_PHONE_ALERTS and phone_recipients.exists():
         issue_phone_alerts(event_or_superevent, alert_type, phone_recipients,
+            label=label)
+
+    # Issue email alerts
+    if settings.SEND_EMAIL_ALERTS and email_recipients.exists():
+        issue_email_alerts(event_or_superevent, alert_type, email_recipients,
             label=label)
