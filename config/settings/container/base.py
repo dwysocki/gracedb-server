@@ -69,6 +69,7 @@ AWS_SES_REGION_NAME = get_from_env('AWS_SES_REGION_NAME',
     default_value='us-west-2', fail_if_not_found=False)
 AWS_SES_REGION_ENDPOINT = get_from_env('AWS_SES_REGION_ENDPOINT',
     default_value='email.us-west-2.amazonaws.com', fail_if_not_found=False)
+AWS_SES_AUTO_THROTTLE = 0.25
 ALERT_EMAIL_FROM = get_from_env('DJANGO_ALERT_EMAIL_FROM')
 
 
