@@ -4,6 +4,7 @@ Describe in detail what you are trying to do and what the result is.
 Exact timestamps, error tracebacks, and screenshots (if applicable) are very helpful.
 -->
 
+
 ## Expected behavior
 <!-- What do you expect to happen instead? -->
 
@@ -20,6 +21,7 @@ Describe the environment you are working in:
     * Your browser (web interface issues only)
     * If you are experiencing this problem while working on a LIGO or Virgo computing cluster, which cluster are you using?
 -->
+
 
 ## Suggested solutions
 <!-- Any ideas for how to resolve this problem? -->
