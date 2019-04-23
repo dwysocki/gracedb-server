@@ -99,6 +99,9 @@ def index(request):
                 signoff_instrument = group.name[:2].upper()
                 break
 
+    # Server code version
+    context['server_version'] = settings.PROJECT_VERSION
+
     context['signoff_authorized'] = signoff_authorized
     context['signoff_instrument'] = signoff_instrument
 

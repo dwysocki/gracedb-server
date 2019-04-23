@@ -150,6 +150,9 @@ class GracedbRoot(APIView):
             "signoff-statuses": dict(SignoffBase.OPERATOR_STATUS_CHOICES),
             "instruments": dict(SignoffBase.INSTRUMENT_CHOICES),
             "voevent-types"  : dict(VOEvent.VOEVENT_TYPE_CHOICES),
+            "api-versions": api_settings.ALLOWED_VERSIONS,
+            "server-version": settings.PROJECT_VERSION,
+            # Maintained for backwards compatibility with client
             "API_VERSIONS": api_settings.ALLOWED_VERSIONS,
         })
 

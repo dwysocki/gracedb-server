@@ -21,6 +21,9 @@ def get_from_env(envvar, default_value=None, fail_if_not_found=True):
             'Could not get environment variable {0}'.format(envvar))
     return value
 
+# Version ---------------------------------------------------------------------
+PROJECT_VERSION = '2.4.3'
+
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
 # allowed *ANYWHERE* on this service, except the home page, which is always
