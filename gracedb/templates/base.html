@@ -56,7 +56,7 @@ GraceDB &mdash; Gravitational Wave Candidate Event Database
 
 <div id="header">
 <!-- Header. Yea, this is actually a footer.  It *was* as header once, though. -->
- <table align="center" width="90%%">
+ <table align="center" width="90%">
   <tr>
    <td align="center">
     <img width="52" height="36" src="{% static "images/ligo-blue.gif" %}" />
@@ -71,11 +71,11 @@ GraceDB &mdash; Gravitational Wave Candidate Event Database
    <td align="center">
     {% if user and user.username == "chad.hanna@LIGO.ORG" %}
         <img width="194" height="37" src="{% static "images/PI_Logo-anim.gif" %}" />
-    {% else %}{% if user and user.username == "kipp.cannon@LIGO.ORG" %}
-        <img width="194" height="37" src="{% static "images/CITA_logo-anim.gif" %}" />
     {% else %}
-       <!-- <img width="107" height="37" src="{% static "images/anim2.gif" %}" /> -->
-    {% endif %}{% endif %}
+        {% if user and user.username == "kipp.cannon@LIGO.ORG" %}
+            <img width="194" height="37" src="{% static "images/CITA_logo-anim.gif" %}" />
+        {% endif %}
+    {% endif %}
     <!-- 287px 101px -->
    </td>
 
