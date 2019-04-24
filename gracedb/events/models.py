@@ -33,7 +33,11 @@ from django.conf import settings
 import pytz
 import calendar
 
-from cStringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:  # python < 3
+    from cStringIO import StringIO
+
 from hashlib import sha1
 import shutil
 

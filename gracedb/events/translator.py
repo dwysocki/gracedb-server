@@ -18,7 +18,10 @@ from core.time_utils import isoToGps, isoToGpsFloat
 from core.vfile import VersionedFile
 
 import json
-import StringIO
+try:
+    from io import StringIO
+except ImportError:  # python < 3
+    from StringIO import StringIO
 
 from math import sqrt
 
@@ -192,7 +195,7 @@ def handle_uploaded_data(event, datafilename,
         if datafilename:
             xmldoc = load_filename(datafilename, contenthandler=LIGOLWContentHandler)
         elif file_contents:
-            f = StringIO.StringIO(file_contents)
+            f = StringIO(file_contents)
             xmldoc, digest = load_fileobj(f, contenthandler=LIGOLWContentHandler)
         else:
             msg = "If you wanna make an injection event, I'm gonna need a filepath or filecontents."

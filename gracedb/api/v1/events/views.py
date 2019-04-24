@@ -4,10 +4,11 @@ import json
 import logging
 import os
 import shutil
-import StringIO
 try:
+    from io import StringIO
     from urllib.parse import urlencode
 except ImportError:  # python < 3
+    from StringIO import StringIO
     from urllib import urlencode
 
 from django.conf import settings
@@ -277,7 +278,7 @@ class LigoLwRenderer(BaseRenderer):
         
         xmldoc = assembleLigoLw(data)
         # XXX Aaargh! Just give me the contents of the xml doc. Annoying.
-        output = StringIO.StringIO()
+        output = StringIO()
         xmldoc.write(output)
         return output.getvalue()
 

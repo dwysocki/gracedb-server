@@ -21,7 +21,6 @@ import matplotlib
 matplotlib.use('Agg')
 import numpy
 import matplotlib.pyplot as plot
-import StringIO
 import base64
 import sys
 import calendar
@@ -30,6 +29,10 @@ from core.time_utils import posixToGpsTime
 from django.utils import timezone
 import pytz
 import json
+try:
+    from io import StringIO
+except ImportError:  # python < 3
+    from StringIO import StringIO
 
 @internal_user_required
 def histo(request):
@@ -124,7 +127,7 @@ def cluster(events):
     return [e for e in events if not quieter(e)]
 
 def to_png_image(out = sys.stdout):
-    f = StringIO.StringIO()
+    f = StringIO()
     plot.savefig(f, format="png")
     return base64.b64encode(f.getvalue())
 

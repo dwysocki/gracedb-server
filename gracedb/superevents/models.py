@@ -1,4 +1,7 @@
-from cStringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:  # python < 3
+    from StringIO import StringIO
 import datetime
 from hashlib import sha1
 import logging

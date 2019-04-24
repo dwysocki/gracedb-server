@@ -5,9 +5,14 @@
 import sys
 import os
 import re
-import hotshot, hotshot.stats
 import tempfile
-import StringIO
+try:
+    from io import StringIO
+except ImportError:  # python < 3
+    from StringIO import StringIO
+
+import hotshot, hotshot.stats
+
 from django.utils.deprecation import MiddlewareMixin
  
 from django.conf import settings
@@ -91,7 +96,7 @@ class ProfileMiddleware(MiddlewareMixin):
         if (settings.DEBUG or request.user.is_superuser) and 'prof' in request.GET:
             self.prof.close()
  
-            out = StringIO.StringIO()
+            out = StringIO()
             old_stdout = sys.stdout
             sys.stdout = out
  
