@@ -12,7 +12,7 @@ class LigoLdapUser(User):
 
     def name(self):
         # XXX I really don't freaking understand WHY THIS SEEMS NECESSARY.
-        # print user.name()  gives an idiotic ascii coding error otherwise. WHY!?
+        # print(user.name()) gives an idiotic ascii coding error otherwise. WHY!?
         return u"{0} {1}".format(self.first_name, self.last_name).encode('utf-8')
 
 

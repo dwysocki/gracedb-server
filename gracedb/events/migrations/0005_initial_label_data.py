@@ -53,8 +53,8 @@ def remove_labels(apps, schema_editor):
         try:
             l = Label.objects.get(name=label_dict['name'])
         except Label.DoesNotExist:
-            print('Label {0} not found to be deleted, skipping.' \
-                .format(label_dict['name']))
+            print(('Label {0} not found to be deleted, skipping.' \
+                .format(label_dict['name'])))
             break
         l.delete()
 

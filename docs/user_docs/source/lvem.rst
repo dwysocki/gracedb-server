@@ -85,10 +85,10 @@ For example, you can use the GraceDB Python client::
     try:
         r = client.ping()
     except HTTPError as e:
-        print e.message
-  
-    print "Response code: %d" % r.status
-    print "Response content: %s" % r.json() 
+        print(e.message)
+
+    print("Response code: %d" % r.status)
+    print("Response content: %s" % r.json())
 
 If you're not comfortable using Python for scripted access to GraceDB, it is
 also possible to use ``curl`` to directly make requests to the server with the
@@ -153,7 +153,7 @@ observation record consisting of three separate footprints::
         decList, decWidthList, startTimeList, durationList, comment)
 
     if r.status == 201:       # 201 means 'Created'
-        print 'Success!'
+        print('Success!')
 
 Note that the start times are always assumed to be in UTC. For users not
 familiar with Python, there are several other options available for uploading

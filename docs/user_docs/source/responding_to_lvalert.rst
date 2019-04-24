@@ -329,7 +329,7 @@ Create a Python executable ``iReact.py`` and fill it with the following::
     import sys
 
     alert = json.loads(sys.stdin.read())
-    print 'uid : ' + alert['uid']
+    print('uid : ' + alert['uid'])
 
 Don't forget to give this executable permissions with::
 
@@ -377,7 +377,7 @@ Open ``iReact.py`` and modify it so it reads::
     from ligo.gracedb.rest import GraceDb
 
     alert = json.loads(sys.stdin.read())
-    print 'uid : ' + alert['uid']
+    print('uid : ' + alert['uid'])
 
     gdb = GraceDb() ### instantiate a GraceDB object which connects to the default server
 
@@ -419,15 +419,14 @@ more example for what ``iReact.py`` might look like::
     FarThr = float(sys.argv[1])
 
     alert = json.loads(sys.stdin.read()) 
-    print 'uid : '+alert['uid']
+    print('uid : '+alert['uid'])
 
     gdb = GraceDb() ### instantiate a GraceDB object which connects to the default server
 
     if alert['alert_type'] == 'new': ### the event was just created and this is the first announcment
         if alert['far'] < FarThr:
-            file_obj = open("iReact.txt", "w")
-            print >> file_obj, "wow! this was a rare event!  It had FAR = %.3e < %.3e, which was my threshold"%(alert['far'], FarThr)
-            file_obj.close()
+            with open("iReact.txt", "w") as file_obj:
+                print("wow! this was a rare event!  It had FAR = %.3e < %.3e, which was my threshold"%(alert['far'], FarThr), file=file_obj)
             gdb.writeLog( alert['uid'], message="user.name heard an alert about this new event!", filename="iReact.txt", tagname=["data_quality"] )
 
 Try to figure out exactly what this version does. If you can

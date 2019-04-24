@@ -187,11 +187,11 @@ if __name__ == "__main__":
     2009/12/22 12:13:14""".splitlines()
      
     for t in tests:
-        print t, "(relative to %s)" % timezone.now()
+        print(t, "(relative to %s)" % timezone.now())
         res = nlTimeExpression.parseString(t)
         if "calculatedTime" in res:
-            print res.calculatedTime
+            print(res.calculatedTime)
         else:
-            print "???"
-        print
+            print("???")
+        print()
      

@@ -62,7 +62,7 @@ in real life (from inside the Django shell)::
     >>> u = User.objects.get(username='albert.einstein@LIGO.ORG')
 
     >>> if p in u.user_permissions.all():
-    ...:    print "Albert can add events!"
+    ...:    print("Albert can add events!")
 
 The Django ``User`` class has a convenience function ``has_perm`` to 
 make this easier::
@@ -72,7 +72,7 @@ make this easier::
     >>> u = User.objects.get(username='albert.einstein@LIGO.ORG')
 
     >>> if u.has_perm('events.add_event'):
-    ...:    print "Albert can add events!"
+    ...:    print("Albert can add events!")
 
 Again, notice that the ``has_perm`` function needs the codename to be scoped by
 the app to which the model belongs. Both are required to fully specify the model.
@@ -124,7 +124,7 @@ event data. Thus, we have added a custom ``view`` permission for the event model
     >>> perms = Permission.objects.filter(codename__startswith='view')
 
     >>> for p in perms:
-    ...:    print p.codename
+    ...:    print(p.codename)
     ...:     
     view_coincinspiralevent
     view_event
@@ -314,7 +314,7 @@ can be done by adding the permission by hand::
     >>> u = User.objects.get(username='albert.einstein@LIGO.ORG')
 
     >>> u.user_permissions.add(p):
-    ...:    print "Albert can add events!"
+    ...:    print("Albert can add events!")
 
 Granting permission to populate a pipeline
 ------------------------------------------

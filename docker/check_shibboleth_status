@@ -56,10 +56,10 @@ host_url = host + "/" + urlpath
 try:
     response = urlopen(host_url, timeout=timeout)
 except URLError:
-    print "Error opening Shibboleth status page (" + host_url + ")."
+    print("Error opening Shibboleth status page (" + host_url + ").")
     sys.exit(2)
 except:
-    print "Unknown error opening Shibboleth status page (" + host_url + ")."
+    print("Unknown error opening Shibboleth status page (" + host_url + ").")
     sys.exit(3)
 
 # Convert from string to ElementTree
@@ -67,11 +67,11 @@ try:
     status_tree = ET.fromstring(response.read())
 except ET.ParseError:
     # Error parsing response.
-    print "Error parsing response from server - not in XML format."
+    print("Error parsing response from server - not in XML format.")
     sys.exit(2)
 except:
     # Error that is not ParseError.
-    print "Unknown error occurred when parsing response from server."
+    print("Unknown error occurred when parsing response from server.")
     sys.exit(3)
 response.close()
 
@@ -81,12 +81,12 @@ response.close()
 for tag in tags_to_check:
     status_tag = status_tree.find(tag)
     if (status_tag is None):
-        print "Error: tag \'" +  tag + "\' not found."
+        print("Error: tag \'" +  tag + "\' not found.")
         sys.exit(2)
     else:
         status_OK = status_tag.find('OK')
         if (status_OK is None):
-            print "Error: tag \'" + tag + "\' is not OK."
+            print("Error: tag \'" + tag + "\' is not OK.")
             sys.exit(2)
 
 # Check 2: make sure metadata feeds that we expect
@@ -96,12 +96,12 @@ srcs = [element.attrib['source'] for element in metaprov_tags]
 for feed in metadata_feeds:
     feed_found = [src.lower().find(feed) >= 0 for src in srcs]
     if (sum(feed_found) < 1):
-        print "MetadataProvider " + feed + " not found."
+        print("MetadataProvider " + feed + " not found.")
         sys.exit(2)
     elif (sum(feed_found) < 1):
-        print "MetadataProvider " + feed + "found in multiple elements."
+        print("MetadataProvider " + feed + "found in multiple elements.")
         sys.exit(2)
 
 # If we make it to this point, everything is OK.
-print "All MetadataProviders found. Status and SessionCache are OK."
+print("All MetadataProviders found. Status and SessionCache are OK.")
 sys.exit(0)

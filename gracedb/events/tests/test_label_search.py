@@ -54,7 +54,7 @@ class LabelSearchTestCase(TestCase):
 
     def test_all_queries(self):
         for key, d in QUERY_CASES.items():
-            print "Checking %s ... " % key
+            print("Checking %s ... " % key)
             # Explicitly search for test events
             query = 'Test ' + d['query']
             self.assertEqual(set(get_pks_for_query(query)), set(d['pk_list']))
