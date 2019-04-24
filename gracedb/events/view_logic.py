@@ -128,7 +128,7 @@ def _createEventFromForm(request, form):
                 # XXX This reverse will give the web-interface URL, not the REST URL.
                 # This could be a problem if anybody ever tries to use it.
                 EventAlertIssuer(event, alert_type='new').issue_alerts()
-            except Exception, e:
+            except Exception as e:
                 message = "Problem issuing an alert (%s)" % e
                 logger.warning(message)
                 warnings += [message]
@@ -145,12 +145,12 @@ def _createEventFromForm(request, form):
                     create_label(event, request, label.name,
                         can_add_protected=False)
 
-        except Exception, e:
+        except Exception as e:
             message = "Problem scanning data. No alert issued (%s)" % e
             logger.warning(message)
             warnings += [message]
         #return HttpResponseRedirect(reverse(view, args=[event.graceid]))
-    except Exception, e:
+    except Exception as e:
         # something went wrong.
         # XXX We need to make sure we clean up EVERYTHING.
         # We don't.  Wiki page and data directories remain.
@@ -491,7 +491,7 @@ def create_emobservation(request, event):
 
         startTimeList = d.get('start_time_list')
         durationList = d.get('duration_list')
-    except Exception, e:
+    except Exception as e:
         raise ValueError('Lacking input: %s' % str(e))
 
     # Handle case where comma-separated strings are submitted rather than lists
@@ -576,7 +576,7 @@ def create_emobservation(request, event):
             group=emo.group)
         EventEMObservationAlertIssuer(emo, alert_type='emobservation') \
             .issue_alerts()
-    except Exception, e:
+    except Exception as e:
         # XXX Should probably send back warnings, as in the other cases.
         logger.error('error sending alert for emobservation: {0}'.format(e))
 

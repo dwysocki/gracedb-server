@@ -75,7 +75,7 @@ Shibbolized client as follows::
 
     try:
         r = client.ping()
-    except HTTPError, e:
+    except HTTPError as e:
         print e.message
 
     print "Response code: %d" % r.status

@@ -78,7 +78,7 @@ If you have reason to believe that your request may be throttled, you can wrap i
         try:
             r = gracedb.writeLog(graceid, "Hello, this is a log message.")
             success = True
-        except HTTPError, e:
+        except HTTPError as e:
             try:
                 rdict = json.loads(e.message)
                 if 'retry-after' in rdict.keys():

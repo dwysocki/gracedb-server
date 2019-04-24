@@ -76,7 +76,7 @@ def handle_uploaded_data(event, datafilename,
 
         try:
             xmldoc = load_filename(datafilename, contenthandler = LIGOLWContentHandler)
-        except Exception, e:
+        except Exception as e:
             message = "Could not read data (%s)" % str(e)
             EventLog(event=event, issuer=event.submitter, comment=message).save()
             return
@@ -84,7 +84,7 @@ def handle_uploaded_data(event, datafilename,
         # Try reading the CoincInspiralTable
         try:
             coinc_table = CoincInspiralTable.get_table(xmldoc)[0]
-        except Exception, e:
+        except Exception as e:
             warnings += "Could not extract coinc inspiral table."
             return temp_data_loc, warnings
 
@@ -124,7 +124,7 @@ def handle_uploaded_data(event, datafilename,
                 log_data.append("FAR: %0.3e" % far)
             else:
                 log_data.append("FAR: ---")
-        except Exception, e:
+        except Exception as e:
             log_comment = "Problem Creating Log File"
             log_data = ["Cannot create log file", "error was:", str(e)]
 
@@ -157,7 +157,7 @@ def handle_uploaded_data(event, datafilename,
         # Try to get the coinc_event_table
         try:
             coinc_event_table = CoincTable.get_table(xmldoc)[0]
-        except Exception, e:
+        except Exception as e:
             warnings += "Could not extract coinc event table."
             return temp_data_loc, warnings
         event.nevents = coinc_event_table.nevents
@@ -220,7 +220,7 @@ def handle_uploaded_data(event, datafilename,
 #            log_data.append("Component 1 Spin: (%f, %f, %f)" % spin1)
 #            log_data.append("Component 2 Spin: (%f, %f, %f)" % spin2)
 #            log_data.append("Geocentric End Time: %d.%09d" % end_time)
-#        except Exception, e:
+#        except Exception as e:
 #            log_comment = "Problem Creating Log File"
 #            log_data = ["Cannot create log file", "error was:", str(e)]
 #        log_data = "\n".join(log_data)
@@ -281,7 +281,7 @@ def handle_uploaded_data(event, datafilename,
         warnings = []
         try:
             coinc_table = CoincInspiralTable.get_table(xmldoc)[0]
-        except Exception, e:
+        except Exception as e:
             warnings += "Could not extract coinc inspiral table."
             return temp_data_loc, warnings
 
@@ -345,7 +345,7 @@ def handle_uploaded_data(event, datafilename,
         try:
             #event.gpstime = getGpsFromVOEvent(datafilename)
             populateGrbEventFromVOEventFile(datafilename, event)
-        except Exception, e:
+        except Exception as e:
             error = "Problem parsing VOEvent: %s" % e.__repr__()
         event.save()
         if error is not None:

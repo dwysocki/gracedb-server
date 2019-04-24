@@ -137,7 +137,7 @@ def index(request):
     if request.user and not is_external(request.user) and settings.SHOW_RECENT_EVENTS_ON_HOME:
         try:
             recent_events = get_recent_events_string(request)
-        except Exception, e:
+        except Exception as e:
             pass
     context['recent_events'] = recent_events
 
@@ -221,7 +221,7 @@ def logentry(request, event, num=None):
                 fdest.close()
                 # Ascertain the version assigned to this particular file.
                 file_version = fdest.version
-            except Exception, e:
+            except Exception as e:
                 return HttpResponseServerError(str(e))
 
             elog.filename = filename
@@ -294,7 +294,7 @@ def logentry(request, event, num=None):
             return HttpResponseForbidden("Forbidden")
         try:
             elog = event.eventlog_set.filter(N=num)[0]
-        except Exception, e:
+        except Exception as e:
             raise Http404
         
         # Check authorization for this log message
@@ -589,7 +589,7 @@ def performance(request):
 
     try:
         context = get_performance_info()
-    except Exception, e:
+    except Exception as e:
         return HttpResponseServerError(str(e))
 
     return render(request, 'gracedb/performance.html', context=context)
@@ -745,9 +745,9 @@ def emobservation_entry(request, event, num=None):
         try:
             # Alert is issued in this function
             create_emobservation(request, event)
-        except ValueError, e:
+        except ValueError as e:
             return HttpResponseBadRequest(str(e))
-        except Exception, e:
+        except Exception as e:
             return HttpResponseServerError(str(e))
 
         return HttpResponseRedirect(reverse('view', args=[event.graceid]))

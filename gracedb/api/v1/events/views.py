@@ -381,7 +381,7 @@ class EventList(InheritPermissionsAPIView):
                 except ParseException: 
                     d = {'error': 'Invalid query' }
                     return Response(d,status=status.HTTP_400_BAD_REQUEST)
-                except Exception, e:
+                except Exception as e:
                     d = {'error': str(e) }
                     return Response(d,status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             form = SimpleSearchForm(request.GET)
@@ -447,7 +447,7 @@ class EventList(InheritPermissionsAPIView):
             # the function we are presently inside.
             response = self.finalize_response(request, response, *args, **kwargs)
             response.render()
-        except Exception, e:
+        except Exception as e:
             try:
                 status_code = e.status_code
             except:
@@ -567,7 +567,7 @@ class EventDetail(InheritPermissionsAPIView):
             # the function we are presently inside.
             response = self.finalize_response(request, response)
             response.render()
-        except Exception, e:
+        except Exception as e:
             try:
                 status_code = e.status_code
             except:
@@ -585,7 +585,7 @@ class EventDetail(InheritPermissionsAPIView):
             if request.user != event.submitter:
                 msg = "You (%s) Them (%s)" % (request.user, event.submitter)
                 return HttpResponseForbidden("You did not create this event. %s" %msg)
-        except Exception, e:
+        except Exception as e:
             return Response(str(e))
 
         # Compile far and nscand for alerts
@@ -901,7 +901,7 @@ class EventLogList(InheritPermissionsAPIView):
                 fdest.close()
                 # Ascertain the version assigned to this particular file.
                 file_version = fdest.version
-            except Exception, e:
+            except Exception as e:
                 # XXX This needs some thought.
                 response = Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -1013,12 +1013,12 @@ class EMBBEventLogList(InheritPermissionsAPIView):
         try:
             # Alert is issued in this code
             eel = create_eel(request.data, event, request.user)
-        except ValueError, e:
+        except ValueError as e:
             return Response("%s" % str(e), status=status.HTTP_400_BAD_REQUEST)
-        except IntegrityError, e:
+        except IntegrityError as e:
             return Response("Failed to save EMBB entry: %s" % str(e),
                     status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        except Exception, e:
+        except Exception as e:
             return Response("Problem creating EEL: %s" % str(e), 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -1097,12 +1097,12 @@ class EMObservationList(InheritPermissionsAPIView):
         try:
             # Create EMObservation - alert is issued inside this code
             emo = create_emobservation(request, event)
-        except ValueError, e:
+        except ValueError as e:
             return Response("%s" % str(e), status=status.HTTP_400_BAD_REQUEST)
-        except IntegrityError, e:
+        except IntegrityError as e:
             return Response("Failed to save EMBB observation record: %s" % str(e),
                     status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        except Exception, e:
+        except Exception as e:
             return Response("Problem creating EMBB Observation: %s" % str(e), 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -1462,7 +1462,7 @@ class GroupEventPermissionDetail(InheritPermissionsAPIView):
                     permission=underlying_permission)        
                 underlying_event.refresh_perms()
 
-        except Exception, e:
+        except Exception as e:
             # We're gonna blame the user here.
             return Response("Problem creating permission: %" % str(e), 
                 status=status.HTTP_400_BAD_REQUEST)
@@ -1528,7 +1528,7 @@ class GroupEventPermissionDetail(InheritPermissionsAPIView):
         except GroupObjectPermission.DoesNotExist:
             return Response("GroupObjectPermission not found.", 
                 status=status.HTTP_404_NOT_FOUND)
-        except Exception, e:
+        except Exception as e:
             return Response("Problem deleting permission: %s" % str(e), 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -1628,7 +1628,7 @@ class Files(InheritPermissionsAPIView):
             rv['permalink'] = api_reverse(
                     "events:files", args=[event.graceid, shortname], request=request)
             response = Response(rv, status=status.HTTP_201_CREATED)
-        except Exception, e:
+        except Exception as e:
             # XXX This needs some thought.
             response = Response(str(e), status=status.HTTP_400_BAD_REQUEST)
             # XXX Uhm, we don't to try creating a log message for this, right?
@@ -1740,7 +1740,14 @@ class VOEventList(InheritPermissionsAPIView):
         # Now, you need to actually build the VOEvent.
         try:
             voevent_text, ivorn = buildVOEvent(event, voevent, request=request)
-        except VOEventBuilderException, e:
+        except VOEventBuilderException as e:
+            voevent_text, ivorn = buildVOEvent(event, voevent.N, voevent_type, request,
+                skymap_filename = skymap_filename, skymap_type = skymap_type,
+                internal = internal, open_alert=open_alert,
+                hardware_inj=hardware_inj, CoincComment=CoincComment,
+                ProbHasNS=ProbHasNS, ProbHasRemnant=ProbHasRemnant, BNS=BNS,
+                NSBH=NSBH, BBH=BBH, Terrestrial=Terrestrial, MassGap=MassGap)
+
             msg = "Problem building VOEvent: %s" % str(e)
             return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
 

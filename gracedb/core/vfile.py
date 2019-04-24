@@ -128,7 +128,7 @@ class VersionedFile(file):
                 # lose fd we used to ensure file creation.
                 os.close(fd)
                 break
-            except OSError, e:
+            except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise
             version += 1
@@ -183,7 +183,7 @@ class VersionedFile(file):
         try:
             # XXX Another race condition.  File will not exist for a very brief time.
             os.unlink(self.fullname)
-        except OSError, e:
+        except OSError as e:
             # Do not care if file does not exist, otherwise raise exception.
             if e.errno != errno.ENOENT:
                 raise

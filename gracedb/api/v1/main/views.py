@@ -185,7 +185,7 @@ class PerformanceInfo(InheritDefaultPermissionsMixin, APIView):
 
         try:
             performance_info = get_performance_info()
-        except Exception, e:
+        except Exception as e:
             return Response(str(e),
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

@@ -132,7 +132,7 @@ def populate_omega_tables(datafile, set_keys = Omega_set_keys):
   for line in f.readlines():
     if not line.strip(): continue # ignore blank lines
     elif '#' in line.strip()[0]: continue # ignore comments
-    elif '=' not in line: raise ValueError, "Improperly formatted line"
+    elif '=' not in line: raise ValueError("Improperly formatted line")
     else:
       omega_list.extend([dat.strip() for dat in line.split('=',1)])
   f.close()
@@ -140,7 +140,7 @@ def populate_omega_tables(datafile, set_keys = Omega_set_keys):
   # basic error checking
 # for key in omega_data:
 #   if not (key in omega_vars):
-#     raise ValueError, "Unknown variable"
+#     raise ValueError("Unknown variable")
     
   #create the content for the event.log file
   log_data = '\nLog File created '\
@@ -255,7 +255,7 @@ def populate_coinc_tables(xmldoc, coinc_event_id, event_id_dict,\
     elif 'burst' in CoincDef.search:
       row.nevents = 1
     else:
-      raise ValueError, "Unrecognize CoincDef.search"
+      raise ValueError("Unrecognize CoincDef.search")
     row.likelihood = likelihood
     coinc_table.append(row)
 
@@ -270,7 +270,7 @@ def populate_coinc_tables(xmldoc, coinc_event_id, event_id_dict,\
       elif 'burst' in CoincDef.search:
         row.table_name = lsctables.MultiBurstTable.tableName.split(':')[0]
       else:
-        raise ValueError, "Unrecognize CoincDef.search"
+        raise ValueError("Unrecognize CoincDef.search")
       if event_id_dict:
         row.event_id = event_id_dict[ifo]
         coinc_map_table.append(row)

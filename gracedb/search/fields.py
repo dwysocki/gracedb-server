@@ -29,14 +29,14 @@ class GraceQueryField(forms.CharField):
         try:
             qs = self.do_filtering(queryString)
             return qs.distinct()
-        except ParseException, e:
+        except ParseException as e:
             err = "Error: " + escape(e.pstr[:e.loc]) + errorMarker + escape(e.pstr[e.loc:])
             raise forms.ValidationError(mark_safe(err))
-        except FieldError, e:
+        except FieldError as e:
             # XXX error message can be more polished than this
             err = "Error: " + str(e)
             raise forms.ValidationError(mark_safe(err))
-        except Exception, e:
+        except Exception as e:
             # What could this be and how can we handle it better? XXX
             raise forms.ValidationError(str(e)+str(type(e)))
 
