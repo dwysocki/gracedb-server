@@ -16,7 +16,10 @@ from events.permission_utils import assign_default_event_perms
 import json
 import os
 import shutil
-from urllib import urlencode
+try:
+    from urllib.parse import urlencode
+except ImportError:  # python < 3
+    from urllib import urlencode
     
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------

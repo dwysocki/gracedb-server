@@ -8,8 +8,14 @@ Run ./check_shibboleth_status -h for help.
 '''
 
 # Imports
-import argparse, urllib2, sys
+import argparse
+import sys
 import xml.etree.ElementTree as ET
+try:
+    from urllib.request import urlopen
+    from urllib.error import URLError
+except ImportError:  # python < 3
+    from urllib2 import (urlopen, URLError)
 
 # Parameters - may need to be modified in the future
 # if Shibboleth status pages change or new metadata
@@ -48,8 +54,8 @@ metadata_feeds = args.feeds.split(",")
 # Get XML data from URL.
 host_url = host + "/" + urlpath
 try:
-    response = urllib2.urlopen(host_url, timeout=timeout)
-except urllib2.URLError:
+    response = urlopen(host_url, timeout=timeout)
+except URLError:
     print "Error opening Shibboleth status page (" + host_url + ")."
     sys.exit(2)
 except:

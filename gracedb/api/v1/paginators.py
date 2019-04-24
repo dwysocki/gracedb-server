@@ -1,6 +1,9 @@
 from collections import OrderedDict
 import logging
-import urllib
+try:
+    from urllib.parse import urlencode
+except ImportError:  # python < 3
+    from urllib import urlencode
 
 from rest_framework import pagination
 from rest_framework.response import Response
@@ -80,7 +83,7 @@ class CustomSupereventPagination(pagination.LimitOffsetPagination):
             'start': last,
             self.limit_query_param: self.limit,
         }
-        last_uri = base_uri + '?' + urllib.urlencode(param_dict)
+        last_uri = base_uri + '?' + urlencode(param_dict)
 
         output = OrderedDict([
             ('numRows', numRows),

@@ -114,7 +114,7 @@ example, here is how to grant ``view`` permissions to ``public``::
     group_name = 'public'
     perm_shortname = 'view'
 
-    url = g.service_url + urllib.quote('events/%s/%s/%s' % (graceid, group_name, perm_codename))
+    url = g.service_url + urllib.parse.quote('events/%s/%s/%s' % (graceid, group_name, perm_codename))
     r = g.put(url)
 
 Templates 

@@ -5,7 +5,10 @@ import logging
 import os
 import shutil
 import StringIO
-import urllib
+try:
+    from urllib.parse import urlencode
+except ImportError:  # python < 3
+    from urllib import urlencode
 
 from django.conf import settings
 from django.contrib.auth.models import User, Permission, Group as DjangoGroup
@@ -416,14 +419,14 @@ class EventList(InheritPermissionsAPIView):
 
         d = { 'start' : 0, "count": count, "sort": sort }
         if query: d['query'] = query
-        links['first'] = baseuri + "?" + urllib.urlencode(d)
+        links['first'] = baseuri + "?" + urlencode(d)
 
         d['start'] = last
-        links['last'] = baseuri + "?" + urllib.urlencode(d)
+        links['last'] = baseuri + "?" + urlencode(d)
 
         if start != last:
             d['start'] = start+count
-            links['next'] = baseuri + "?" + urllib.urlencode(d)
+            links['next'] = baseuri + "?" + urlencode(d)
         rv['numRows'] = events.count()
 
         response = Response(rv)

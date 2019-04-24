@@ -1,4 +1,7 @@
-import urllib
+try:
+    from urllib.parse import urlencode
+except ImportError:  # python < 3
+    from urllib import urlencode
 
 from django.conf import settings
 from django.contrib.auth.models import Group as DjangoGroup, Permission
@@ -34,7 +37,7 @@ class TestEventSearch(EventCreateMixin, GraceDbTestBase, SearchTestingBase):
             'query_type': MainSearchForm.QUERY_TYPE_EVENT,
             'results_format': MainSearchForm.FORMAT_CHOICE_STANDARD,
         }
-        cls.full_url = cls.url + '?' + urllib.urlencode(cls.query_dict)
+        cls.full_url = cls.url + '?' + urlencode(cls.query_dict)
 
     @classmethod
     def setUpTestData(cls):
@@ -104,7 +107,7 @@ class TestSupereventSearch(SupereventSetup, GraceDbTestBase,
             'query_type': MainSearchForm.QUERY_TYPE_SUPEREVENT,
             'results_format': MainSearchForm.FORMAT_CHOICE_STANDARD,
         }
-        cls.full_url = cls.url + '?' + urllib.urlencode(cls.query_dict)
+        cls.full_url = cls.url + '?' + urlencode(cls.query_dict)
 
     def test_internal_user_search(self):
         """Internal user sees all superevents in search results"""
@@ -150,7 +153,7 @@ class TestEventLatest(EventCreateMixin, GraceDbTestBase):
             'results_format': MainSearchForm.FORMAT_CHOICE_STANDARD,
         }
         cls.url = reverse('latest')
-        cls.full_url = cls.url + '?' + urllib.urlencode(cls.query_dict)
+        cls.full_url = cls.url + '?' + urlencode(cls.query_dict)
 
     @classmethod
     def setUpTestData(cls):
@@ -224,7 +227,7 @@ class TestSupereventLatest(SupereventSetup, GraceDbTestBase):
             'results_format': MainSearchForm.FORMAT_CHOICE_STANDARD,
         }
         cls.url = reverse('latest')
-        cls.full_url = cls.url + '?' + urllib.urlencode(cls.query_dict)
+        cls.full_url = cls.url + '?' + urlencode(cls.query_dict)
 
     def test_internal_user_latest(self):
         """Internal user sees all superevents on latest page"""
