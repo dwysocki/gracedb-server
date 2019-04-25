@@ -53,7 +53,7 @@ class LabelSearchTestCase(TestCase):
                 Labelling.objects.create(event=e, label=label, creator=submitter)
 
     def test_all_queries(self):
-        for key, d in QUERY_CASES.iteritems():
+        for key, d in QUERY_CASES.items():
             print "Checking %s ... " % key
             # Explicitly search for test events
             query = 'Test ' + d['query']

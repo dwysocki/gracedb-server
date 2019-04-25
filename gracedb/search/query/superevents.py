@@ -227,21 +227,21 @@ parameter_dicts = {
 
 # Compile a list of expressions to try to match
 expr_list = []
-for k,p in parameter_dicts.iteritems():
+for k,p in parameter_dicts.items():
 
     # Define val and set name
     val = p['value']
     val.setName(k)
 
     # Add range with format: parameter .. parameter
-    if p.has_key('doRange') and p['doRange']:
+    if p.get('doRange'):
         range_val = val + Suppress("..") + val
         val ^= range_val
 
     # Add keyword. Format is keyword: value
-    if p.has_key('keyword'):
+    if 'keyword' in p:
         if isinstance(p['keyword'], list):
-            if p.has_key('keywordOptional') and p['keywordOptional']:
+            if p.get('keywordOptional'):
                 keyword_list = [Optional(Suppress(Keyword(k + ":"))) for k in
                     p['keyword']]
             else:
@@ -249,7 +249,7 @@ for k,p in parameter_dicts.iteritems():
             keyword = reduce(lambda x,y: x^y, keyword_list)
         else:
             keyword = Suppress(Keyword(p['keyword'] + ":"))
-            if p.has_key('keywordOptional') and p['keywordOptional']:
+            if p.get('keywordOptional'):
                 keyword = Optional(keyword)
 
         # Combine keyword and value into a single expression

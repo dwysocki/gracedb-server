@@ -489,7 +489,7 @@ class EventList(InheritPermissionsAPIView):
         # TP (21 Nov 2017): Hack to allow basic event submission without
         # labels to function with versions of gracedb-client before 1.26.
         # Should be removed eventually.
-        if (request.data.has_key('labels') and request.data['labels'] == ''):
+        if (request.data.get('labels') == ''):
             request.data.pop('labels', None)
 
         form = CreateEventForm(request.data, request.data)
@@ -746,7 +746,7 @@ class EventNeighbors(InheritPermissionsAPIView):
     # and TSV renderers.
     @event_and_auth_required
     def get(self, request, event):
-        if request.query_params.has_key('neighborhood'):
+        if 'neighborhood' in request.query_params:
             delta = request.query_params['neighborhood']
             try:
                 if delta.find(',') < 0:

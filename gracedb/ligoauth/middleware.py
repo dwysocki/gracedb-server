@@ -125,7 +125,7 @@ class ControlRoomMiddleware(object):
         user_ip = self.get_client_ip(request)
 
         # Add user to control room group(s)
-        for ifo, ip in settings.CONTROL_ROOM_IPS.iteritems():
+        for ifo, ip in settings.CONTROL_ROOM_IPS.items():
             if (ip == user_ip):
                 control_room_group = DjangoGroup.objects.get(name=
                     (ifo.lower() + self.control_room_group_suffix))

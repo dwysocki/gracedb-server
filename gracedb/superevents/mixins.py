@@ -220,7 +220,7 @@ class ConfirmGwFormMixin(ContextMixin):
             'is_test': 'superevents.confirm_gw_test_superevent',
             'is_mdc': 'superevents.confirm_gw_mdc_superevent',
         }
-        for method_name, perm_name in method_perm_pairs.iteritems():
+        for method_name, perm_name in method_perm_pairs.items():
             is_category = getattr(self.object, method_name)
             if (is_category() and self.request.user.has_perm(perm_name)):
                 context['show_gw_status_form'] = True

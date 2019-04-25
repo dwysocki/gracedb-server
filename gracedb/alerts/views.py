@@ -65,8 +65,7 @@ class CreateNotificationView(MultipleFormView):
         return kw
 
     def form_valid(self, form):
-        if form.cleaned_data.has_key('key_field'):
-            form.cleaned_data.pop('key_field')
+        form.cleaned_data.pop('key_field', None)
 
         # Add user (from request) and category (stored on form class) to
         # the form instance, then save
@@ -169,8 +168,7 @@ class CreateContactView(MultipleFormView):
     def form_valid(self, form):
 
         # Remove key_field, add user, and save form
-        if form.cleaned_data.has_key('key_field'):
-            form.cleaned_data.pop('key_field')
+        form.cleaned_data.pop('key_field', None)
         form.instance.user = self.request.user
         form.save()
 

@@ -130,13 +130,13 @@ def update_superevent(superevent, updater, add_log_message=True,
 
     # Extract "updatable" superevent params from kwargs
     param_names = ['t_start', 't_0', 't_end', 'preferred_event']
-    new_params = {k: v for k,v in kwargs.iteritems() if k in param_names}
+    new_params = {k: v for k,v in kwargs.items() if k in param_names}
 
     # Get old parameters
     old_params = {k: getattr(superevent, k) for k in new_params.keys()}
 
     # Update superevent object
-    for k,v in new_params.iteritems():
+    for k,v in new_params.items():
         setattr(superevent, k, v)
     superevent.save()
 
@@ -709,7 +709,7 @@ def update_signoff(signoff, user, status, comment, add_log_message=True,
     superevent = signoff.superevent
 
     # Update signoff values
-    for k,v in updated_attributes.iteritems():
+    for k,v in updated_attributes.items():
         setattr(signoff, k, v)
     signoff.save(update_fields=list(updated_attributes))
 

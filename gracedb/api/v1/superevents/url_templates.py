@@ -60,12 +60,12 @@ def construct_url_templates(request=None):
     #  keys are like '{view_name}-template'
     #  values are URLs with placeholder parameters
     templates = {view_name + '-template': sr(view_name, args=args)
-        for view_name, args in views.iteritems()}
+        for view_name, args in views.items()}
 
     # Replace URL placeholder parameters with string formatting placeholders
     #   Ex: replace 'G1234' with '{graceid}'
-    for k,v in templates.iteritems():
-        for pattern,placeholder in PH.iteritems():
+    for k,v in templates.items():
+        for pattern,placeholder in PH.items():
             if placeholder in v:
                 v = v.replace(placeholder, "{{{0}}}".format(pattern))
         templates[k] = v
