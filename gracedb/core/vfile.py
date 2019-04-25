@@ -122,7 +122,7 @@ class VersionedFile(file):
                 # os.O_EXCL causes the open to fail if the file already exists.
                 fd = os.open(actual_name,
                         os.O_WRONLY | os.O_CREAT | os.O_EXCL,
-                        0644)
+                        0o644)
                 # re-open
                 file.__init__(self, actual_name, *args, **kwargs)
                 # lose fd we used to ensure file creation.
