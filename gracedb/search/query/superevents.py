@@ -2,6 +2,10 @@ from __future__ import absolute_import
 import datetime
 import logging
 import pytz
+try:
+    from functools import reduce
+except ImportError:  # python < 3
+    pass
 
 from django.conf import settings
 from django.db.models import Q
