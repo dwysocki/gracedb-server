@@ -1,5 +1,8 @@
 from copy import deepcopy
-import mock
+try:
+    from unittest import mock
+except ImportError:  # python < 3
+    import mock
 
 from django.conf import settings
 from django.core.cache import caches

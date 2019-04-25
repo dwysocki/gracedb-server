@@ -1,4 +1,7 @@
-import mock
+try:
+    from unittest import mock
+except ImportError:  # python < 3
+    import mock
 
 from django.test import override_settings
 
