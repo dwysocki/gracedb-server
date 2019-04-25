@@ -70,7 +70,7 @@ superevent_preprefix = Optional(Or([CaselessLiteral(pref) for pref in
     [Superevent.SUPEREVENT_CATEGORY_TEST, Superevent.SUPEREVENT_CATEGORY_MDC]])
     ).setResultsName('preprefix')
 superevent_prefix = Or([CaselessLiteral(pref) for pref in
-    Superevent.DEFAULT_ID_PREFIX, Superevent.GW_ID_PREFIX]).setResultsName('prefix')
+    (Superevent.DEFAULT_ID_PREFIX, Superevent.GW_ID_PREFIX)]).setResultsName('prefix')
 superevent_date = Word(nums, exact=6).setResultsName('date')
 superevent_suffix = Word(alphas).setResultsName('suffix')
 superevent_expr = superevent_preprefix + superevent_prefix + \
