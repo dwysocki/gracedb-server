@@ -5,13 +5,85 @@ variables:
   DOCKER_DRIVER: overlay
   DOCKER_BRANCH: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
   DOCKER_LATEST: $CI_REGISTRY_IMAGE:latest
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 stages:
+  - test
   - branch
   - latest
 
 before_script:
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+
+.test: &test
+  image: ligo/base:stretch
+  services:
+    - mysql:5.5
+  variables:
+    AWS_SES_ACCESS_KEY_ID: "fake_aws_id"
+    AWS_SES_SECRET_ACCESS_KEY: "fake_aws_key"
+    DJANGO_ALERT_EMAIL_FROM: "fake_email"
+    DJANGO_DB_HOST: "mysql"
+    DJANGO_DB_PORT: "3306"
+    DJANGO_DB_NAME: "fake_name"
+    DJANGO_DB_USER: "root"
+    DJANGO_DB_PASSWORD: "fake_password"
+    DJANGO_PRIMARY_FQDN: "fake_fqdn"
+    DJANGO_SECRET_KEY: "fake_key"
+    DJANGO_SETTINGS_MODULE: "config.settings.container.dev"
+    DJANGO_TWILIO_ACCOUNT_SID: "fake_sid"
+    DJANGO_TWILIO_AUTH_TOKEN: "fake_token"
+    LVALERT_OVERSEER_PORT: "2"
+    LVALERT_SERVER: "fake_server"
+    LVALERT_USER: "fake_user"
+    LVALERT_PASSWORD: "fake_password"
+    MYSQL_DB: "${DJANGO_DB_NAME}"
+    MYSQL_ROOT_PASSWORD: "${DJANGO_DB_PASSWORD}"
+  before_script:
+    # set python version
+    - PYTHON_VERSION="${CI_JOB_NAME##*:}"
+    - PYTHON_MAJOR="${PYTHON_VERSION:0:1}"
+    - if [[ "${PYTHON_MAJOR}" -eq 2 ]]; then PYTHON="python"; else PYTHON="python3"; fi
+    # install build requirements
+    - apt-get -yqq update
+    - apt-get install -yqq
+          git
+          libmariadbclient-dev
+          libldap2-dev
+          libsasl2-dev
+          libssl-dev
+          libxml2-dev
+          swig
+          ${PYTHON}-pip
+    # install voeventlib for python2
+    - if [[ "${PYTHON_MAJOR}" -eq 2 ]]; then apt-get install -yqq python-voeventlib; fi
+    # install everything else from pip
+    - ${PYTHON} -m pip install -r requirements.txt
+    - ${PYTHON} -m pip install pytest-django pytest-cov
+    # install lalsuite for glue.ligolw
+    - ${PYTHON} -m pip install lalsuite
+    # create logs path required for tests
+    - mkdir -pv ../logs/
+    # list packages
+    - ${PYTHON} -m pip list installed
+  script:
+    - cd gracedb
+    - ${PYTHON} -m pytest --cov . --junitxml=${CI_PROJECT_DIR}/junit.xml
+  after_script:
+    - rm -fvr ${PIP_CACHE_DIR}/log
+  artifacts:
+    reports:
+      junit: junit.xml
+  cache:
+    paths:
+      - .cache/pip
+
+test:2.7:
+  <<: *test
+
+test:3.7:
+  <<: *test
+  allow_failure: true
 
 branch_image:
   stage: branch
