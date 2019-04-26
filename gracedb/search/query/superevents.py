@@ -6,7 +6,7 @@ import pytz
 from django.db.models import Q
 from django.db.models.query import QuerySet
 
-from core.utils import letters_to_int
+from core.utils import letters_to_int, int_to_letters
 from events.models import Group, Pipeline, Search, Label
 # (weak) natural language time parsing.
 from events.nltime import nlTimeExpression as nltime_
@@ -27,24 +27,34 @@ logger = logging.getLogger(__name__)
 
 # Function for parsing matched superevent ID tokens
 def parse_superevent_id(name, toks, filter_prefix=None):
-    # toks = matched superevent id
+    # toks = components of matched superevent id
 
-    # Get lookup kwargs and convert to a Q object
-    f_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup(toks)
+    # If no suffix, add either 'a' or 'A' depending on GW status
+    # This allows queries like GW150914 to match the first superevent
+    # on that date
+    if not toks.suffix:
+        toks.suffix = int_to_letters(1)
+        if (toks.prefix == Superevent.GW_ID_PREFIX):
+            toks.suffix = toks.suffix.upper()
+
+    # Combine into full ID, get lookup kwargs and convert to a Q object
+    s_id = toks.preprefix + toks.prefix + toks.date + toks.suffix
+    f_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup(s_id)
     fullQ = Q(**f_kwargs)
 
     return (name, fullQ)
 
+
 # Construct an expression for date-based superevent ids
 superevent_preprefix = Optional(Or([CaselessLiteral(pref) for pref in
     [Superevent.SUPEREVENT_CATEGORY_TEST, Superevent.SUPEREVENT_CATEGORY_MDC]])
-    )
+    ).setResultsName('preprefix')
 superevent_prefix = Or([CaselessLiteral(pref) for pref in
-    Superevent.DEFAULT_ID_PREFIX, Superevent.GW_ID_PREFIX])
-superevent_date = Word(nums, exact=6)
-superevent_suffix = Word(alphas)
-superevent_expr = Combine(superevent_preprefix + superevent_prefix +
-    superevent_date + superevent_suffix)
+    Superevent.DEFAULT_ID_PREFIX, Superevent.GW_ID_PREFIX]).setResultsName('prefix')
+superevent_date = Word(nums, exact=6).setResultsName('date')
+superevent_suffix = Word(alphas).setResultsName('suffix')
+superevent_expr = superevent_preprefix + superevent_prefix + \
+    superevent_date + Optional(superevent_suffix)
 
 # Dict of queryable parameters which are compiled into a pyparsing
 # expression below
@@ -55,8 +65,8 @@ parameter_dicts = {
         'keywordOptional': True,
         'value': superevent_expr,
         'doRange': False,
-        'parseAction': lambda toks: parse_superevent_id(
-            "superevent_id", toks[0], filter_prefix=None),
+        'parseAction': lambda s, loc, toks: parse_superevent_id(
+            "superevent_id", toks, filter_prefix=None),
     },
     # runid: O2 or O2
     'runid': {
