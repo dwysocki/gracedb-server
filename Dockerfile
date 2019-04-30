@@ -1,7 +1,7 @@
 FROM ligo/base:stretch
 LABEL name="LIGO GraceDB Django application" \
       maintainer="tanner.prestegard@ligo.org" \
-      date="20181206"
+      date="20190430"
 ARG SETTINGS_MODULE="config.settings.container.dev"
 
 COPY docker/SWITCHaai-swdistrib.gpg /etc/apt/trusted.gpg.d
@@ -26,8 +26,6 @@ RUN apt-get update && \
         osg-ca-certs \
         python2.7 \
         python2.7-dev \
-        python-glue=1.60.0-3+deb9u0 \
-        python-glue-common=1.60.0-3+deb9u0 \
         python-libxml2 \
         python-pip \
         python-voeventlib \
