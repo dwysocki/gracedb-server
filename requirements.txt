@@ -15,6 +15,7 @@ gunicorn[gevent]==19.9.0
 html5lib==1.0.1
 ipdb==0.10.2
 ipython==5.5.0
+lalsuite==6.53 # undocumented requirement for lscsoft-glue
 # Temporary pin of lvalert to git.ligo.org
 git+https://git.ligo.org/lscsoft/lvalert.git@13a9e40649eeb2a14369fcee950cd49154f195ad#egg=ligo-lvalert
 #ligo-lvalert==1.5.5
