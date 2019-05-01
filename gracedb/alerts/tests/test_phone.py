@@ -295,6 +295,8 @@ class TestTwimlUrl(GraceDbTestBase, SupereventCreateMixin):
 
 @mock.patch('alerts.phone.twilio_client.messages.create')
 @mock.patch('alerts.phone.twilio_client.calls.create')
+@mock.patch('alerts.phone.twilio_client.incoming_phone_numbers.list',
+            lambda: [mock.Mock()])
 class TestPhoneCallAndText(GraceDbTestBase, SupereventCreateMixin):
 
     @classmethod
