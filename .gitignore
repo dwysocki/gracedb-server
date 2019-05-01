@@ -7,3 +7,4 @@ config/settings/local.py
 docs/user_docs/build/*
 docs/admin_docs/build/*
 static_root/*
+.pytest_cache
