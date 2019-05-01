@@ -362,7 +362,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
         # object's primary key. We prepend 'superevent' so as to not
         # have collisions with Event files
         hash_input = 'superevent' + str(self.id)
-        hdf = StringIO(sha1(hash_input).hexdigest())
+        hdf = StringIO(sha1(hash_input).hexdigest().decode('utf-8'))
 
         # Build up the nodes of the directory structure
         nodes = [hdf.read(i) for i in settings.GRACEDB_DIR_DIGITS]
