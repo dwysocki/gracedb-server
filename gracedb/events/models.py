@@ -33,10 +33,7 @@ from django.conf import settings
 import pytz
 import calendar
 
-try:
-    from io import StringIO
-except ImportError:  # python < 3
-    from cStringIO import StringIO
+from io import StringIO
 
 from hashlib import sha1
 import shutil
@@ -246,7 +243,11 @@ class Event(models.Model):
     @property
     def datadir(self):
         # Create a file-like object which is the SHA-1 hexdigest of the Event's primary key
-        hdf = StringIO(sha1(str(self.id)).hexdigest())
+        hid = sha1(str(self.id).encode("utf-8")).hexdigest()
+        try:
+            hdf = StringIO(hid.decode("utf-8"))
+        except AttributeError:  # python < 3
+            hdf = StringIO(hid)
 
         # Build up the nodes of the directory structure
         nodes = [hdf.read(i) for i in settings.GRACEDB_DIR_DIGITS]
