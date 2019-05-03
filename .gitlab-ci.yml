@@ -67,8 +67,7 @@ before_script:
     # list packages
     - ${PYTHON} -m pip list installed
   script:
-    - cd gracedb
-    - ${PYTHON} -m pytest --cov . --junitxml=${CI_PROJECT_DIR}/junit.xml
+    - PYTHONPATH=${PYTHONPATH}:${PWD}/gracedb ${PYTHON} -m pytest --cov ./gracedb --junitxml=${CI_PROJECT_DIR}/junit.xml
   after_script:
     - rm -fvr ${PIP_CACHE_DIR}/log
   artifacts:
