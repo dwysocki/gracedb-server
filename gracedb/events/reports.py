@@ -131,7 +131,7 @@ def to_png_image(out = sys.stdout):
 @internal_user_required
 def cbc_report(request, format=""):
 
-    if not request.user or not request.user.is_authenticated():
+    if not request.user or not request.user.is_authenticated:
         return HttpResponseForbidden("Forbidden")
 
     if request.method == "GET":

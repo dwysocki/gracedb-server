@@ -109,7 +109,7 @@ class AutoIncrementModel(models.Model):
         query = models.sql.InsertQuery(self.__class__)
         query.insert_values(fields, objs=[self])
         compiler = query.get_compiler(using=self.__class__._base_manager.db)
-        compiler.return_id = meta.has_auto_field and not pk_set
+        compiler.return_id = meta.auto_field is not None and not pk_set
 
         # Useful function
         qn = compiler.quote_name_unless_alias

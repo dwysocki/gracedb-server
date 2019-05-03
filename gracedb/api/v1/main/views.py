@@ -192,13 +192,13 @@ class UserInfoView(RetrieveAPIView):
 
     #def get_serializer_class(self):
     #    # Override so we can use custom behavior for unauthenticated users
-    #    if self.request.user.is_anonymous():
+    #    if self.request.user.is_anonymous:
     #        return AnonymousUserSerializer
     #    else:
     #        return self.serializer_class
 
     def retrieve(self, request, *args, **kwargs):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             output = {'username': 'AnonymousUser'}
         else:
             instance = request.user
