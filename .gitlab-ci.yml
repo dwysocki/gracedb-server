@@ -62,8 +62,6 @@ before_script:
     - if [[ "${PYTHON_MAJOR}" -eq 2 ]]; then apt-get -o dir::cache::archives="${APT_CACHE_DIR}" install -yqq python-voeventlib; fi
     # install everything else from pip
     - ${PYTHON} -m pip install -r requirements.txt
-    # install lalsuite for glue.ligolw
-    - ${PYTHON} -m pip install lalsuite
     # create logs path required for tests
     - mkdir -pv ../logs/
     # list packages
