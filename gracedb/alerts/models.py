@@ -50,6 +50,10 @@ class Contact(CleanSaveModel):
     verified = models.BooleanField(default=False, editable=False)
     verification_code = models.IntegerField(null=True, editable=False)
     verification_expiration = models.DateTimeField(null=True, editable=False)
+    # Fields for tracking when certain things happen
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    verified_time = models.DateTimeField(null=True, blank=True, editable=False)
 
 
     def __str__(self):
@@ -129,8 +133,10 @@ class Contact(CleanSaveModel):
                     body=msg)
 
     def verify(self):
-        self.verified = True
-        self.save(update_fields=['verified'])
+        if not self.verified:
+            self.verified = True
+            self.verified_time = timezone.now()
+            self.save(update_fields=['verified', 'verified_time'])
 
     def display(self):
         if self.email:
@@ -149,10 +155,13 @@ class Contact(CleanSaveModel):
             Contact "{description}" (user {username})
             E-mail: {email}
             Phone: {phone} (method={method})
-            Verified: {verified}
+            Created: {created_time}
+            Last updated: {updated_time}
+            Verified: {verified} ({verified_time})
         """).format(description=self.description, username=self.user.username,
         email=self.email, phone=self.phone, method=self.phone_method,
-        verified=self.verified)
+        created_time=self.created, updated_time=self.updated,
+        verified=self.verified, verified_time=self.verified_time)
         print(info_str)
 
 
@@ -176,6 +185,9 @@ class Notification(models.Model):
     category = models.CharField(max_length=1, null=False, blank=False,
         choices=NOTIFICATION_CATEGORY_CHOICES,
         default=NOTIFICATION_CATEGORY_SUPEREVENT)
+    # Fields for tracking when certain things happen
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
     # Whether the event possibly has a neutron star in it.
     # The logic for determining this is defined in a method below.
     ns_candidate = models.BooleanField(default=False)
