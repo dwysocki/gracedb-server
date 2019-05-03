@@ -5,6 +5,9 @@ from django.conf.urls import url, include
 from .main.views import GracedbRoot, PerformanceInfo, TagList, UserInfoView, \
     CertDebug, CertInfosDebug
 
+from .events import urls as event_urls
+from .superevents import urls as superevent_urls
+
 
 urlpatterns = [
     # Root level API resources ------------------------------------------------
@@ -26,10 +29,8 @@ urlpatterns = [
     #    name='cert-infos-debug'),
 
     # Events section of the API -----------------------------------------------
-    url(r'^events/', include('api.v1.events.urls',
-        namespace='events')),
+    url(r'^events/', include((event_urls, 'events'))),
 
     # Superevents section of the API ------------------------------------------
-    url(r'^superevents/', include('api.v1.superevents.urls',
-        namespace='superevents')),
+    url(r'^superevents/', include((superevent_urls, 'superevents'))),
 ]

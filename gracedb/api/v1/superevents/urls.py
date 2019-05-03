@@ -3,6 +3,7 @@ from django.conf.urls import url, include
 from .views import *
 from .settings import SUPEREVENT_LOOKUP_REGEX
 
+
 # URL kwarg for superevent detail and nested pages
 SUPEREVENT_DETAIL_ROOT = '(?P<{lookup_url_kwarg}>{regex})'.format(
     lookup_url_kwarg=SupereventViewSet.lookup_url_kwarg,

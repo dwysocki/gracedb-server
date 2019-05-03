@@ -71,6 +71,7 @@ def is_api_request(request_path):
     api_app_name = 'api'
 
     resolver_match = resolve(request_path)
-    if (resolver_match.app_name == api_app_name):
+    if (resolver_match.app_names and
+        resolver_match.app_names[0] == api_app_name):
         return True
     return False
