@@ -3,11 +3,11 @@ import datetime
 import logging
 import pytz
 
+from django.conf import settings
 from django.db.models import Q
 from django.db.models.query import QuerySet
 
 from core.utils import letters_to_int, int_to_letters
-from events.models import Group, Pipeline, Search, Label
 # (weak) natural language time parsing.
 from events.nltime import nlTimeExpression as nltime_
 from superevents.models import Superevent
@@ -19,7 +19,7 @@ from pyparsing import Word, nums, Literal, CaselessLiteral, delimitedList, \
     Suppress, QuotedString, Keyword, Combine, Or, Optional, OneOrMore, \
     ZeroOrMore, alphas, alphanums, Regex, opAssoc, operatorPrecedence, \
     oneOf, stringStart,  stringEnd, FollowedBy, ParseResults, ParseException, \
-    CaselessKeyword, pyparsing_common
+    CaselessKeyword, pyparsing_common, tokenMap
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -37,9 +37,23 @@ def parse_superevent_id(name, toks, filter_prefix=None):
         if (toks.prefix == Superevent.GW_ID_PREFIX):
             toks.suffix = toks.suffix.upper()
 
-    # Combine into full ID, get lookup kwargs and convert to a Q object
+    # Combine into full ID and get lookup kwargs
     s_id = toks.preprefix + toks.prefix + toks.date + toks.suffix
     f_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup(s_id)
+
+    # Add any necessary prefix. For example, if we want to look up events
+    # that are part of a given superevent, we have to add the 'superevent__'
+    # prefix to the filter kwargs.
+    if filter_prefix:
+
+        # Add '__' to end of filter_prefix
+        if not filter_prefix.endswith('__'):
+            filter_prefix += '__'
+
+        f_kwargs = {'{pref}{k}'.format(pref=filter_prefix, k=k): v for
+            k,v in f_kwargs.items()}
+
+    # Convert to a Q object
     fullQ = Q(**f_kwargs)
 
     return (name, fullQ)
@@ -80,7 +94,7 @@ parameter_dicts = {
     't_0': {
         'keyword': ['t_0', 'gpstime'],
         'keywordOptional': True,
-        'value': pyparsing_common.number,
+        'value': pyparsing_common.number.copy(),
         'doRange': True,
         'parseAction': maybeRange('t_0'),
     },
@@ -88,7 +102,7 @@ parameter_dicts = {
     't_start': {
         'keyword': 't_start',
         'keywordOptional': False,
-        'value': pyparsing_common.number,
+        'value': pyparsing_common.number.copy(),
         'doRange': True,
         'parseAction': maybeRange('t_start'),
     },
@@ -96,7 +110,7 @@ parameter_dicts = {
     't_end': {
         'keyword': 't_end',
         'keywordOptional': False,
-        'value': pyparsing_common.number,
+        'value': pyparsing_common.number.copy(),
         'doRange': True,
         'parseAction': maybeRange('t_end'),
     },
@@ -113,16 +127,18 @@ parameter_dicts = {
     'preferred_event': {
         'keyword': 'preferred_event',
         'keywordOptional': False,
-        'value': Suppress(Word("GHMTghmt", exact=1)) + Word(nums),
+        'value': Suppress(Word("GHMTghmt", exact=1)) + \
+            Word(nums).setParseAction(tokenMap(int)),
         'doRange': True,
         'parseAction': maybeRange("preferred_event",
             dbname="preferred_event__id"),
     },
     # event: G1234, event: G1234 .. G2234
     'event': {
-        'keyword': 'event',
+        'keyword': ['event', 'events'],
         'keywordOptional': False,
-        'value': Suppress(Word("EGHMTeghmt", exact=1)) + Word(nums),
+        'value': Suppress(Word("EGHMTeghmt", exact=1)) + \
+            Word(nums).setParseAction(tokenMap(int)),
         'doRange': True,
         'parseAction': maybeRange("event", dbname="events__id"),
     },
@@ -167,7 +183,8 @@ parameter_dicts = {
             Optional(Word(nums, exact=2) + Suppress(':') + \
             Word(nums, exact=2) + Optional(Suppress(':') + \
             Word(nums, exact=2)))).setParseAction(lambda toks:
-            pytz.utc.localize(datetime.datetime(*map(int, toks)))),
+            pytz.timezone(settings.TIME_ZONE).localize(
+            datetime.datetime(*map(int, toks)))),
         'parseAction': maybeRange("created"),
     },
     # test OR category: test
@@ -185,7 +202,7 @@ parameter_dicts = {
     'far': {
         'doRange': False,
         'value': Suppress(CaselessLiteral('far')) + ExpressionOperator + \
-            pyparsing_common.number,
+            pyparsing_common.number.copy(),
         'parseAction': lambda toks: ("far",
             Q(**{'preferred_event__far' + toks[0]: toks[1]})),
     },
@@ -194,9 +211,9 @@ parameter_dicts = {
         'doRange': False,
         'value': Suppress(CaselessLiteral('far')) + \
             Suppress(Or([CaselessLiteral(d) for d in ['in', ':']])) + \
-            pyparsing_common.number + \
+            pyparsing_common.number.copy() + \
             Suppress(Or([CaselessLiteral(op) for op in [',', '..', '-']])) + \
-            pyparsing_common.number,
+            pyparsing_common.number.copy(),
         'parseAction': lambda toks: ("far_range",
             Q(**{'preferred_event__far__range': toks.asList()})),
     },
@@ -272,4 +289,3 @@ def parseSupereventQuery(s):
         matches.append(('category', default_Q))
 
     return reduce(Q.__and__, [m[1] for m in matches], Q())
-

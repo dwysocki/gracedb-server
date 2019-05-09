@@ -22,7 +22,7 @@ from django.db.models.query import QuerySet
 # (weak) natural language time parsing.
 from events.nltime import nlTimeExpression as nltime_
 nltime = nltime_.setParseAction(lambda toks: toks["calculatedTime"])
-from events.models import Group, Pipeline, Search, Label
+from events.models import Group, Pipeline, Search
 from .labels import getLabelQ
 from .superevents import parse_superevent_id, superevent_expr
 from ..constants import RUN_MAP, ExpressionOperator
@@ -252,7 +252,7 @@ def parseQuery(s):
     # Analysis Groups
     # XXX Querying the database at module compile time is a bad idea!
     # See: https://docs.djangoproject.com/en/1.8/topics/testing/overview/
-    groupNames = [group.name for group in Group.objects.all()]
+    groupNames = list(Group.objects.values_list('name', flat=True))
     group = Or(map(CaselessLiteral, groupNames)).setName("analysis group name")
     #groupList = delimitedList(group, delim='|').setName("analysis group list")
     groupList = OneOrMore(group).setName("analysis group list")
@@ -261,7 +261,7 @@ def parseQuery(s):
         Q(group__name__in=toks.asList())))
 
     # Pipeline
-    pipelineNames = [pipeline.name for pipeline in Pipeline.objects.all()]
+    pipelineNames = list(Pipeline.objects.values_list('name', flat=True))
     pipeline = Or(map(CaselessLiteral, pipelineNames)).setName("pipeline name")
     pipelineList = OneOrMore(pipeline).setName("pipeline list")
     pipelineQ = (Optional(Suppress(Keyword("pipeline:"))) + pipelineList)
@@ -269,7 +269,7 @@ def parseQuery(s):
         Q(pipeline__name__in=toks.asList())))
 
     # Search
-    searchNames = [search.name for search in Search.objects.all()]
+    searchNames = list(Search.objects.values_list('name', flat=True))
     search = Or(map(CaselessLiteral, searchNames)).setName("search name")
     # XXX Branson: The change below was made 2/17/15 to fix a bug in which 
     # searches like 'grbevent.ra > 0' failed due to the 'grb' being peeled off

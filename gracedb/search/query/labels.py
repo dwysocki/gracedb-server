@@ -18,7 +18,7 @@ def getLabelQ():
     # Note the parse action for labelQ: Replace all tokens with the empty
     # string. This basically has the effect of removing any label query terms
     # from the query string.
-    labelNames = [l.name for l in Label.objects.all()]
+    labelNames = list(Label.objects.values_list('name', flat=True))
     #label = Or([CaselessLiteral(n) for n in labelNames]).\
     label = Or([CaselessKeyword(n) for n in labelNames]).\
             setParseAction( lambda toks: Q(labels__name=toks[0]) )
@@ -39,7 +39,7 @@ def getLabelQ():
 # as a list of Q objects and separators.
 #--------------------------------------------------------------------------
 def labelQuery(s, names=False):
-    labelNames = [l.name for l in Label.objects.all()]
+    labelNames = list(Label.objects.values_list('name', flat=True))
     #label = Or([CaselessLiteral(n) for n in labelNames])
     label = Or([CaselessKeyword(n) for n in labelNames])
     # If the filter objects are going to be applied to Lable
@@ -66,7 +66,7 @@ def labelQuery(s, names=False):
 # The following version is used only for validation. Just to check that
 # the query strictly conforms to the requirements of a label query.
 def parseLabelQuery(s):
-    labelNames = [l.name for l in Label.objects.all()]
+    labelNames = list(Label.objects.values_list('name', flat=True))
     #label = Or([CaselessLiteral(n) for n in labelNames])
     label = Or([CaselessKeyword(n) for n in labelNames])
     andop   = oneOf(", &")
