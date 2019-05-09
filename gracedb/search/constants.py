@@ -17,6 +17,14 @@ ExpressionOperator.setParseAction(lambda toks: EXPR_OPERATORS[toks[0]])
 
 # Dict of LIGO run names (keys) and GPS time range tuples (values)
 RUN_MAP = {
+    # FIXME: O3 end not determined at present (May 2019), end time currently
+    # set to be 1 year from start date
+    # 01 Apr 2019 15:00:00 UTC - ?? (currently using 01 Apr 2020 15:00:00 UTC)
+    "O3": (1238166018, 1269788418),
+    # 04 Mar 2019 16:00:00 UTC - 01 Apr 2019 15:00:00 UTC
+    "ER14": (1235750418, 1238166018),
+    # 14 Dec 2018 16:00:00 UTC - 18 Dec 2018 14:00:00 UTC
+    "ER13": (1228838418, 1229176818),
     # 30 Nov 2016 16:00:00 UTC - 25 Aug 2017 22:00:00 UTC
     "O2"  :     (1164556817, 1187733618),
     # Friday, Sept 18th, 10 AM CDT 2015 - Tuesday, Jan 12th, 10:00 AM CST 2016
