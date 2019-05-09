@@ -15,17 +15,32 @@ In general, a query looks like ``keyword: value``.
 Multiple attributes can be included in a query (ex: ``key1: val1 key2: val``).
 The sections below show different attributes that can be queried on and the corresponding syntax.
 
+Some information on combining queries is provided at the end.
+
 
 Event queries
 =============
 **NOTE:** clicking the 'Get neighbors' checkbox will result in an additional neighbors query for each item in the search results, and the neighbors are thus shown in the results table. However, this causes the overall query to take longer, which is why it is un-checked by default.
 
-By event attributes
--------------------
-Relational and range queries can be made on event attributes.
+By instruments
+--------------
+Order matters, because the instruments are stored in the database as a string.
 Examples:
 
-- ``instruments = "H1,L1,V1" & far < 1e-7``
+- ``instruments: "H1,L1,V1"``
+- ``instruments: "V1,L1"``
+
+By false alarm rate
+-------------------
+- ``far < 1e-7``
+- ``far: 3.6823e-4``
+- ``far >= 2e-9``
+
+By event attributes
+-------------------
+Relational and range queries can be made on selected event attributes.
+Examples:
+
 - ``singleinspiral.mchirp >= 0.5 & singleinspiral.eff_distance in 0.0,55``
 - ``(si.channel = "DMT-STRAIN" | si.channel = "DMT-PAIN") & si.snr < 5``
 - ``mb.snr in 1,3 & mb.central_freq > 1000``
@@ -101,8 +116,7 @@ This is probably a defect that ought to be remedied.
 Examples:
 
 - ``"waveburst"``
-- ``"gstlalcbc"  "gracedb.processor"``
-- ``submitter: "joss.whedon@ligo.org" submitter: "gracedb.processor"``
+- ``submitter: "joss.whedon@ligo.org"``
 
 By superevent status
 --------------------
@@ -217,3 +231,10 @@ Examples:
 - ``far < 1e-5``
 - ``FAR >= 0.01``
 - ``far in 1e-7, 2.5e-6``
+
+
+Combining queries
+=================
+Queries can be combined by separating them with a space.
+This effectively "AND"s them.
+Do not use binary operators like '&' or '|' except between labels in a label-based query or in a query on selected event attributes (see examples above).
