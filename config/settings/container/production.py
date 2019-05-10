@@ -40,6 +40,23 @@ SEND_EMAIL_ALERTS = True
 #    # Set up database router
 #    DATABASE_ROUTERS = ['core.db.routers.NonPriorityRouter',]
 
+# Set up Sentry for error logging
+sentry_dsn = get_from_env('DJANGO_SENTRY_DSN', fail_if_not_found=False)
+if sentry_dsn is not None:
+    USE_SENTRY = True
+
+    # Set up Sentry
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    sentry_sdk.init(
+        environment='production',
+        dsn=sentry_dsn,
+        integrations=[DjangoIntegration()]
+    )
+
+    # Turn off default admin error emails
+    LOGGING['loggers']['django.request']['handlers'] = []
+
 # Safety check on debug mode for production
 if (DEBUG == True):
     raise RuntimeError("Turn off debug mode for production")
