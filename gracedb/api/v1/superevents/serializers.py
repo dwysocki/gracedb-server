@@ -546,17 +546,20 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
     created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
         read_only=True)
     links = serializers.SerializerMethodField(read_only=True)
+    skymap_type = serializers.CharField(required=False)
+    skymap_filename = serializers.CharField(required=False)
+    internal = serializers.BooleanField(default=True)
+    open_alert = serializers.BooleanField(default=False)
+    hardware_inj = serializers.BooleanField(default=False)
 
     # Write only fields
     user = serializers.HiddenField(write_only=True,
         default=serializers.CurrentUserDefault())
     superevent = serializers.HiddenField(write_only=True,
         default=ParentObjectDefault(context_key='superevent'))
-    skymap_type = serializers.CharField(write_only=True, required=False)
-    skymap_filename = serializers.CharField(write_only=True, required=False)
-    internal = serializers.BooleanField(write_only=True, default=True)
-    open_alert = serializers.BooleanField(write_only=True, default=False)
-    hardware_inj = serializers.BooleanField(write_only=True, default=False)
+    # These fields are different for write than read because they already
+    # have this silly capitalization and we can't change it without
+    # breaking the client
     CoincComment = serializers.BooleanField(write_only=True, default=False)
     ProbHasNS = serializers.FloatField(write_only=True, min_value=0,
         max_value=1, required=False)
@@ -579,13 +582,17 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
             'issuer', 'filename', 'N', 'links', 'skymap_type',
             'skymap_filename', 'internal', 'open_alert', 'hardware_inj',
             'CoincComment', 'ProbHasNS', 'ProbHasRemnant', 'BNS', 'NSBH',
-            'BBH', 'Terrestrial', 'MassGap', 'superevent', 'user')
+            'BBH', 'Terrestrial', 'MassGap', 'coinc_comment', 'prob_has_ns',
+            'prob_has_remnant', 'prob_bns', 'prob_nsbh', 'prob_bbh',
+            'prob_terrestrial', 'prob_mass_gap', 'superevent', 'user')
 
     def __init__(self, *args, **kwargs):
         super(SupereventVOEventSerializer, self).__init__(*args, **kwargs)
-        self.fields['file_version'].read_only = True
-        self.fields['filename'].read_only = True
-        self.fields['ivorn'].read_only = True
+        read_only_fields = ['file_version', 'filename', 'ivorn',
+            'coinc_comment', 'prob_has_ns', 'prob_has_remnant', 'prob_bns',
+            'prob_nsbh', 'prob_bbh', 'prob_terrestrial', 'prob_mass_gap']
+        for f in read_only_fields:
+            self.fields.get(f).read_only = True
 
     def get_links(self, obj):
         file_link = None

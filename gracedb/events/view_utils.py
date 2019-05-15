@@ -604,16 +604,28 @@ def voeventToDict(voevent, request=None):
     #    pass
 
     return {
-                "links"        : links,
-                "N"            : voevent.N,
-                "issuer"       : issuer,
-                "ivorn"        : voevent.ivorn,
-                "filename"     : voevent.filename,
-                "file_version" : voevent.file_version,
-                "voevent_type" : voevent.voevent_type,
-                "created"      : voevent.created.strftime(
-                    settings.GRACE_STRFTIME_FORMAT),
-           }
+        "links": links,
+        "N": voevent.N,
+        "issuer": issuer,
+        "ivorn": voevent.ivorn,
+        "filename": voevent.filename,
+        "file_version": voevent.file_version,
+        "voevent_type": voevent.voevent_type,
+        "created": voevent.created.strftime(settings.GRACE_STRFTIME_FORMAT),
+        "skymap_type": voevent.skymap_type,
+        "skymap_filename": voevent.skymap_filename,
+        "internal": voevent.internal,
+        "open_alert": voevent.open_alert,
+        "hardware_inj": voevent.hardware_inj,
+        "coinc_comment": voevent.coinc_comment,
+        "prob_has_ns": voevent.prob_has_ns,
+        "prob_has_remnant": voevent.prob_has_remnant,
+        "prob_bns": voevent.prob_bns,
+        "prob_nsbh": voevent.prob_nsbh,
+        "prob_bbh": voevent.prob_bbh,
+        "prob_terrestrial": voevent.prob_terrestrial,
+        "prob_mass_gap": voevent.prob_mass_gap,
+    }
 
 def singleInspiralToDict(single_inspiral):
     rv = {}
