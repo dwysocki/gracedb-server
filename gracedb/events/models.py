@@ -924,7 +924,7 @@ class Tag(CleanSaveModel):
         return self.displayName if self.displayName else self.name
 
 
-class VOEventBase(models.Model):
+class VOEventBase(CleanSaveModel):
     """Abstract base model for VOEvents"""
 
     class Meta:
@@ -947,11 +947,42 @@ class VOEventBase(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     issuer = models.ForeignKey(UserModel, null=False,
         related_name='%(app_label)s_%(class)s_set')
-    ivorn = models.CharField(max_length=200, default="", blank=True)
-    filename = models.CharField(max_length=100, default="", blank=True)
+    ivorn = models.CharField(max_length=200, default="", blank=True,
+        editable=False)
+    filename = models.CharField(max_length=100, default="", blank=True,
+        editable=False)
     file_version = models.IntegerField(null=True, default=None, blank=True)
     N = models.IntegerField(null=False, editable=False)
     voevent_type = models.CharField(max_length=2, choices=VOEVENT_TYPE_CHOICES)
+    skymap_type = models.CharField(max_length=100, null=True, default=None,
+        blank=True)
+    skymap_filename = models.CharField(max_length=100, null=True, default=None,
+        blank=True)
+    internal = models.BooleanField(null=False, default=True, blank=True)
+    open_alert = models.BooleanField(null=False, default=False, blank=True)
+    hardware_inj = models.BooleanField(null=False, default=False, blank=True)
+    coinc_comment = models.BooleanField(null=False, default=False, blank=True)
+    prob_has_ns = models.FloatField(null=True, default=None, blank=True,
+        validators=[models.fields.validators.MinValueValidator(0.0),
+        models.fields.validators.MaxValueValidator(1.0)])
+    prob_has_remnant = models.FloatField(null=True, default=None, blank=True,
+        validators=[models.fields.validators.MinValueValidator(0.0),
+        models.fields.validators.MaxValueValidator(1.0)])
+    prob_bns = models.FloatField(null=True, default=None, blank=True,
+        validators=[models.fields.validators.MinValueValidator(0.0),
+        models.fields.validators.MaxValueValidator(1.0)])
+    prob_nsbh = models.FloatField(null=True, default=None, blank=True,
+        validators=[models.fields.validators.MinValueValidator(0.0),
+        models.fields.validators.MaxValueValidator(1.0)])
+    prob_bbh = models.FloatField(null=True, default=None, blank=True,
+        validators=[models.fields.validators.MinValueValidator(0.0),
+        models.fields.validators.MaxValueValidator(1.0)])
+    prob_terrestrial = models.FloatField(null=True, default=None, blank=True,
+        validators=[models.fields.validators.MinValueValidator(0.0),
+        models.fields.validators.MaxValueValidator(1.0)])
+    prob_mass_gap = models.FloatField(null=True, default=None, blank=True,
+        validators=[models.fields.validators.MinValueValidator(0.0),
+        models.fields.validators.MaxValueValidator(1.0)])
 
     def fileurl(self):
         # Override this method on derived classes

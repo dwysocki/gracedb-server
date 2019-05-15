@@ -553,7 +553,7 @@ class Signoff(CleanSaveModel, SignoffBase):
             instrument=self.instrument, status=self.status)
 
 
-class VOEvent(CleanSaveModel, VOEventBase, AutoIncrementModel):
+class VOEvent(VOEventBase, AutoIncrementModel):
     """VOEvent class for superevents"""
     AUTO_FIELD = 'N'
     AUTO_CONSTRAINTS = ('superevent',)
