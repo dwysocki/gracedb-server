@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('events', '0033_pipelinelog_and_pipeline_enabled'),
+        ('events', '0034_add_subgrb_search'),
     ]
 
     operations = [
