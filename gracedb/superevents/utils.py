@@ -595,15 +595,15 @@ def create_voevent_for_superevent(superevent, issuer, voevent_type,
 
     # Instantiate VOEvent object
     voevent = VOEvent.objects.create(superevent=superevent, issuer=issuer,
-        voevent_type=voevent_type)
+        voevent_type=voevent_type, skymap_type=skymap_type,
+        skymap_filename=skymap_filename, internal=internal,
+        open_alert=open_alert, hardware_inj=hardware_inj,
+        coinc_comment=CoincComment, prob_has_ns=ProbHasNS,
+        prob_has_remnant=ProbHasRemnant, prob_bns=BNS, prob_nsbh=NSBH,
+        prob_bbh=BBH, prob_terrestrial=Terrestrial, prob_mass_gap=MassGap)
 
     # Construct VOEvent file text
-    voevent_text, ivorn = construct_voevent_file(superevent, voevent,
-        skymap_type=skymap_type, skymap_filename=skymap_filename,
-        internal=internal, open_alert=open_alert, hardware_inj=hardware_inj,
-        CoincComment=CoincComment, ProbHasNS=ProbHasNS,
-        ProbHasRemnant=ProbHasRemnant, BNS=BNS, NSBH=NSBH, BBH=BBH,
-        Terrestrial=Terrestrial, MassGap=MassGap)
+    voevent_text, ivorn = construct_voevent_file(superevent, voevent)
 
     # Save versioned VOEvent file
     voevent_display_type = dict(VOEvent.VOEVENT_TYPE_CHOICES) \

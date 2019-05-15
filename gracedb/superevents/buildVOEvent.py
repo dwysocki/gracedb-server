@@ -53,23 +53,12 @@ def get_voevent_type(short_name):
     return None
 
 
-def construct_voevent_file(superevent, voevent, request=None,
-    skymap_filename=None, skymap_type=None, internal=True, open_alert=False,
-    hardware_inj=False, CoincComment=False, ProbHasNS=None,
-    ProbHasRemnant=None, BNS=None, NSBH=None, BBH=None, Terrestrial=None,
-    MassGap=None):
+def construct_voevent_file(superevent, voevent, request=None):
 
     # Set preferred_event as event to be used in most of this
-    event = superevent.preferred_event
     # Get the event subclass (CoincInspiralEvent, MultiBurstEvent, etc.) and
     # set that as the event
-    subclass_fields = [f for f in event.__class__._meta.get_fields()
-        if (f.one_to_one and f.auto_created and not f.concrete and
-            event.__class__ in f.related_model.__bases__)]
-    for f in subclass_fields:
-        if hasattr(event, f.name):
-            event = getattr(event, f.name)
-            break
+    event = superevent.preferred_event.get_subclass_or_self()
 
     # Let's convert that voevent_type to something nicer looking
     voevent_type = VOEVENT_TYPE_DICT[voevent.voevent_type]
@@ -114,7 +103,7 @@ def construct_voevent_file(superevent, voevent, request=None,
             h.add_Description("L1: LIGO Livingston 4 km gravitational wave detector")
         if 'V1' in instruments:
             h.add_Description("V1: Virgo 3 km gravitational wave detector")
-        if CoincComment:
+        if voevent.coinc_comment:
             h.add_Description("A gravitational wave trigger identified a possible counterpart GRB")
         v.set_How(h)
 
@@ -145,8 +134,9 @@ def construct_voevent_file(superevent, voevent, request=None,
         typedesc=PACKET_TYPES[voevent.voevent_type][1])]))
 
     # Whether the alert is internal or not
-    w.add_Param(Param(name="internal", value=int(internal), dataType="int",
-        Description=['Indicates whether this event should be distributed to LSC/Virgo members only']))
+    w.add_Param(Param(name="internal", value=int(voevent.internal),
+        dataType="int", Description=['Indicates whether this event should be '
+        'distributed to LSC/Virgo members only']))
     
     # The serial number
     w.add_Param(Param(name="Pkt_Ser_Num", value=voevent.N,
@@ -171,13 +161,13 @@ def construct_voevent_file(superevent, voevent, request=None,
     w.add_Param(Param(name="HardwareInj",
         dataType="int",
         ucd="meta.number",
-        value=int(hardware_inj),
+        value=int(voevent.hardware_inj),
         Description=['Indicates that this event is a hardware injection if 1, no if 0']))
 
     w.add_Param(Param(name="OpenAlert",
         dataType="int",
         ucd="meta.number",
-        value=int(open_alert),
+        value=int(voevent.open_alert),
         Description=['Indicates that this event is an open alert if 1, no if 0']))
 
     # Superevent page
@@ -230,16 +220,15 @@ def construct_voevent_file(superevent, voevent, request=None,
     # new feature (10/24/2016): preliminary VOEvents can have a skymap,
     # but they don't have to.
     if (voevent_type in ["initial", "update"] or 
-       (voevent_type == "preliminary" and skymap_filename != None)):
-
-        fits_name = skymap_filename
+       (voevent_type == "preliminary" and voevent.skymap_filename != None)):
 
         # Skymaps. Create group and set fits file name
-        g = Group('GW_SKYMAP', skymap_type)
+        g = Group('GW_SKYMAP', voevent.skymap_type)
 
         fits_skymap_url = build_absolute_uri(reverse(
             "api:default:superevents:superevent-file-detail",
-            args=[superevent.default_superevent_id, fits_name]), request)
+            args=[superevent.default_superevent_id, voevent.skymap_filename]),
+            request)
 
         # Add parameters to the skymap group
         g.add_Param(Param(name="skymap_fits", dataType="string",
@@ -265,54 +254,56 @@ def construct_voevent_file(superevent, voevent, request=None,
             eta = pow((mchirp/mass),5.0/3.0)
 
             # EM-Bright mass classifier information for CBC event candidates
-            if BNS is not None:
+            if voevent.prob_bns is not None:
                 classification_group.add_Param(Param(name="BNS",
                     dataType="float", ucd="stat.probability",
-                    value=BNS, Description=["Probability that the "
-                    "source is a binary neutron star merger (both objects "
+                    value=voevent.prob_bns, Description=["Probability that "
+                    "the source is a binary neutron star merger (both objects "
                     "lighter than 3 solar masses)"]))
 
-            if NSBH is not None:
+            if voevent.prob_nsbh is not None:
                 classification_group.add_Param(Param(name="NSBH",
                     dataType="float", ucd="stat.probability",
-                    value=NSBH, Description=["Probability that the "
-                    "source is a neutron star-black hole merger (primary "
+                    value=voevent.prob_nsbh, Description=["Probability that "
+                    "the source is a neutron star-black hole merger (primary "
                     "heavier than 5 solar masses, secondary lighter than 3 "
                     "solar masses)"]))
 
-            if BBH is not None:
+            if voevent.prob_bbh is not None:
                 classification_group.add_Param(Param(name="BBH",
                     dataType="float", ucd="stat.probability",
-                    value=BBH, Description=["Probability that the "
-                    "source is a binary black hole merger (both objects "
+                    value=voevent.prob_bbh, Description=["Probability that "
+                    "the source is a binary black hole merger (both objects "
                     "heavier than 5 solar masses)"]))
 
-            if MassGap is not None:
+            if voevent.prob_mass_gap is not None:
                 classification_group.add_Param(Param(name="MassGap",
                     dataType="float", ucd="stat.probability",
-                    value=MassGap, Description=["Probability that the source "
-                    "has at least one object between 3 and 5 solar masses"]))
+                    value=voevent.prob_mass_gap,
+                    Description=["Probability that the source has at least "
+                    "one object between 3 and 5 solar masses"]))
 
-            if Terrestrial is not None:
+            if voevent.prob_terrestrial is not None:
                 classification_group.add_Param(Param(name="Terrestrial",
                     dataType="float", ucd="stat.probability",
-                    value=Terrestrial, Description=["Probability "
+                    value=voevent.prob_terrestrial, Description=["Probability "
                     "that the source is terrestrial (i.e., a background noise "
                     "fluctuation or a glitch)"]))
 
             # Add to source properties group
-            if ProbHasNS is not None:
+            if voevent.prob_has_ns is not None:
                 properties_group.add_Param(Param(name="HasNS",
-                    dataType="float", ucd="stat.probability", value=ProbHasNS,
+                    dataType="float", ucd="stat.probability",
+                    value=voevent.prob_has_ns,
                     Description=["Probability that at least one object in the "
                     "binary has a mass that is less than 3 solar masses"]))
 
-            if ProbHasRemnant is not None:
+            if voevent.prob_has_remnant is not None:
                 properties_group.add_Param(Param(name="HasRemnant",
                     dataType="float", ucd="stat.probability",
-                    value=ProbHasRemnant, Description=["Probability that a "
-                    "nonzero mass was ejected outside the central remnant "
-                    "object"]))
+                    value=voevent.prob_has_remnant, Description=["Probability "
+                    "that a nonzero mass was ejected outside the central "
+                    "remnant object"]))
 
             # build up MaxDistance. event.singleinspiral_set.all()?
             # Each detector calculates an effective distance assuming the inspiral is 

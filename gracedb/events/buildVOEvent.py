@@ -50,10 +50,7 @@ def get_voevent_type(short_name):
             return t[1]
     return None
 
-def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filename=None,
-    skymap_type=None, internal=True, open_alert=False, hardware_inj=False,
-    CoincComment=False, ProbHasNS=None, ProbHasRemnant=None, BNS=None,
-    NSBH=None, BBH=None, Terrestrial=None, MassGap=None):
+def buildVOEvent(event, voevent, request=None):
 
 # XXX Branson commenting out. Reed's MDC events do not have FAR for some reason.
 #    if not event.far:
@@ -62,18 +59,17 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     if not event.gpstime:
         raise VOEventBuilderException("Cannot build a VOEvent because event has no gpstime.")
 
-    if not voevent_type in VOEVENT_TYPE_DICT.keys():
+    if not voevent.voevent_type in VOEVENT_TYPE_DICT.keys():
         raise VOEventBuilderException("voevent_type must be preliminary, initial, update, or retraction")
 
     # Let's convert that voevent_type to something nicer looking
-    default_voevent_type = voevent_type
-    voevent_type = VOEVENT_TYPE_DICT[voevent_type]
+    voevent_type = VOEVENT_TYPE_DICT[voevent.voevent_type]
 
     objid = event.graceid
 
     # Now build the IVORN. 
     type_string = voevent_type.capitalize()
-    event_id = "%s-%d-%s" % (objid, serial_number, type_string)
+    event_id = "%s-%d-%s" % (objid, voevent.N, type_string)
     ivorn = settings.IVORN_PREFIX + event_id
 
     ############ VOEvent header ############################
@@ -117,7 +113,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             h.add_Description("L1: LIGO Livingston 4 km gravitational wave detector")
         if 'V1' in instruments:
             h.add_Description("V1: Virgo 3 km gravitational wave detector")
-        if int(CoincComment) == 1:
+        if int(voevent.coinc_comment) == 1:
             h.add_Description("A gravitational wave trigger identified a possible counterpart GRB")
         v.set_How(h)
 
@@ -141,18 +137,19 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
 
     # Add Packet_Type for GCNs
     w.add_Param(Param(name="Packet_Type",
-        value=PACKET_TYPES[default_voevent_type][0], dataType="int",
+        value=PACKET_TYPES[voevent.voevent_type][0], dataType="int",
         Description=[("The Notice Type number is assigned/used within GCN, eg "
         "type={typenum} is an {typedesc} notice").format(
-        typenum=PACKET_TYPES[default_voevent_type][0],
-        typedesc=PACKET_TYPES[default_voevent_type][1])]))
+        typenum=PACKET_TYPES[voevent.voevent_type][0],
+        typedesc=PACKET_TYPES[voevent.voevent_type][1])]))
 
     # Whether the alert is internal or not
-    w.add_Param(Param(name="internal", value=int(internal), dataType="int",
-        Description=['Indicates whether this event should be distributed to LSC/Virgo members only']))
+    w.add_Param(Param(name="internal", value=int(voevent.internal),
+        dataType="int", Description=['Indicates whether this event should be '
+        'distributed to LSC/Virgo members only']))
 
     # The serial number
-    w.add_Param(Param(name="Pkt_Ser_Num", value=serial_number,
+    w.add_Param(Param(name="Pkt_Ser_Num", value=voevent.N,
         Description=["A number that increments by 1 each time a new revision "
         "is issued for this event"]))
 
@@ -175,13 +172,13 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     w.add_Param(Param(name="HardwareInj",
         dataType="int",
         ucd="meta.number",
-        value=int(hardware_inj),
+        value=int(voevent.hardware_inj),
         Description=['Indicates that this event is a hardware injection if 1, no if 0']))
 
     w.add_Param(Param(name="OpenAlert",
         dataType="int",
         ucd="meta.number",
-        value=int(open_alert),
+        value=int(voevent.open_alert),
         Description=['Indicates that this event is an open alert if 1, no if 0']))
 
     w.add_Param(Param(name="EventPage",
@@ -232,20 +229,20 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
     # new feature (10/24/5/2016): preliminary VOEvents can have a skymap,
     # but they don't have to.
     if (voevent_type in ["initial", "update"] or 
-       (voevent_type == "preliminary" and skymap_filename != None)):
-        if not skymap_filename:
+       (voevent_type == "preliminary" and voevent.skymap_filename != None)):
+        if not voevent.skymap_filename:
             raise VOEventBuilderException("Skymap filename not provided.")
 
-        fits_name = skymap_filename
+        fits_name = voevent.skymap_filename
         fits_path = os.path.join(event.datadir, fits_name)
         if not os.path.exists(fits_path):
-            raise VOEventBuilderException("Skymap file does not exist: %s" % skymap_filename)
+            raise VOEventBuilderException("Skymap file does not exist: %s" % voevent.skymap_filename)
 
-        if not skymap_type:
+        if not voevent.skymap_type:
             raise VOEventBuilderException("Skymap type must be provided.")
 
         # Skymaps. Create group and set fits file name
-        g = Group('GW_SKYMAP', skymap_type)
+        g = Group('GW_SKYMAP', voevent.skymap_type)
 
         fits_skymap_url = build_absolute_uri(reverse(
             "api:default:events:files", args=[objid, fits_name]), request)
@@ -274,54 +271,56 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
             eta = pow((mchirp/mass),5.0/3.0)
 
             # EM-Bright mass classifier information for CBC event candidates
-            if BNS is not None:
+            if voevent.prob_bns is not None:
                 classification_group.add_Param(Param(name="BNS",
                     dataType="float", ucd="stat.probability",
-                    value=BNS, Description=["Probability that the "
-                    "source is a binary neutron star merger (both objects "
+                    value=voevent.prob_bns, Description=["Probability that "
+                    "the source is a binary neutron star merger (both objects "
                     "lighter than 3 solar masses)"]))
 
-            if NSBH is not None:
+            if voevent.prob_nsbh is not None:
                 classification_group.add_Param(Param(name="NSBH",
                     dataType="float", ucd="stat.probability",
-                    value=NSBH, Description=["Probability that the "
-                    "source is a neutron star-black hole merger (primary "
+                    value=voevent.prob_nsbh, Description=["Probability that "
+                    "the source is a neutron star-black hole merger (primary "
                     "heavier than 5 solar masses, secondary lighter than 3 "
                     "solar masses)"]))
 
-            if BBH is not None:
+            if voevent.prob_bbh is not None:
                 classification_group.add_Param(Param(name="BBH",
                     dataType="float", ucd="stat.probability",
-                    value=BBH, Description=["Probability that the "
-                    "source is a binary black hole merger (both objects "
+                    value=voevent.prob_bbh, Description=["Probability that "
+                    "the source is a binary black hole merger (both objects "
                     "heavier than 5 solar masses)"]))
 
-            if MassGap is not None:
+            if voevent.prob_mass_gap is not None:
                 classification_group.add_Param(Param(name="MassGap",
                     dataType="float", ucd="stat.probability",
-                    value=MassGap, Description=["Probability that the source "
-                    "has at least one object between 3 and 5 solar masses"]))
+                    value=voevent.prob_mass_gap, Description=["Probability "
+                    "that the source has at least one object between 3 and 5 "
+                    "solar masses"]))
 
-            if Terrestrial is not None:
+            if voevent.prob_terrestrial is not None:
                 classification_group.add_Param(Param(name="Terrestrial",
                     dataType="float", ucd="stat.probability",
-                    value=Terrestrial, Description=["Probability "
+                    value=voevent.prob_terrestrial, Description=["Probability "
                     "that the source is terrestrial (i.e., a background noise "
                     "fluctuation or a glitch)"]))
 
             # Add to source properties group
-            if ProbHasNS is not None:
+            if voevent.prob_has_ns is not None:
                 properties_group.add_Param(Param(name="HasNS",
-                    dataType="float", ucd="stat.probability", value=ProbHasNS,
+                    dataType="float", ucd="stat.probability",
+                    value=voevent.prob_has_ns,
                     Description=["Probability that at least one object in the "
                     "binary has a mass that is less than 3 solar masses"]))
 
-            if ProbHasRemnant is not None:
+            if voevent.prob_has_remnant is not None:
                 properties_group.add_Param(Param(name="HasRemnant",
                     dataType="float", ucd="stat.probability",
-                    value=ProbHasRemnant, Description=["Probability that a "
-                    "nonzero mass was ejected outside the central remnant "
-                    "object"]))
+                    value=voevent.prob_has_remnant, Description=["Probability "
+                    "that a nonzero mass was ejected outside the central "
+                    "remnant object"]))
 
             # build up MaxDistance. event.singleinspiral_set.all()?
             # Each detector calculates an effective distance assuming the inspiral is 
@@ -456,7 +455,7 @@ def buildVOEvent(event, serial_number, voevent_type, request=None, skymap_filena
         c = Citations()
         for ve in event.voevent_set.all():
             # Oh, actually we need to exclude *this* voevent.
-            if serial_number == ve.N:
+            if ve.N == voevent.N:
                 continue
             if voevent_type == 'initial':
                 ei = EventIVORN('supersedes', ve.ivorn)

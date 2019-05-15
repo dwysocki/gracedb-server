@@ -1628,23 +1628,25 @@ class VOEventList(InheritPermissionsAPIView):
             return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
 
         # Instantiate the voevent and save in order to get the serial number
-        voevent = VOEvent(voevent_type=voevent_type, event=event, issuer=request.user)
+        voevent = VOEvent(event=event, issuer=request.user,
+            voevent_type=voevent_type, skymap_type=skymap_type,
+            skymap_filename=skymap_filename, internal=internal,
+            hardware_inj=hardware_inj, coinc_comment=CoincComment,
+            prob_has_ns=ProbHasNS, prob_has_remnant=ProbHasRemnant,
+            prob_bns=BNS, prob_nsbh=NSBH, prob_bbh=BBH,
+            prob_terrestrial=Terrestrial, prob_mass_gap=MassGap)
 
         try:
             voevent.save()
+        except ValidationError as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response("Failed to create VOEvent: %s" % str(e),
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Now, you need to actually build the VOEvent.
         try:
-            voevent_text, ivorn = buildVOEvent(event, voevent.N, voevent_type, request,
-                skymap_filename = skymap_filename, skymap_type = skymap_type,
-                internal = internal, open_alert=open_alert,
-                hardware_inj=hardware_inj, CoincComment=CoincComment,
-                ProbHasNS=ProbHasNS, ProbHasRemnant=ProbHasRemnant, BNS=BNS,
-                NSBH=NSBH, BBH=BBH, Terrestrial=Terrestrial, MassGap=MassGap)
-
+            voevent_text, ivorn = buildVOEvent(event, voevent, request=request)
         except VOEventBuilderException, e:
             msg = "Problem building VOEvent: %s" % str(e)
             return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
