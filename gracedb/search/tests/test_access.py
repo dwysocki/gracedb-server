@@ -1,13 +1,9 @@
-try:
-    from urllib.parse import urlencode
-except ImportError:  # python < 3
-    from urllib import urlencode
-
 from django.conf import settings
 from django.contrib.auth.models import Group as DjangoGroup, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
+from django.utils.http import urlencode
 
 from core.tests.utils import GraceDbTestBase
 from events.models import Event

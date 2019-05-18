@@ -4,6 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission, Group, User
 from django.conf import settings
 from django.urls import reverse
+from django.utils.http import urlencode
 
 from guardian.models import GroupObjectPermission, UserObjectPermission
 from guardian.shortcuts import assign_perm
@@ -16,11 +17,7 @@ from events.permission_utils import assign_default_event_perms
 import json
 import os
 import shutil
-try:
-    from urllib.parse import urlencode
-except ImportError:  # python < 3
-    from urllib import urlencode
-    
+
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Some utilities

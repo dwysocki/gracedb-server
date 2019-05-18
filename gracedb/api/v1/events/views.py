@@ -6,10 +6,8 @@ import os
 import shutil
 try:
     from io import StringIO
-    from urllib.parse import urlencode
 except ImportError:  # python < 3
     from StringIO import StringIO
-    from urllib import urlencode
 
 from django.conf import settings
 from django.contrib.auth.models import User, Permission, Group as DjangoGroup
@@ -20,6 +18,7 @@ from django.http import HttpResponse, HttpResponseForbidden, \
     HttpResponseNotFound, HttpResponseServerError, HttpResponseBadRequest
 from django.http.request import QueryDict
 from django.utils.functional import wraps
+from django.utils.http import urlencode
 
 # Stuff for the LigoLwRenderer
 from glue.ligolw import ligolw

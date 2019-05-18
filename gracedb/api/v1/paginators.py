@@ -1,9 +1,7 @@
 from collections import OrderedDict
 import logging
-try:
-    from urllib.parse import urlencode
-except ImportError:  # python < 3
-    from urllib import urlencode
+
+from django.utils.http import urlencode
 
 from rest_framework import pagination
 from rest_framework.response import Response
