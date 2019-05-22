@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load sanitize_html %}
+{% load logtags %}
+{% block heading %}{% endblock %}
+{% block bodyattrs %}class="tundra eventDetail"{% endblock %}
+
+{% block jscript %}
+{% load static %}
+<link rel="stylesheet" href="{% static "css/labeltips.css" %}" />
+<link rel="stylesheet" type="text/css" href="{% static "css/tablesaw.css" %}" />
+
+<script src="{% static "moment/moment.js" %}"></script>
+<script src="{% static "moment-timezone/builds/moment-timezone-with-data.min.js" %}"></script>
+<script src="{% static "dojo/dojo.js" %}" data-dojo-config="async: true"></script>
+<script src="{% static "jquery/dist/jquery.min.js" %}"></script>
+
+<script language="javascript" type="text/javascript" src="{% static "js/tablesaw.js" %}"></script>
+<script language="javascript" type="text/javascript" src="{% static "js/tablesaw-init.js" %}"></script>
+<script src="//filamentgroup.github.io/demo-head/loadfont.js"></script>
+
+<!-- Styles for dgrid -->
+<!-- <link rel="stylesheet" href="{% static "dgrid/css/dgrid.css" %}" /> -->
+<!-- Styles for the editor components -->
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/PageBreak.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/ShowBlockNodes.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Preview.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Save.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Breadcrumb.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/FindReplace.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/PasteFromWord.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/InsertAnchor.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/CollapsibleToolbar.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Blockquote.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Smiley.css" %}" />
+<!-- Styles for the lightboxes. --> 
+<link rel="stylesheet" href="{% static "dojox/image/resources/LightboxNano.css" %}" />
+<!-- Local style declarations -->
+<link rel="stylesheet" href="{% static "dijit/themes/tundra/tundra.css" %}" />
+
+
+
+<!-- the main JavaScript block is pulled in with an include -->
+
+{% endblock %}
+
+{% block content %}
+Hello jonah.
+
+{% for event in object_list %}
+I found a superevent! {{ event.superevent_id }}<br/>
+{% endfor %}
+
+{% endblock %}
+
