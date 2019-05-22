@@ -113,6 +113,7 @@ class SupereventFileList(SupereventDetailView):
         context['file_list'] = file_list
 
         return context
+
 # NOTE: file "detail" or downloads (and associated permissions) are
 # handled through the API. Links on the file list page point to the
 # API file download page.
@@ -123,21 +124,55 @@ class SupereventPublic(ListView):
     filter_permissions = ['superevents.view_superevent']
     log_view_permission = 'superevents.view_log'    
 
+    def get_queryset(self, **kwargs):
+        # -- Query only for public events
+        qs = Superevent.objects.filter(is_exposed=True, category='T')  #-- Change cateogry to P for production
+        return qs
+        
     def get_context_data(self, **kwargs):
         # Get base context
         context = ListView.get_context_data(self, **kwargs)
 
-        #-- For each superevent, get list of log messages 
+        #-- For each superevent, get list of log messages and construct pastro string
+        candidates = 0
         for se in context['object_list']:
             viewable_logs = get_objects_for_user(self.request.user,
-                                                 self.log_view_permission, se.log_set.all()).filter(tags__name='em_follow') #-- want this label to be analyst_comment
-            commentlist = ''
-            for log in viewable_logs:
-                commentlist += log.comment
-                commentlist += '--'
+                                                 self.log_view_permission,
+                                                 se.log_set.all()).filter(tags__name='em_follow') #-- change to analyst_comment
 
-            se.comments = commentlist
+            se.comments = ' ** '.join([log.comment for log in viewable_logs]) 
             
+            #-- Get list of voevents
+            voevents = se.voevent_set.all()
+
+            # -- Filter out retractions
+            good_voevents = sorted([voe for voe in voevents if voe.voevent_type != 'RE'],key=lambda voe:voe.N)
+            
+            # -- Find retractions
+            retraction_list = [voe for voe in voevents if voe.voevent_type == 'RE']
+            if len(retraction_list) > 0:
+                se.retract = True
+            else:
+                se.retract = False
+                candidates += 1
+            
+            # -- Read out probabilities
+            voe = good_voevents[-1]
+            pastro_values = [ ("BNS",voe.prob_bns), ("NSBH",voe.prob_nsbh),
+                              ("BBH", voe.prob_bbh), ("Terrestrial", voe.prob_terrestrial),
+                              ("MassGap", voe.prob_mass_gap) ]
+
+            sourcelist = []
+            for key, value in pastro_values:
+                if value > 0.01:
+                    prob = int(round(100*value))
+                    if prob == 100: prob = '>99'
+                    sourcestr = "{0} ({1}%)".format(key, prob)
+                    sourcelist.append(sourcestr)
+            se.sourcetypes = ', '.join(sourcelist)
+            se.N = voe.N
+
+        context['candidates']=candidates
         return context
 
 
