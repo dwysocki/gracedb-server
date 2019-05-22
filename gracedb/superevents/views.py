@@ -120,5 +120,25 @@ class SupereventFileList(SupereventDetailView):
 class SupereventPublic(ListView):
     model = Superevent
     template_name = 'superevents/public.html'
-    #filter_permissions = ['superevents.view_superevent']
-    #log_view_permission = 'superevents.view_log'    
+    filter_permissions = ['superevents.view_superevent']
+    log_view_permission = 'superevents.view_log'    
+
+    def get_context_data(self, **kwargs):
+        # Get base context
+        context = ListView.get_context_data(self, **kwargs)
+
+        #-- For each superevent, get list of log messages 
+        for se in context['object_list']:
+            viewable_logs = get_objects_for_user(self.request.user,
+                                                 self.log_view_permission, se.log_set.all()).filter(tags__name='em_follow') #-- want this label to be analyst_comment
+            commentlist = ''
+            for log in viewable_logs:
+                commentlist += log.comment
+                commentlist += '--'
+
+            se.comments = commentlist
+            
+        return context
+
+
+    
