@@ -33,4 +33,8 @@ legacy_urlpatterns = [
 urlpatterns = legacy_urlpatterns + [
     url(r'^(?P<superevent_id>{regex})/'.format(regex=Superevent.ID_REGEX),
         include(suburlpatterns)),
+
+    # table of all public events
+    url(r'^public/$', views.SupereventPublic.as_view(), name="pubic-alerts"),
+    
 ]

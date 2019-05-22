@@ -2,6 +2,7 @@ import logging
 import os
 
 from django.views.generic.detail import DetailView
+from django.views.generic import ListView
 
 from guardian.shortcuts import get_objects_for_user
 
@@ -115,3 +116,9 @@ class SupereventFileList(SupereventDetailView):
 # NOTE: file "detail" or downloads (and associated permissions) are
 # handled through the API. Links on the file list page point to the
 # API file download page.
+
+class SupereventPublic(ListView):
+    model = Superevent
+    template_name = 'superevents/public.html'
+    #filter_permissions = ['superevents.view_superevent']
+    #log_view_permission = 'superevents.view_log'    
