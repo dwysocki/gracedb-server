@@ -176,6 +176,10 @@ class SupereventPublic(ListView):
 
             
         context['candidates']=candidates
+
+        #-- Is this user outside the LVC?
+        context['user_is_external'] = is_external(self.request.user)
+        
         return context
 
 
