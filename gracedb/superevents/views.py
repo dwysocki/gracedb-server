@@ -141,6 +141,7 @@ class SupereventPublic(ListView):
                                                  se.log_set.all()).filter(tags__name='em_follow') #-- change to analyst_comment
 
             se.comments = ' ** '.join([log.comment for log in viewable_logs]) 
+            se.maplocal = "/apiweb/superevents/{0}/files/bayestar.png".format(se.superevent_id)
             
             #-- Get list of voevents
             voevents = se.voevent_set.all()
@@ -172,6 +173,7 @@ class SupereventPublic(ListView):
             se.sourcetypes = ', '.join(sourcelist)
             se.N = voe.N
 
+            
         context['candidates']=candidates
         return context
 
