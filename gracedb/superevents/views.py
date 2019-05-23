@@ -163,6 +163,7 @@ class SupereventPublic(ListView):
                               ("BBH", voe.prob_bbh), ("Terrestrial", voe.prob_terrestrial),
                               ("MassGap", voe.prob_mass_gap) ]
 
+            pastro_values.sort(reverse=True, key=lambda (a,b):b)
             sourcelist = []
             for key, value in pastro_values:
                 if value > 0.01:
