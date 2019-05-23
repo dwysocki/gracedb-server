@@ -7,6 +7,10 @@
     "jquery": "3.2.1",
     "jquery-ui": "1.12.1",
     "moment-timezone": "0.5.0",
-    "moment": "2.11.1"
+    "moment": "2.11.1",
+    "tablesaw": "3.1.2"
+  },
+  "resolutions": {
+    "webcomponentsjs": "^0.6.0"
   }
 }

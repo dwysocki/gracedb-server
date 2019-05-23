@@ -6,16 +6,10 @@
 
 {% block jscript %}
 {% load static %}
-<link rel="stylesheet" href="{% static "css/labeltips.css" %}" />
-<link rel="stylesheet" type="text/css" href="{% static "css/tablesaw.css" %}" />
 
-<script src="{% static "moment/moment.js" %}"></script>
-<script src="{% static "moment-timezone/builds/moment-timezone-with-data.min.js" %}"></script>
-<script src="{% static "dojo/dojo.js" %}" data-dojo-config="async: true"></script>
-<script src="{% static "jquery/dist/jquery.min.js" %}"></script>
-
-<script language="javascript" type="text/javascript" src="{% static "js/tablesaw.js" %}"></script>
-<script language="javascript" type="text/javascript" src="{% static "js/tablesaw-init.js" %}"></script>
+<link rel="stylesheet" type="text/css" href="{% static "tablesaw/dist/tablesaw.css" %}" />
+<script language="javascript" type="text/javascript" src="{% static "tablesaw/dist/tablesaw.js" %}"></script>
+<script language="javascript" type="text/javascript" src="{% static "tablesaw/dist/tablesaw-init.js" %}"></script>
 <script src="//filamentgroup.github.io/demo-head/loadfont.js"></script>
 
 <!-- Styles for dgrid -->

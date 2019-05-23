@@ -126,7 +126,7 @@ class SupereventPublic(ListView):
 
     def get_queryset(self, **kwargs):
         # -- Query only for public events
-        qs = Superevent.objects.filter(is_exposed=True, category='T')  #-- Change cateogry to P for production
+        qs = Superevent.objects.filter(is_exposed=True, category='P')  #-- Change cateogry to P for production
         return qs
         
     def get_context_data(self, **kwargs):
