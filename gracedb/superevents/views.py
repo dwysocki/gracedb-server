@@ -138,7 +138,7 @@ class SupereventPublic(ListView):
         for se in context['object_list']:
             viewable_logs = get_objects_for_user(self.request.user,
                                                  self.log_view_permission,
-                                                 se.log_set.all()).filter(tags__name='em_follow') #-- change to analyst_comment
+                                                 se.log_set.all()).filter(tags__name='analyst_comments') #-- change to analyst_comments
 
             se.comments = ' ** '.join([log.comment for log in viewable_logs]) 
             se.maplocal = "/apiweb/superevents/{0}/files/bayestar.png".format(se.superevent_id)
