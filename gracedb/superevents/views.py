@@ -136,11 +136,7 @@ class SupereventPublic(ListView):
         #-- For each superevent, get list of log messages and construct pastro string
         candidates = 0
         for se in context['object_list']:
-            viewable_logs = get_objects_for_user(self.request.user,
-                                                 self.log_view_permission,
-                                                 se.log_set.all()).filter(tags__name='analyst_comments') #-- change to analyst_comments
 
-            se.comments = ' ** '.join([log.comment for log in viewable_logs]) 
             se.maplocal = "/apiweb/superevents/{0}/files/bayestar.png".format(se.superevent_id)
             
             #-- Get list of voevents
@@ -156,6 +152,15 @@ class SupereventPublic(ListView):
             else:
                 se.retract = False
                 candidates += 1
+
+
+            viewable_logs = get_objects_for_user(self.request.user,
+                                                 self.log_view_permission,
+                                                 se.log_set.all()).filter(tags__name='analyst_comments') #-- change to analyst_comments
+            
+
+            se.comments = ' ** '.join([log.comment for log in viewable_logs]) 
+            if se.retract: se.comments += " ** RETRACTED ** "
             
             # -- Read out probabilities
             voe = good_voevents[-1]
