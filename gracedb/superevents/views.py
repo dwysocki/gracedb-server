@@ -1,6 +1,6 @@
 import logging
 import os
-
+from lal import gpstime
 from django.views.generic.detail import DetailView
 from django.views.generic import ListView
 
@@ -138,6 +138,9 @@ class SupereventPublic(ListView):
         for se in context['object_list']:
 
             se.maplocal = "/apiweb/superevents/{0}/files/bayestar.png".format(se.superevent_id)
+
+            se.ifar_yrs = 1.0 / (se.far*3600*24*365.0)
+            se.t0_iso = gpstime.gps_to_utc(se.t_0).isoformat(' ').split('.')[0]
             
             #-- Get list of voevents
             voevents = se.voevent_set.all()

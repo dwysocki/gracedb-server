@@ -56,22 +56,27 @@
       {% if not user_is_external %}
       <th  scope="col" data-tablesaw-col data-tablesaw-priority="5">&Omega; Scan</th>
       {% endif %}
-      <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="5">End Time GPS</th>
+
       <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="5">Comments</th>
 
+      <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="6">GPS</th>
+      <th  scope="col" data-tablesaw-col data-tablesaw-priority="6">False Alarm Rate (per year)</th>
+      <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="6">UTC Time</th>      
     </tr>
   </thead><tbody>
 
 
 {% for event in object_list %}
 <tr   {% if event.retract %}style='background-color:#EDD' {% endif %}  >
-  <td><a href=/superevents/{{ event.superevent_id }}>{{ event.superevent_id }}</a></td>
+  <td><a href=/superevents/{{ event.superevent_id }}>{{ event.default_superevent_id }}</a></td>
   <td style='min-width:120px'>{{ event.sourcetypes }} </td>
-  <td style='min-width:120px'>{{ event.t_0_date }} </td>
+  <td style='min-width:120px'>{{ event.t_0_date }}</td>
+
   <td>
     <a href={{ event.noticeurl }}>Notice</a><br/>
     <a href={{ event.gcnurl }}>Circulars</a>
   </td>
+
   <td> <a href='{{ event.maplocal }}'> <img src='{{ event.maplocal }}' width='200px'/> </a> </td>
 
   {% if not user_is_external %}
@@ -81,8 +86,12 @@
   </td>
   {% endif %}
   
-  <td>{{ event.t_0 }} </td>
+
   <td>{{ event.comments }} </td>
+
+  <td>{{ event.t_0 }} </td>
+  <td> 1 per {{ event.ifar_yrs|floatformat:2 }} years</td>
+  <td>{{ event.t0_iso }} UTC</td>  
 </tr>
 
 {% endfor %}
