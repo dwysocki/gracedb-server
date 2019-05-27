@@ -139,8 +139,13 @@ class SupereventPublic(ListView):
 
             se.maplocal = "/apiweb/superevents/{0}/files/bayestar.png".format(se.superevent_id)
 
+            #-- GCN links
+            se.noticeurl = "https://gcn.gsfc.nasa.gov/notices_l/{0}.lvc".format(se.default_superevent_id)
+            se.gcnurl    = "https://gcn.gsfc.nasa.gov/other/GW{0}.gcn3".format(se.default_superevent_id[1:])
+            
             se.ifar_yrs = 1.0 / (se.far*3600*24*365.0)
             se.t0_iso = gpstime.gps_to_utc(se.t_0).isoformat(' ').split('.')[0]
+            se.t0_utc = se.t0_iso.split()[1]
             
             #-- Get list of voevents
             voevents = se.voevent_set.all()
