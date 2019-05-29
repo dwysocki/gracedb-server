@@ -1,8 +1,10 @@
-
 from __future__ import unicode_literals
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+
+from .managers import LdapGroupManager, TagGroupManager
+
 
 # There seems to be a LOT of duplication here and I don't know
 # if that is good or bad.  Normally, that seems bad...
@@ -84,3 +86,22 @@ def certdn_to_user(dn, username=None):
     except IndexError:
         return None
 
+
+class AuthGroup(Group):
+    """Enhanced version of Django Group model"""
+    # Description of the group
+    description = models.TextField(blank=False)
+    # The group's name in some LDAP (likely the LIGO LDAP). This will be used
+    # to correlated group memberships in the LDAP as retrieved from an LDAP
+    # query or from a Shibboleth session to groups in this service
+    # If this is null, the group is manually managed and does not inherit its
+    # membership from an LDAP.
+    ldap_name = models.CharField(max_length=50, unique=True, null=True)
+    # Tag used to expose access to log messages for group; if null, there is no
+    # such tag and access is not granted via this mechanism
+    tag = models.ForeignKey('events.Tag', null=True)
+
+    # Add custom managers, must manually define objects as well
+    objects = models.Manager()
+    ldap_objects = LdapGroupManager()
+    tag_objects = TagGroupManager()

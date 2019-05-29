@@ -128,9 +128,9 @@ LVALERT_OVERSEER_INSTANCES = [
 
 # Access and authorization ----------------------------------------------------
 # Some proper names related to authorization
-LVC_GROUP = 'Communities:LSCVirgoLIGOGroupMembers'
-LVEM_GROUP = 'gw-astronomy:LV-EM'
-LVEM_OBSERVERS_GROUP = 'gw-astronomy:LV-EM:Observers'
+LVC_GROUP = 'internal_users'
+LVEM_GROUP = 'lvem_users'
+LVEM_OBSERVERS_GROUP = 'lvem_observers'
 PUBLIC_GROUP = 'public_users'
 PRIORITY_USERS_GROUP = 'priority_users'
 
@@ -363,7 +363,7 @@ INSTALLED_APPS = [
 # Aliases for django-extensions shell_plus
 SHELL_PLUS_MODEL_ALIASES = {
     # Two 'Group' models - auth.Group and gracedb.Group
-    'auth': {'Group': 'AuthGroup'},
+    'auth': {'Group': 'DjangoGroup'},
     # Superevents models which have the same name as
     # models in the events app
     'superevents': {
