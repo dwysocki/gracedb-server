@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.auth.models import Group as AuthGroup, User, AnonymousUser
+from django.contrib.auth.models import Group as DjangoGroup, User, AnonymousUser
 from django.contrib.auth.middleware import AuthenticationMiddleware
 from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
@@ -44,7 +44,7 @@ class TestControlRoomMiddlewareHomeView(GraceDbTestBase):
         super(TestControlRoomMiddlewareHomeView, cls).setUpTestData()
 
         # Create control room group
-        cls.control_room_group, _ = AuthGroup.objects.get_or_create(
+        cls.control_room_group, _ = DjangoGroup.objects.get_or_create(
             name=cls.ifo.lower() + '_control_room')
 
     def test_internal_user_in_control_room(self):
@@ -145,7 +145,7 @@ class TestControlRoomMiddleware(GraceDbTestBase):
         super(TestControlRoomMiddleware, cls).setUpTestData()
 
         # Create control room group
-        cls.control_room_group, _ = AuthGroup.objects.get_or_create(
+        cls.control_room_group, _ = DjangoGroup.objects.get_or_create(
             name=cls.ifo.lower() + '_control_room')
 
     def test_internal_user_in_control_room(self):
@@ -391,7 +391,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
     def test_group_addition(self):
         """Add a group for a user based on shib group header content"""
         # Create new group for testing
-        new_group = AuthGroup.objects.create(name='new_group')
+        new_group = DjangoGroup.objects.create(name='new_group')
         # Compile group header
         delim = ShibbolethWebAuthMiddleware.group_delimiter
         groups_str = delim.join([self.internal_group.name, new_group.name])
@@ -426,7 +426,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
     def test_group_removal(self):
         """Remove a group for a user based on shib group header content"""
         # Create new group, add to user
-        new_group = AuthGroup.objects.create(name='new_group')
+        new_group = DjangoGroup.objects.create(name='new_group')
         self.internal_user.groups.add(new_group)
 
         # Set up request
@@ -467,7 +467,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         r_user.groups.add(self.internal_group)
 
         # Create new group for testing
-        new_group = AuthGroup.objects.create(name='new_group')
+        new_group = DjangoGroup.objects.create(name='new_group')
         # Compile group header
         delim = ShibbolethWebAuthMiddleware.group_delimiter
         groups_str = delim.join([self.internal_group.name, new_group.name])
@@ -507,7 +507,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         r_user = RobotUser.objects.create(username='robot.user')
         r_user.groups.add(self.internal_group)
         # Create new group and add robotusre
-        new_group = AuthGroup.objects.create(name='new_group')
+        new_group = DjangoGroup.objects.create(name='new_group')
         r_user.groups.add(new_group)
 
         # Set up request

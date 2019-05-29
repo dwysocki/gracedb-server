@@ -3,7 +3,6 @@ import pytz
 
 from django import forms
 from django.conf import settings
-from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.base import ContextMixin

@@ -5,7 +5,6 @@ import os
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import Group as AuthGroup
 
 from guardian.shortcuts import get_objects_for_user
 from rest_framework import mixins, parsers, permissions, serializers, status, \

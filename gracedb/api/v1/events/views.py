@@ -8,7 +8,7 @@ import StringIO
 import urllib
 
 from django.conf import settings
-from django.contrib.auth.models import User, Permission, Group as AuthGroup
+from django.contrib.auth.models import User, Permission, Group as DjangoGroup
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
@@ -146,7 +146,7 @@ def group_required(view):
     @wraps(view)
     def inner(self, request, event, group_name, *args, **kwargs):
         try:
-            group = AuthGroup.objects.get(name=str(group_name))
+            group = DjangoGroup.objects.get(name=str(group_name))
         except:
             return Response("Group does not exist.",
                     status=status.HTTP_404_NOT_FOUND)

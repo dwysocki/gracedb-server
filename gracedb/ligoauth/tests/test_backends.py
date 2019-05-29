@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.auth.models import Group as AuthGroup, User, AnonymousUser
+from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.auth.middleware import AuthenticationMiddleware
 from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory, TestCase

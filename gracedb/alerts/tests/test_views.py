@@ -2,7 +2,6 @@ import mock
 import pytest
 
 from django.conf import settings
-from django.contrib.auth.models import Group as AuthGroup
 from django.urls import reverse
 
 from core.tests.utils import GraceDbTestBase

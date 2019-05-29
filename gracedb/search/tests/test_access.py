@@ -1,7 +1,7 @@
 import urllib
 
 from django.conf import settings
-from django.contrib.auth.models import Group as AuthGroup, Permission
+from django.contrib.auth.models import Group as DjangoGroup, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
@@ -52,12 +52,12 @@ class TestEventSearch(EventCreateMixin, GraceDbTestBase, SearchTestingBase):
 
         # Assign default permissions for internal group (also have to create
         # executives group because this perm assign code is TERRIBLE)
-        execs, _ = AuthGroup.objects.get_or_create(name='executives')
+        execs, _ = DjangoGroup.objects.get_or_create(name='executives')
         assign_default_event_perms(cls.internal_event)
         assign_default_event_perms(cls.lvem_event)
 
         # Expose events
-        lvem_group = AuthGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
+        lvem_group = DjangoGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
         update_event_perms_for_group(cls.lvem_event, lvem_group, 'expose')
 
     def test_internal_user_search(self):
@@ -168,12 +168,12 @@ class TestEventLatest(EventCreateMixin, GraceDbTestBase):
 
         # Assign default permissions for internal group (also have to create
         # executives group because this perm assign code is TERRIBLE)
-        execs, _ = AuthGroup.objects.get_or_create(name='executives')
+        execs, _ = DjangoGroup.objects.get_or_create(name='executives')
         assign_default_event_perms(cls.internal_event)
         assign_default_event_perms(cls.lvem_event)
 
         # Expose an event to LV-EM
-        lvem_group = AuthGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
+        lvem_group = DjangoGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
         update_event_perms_for_group(cls.lvem_event, lvem_group, 'expose')
 
     def test_internal_user_latest(self):

@@ -4,7 +4,7 @@ import os
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import Group as AuthGroup
+from django.contrib.auth.models import Group as DjangoGroup
 
 from .buildVOEvent import construct_voevent_file
 from .models import Superevent, Log, Labelling, EMObservation, EMFootprint, \
@@ -831,8 +831,8 @@ def expose_superevent(superevent, user, add_log_message=True,
     issue_alert=True):
 
     # Get groups
-    lvem_group = AuthGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
-    public_group = AuthGroup.objects.get(name=settings.PUBLIC_GROUP)
+    lvem_group = DjangoGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
+    public_group = DjangoGroup.objects.get(name=settings.PUBLIC_GROUP)
 
     # Assign permissions which will expose the superevent to LV-EM and the
     # public
@@ -860,8 +860,8 @@ def hide_superevent(superevent, user, add_log_message=True,
     issue_alert=True):
 
     # Get groups
-    lvem_group = AuthGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
-    public_group = AuthGroup.objects.get(name=settings.PUBLIC_GROUP)
+    lvem_group = DjangoGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
+    public_group = DjangoGroup.objects.get(name=settings.PUBLIC_GROUP)
 
     # Assign permissions which will expose the superevent to LV-EM and the
     # public

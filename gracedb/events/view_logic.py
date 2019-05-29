@@ -22,7 +22,7 @@ from core.vfile import VersionedFile
 
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission
-from django.contrib.auth.models import Group as AuthGroup
+from django.contrib.auth.models import Group as DjangoGroup
 from django.conf import settings
 from guardian.models import GroupObjectPermission
 
@@ -356,7 +356,7 @@ def get_lvem_perm_status(request, event):
     # Get the group
     # Returns a tuple: (can_expose, can_protect)
     try:
-        lv_em_group = AuthGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
+        lv_em_group = DjangoGroup.objects.get(name=settings.LVEM_OBSERVERS_GROUP)
     except:
         # Something is really wrong.
         return (None, None)

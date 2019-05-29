@@ -20,7 +20,7 @@ from .forms import CreateEventForm, SignoffForm
 
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import User, Permission
-from django.contrib.auth.models import Group as AuthGroup
+from django.contrib.auth.models import Group as DjangoGroup
 from django.contrib.contenttypes.models import ContentType
 from .permission_utils import filter_events_for_user, user_has_perm
 from .permission_utils import is_external, check_external_file_access
@@ -710,7 +710,7 @@ def modify_permissions(request, event):
 
     # Get the group
     try:
-        g = AuthGroup.objects.get(name=group_name)
+        g = DjangoGroup.objects.get(name=group_name)
     except Group.DoesNotExist:
         return HttpResponseNotFound('Group not found')
 
