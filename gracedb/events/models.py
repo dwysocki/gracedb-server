@@ -110,7 +110,7 @@ class Label(models.Model):
         default="black")
     description = models.TextField(blank=False)
     # protected = True means that the Label should not be "writeable": i.e.,
-    # users should not be apply to directly apply or remove it.  This is useful
+    # users should not be able to directly apply or remove it.  This is useful
     # for labels that are added and removed as part of a process, like
     # signoffs, for examples.
     protected = models.BooleanField(default=False)
