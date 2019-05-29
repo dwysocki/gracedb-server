@@ -5,9 +5,11 @@ from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.models import Group as DjangoGroup
 from django.contrib.auth.middleware import PersistentRemoteUserMiddleware
-from django.contrib.auth.models import Group
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse_lazy
+
+from .models import AuthGroup
+
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -89,17 +91,17 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
             return
 
         # Get groups from session which are in database as a QuerySet
-        session_groups = Group.objects.filter(name__in=
-            request.META.get(cls.group_header, '') \
-            .split(cls.group_delimiter))
+        session_group_names = request.META.get(cls.group_header, '').split(
+            cls.group_delimiter)
+        session_groups = AuthGroup.ldap_objects.filter(ldap_name__in=
+            session_group_names)
 
         # Add groups which are in session but not in database
         user.groups.add(*session_groups)
 
         # Remove groups in database which are not in session, except for groups
         # which are managed by admins, like EM advocates and executives
-        user.groups.remove(*user.groups.exclude(name__in=
-            [g.name for g in session_groups] + settings.ADMIN_MANAGED_GROUPS))
+        user.groups.remove(*user.groups.exclude(pk__in=session_groups))
 
         # NOTE: The two above operations could be done much more nicely if
         # the queryset operation difference() worked in MySQL
