@@ -1,13 +1,21 @@
 {% extends "base.html" %}
 {% load sanitize_html %}
 {% load logtags %}
+{% load static %}
+
+{% comment %}
+{% block csslink %}<link rel="stylesheet" href="{% static "css/public.css" %}" />{% endblock %}
+{% endcomment %}
+
 {% block heading %}{% endblock %}
+
+
 
 {% block bodyattrs %}class="tundra eventDetail"{% endblock %}
 
 
 {% block jscript %}
-{% load static %}
+
 
 <link rel="stylesheet" type="text/css" href="{% static "tablesaw/dist/tablesaw.css" %}" />
 <script language="javascript" type="text/javascript" src="{% static "tablesaw/dist/tablesaw.js" %}"></script>
