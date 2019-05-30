@@ -1,6 +1,8 @@
 import logging
 import os
 from lal import gpstime
+
+from django.urls import reverse
 from django.views.generic.detail import DetailView
 from django.views.generic import ListView
 
@@ -12,7 +14,7 @@ from events.mixins import DisplayFarMixin
 from events.permission_utils import is_external
 from .mixins import ExposeHideMixin, OperatorSignoffMixin, \
     AdvocateSignoffMixin, PermissionsFilterMixin, ConfirmGwFormMixin
-from .models import Superevent
+from .models import Superevent, VOEvent
 from .utils import get_superevent_by_date_id_or_404
 
 
@@ -196,4 +198,101 @@ class SupereventPublic(ListView):
         return context
 
 
-    
+class SupereventPublic2(ListView):
+    model = Superevent
+    template_name = 'superevents/public.html'
+    filter_permissions = ['superevents.view_superevent']
+    log_view_permission = 'superevents.view_log'
+    noticeurl_template = 'https://gcn.gsfc.nasa.gov/notices_l/{s_id}.lvc'
+    gcnurl_template = 'https://gcn.gsfc.nasa.gov/other/GW{sd_id}.gcn3'
+    skymap_filename = 'bayestar.png'
+
+    def get_queryset(self, **kwargs):
+        # -- Query only for public events
+        # Comment from Tanner: Use the category directly from the superevent
+        # model rather than hard-coding
+        qs = Superevent.objects.filter(is_exposed=True,
+            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION) \
+            .prefetch_related('voevent_set', 'log_set')
+        return qs
+
+    def get_context_data(self, **kwargs):
+        # Get base context
+        # Comment from Tanner: use super() here; it's equivalent in this case
+        # to directly calling ListView.get_context_data, but super() is
+        # typically better practice
+        context = super(SupereventPublic2, self).get_context_data(**kwargs)
+
+        #-- For each superevent, get list of log messages and construct pastro string
+        candidates = 0
+        for se in self.object_list:
+
+            # Comment from Tanner: use reverse() for internal URLs
+            se.maplocal = reverse('legacy_apiweb:default:superevents:superevent-file-detail',
+                args=[se.default_superevent_id, self.skymap_filename])
+
+            #-- GCN links
+            # Comment from Tanner: define link templates outside of function
+            # so they are loaded at "compile-time" rather than each time the
+            # function is called
+            se.noticeurl = self.noticeurl_template.format(s_id=
+                se.default_superevent_id)
+            se.gcnurl = self.gcnurl_template.format(sd_id=
+                se.default_superevent_id[1:])
+
+            # Comment from Tanner: suggest to refactor ifar yrs so it shows as
+            # either 1 per X yrs or 1/X per 1 yr, depending on which one
+            # is most understandable (see lines 389-398 of events/views.py)
+            # However: is this right? Looks like we are presenting iFAR as FAR
+            # in the template.  Maybe I'm not understanding it, though.
+            se.ifar_yrs = 1.0 / (se.far*3600*24*365.0)
+            se.t0_iso = gpstime.gps_to_utc(se.t_0).isoformat(' ').split('.')[0]
+            se.t0_utc = se.t0_iso.split()[1]
+
+            #-- Get list of voevents
+            # Comment from Tanner: do as much work as you can in the database.
+            # Also, use VOEvent types from the model rather than hard-coding
+            # -- Filter out retractions
+            # Comment from Tanner: looks like we only ever use the
+            # non-retraction VOEvent with the highest N, so let's just get
+            # it in one query.
+            voe = se.voevent_set.exclude(voevent_type=
+                VOEvent.VOEVENT_TYPE_RETRACTION).order_by('-N').first()
+            # -- Was this candidate retracted?
+            se.retract = se.voevent_set.filter(voevent_type=
+                VOEvent.VOEVENT_TYPE_RETRACTION).exists()
+            candidates += int(not se.retract)
+
+            # Get list of viewable logs for user which are tagged with
+            # 'analyst_comments'
+            viewable_logs = get_objects_for_user(self.request.user,
+                self.log_view_permission,
+                klass=se.log_set.filter(tags__name='analyst_comments'))
+            # Compile comments from these logs
+            se.comments = ' ** '.join(list(viewable_logs.values_list(
+                'comment', flat=True)))
+            if se.retract: se.comments += " ** RETRACTED ** "
+
+            # -- Read out probabilities
+            pastro_values = [ ("BNS",voe.prob_bns), ("NSBH",voe.prob_nsbh),
+                              ("BBH", voe.prob_bbh), ("Terrestrial", voe.prob_terrestrial),
+                              ("MassGap", voe.prob_mass_gap) ]
+
+            pastro_values.sort(reverse=True, key=lambda (a,b):b)
+            sourcelist = []
+            for key, value in pastro_values:
+                if value > 0.01:
+                    prob = int(round(100*value))
+                    if prob == 100: prob = '>99'
+                    sourcestr = "{0} ({1}%)".format(key, prob)
+                    sourcelist.append(sourcestr)
+            se.sourcetypes = ', '.join(sourcelist)
+            se.N = voe.N
+
+        # Number of non-retracted candidate events
+        context['candidates'] = candidates
+
+        #-- Is this user outside the LVC?
+        context['user_is_external'] = is_external(self.request.user)
+
+        return context
