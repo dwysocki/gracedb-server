@@ -31,7 +31,6 @@
 <br/><br/>
 
 
-
 <table class="tablesaw" data-tablesaw-sortable data-tablesaw-sortable-switch data-tablesaw-mode="columntoggle">
   <thead><tr>
       <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="persist">Event ID</th>
@@ -44,11 +43,16 @@
       <th  scope="col" data-tablesaw-col data-tablesaw-priority="5">&Omega; Scan</th>
       {% endif %}
 
-      <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="6">Comments</th>
-
+      <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="4">Comments</th>
       <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="0">GPS</th>
-      <th  scope="col" data-tablesaw-col data-tablesaw-priority="0">False Alarm Rate (per year)</th>
-      <!-- <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="0">UTC Time</th> -->      
+      <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="0">False Alarm Rate (per year)</th>
+      <th  scope="col" data-tablesaw-col data-tablesaw-priority="0">VOEvent</th>
+
+      {% if not user_is_external %}
+      <th  scope="col" data-tablesaw-col data-tablesaw-priority="0">PE</th>
+      {% endif %}
+
+      
     </tr>
   </thead>
   <tbody>
@@ -80,12 +84,12 @@
   </td>
   {% endif %}
   
-
-  <td>{{ event.comments }} </td>
-
+  <td>{{ event.comments |safe}} </td>
   <td>{{ event.t_0|floatformat:2 }} </td>
   <td> 1 per {{ event.ifar_yrs|floatformat:2 }} years</td>
-  <!-- <td>{{ event.t0_iso }} UTC</td>  --> 
+  <td> <a href='/api/superevents/{{ event.default_superevent_id }}/voevents/'>VOEvent</a></td>
+  {% if not user_is_external %}  <td> {{ event.pe |safe}}</td> {% endif %}
+
 </tr>
 
 {% endfor %}

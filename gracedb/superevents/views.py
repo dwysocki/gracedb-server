@@ -207,6 +207,7 @@ class SupereventPublic2(ListView):
     gcnurl_template = 'https://gcn.gsfc.nasa.gov/other/GW{sd_id}.gcn3'
     skymap_filename = 'bayestar.png'
 
+    
     def get_queryset(self, **kwargs):
         # -- Query only for public events
         # Comment from Tanner: Use the category directly from the superevent
@@ -273,6 +274,14 @@ class SupereventPublic2(ListView):
                 'comment', flat=True)))
             if se.retract: se.comments += " ** RETRACTED ** "
 
+            # -- Get list of PE results
+            pe_results = get_objects_for_user(self.request.user,
+                self.log_view_permission,
+                klass=se.log_set.filter(tags__name='pe_result'))
+            # Compile comments from these logs
+            se.pe = ' ** '.join(list(pe_results.values_list(
+                'comment', flat=True)))
+            
             # -- Read out probabilities
             pastro_values = [ ("BNS",voe.prob_bns), ("NSBH",voe.prob_nsbh),
                               ("BBH", voe.prob_bbh), ("Terrestrial", voe.prob_terrestrial),
