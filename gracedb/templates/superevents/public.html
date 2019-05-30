@@ -3,56 +3,31 @@
 {% load logtags %}
 {% load static %}
 
-{% comment %}
-{% block csslink %}<link rel="stylesheet" href="{% static "css/public.css" %}" />{% endblock %}
-{% endcomment %}
+
+{% block csslink %}
+<link rel="stylesheet" href="{% static "css/style.css" %}" />
+<link rel="stylesheet" href="{% static "css/public.css" %}" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{% endblock %}
 
 {% block heading %}{% endblock %}
 
-
-
-{% block bodyattrs %}class="tundra eventDetail"{% endblock %}
-
-
 {% block jscript %}
-
-
 <link rel="stylesheet" type="text/css" href="{% static "tablesaw/dist/tablesaw.css" %}" />
 <script language="javascript" type="text/javascript" src="{% static "tablesaw/dist/tablesaw.js" %}"></script>
 <script language="javascript" type="text/javascript" src="{% static "tablesaw/dist/tablesaw-init.js" %}"></script>
-<!-- <script src="//filamentgroup.github.io/demo-head/loadfont.js"></script> -->
+{% endblock %}
 
-<!-- Styles for dgrid -->
-<!-- <link rel="stylesheet" href="{% static "dgrid/css/dgrid.css" %}" /> -->
-<!-- Styles for the editor components -->
-
-<!--
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/PageBreak.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/ShowBlockNodes.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Preview.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Save.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Breadcrumb.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/FindReplace.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/PasteFromWord.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/InsertAnchor.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/CollapsibleToolbar.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Blockquote.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Smiley.css" %}" />
-
-<link rel="stylesheet" href="{% static "dojox/image/resources/LightboxNano.css" %}" />
-
-<link rel="stylesheet" href="{% static "dijit/themes/tundra/tundra.css" %}" />
--->
-
-
-<!-- the main JavaScript block is pulled in with an include -->
-
+{% block nav %}
+<!-- This nav bar only has links for HOME and LOGIN to fit on mobile -->
+{% include "navbar_min.html" %}
 {% endblock %}
 
 {% block content %}
+<br/>
 <h1>LIGO/Virgo Public Alerts</h1> 
 
-<h3>O3 detection candidates: {{ candidates }}</h3>
+<h3>Detection candidates: {{ candidates }}</h3>
 <br/><br/>
 
 
@@ -75,17 +50,18 @@
       <th  scope="col" data-tablesaw-col data-tablesaw-priority="0">False Alarm Rate (per year)</th>
       <!-- <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="0">UTC Time</th> -->      
     </tr>
-  </thead><tbody>
+  </thead>
+  <tbody>
 
 
 {% for event in object_list %}
 <tr   {% if event.retract %}style='background-color:#EDD' {% endif %}  >
 
-  <td><a href=/superevents/{{ event.superevent_id }}>{{ event.default_superevent_id }}</a></td>
+  <td style='min-width:100px;'><a href=/superevents/{{ event.superevent_id }}>{{ event.default_superevent_id }}</a></td>
 
   <td style='min-width:120px;'>{{ event.sourcetypes }} </td>
 
-  <td style='min-width:120px'>
+  <td style='min-width:140px'>
     <span style='font-size:0px;'>{{ event.t0_iso }}</span>{{ event.t_0_date }}<br/>
     {{ event.t0_utc }} UTC
   </td>
