@@ -5,11 +5,14 @@ import shutil
 from django.conf import settings
 from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 
 from guardian.conf import settings as guardian_settings
 from guardian.models import GroupObjectPermission, UserObjectPermission
+
+from events.models import Tag
+from ligoauth.models import AuthGroup
 
 # Set up user model
 UserModel = get_user_model()
@@ -60,8 +63,11 @@ class InternalGroupAndUserSetup(TestCase):
         super(InternalGroupAndUserSetup, cls).setUpTestData()
 
         # Get or create internal group
-        cls.internal_group, _ = Group.objects.get_or_create(
+        cls.internal_group, created = AuthGroup.objects.get_or_create(
             name=settings.LVC_GROUP)
+        if created:
+            cls.internal_group.ldap_name = 'internal_ldap_group'
+            cls.internal_group.save(update_fields=['ldap_name'])
 
         # Get or create user
         cls.internal_user, _ = UserModel.objects.get_or_create(
@@ -104,12 +110,20 @@ class LvemGroupAndUserSetup(TestCase):
         super(LvemGroupAndUserSetup, cls).setUpTestData()
 
         # Get or create LV-EM group
-        cls.lvem_group, _ = Group.objects.get_or_create(
+        cls.lvem_group, created = AuthGroup.objects.get_or_create(
             name=settings.LVEM_GROUP)
+        if created:
+            cls.lvem_group.ldap_name = 'lvem_ldap_group'
+            cls.lvem_group.save(update_fields=['ldap_name'])
 
         # Get or create LV-EM observers group
-        cls.lvem_obs_group, _ = Group.objects.get_or_create(
+        lvem_obs_tag, _ = Tag.objects.get_or_create(name='lvem')
+        cls.lvem_obs_group, created = AuthGroup.objects.get_or_create(
             name=settings.LVEM_OBSERVERS_GROUP)
+        if created:
+            cls.lvem_obs_group.ldap_name = 'lvem_observers_ldap_group'
+            cls.lvem_obs_group.tag = lvem_obs_tag
+            cls.lvem_obs_group.save(update_fields=['ldap_name', 'tag'])
 
         # Get or create user
         cls.lvem_user, _ = UserModel.objects.get_or_create(
@@ -133,7 +147,7 @@ class SupereventManagersGroupAndUserSetup(TestCase):
         super(SupereventManagersGroupAndUserSetup, cls).setUpTestData()
 
         # Get or create superevent managers
-        cls.sm_group, _ = Group.objects.get_or_create(
+        cls.sm_group, _ = AuthGroup.objects.get_or_create(
             name='superevent_managers')
 
         # Get or create user
@@ -144,8 +158,11 @@ class SupereventManagersGroupAndUserSetup(TestCase):
         cls.sm_group.user_set.add(cls.sm_user)
 
         # Also add user to internal group
-        internal_group, _ = Group.objects.get_or_create(
+        internal_group, created = AuthGroup.objects.get_or_create(
             name=settings.LVC_GROUP)
+        if created:
+            internal_group.ldap_name = 'internal_ldap_group'
+            internal_group.save(update_fields=['ldap_name'])
         internal_group.user_set.add(cls.sm_user)
 
         # Get permissions
@@ -179,7 +196,7 @@ class AccessManagersGroupAndUserSetup(TestCase):
         super(AccessManagersGroupAndUserSetup, cls).setUpTestData()
 
         # Get or create access managers
-        cls.am_group, _ = Group.objects.get_or_create(
+        cls.am_group, _ = AuthGroup.objects.get_or_create(
             name='access_managers')
 
         # Get or create user
@@ -190,8 +207,11 @@ class AccessManagersGroupAndUserSetup(TestCase):
         cls.am_group.user_set.add(cls.am_user)
 
         # Also add user to internal group
-        internal_group, _ = Group.objects.get_or_create(
+        internal_group, created = AuthGroup.objects.get_or_create(
             name=settings.LVC_GROUP)
+        if created:
+            internal_group.ldap_name = 'internal_ldap_group'
+            internal_group.save(update_fields=['ldap_name'])
         internal_group.user_set.add(cls.am_user)
 
         # Get permissions
@@ -222,14 +242,18 @@ class SignoffGroupsAndUsersSetup(TestCase):
         super(SignoffGroupsAndUsersSetup, cls).setUpTestData()
 
         # Internal group, used later
-        internal_group, _ = Group.objects.get_or_create(
+        internal_group, created = AuthGroup.objects.get_or_create(
             name=settings.LVC_GROUP)
+        if created:
+            internal_group.ldap_name = 'internal_ldap_group'
+            internal_group.save(update_fields=['ldap_name'])
 
         # Get or create IFO control room groups and users, and add perms
         ifos = ['H1', 'L1', 'V1']
         for ifo in ifos:
             # Create groups and usres
-            g, _ = Group.objects.get_or_create(name=(ifo + '_control_room'))
+            g, _ = AuthGroup.objects.get_or_create(
+                name=(ifo + '_control_room'))
             user, _ = UserModel.objects.get_or_create(username=(ifo + '.user'))
             user.groups.add(g)
             setattr(cls, ifo + '_user', user)
@@ -244,7 +268,10 @@ class SignoffGroupsAndUsersSetup(TestCase):
             g.permissions.add(*p)
 
         # Same for em advocates
-        g, _ = Group.objects.get_or_create(name='em_advocates')
+        g, created = AuthGroup.objects.get_or_create(name='em_advocates')
+        if created:
+            g.ldap_name = 'em_advocates_ldap_group'
+            g.save(update_fields=['ldap_name'])
         user, _ = UserModel.objects.get_or_create(username='em.advocate')
         user.groups.add(g)
         cls.adv_user = user
@@ -269,7 +296,7 @@ class SignoffGroupsAndUsersSetup(TestCase):
             'delete_signoff',
         ]
         for grp_name in grps:
-            group = Group.objects.get(name=grp_name)
+            group = AuthGroup.objects.get(name=grp_name)
             perms = Permission.objects.filter(
                 content_type__app_label='superevents',
                 codename__in=permission_codenames)
@@ -288,8 +315,12 @@ class PublicGroupSetup(TestCase):
         super(PublicGroupSetup, cls).setUpTestData()
 
         # Get or create public group
-        cls.public_group, _ = Group.objects.get_or_create(
+        public_tag, _ = Tag.objects.get_or_create(name='public')
+        cls.public_group, created = AuthGroup.objects.get_or_create(
             name=settings.PUBLIC_GROUP)
+        if created:
+            cls.public_group.tag = public_tag
+            cls.public_group.save(update_fields=['tag'])
 
         # Create guardian AnonymousUser and add to group
         anonymous_user, _ = UserModel.objects.get_or_create(username=

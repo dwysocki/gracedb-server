@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.auth.models import Group as DjangoGroup, User, AnonymousUser
+from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.auth.middleware import AuthenticationMiddleware
 from django.core.exceptions import ImproperlyConfigured
 from django.test import RequestFactory
@@ -8,7 +8,7 @@ from django.urls import reverse
 
 from user_sessions.middleware import SessionMiddleware
 
-from ligoauth.models import RobotUser
+from ligoauth.models import RobotUser, AuthGroup
 from ligoauth.middleware import (
     ControlRoomMiddleware, ShibbolethWebAuthMiddleware,
 )
@@ -44,7 +44,7 @@ class TestControlRoomMiddlewareHomeView(GraceDbTestBase):
         super(TestControlRoomMiddlewareHomeView, cls).setUpTestData()
 
         # Create control room group
-        cls.control_room_group, _ = DjangoGroup.objects.get_or_create(
+        cls.control_room_group, _ = AuthGroup.objects.get_or_create(
             name=cls.ifo.lower() + '_control_room')
 
     def test_internal_user_in_control_room(self):
@@ -145,7 +145,7 @@ class TestControlRoomMiddleware(GraceDbTestBase):
         super(TestControlRoomMiddleware, cls).setUpTestData()
 
         # Create control room group
-        cls.control_room_group, _ = DjangoGroup.objects.get_or_create(
+        cls.control_room_group, _ = AuthGroup.objects.get_or_create(
             name=cls.ifo.lower() + '_control_room')
 
     def test_internal_user_in_control_room(self):
@@ -161,14 +161,16 @@ class TestControlRoomMiddleware(GraceDbTestBase):
         request = self.mw_instance.process_request(request)
 
         # Test request after processing
-        self.assertIn(self.control_room_group, request.user.groups.all())
+        self.assertTrue(request.user.groups.filter(
+            pk=self.control_room_group.pk).exists())
 
         # Process response (fake response object since it's not used at all
         # in ControlRoomMiddleware.process_response)
         response = self.mw_instance.process_response(request, None)
 
         # User not in control room group after response cycle processing
-        self.assertNotIn(self.control_room_group, request.user.groups.all())
+        self.assertFalse(request.user.groups.filter(
+            pk=self.control_room_group.pk).exists())
 
     def test_internal_user_non_control_room(self):
         """
@@ -185,14 +187,16 @@ class TestControlRoomMiddleware(GraceDbTestBase):
         request = self.mw_instance.process_request(request)
 
         # Test request after processing
-        self.assertNotIn(self.control_room_group, request.user.groups.all())
+        self.assertFalse(request.user.groups.filter(
+            pk=self.control_room_group.pk).exists())
 
         # Process response (fake response object since it's not used at all
         # in ControlRoomMiddleware.process_response)
         response = self.mw_instance.process_response(request, None)
 
         # User not in control room group after response cycle processing
-        self.assertNotIn(self.control_room_group, request.user.groups.all())
+        self.assertFalse(request.user.groups.filter(
+            pk=self.control_room_group.pk).exists())
 
     def test_inactive_internal_user_in_control_room(self):
         """
@@ -209,20 +213,23 @@ class TestControlRoomMiddleware(GraceDbTestBase):
         request.META['REMOTE_ADDR'] = settings.CONTROL_ROOM_IPS[self.ifo]
 
         # User not in control room group before processing
-        self.assertNotIn(self.control_room_group, request.user.groups.all())
+        self.assertFalse(request.user.groups.filter(
+            pk=self.control_room_group.pk).exists())
 
         # Process request
         request = self.mw_instance.process_request(request)
 
         # Test request after processing
-        self.assertIn(self.control_room_group, request.user.groups.all())
+        self.assertTrue(request.user.groups.filter(
+            pk=self.control_room_group.pk).exists())
 
         # Process response (fake response object since it's not used at all
         # in ControlRoomMiddleware.process_response)
         response = self.mw_instance.process_response(request, None)
 
         # User not in control room group after response cycle processing
-        self.assertNotIn(self.control_room_group, request.user.groups.all())
+        self.assertFalse(request.user.groups.filter(
+            pk=self.control_room_group.pk).exists())
 
 
 class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
@@ -254,7 +261,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         request = self.factory.get(self.url)
         request.META.update(**{
             settings.SHIB_USER_HEADER: self.internal_user.username,
-            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
         })
         # Necessary pre-processing middleware
         SessionMiddleware().process_request(request)
@@ -268,7 +275,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.assertEqual(request.user.backend,
             'ligoauth.backends.ShibbolethRemoteUserBackend')
         self.assertEqual(request.user, self.internal_user)
-        self.assertIn(self.internal_group, request.user.groups.all())
+        self.assertTrue(request.user.groups.filter(
+            pk=self.internal_group.pk).exists())
 
     def test_user_authentication_other_url(self):
         """
@@ -278,7 +286,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         request = self.factory.get(reverse('home'))
         request.META.update(**{
             settings.SHIB_USER_HEADER: self.internal_user.username,
-            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
         })
         SessionMiddleware().process_request(request)
         AuthenticationMiddleware().process_request(request)
@@ -295,7 +303,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         request = self.factory.get(self.url)
         request.META.update(**{
             settings.SHIB_USER_HEADER: self.lvem_user.username,
-            settings.SHIB_GROUPS_HEADER: self.lvem_obs_group.name,
+            settings.SHIB_GROUPS_HEADER: self.lvem_obs_group.ldap_name,
         })
         # Necessary pre-processing middleware
         SessionMiddleware().process_request(request)
@@ -308,8 +316,10 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.assertEqual(request.user.backend,
             'ligoauth.backends.ShibbolethRemoteUserBackend')
         self.assertEqual(request.user, self.lvem_user)
-        self.assertIn(self.lvem_obs_group, request.user.groups.all())
-        self.assertNotIn(self.internal_group, request.user.groups.all())
+        self.assertTrue(request.user.groups.filter(
+            pk=self.lvem_obs_group.pk).exists())
+        self.assertFalse(request.user.groups.filter(
+            pk=self.internal_group.pk).exists())
 
     def test_public_authentication_post_login(self):
         """User can't be authenticated with no credentials at post-login"""
@@ -335,7 +345,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         request = self.factory.get(self.url)
         request.META.update(**{
             settings.SHIB_USER_HEADER: new_user_dict['username'],
-            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
             settings.SHIB_ATTRIBUTE_MAP['email']: new_user_dict['email'],
         })
         # Necessary pre-processing middleware
@@ -349,11 +359,13 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.assertTrue(request.user.is_authenticated)
         self.assertEqual(request.user.backend,
             'ligoauth.backends.ShibbolethRemoteUserBackend')
-        self.assertIn(self.internal_group, request.user.groups.all())
+        self.assertTrue(request.user.groups.filter(
+            pk=self.internal_group.pk).exists())
 
         # Make sure user information is correct
         new_user = User.objects.get(username=new_user_dict['username'])
-        self.assertIn(self.internal_group, new_user.groups.all())
+        self.assertTrue(new_user.groups.filter(
+            pk=self.internal_group.pk).exists())
         self.assertEqual(new_user.username, new_user_dict['username'])
         self.assertEqual(new_user.email, new_user_dict['email'])
 
@@ -366,7 +378,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         request = self.factory.get(self.url)
         request.META.update(**{
             settings.SHIB_USER_HEADER: new_user_dict['username'],
-            settings.SHIB_GROUPS_HEADER: self.lvem_obs_group.name,
+            settings.SHIB_GROUPS_HEADER: self.lvem_obs_group.ldap_name,
             settings.SHIB_ATTRIBUTE_MAP['email']: new_user_dict['email'],
         })
         # Necessary pre-processing middleware
@@ -375,26 +387,30 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.mw_instance.process_request(request)
 
         # Make sure user is authenticated and was authenticated by
-        # the shibboleth backend and that the internal group is
+        # the shibboleth backend and that the LV-EM observers group is
         # attached to the user account
         self.assertTrue(request.user.is_authenticated)
         self.assertEqual(request.user.backend,
             'ligoauth.backends.ShibbolethRemoteUserBackend')
-        self.assertIn(self.lvem_obs_group, request.user.groups.all())
+        self.assertTrue(request.user.groups.filter(
+            pk=self.lvem_obs_group.pk).exists())
 
         # Make sure user information is correct
         new_user = User.objects.get(username=new_user_dict['username'])
-        self.assertIn(self.lvem_obs_group, new_user.groups.all())
+        self.assertTrue(new_user.groups.filter(
+            pk=self.lvem_obs_group.pk).exists())
         self.assertEqual(new_user.username, new_user_dict['username'])
         self.assertEqual(new_user.email, new_user_dict['email'])
 
     def test_group_addition(self):
         """Add a group for a user based on shib group header content"""
         # Create new group for testing
-        new_group = DjangoGroup.objects.create(name='new_group')
+        new_group = AuthGroup.objects.create(name='new_group',
+            ldap_name='new_ldap_group')
         # Compile group header
         delim = ShibbolethWebAuthMiddleware.group_delimiter
-        groups_str = delim.join([self.internal_group.name, new_group.name])
+        groups_str = delim.join([self.internal_group.ldap_name,
+            new_group.ldap_name])
 
         # Set up request
         request = self.factory.get(self.url)
@@ -405,7 +421,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
 
         # Make sure user just has internal group initially
         self.assertEqual(self.internal_user.groups.count(), 1)
-        self.assertIn(self.internal_group, self.internal_user.groups.all())
+        self.assertTrue(self.internal_user.groups.filter(
+            pk=self.internal_group.pk).exists())
 
         # Necessary pre-processing middleware
         SessionMiddleware().process_request(request)
@@ -420,13 +437,16 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.assertEqual(request.user.backend,
             'ligoauth.backends.ShibbolethRemoteUserBackend')
         self.assertEqual(self.internal_user.groups.count(), 2)
-        self.assertIn(self.internal_group, self.internal_user.groups.all())
-        self.assertIn(new_group, self.internal_user.groups.all())
+        self.assertTrue(self.internal_user.groups.filter(
+            pk=self.internal_group.pk).exists())
+        self.assertTrue(self.internal_user.groups.filter(
+            pk=new_group.pk).exists())
 
     def test_group_removal(self):
         """Remove a group for a user based on shib group header content"""
         # Create new group, add to user
-        new_group = DjangoGroup.objects.create(name='new_group')
+        new_group = AuthGroup.objects.create(name='new_group',
+            ldap_name='new_ldap_group')
         self.internal_user.groups.add(new_group)
 
         # Set up request
@@ -434,13 +454,15 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         request = self.factory.get(self.url)
         request.META.update(**{
             settings.SHIB_USER_HEADER: self.internal_user.username,
-            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
         })
 
         # Make sure user has both groups initially
         self.assertEqual(self.internal_user.groups.count(), 2)
-        self.assertIn(self.internal_group, self.internal_user.groups.all())
-        self.assertIn(new_group, self.internal_user.groups.all())
+        self.assertTrue(self.internal_user.groups.filter(
+            pk=self.internal_group.pk).exists())
+        self.assertTrue(self.internal_user.groups.filter(
+            pk=new_group.pk).exists())
 
         # Necessary pre-processing middleware
         SessionMiddleware().process_request(request)
@@ -455,8 +477,10 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.assertEqual(request.user.backend,
             'ligoauth.backends.ShibbolethRemoteUserBackend')
         self.assertEqual(self.internal_user.groups.count(), 1)
-        self.assertIn(self.internal_group, self.internal_user.groups.all())
-        self.assertNotIn(new_group, self.internal_user.groups.all())
+        self.assertTrue(self.internal_user.groups.filter(
+            pk=self.internal_group.pk).exists())
+        self.assertFalse(request.user.groups.filter(
+            pk=new_group.pk).exists())
 
     def test_robotuser_group_addition(self):
         """
@@ -467,10 +491,12 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         r_user.groups.add(self.internal_group)
 
         # Create new group for testing
-        new_group = DjangoGroup.objects.create(name='new_group')
+        new_group = AuthGroup.objects.create(name='new_group',
+            ldap_name='new_ldap_group')
         # Compile group header
         delim = ShibbolethWebAuthMiddleware.group_delimiter
-        groups_str = delim.join([self.internal_group.name, new_group.name])
+        groups_str = delim.join([self.internal_group.ldap_name,
+            new_group.ldap_name])
 
         # Set up request
         request = self.factory.get(self.url)
@@ -481,7 +507,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
 
         # Make sure user just has internal group initially
         self.assertEqual(r_user.groups.count(), 1)
-        self.assertIn(self.internal_group, r_user.groups.all())
+        self.assertTrue(r_user.groups.filter(
+            pk=self.internal_group.pk).exists())
 
         # Necessary pre-processing middleware
         SessionMiddleware().process_request(request)
@@ -496,8 +523,10 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.assertEqual(request.user.backend,
             'ligoauth.backends.ShibbolethRemoteUserBackend')
         self.assertEqual(r_user.groups.count(), 1)
-        self.assertIn(self.internal_group, r_user.groups.all())
-        self.assertNotIn(new_group, r_user.groups.all())
+        self.assertTrue(r_user.groups.filter(
+            pk=self.internal_group.pk).exists())
+        self.assertFalse(r_user.groups.filter(
+            pk=new_group.pk).exists())
 
     def test_robotuser_group_removal(self):
         """
@@ -506,8 +535,9 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         # Create a RobotUser and add to internal group
         r_user = RobotUser.objects.create(username='robot.user')
         r_user.groups.add(self.internal_group)
-        # Create new group and add robotusre
-        new_group = DjangoGroup.objects.create(name='new_group')
+        # Create new group and add robotuser
+        new_group = AuthGroup.objects.create(name='new_group',
+            ldap_name='new_ldap_group')
         r_user.groups.add(new_group)
 
         # Set up request
@@ -515,13 +545,15 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         request = self.factory.get(self.url)
         request.META.update(**{
             settings.SHIB_USER_HEADER: r_user.username,
-            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
         })
 
         # Make sure user has both groups initially
         self.assertEqual(r_user.groups.count(), 2)
-        self.assertIn(self.internal_group, r_user.groups.all())
-        self.assertIn(new_group, r_user.groups.all())
+        self.assertTrue(r_user.groups.filter(
+            pk=self.internal_group.pk).exists())
+        self.assertTrue(r_user.groups.filter(
+            pk=new_group.pk).exists())
 
         # Necessary pre-processing middleware
         SessionMiddleware().process_request(request)
@@ -536,8 +568,10 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.assertEqual(request.user.backend,
             'ligoauth.backends.ShibbolethRemoteUserBackend')
         self.assertEqual(r_user.groups.count(), 2)
-        self.assertIn(self.internal_group, r_user.groups.all())
-        self.assertIn(new_group, r_user.groups.all())
+        self.assertTrue(r_user.groups.filter(
+            pk=self.internal_group.pk).exists())
+        self.assertTrue(r_user.groups.filter(
+            pk=new_group.pk).exists())
 
     def test_user_update(self):
         """Test user information update in middleware"""
@@ -549,7 +583,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         request = self.factory.get(self.url)
         request.META.update(**{
             settings.SHIB_USER_HEADER: self.internal_user.username,
-            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
             settings.SHIB_ATTRIBUTE_MAP['email']: email2,
         })
 
@@ -587,7 +621,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         request = self.factory.get(self.url)
         request.META.update(**{
             settings.SHIB_USER_HEADER: self.internal_user.username,
-            settings.SHIB_GROUPS_HEADER: self.internal_group.name,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
         })
         # Necessary pre-processing middleware
         SessionMiddleware().process_request(request)
