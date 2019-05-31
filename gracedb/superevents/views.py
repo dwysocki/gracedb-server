@@ -198,7 +198,7 @@ class SupereventPublic(ListView):
         return context
 
 
-class SupereventPublic2(ListView):
+class SupereventPublic2(DisplayFarMixin, ListView):
     model = Superevent
     template_name = 'superevents/public.html'
     filter_permissions = ['superevents.view_superevent']
@@ -240,15 +240,14 @@ class SupereventPublic2(ListView):
                 se.default_superevent_id)
             se.gcnurl = self.gcnurl_template.format(sd_id=
                 se.default_superevent_id[1:])
-
-            # Comment from Tanner: suggest to refactor ifar yrs so it shows as
-            # either 1 per X yrs or 1/X per 1 yr, depending on which one
-            # is most understandable (see lines 389-398 of events/views.py)
-            # However: is this right? Looks like we are presenting iFAR as FAR
-            # in the template.  Maybe I'm not understanding it, though.
-            se.ifar_yrs = 1.0 / (se.far*3600*24*365.0)
+            
             se.t0_iso = gpstime.gps_to_utc(se.t_0).isoformat(' ').split('.')[0]
             se.t0_utc = se.t0_iso.split()[1]
+
+            # Get display FARs for preferred_event
+            se.disp_far = self.get_display_far(obj=se.preferred_event)[0] 
+            
+            
 
             #-- Get list of voevents
             # Comment from Tanner: do as much work as you can in the database.

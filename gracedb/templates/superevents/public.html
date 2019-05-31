@@ -44,22 +44,20 @@
       {% endif %}
 
       <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="4">Comments</th>
-      <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="0">GPS</th>
-      <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="0">False Alarm Rate (per year)</th>
+      <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="5">GPS</th> 
+      <th  scope="col" data-tablesaw-sortable-col data-tablesaw-sortable-numeric data-tablesaw-priority="0">FAR (Hz)</th>
       <th  scope="col" data-tablesaw-col data-tablesaw-priority="0">VOEvent</th>
 
       {% if not user_is_external %}
       <th  scope="col" data-tablesaw-col data-tablesaw-priority="0">PE</th>
-      {% endif %}
-
-      
+      {% endif %}      
     </tr>
   </thead>
   <tbody>
 
 
 {% for event in object_list %}
-<tr   {% if event.retract %}style='background-color:#EDD' {% endif %}  >
+<tr{% if event.retract %} style='background-color:#EDD' {% endif %}>
 
   <td style='min-width:100px;'><a href=/superevents/{{ event.superevent_id }}>{{ event.default_superevent_id }}</a></td>
 
@@ -86,7 +84,9 @@
   
   <td>{{ event.comments |safe}} </td>
   <td>{{ event.t_0|floatformat:2 }} </td>
-  <td> 1 per {{ event.ifar_yrs|floatformat:2 }} years</td>
+
+  <!-- <td> 1 per {{ event.ifar_yrs|floatformat:2 }} years</td> -->
+  <td> {{ event.disp_far|stringformat:".2e" }} </td>
   <td> <a href='/api/superevents/{{ event.default_superevent_id }}/voevents/'>VOEvent</a></td>
   {% if not user_is_external %}  <td> {{ event.pe |safe}}</td> {% endif %}
 
