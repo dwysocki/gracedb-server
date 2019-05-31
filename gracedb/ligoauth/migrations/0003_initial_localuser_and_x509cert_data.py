@@ -3,7 +3,10 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-from django.conf import settings
+
+# Previously, this was taken from settings.LVC_GROUP, but that value has
+# changed. So we have to hard-code it for past migrations.
+LVC_GROUP = 'Communities:LSCVirgoLIGOGroupMembers'
 
 # List of robot user account information and their corresponding
 # x509 certificate subjects. Based on current production database
@@ -345,7 +348,7 @@ def add_localusers_and_x509certs(apps, schema_editor):
     Group = apps.get_model('auth', 'Group')
 
     # Create user accounts
-    lvc_group = Group.objects.get(name=settings.LVC_GROUP)
+    lvc_group = Group.objects.get(name=LVC_GROUP)
     for l_dict in LOCALUSERS:
         localuser, created = LocalUser.objects.get_or_create(username=l_dict['username'])
         localuser.last_name = l_dict['last_name']

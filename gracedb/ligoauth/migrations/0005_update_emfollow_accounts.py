@@ -8,7 +8,11 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-from django.conf import settings
+
+# Previously, this was taken from settings.LVC_GROUP, but that value has
+# changed. So we have to hard-code it for past migrations.
+LVC_GROUP = 'Communities:LSCVirgoLIGOGroupMembers'
+
 
 OLD_ACCOUNTS = {
     'gdb-processor': {
@@ -61,7 +65,7 @@ def deactivate_old_and_add_new_accounts(apps, schema_editor):
         new_user.x509cert_set.create(subject=subject)
 
     # Add user to LVC group
-    group = Group.objects.get(name=settings.LVC_GROUP)
+    group = Group.objects.get(name=LVC_GROUP)
     group.user_set.add(new_user)
 
 def activate_old_and_remove_new_accounts(apps, schema_editor):

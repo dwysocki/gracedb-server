@@ -2,7 +2,11 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-from django.conf import settings
+
+# Previously, this was taken from settings.LVC_GROUP, but that value has
+# changed. So we have to hard-code it for past migrations.
+LVC_GROUP = 'Communities:LSCVirgoLIGOGroupMembers'
+
 
 ROBOTS = [
         {
@@ -20,7 +24,7 @@ def create_robots(apps, schema_editor):
     LocalUser = apps.get_model('ligoauth', 'LocalUser')
     X509Cert = apps.get_model('ligoauth', 'X509Cert')
     Group = apps.get_model('auth', 'Group')
-    lvc_group = Group.objects.get(name=settings.LVC_GROUP)
+    lvc_group = Group.objects.get(name=LVC_GROUP)
 
     for entry in ROBOTS:
         user, created = LocalUser.objects.get_or_create(username=entry['username'])
