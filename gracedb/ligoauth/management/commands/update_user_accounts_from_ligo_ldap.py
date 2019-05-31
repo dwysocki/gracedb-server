@@ -1,10 +1,12 @@
+import datetime
+import ldap
+
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
-import datetime
-from ligoauth.models import LigoLdapUser, X509Cert, AlternateEmail
-from django.conf import settings
-from django.contrib.auth.models import User, Group
-import ldap
+from ligoauth.models import LigoLdapUser, X509Cert, AuthGroup
+
 
 # Variables for LDAP search
 BASE_DN = "ou=people,dc=ligo,dc=org"
@@ -17,8 +19,6 @@ RETRIEVE_ATTRIBUTES = [
     "sn",
     "mail",
     "isMemberOf",
-    "mailAlternateAddress",
-    "mailForwardingAddress"
 ]
 LDAP_ADDRESS = "ldap.ligo.org"
 LDAP_PORT = 636
@@ -168,26 +168,3 @@ class Command(BaseCommand):
                             self.stdout.write("Removing {user} from {group}" \
                                 .format(user=l_user.username,
                                 group=lvc_group.name))
-
-                    # Get alternate email addresses (for some reason...)
-                    try:
-                        mailForwardingAddress = unicode(ldap_result['mailForwardingAddress'][0])
-                    except:
-                        mailForwardingAddress = None
-                    mailAlternateAddresses = ldap_result.get('mailAlternateAddress', [])
-
-                    # Finally, deal with alternate emails.
-                    if mailForwardingAddress:
-                        try:
-                            AlternateEmail.objects.get_or_create(l_user=user,
-                                email=mailForwardingAddress)
-                        except:
-                            pass
-
-                    if len(mailAlternateAddresses) > 0:
-                        for email in mailAlternateAddresses:
-                            try:
-                                AlternateEmail.objects.get_or_create(
-                                    l_user=user, email=email)
-                            except:
-                                pass

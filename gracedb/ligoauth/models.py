@@ -64,27 +64,11 @@ class LigoLdapUser(User):
 class RobotUser(User):
     pass
 
+
 class X509Cert(models.Model):
+    """Model for storing X.509 certificate subjects for API access"""
     subject = models.CharField(max_length=300)
     users = models.ManyToManyField(User)
-
-class AlternateEmail(models.Model):
-    user = models.ForeignKey(User)
-    email = models.EmailField(max_length=254)
-
-def certdn_to_user(dn, username=None):
-    try:
-        possible_users = X509Cert.objects.get(subject=dn).users
-    except:
-        return None
-
-    if username:
-        possible_users.filter(username=username)
-
-    try:
-        return possible_users.all()[0]
-    except IndexError:
-        return None
 
 
 class AuthGroup(Group):
