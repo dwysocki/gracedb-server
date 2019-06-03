@@ -25,7 +25,7 @@ class RobotUser(User):
 
 class X509Cert(models.Model):
     """Model for storing X.509 certificate subjects for API access"""
-    subject = models.CharField(max_length=300)
+    subject = models.CharField(max_length=255, unique=True, null=False)
     users = models.ManyToManyField(User)
 
 
