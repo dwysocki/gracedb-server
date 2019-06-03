@@ -107,8 +107,8 @@ class TestGraceDbX509Authentication(GraceDbApiTestBase):
 
         # Set up certificate for internal user account
         cls.x509_subject = '/x509_subject'
-        cert = X509Cert.objects.create(subject=cls.x509_subject)
-        cert.users.add(cls.internal_user)
+        cert = X509Cert.objects.create(subject=cls.x509_subject,
+            user=cls.internal_user)
 
     def test_user_authenticate_to_api_with_x509_cert(self):
         """User can authenticate to API with valid X509 certificate"""

@@ -157,17 +157,8 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
                 'subject'))
         cert = certs.first()
 
-        # Handle incorrect number of users for a certificate
-        num_users = cert.users.count()
-        if (num_users > 1):
-            raise exceptions.AuthenticationFailed(_('Multiple users have the '
-                'same certificate subject'))
-        elif (num_users == 0):
-            raise exceptions.AuthenticationFailed(_('No user found for this '
-                'certificate'))
-        user = cert.users.first()
-
         # Check if user is active
+        user = cert.user
         if not user.is_active:
             raise exceptions.AuthenticationFailed(
                 _('User inactive or deleted'))
