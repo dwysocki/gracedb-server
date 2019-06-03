@@ -6,48 +6,6 @@ from django.contrib.auth.models import User, Group
 from .managers import LdapGroupManager, TagGroupManager
 
 
-# There seems to be a LOT of duplication here and I don't know
-# if that is good or bad.  Normally, that seems bad...
-#
-# The thing is, LigoLdapUser and RobotUser (and whatever we might add later)
-# are actual entities that we want synched with the Django User, so they *are*
-# separate could conceivably have different first_name's, say, yet still refer
-# to the same (abstract) user entity.  Not likely, and not initially, but
-# conceivably.
-#
-# Whatever.  Just am not fully pleased with this.
-
-#from exceptions import NotImplementedError
-
-#class MetaUser(models.Model):
-    #class Meta:
-        #abstract = True
-
-    #first_name = models.CharField(max_length=50, blank=False, null=False, unique=True)
-    #last_name = models.CharField(max_length=50, blank=False, null=False, unique=True)
-    #email = models.EmailField()
-    #username = models.CharField(max_length=100, unique=True)
-    #is_active = models.BooleanField(default=True)
-    #auth_user = models.ForeignKey(User, null=False)
-
-    #def _get_or_create_auth_user(self):
-        #raise NotImplementedError(str(self.__class__) + " _get_auth_user")
-
-    #def save(self):
-        #user, created = self._get_auth_user()
-        #changed = created \
-                #or (user.first_name != self.first_name) \
-                #or (user.last_name != self.last_name) \
-                #or (user.email != self.email) \
-                #or (user.is_active == self.is_active)
-        #if changed:
-            #user.first_name = self.first_name
-            #user.last_name = self.last_name
-            #user.email = self.email
-            #user.is_active = self.is_active
-            #user.save()
-        #models.Model.save(self)
-
 class LigoLdapUser(User):
     ldap_dn = models.CharField(max_length=100, null=False, unique=True)
 
