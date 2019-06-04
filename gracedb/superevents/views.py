@@ -120,85 +120,7 @@ class SupereventFileList(SupereventDetailView):
 # handled through the API. Links on the file list page point to the
 # API file download page.
 
-class SupereventPublic(ListView):
-    model = Superevent
-    template_name = 'superevents/public.html'
-    filter_permissions = ['superevents.view_superevent']
-    log_view_permission = 'superevents.view_log'    
-
-    def get_queryset(self, **kwargs):
-        # -- Query only for public events
-        qs = Superevent.objects.filter(is_exposed=True, category='P')  #-- Change cateogry to P for production
-        return qs
-        
-    def get_context_data(self, **kwargs):
-        # Get base context
-        context = ListView.get_context_data(self, **kwargs)
-
-        #-- For each superevent, get list of log messages and construct pastro string
-        candidates = 0
-        for se in context['object_list']:
-
-            se.maplocal = "/apiweb/superevents/{0}/files/bayestar.png".format(se.superevent_id)
-
-            #-- GCN links
-            se.noticeurl = "https://gcn.gsfc.nasa.gov/notices_l/{0}.lvc".format(se.default_superevent_id)
-            se.gcnurl    = "https://gcn.gsfc.nasa.gov/other/GW{0}.gcn3".format(se.default_superevent_id[1:])
-            
-            se.ifar_yrs = 1.0 / (se.far*3600*24*365.0)
-            se.t0_iso = gpstime.gps_to_utc(se.t_0).isoformat(' ').split('.')[0]
-            se.t0_utc = se.t0_iso.split()[1]
-            
-            #-- Get list of voevents
-            voevents = se.voevent_set.all()
-
-            # -- Filter out retractions
-            good_voevents = sorted([voe for voe in voevents if voe.voevent_type != 'RE'],key=lambda voe:voe.N)
-            
-            # -- Find retractions
-            retraction_list = [voe for voe in voevents if voe.voevent_type == 'RE']
-            if len(retraction_list) > 0:
-                se.retract = True
-            else:
-                se.retract = False
-                candidates += 1
-
-
-            viewable_logs = get_objects_for_user(self.request.user,
-                                                 self.log_view_permission,
-                                                 se.log_set.all()).filter(tags__name='analyst_comments') #-- change to analyst_comments
-            
-
-            se.comments = ' ** '.join([log.comment for log in viewable_logs]) 
-            if se.retract: se.comments += "-RETRACTED-"
-            
-            # -- Read out probabilities
-            voe = good_voevents[-1]
-            pastro_values = [ ("BNS",voe.prob_bns), ("NSBH",voe.prob_nsbh),
-                              ("BBH", voe.prob_bbh), ("Terrestrial", voe.prob_terrestrial),
-                              ("MassGap", voe.prob_mass_gap) ]
-
-            pastro_values.sort(reverse=True, key=lambda (a,b):b)
-            sourcelist = []
-            for key, value in pastro_values:
-                if value > 0.01:
-                    prob = int(round(100*value))
-                    if prob == 100: prob = '>99'
-                    sourcestr = "{0} ({1}%)".format(key, prob)
-                    sourcelist.append(sourcestr)
-            se.sourcetypes = ', '.join(sourcelist)
-            se.N = voe.N
-
-            
-        context['candidates']=candidates
-
-        #-- Is this user outside the LVC?
-        context['user_is_external'] = is_external(self.request.user)
-        
-        return context
-
-
-class SupereventPublic2(DisplayFarMixin, ListView):
+class SupereventPublic(DisplayFarMixin, ListView):
     model = Superevent
     template_name = 'superevents/public.html'
     filter_permissions = ['superevents.view_superevent']
@@ -222,7 +144,7 @@ class SupereventPublic2(DisplayFarMixin, ListView):
         # Comment from Tanner: use super() here; it's equivalent in this case
         # to directly calling ListView.get_context_data, but super() is
         # typically better practice
-        context = super(SupereventPublic2, self).get_context_data(**kwargs)
+        context = super(SupereventPublic, self).get_context_data(**kwargs)
 
         #-- For each superevent, get list of log messages and construct pastro string
         candidates = 0

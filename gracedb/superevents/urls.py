@@ -37,7 +37,7 @@ urlpatterns = legacy_urlpatterns + [
     # table of all public events
     url(r'^public/$', views.SupereventPublic.as_view(), name="public-alerts"),
 
-    # Tanner customizations
-    url(r'^public2/$', views.SupereventPublic2.as_view(), name="public-alerts2"),
+    # Tanner customizations (now, both links go to same view)
+    url(r'^public2/$', views.SupereventPublic.as_view(), name="public-alerts2"),
     
 ]
