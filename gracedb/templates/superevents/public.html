@@ -30,7 +30,7 @@
 <h3>Detection candidates: {{ candidates }}</h3>
 <br/><br/>
 
-
+<div style="overflow-x: auto">
 <table class="tablesaw" data-tablesaw-sortable data-tablesaw-sortable-switch data-tablesaw-mode="columntoggle">
   <thead><tr>
       <th  scope="col" data-tablesaw-sortable-col data-tablesaw-priority="persist">Event ID</th>
@@ -89,6 +89,7 @@
 
 {% endfor %}
 </tbody></table>
+</div>
 
 <hr/>
 <ul style="list-style-type:square">
