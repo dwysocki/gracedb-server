@@ -245,7 +245,7 @@ class SupereventPublic2(DisplayFarMixin, ListView):
             se.t0_utc = se.t0_iso.split()[1]
 
             # Get display FARs for preferred_event
-            se.disp_far = self.get_display_far(obj=se.preferred_event)[0] 
+            se.far_hz, se.far_hr, se.far_limit = self.get_display_far(obj=se.preferred_event)
             
             
 
