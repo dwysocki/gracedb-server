@@ -120,20 +120,20 @@ class SupereventFileList(SupereventDetailView):
 # handled through the API. Links on the file list page point to the
 # API file download page.
 
+
 class SupereventPublic(DisplayFarMixin, ListView):
     model = Superevent
-    template_name = 'superevents/public.html'
+    template_name = 'superevents/public_alerts.html'
     filter_permissions = ['superevents.view_superevent']
     log_view_permission = 'superevents.view_log'
     noticeurl_template = 'https://gcn.gsfc.nasa.gov/notices_l/{s_id}.lvc'
     gcnurl_template = 'https://gcn.gsfc.nasa.gov/other/GW{sd_id}.gcn3'
     skymap_filename = 'bayestar.png'
+    pe_results_tagname = 'pe_results'
 
-    
     def get_queryset(self, **kwargs):
-        # -- Query only for public events
-        # Comment from Tanner: Use the category directly from the superevent
-        # model rather than hard-coding
+        # Query only for public events
+        # NOTE: may want to fix this to only O3 events at some point
         qs = Superevent.objects.filter(is_exposed=True,
             category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION) \
             .prefetch_related('voevent_set', 'log_set')
@@ -141,73 +141,70 @@ class SupereventPublic(DisplayFarMixin, ListView):
 
     def get_context_data(self, **kwargs):
         # Get base context
-        # Comment from Tanner: use super() here; it's equivalent in this case
-        # to directly calling ListView.get_context_data, but super() is
-        # typically better practice
         context = super(SupereventPublic, self).get_context_data(**kwargs)
 
         #-- For each superevent, get list of log messages and construct pastro string
         candidates = 0
         for se in self.object_list:
 
-            # Comment from Tanner: use reverse() for internal URLs
-            se.maplocal = reverse('legacy_apiweb:default:superevents:superevent-file-detail',
-                args=[se.default_superevent_id, self.skymap_filename])
+            # Get skymap image (if a public one exists)
+            se.skymap_image = None
+            if se.log_set.filter(tags__name='public',
+                filename=self.skymap_filename).exists():
+                se.skymap_image = reverse(
+                    'legacy_apiweb:default:superevents:superevent-file-detail',
+                    args=[se.default_superevent_id, self.skymap_filename])
 
-            #-- GCN links
-            # Comment from Tanner: define link templates outside of function
-            # so they are loaded at "compile-time" rather than each time the
-            # function is called
+            # External links to GCN notice and circular
             se.noticeurl = self.noticeurl_template.format(s_id=
                 se.default_superevent_id)
             se.gcnurl = self.gcnurl_template.format(sd_id=
                 se.default_superevent_id[1:])
-            
+
             se.t0_iso = gpstime.gps_to_utc(se.t_0).isoformat(' ').split('.')[0]
             se.t0_utc = se.t0_iso.split()[1]
 
             # Get display FARs for preferred_event
-            se.far_hz, se.far_hr, se.far_limit = self.get_display_far(obj=se.preferred_event)
-            
-            
+            se.far_hz, se.far_hr, se.far_limit = self.get_display_far(
+                obj=se.preferred_event)
 
-            #-- Get list of voevents
-            # Comment from Tanner: do as much work as you can in the database.
-            # Also, use VOEvent types from the model rather than hard-coding
-            # -- Filter out retractions
-            # Comment from Tanner: looks like we only ever use the
-            # non-retraction VOEvent with the highest N, so let's just get
-            # it in one query.
+            # Get list of voevents, filtering out retractions
             voe = se.voevent_set.exclude(voevent_type=
                 VOEvent.VOEVENT_TYPE_RETRACTION).order_by('-N').first()
-            # -- Was this candidate retracted?
+
+            # Was the candidate retracted?
             se.retract = se.voevent_set.filter(voevent_type=
                 VOEvent.VOEVENT_TYPE_RETRACTION).exists()
             candidates += int(not se.retract)
 
             # Get list of viewable logs for user which are tagged with
             # 'analyst_comments'
-            viewable_logs = get_objects_for_user(self.request.user,
-                self.log_view_permission,
-                klass=se.log_set.filter(tags__name='analyst_comments'))
+            #viewable_logs = get_objects_for_user(self.request.user,
+            #    self.log_view_permission,
+            #    klass=se.log_set.filter(tags__name='analyst_comments'))
+            viewable_logs = se.log_set.filter(tags__name='public').filter(tags__name='analyst_comments')
             # Compile comments from these logs
             se.comments = ' ** '.join(list(viewable_logs.values_list(
                 'comment', flat=True)))
-            if se.retract: se.comments += "RETRACTED"
+            if se.retract:
+                if se.comments:
+                    se.comments += " "
+                se.comments += "RETRACTED"
 
-            # -- Get list of PE results
+            # Get list of PE results
             pe_results = get_objects_for_user(self.request.user,
                 self.log_view_permission,
-                klass=se.log_set.filter(tags__name='pe_result'))
+                klass=se.log_set.filter(tags__name=self.pe_results_tagname))
             # Compile comments from these logs
             se.pe = ' ** '.join(list(pe_results.values_list(
                 'comment', flat=True)))
-            
-            # -- Read out probabilities
-            pastro_values = [ ("BNS",voe.prob_bns), ("NSBH",voe.prob_nsbh),
-                              ("BBH", voe.prob_bbh), ("Terrestrial", voe.prob_terrestrial),
-                              ("MassGap", voe.prob_mass_gap) ]
 
+            # Get p_astro probabilities
+            pastro_values = [("BNS", voe.prob_bns),
+                ("NSBH", voe.prob_nsbh),
+                ("BBH", voe.prob_bbh),
+                ("Terrestrial", voe.prob_terrestrial),
+                ("MassGap", voe.prob_mass_gap)]
             pastro_values.sort(reverse=True, key=lambda (a,b):b)
             sourcelist = []
             for key, value in pastro_values:
@@ -221,8 +218,5 @@ class SupereventPublic(DisplayFarMixin, ListView):
 
         # Number of non-retracted candidate events
         context['candidates'] = candidates
-
-        #-- Is this user outside the LVC?
-        context['user_is_external'] = is_external(self.request.user)
 
         return context

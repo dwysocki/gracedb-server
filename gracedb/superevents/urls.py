@@ -34,10 +34,6 @@ urlpatterns = legacy_urlpatterns + [
     url(r'^(?P<superevent_id>{regex})/'.format(regex=Superevent.ID_REGEX),
         include(suburlpatterns)),
 
-    # table of all public events
+    # View of all candidates
     url(r'^public/$', views.SupereventPublic.as_view(), name="public-alerts"),
-
-    # Tanner customizations (now, both links go to same view)
-    url(r'^public2/$', views.SupereventPublic.as_view(), name="public-alerts2"),
-    
 ]

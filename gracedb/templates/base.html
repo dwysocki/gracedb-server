@@ -7,7 +7,9 @@
 
     {# remove requests for favicon #}
     <link rel="icon" href="data:,">
-    {% block csslink %}<link rel="stylesheet" href="{% static "css/style.css" %}" /> {% endblock %}
+    {% block csslink %}
+    <link rel="stylesheet" href="{% static "css/style.css" %}" />
+    {% endblock %}
     <title>GraceDb | {% block title %}{% endblock %}</title>
 <!-- START TESTING -->
 <script type="text/javascript">
