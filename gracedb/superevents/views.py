@@ -170,7 +170,7 @@ class SupereventPublic(ListView):
             
 
             se.comments = ' ** '.join([log.comment for log in viewable_logs]) 
-            if se.retract: se.comments += " ** RETRACTED ** "
+            if se.retract: se.comments += "-RETRACTED-"
             
             # -- Read out probabilities
             voe = good_voevents[-1]
@@ -271,7 +271,7 @@ class SupereventPublic2(DisplayFarMixin, ListView):
             # Compile comments from these logs
             se.comments = ' ** '.join(list(viewable_logs.values_list(
                 'comment', flat=True)))
-            if se.retract: se.comments += " ** RETRACTED ** "
+            if se.retract: se.comments += "RETRACTED"
 
             # -- Get list of PE results
             pe_results = get_objects_for_user(self.request.user,
