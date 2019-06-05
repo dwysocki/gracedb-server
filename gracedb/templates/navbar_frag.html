@@ -6,11 +6,9 @@
     <li id="nav-latest"><a href="{% url "latest" %}">Latest</a></li>
     {% if user_is_internal %}
     <li id="nav-alerts"><a href="{% url "alerts:index" %}">Alerts</a></li>
+    <li id="nav-pipelines"><a href="{% url "manage-pipelines" %}">Pipelines</a></li>
     {% elif user_is_lvem %}
     <li id="nav-password"><a href="{% url "manage-password" %}">Manage Password</a></li>
-    {% endif %}
-    {% if user_is_advocate %}
-    <li id="nav-pipelines"><a href="{% url "manage-pipelines" %}">Pipelines</a></li>
     {% endif %}
     <li id="nav-docs"><a href="{% url "home" %}documentation/">Documentation</a></li>
     {% if user %}
