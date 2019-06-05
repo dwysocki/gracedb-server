@@ -13,7 +13,8 @@ Contents:
 
    ref_manual 
    tutorials
-   LIGO-Virgo Public Alert Guide <https://emfollow.docs.ligo.org/userguide/>
+   LIGO/Virgo Public Alert Guide <https://emfollow.docs.ligo.org/userguide/>
+   Report a bug (LIGO/Virgo users) <https://git.ligo.org/lscsoft/gracedb/issues>
 
 
 Indices and tables
