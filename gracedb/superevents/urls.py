@@ -35,5 +35,6 @@ urlpatterns = legacy_urlpatterns + [
         include(suburlpatterns)),
 
     # View of all candidates
-    url(r'^public/$', views.SupereventPublic.as_view(), name="public-alerts"),
+    url(r'^public/O3/$', views.SupereventPublic.as_view(),
+        name="public-alerts-O3"),
 ]
