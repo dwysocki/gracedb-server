@@ -103,6 +103,7 @@ h1.docnav {
 
 #home #nav-home a,
 #create #nav-create a,
+#public #nav-public a,
 #search #nav-search a,
 #pipelines #nav-pipelines a,
 #alerts #nav-alerts a,
@@ -122,6 +123,7 @@ h1.docnav {
 }
 #home #nav-home a:hover,
 #create #nav-create a,
+#public #nav-public a,
 #search #nav-search a,
 #pipelines #nav-pipelines a,
 #alerts #nav-alerts a,

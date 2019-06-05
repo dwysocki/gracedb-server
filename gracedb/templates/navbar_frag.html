@@ -1,6 +1,7 @@
 <div style="padding-bottom: 30px;">
 <ul id="nav">
     <li id="nav-home"><a href="{% url "home" %}">Home</a></li>
+    <li id="nav-public"><a href="{% url "superevents:public-alerts-O3" %}">Public Alerts</a></li>
     <li id="nav-search"><a href="{% url "mainsearch" %}">Search</a></li>
     {% if user_is_internal %}
         <li id="nav-create"><a href="{% url "create" %}">Create</a></li>
