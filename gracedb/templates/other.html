@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Other pages{% endblock %}
+{% block heading %}Other pages{% endblock %}
+{% block pageid %}other{% endblock %}
+
+{% block content %}
+
+<div>
+<ul>
+  <li><a href="{% url "create" %}">Create an event</a></li>
+  <li><a href="{% url "reports" %}">Reports page</a></li>
+  <li><a href="{% url "feeds" %}">RSS feeds</a></li>
+</ul>
+</div>
+
+{% endblock %}

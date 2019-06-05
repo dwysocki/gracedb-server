@@ -37,6 +37,8 @@ urlpatterns = [
     url(r'^feeds/(?P<url>.*)/$', EventFeed()),
     url(r'^feeds/$', feedview, name="feeds"),
 
+    url(r'^other/$', TemplateView.as_view(template_name='other.html'),
+        name='other'),
     url(r'^performance/$', events.views.performance, name="performance"),
     url(r'^reports/$', events.reports.histo, name="reports"),
     url(r'^reports/cbc_report/(?P<format>(json|flex))?$',

@@ -63,15 +63,12 @@
 }
 
 #home #nav-home a,
-#create #nav-create a,
 #public #nav-public a,
 #search #nav-search a,
 #pipelines #nav-pipelines a,
 #alerts #nav-alerts a,
 #password #nav-password a,
-#reports #nav-reports a,
-#feeds #nav-feeds a,
-#about #nav-about a,
+#other #nav-other a,
 #archive #nav-archive a,
 #lab #nav-lab a,
 #reviews #nav-reviews a,
@@ -81,14 +78,12 @@
     /* text-shadow:none; */
 }
 #home #nav-home a:hover,
-#create #nav-create a,
 #public #nav-public a,
 #search #nav-search a,
 #pipelines #nav-pipelines a,
 #alerts #nav-alerts a,
 #password #nav-password a,
-#reports #nav-reports a,
-#feeds #nav-feeds a,
+#other #nav-other a,
 #about #nav-about a:hover,
 #archive #nav-archive a:hover,
 #lab #nav-lab a:hover,

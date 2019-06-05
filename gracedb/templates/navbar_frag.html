@@ -3,11 +3,6 @@
     <li id="nav-home"><a href="{% url "home" %}">Home</a></li>
     <li id="nav-public"><a href="{% url "superevents:public-alerts-O3" %}">Public Alerts</a></li>
     <li id="nav-search"><a href="{% url "mainsearch" %}">Search</a></li>
-    {% if user_is_internal %}
-        <li id="nav-create"><a href="{% url "create" %}">Create</a></li>
-        <li id="nav-reports"><a href="{% url "reports" %}">Reports</a></li>
-        <li id="nav-feeds"><a href="{% url "feeds" %}">RSS</a></li> 
-    {% endif %}
     <li id="nav-latest"><a href="{% url "latest" %}">Latest</a></li>
     {% if user_is_internal %}
     <li id="nav-alerts"><a href="{% url "alerts:index" %}">Alerts</a></li>
@@ -22,6 +17,9 @@
         {% if user.is_superuser %}
             <li id="nav-admin-docs"><a href="{% url "home" %}admin_docs/">Admin docs</a></li>
         {% endif %}
+    {% endif %}
+    {% if user_is_internal %}
+        <li id="nav-other"><a href="{% url "other" %}">Other</a></li>
     {% endif %}
     {% if user.is_authenticated %}
         <li id="nav-logout"><a href="{% url "logout" %}">Logout</a></li>
