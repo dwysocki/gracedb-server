@@ -81,15 +81,17 @@ body {
 {% if information %}
     {{ information|safe }}
 {% else %}
-    <p>The gravitational-wave candidate event database (GraceDB) is a service which organizes candidate events from gravitational-wave searches and provides an environment to record information about follow-ups.</p>
+    <p>
+    The gravitational-wave candidate event database (GraceDB) is a service operated by the <a href="https://www.ligo.org/">LIGO Scientific Collaboration</a>. It provides a centralized location for aggregating and retrieving information about candidate gravitational-wave events. GraceDB provides an <a href="{% url "legacy_apiweb:default:root" %}">API</a> for programmatic access, and a <a href="https://ligo-gracedb.readthedocs.io/">client package</a> is available for interacting with the API.
+    </p>
+    <h3>Useful information</h3>
     <ul>
-    <li><a href="https://wiki.ligo.org/Computing/GraceDB">Project page on wiki.ligo.org</a></li>
-    <li><a href="{% url "legacy_apiweb:default:root" %}">Browseable REST API</a>
-    <li><a href="https://gw-astronomy.org/wiki/LV_EM/TechInfo">LV-EM Technical Info</a></li>
-    <li><a href="https://dcc.ligo.org/G1501296">Tutorial for operators and detector engineers</a></li>
+    <li><b style="color: red;">*NEW*</b> O3 public alert <a href="{% url "superevents:public-alerts-O3" %}">summary page</a>.</li>
+    <li>Information about GW alerts and real-time data products is available in the <a href="https://emfollow.docs.ligo.org/userguide/">LIGO/Virgo Public Alert Guide</a>.</li>
+    <li>Found a bug? LIGO/Virgo users can report issues on the GraceDB <a href="https://git.ligo.org/lscsoft/gracedb/issues">Gitlab page</a>.</li>
     </ul>
 {% endif %}
-    <p>Server code version: <b>{{server_version}}</b></p>
+    <p><b>Server code version: <a href="https://git.ligo.org/lscsoft/gracedb/tree/gracedb-{{server_version}}">{{server_version}}</a></b></p>
 </div>
 
 <!--XXX Infrastructure for human signoffs. Hopefully this will not be permanent. -->
