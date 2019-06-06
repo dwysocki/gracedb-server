@@ -25,7 +25,7 @@ def test_pipeline_manage_view(standard_user, client):
     assert response.status_code == response_dict[standard_user.username]
 
     # Check context
-    if response == 200:
+    if response.status_code == 200:
         assert response.context['user_can_manage'] == False
 
 
