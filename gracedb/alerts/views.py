@@ -79,6 +79,19 @@ class CreateNotificationView(MultipleFormView):
             n=form.instance.description))
         return super(CreateNotificationView, self).form_valid(form)
 
+    def get(self, request, *args, **kwargs):
+        # Make sure user has at least one verified contact; if not, redirect
+        # and display an error message
+        user_has_verified_contact = request.user.contact_set.filter(
+            verified=True).exists()
+        if not user_has_verified_contact:
+            messages.error(request, ('Error: you have no verified contacts. '
+                'Create and verify a contact before creating a notification.'))
+            return HttpResponseRedirect(reverse('alerts:index'))
+
+        return super(CreateNotificationView, self).get(request, *args,
+            **kwargs)
+
     superevent_form_valid = event_form_valid = form_valid
 
 
