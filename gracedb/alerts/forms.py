@@ -33,7 +33,7 @@ class BaseNotificationForm(forms.ModelForm):
     (essentially an abstract model)
     """
     contacts = ContactMultipleChoiceField(queryset=Contact.objects.all(),
-        required=False, widget=forms.widgets.SelectMultiple(attrs={'size': 6}))
+        required=True, widget=forms.widgets.SelectMultiple(attrs={'size': 6}))
     class Meta:
         model = Notification
         fields = ['description'] # dummy placeholder
