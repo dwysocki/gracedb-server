@@ -34,9 +34,11 @@ service_identity==17.0.0
 simplejson==3.15.0
 Sphinx==1.7.0
 twilio==6.10.3
-# Updating pyparsing to 2.4.0 breaks queries like
-#   created: yesterday .. now
-pyparsing==2.3.1
+# Do NOT upgrade pyparsing beyond 2.3.0 (even to 2.3.1) without carefully
+# testing and modifying the search query code. There were a number of
+# problematic API changes in 2.3.1 and beyond that will need to be handled
+# appropriately.
+pyparsing==2.3.0
 pytest-cov==2.6.1
 pytest-django==3.4.8
 pytz==2018.9
