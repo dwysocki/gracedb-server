@@ -64,7 +64,8 @@ Creating a notification
 A notification is a set of criteria which is linked to a contact or contacts.
 It specifies under which conditions the corresponding contacts should receive an alert.
 
-To begin, click on the "Create new notification" button on the main alerts page.
+To create a notification, you must have already created and verified a contact.
+Click on the "Create new notification" button on the main alerts page.
 Once you have reached the notification creation page, decide whether you want to receive alerts about superevents or events (most users will likely want superevents) and click the corresponding tab.
 
 First, you should enter a description of this notification and select a contact or contacts to receive alerts when this notification is triggered (you can select multiple contacts by holding CTRL and clicking).
