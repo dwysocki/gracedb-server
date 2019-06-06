@@ -225,11 +225,25 @@ class DeleteContactView(DeleteView):
         return self.delete(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        response = super(DeleteContactView, self).delete(request, *args,
-            **kwargs)
+        # Get contact
+        self.object = self.get_object()
+
+        # Contacts can only be deleted if they aren't part of a notification -
+        # this will prevent cases where a user creates a notification, deletes
+        # the related contact(s), and then wonders why they aren't getting
+        # any notifications.
+        if self.object.notification_set.exists():
+            messages.error(request, ('Contact "{cname}" cannot be deleted '
+                'because it is part of a notification. Remove it from the '
+                'notification or delete the notification first.').format(
+                cname=self.object.description))
+            return HttpResponseRedirect(reverse('alerts:index'))
+
+        # Otherwise, delete the contact and show a corresponding message.
+        self.object.delete()
         messages.info(request, 'Contact "{cname}" has been deleted.'.format(
             cname=self.object.description))
-        return response
+        return HttpResponseRedirect(self.get_success_url())
 
     def get_queryset(self):
         # Queryset should only contain the user's contacts
