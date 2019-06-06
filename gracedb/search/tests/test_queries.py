@@ -111,10 +111,17 @@ SUPEREVENT_QUERY_TEST_DATA = [
         SERVER_TZ.localize(datetime.datetime(2019, 5, 5, 12, 34, 56))]) &
         DEFAULT_Q),
     ('yesterday .. now', Q(created__range=[
-        SERVER_TZ.localize(datetime.datetime(2019, 3, 30, 0, 0, 0)),
-        MOCK_NOW_DT]) & DEFAULT_Q),
-    ('noon', Q(created=SERVER_TZ.localize(datetime.datetime(2019, 3, 31,
-        12, 0, 0))) & DEFAULT_Q),
+        MOCK_NOW_DT.replace(day=MOCK_NOW_DT.day-1, hour=0, minute=0,
+            second=0, microsecond=0), MOCK_NOW_DT]) & DEFAULT_Q),
+    ('a couple of days ago', Q(created=MOCK_NOW_DT.replace(
+        day=MOCK_NOW_DT.day-2)) & DEFAULT_Q),
+    ('1 week ago .. now', Q(created__range=[
+        MOCK_NOW_DT - datetime.timedelta(days=7), MOCK_NOW_DT]) & DEFAULT_Q),
+    ('3 days ago .. 2 days ago', Q(created__range=[
+        MOCK_NOW_DT - datetime.timedelta(days=3),
+        MOCK_NOW_DT - datetime.timedelta(days=2)]) & DEFAULT_Q),
+    ('noon', Q(created=MOCK_NOW_DT.replace(hour=12, minute=0, second=0,
+        microsecond=0)) & DEFAULT_Q),
     ('far <= 1e-10', Q(preferred_event__far__lte=1e-10) & DEFAULT_Q),
     ('far < 1e-10', Q(preferred_event__far__lt=1e-10) & DEFAULT_Q),
     ('far > 1e-10', Q(preferred_event__far__gt=1e-10) & DEFAULT_Q),
