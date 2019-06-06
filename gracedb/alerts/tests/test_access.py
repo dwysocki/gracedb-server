@@ -142,11 +142,27 @@ class TestContactDeleteView(GraceDbTestBase):
 class TestNotificationCreateView(GraceDbTestBase):
     """Test user access to notification creation view"""
 
-    def test_internal_user_get(self):
-        """Internal user can get notification creation view"""
+    def test_internal_user_get_with_verified_contact(self):
+        """
+        Internal user can get notification creation view if they have a
+        verified contact
+        """
         url = reverse('alerts:create-notification')
+        self.internal_user.contact_set.create(phone='12345678901',
+            phone_method=Contact.CONTACT_PHONE_TEXT, verified=True,
+            description='test')
         response = self.request_as_user(url, "GET", self.internal_user)
         self.assertEqual(response.status_code, 200)
+
+    def test_internal_user_get_with_no_verified_contact(self):
+        """
+        Internal user can't get notification creation view if they don't have
+        a verified contact
+        """
+        url = reverse('alerts:create-notification')
+        response = self.request_as_user(url, "GET", self.internal_user)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('alerts:index'))
 
     def test_lvem_user_get(self):
         """LV-EM user can't get notification creation view"""
