@@ -192,12 +192,19 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
             self.events.add(self.preferred_event)
 
     def delete(self, purge=True, *args, **kwargs):
-        if purge:
-            # Delete data directory
-            if os.path.isdir(self.datadir):
-                shutil.rmtree(self.datadir)
+        # Store datadir before deletion from database
+        datadir = self.datadir
+
         # Call base class delete
         super(Superevent, self).delete(*args, **kwargs)
+
+        if purge:
+            # GOPs are deleted automatically since we have a special class
+            # for them that is attached directly to the superevent
+
+            # Delete data directory
+            if os.path.isdir(datadir):
+                shutil.rmtree(datadir)
 
     def event_compatible(self, event):
         """

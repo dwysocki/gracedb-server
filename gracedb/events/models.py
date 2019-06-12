@@ -401,7 +401,7 @@ class Event(models.Model):
         # Fool! Save yourself!
         self.save()
 
-    def delete(self, purge=False, *args, **kwargs):
+    def delete(self, purge=True, *args, **kwargs):
         """
         Optionally override the delete method for Event models.
         By default, deleting an Event deletes corresponding subclasses
@@ -414,10 +414,19 @@ class Event(models.Model):
             event.delete(purge=True) will also remove the data directory
                 and GroupObjectPermissions for the Event and its subclasses
         """
+        # Store datadir and pk before delete - the pk will be set to None
+        # by removal from the database, and thus, the datadir won't be
+        # correct anymore, since it depends on the pk
+        pk = self.pk
+        datadir = self.datadir
 
+        # Call base class delete
+        super(Event, self).delete(*args, **kwargs)
+
+        # If the database entry was deleted, then we are good to proceed on
+        # purging everything else (if specified)
         if purge:
             # Delete data directory
-            datadir = self.datadir
             if os.path.isdir(datadir):
                 shutil.rmtree(datadir)
 
@@ -429,12 +438,10 @@ class Event(models.Model):
                     cls in f.related_model.__bases__)]
             for m in subclasses + [cls]:
                 ctype = ContentType.objects.get_for_model(m)
-                gops = GroupObjectPermission.objects.filter(object_pk=self.id,
+                gops = GroupObjectPermission.objects.filter(object_pk=pk,
                     content_type=ctype)
                 gops.delete()
 
-        # Call base class delete
-        super(Event, self).delete(*args, **kwargs)
 
 class EventLog(CleanSaveModel, LogBase, AutoIncrementModel):
     """
