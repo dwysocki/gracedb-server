@@ -38,13 +38,11 @@ This GraceDB instance is designed for users to develop and test their own
 applications. It mimics the production instance in all but the following ways:
 </p>
 <ul>
-<li>Phone and e-mail alerts are turned off</li>
-<li>Only LIGO logins are provided (no login via InCommon or Google)</li>
-<li>LVAlert messages are sent to lvalert-playground.cgca.uwm.edu</li>
+<li>Phone and e-mail alerts are turned off.</li>
+<li>Only LIGO logins are provided (no login via InCommon or Google).</li>
+<li>LVAlert messages are sent to lvalert-playground.cgca.uwm.edu.</li>
 <li>Events and associated data will <b>not</b> be preserved indefinitely.
-A nightly cron job removes events older than 14 days.</li>
-<li><b>Note:</b> for O3 development, the above number has been updated to
-<b>112</b>.</li>
+A nightly cron job removes events older than 21 days.</li>
 </ul>
 """
 
