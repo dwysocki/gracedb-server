@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from django.db import models
 from django.contrib.auth.models import User, Group
 
@@ -16,11 +14,6 @@ class LigoLdapUser(User):
         # XXX I really don't freaking understand WHY THIS SEEMS NECESSARY.
         # print user.name()  gives an idiotic ascii coding error otherwise. WHY!?
         return u"{0} {1}".format(self.first_name, self.last_name).encode('utf-8')
-
-
-# Class for robot accounts
-class RobotUser(User):
-    pass
 
 
 class X509Cert(models.Model):

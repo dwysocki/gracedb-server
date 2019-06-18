@@ -8,7 +8,7 @@ from django.urls import reverse
 
 from user_sessions.middleware import SessionMiddleware
 
-from ligoauth.models import RobotUser, AuthGroup
+from ligoauth.models import AuthGroup
 from ligoauth.middleware import (
     ControlRoomMiddleware, ShibbolethWebAuthMiddleware,
 )
@@ -253,6 +253,14 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         # Attach middleware to class
         cls.mw_instance = ShibbolethWebAuthMiddleware()
 
+    @classmethod
+    def setUpTestData(cls):
+        super(TestShibbolethWebAuthMiddleware, cls).setUpTestData()
+
+        # Create robot group
+        cls.robot_group = AuthGroup.objects.create(name='robot_accounts',
+            ldap_name='robot_accounts_ldap_name')
+
     def test_internal_user_authentication_post_login(self):
         """
         Internal user can authenticate at post-login view with
@@ -486,9 +494,10 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         """
         Shib group header content is not used to add groups for a robotuser
         """
-        # Create a RobotUser and add to internal group
-        r_user = RobotUser.objects.create(username='robot.user')
+        # Create a robot user account
+        r_user = User.objects.create(username='robot.user')
         r_user.groups.add(self.internal_group)
+        r_user.groups.add(self.robot_group)
 
         # Create new group for testing
         new_group = AuthGroup.objects.create(name='new_group',
@@ -505,10 +514,12 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
             settings.SHIB_GROUPS_HEADER: groups_str,
         })
 
-        # Make sure user just has internal group initially
-        self.assertEqual(r_user.groups.count(), 1)
+        # Make sure user just has internal and robot groups initially
+        self.assertEqual(r_user.groups.count(), 2)
         self.assertTrue(r_user.groups.filter(
             pk=self.internal_group.pk).exists())
+        self.assertTrue(r_user.groups.filter(
+            pk=self.robot_group.pk).exists())
 
         # Necessary pre-processing middleware
         SessionMiddleware().process_request(request)
@@ -522,9 +533,11 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.assertTrue(request.user.is_authenticated)
         self.assertEqual(request.user.backend,
             'ligoauth.backends.ShibbolethRemoteUserBackend')
-        self.assertEqual(r_user.groups.count(), 1)
+        self.assertEqual(r_user.groups.count(), 2)
         self.assertTrue(r_user.groups.filter(
             pk=self.internal_group.pk).exists())
+        self.assertTrue(r_user.groups.filter(
+            pk=self.robot_group.pk).exists())
         self.assertFalse(r_user.groups.filter(
             pk=new_group.pk).exists())
 
@@ -532,9 +545,10 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         """
         Shib group header content is not used to remove groups for a robotuser
         """
-        # Create a RobotUser and add to internal group
-        r_user = RobotUser.objects.create(username='robot.user')
+        # Create a robot user account
+        r_user = User.objects.create(username='robot.user')
         r_user.groups.add(self.internal_group)
+        r_user.groups.add(self.robot_group)
         # Create new group and add robotuser
         new_group = AuthGroup.objects.create(name='new_group',
             ldap_name='new_ldap_group')
@@ -548,10 +562,12 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
             settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
         })
 
-        # Make sure user has both groups initially
-        self.assertEqual(r_user.groups.count(), 2)
+        # Make sure user has three groups initially
+        self.assertEqual(r_user.groups.count(), 3)
         self.assertTrue(r_user.groups.filter(
             pk=self.internal_group.pk).exists())
+        self.assertTrue(r_user.groups.filter(
+            pk=self.robot_group.pk).exists())
         self.assertTrue(r_user.groups.filter(
             pk=new_group.pk).exists())
 
@@ -567,9 +583,11 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.assertTrue(request.user.is_authenticated)
         self.assertEqual(request.user.backend,
             'ligoauth.backends.ShibbolethRemoteUserBackend')
-        self.assertEqual(r_user.groups.count(), 2)
+        self.assertEqual(r_user.groups.count(), 3)
         self.assertTrue(r_user.groups.filter(
             pk=self.internal_group.pk).exists())
+        self.assertTrue(r_user.groups.filter(
+            pk=self.robot_group.pk).exists())
         self.assertTrue(r_user.groups.filter(
             pk=new_group.pk).exists())
 

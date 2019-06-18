@@ -103,13 +103,14 @@ Edit the migration to do what you want it to do. You could use this as a templat
     ]
 
     def create_robots(apps, schema_editor):
-        RobotUser = apps.get_model('ligoauth', 'RobotUser')
+        User = apps.get_model('auth', 'User')
         X509Cert = apps.get_model('ligoauth', 'X509Cert')
-        Group = apps.get_model('auth', 'Group')
-        lvc_group = Group.objects.get(name=settings.LVC_GROUP)
+        AuthGroup = apps.get_model('ligoauth', 'AuthGroup')
+        lvc_group = AuthGroup.objects.get(name=settings.LVC_GROUP)
+        robot_group = AuthGroup.objects.get(name='robot_accounts')
 
         for entry in ROBOTS:
-            user, created = RobotUser.objects.get_or_create(username=entry['username'])
+            user, created = User.objects.get_or_create(username=entry['username'])
             if created:
                 user.first_name = entry['first_name']
                 user.last_name = entry['last_name']
@@ -121,10 +122,8 @@ Edit the migration to do what you want it to do. You could use this as a templat
 
             # Create the cert objects and link them to our user.
             for dn in entry['dns']:
-                cert, created = X509Cert.objects.get_or_create(subject=dn)
-                if created:
-                    cert.save()
-                cert.users.add(user)
+                cert, created = X509Cert.objects.get_or_create(subject=dn,
+                    user=user)
 
             # Add our user to the LVC group. This permission is required to 
             # do most things, but may *NOT* always be appropriate. It may
@@ -132,14 +131,17 @@ Edit the migration to do what you want it to do. You could use this as a templat
             # a particular pipeline.
             lvc_group.user_set.add(user)
 
+            # Add user to robot accounts
+            robot_group.user_set.add(user)
+
     def delete_robots(apps, schema_editor):
-        RobotUser = apps.get_model('ligoauth', 'RobotUser')
+        User = apps.get_model('auth', 'User')
         X509Cert = apps.get_model('ligoauth', 'X509Cert')
 
         for entry in ROBOTS:
             for dn in entry['dns']:
                 X509Cert.objects.get(subject=dn).delete()
-            RobotUser.objects.get(username=entry['username']).delete()
+            User.objects.get(username=entry['username']).delete()
 
     class Migration(migrations.Migration):
 

@@ -85,11 +85,6 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
         the Shibboleth session. Session group data is treated as definitive.
         """
 
-        # Don't do anything if the user is a robot account since their group
-        # memberships are managed internally.
-        if hasattr(user, 'robotuser'):
-            return
-
         # Get groups from session which are in database as a QuerySet
         session_group_names = request.META.get(cls.group_header, '').split(
             cls.group_delimiter)
