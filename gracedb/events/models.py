@@ -263,12 +263,6 @@ class Event(models.Model):
         else:
             return 'Production'
 
-    def ligoApproved(self):
-        return self.approval_set.filter(approvingCollaboration='L').count()
-
-    def virgoApproved(self):
-        return self.approval_set.filter(approvingCollaboration='V').count()
-
     def reportingLatency(self):
         if self.gpstime:
             dt = self.created
@@ -616,17 +610,7 @@ class Labelling(m2mThroughBase):
             label=self.label.name)
 
 
-# XXX Deprecated?  Is this used *anywhere*?
-# Appears to only be used in models.py.  Here and Event class as approval_set
-class Approval(models.Model):
-    COLLABORATION_CHOICES = ( ('L','LIGO'), ('V','Virgo'), )
-    approver = models.ForeignKey(UserModel)
-    created = models.DateTimeField(auto_now_add=True)
-    approvedEvent = models.ForeignKey(Event, null=False)
-    approvingCollaboration = models.CharField(max_length=1, choices=COLLABORATION_CHOICES)
-
 ## Analysis Specific Attributes.
-
 class GrbEvent(Event):
     ivorn = models.CharField(max_length=200, null=True)
     author_ivorn = models.CharField(max_length=200, null=True)
