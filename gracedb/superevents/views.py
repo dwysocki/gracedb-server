@@ -3,6 +3,7 @@ import os
 from lal import gpstime
 
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.views.generic.detail import DetailView
 from django.views.generic import ListView
 
@@ -12,6 +13,7 @@ from core.file_utils import get_file_list
 from events.models import EMGroup
 from events.mixins import DisplayFarMixin
 from events.permission_utils import is_external
+from ligoauth.decorators import public_if_public_access_allowed
 from .mixins import ExposeHideMixin, OperatorSignoffMixin, \
     AdvocateSignoffMixin, PermissionsFilterMixin, ConfirmGwFormMixin
 from .models import Superevent, VOEvent
@@ -120,7 +122,7 @@ class SupereventFileList(SupereventDetailView):
 # handled through the API. Links on the file list page point to the
 # API file download page.
 
-
+@method_decorator(public_if_public_access_allowed, name='dispatch')
 class SupereventPublic(DisplayFarMixin, ListView):
     model = Superevent
     template_name = 'superevents/public_alerts.html'
