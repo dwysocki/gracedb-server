@@ -1,9 +1,11 @@
+import logging
+
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import PermissionDenied
-import logging
 
+# Set up logger
 logger = logging.getLogger(__name__)
 
 
@@ -45,6 +47,20 @@ def lvem_observers_only(function=None, login_url=None, superuser_allowed=False,
         return False
 
     actual_decorator = user_passes_test(check_groups, login_url=login_url)
+    if function:
+        return actual_decorator(function)
+    return actual_decorator
+
+
+def public_if_public_access_allowed(function=None, login_url=None,
+    raise_exception=False):
+
+    # Either unauthenticated access is allowed or if not,
+    # the user is authenticated
+    test_func = lambda u: \
+        settings.UNAUTHENTICATED_ACCESS or u.is_authenticated
+    actual_decorator = user_passes_test(test_func, login_url=login_url)
+
     if function:
         return actual_decorator(function)
     return actual_decorator

@@ -27,7 +27,7 @@ PROJECT_VERSION = '2.5.1'
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
 # allowed *ANYWHERE* on this service, except the home page, which is always
-# public. For now, it just controls the API.
+# public. For now, it just controls the API and the public alerts page.
 UNAUTHENTICATED_ACCESS = True
 
 # Miscellaneous settings ------------------------------------------------------
