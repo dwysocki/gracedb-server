@@ -26,6 +26,7 @@
 <h3>Detection candidates: {{ candidates }}</h3>
 <br /><br />
 
+{% if candidates > 0 %}
 <div class="tablesaw-overflow">
 <table class="tablesaw" data-tablesaw-sortable data-tablesaw-sortable-switch data-tablesaw-mode="columntoggle" data-tablesaw-minimap>
   <thead><tr>
@@ -98,7 +99,9 @@
   <li>Retractions are marked in red.</li>
   <li>More details about public alerts are provided in the <a href="https://emfollow.docs.ligo.org/userguide/">LIGO/Virgo Alerts User Guide</a>.</li>
 </ul>
-
+{% else %}
+<h2>No candidates at present.</h2>
+{% endif %}
 <br /><br /><br />
 
 {% endblock %}
