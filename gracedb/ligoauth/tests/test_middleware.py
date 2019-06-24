@@ -490,106 +490,106 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.assertFalse(request.user.groups.filter(
             pk=new_group.pk).exists())
 
-    def test_robotuser_group_addition(self):
-        """
-        Shib group header content is not used to add groups for a robotuser
-        """
-        # Create a robot user account
-        r_user = User.objects.create(username='robot.user')
-        r_user.groups.add(self.internal_group)
-        r_user.groups.add(self.robot_group)
+    #def test_robotuser_group_addition(self):
+    #    """
+    #    Shib group header content is not used to add groups for a robotuser
+    #    """
+    #    # Create a robot user account
+    #    r_user = User.objects.create(username='robot.user')
+    #    r_user.groups.add(self.internal_group)
+    #    r_user.groups.add(self.robot_group)
 
-        # Create new group for testing
-        new_group = AuthGroup.objects.create(name='new_group',
-            ldap_name='new_ldap_group')
-        # Compile group header
-        delim = ShibbolethWebAuthMiddleware.group_delimiter
-        groups_str = delim.join([self.internal_group.ldap_name,
-            new_group.ldap_name])
+    #    # Create new group for testing
+    #    new_group = AuthGroup.objects.create(name='new_group',
+    #        ldap_name='new_ldap_group')
+    #    # Compile group header
+    #    delim = ShibbolethWebAuthMiddleware.group_delimiter
+    #    groups_str = delim.join([self.internal_group.ldap_name,
+    #        new_group.ldap_name])
 
-        # Set up request
-        request = self.factory.get(self.url)
-        request.META.update(**{
-            settings.SHIB_USER_HEADER: r_user.username,
-            settings.SHIB_GROUPS_HEADER: groups_str,
-        })
+    #    # Set up request
+    #    request = self.factory.get(self.url)
+    #    request.META.update(**{
+    #        settings.SHIB_USER_HEADER: r_user.username,
+    #        settings.SHIB_GROUPS_HEADER: groups_str,
+    #    })
 
-        # Make sure user just has internal and robot groups initially
-        self.assertEqual(r_user.groups.count(), 2)
-        self.assertTrue(r_user.groups.filter(
-            pk=self.internal_group.pk).exists())
-        self.assertTrue(r_user.groups.filter(
-            pk=self.robot_group.pk).exists())
+    #    # Make sure user just has internal and robot groups initially
+    #    self.assertEqual(r_user.groups.count(), 2)
+    #    self.assertTrue(r_user.groups.filter(
+    #        pk=self.internal_group.pk).exists())
+    #    self.assertTrue(r_user.groups.filter(
+    #        pk=self.robot_group.pk).exists())
 
-        # Necessary pre-processing middleware
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
-        # Process request
-        self.mw_instance.process_request(request)
+    #    # Necessary pre-processing middleware
+    #    SessionMiddleware().process_request(request)
+    #    AuthenticationMiddleware().process_request(request)
+    #    # Process request
+    #    self.mw_instance.process_request(request)
 
-        # Make sure user is authenticated and was authenticated by
-        # the shibboleth backend and that the group memberships are
-        # unchanged
-        self.assertTrue(request.user.is_authenticated)
-        self.assertEqual(request.user.backend,
-            'ligoauth.backends.ShibbolethRemoteUserBackend')
-        self.assertEqual(r_user.groups.count(), 2)
-        self.assertTrue(r_user.groups.filter(
-            pk=self.internal_group.pk).exists())
-        self.assertTrue(r_user.groups.filter(
-            pk=self.robot_group.pk).exists())
-        self.assertFalse(r_user.groups.filter(
-            pk=new_group.pk).exists())
+    #    # Make sure user is authenticated and was authenticated by
+    #    # the shibboleth backend and that the group memberships are
+    #    # unchanged
+    #    self.assertTrue(request.user.is_authenticated)
+    #    self.assertEqual(request.user.backend,
+    #        'ligoauth.backends.ShibbolethRemoteUserBackend')
+    #    self.assertEqual(r_user.groups.count(), 2)
+    #    self.assertTrue(r_user.groups.filter(
+    #        pk=self.internal_group.pk).exists())
+    #    self.assertTrue(r_user.groups.filter(
+    #        pk=self.robot_group.pk).exists())
+    #    self.assertFalse(r_user.groups.filter(
+    #        pk=new_group.pk).exists())
 
-    def test_robotuser_group_removal(self):
-        """
-        Shib group header content is not used to remove groups for a robotuser
-        """
-        # Create a robot user account
-        r_user = User.objects.create(username='robot.user')
-        r_user.groups.add(self.internal_group)
-        r_user.groups.add(self.robot_group)
-        # Create new group and add robotuser
-        new_group = AuthGroup.objects.create(name='new_group',
-            ldap_name='new_ldap_group')
-        r_user.groups.add(new_group)
+    #def test_robotuser_group_removal(self):
+    #    """
+    #    Shib group header content is not used to remove groups for a robotuser
+    #    """
+    #    # Create a robot user account
+    #    r_user = User.objects.create(username='robot.user')
+    #    r_user.groups.add(self.internal_group)
+    #    r_user.groups.add(self.robot_group)
+    #    # Create new group and add robotuser
+    #    new_group = AuthGroup.objects.create(name='new_group',
+    #        ldap_name='new_ldap_group')
+    #    r_user.groups.add(new_group)
 
-        # Set up request
-        # Shib session doesn't have new_group in it
-        request = self.factory.get(self.url)
-        request.META.update(**{
-            settings.SHIB_USER_HEADER: r_user.username,
-            settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
-        })
+    #    # Set up request
+    #    # Shib session doesn't have new_group in it
+    #    request = self.factory.get(self.url)
+    #    request.META.update(**{
+    #        settings.SHIB_USER_HEADER: r_user.username,
+    #        settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
+    #    })
 
-        # Make sure user has three groups initially
-        self.assertEqual(r_user.groups.count(), 3)
-        self.assertTrue(r_user.groups.filter(
-            pk=self.internal_group.pk).exists())
-        self.assertTrue(r_user.groups.filter(
-            pk=self.robot_group.pk).exists())
-        self.assertTrue(r_user.groups.filter(
-            pk=new_group.pk).exists())
+    #    # Make sure user has three groups initially
+    #    self.assertEqual(r_user.groups.count(), 3)
+    #    self.assertTrue(r_user.groups.filter(
+    #        pk=self.internal_group.pk).exists())
+    #    self.assertTrue(r_user.groups.filter(
+    #        pk=self.robot_group.pk).exists())
+    #    self.assertTrue(r_user.groups.filter(
+    #        pk=new_group.pk).exists())
 
-        # Necessary pre-processing middleware
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
-        # Process request
-        self.mw_instance.process_request(request)
+    #    # Necessary pre-processing middleware
+    #    SessionMiddleware().process_request(request)
+    #    AuthenticationMiddleware().process_request(request)
+    #    # Process request
+    #    self.mw_instance.process_request(request)
 
-        # Make sure user is authenticated and was authenticated by
-        # the shibboleth backend and that the group memberships are
-        # unchanged
-        self.assertTrue(request.user.is_authenticated)
-        self.assertEqual(request.user.backend,
-            'ligoauth.backends.ShibbolethRemoteUserBackend')
-        self.assertEqual(r_user.groups.count(), 3)
-        self.assertTrue(r_user.groups.filter(
-            pk=self.internal_group.pk).exists())
-        self.assertTrue(r_user.groups.filter(
-            pk=self.robot_group.pk).exists())
-        self.assertTrue(r_user.groups.filter(
-            pk=new_group.pk).exists())
+    #    # Make sure user is authenticated and was authenticated by
+    #    # the shibboleth backend and that the group memberships are
+    #    # unchanged
+    #    self.assertTrue(request.user.is_authenticated)
+    #    self.assertEqual(request.user.backend,
+    #        'ligoauth.backends.ShibbolethRemoteUserBackend')
+    #    self.assertEqual(r_user.groups.count(), 3)
+    #    self.assertTrue(r_user.groups.filter(
+    #        pk=self.internal_group.pk).exists())
+    #    self.assertTrue(r_user.groups.filter(
+    #        pk=self.robot_group.pk).exists())
+    #    self.assertTrue(r_user.groups.filter(
+    #        pk=new_group.pk).exists())
 
     def test_user_update(self):
         """Test user information update in middleware"""
