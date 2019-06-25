@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.utils.functional import wraps
+
 
 def groups_allowed(group_names):
     """
@@ -23,3 +25,6 @@ def groups_allowed(group_names):
         return wrapper
     return decorator
 
+
+def is_internal(user):
+    return user.groups.filter(name=settings.LVC_GROUP).exists()

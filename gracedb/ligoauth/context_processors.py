@@ -1,12 +1,15 @@
 from django.conf import settings
 
+from .utils import is_internal
+
+
 def LigoAuthContext(request):
 
     user_is_internal = False
     user_is_lvem = False
     user_is_advocate = False # user is an EM advocate
     if request.user:
-        if request.user.groups.filter(name=settings.LVC_GROUP).exists():
+        if is_internal(request.user):
             user_is_internal = True
         if request.user.groups.filter(name=settings.LVEM_GROUP).exists():
             user_is_lvem = True
