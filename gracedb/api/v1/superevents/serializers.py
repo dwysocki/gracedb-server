@@ -660,6 +660,37 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         return voevent
 
 
+class SupereventVOEventSerializerExternal(serializers.ModelSerializer):
+    """Read-only VOEvent serializer for non-internal users."""
+    # Read only fields
+    issuer = serializers.SlugRelatedField(slug_field='username',
+        read_only=True)
+    created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
+        read_only=True)
+    links = serializers.SerializerMethodField(read_only=True)
+
+    class Meta(SupereventVOEventSerializer.Meta):
+        fields = ('voevent_type', 'file_version', 'ivorn', 'created',
+            'issuer', 'filename', 'N', 'links')
+
+    def get_links(self, obj):
+        file_link = None
+        if obj.filename:
+            file_name = "{name},{version}".format(name=obj.filename,
+                version=obj.file_version)
+            file_link = api_reverse('superevents:superevent-file-detail',
+                args=[obj.superevent.superevent_id, file_name],
+                request=self.context.get('request', None))
+
+        link_dict = {
+            'self': api_reverse('superevents:superevent-voevent-detail',
+                args=[obj.superevent.superevent_id, obj.N],
+                request=self.context.get('request', None)),
+            'file': file_link,
+        }
+        return link_dict
+
+
 class SupereventEMFootprintSerializer(serializers.ModelSerializer):
     """
     Should be read-only; only used as a nester serializer within

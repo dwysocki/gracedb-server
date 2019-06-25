@@ -18,6 +18,7 @@ from core.http import check_and_serve_file
 from core.vfile import VersionedFile, FileVersionError, FileVersionNameError
 from events.models import Event, Label
 from events.view_utils import reverse as gracedb_reverse
+from ligoauth.utils import is_internal
 from superevents.buildVOEvent import VOEventBuilderException
 from superevents.models import Superevent, Log, Signoff
 from superevents.utils import remove_tag_from_log, \
@@ -34,11 +35,14 @@ from .permissions import SupereventModelPermissions, \
     SupereventSignoffModelPermissions, SupereventSignoffTypeModelPermissions, \
     SupereventSignoffTypeObjectPermissions, \
     SupereventGroupObjectPermissionPermissions
-from .serializers import SupereventSerializer, SupereventUpdateSerializer, \
-    SupereventEventSerializer, SupereventLabelSerializer, \
-    SupereventLogSerializer, SupereventLogTagSerializer, \
-    SupereventVOEventSerializer, SupereventEMObservationSerializer, \
-    SupereventSignoffSerializer, SupereventGroupObjectPermissionSerializer
+from .serializers import (
+    SupereventSerializer, SupereventUpdateSerializer,
+    SupereventEventSerializer, SupereventLabelSerializer,
+    SupereventLogSerializer, SupereventLogTagSerializer,
+    SupereventVOEventSerializer, SupereventVOEventSerializerExternal,
+    SupereventEMObservationSerializer, SupereventSignoffSerializer,
+    SupereventGroupObjectPermissionSerializer
+)
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
 from .viewsets import SupereventNestedViewSet
 from ..filters import DjangoObjectAndGlobalPermissionsFilter
@@ -321,6 +325,12 @@ class SupereventVOEventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
     lookup_url_kwarg = 'N'
     lookup_field = 'N'
     list_view_order_by = ('N',)
+
+    def get_serializer_class(self):
+        if is_internal(self.request.user):
+            return self.serializer_class
+        else:
+            return SupereventVOEventSerializerExternal
 
 
 class SupereventEMObservationViewSet(SafeCreateMixin,
