@@ -21,6 +21,10 @@ def get_from_env(envvar, default_value=None, fail_if_not_found=True):
             'Could not get environment variable {0}'.format(envvar))
     return value
 
+# Maintenance mode
+MAINTENANCE_MODE = False
+MAINTENANCE_MODE_MESSAGE = None
+
 # Version ---------------------------------------------------------------------
 PROJECT_VERSION = '2.6.3'
 
@@ -307,6 +311,7 @@ AUTHENTICATION_BACKENDS = [
 
 # List of middleware classes to use.
 MIDDLEWARE = [
+    'core.middleware.maintenance.MaintenanceModeMiddleware',
     'events.middleware.PerformanceMiddleware',
     'core.middleware.accept.AcceptMiddleware',
     'core.middleware.api.ClientVersionMiddleware',

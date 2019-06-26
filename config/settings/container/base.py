@@ -61,6 +61,18 @@ TWILIO_AUTH_TOKEN = os.environ.get('DJANGO_TWILIO_AUTH_TOKEN', None)
 if TWILIO_AUTH_TOKEN is None:
     raise ImproperlyConfigured('Could not get Twilio auth token from envvars.')
 
+# Get maintenance mode settings from environment
+maintenance_mode = get_from_env(
+    'DJANGO_MAINTENANCE_MODE_ACTIVE',
+    default_value=False,
+    fail_if_not_found=False
+)
+if (isinstance(maintenance_mode, str) and
+    maintenance_mode.lower() in ['true', 't', '1']):
+    MAINTENANCE_MODE = True
+MAINTENANCE_MODE_MESSAGE = \
+    get_from_env('DJANGO_MAINTENANCE_MODE_MESSAGE', fail_if_not_found=False)
+
 # Get email settings from environment
 EMAIL_BACKEND = 'django_ses.SESBackend'
 AWS_SES_ACCESS_KEY_ID = get_from_env('AWS_SES_ACCESS_KEY_ID')

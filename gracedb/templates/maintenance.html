@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Maintenance{% endblock %}
+{% block heading %}{% endblock %}
+
+{% block headcontents %}
+{{ block.super }}
+<style>
+.maintenance-message {
+    background-color: red;
+    color: white;
+    text-align: center;
+    display: inline-block;
+    border-radius: 5px;
+    padding: 10px;
+    min-width: 400px;
+    max-width: 600px;
+    box-shadow: 0 0 20px rgba(0,0,0,.2);
+}
+.maintenance-message p {
+    font-weight: bold;
+    font-size: 2rem;
+    margin: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div align="center" style="padding: 30px;">
+    <div class="maintenance-message">
+        <p>{{ message | safe }}</p>
+    </div>
+</div>
+
+{% endblock %}
