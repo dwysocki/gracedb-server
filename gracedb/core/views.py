@@ -1,9 +1,15 @@
+import logging
+
 from django.http import HttpResponse
 from django.views.generic.edit import FormView
 
-import logging
+from .decorators import ignore_maintenance_mode
+
+# Set up logger
 logger = logging.getLogger(__name__)
 
+
+@ignore_maintenance_mode
 def heartbeat(request):
     # Do something (?) and return 200 response
     return HttpResponse()
