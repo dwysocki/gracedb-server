@@ -4,6 +4,11 @@ from __future__ import unicode_literals
 
 from django.db import migrations
 
+# Previously, this was taken from settings.LVC_GROUP, but that value has
+# changed. So we have to hard-code it for past migrations
+LVC_GROUP = 'Communities:LSCVirgoLIGOGroupMembers'
+
+
 OLD = {
     'username': 'gerrit.kuehn@LIGO.ORG',
     'cert': '/DC=org/DC=ligo/O=LIGO/OU=Services/CN=ext-alert/geo-ws4.geo.rt.aei.uni-hannover.de',
@@ -21,6 +26,7 @@ NEW_CERT = '/DC=org/DC=cilogon/C=US/O=LIGO/OU=Robots/CN=geo-ws4.geo.rt.aei.uni-h
 def add_account_and_update_certs(apps, schema_editor):
     RobotUser = apps.get_model('ligoauth', 'RobotUser')
     X509Cert = apps.get_model('ligoauth', 'X509Cert')
+    Group = apps.get_model('auth', 'Group')
 
     # Delete old_cert
     old_cert = X509Cert.objects.filter(subject=OLD['cert'])
@@ -33,6 +39,10 @@ def add_account_and_update_certs(apps, schema_editor):
 
     # Create new certificate
     user.x509cert_set.create(subject=NEW_CERT)
+
+    # Add user to internal group
+    group = Group.objects.get(name=LVC_GROUP)
+    group.user_set.add(user)
 
 
 def remove_account_and_revert_certs(apps, schema_editor):
