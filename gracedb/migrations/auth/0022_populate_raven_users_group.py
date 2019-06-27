@@ -17,11 +17,12 @@ def add_users(apps, schema_editor):
     # Get group
     pg = Group.objects.get(name=GROUP_NAME)
 
-    # Get users
-    users = User.objects.filter(username__in=USERS)
+    # Users might not exist yet since they are populated from the LDAP
+    for username in USERS:
+        user, _ = User.objects.get_or_create(username=username)
 
-    # Add users
-    pg.user_set.add(*users)
+        # Add user to group
+        pg.user_set.add(user)
 
 
 def remove_users(apps, schema_editor):
