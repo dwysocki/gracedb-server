@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls import url, include
 
 from django.contrib import admin
-from django.contrib.auth.views import logout
+from django.contrib.auth.views import LogoutView
 from django.views.generic import TemplateView
 
 # Import feeds
@@ -10,7 +10,9 @@ import core.views
 from events.feeds import EventFeed, feedview
 import events.reports
 import events.views
-from ligoauth.views import pre_login, post_login, shib_logout, manage_password
+from ligoauth.views import (
+    pre_login, post_login, manage_password
+)
 import search.views
 
 # Django admin auto-discover
@@ -51,7 +53,7 @@ urlpatterns = [
     # Authentication
     url(r'^login/$', pre_login, name='login'),
     url(r'^post-login/$', post_login, name='post-login'),
-    url(r'^logout/$', shib_logout, name='logout'),
+    url(r'^logout/$', LogoutView.as_view(), name='logout'),
 
     # Password management
     url('^manage-password/$', manage_password, name='manage-password'),

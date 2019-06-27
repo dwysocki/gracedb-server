@@ -1,9 +1,7 @@
 import logging
 
 from django.conf import settings
-from django.contrib.auth import (
-    logout, get_user_model, update_session_auth_hash,
-)
+from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import resolve_url, render
 from django.urls import reverse
@@ -81,18 +79,6 @@ def post_login(request):
         resolve_url(settings.LOGIN_REDIRECT_URL))
 
     # Redirect to the original url
-    return HttpResponseRedirect(original_url)
-
-
-def shib_logout(request):
-
-    # Call Django logout function
-    logout(request)
-
-    # Get original url where the logout button was pressed from
-    original_url = request.META.get('HTTP_REFERER',
-        resolve_url(settings.LOGOUT_REDIRECT_URL))
-
     return HttpResponseRedirect(original_url)
 
 
