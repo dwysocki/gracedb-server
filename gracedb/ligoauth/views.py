@@ -1,11 +1,19 @@
 import logging
 
 from django.conf import settings
-from django.contrib.auth import get_user_model, update_session_auth_hash
-from django.http import HttpResponseRedirect, HttpResponseForbidden
+from django.contrib.auth import (
+    get_user_model, update_session_auth_hash, REDIRECT_FIELD_NAME
+)
+from django.contrib.auth.views import SuccessURLAllowedHostsMixin
+from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.utils.http import urlencode, is_safe_url
+from django.views.decorators.cache import never_cache
+from django.views.decorators.debug import sensitive_post_parameters
+from django.views.generic.base import RedirectView
 
 from .decorators import lvem_observers_only
 
@@ -17,69 +25,76 @@ UserModel = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-ORIGINAL_PAGE_KEY = 'login_from_page'
-
 # Three steps in login process:
-#   1. Pre-login view where we try to cache the page that the user was just on
-#      and redirect to the Shibboleth SSO page for login through an IdP
+#   1. Pre-login view where we set up all of the necessary redirects, starting
+#      with the Shibboleth SSO page for login through an IdP.
 #   2. Login through IdP, redirect to post-login view.
 #   3. Post-login view, where Apache puts the user's attributes into the
-#      session.  Our Django middleware and auth backends consume the attributes
-#      and use them to log into a user account in the database.  The user is
-#      then redirected to the original page where they logged in from.
+#      request headers.  Our Django middleware and auth backends consume the
+#      attributes and use them to log into a user account in the database.  The
+#      user is then redirected to the original page where they logged in from.
+@method_decorator(sensitive_post_parameters(), name='dispatch')
+@method_decorator(never_cache, name='dispatch')
+class ShibLoginView(SuccessURLAllowedHostsMixin, RedirectView):
+    redirect_authenticated_user = True
+    redirect_field_name = REDIRECT_FIELD_NAME
+    post_login_view_name = 'post-login'
 
-def pre_login(request):
-    """
-    Sends user to settings.SHIB_LOGIN_URL (Shibboleth login) and sets up a
-    redirect target to the actual login page where we parse the shib session
-    attributes.  Saves the current page (where the login button was clicked
-    from) in the session so that our login page can then redirect back to
-    the original page.
+    def dispatch(self, request, *args, **kwargs):
+        if (self.redirect_authenticated_user
+            and self.request.user.is_authenticated):
+            redirect_to = self.get_success_url()
+            if redirect_to == self.request.path:
+                raise ValueError(
+                    "Redirection loop for authenticated user detected. Check "
+                    "that your LOGIN_REDIRECT_URL doesn't point to a login "
+                    "page."
+                )
+            return HttpResponseRedirect(redirect_to)
+        return super(ShibLoginView, self).dispatch(request, *args, **kwargs)
 
-    If original URL is not found, redirect to the home page
-    """
+    def get_success_url(self):
+        """User is already logged in."""
+        url = self.request.POST.get(
+            self.redirect_field_name,
+            self.request.GET.get(
+                self.redirect_field_name,
+                resolve_url(settings.LOGIN_REDIRECT_URL)
+            )
+        )
+        return url
 
-    # Set target for SSO page to redirect to
-    shib_target = reverse('post-login')
+    def get_redirect_url(self, *args, **kwargs):
+        # Where the user should finally be redirected to
+        original_url = self.get_success_url()
 
-    # Get original url (page where the login button was clicked).
-    # First try to get referer header. If not available, try to get the 'next
-    # query string parameter (that's how the Django login_required
-    # handles it)
-    original_url = request.META.get('HTTP_REFERER', None)
-    if original_url is None:
-        original_url = request.GET.get('next',
-            resolve_url(settings.LOGIN_REDIRECT_URL))
+        # Target to pass to the shibboleth SSO page as a URL param
+        shib_target = "{url}?{params}".format(
+            url=reverse(self.post_login_view_name),
+            params=urlencode({self.redirect_field_name: original_url})
+        )
 
-    # Store original url in session
-    request.session[ORIGINAL_PAGE_KEY] = original_url
-
-    # Set up url for shibboleth login with redirect target
-    full_login_url = "{base}?target={target}".format(
-        base=settings.SHIB_LOGIN_URL, target=shib_target)
-
-    # Redirect to the shibboleth login
-    return HttpResponseRedirect(full_login_url)
+        # Full URL to redirect to right now
+        full_login_url = "{base}?{params}".format(
+            base=settings.SHIB_LOGIN_URL,
+            params=urlencode({'target': shib_target})
+        )
+        return full_login_url
 
 
-def post_login(request):
-    """
-    pre_login should redirect to the URL which corresponds to this view.
+@method_decorator(sensitive_post_parameters(), name='dispatch')
+@method_decorator(never_cache, name='dispatch')
+class ShibPostLoginView(SuccessURLAllowedHostsMixin, RedirectView):
+    redirect_field_name = REDIRECT_FIELD_NAME
 
-    Apache should be configured to put the Shibboleth session information into
-    the request headers at this view's URL.
-
-    The middleware should handle attribute extraction and logging in. So all
-    we need to do here is redirect to the original page (where the user clicked
-    the login button). If we can't seem to find that information, then just
-    redirect to the home page.
-    """
-
-    original_url = request.session.get(ORIGINAL_PAGE_KEY,
-        resolve_url(settings.LOGIN_REDIRECT_URL))
-
-    # Redirect to the original url
-    return HttpResponseRedirect(original_url)
+    def get_redirect_url(self):
+        redirect_to = self.request.GET.get(self.redirect_field_name, '')
+        url_is_safe = is_safe_url(
+            url=redirect_to,
+            allowed_hosts=self.get_success_url_allowed_hosts(),
+            require_https=self.request.is_secure(),
+        )
+        return redirect_to if url_is_safe else ''
 
 
 @lvem_observers_only(superuser_allowed=True)

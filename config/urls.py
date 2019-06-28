@@ -11,7 +11,7 @@ from events.feeds import EventFeed, feedview
 import events.reports
 import events.views
 from ligoauth.views import (
-    pre_login, post_login, manage_password
+    manage_password, ShibLoginView, ShibPostLoginView
 )
 import search.views
 
@@ -51,8 +51,8 @@ urlpatterns = [
     url(r'^search/$', search.views.search, name="mainsearch"),
 
     # Authentication
-    url(r'^login/$', pre_login, name='login'),
-    url(r'^post-login/$', post_login, name='post-login'),
+    url(r'^login/$', ShibLoginView.as_view(), name='login'),
+    url(r'^post-login/$', ShibPostLoginView.as_view(), name='post-login'),
     url(r'^logout/$', LogoutView.as_view(), name='logout'),
 
     # Password management

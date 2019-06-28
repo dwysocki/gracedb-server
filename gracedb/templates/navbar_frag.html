@@ -29,7 +29,7 @@
         {% endif %}
         </li>
     {% else %}
-        <li id="nav-login"><a href="{% url "login" %}">Login</a></li>
+        <li id="nav-login"><a href="{% url "login" %}?next={{ request.path }}">Login</a></li>
     {% endif %}
 </ul>
 
