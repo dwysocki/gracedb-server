@@ -64,7 +64,7 @@ LOCALUSERS = [
         ],
     },
     {
-		'username': 'excesspower-processor ',
+		'username': 'excesspower-processor',
 		'last_name': 'Excess Power Processor',
 		'email': 'pankow@gravity.phys.uwm.edu',
 		'x509certs': [
