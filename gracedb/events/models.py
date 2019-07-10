@@ -65,14 +65,30 @@ class Group(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class Pipeline(models.Model):
+    PIPELINE_TYPE_EXTERNAL = 'E'
+    PIPELINE_TYPE_OTHER = 'O'
+    PIPELINE_TYPE_SEARCH_OTHER = 'SO'
+    PIPELINE_TYPE_SEARCH_PRODUCTION = 'SP'
+    PIPELINE_TYPE_CHOICES = (
+        (PIPELINE_TYPE_EXTERNAL, 'external'),
+        (PIPELINE_TYPE_OTHER, 'other'),
+        (PIPELINE_TYPE_SEARCH_OTHER, 'non-production search'),
+        (PIPELINE_TYPE_SEARCH_PRODUCTION, 'production search'),
+    )
     name = models.CharField(max_length=100)
+    # Are submissions allowed for this pipeline?
     enabled = models.BooleanField(default=True)
-    # XXX Need any additional fields? Like a librarian email? Or perhaps even fk?
+    # Pipeline type
+    pipeline_type = models.CharField(max_length=2,
+        choices=PIPELINE_TYPE_CHOICES)
+
     class Meta:
         permissions = (
             ('manage_pipeline', 'Can enable or disable pipeline'),
         )
+
     def __unicode__(self):
         return self.name
 
