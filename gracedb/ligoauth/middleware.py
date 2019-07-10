@@ -96,7 +96,10 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
 
         # Remove groups in database which are not in session, except for groups
         # which are managed by admins, like EM advocates and executives
-        user.groups.remove(*user.groups.exclude(pk__in=session_groups))
+        groups_to_remove = user.groups.filter(
+            authgroup__ldap_name__isnull=False).exclude(
+            pk__in=session_groups)
+        user.groups.remove(*groups_to_remove)
 
         # NOTE: The two above operations could be done much more nicely if
         # the queryset operation difference() worked in MySQL
