@@ -149,16 +149,6 @@ SUPEREVENT_MANAGERS_GROUP = 'superevent_managers'
 # Analysis group name for non-GW events
 EXTERNAL_ANALYSIS_GROUP = 'External'
 
-# Groups directly managed by GraceDB admins
-ADMIN_MANAGED_GROUPS = [EM_ADVOCATE_GROUP, EXEC_GROUP, PUBLIC_GROUP,
-    SUPEREVENT_MANAGERS_GROUP, ACCESS_MANAGERS_GROUP, 'raven_users']
-# NOTE: soon, only superevent_managers will be fully managed by us. The other
-# groups will be managed by the LIGO auth infrastructure for human users. But
-# we will still have to still manage robot account membership in these groups:
-# access_managers, executives, and em_advocates.
-# NOTE: public_users is also managed by us and has only one member
-# (guardian.AnonymousUser)
-
 # Tag to apply to log messages to allow EM partners to view
 EXTERNAL_ACCESS_TAGNAME = 'lvem'
 PUBLIC_ACCESS_TAGNAME = 'public'
