@@ -37,6 +37,9 @@ from cStringIO import StringIO
 from hashlib import sha1
 import shutil
 
+from .managers import ProductionPipelineManager, ExternalPipelineManager
+
+
 UserModel = get_user_model()
 
 SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
@@ -83,6 +86,11 @@ class Pipeline(models.Model):
     # Pipeline type
     pipeline_type = models.CharField(max_length=2,
         choices=PIPELINE_TYPE_CHOICES)
+
+    # Add custom managers; must manually define 'objects' as well
+    objects = models.Manager()
+    production_objects = ProductionPipelineManager()
+    external_objects = ExternalPipelineManager()
 
     class Meta:
         permissions = (

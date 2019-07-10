@@ -1,7 +1,3 @@
-try:
-    from unittest import mock
-except ImportError:  # python < 3
-    import mock
 import pytest
 
 from django.urls import reverse
@@ -52,6 +48,8 @@ def test_pipeline_change_views(view, standard_user, client):
 
     # Create a pipeline
     p, _ = Pipeline.objects.get_or_create(name='fake_pipeline')
+    p.pipeline_type = Pipeline.PIPELINE_TYPE_SEARCH_PRODUCTION
+    p.save(update_fields=['pipeline_type'])
 
     # NOTE: get() is wired to post() in the view
     response = client.get(reverse(view, args=[p.pk]))
@@ -69,11 +67,10 @@ def test_pipeline_change_views_as_advocate(view, em_advocate_user, client):
 
     # Create a pipeline
     p, _ = Pipeline.objects.get_or_create(name='fake_pipeline')
+    p.pipeline_type = Pipeline.PIPELINE_TYPE_SEARCH_PRODUCTION
+    p.save(update_fields=['pipeline_type'])
 
     # NOTE: get() is wired to post() in the view
-    with mock.patch('events.views.PIPELINE_LIST', new_callable=list) \
-        as mock_pipeline_list:
-        mock_pipeline_list.append(p.name)
-        response = client.get(reverse(view, args=[p.pk]))
+    response = client.get(reverse(view, args=[p.pk]))
 
     assert response.status_code == 302

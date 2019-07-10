@@ -975,7 +975,6 @@ def modify_signoff(request, event):
 
 
 # Managing pipeline submissions -----------------------------------------------
-PIPELINE_LIST = ['gstlal', 'pycbc', 'MBTAOnline', 'CWB', 'oLIB', 'spiir']
 PIPELINE_LOG_ACTION_DICT = dict(PipelineLog.PIPELINE_LOG_ACTION_CHOICES)
 
 @method_decorator(internal_user_required(raise_exception=True),
@@ -986,8 +985,7 @@ class PipelineManageView(ListView):
     log_number = 10
 
     def get_queryset(self):
-        qs = Pipeline.objects.filter(name__in=PIPELINE_LIST).order_by('name')
-        return qs
+        return Pipeline.production_objects.order_by('name')
 
     def get_context_data(self, **kwargs):
         context = super(PipelineManageView, self).get_context_data(**kwargs)
@@ -1033,8 +1031,7 @@ class PipelineEnableView(UpdateView):
     success_url = reverse_lazy('manage-pipelines')
 
     def get_queryset(self):
-        qs = Pipeline.objects.filter(name__in=PIPELINE_LIST)
-        return qs
+        return Pipeline.production_objects.all()
 
     def get(self, request, *args, **kwargs):
         return self.post(request, *args, **kwargs)
