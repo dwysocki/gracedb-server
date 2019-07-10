@@ -37,6 +37,12 @@ def parse_superevent_id(name, toks, filter_prefix=None):
         if (toks.prefix == Superevent.GW_ID_PREFIX):
             toks.suffix = toks.suffix.upper()
 
+    # Allow flexible suffix capitalization
+    if (toks.prefix == Superevent.GW_ID_PREFIX):
+        toks.suffix = toks.suffix.upper()
+    else:
+        toks.suffix = toks.suffix.lower()
+
     # Combine into full ID and get lookup kwargs
     s_id = toks.preprefix + toks.prefix + toks.date + toks.suffix
     f_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup(s_id)
