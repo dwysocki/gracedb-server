@@ -11,6 +11,9 @@ from django.http import HttpRequest
 from rest_framework.request import Request
 import os
 
+from guardian.shortcuts import get_objects_for_user
+
+
 #-------------------------------------------------------------------------------
 # A convenient wrapper for permission checks.
 #-------------------------------------------------------------------------------
@@ -18,13 +21,20 @@ def user_has_perm(user, shortname, obj):
     codename = shortname + '_%s' % obj.__class__.__name__.lower()
     return user.has_perm(codename, obj)
 
+
+def filter_events_for_user(events, user, shortname):
+    perm_codename = 'events.{verb}_event'.format(verb=shortname)
+    return get_objects_for_user(user, perm_codename, events)
+
 #-------------------------------------------------------------------------------
 # Filter a queryset of Event objects according to user permissions.
 # This relies on the storage of perm info on the event itself, and is
 # a much faster alternative to guardian.shortcuts.get_objects_for_user
 # when there are many objects.
+# TP July 2019: this is not used anymore, it's really bad practice and
+# requires a bunch of other coordination if group names change
 #-------------------------------------------------------------------------------
-def filter_events_for_user(events, user, shortname):
+def old_filter_events_for_user(events, user, shortname):
     # If user is None, return empty queryset
     if not user:
         return Event.objects.none()
