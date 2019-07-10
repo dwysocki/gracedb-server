@@ -412,13 +412,15 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
 
     def test_group_addition(self):
         """Add a group for a user based on shib group header content"""
-        # Create new group for testing
-        new_group = AuthGroup.objects.create(name='new_group',
+        # Create new group which should be managed through the
+        # LDAP/shib sessions
+        new_ldap_group = AuthGroup.objects.create(name='new_group',
             ldap_name='new_ldap_group')
-        # Compile group header
+        # Compile group header - add one random additional group name string
+        other_group_ldap_str = 'other_group'
         delim = ShibbolethWebAuthMiddleware.group_delimiter
         groups_str = delim.join([self.internal_group.ldap_name,
-            new_group.ldap_name])
+            new_ldap_group.ldap_name, other_group_ldap_str])
 
         # Set up request
         request = self.factory.get(self.url)
@@ -448,7 +450,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.assertTrue(self.internal_user.groups.filter(
             pk=self.internal_group.pk).exists())
         self.assertTrue(self.internal_user.groups.filter(
-            pk=new_group.pk).exists())
+            pk=new_ldap_group.pk).exists())
 
     def test_group_removal(self):
         """Remove a group for a user based on shib group header content"""
@@ -489,6 +491,48 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
             pk=self.internal_group.pk).exists())
         self.assertFalse(request.user.groups.filter(
             pk=new_group.pk).exists())
+
+    def test_non_ldap_group_not_removed(self):
+        """
+        A group which is not managed through the LDAP/Shib sessions shouldn't
+        be modified by this middleware
+        """
+        # Create new group without an ldap_name, add to user
+        new_group = AuthGroup.objects.create(name='non_ldap_group')
+        self.internal_user.groups.add(new_group)
+
+        # Set up request
+        # Shib session doesn't have new_group in it
+        request = self.factory.get(self.url)
+        request.META.update(**{
+            settings.SHIB_USER_HEADER: self.internal_user.username,
+            settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
+        })
+
+        # Make sure user has both groups initially
+        self.assertEqual(self.internal_user.groups.count(), 2)
+        self.assertTrue(self.internal_user.groups.filter(
+            pk=self.internal_group.pk).exists())
+        self.assertTrue(self.internal_user.groups.filter(
+            pk=new_group.pk).exists())
+
+        # Necessary pre-processing middleware
+        SessionMiddleware().process_request(request)
+        AuthenticationMiddleware().process_request(request)
+        # Process request
+        self.mw_instance.process_request(request)
+
+        # Make sure user is authenticated and was authenticated by
+        # the shibboleth backend and that the group memberships are
+        # what we expect
+        self.assertTrue(request.user.is_authenticated)
+        self.assertEqual(request.user.backend,
+            'ligoauth.backends.ShibbolethRemoteUserBackend')
+        self.assertTrue(self.internal_user.groups.filter(
+            pk=self.internal_group.pk).exists())
+        self.assertTrue(request.user.groups.filter(
+            pk=new_group.pk).exists())
+        self.assertEqual(self.internal_user.groups.count(), 2)
 
     #def test_robotuser_group_addition(self):
     #    """
