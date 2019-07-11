@@ -103,6 +103,10 @@ class GracedbRoot(APIView):
         signofflist = api_reverse("events:signoff-list", args=["G1200"], request=request)
         signofflist = signofflist.replace("G1200", "{graceid}")
 
+        update_grbevent = api_reverse("events:update-grbevent", args=["G1200"],
+                                      request=request)
+        update_grbevent = update_grbevent.replace("G1200", "{graceid}")
+
         # XXX Need a template for the tag list?
 
         templates = {
@@ -119,6 +123,7 @@ class GracedbRoot(APIView):
                 "tag-template" : tag,
                 "taglist-template" : taglist,
                 "signoff-list-template": signofflist,
+                "update-grbevent-template": update_grbevent,
                 }
 
         # Get superevent templates

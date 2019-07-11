@@ -9,6 +9,8 @@ urlpatterns = [
     url(r'^$', EventList.as_view(), name='event-list'),
     url(r'^(?P<graceid>[GEHMT]\d+)$', EventDetail.as_view(),
         name='event-detail'),
+    url(r'^(?P<graceid>[GEHMT]\d+)/update-grbevent/$',
+        GrbEventPatchView.as_view(), name='update-grbevent'),
 
     # Event Log Resources
     # events/{graceid}/logs/[{logid}]

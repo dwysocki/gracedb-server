@@ -26,7 +26,9 @@ from glue.ligolw.ligolw import LIGOLWContentHandler
 from glue.ligolw.lsctables import use_in
 from guardian.models import GroupObjectPermission
 from rest_framework import authentication, parsers, serializers, status
-from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
+from rest_framework.exceptions import ValidationError as DrfValidationError
+from rest_framework.permissions import IsAuthenticated, BasePermission, \
+    SAFE_METHODS
 from rest_framework.renderers import BaseRenderer, JSONRenderer, \
     BrowsableAPIRenderer
 from rest_framework.response import Response
@@ -40,7 +42,7 @@ from core.vfile import VersionedFile
 from events.buildVOEvent import buildVOEvent, VOEventBuilderException
 from events.forms import CreateEventForm
 from events.models import Event, Group, Search, Pipeline, EventLog, Tag, \
-    Label, Labelling, EMGroup, EMBBEventLog, EMSPECTRUM, VOEvent
+    Label, Labelling, EMGroup, EMBBEventLog, EMSPECTRUM, VOEvent, GrbEvent
 from events.permission_utils import user_has_perm, filter_events_for_user, \
     is_external, check_external_file_access
 from events.translator import handle_uploaded_data
@@ -53,6 +55,7 @@ from events.view_utils import eventToDict, eventLogToDict, labelToDict, \
 from search.forms import SimpleSearchForm
 from search.query.events import parseQuery, ParseException
 from superevents.models import Superevent
+from .permissions import CanUpdateGrbEvent
 from .throttling import EventCreationThrottle, AnnotationThrottle
 from ..mixins import InheritDefaultPermissionsMixin
 from ...utils import api_reverse
@@ -82,7 +85,7 @@ class IsAuthorizedForEvent(BasePermission):
         # "Unsafe methods" require change permissions on the event.
         # Note that DELETE is only implemented for event-log-tag 
         # relationships.
-        elif request.method in ['PUT','POST','DELETE']:
+        elif request.method in ['PUT', 'PATCH', 'POST', 'DELETE']:
             shortname = 'change'
         else:
             return False
@@ -636,6 +639,93 @@ class EventDetail(InheritPermissionsAPIView):
             old_far=old_far, old_nscand=old_nscand)
 
         return Response(status=status.HTTP_202_ACCEPTED)
+
+
+# New class *only* for updating GRB event properties
+class GrbEventPatchView(InheritPermissionsAPIView):
+    permission_classes = (IsAuthenticated, IsAuthorizedForEvent,
+                          CanUpdateGrbEvent)
+    updatable_attributes = ['t90', 'redshift', 'designation', 'ra', 'dec',
+        'error_radius']
+
+    def process_data(self, data):
+        cleaned_data = {}
+        for k, v in data.items():
+            if k in ['t90', 'redshift', 'ra', 'dec', 'error_radius']:
+                try:
+                    cleaned_data[k] = float(v)
+                except ValueError as e:
+                    err_msg = "Parameter '{k}' must be a float".format(k=k)
+                    raise DrfValidationError(err_msg)
+            elif k == 'designation':
+                try:
+                    cleaned_data[k] = str(v)
+                except ValueError as e:
+                    err_msg = "Parameter '{k}' must be a string".format(k=k)
+                    raise DrfValidationError(err_msg)
+        return cleaned_data
+
+    def get_attributes_to_update(self, grbevent, data):
+        attrib_to_update = [k for k in data if (k in self.updatable_attributes
+                            and getattr(grbevent, k, None) != data[k])]
+
+        # If none, raise an error
+        if not attrib_to_update:
+            raise DrfValidationError('Request would not modify the GRB event')
+
+        return {k: data[k] for k in attrib_to_update}
+
+    def generate_log_message(self, grbevent, update_dict):
+        # Templates
+        comment = "Updated GRB event parameters: {msg}"
+        param_template = "{name}: {old} -> {new}"
+
+        # Message strings for updated parameters
+        update_list = [
+            param_template.format(
+                name=k,
+                old=getattr(grbevent, k),
+                new=update_dict[k]
+            )
+            for k in update_dict
+        ]
+        return comment.format(msg=", ".join(update_list))
+
+    @event_and_auth_required
+    def patch(self, request, grbevent):
+        # grbevent here should be a GrbEvent due to the way
+        # event_and_auth_required works
+
+        # Make sure this is a GRB event
+        if (grbevent.pipeline.name not in settings.GRB_PIPELINES
+            or not isinstance(grbevent, GrbEvent)):
+            msg = ("Cannot update GRB event parameters for non-GRB event "
+                   "{gid}").format(gid=grbevent.graceid)
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # Process data - should be all floats except designation
+        data = self.process_data(request.data)
+
+        # Get attributes to update and their values
+        update_dict = self.get_attributes_to_update(grbevent, data)
+
+        # Generate log message before updating event
+        update_message = self.generate_log_message(grbevent, update_dict)
+
+        # Update the event
+        for attribute in update_dict:
+            setattr(grbevent, attribute, update_dict[attribute])
+        grbevent.save()
+
+        # Save log message
+        grbevent.eventlog_set.create(comment=update_message,
+                                     issuer=request.user)
+
+        # Send LVAlert
+        EventAlertIssuer(grbevent, alert_type='update').issue_alerts()
+
+        return Response(eventToDict(grbevent, request=request))
+
 
 #==================================================================
 # Neighbors
