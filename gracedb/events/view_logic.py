@@ -240,9 +240,9 @@ def delete_label(event, request, labelName, can_remove_protected=False,
 
     # Next, check if the label is in the list of labels for the event. Throw out an
     # error if it isn't. There might be a more elegant way of doing this.
-    if label not in event.labels.all():
-            d['warning'] = "No label '%s' associated with event %s" % (labelName, event.graceid)
-            raise ValueError("No label '%s' associated with event %s" % (labelName, event.graceid))
+    if not event.labelling_set.filter(label__name=labelName).exists():
+        d['warning'] = "No label '%s' associated with event %s" % (labelName, event.graceid)
+        raise Labelling.DoesNotExist("No label '%s' associated with event %s" % (labelName, event.graceid))
     else:
         this_label = Labelling.objects.get(
                 event = event,

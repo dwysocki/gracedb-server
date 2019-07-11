@@ -40,7 +40,7 @@ from core.vfile import VersionedFile
 from events.buildVOEvent import buildVOEvent, VOEventBuilderException
 from events.forms import CreateEventForm
 from events.models import Event, Group, Search, Pipeline, EventLog, Tag, \
-    Label, EMGroup, EMBBEventLog, EMSPECTRUM, VOEvent
+    Label, Labelling, EMGroup, EMBBEventLog, EMSPECTRUM, VOEvent
 from events.permission_utils import user_has_perm, filter_events_for_user, \
     is_external, check_external_file_access
 from events.translator import handle_uploaded_data
@@ -730,11 +730,13 @@ class EventLabel(InheritPermissionsAPIView):
 
     @event_and_auth_required
     def delete(self, request, event, label):
+
         try:
             rv = delete_label(event, request, label)
+        except Labelling.DoesNotExist as e:
+            return Response(e.message, status=status.HTTP_404_NOT_FOUND)
         except (ValueError, Label.ProtectedLabelError) as e:
-            return Response(e.message,
-                        status=status.HTTP_400_BAD_REQUEST)
+            return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
