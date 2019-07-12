@@ -26,9 +26,6 @@ urlpatterns = [
          '(,(?P<delta2>[-+]?\d+)\)?)?/$'), views.neighbors, name="neighbors"),
 
     # Form processing ---------------------------------------------------------
-    # Modify t90
-    url(r'^(?P<graceid>[GEHMT]\d+)/t90/$', views.modify_t90,
-        name="modify_t90"),
     # Modify permissions
     url(r'^(?P<graceid>[GEHMT]\d+)/perms/$', views.modify_permissions,
         name="modify_permissions"),
