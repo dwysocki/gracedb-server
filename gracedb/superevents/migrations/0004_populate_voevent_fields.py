@@ -86,12 +86,17 @@ def populate_values(voevent, event_or_superevent):
 
     # Parse parameters
     for parameter in PARAMETER_MAPPINGS:
+        result = None
         for path in PARAMETER_MAPPINGS[parameter]:
-            result = None
             try:
                 result = root.find(path)
             except SyntaxError as e:
                 pass
+            else:
+                # If result is not None, we've found something, so let's break
+                if result is not None:
+                    break
+
         if result is None:
             continue
 
@@ -114,9 +119,10 @@ def populate_values(voevent, event_or_superevent):
     for parameter, str_list in DESCRIPTION_PARAMETER_MAPPINGS.items():
         for s in str_list:
             if any([s in dp for dp in desc_text]):
-                setattr(voevent, parameter, True)
+                value = True
             else:
-                setattr(voevent, parameter, False)
+                value = False
+            setattr(voevent, parameter, value)
 
     # Save VOEvent
     voevent.save()

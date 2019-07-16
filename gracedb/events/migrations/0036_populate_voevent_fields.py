@@ -89,19 +89,34 @@ def populate_values(voevent, event_or_superevent):
 
     # Parse parameters
     for parameter in PARAMETER_MAPPINGS:
+        result = None
         for path in PARAMETER_MAPPINGS[parameter]:
-            result = None
             try:
                 result = root.find(path)
             except SyntaxError as e:
                 pass
+            else:
+                # If result is not None, we've found something, so let's break
+                if result is not None:
+                    break
+
         if result is None:
             # not found, likely due to an old VOEvent schema
             continue
 
         # Special parameter parsing
         if parameter in ['hardware_inj', 'internal', 'open_alert']:
-            value = bool(int(result.attrib['value']))
+            # Better bool processing
+            try:
+                value = bool(int(result.attrib['value']))
+            except ValueError:
+                value = result.attrib['value']
+                if value.lower() in ['f', '0', 'false']:
+                    value = False
+                elif value.lower() in ['t', '1', 'true']:
+                    value = True
+                else:
+                    raise ValueError("Can't process value {0}".format(value))
         elif parameter == 'skymap_filename':
             value = result.attrib['value'].split('/')[-1]
         elif parameter == 'skymap_type':
@@ -118,9 +133,10 @@ def populate_values(voevent, event_or_superevent):
     for parameter, str_list in DESCRIPTION_PARAMETER_MAPPINGS.items():
         for s in str_list:
             if any([s in dp for dp in desc_text]):
-                setattr(voevent, parameter, True)
+                value = True
             else:
-                setattr(voevent, parameter, False)
+                value = False
+            setattr(voevent, parameter, value)
 
     # Save VOEvent
     voevent.save()
