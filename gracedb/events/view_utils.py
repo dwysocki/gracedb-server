@@ -9,7 +9,6 @@ from django.utils.safestring import mark_safe
 from .models import SingleInspiral, Event, Search, Group
 
 from core.urls import build_absolute_uri
-from core.vfile import VersionedFile
 from .permission_utils import is_external
 from api.utils import api_reverse
 from django.db.models import Q
@@ -693,14 +692,6 @@ def assembleLigoLw(objects):
     ligolw_add.merge_ligolws(xmldoc)
     ligolw_add.merge_compatible_tables(xmldoc)
     return xmldoc
-
-def _saveUploadedFile(event, uploadedFile):
-    fname = os.path.join(event.datadir, uploadedFile.name)
-    f = VersionedFile(fname, "w")
-    for chunk in uploadedFile.chunks():
-        f.write(chunk)
-    f.close()
-    return f.version
 
 import html5lib
 def sanitize_html(data):

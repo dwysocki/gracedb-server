@@ -11,7 +11,6 @@ from .models import LalInferenceBurstEvent
 from .models import EMBBEventLog, EMGroup
 from .models import EMObservation, EMFootprint
 from .translator import handle_uploaded_data
-from .view_utils import _saveUploadedFile
 from .view_utils import eventToDict, eventLogToDict, emObservationToDict, \
     labelToDict
 from .permission_utils import assign_default_event_perms
