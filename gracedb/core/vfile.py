@@ -24,7 +24,7 @@ class FileVersionNameError(Exception):
     pass
 
 
-class VersionedFile(file):
+class VersionedFile(object):
     """
     Open a versioned file.
 
@@ -74,7 +74,7 @@ class VersionedFile(file):
             # one scoped inside of this __init__). But I'm reluctant to mess with
             # Brian's code too much.
             self.version = version
-            file.__init__(self, actual_name, *args, **kwargs)
+            self.file = open(actual_name, *args, **kwargs)
 
         # Otherwise...
 
@@ -124,7 +124,7 @@ class VersionedFile(file):
                         os.O_WRONLY | os.O_CREAT | os.O_EXCL,
                         0o644)
                 # re-open
-                file.__init__(self, actual_name, *args, **kwargs)
+                self.file = open(actual_name, *args, **kwargs)
                 # lose fd we used to ensure file creation.
                 os.close(fd)
                 break
@@ -208,6 +208,13 @@ class VersionedFile(file):
         return [int(f.split(',')[1])
                 for f in os.listdir(d) if f.startswith(name + ',')]
 
+    def write(self, s):
+        self.file.write(s)
+
+    @property
+    def closed(self):
+        return self.file.closed
+
     def close(self):
         if self.writing:
             # no need to update symlink if we were only reading.
@@ -215,13 +222,13 @@ class VersionedFile(file):
             # file -- trying to discover the lastest version fails
             # painfully. (max(known_versions()) => max([]))
             self._repoint_symlink()
-        if not self.closed:
-            file.close(self)
+        if not self.file.closed:
+            self.file.close()
 
     def __del__(self):
         # XXX file does not have a __del__ method.  Should we?
-        if not self.closed:
-            self.close()
+        if not self.file.closed:
+            self.file.close()
 
     @staticmethod
     def guess_mimetype(filename):

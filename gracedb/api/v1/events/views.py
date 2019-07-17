@@ -617,7 +617,7 @@ class EventDetail(InheritPermissionsAPIView):
         #for chunk in f.chunks():
         #    fdest.write(chunk)
         #fdest.close()
-        shutil.copyfileobj(f, fdest)
+        shutil.copyfileobj(f, fdest.file)
         fdest.close()
 
         # Extract Info from uploaded data

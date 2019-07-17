@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 
 from core.file_utils import get_file_list
 from core.http import check_and_serve_file
-from core.vfile import VersionedFile, FileVersionError, FileVersionNameError
+from core.vfile import FileVersionError, FileVersionNameError
 from events.models import Event, Label
 from events.view_utils import reverse as gracedb_reverse
 from ligoauth.utils import is_internal

@@ -89,7 +89,7 @@ def write_output_files(root_dir, xmldoc, log_content, \
   """
 
   f = VersionedFile(root_dir+'/'+xml_fname,'w')
-  xmldoc.write(f)
+  xmldoc.write(f.file)
   f.close()
 
   f = VersionedFile(root_dir+'/'+log_fname,'w')
