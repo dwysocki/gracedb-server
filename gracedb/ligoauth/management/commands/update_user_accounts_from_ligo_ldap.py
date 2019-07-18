@@ -1,3 +1,4 @@
+from builtins import str
 import datetime
 import ldap
 
@@ -33,8 +34,8 @@ class LdapPersonResultProcessor(object):
         if self.ldap_connection is None:
             raise RuntimeError('LDAP connection not configured')
         self.user_data = {
-            'first_name': unicode(self.ldap_result['givenName'][0], 'utf-8'),
-            'last_name': unicode(self.ldap_result['sn'][0], 'utf-8'),
+            'first_name': str(self.ldap_result['givenName'][0], 'utf-8'),
+            'last_name': str(self.ldap_result['sn'][0], 'utf-8'),
             'email': self.ldap_result['mail'][0],
             'is_active': self.ldap_connection.lvc_group.ldap_name in
                 self.ldap_result.get('isMemberOf', []),
@@ -239,7 +240,7 @@ class LdapRobotResultProcessor(LdapPersonResultProcessor):
         if self.ldap_connection is None:
             raise RuntimeError('LDAP connection not configured')
         self.user_data = {
-            'last_name': unicode(self.ldap_result['x-LIGO-TWikiName'][0],
+            'last_name': str(self.ldap_result['x-LIGO-TWikiName'][0],
                 'utf-8'),
             'email': self.ldap_result['mail'][0],
             'is_active': self.ldap_connection.groups.get(

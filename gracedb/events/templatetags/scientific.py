@@ -1,3 +1,4 @@
+from builtins import str
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from django import template
 from django.utils.encoding import force_text
@@ -61,7 +62,7 @@ def scientificformat(text):
         elif ( (d > Decimal('-100') and d < Decimal('-0.1')) or ( d > Decimal('0.1') and d < Decimal('100')) ) :
             # this is what the original floatformat() function does
             sign, digits, exponent = d.quantize(Decimal('.01'), ROUND_HALF_UP).as_tuple()
-            digits = [unicode(digit) for digit in reversed(digits)]
+            digits = [str(digit) for digit in reversed(digits)]
             while len(digits) <= abs(exponent):
                 digits.append(u'0')
             digits.insert(-exponent, u'.')
@@ -72,7 +73,7 @@ def scientificformat(text):
             # for very small and very large numbers
             sign, digits, exponent = d.as_tuple()
             exponent = d.adjusted()
-            digits = [unicode(digit) for digit in digits][:3] # limit to 2 decimal places
+            digits = [str(digit) for digit in digits][:3] # limit to 2 decimal places
             while len(digits) < 3:
                 digits.append(u'0')
             digits.insert(1, u'.')

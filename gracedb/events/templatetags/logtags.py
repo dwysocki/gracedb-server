@@ -19,9 +19,6 @@ def getLogsForTag(event,name=None):
         # In either case, we want the template to just ignore it.
         return None
 
-@register.filter("tagUnicode")
-def tagUnicode(tag):
-    return unicode(tag);
 
 @register.filter("logsForTagHaveImage")
 def logsForTagAllHaveImages(event,name=None):

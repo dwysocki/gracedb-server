@@ -1281,7 +1281,7 @@ class EventLogTagDetail(InheritPermissionsAPIView):
             # client that the creation was sucessful when, in fact, the database
             # was unchanged.
             tag = eventlog.tags.filter(name=tagname)[0]
-            msg = "Log already has tag %s" % unicode(tag)
+            msg = "Log already has tag {0}".format(tag.name)
             return Response(msg,status=status.HTTP_409_CONFLICT)
         except:
             # Check authorization
