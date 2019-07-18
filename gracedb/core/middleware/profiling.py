@@ -7,9 +7,9 @@ import os
 import re
 import tempfile
 try:
-    from io import StringIO
-except ImportError:  # python < 3
     from StringIO import StringIO
+except ImportError:  # python >= 3
+    from io import StringIO
 
 import hotshot, hotshot.stats
 

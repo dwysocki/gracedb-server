@@ -4,9 +4,9 @@ import logging
 import os
 import shutil
 try:
-    from io import StringIO
-except ImportError:  # python < 3
     from StringIO import StringIO
+except ImportError:  # python >= 3
+    from io import StringIO
 
 from django.conf import settings
 from django.contrib.auth.models import User, Permission, Group as DjangoGroup

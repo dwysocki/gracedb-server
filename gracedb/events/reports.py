@@ -30,9 +30,9 @@ from django.utils import timezone
 import pytz
 import json
 try:
-    from io import StringIO
-except ImportError:  # python < 3
     from StringIO import StringIO
+except ImportError:  # python >= 3
+    from io import StringIO
 
 @internal_user_required
 def histo(request):

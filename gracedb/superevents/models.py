@@ -1,7 +1,7 @@
 try:
-    from io import StringIO
-except ImportError:  # python < 3
     from StringIO import StringIO
+except ImportError:  # python >= 3
+    from io import StringIO
 import datetime
 from hashlib import sha1
 import logging
@@ -365,7 +365,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
         # object's primary key. We prepend 'superevent' so as to not
         # have collisions with Event files
         hash_input = 'superevent' + str(self.id)
-        hdf = StringIO(sha1(hash_input).hexdigest().decode('utf-8'))
+        hdf = StringIO(sha1(hash_input.encode()).hexdigest())
 
         # Build up the nodes of the directory structure
         nodes = [hdf.read(i) for i in settings.GRACEDB_DIR_DIGITS]
