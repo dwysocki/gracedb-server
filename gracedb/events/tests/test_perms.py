@@ -50,7 +50,7 @@ def extra_args(user):
     # Need to handle reverse proxy case where headers are used
     # instead of Apache environment variables.
     if settings.USE_X_FORWARDED_HOST:
-        for k in AUTH_DICT.keys():
+        for k in AUTH_DICT:
             AUTH_DICT['HTTP_' + k.upper()] = AUTH_DICT.pop(k)
 
     return AUTH_DICT

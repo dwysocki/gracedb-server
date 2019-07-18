@@ -58,7 +58,7 @@ class SupereventOrderingFilter(filters.OrderingFilter):
         for f in fields:
             prefix = '-' if f.startswith('-') else ''
             f_s = f.lstrip('-')
-            if f_s in self.field_map.keys():
+            if f_s in self.field_map:
                 mapped_fields = self.field_map[f_s]
                 if not isinstance(mapped_fields, list):
                     mapped_fields = [mapped_fields]

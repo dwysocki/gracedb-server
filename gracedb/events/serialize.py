@@ -39,7 +39,7 @@ H1_detlist = ['H1']
 L1_detlist = ['L1']
 V1_detlist = ['V1']
 
-#this is the subset of SnglInspiralTable.validcolumn.keys() that
+#this is the subset of keys in SnglInspiralTable.validcolumn that
 #are assigned from MBTA coinc triggers
 MBTA_set_keys = ['ifo', 'search', 'end_time', 'end_time_ns', 'mass1', 'mass2',\
                'mchirp', 'mtotal', 'eta', 'snr', 'eff_distance', 'event_id',\
@@ -166,7 +166,7 @@ def populate_omega_tables(datafile, set_keys = Omega_set_keys):
   row.confidence = -log(float(omega_data['probGlitch']))
   cid = lsctables.CoincTable.get_next_id()
   row.coinc_event_id = cid
-  for key in mb_table.validcolumns.keys():
+  for key in mb_table.validcolumns:
       if key not in set_keys:
         setattr(row,key,None)
   mb_table.append(row)
@@ -215,7 +215,7 @@ def populate_cwb_tables(datafile, set_keys=CWB_set_keys):
   row.start_time_ns = st.nanoseconds
   cid = lsctables.CoincTable.get_next_id()
   row.coinc_event_id = cid
-  for key in mb_table.validcolumns.keys():
+  for key in mb_table.validcolumns:
       if key not in set_keys:
         setattr(row,key,None)
   mb_table.append(row)

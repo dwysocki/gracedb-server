@@ -76,7 +76,7 @@ def add_perms(apps, schema_editor):
     Permission = apps.get_model('auth', 'Permission')
 
     # Add superevent permissions to groups
-    for codename, group_names in SUPEREVENT_PERMS.iteritems():
+    for codename, group_names in SUPEREVENT_PERMS.items():
         p = Permission.objects.get(codename=codename,
             content_type__app_label='superevents')
         groups = Group.objects.filter(name__in=group_names)
@@ -88,7 +88,7 @@ def remove_perms(apps, schema_editor):
     Permission = apps.get_model('auth', 'Permission')
 
     # Add permissions to groups
-    for codename, group_names in SUPEREVENT_PERMS.iteritems():
+    for codename, group_names in SUPEREVENT_PERMS.items():
         p = Permission.objects.get(codename=codename,
             content_type__app_label='superevents')
         groups = Group.objects.filter(name__in=group_names)

@@ -96,7 +96,7 @@ parameter_dicts = {
     'runid': {
         'keyword': 'runid',
         'keywordOptional': True,
-        'value': Or(map(CaselessLiteral, RUN_MAP.keys())).setName("run id"),
+        'value': Or(map(CaselessLiteral, list(RUN_MAP))).setName("run id"),
         'doRange': False,
         'parseAction': lambda toks: ("t_0", Q(t_0__range=RUN_MAP[toks[0]])),
     },

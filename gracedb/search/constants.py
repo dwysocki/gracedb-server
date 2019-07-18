@@ -11,7 +11,7 @@ EXPR_OPERATORS = {
     ">": "__gt",
     ">=": "__gte",
 }
-ExpressionOperator = Or(map(Literal, EXPR_OPERATORS.keys()))
+ExpressionOperator = Or(map(Literal, list(EXPR_OPERATORS)))
 ExpressionOperator.setParseAction(lambda toks: EXPR_OPERATORS[toks[0]])
 
 

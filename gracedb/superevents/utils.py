@@ -133,7 +133,7 @@ def update_superevent(superevent, updater, add_log_message=True,
     new_params = {k: v for k,v in kwargs.items() if k in param_names}
 
     # Get old parameters
-    old_params = {k: getattr(superevent, k) for k in new_params.keys()}
+    old_params = {k: getattr(superevent, k) for k in new_params}
 
     # Update superevent object
     for k,v in new_params.items():
@@ -145,7 +145,7 @@ def update_superevent(superevent, updater, add_log_message=True,
     superevent_alert_kwargs = {}
     if add_log_message:
         updates = ["{name}: {old} -> {new}".format(name=k, old=old_params[k],
-            new=new_params[k]) for k in new_params.keys()
+            new=new_params[k]) for k in new_params
             if old_params[k] != new_params[k]]
         update_comment = "Updated superevent parameters: {0}".format(
             ", ".join(updates))
@@ -153,7 +153,7 @@ def update_superevent(superevent, updater, add_log_message=True,
             issue_alert=False)
 
         # If preferred event changed, do a few things
-        if new_params.has_key('preferred_event') and \
+        if 'preferred_event' in new_params and \
             (old_params['preferred_event'] != new_params['preferred_event']):
             # Write log for old preferred event
             old_msg = ("Removed as preferred event for superevent: "

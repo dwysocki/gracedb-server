@@ -18,7 +18,7 @@ def add_search(apps, schema_editor):
     # Create search
     new_search, created = Search.objects.get_or_create(name=SEARCH['name'])
     if created:
-        for key in SEARCH.keys():
+        for key in SEARCH:
             setattr(new_search, key, SEARCH[key])
         new_search.save()
 

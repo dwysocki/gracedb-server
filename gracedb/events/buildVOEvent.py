@@ -59,7 +59,7 @@ def buildVOEvent(event, voevent, request=None):
     if not event.gpstime:
         raise VOEventBuilderException("Cannot build a VOEvent because event has no gpstime.")
 
-    if not voevent.voevent_type in VOEVENT_TYPE_DICT.keys():
+    if not voevent.voevent_type in VOEVENT_TYPE_DICT:
         raise VOEventBuilderException("voevent_type must be preliminary, initial, update, or retraction")
 
     # Let's convert that voevent_type to something nicer looking

@@ -17,7 +17,7 @@ def add_groups(apps, schema_editor):
     Group = apps.get_model('auth', 'Group')
     User = apps.get_model('auth', 'User')
 
-    for group_name, usernames in GROUPS.iteritems():
+    for group_name, usernames in GROUPS.items():
         g, _ = Group.objects.get_or_create(name=group_name)
         users = User.objects.filter(username__in=usernames)
         g.user_set.add(*users)

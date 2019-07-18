@@ -49,7 +49,7 @@ def deactivate_old_and_add_new_accounts(apps, schema_editor):
     Group = apps.get_model('auth', 'Group')
 
     # Mark old users as inactive and delete their certificates
-    for username in OLD_ACCOUNTS.keys():
+    for username in OLD_ACCOUNTS:
         user = LocalUser.objects.get(username=username)
         for subject in OLD_ACCOUNTS[username]['certs']:
             cert = user.x509cert_set.get(subject=subject)
@@ -73,7 +73,7 @@ def activate_old_and_remove_new_accounts(apps, schema_editor):
     X509Cert = apps.get_model('ligoauth', 'X509Cert')
 
     # Activate old accounts and add their X509 certificates
-    for username in OLD_ACCOUNTS.keys():
+    for username in OLD_ACCOUNTS:
         user = LocalUser.objects.get(username=username)
         for subject in OLD_ACCOUNTS[username]['certs']:
             cert = user.x509cert_set.create(subject=subject)

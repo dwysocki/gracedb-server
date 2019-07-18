@@ -26,7 +26,7 @@ def update_perms(apps, schema_editor):
     ctype = ContentType.objects.get_for_model(Pipeline)
 
     # Remove UOPs from old accounts which allow pipeline population
-    for username, pipelines in OLD_ACCOUNTS.iteritems():
+    for username, pipelines in OLD_ACCOUNTS.items():
         user = LocalUser.objects.get(username=username)
         for pipeline_name in pipelines:
             pipeline = Pipeline.objects.get(name=pipeline_name)
@@ -53,7 +53,7 @@ def revert_perms(apps, schema_editor):
     ctype = ContentType.objects.get_for_model(Pipeline)
 
     # Re-add UOPs to old accounts which allow pipeline population
-    for username, pipelines in OLD_ACCOUNTS.iteritems():
+    for username, pipelines in OLD_ACCOUNTS.items():
         user = LocalUser.objects.get(username=username)
         for pipeline_name in pipelines:
             pipeline = Pipeline.objects.get(name=pipeline_name)

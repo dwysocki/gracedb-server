@@ -45,12 +45,12 @@ class TestSupereventSerializerViaWeb(SupereventSetup, GraceDbApiTestBase):
         response = self.request_as_user(url, "GET", self.internal_user)
         self.assertEqual(response.status_code, 200)
         # Check data on page
-        response_keys = response.json().keys()
+        response_keys = list(response.json())
         response_links = response.json()['links']
         self.assertIn('preferred_event', response_keys)
         self.assertIn('gw_events', response_keys)
         self.assertIn('em_events', response_keys)
-        self.assertIn('events', response_links.keys())
+        self.assertIn('events', response_links)
 
     def test_lvem_user_get_superevent_detail(self):
         """LV-EM user sees events link and all event graceids"""
@@ -61,12 +61,12 @@ class TestSupereventSerializerViaWeb(SupereventSetup, GraceDbApiTestBase):
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
         # Check data on page
-        response_keys = response.json().keys()
+        response_keys = list(response.json())
         response_links = response.json()['links']
         self.assertIn('preferred_event', response_keys)
         self.assertIn('gw_events', response_keys)
         self.assertIn('em_events', response_keys)
-        self.assertIn('events', response_links.keys())
+        self.assertIn('events', response_links)
 
     def test_public_user_get_superevent_detail(self):
         """Public user does not see events link or all event graceids"""
@@ -77,9 +77,9 @@ class TestSupereventSerializerViaWeb(SupereventSetup, GraceDbApiTestBase):
         response = self.request_as_user(url, "GET")
         self.assertEqual(response.status_code, 200)
         # Check data on page
-        response_keys = response.json().keys()
+        response_keys = list(response.json())
         response_links = response.json()['links']
         self.assertNotIn('preferred_event', response_keys)
         self.assertNotIn('gw_events', response_keys)
         self.assertNotIn('em_events', response_keys)
-        self.assertNotIn('events', response_links.keys())
+        self.assertNotIn('events', response_links)

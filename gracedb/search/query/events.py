@@ -41,7 +41,7 @@ gpsQ = Optional(Suppress(Keyword("gpstime:"))) + (gpstime^gpstimeRange)
 gpsQ = gpsQ.setParseAction(maybeRange("gpstime"))
 
 # run ids
-runid = Or(map(CaselessLiteral, RUN_MAP.keys())).setName("run id")
+runid = Or(map(CaselessLiteral, list(RUN_MAP))).setName("run id")
 #runidList = OneOrMore(runid).setName("run id list")
 runQ = (Optional(Suppress(Keyword("runid:"))) + runid)
 runQ = runQ.setParseAction(lambda toks: ("gpstime", Q(gpstime__range=
@@ -335,4 +335,4 @@ def parseQuery(s):
     if "id" in d and "hid" in d:
         d["id"] = d["id"] | d["hid"]
         del d["hid"]
-    return reduce(Q.__and__, d.values(), Q())
+    return reduce(Q.__and__, list(d.values()), Q())

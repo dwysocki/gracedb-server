@@ -299,28 +299,28 @@ def get_performance_info():
         # Localize so we can compare with aware datetimes
         dt = SERVER_TZ.localize(dt)
         if dt > dt_min:
-            if method not in totals_by_method.keys():
+            if method not in totals_by_method:
                 totals_by_method[method] = 1
                 totals_by_status[method] = {status: 1}
             else:
                 totals_by_method[method] += 1
-                if status not in totals_by_status[method].keys():
+                if status not in totals_by_status[method]:
                     totals_by_status[method][status] = 1
                 else:
                     totals_by_status[method][status] += 1
 
     # Calculate summary information:
     summaries = {}
-    for method in totals_by_method.keys():
+    for method in totals_by_method:
         summaries[method] = {'gt_500': 0, 'btw_300_500': 0}
-        for key in totals_by_status[method].keys():
+        for key in totals_by_status[method]:
             if key >= 500:
                 summaries[method]['gt_500'] += totals_by_status[method][key]
             elif key >= 300:
                 summaries[method]['btw_300_500'] += totals_by_status[method][key]
         # Normalize
         if totals_by_method[method] > 0:
-            for key in summaries[method].keys():
+            for key in summaries[method]:
                 summaries[method][key] = float(summaries[method][key])/totals_by_method[method]
 
     context = {

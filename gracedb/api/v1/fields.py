@@ -125,8 +125,8 @@ class GenericField(fields.Field):
                 err_msg = self.get_does_not_exist_error(data)
             else:
                 err_msg = '{model} with {lf}={data} does not exist'.format(
-                    model=self.model.__name__, lf=model_dict.keys()[0],
-                    data=model_dict.values()[0]
+                    model=self.model.__name__, lf=list(model_dict)[0],
+                    data=list(model_dict.values())[0]
                 )
             raise exceptions.ValidationError(err_msg)
 

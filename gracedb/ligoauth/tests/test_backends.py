@@ -48,7 +48,7 @@ class TestShibbolethRemoteUserBackend(GraceDbTestBase):
         # Set up request and headers
         request = self.factory.get(self.url)
         for k,v in user_data.items():
-            if settings.SHIB_ATTRIBUTE_MAP.has_key(k):
+            if k in settings.SHIB_ATTRIBUTE_MAP:
                 request.META[settings.SHIB_ATTRIBUTE_MAP[k]] = v
 
         # Pass data to backend
@@ -71,7 +71,7 @@ class TestShibbolethRemoteUserBackend(GraceDbTestBase):
         # Set up request and headers
         request = self.factory.get(self.url)
         for k,v in new_user_data.items():
-            if settings.SHIB_ATTRIBUTE_MAP.has_key(k):
+            if k in settings.SHIB_ATTRIBUTE_MAP:
                 request.META[settings.SHIB_ATTRIBUTE_MAP[k]] = v
 
         # Get initial user data

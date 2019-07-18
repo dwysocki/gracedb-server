@@ -37,8 +37,8 @@ class ModelFormUpdateMixin(forms.ModelForm):
 
         # Insert instance data for missing fields only
         instance_data = self.get_instance_data()
-        for key in self.fields.keys():
-            if not self.data.has_key(key) and instance_data[key]:
+        for key in self.fields:
+            if not key in self.data and instance_data[key]:
                 self.data[key] = instance_data[key]
 
 

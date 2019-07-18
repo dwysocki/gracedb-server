@@ -13,7 +13,8 @@ def gracedb_exception_handler(exc, context):
 
     if hasattr(exc, 'detail') and hasattr(exc.detail, 'values'):
         # Combine values into one list
-        exc_out = [item for sublist in exc.detail.values() for item in sublist]
+        exc_out = [item for sublist in list(exc.detail.values())
+                   for item in sublist]
 
         # For only one exception, just print it rather than the list
         if len(exc_out) == 1:

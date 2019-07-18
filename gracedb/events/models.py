@@ -833,8 +833,8 @@ class SingleInspiral(models.Model):
             return cls._field_names
         except AttributeError: pass
         model_field_names = set([ x.name for x in cls._meta.get_fields(include_parents=False) ])
-        ligolw_field_names = set(
-                glue.ligolw.lsctables.SnglInspiralTable.validcolumns.keys())
+        ligolw_field_names = set(list(
+                glue.ligolw.lsctables.SnglInspiralTable.validcolumns))
         cls._field_names = model_field_names.intersection(ligolw_field_names)
         return cls._field_names
 

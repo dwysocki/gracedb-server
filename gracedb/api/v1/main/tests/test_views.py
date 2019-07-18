@@ -46,5 +46,5 @@ class TestUserInfoView(GraceDbApiTestBase):
         self.assertEqual(response.status_code, 200)
 
         # Test information
-        self.assertEqual(response.data.keys(), ['username'])
+        self.assertEqual(list(response.data), ['username'])
         self.assertEqual(response.data['username'], 'AnonymousUser')

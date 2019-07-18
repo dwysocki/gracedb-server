@@ -11,7 +11,7 @@ class XForwardedForMiddleware(object):
 
     def __call__(self, request):
         # Process request -----------------------------------------------------
-        if request.META.has_key('HTTP_X_FORWARDED_FOR'):
+        if 'HTTP_X_FORWARDED_FOR' in request.META:
             request.META['REMOTE_ADDR'] = \
                 request.META['HTTP_X_FORWARDED_FOR'].split(",")[0].strip()
 

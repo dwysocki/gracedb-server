@@ -81,7 +81,7 @@ If you have reason to believe that your request may be throttled, you can wrap i
         except HTTPError as e:
             try:
                 rdict = json.loads(e.message)
-                if 'retry-after' in rdict.keys():
+                if 'retry-after' in rdict:
                     time.sleep(int(rdict['retry-after']))
                     continue
                 else:

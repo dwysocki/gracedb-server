@@ -246,7 +246,8 @@ class CoincAccess(Exception):
         return repr(self.detail)
 
 def assembleLigoLw(data):
-    if 'events' in data.keys():
+    # data is a dict
+    if 'events' in data:
         eventDictList = data['events']
     else:
         # There is only one event.
@@ -272,7 +273,7 @@ class LigoLwRenderer(BaseRenderer):
         # XXX If there was an error, we will return the error message
         # in plain text, effectively ignoring the accepts header. 
         # Somewhat irregular?
-        if 'error' in data.keys():
+        if 'error' in data:
             return data['error']
         
         xmldoc = assembleLigoLw(data)
@@ -286,12 +287,12 @@ class TSVRenderer(BaseRenderer):
     format = 'tsv'
 
     def render(self, data, media_type=None, renderer_context=None):
-        if 'error' in data.keys():
+        if 'error' in data:
             return data['error']
 
         accessFun = {
             "labels" : lambda e: \
-                ",".join(e['labels'].keys()),
+                ",".join(list(e['labels'])),
             "dataurl" : lambda e: e['links']['files'],
         }
         def defaultAccess(e,a):
@@ -957,7 +958,7 @@ class EventLogList(InheritPermissionsAPIView):
         rv = eventLogToDict(logentry, request=request)
         response = Response(rv, status=status.HTTP_201_CREATED)
         response['Location'] = rv['self']
-        #if 'tagWarning' in tw_dict.keys():
+        #if 'tagWarning' in tw_dict:
         #    response['tagWarning'] = tw_dict['tagWarning']
 
         # Issue alert.
@@ -1064,7 +1065,7 @@ class EMObservationList(InheritPermissionsAPIView):
         # XXX Note the following hack.
         # If this JSON information is requested for skymapViewer, use a different
         # representation for backwards compatibility.
-        if 'skymapViewer' in request.query_params.keys():
+        if 'skymapViewer' in request.query_params:
             emo = [ skymapViewerEMObservationToDict(emo, request)
                     for emo in emo_set.iterator() ]
 

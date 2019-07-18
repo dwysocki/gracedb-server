@@ -182,7 +182,7 @@ class TestEventLatest(EventCreateMixin, GraceDbTestBase):
         # Response status
         self.assertEqual(response.status_code, 200) 
         # Make sure all events are shown
-        self.assertIn('events', response.context.keys())
+        self.assertIn('events', response.context)
         for e in Event.objects.all():
             self.assertIn(e, response.context['events'])
 
@@ -193,7 +193,7 @@ class TestEventLatest(EventCreateMixin, GraceDbTestBase):
         # Response status
         self.assertEqual(response.status_code, 200) 
         # Make sure only exposed events are shown
-        self.assertIn('events', response.context.keys())
+        self.assertIn('events', response.context)
         self.assertIn(self.lvem_event, response.context['events'])
         self.assertEqual(len(response.context['events']), 1)
 
@@ -206,7 +206,7 @@ class TestEventLatest(EventCreateMixin, GraceDbTestBase):
         # Response status
         self.assertEqual(response.status_code, 200) 
         # Make sure only exposed events are shown
-        self.assertIn('events', response.context.keys())
+        self.assertIn('events', response.context)
         self.assertEqual(len(response.context['events']), 0)
 
 
@@ -232,7 +232,7 @@ class TestSupereventLatest(SupereventSetup, GraceDbTestBase):
         # Response status
         self.assertEqual(response.status_code, 200) 
         # Make sure all superevents are shown
-        self.assertIn('superevents', response.context.keys())
+        self.assertIn('superevents', response.context)
         for s in Superevent.objects.all():
             self.assertIn(s, response.context['superevents'])
 
@@ -243,7 +243,7 @@ class TestSupereventLatest(SupereventSetup, GraceDbTestBase):
         # Response status
         self.assertEqual(response.status_code, 200) 
         # Make sure only exposed superevents are shown
-        self.assertIn('superevents', response.context.keys())
+        self.assertIn('superevents', response.context)
         self.assertIn(self.lvem_superevent, response.context['superevents'])
         self.assertIn(self.public_superevent, response.context['superevents'])
         self.assertEqual(len(response.context['superevents']), 2)
@@ -254,6 +254,6 @@ class TestSupereventLatest(SupereventSetup, GraceDbTestBase):
         # Response status
         self.assertEqual(response.status_code, 200) 
         # Make sure only exposed superevents are shown
-        self.assertIn('superevents', response.context.keys())
+        self.assertIn('superevents', response.context)
         self.assertIn(self.public_superevent, response.context['superevents'])
         self.assertEqual(len(response.context['superevents']), 1)

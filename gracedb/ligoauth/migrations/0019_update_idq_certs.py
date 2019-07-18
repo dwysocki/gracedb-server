@@ -19,7 +19,7 @@ ACCOUNTS = {
 def update_certs(apps, schema_editor):
     User = apps.get_model('auth', 'User')
 
-    for user, certs in ACCOUNTS.iteritems():
+    for user, certs in ACCOUNTS.items():
         # Get user
         user = User.objects.get(username=user)
 
@@ -35,7 +35,7 @@ def revert_certs(apps, schema_editor):
     User = apps.get_model('auth', 'User')
     X509Cert = apps.get_model('ligoauth', 'X509Cert')
 
-    for user, certs in ACCOUNTS.iteritems():
+    for user, certs in ACCOUNTS.items():
         # Get user
         user = User.objects.get(username=user)
 
