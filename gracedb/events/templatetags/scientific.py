@@ -1,7 +1,6 @@
-
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from django import template
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils import formats
 register = template.Library()
@@ -38,7 +37,7 @@ def scientificformat(text):
     """
 
     try:
-        input_val = force_unicode(text)
+        input_val = force_text(text)
         d = Decimal(input_val)
     except UnicodeEncodeError:
         return u''
@@ -46,7 +45,7 @@ def scientificformat(text):
         if input_val in special_floats:
             return input_val
         try:
-            d = Decimal(force_unicode(float(text)))
+            d = Decimal(force_text(float(text)))
         except (ValueError, InvalidOperation, TypeError, UnicodeEncodeError):
             return u''
 
