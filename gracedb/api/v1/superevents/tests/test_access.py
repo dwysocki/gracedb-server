@@ -2683,8 +2683,8 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
         # Define EMObservation data for POST-ing
         cls.emgroup_name = 'fake_emgroup'
         now = datetime.datetime.now()
-        start_time_list = map(lambda i:
-            (now + datetime.timedelta(seconds=i)).isoformat(), [0, 1, 2, 3])
+        start_time_list = list(map(lambda i:
+            (now + datetime.timedelta(seconds=i)).isoformat(), [0, 1, 2, 3]))
         cls.emobservation_data = {
             'group': cls.emgroup_name,
             'ra_list': [1, 2, 3, 4],

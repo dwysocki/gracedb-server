@@ -96,7 +96,8 @@ parameter_dicts = {
     'runid': {
         'keyword': 'runid',
         'keywordOptional': True,
-        'value': Or(map(CaselessLiteral, list(RUN_MAP))).setName("run id"),
+        'value': Or(list(map(CaselessLiteral, list(RUN_MAP)))).setName(
+            "run id"),
         'doRange': False,
         'parseAction': lambda toks: ("t_0", Q(t_0__range=RUN_MAP[toks[0]])),
     },
@@ -194,7 +195,7 @@ parameter_dicts = {
             Word(nums, exact=2) + Optional(Suppress(':') + \
             Word(nums, exact=2)))).setParseAction(lambda toks:
             pytz.timezone(settings.TIME_ZONE).localize(
-            datetime.datetime(*map(int, toks)))),
+            datetime.datetime(*list(map(int, toks))))),
         'parseAction': maybeRange("created"),
     },
     # test OR category: test

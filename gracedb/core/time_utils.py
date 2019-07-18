@@ -14,7 +14,7 @@ import calendar
 
 gpsEpoch = calendar.timegm((1980, 1, 6, 0,  0,  0,  0,  0,  0))
 
-leapSeconds = map(calendar.timegm, [
+leapSeconds = list(map(calendar.timegm, [
     (1981, 7, 0, 0, 0, 0, 0, 0, 0),
     (1982, 7, 0, 0, 0, 0, 0, 0, 0),
     (1983, 7, 0, 0, 0, 0, 0, 0, 0),
@@ -33,7 +33,7 @@ leapSeconds = map(calendar.timegm, [
     (2012, 7, 0, 0, 0, 0, 0, 0, 0),
     (2015, 7, 0, 0, 0, 0, 0, 0, 0),
     (2017, 1, 0, 0, 0, 0, 0, 0, 0),
-])
+]))
 
 def gpsToPosixTime(gpsTime):
     if gpsTime is None:

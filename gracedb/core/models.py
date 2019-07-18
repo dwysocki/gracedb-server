@@ -115,7 +115,7 @@ class AutoIncrementModel(models.Model):
         qn = compiler.quote_name_unless_alias
 
         # Compile multiple constraints with AND
-        constraint_fields = map(meta.get_field, self.AUTO_CONSTRAINTS)
+        constraint_fields = list(map(meta.get_field, self.AUTO_CONSTRAINTS))
         constraint_list = ["{0}=%s".format(qn(f.column))
             for f in constraint_fields]
         constraint_values = [f.get_db_prep_value(getattr(self, f.column),

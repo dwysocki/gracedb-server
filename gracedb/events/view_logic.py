@@ -496,17 +496,17 @@ def create_emobservation(request, event):
 
     # Handle case where comma-separated strings are submitted rather than lists
     if isinstance(raList, six.string_types):
-        raList = map(lambda x: float(x.strip()), raList.split(','))
+        raList = list(map(lambda x: float(x.strip()), raList.split(',')))
     if isinstance(raWidthList, six.string_types):
-        raWidthList = map(lambda x: float(x.strip()), raWidthList.split(','))
+        raWidthList = list(map(lambda x: float(x.strip()), raWidthList.split(',')))
     if isinstance(decList, six.string_types):
-        decList = map(lambda x: float(x.strip()), decList.split(','))
+        decList = list(map(lambda x: float(x.strip()), decList.split(',')))
     if isinstance(decWidthList, six.string_types):
-        decWidthList = map(lambda x: float(x.strip()), decWidthList.split(','))
+        decWidthList = list(map(lambda x: float(x.strip()), decWidthList.split(',')))
     if isinstance(startTimeList, six.string_types):
-        startTimeList = map(lambda x: x.strip(), startTimeList.split(','))
+        startTimeList = list(map(lambda x: x.strip(), startTimeList.split(',')))
     if isinstance(durationList, six.string_types):
-        durationList = map(lambda x: int(x.strip()), durationList.split(','))
+        durationList = list(map(lambda x: int(x.strip()), durationList.split(',')))
 
     all_lists = (raList, raWidthList, decList, decWidthList, startTimeList,
         durationList)
@@ -516,7 +516,7 @@ def create_emobservation(request, event):
 
     # Check all list lengths
     list_length = len(all_lists[0])
-    if not all(map(lambda l: len(l) == list_length, all_lists)):
+    if not all(list(map(lambda l: len(l) == list_length, all_lists))):
         raise ValueError('ra_list, dec_list, ra_width_list, dec_width_list, '
             'start_time_list, and duration_list must be the same length.')
 

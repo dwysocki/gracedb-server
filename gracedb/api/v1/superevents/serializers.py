@@ -783,7 +783,7 @@ class SupereventEMObservationSerializer(serializers.ModelSerializer):
         list_length = len(ra_list)
         all_lists = (ra_list, dec_list, ra_width_list, dec_width_list,
             start_time_list, duration_list)
-        if not all(map(lambda l: len(l) == list_length, all_lists)):
+        if not all(list(map(lambda l: len(l) == list_length, all_lists))):
             self.fail('list_lengths')
 
         return data

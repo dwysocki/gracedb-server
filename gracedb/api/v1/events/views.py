@@ -755,7 +755,7 @@ class EventNeighbors(InheritPermissionsAPIView):
                 if delta.find(',') < 0:
                     neighborhood = (int(delta), int(delta))
                 else:
-                    neighborhood = map(int, delta.split(','))
+                    neighborhood = list(map(int, delta.split(',')))
             except ValueError:
                 pass
         else:

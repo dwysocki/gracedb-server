@@ -45,7 +45,7 @@ gpsQ = Optional(Suppress(Keyword("gpstime:"))) + (gpstime^gpstimeRange)
 gpsQ = gpsQ.setParseAction(maybeRange("gpstime"))
 
 # run ids
-runid = Or(map(CaselessLiteral, list(RUN_MAP))).setName("run id")
+runid = Or(list(map(CaselessLiteral, list(RUN_MAP)))).setName("run id")
 #runidList = OneOrMore(runid).setName("run id list")
 runQ = (Optional(Suppress(Keyword("runid:"))) + runid)
 runQ = runQ.setParseAction(lambda toks: ("gpstime", Q(gpstime__range=
@@ -98,7 +98,7 @@ submitterQ = submitterQ.setParseAction(lambda toks: ("submitter", toks[0]))
 nltimeRange = nltime + Suppress("..") + nltime
 
 def doTime(tok):
-    x = datetime.datetime(*(map(int, tok)))
+    x = datetime.datetime(*(list(map(int, tok))))
     return pytz.utc.localize(x)
 
 dash = Suppress('-')
@@ -257,7 +257,7 @@ def parseQuery(s):
     # XXX Querying the database at module compile time is a bad idea!
     # See: https://docs.djangoproject.com/en/1.8/topics/testing/overview/
     groupNames = list(Group.objects.values_list('name', flat=True))
-    group = Or(map(CaselessLiteral, groupNames)).setName("analysis group name")
+    group = Or(list(map(CaselessLiteral, groupNames))).setName("analysis group name")
     #groupList = delimitedList(group, delim='|').setName("analysis group list")
     groupList = OneOrMore(group).setName("analysis group list")
     groupQ = (Optional(Suppress(Keyword("group:"))) + groupList)
@@ -266,7 +266,7 @@ def parseQuery(s):
 
     # Pipeline
     pipelineNames = list(Pipeline.objects.values_list('name', flat=True))
-    pipeline = Or(map(CaselessLiteral, pipelineNames)).setName("pipeline name")
+    pipeline = Or(list(map(CaselessLiteral, pipelineNames))).setName("pipeline name")
     pipelineList = OneOrMore(pipeline).setName("pipeline list")
     pipelineQ = (Optional(Suppress(Keyword("pipeline:"))) + pipelineList)
     pipelineQ = pipelineQ.setParseAction(lambda toks: ("pipeline",
@@ -274,7 +274,7 @@ def parseQuery(s):
 
     # Search
     searchNames = list(Search.objects.values_list('name', flat=True))
-    search = Or(map(CaselessLiteral, searchNames)).setName("search name")
+    search = Or(list(map(CaselessLiteral, searchNames))).setName("search name")
     # XXX Branson: The change below was made 2/17/15 to fix a bug in which 
     # searches like 'grbevent.ra > 0' failed due to the 'grb' being peeled off
     # and assumed to be part of a 'Search' query. So we don't consume a token

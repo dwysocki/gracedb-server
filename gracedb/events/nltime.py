@@ -91,11 +91,11 @@ def calculateTime(toks):
  
 # grammar definitions
 CL = CaselessLiteral
-today, tomorrow, yesterday, noon, midnight, now = map( CL,
-    "today tomorrow yesterday noon midnight now".split())
+today, tomorrow, yesterday, noon, midnight, now = list(map( CL,
+    "today tomorrow yesterday noon midnight now".split()))
 plural = lambda s : Combine(CL(s) + Optional(CL("s")))
-month, week, day, hour, minute, second = map( plural,
-    "month week day hour minute second".split())
+month, week, day, hour, minute, second = list(map(plural,
+    "month week day hour minute second".split()))
 am = CL("am")
 pm = CL("pm")
 COLON = Suppress(':')
