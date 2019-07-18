@@ -17,6 +17,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, IntegrityError
 from django.urls import reverse
+from django.utils import six
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
@@ -38,6 +40,7 @@ SUPEREVENT_DATE_START = datetime.datetime(1980, 1, 1, 0, 0, 0, 0, pytz.utc)
 SUPEREVENT_DATE_END = datetime.datetime(2080, 1, 1, 0, 0, 0, 0, pytz.utc)
 
 
+@python_2_unicode_compatible
 class Superevent(CleanSaveModel, AutoIncrementModel):
     """
     Superevent date-based IDs:
@@ -439,8 +442,8 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
         raise NotImplemented
         #return reverse('')
 
-    def __unicode__(self):
-        return self.superevent_id
+    def __str__(self):
+        return six.text_type(self.superevent_id)
 
     class DateIdError(Exception):
         # To be raised when the superevent date ID is in a bad format; i.e.,
@@ -508,6 +511,7 @@ class LogUserObjectPermission(UserObjectPermissionBase):
     content_object = models.ForeignKey(Log, on_delete=models.CASCADE)
 
 
+@python_2_unicode_compatible
 class Labelling(m2mThroughBase):
     """
     Model which provides the 'through' relationship between Superevents and
@@ -530,11 +534,16 @@ class Labelling(m2mThroughBase):
         related_name='%(app_label)s_%(class)s_set',
         on_delete=models.CASCADE)
 
-    def __unicode__(self):
-        return "{superevent_id} | {label}".format(superevent_id=
-            self.superevent.superevent_id, label=self.label.name)
+    def __str__(self):
+        return six.text_type(
+            "{superevent_id} | {label}".format(
+                superevent_id=self.superevent.superevent_id,
+                label=self.label.name
+            )
+        )
 
 
+@python_2_unicode_compatible
 class Signoff(CleanSaveModel, SignoffBase):
     """Class for superevent signoffs"""
     superevent = models.ForeignKey(Superevent, null=False,
@@ -550,10 +559,14 @@ class Signoff(CleanSaveModel, SignoffBase):
             ('do_adv_signoff', 'Can interact with advocate signoffs'),
         )
 
-    def __unicode__(self):
-        return "{superevent_id} | {instrument} | {status}".format(
-            superevent_id=self.superevent.superevent_id,
-            instrument=self.instrument, status=self.status)
+    def __str__(self):
+        return six.text_type(
+            "{superevent_id} | {instrument} | {status}".format(
+                superevent_id=self.superevent.superevent_id,
+                instrument=self.instrument,
+                status=self.status
+            )
+        )
 
 
 class VOEvent(VOEventBase, AutoIncrementModel):
@@ -571,6 +584,7 @@ class VOEvent(VOEventBase, AutoIncrementModel):
         super(Log, self).fileurl()
 
 
+@python_2_unicode_compatible
 class EMObservation(CleanSaveModel, EMObservationBase, AutoIncrementModel):
     """EMObservation class for superevents"""
     AUTO_FIELD = 'N'
@@ -581,10 +595,14 @@ class EMObservation(CleanSaveModel, EMObservationBase, AutoIncrementModel):
     class Meta(EMObservationBase.Meta):
         unique_together = (('superevent', 'N'),)
 
-    def __unicode__(self):
-        return "{superevent_id} | {group} | {N}".format(
-            superevent_id=self.superevent.superevent_id,
-            group=self.group.name, N=self.N)
+    def __str__(self):
+        return six.text_type(
+            "{superevent_id} | {group} | {N}".format(
+                superevent_id=self.superevent.superevent_id,
+                group=self.group.name,
+                N=self.N
+            )
+        )
 
     def calculateCoveringRegion(self):
         footprints = self.emfootprint_set.all()

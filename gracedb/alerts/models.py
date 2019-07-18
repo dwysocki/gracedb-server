@@ -8,7 +8,8 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
 from django.core.mail import EmailMessage
 from django.db import models
-from django.utils import timezone
+from django.utils import six, timezone
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.http import urlencode
 
 from django_twilio.client import twilio_client
@@ -54,7 +55,6 @@ class Contact(CleanSaveModel):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     verified_time = models.DateTimeField(null=True, blank=True, editable=False)
-
 
     def __str__(self):
         return "{0}: {1}".format(self.user.username, self.description)
@@ -168,6 +168,7 @@ class Contact(CleanSaveModel):
 ###############################################################################
 # Notifications ###############################################################
 ###############################################################################
+@python_2_unicode_compatible
 class Notification(models.Model):
     # Notification categories
     NOTIFICATION_CATEGORY_EVENT = 'E'
@@ -196,10 +197,12 @@ class Notification(models.Model):
     pipelines = models.ManyToManyField('events.pipeline', blank=True)
     searches = models.ManyToManyField('events.search', blank=True)
 
-    def __unicode__(self):
-        return (u"%s: %s") % (
-            self.user.username,
-            self.display()
+    def __str__(self):
+        return six.text_type(
+            "{username}: {display}".format(
+                username=self.user.username,
+                display=self.display()
+            )
         )
 
     def display(self):

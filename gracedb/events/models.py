@@ -4,6 +4,8 @@ import numbers
 from django.db import models, IntegrityError
 from django.urls import reverse
 from django.core.exceptions import ValidationError
+from django.utils import six
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from model_utils.managers import InheritanceManager
@@ -51,25 +53,16 @@ SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 #
 schema_version = "1.1"
 
-#class User(models.Model):
-    #name = models.CharField(max_length=100)
-    #email = models.EmailField()
-    #principal = models.CharField(max_length=100)
-    #dn = models.CharField(max_length=100)
-    #unixid = models.CharField(max_length=25)
 
-    #class Meta:
-        #ordering = ["name"]
-
-    #def __unicode__(self):
-        #return self.name
-
+@python_2_unicode_compatible
 class Group(models.Model):
     name = models.CharField(max_length=20)
-    def __unicode__(self):
-        return self.name
+
+    def __str__(self):
+        return six.text_type(self.name)
 
 
+@python_2_unicode_compatible
 class Pipeline(models.Model):
     PIPELINE_TYPE_EXTERNAL = 'E'
     PIPELINE_TYPE_OTHER = 'O'
@@ -98,8 +91,8 @@ class Pipeline(models.Model):
             ('manage_pipeline', 'Can enable or disable pipeline'),
         )
 
-    def __unicode__(self):
-        return self.name
+    def __str__(self):
+        return six.text_type(self.name)
 
 
 class PipelineLog(models.Model):
@@ -116,16 +109,20 @@ class PipelineLog(models.Model):
         choices=PIPELINE_LOG_ACTION_CHOICES)
 
 
+@python_2_unicode_compatible
 class Search(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     # XXX Need any additional fields? Like a PI email? Or perhaps even fk?
-    def __unicode__(self):
-        return self.name
+
+    def __str__(self):
+        return six.text_type(self.name)
+
 
 # Label color will be used in CSS, see
 # https://www.w3schools.com/colors/colors_names.asp for
 # allowed color choices
+@python_2_unicode_compatible
 class Label(models.Model):
     name = models.CharField(max_length=20, unique=True)
     # XXX really, does this belong here? probably not.
@@ -138,8 +135,8 @@ class Label(models.Model):
     # signoffs, for examples.
     protected = models.BooleanField(default=False)
 
-    def __unicode__(self):
-        return self.name
+    def __str__(self):
+        return six.text_type(self.name)
 
     class ProtectedLabelError(Exception):
         # To be raised when an attempt is made to apply or remove a
@@ -154,6 +151,7 @@ class Label(models.Model):
         pass
 
 
+@python_2_unicode_compatible
 class Event(models.Model):
 
     objects = InheritanceManager() # Queries can return subclasses, if available.
@@ -341,8 +339,8 @@ class Event(models.Model):
             return e
         raise cls.DoesNotExist("Event matching query does not exist")
 
-    def __unicode__(self):
-        return self.graceid
+    def __str__(self):
+        return six.text_type(self.graceid)
 
     # Return a list of distinct tags associated with the log messages of this
     # event.
@@ -487,6 +485,7 @@ class EventLog(CleanSaveModel, LogBase, AutoIncrementModel):
             return None
 
 
+@python_2_unicode_compatible
 class EMGroup(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
@@ -497,8 +496,8 @@ class EMGroup(models.Model):
     # purposes.
     #liasons = models.ManyToManyField(UserModel)
 
-    def __unicode__(self):
-        return self.name
+    def __str__(self):
+        return six.text_type(self.name)
 
 
 class EMObservationBase(models.Model):
@@ -566,6 +565,7 @@ class EMObservationBase(models.Model):
         self.decWidth = decmax-decmin
 
 
+@python_2_unicode_compatible
 class EMObservation(EMObservationBase, AutoIncrementModel):
     """EMObservation class for events"""
     AUTO_FIELD = 'N'
@@ -575,9 +575,14 @@ class EMObservation(EMObservationBase, AutoIncrementModel):
     class Meta(EMObservationBase.Meta):
         unique_together = (('event', 'N'),)
 
-    def __unicode__(self):
-        return "{event_id} | {group} | {N}".format(
-            event_id=self.event.graceid, group=self.group.name, N=self.N)
+    def __str__(self):
+        return six.text_type(
+            "{event_id} | {group} | {N}".format(
+                event_id=self.event.graceid,
+                group=self.group.name,
+                N=self.N
+            )
+        )
 
     def calculateCoveringRegion(self):
         footprints = self.emfootprint_set.all()
@@ -625,6 +630,7 @@ class EMFootprint(EMFootprintBase, AutoIncrementModel):
         unique_together = (('observation', 'N'),)
 
 
+@python_2_unicode_compatible
 class Labelling(m2mThroughBase):
     """
     Model which provides the "through" relationship between Events and Labels.
@@ -632,9 +638,13 @@ class Labelling(m2mThroughBase):
     event = models.ForeignKey(Event)
     label = models.ForeignKey(Label)
 
-    def __unicode__(self):
-        return "{graceid} | {label}".format(graceid=self.event.graceid,
-            label=self.label.name)
+    def __str__(self):
+        return six.text_type(
+            "{graceid} | {label}".format(
+                graceid=self.event.graceid,
+                label=self.label.name
+            )
+        )
 
 
 ## Analysis Specific Attributes.
@@ -910,6 +920,7 @@ class SimInspiralEvent(Event):
         return cls._field_names
 
 # Tags (user-defined log message attributes)
+@python_2_unicode_compatible
 class Tag(CleanSaveModel):
     """
     Model for tags attached to EventLogs.
@@ -931,8 +942,10 @@ class Tag(CleanSaveModel):
         ])
     displayName = models.CharField(max_length=200, null=True, blank=True)
 
-    def __unicode__(self):
-        return self.displayName if self.displayName else self.name
+    def __str__(self):
+        return six.text_type(
+            self.displayName if self.displayName else self.name
+        )
 
 
 class VOEventBase(CleanSaveModel):
@@ -1109,7 +1122,7 @@ class SignoffBase(models.Model):
             return 'ADV' + self.opposite_status
 
 
-
+@python_2_unicode_compatible
 class Signoff(SignoffBase):
     """Class for Event signoffs"""
 
@@ -1118,9 +1131,15 @@ class Signoff(SignoffBase):
     class Meta:
         unique_together = ('event', 'instrument')
 
-    def __unicode__(self):
-        return "%s | %s | %s" % (self.event.graceid, self.instrument,
-            self.status)
+    def __str__(self):
+        return six.text_type(
+            "{gid} | {instrument} | {status}".format(
+                self.event.graceid,
+                self.instrument,
+                self.status
+            )
+        )
+
 
 EMSPECTRUM = (
 ('em.gamma',            'Gamma rays part of the spectrum'),
@@ -1175,8 +1194,10 @@ EMSPECTRUM = (
 ('em.radio.20-100MHz',  'Radio between 20 and 100 MHz'),
 )
 
+
 # TP (2 Apr 2018): pretty sure this class is deprecated - most recent
 # production use is T137114 = April 2015.
+@python_2_unicode_compatible
 class EMBBEventLog(AutoIncrementModel):
     """EMBB EventLog:  A multi-purpose annotation for EM followup.
 
@@ -1187,8 +1208,14 @@ class EMBBEventLog(AutoIncrementModel):
         ordering = ['-created', '-N']
         unique_together = ("event","N")
 
-    def __unicode__(self):
-        return "%s-%s-%d" % (self.event.graceid, self.group.name, self.N)
+    def __str__(self):
+        return six.text_type(
+            "{gid}-{name}-{N}".format(
+                self.event.graceid,
+                self.group.name,
+                self.N
+            )
+        )
 
     # A counter for Eels associated with a given event. This is 
     # important for addressibility.
