@@ -40,6 +40,7 @@ twilio==6.10.3
 # problematic API changes in 2.3.1 and beyond that will need to be handled
 # appropriately.
 pyparsing==2.3.0
+pytest<5
 pytest-cov==2.6.1
 pytest-django==3.4.8
 pytz==2018.9
