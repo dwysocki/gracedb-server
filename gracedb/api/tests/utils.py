@@ -1,5 +1,9 @@
 from copy import deepcopy
 try:
+    from functools import reduce
+except ImportError:  # python < 3
+    pass
+try:
     from unittest import mock
 except ImportError:  # python < 3
     import mock

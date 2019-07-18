@@ -1,3 +1,8 @@
+try:
+    from functools import reduce
+except ImportError:  # python < 3
+    pass
+
 from django.conf import settings
 from django.db.models import Q
 

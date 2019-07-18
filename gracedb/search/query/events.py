@@ -15,6 +15,10 @@ from pyparsing import Word, nums, Literal, CaselessLiteral, delimitedList, \
     oneOf, stringStart,  stringEnd, FollowedBy, ParseResults, ParseException, \
     CaselessKeyword
 import pytz
+try:
+    from functools import reduce
+except ImportError:  # python < 3
+    pass
 
 from django.db.models import Q
 from django.db.models.query import QuerySet
