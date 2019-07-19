@@ -53,7 +53,7 @@ def get_multitime_value(t, label, autoescape, format):
         dt = dt.astimezone(SERVER_TZ)
         posix_time = time.mktime(dt.timetuple())
         gps_time = int(posixToGpsTime(posix_time))
-    elif isinstance(t, int) or isinstance(t, long):
+    elif isinstance(t, int):
         gps_time = t
         dt = gpsToUtc(t)
         # Note: must convert to server timezone before calling mktime
@@ -66,7 +66,7 @@ def get_multitime_value(t, label, autoescape, format):
         return "N/A"
         return '<time utc="%s" gps="%s" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
             8*("N/A",)
-        # raise ValueError("time must be type int, long or datetime, not '%s'" % type(t))
+        # raise ValueError("time must be type int or datetime, not '%s'" % type(t))
 
     # JavaScript -- parsable by Date() object constructor
     # "Jan 2, 1985 00:00:00 UTC"
@@ -167,7 +167,7 @@ def timeSelections(t):
         dt = dt.astimezone(SERVER_TZ)
         posix_time = time.mktime(dt.timetuple())
         gps_time = int(posixToGpsTime(posix_time))
-    elif isinstance(t, int) or isinstance(t, long):
+    elif isinstance(t, int):
         gps_time = t
         dt = gpsToUtc(t)
         posix_time = time.mktime(dt.astimezone(SERVER_TZ).timetuple())
@@ -176,7 +176,7 @@ def timeSelections(t):
         dt = gpsToUtc(t)
         posix_time = time.mktime(dt.astimezone(SERVER_TZ).timetuple())
     else:
-        raise ValueError("time must be type int, long or datetime, not '%s'" % type(t))
+        raise ValueError("time must be type int or datetime, not '%s'" % type(t))
 
     # JavaScript -- parsable by Date() object constructor
     # "Jan 2, 1985 00:00:00 UTC"

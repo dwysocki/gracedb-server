@@ -19,7 +19,7 @@ def int_to_letters(num, positive_only=True):
     """
 
     # Argument checking
-    if not isinstance(num, (int, long)):
+    if not isinstance(num, int):
         # Coerce to int
         logger.warning('Coercing argument of type {0} to int'.format(
             type(num)))

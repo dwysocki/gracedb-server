@@ -323,13 +323,13 @@ def logentry(request, event, num=None):
 def neighbors(request, event, delta1, delta2=None):
     context = {}
     try:
-        delta1 = long(delta1)
+        delta1 = int(delta1)
 
         if delta2 is None:
             delta2 = delta1
             delta1 = -delta1
         else:
-            delta2 = long(delta2)
+            delta2 = int(delta2)
 
     except ValueError: pass
     except: pass
