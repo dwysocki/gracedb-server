@@ -1927,8 +1927,10 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
                 self.assertEqual(response.status_code, 200)
                 # Lists of log tags from 
                 log_tags = [t.name for t in l.tags.all()]
-                self.assertItemsEqual(
-                    [t['name'] for t in response.data['tags']], log_tags)
+                self.assertEqual(
+                    sorted([t['name'] for t in response.data['tags']]),
+                    sorted(log_tags)
+                )
 
     def test_lvem_user_get_log_tag_list_for_hidden_superevent(self):
         """LV-EM user can't get tags for any logs on hidden superevent"""
@@ -2795,7 +2797,7 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
         api_emo_nums = [emo['N'] for emo in response.data['observations']]
         db_emo_nums = [emo.N for emo in
             self.public_superevent.emobservation_set.all()]
-        self.assertItemsEqual(api_emo_nums, db_emo_nums)
+        self.assertEqual(sorted(api_emo_nums), sorted(db_emo_nums))
 
     def test_public_user_get_list_for_hidden_superevent(self):
         """Public user can't get any EMObservations for hidden superevents"""
@@ -2823,7 +2825,7 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
         api_emo_nums = [emo['N'] for emo in response.data['observations']]
         db_emo_nums = [emo.N for emo in
             self.public_superevent.emobservation_set.all()]
-        self.assertItemsEqual(api_emo_nums, db_emo_nums)
+        self.assertEqual(sorted(api_emo_nums), sorted(db_emo_nums))
 
     def test_internal_user_create_emobservation(self):
         """Internal user can create EMObservations for all superevents"""
