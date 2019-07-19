@@ -58,7 +58,7 @@ def convertToAbsTime(toks):
     else:
         day = pytz.utc.localize(datetime(now.year, now.month, now.day))
     if "timeOfDay" in toks:
-        if isinstance(toks.timeOfDay,basestring):
+        if isinstance(toks.timeOfDay, str):
             timeOfDay = {
                 "now"      : timedelta(0, (now.hour*60+now.minute)*60+now.second, now.microsecond),
                 "noon"     : timedelta(0,0,0,0,0,12),

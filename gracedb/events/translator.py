@@ -47,7 +47,7 @@ def cleanData(val, field_name, table_name='events_event'):
             return maxval
         else:
             return val
-    elif isinstance(val, basestring):
+    elif isinstance(val, str):
         raise ValueError("Unrecognized string in the %s column" % field_name)
     else:
         raise ValueError("Unrecognized value in column %s" % field_name)
