@@ -3002,8 +3002,8 @@ class TestSupereventFileList(SupereventSetup, GraceDbApiTestBase):
         super(TestSupereventFileList, cls).setUpTestData()
 
         # Create files for internal superevent
-        cls.file1 = {'filename': 'file1.txt', 'content': 'test content 1'}
-        cls.file2 = {'filename': 'file2.txt', 'content': 'test content 2'}
+        cls.file1 = {'filename': 'file1.txt', 'content': b'test content 1'}
+        cls.file2 = {'filename': 'file2.txt', 'content': b'test content 2'}
         for i in range(4):
             log1 = create_log(cls.internal_user, 'upload file1',
                 cls.internal_superevent, filename=cls.file1['filename'],
@@ -3145,8 +3145,8 @@ class TestSupereventFileDetail(SupereventSetup, GraceDbApiTestBase):
         super(TestSupereventFileDetail, cls).setUpTestData()
 
         # Create files for internal superevent
-        cls.file1 = {'filename': 'file1.txt', 'content': 'test content 1'}
-        cls.file2 = {'filename': 'file2.txt', 'content': 'test content 2'}
+        cls.file1 = {'filename': 'file1.txt', 'content': b'test content 1'}
+        cls.file2 = {'filename': 'file2.txt', 'content': b'test content 2'}
         for i in range(4):
             log1 = create_log(cls.internal_user, 'upload file1',
                 cls.internal_superevent, filename=cls.file1['filename'],
