@@ -71,8 +71,8 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
         response = self.client.get(url, data=None, **headers)
 
         # Check response
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('Invalid username/password', response.content)
+        self.assertContains(response, 'Invalid username/password',
+            status_code=403)
 
     def test_user_authenticate_to_api_with_expired_password(self):
         """User can't authenticate with expired password"""
@@ -95,8 +95,8 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
         response = self.client.get(url, data=None, **headers)
 
         # Check response
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('Your password has expired', response.content)
+        self.assertContains(response, 'Your password has expired',
+            status_code=403)
 
 
 class TestGraceDbX509Authentication(GraceDbApiTestBase):
@@ -152,8 +152,8 @@ class TestGraceDbX509Authentication(GraceDbApiTestBase):
         response = self.client.get(url, data=None, **headers)
 
         # Check response
-        self.assertEqual(response.status_code, 401)
-        self.assertIn("Invalid certificate subject", response.content)
+        self.assertContains(response, 'Invalid certificate subject',
+            status_code=401)
 
     def test_inactive_user_authenticate(self):
         """Inactive user can't authenticate"""
@@ -169,8 +169,8 @@ class TestGraceDbX509Authentication(GraceDbApiTestBase):
         response = self.client.get(url, data=None, **headers)
 
         # Check response
-        self.assertEqual(response.status_code, 401)
-        self.assertIn("User inactive or deleted", response.content)
+        self.assertContains(response, 'User inactive or deleted',
+            status_code=401)
 
     def test_authenticate_cert_with_proxy(self):
         """User can authenticate to API with proxied X509 certificate"""

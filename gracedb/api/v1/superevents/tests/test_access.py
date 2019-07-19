@@ -503,9 +503,11 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
         assign_perm('superevents.view_superevent', self.lvem_obs_group,
             obj=self.production_superevent)
         response = self.request_as_user(url, "POST", self.lvem_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('not allowed to confirm superevents as GWs',
-            response.content)
+        self.assertContains(
+            response,
+            'not allowed to confirm superevents as GWs',
+            status_code=403
+        )
 
     def test_lvem_user_confirm_mdc_superevent(self):
         """LV-EM user can't confirm mdc superevent as GW"""
@@ -520,9 +522,11 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
         assign_perm('superevents.view_superevent', self.lvem_obs_group,
             obj=self.mdc_superevent)
         response = self.request_as_user(url, "POST", self.lvem_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('not allowed to confirm MDC superevents as GWs',
-            response.content)
+        self.assertContains(
+            response,
+            'not allowed to confirm MDC superevents as GWs',
+            status_code=403
+        )
 
     def test_lvem_user_confirm_test_superevent(self):
         """LV-EM user can't confirm test superevent as GW"""
@@ -537,9 +541,11 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
         assign_perm('superevents.view_superevent', self.lvem_obs_group,
             obj=self.test_superevent)
         response = self.request_as_user(url, "POST", self.lvem_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('not allowed to confirm test superevents as GWs',
-            response.content)
+        self.assertContains(
+            response,
+            'not allowed to confirm test superevents as GWs',
+            status_code=403
+        )
 
     def test_public_user_confirm_superevents(self):
         """Public user can't confirm any superevents as GWs"""
@@ -551,16 +557,22 @@ class TestSupereventConfirmAsGw(SupereventManagersGroupAndUserSetup,
             url = v_reverse('superevents:superevent-confirm-as-gw',
                 args=[s.superevent_id])
             response = self.request_as_user(url, "POST")
-            self.assertEqual(response.status_code, 403)
-            self.assertIn('Authentication credentials', response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials',
+                status_code=403
+            )
 
             # Expose it, should still get same 403 since the permission
             # checking process still fails at the outset
             assign_perm('superevents.view_superevent', self.public_group,
                 obj=self.test_superevent)
             response = self.request_as_user(url, "POST")
-            self.assertEqual(response.status_code, 403)
-            self.assertIn('Authentication credentials', response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials',
+                status_code=403
+            )
 
 
 class TestSupereventLabelList(SupereventSetup, GraceDbApiTestBase):
@@ -738,8 +750,11 @@ class TestSupereventLabelList(SupereventSetup, GraceDbApiTestBase):
             args=[self.public_superevent.superevent_id])
         data = {'name': label.name}
         response = self.request_as_user(url, "POST", data=data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('Authentication credentials', response.content)
+        self.assertContains(
+            response,
+            'Authentication credentials',
+            status_code=403
+        )
 
 
 class TestSupereventLabelDetail(SupereventSetup, GraceDbApiTestBase):
@@ -873,9 +888,11 @@ class TestSupereventLabelDetail(SupereventSetup, GraceDbApiTestBase):
             url = v_reverse('superevents:superevent-label-detail',
                 args=[self.public_superevent.superevent_id, l.name])
             response = self.request_as_user(url, "DELETE", self.lvem_user)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn('You do not have permission to remove labels',
-                response.content)
+            self.assertContains(
+                response,
+                'You do not have permission to remove labels',
+                status_code=403
+            )
 
     def test_public_user_delete_label(self):
         """Public user cannot remove labels from any superevents"""
@@ -905,8 +922,11 @@ class TestSupereventLabelDetail(SupereventSetup, GraceDbApiTestBase):
             url = v_reverse('superevents:superevent-label-detail',
                 args=[self.public_superevent.superevent_id, l.name])
             response = self.request_as_user(url, "DELETE")
-            self.assertEqual(response.status_code, 403)
-            self.assertIn('Authentication credentials', response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials',
+                status_code=403
+            )
 
 
 class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
@@ -1128,9 +1148,11 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data={'event': ev.graceid})
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('not allowed to add events to superevents',
-            response.content)
+        self.assertContains(
+            response,
+            'not allowed to add events to superevents',
+            status_code=403
+        )
 
     def test_public_user_add_event_to_superevent(self):
         """Public user can't add events to superevents"""
@@ -1151,8 +1173,11 @@ class TestSupereventEventList(SupereventManagersGroupAndUserSetup,
             args=[self.public_superevent.superevent_id])
         response = self.request_as_user(url, "POST",
             data={'event': ev.graceid})
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided', response.content)
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )
 
 
 class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
@@ -1351,9 +1376,11 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
             args=[self.lvem_superevent.superevent_id,
             self.event2.graceid])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('not allowed to remove events from superevents',
-            response.content)
+        self.assertContains(
+            response,
+            'not allowed to remove events from superevents',
+            status_code=403
+        )
 
     def test_public_user_remove_event_from_superevent(self):
         """
@@ -1378,8 +1405,11 @@ class TestSupereventEventDetail(SupereventManagersGroupAndUserSetup,
             args=[self.public_superevent.superevent_id,
             self.event2.graceid])
         response = self.request_as_user(url, "DELETE")
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided', response.content)
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )
 
 
 class TestSupereventLogList(AccessManagersGroupAndUserSetup,
@@ -1547,10 +1577,11 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         response = self.request_as_user(url, "POST", self.internal_user,
             data=log_data)
         # Check response and data
-        self.assertEqual(response.status_code, 403)
-        # Make sure correct 403 error is provided
-        self.assertIn('not allowed to expose superevent log messages to LV-EM',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'not allowed to expose superevent log messages to LV-EM',
+            status_code=403
+        )
 
     def test_internal_user_create_log_with_public_tag(self):
         """Basic internal user can't create logs with public access tag"""
@@ -1567,10 +1598,11 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         response = self.request_as_user(url, "POST", self.internal_user,
             data=log_data)
         # Check response and data
-        self.assertEqual(response.status_code, 403)
-        # Make sure correct 403 error is provided
-        self.assertIn(('not allowed to expose superevent log messages to the '
-            'public'), response.data['detail'])
+        self.assertContains(
+            response,
+            'not allowed to expose superevent log messages to the public',
+            status_code=403
+        )
 
     def test_access_manager_create_log_with_lvem_tag(self):
         """Access manager user can create logs with external access tag"""
@@ -1672,9 +1704,11 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=log_data)
         # Check response and data
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('You are not allowed to post log messages with tags',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'not allowed to post log messages with tags',
+            status_code=403
+        )
 
     def test_public_user_create_log(self):
         """Public user can't create any logs"""
@@ -1699,8 +1733,11 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
             args=[self.public_superevent.superevent_id])
         response = self.request_as_user(url, "POST", data=log_data)
         # Check response and data
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided', response.data['detail'])
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )
 
 
 class TestSupereventLogDetail(SupereventSetup, GraceDbApiTestBase):
@@ -2015,10 +2052,11 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
         response = self.request_as_user(url, "POST", self.internal_user,
             data={'name': settings.EXTERNAL_ACCESS_TAGNAME})
         # Check response and data
-        self.assertEqual(response.status_code, 403)
-        # Make sure correct 403 error is provided
-        self.assertIn('not allowed to expose superevent log messages to LV-EM',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'not allowed to expose superevent log messages to LV-EM',
+            status_code=403
+        )
 
     def test_internal_user_tag_log_with_public(self):
         """Basic internal user add public access tag"""
@@ -2035,10 +2073,11 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
         response = self.request_as_user(url, "POST", self.internal_user,
             data={'name': settings.PUBLIC_ACCESS_TAGNAME})
         # Check response and data
-        self.assertEqual(response.status_code, 403)
-        # Make sure correct 403 error is provided
-        self.assertIn(('not allowed to expose superevent log messages to the '
-            'public'), response.data['detail'])
+        self.assertContains(
+            response,
+            'not allowed to expose superevent log messages to the public',
+            status_code=403
+        )
 
     def test_access_manager_tag_log_with_lvem(self):
         """Access manager user can tag logs with external access tag"""
@@ -2076,8 +2115,11 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
         response = self.request_as_user(url, "POST", self.am_user,
             data={'name': settings.PUBLIC_ACCESS_TAGNAME})
         # Check response and data
-        self.assertEqual(response.status_code, 201)
-        self.assertIn(response.data['name'], settings.PUBLIC_ACCESS_TAGNAME)
+        self.assertContains(
+            response,
+            settings.PUBLIC_ACCESS_TAGNAME,
+            status_code=201
+        )
 
     def test_lvem_user_tag_log(self):
         """LV-EM user can't tag logs for any superevents"""
@@ -2147,8 +2189,11 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
         response = self.request_as_user(url, "POST",
             data={'name': self.tag1.name})
         # Check response and data
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided', response.content)
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )
 
 
 class TestSupereventLogTagDetail(AccessManagersGroupAndUserSetup,
@@ -2398,8 +2443,11 @@ class TestSupereventLogTagDetail(AccessManagersGroupAndUserSetup,
             args=[self.public_superevent.superevent_id,
             self.log_dict['public_public'].N, self.tag1.name])
         response = self.request_as_user(url, "DELETE")
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided', response.content)
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )
 
 
 class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
@@ -2544,9 +2592,11 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=self.voevent_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to create VOEvents',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to create VOEvents',
+            status_code=403
+        )
 
     def test_public_user_create_voevent_for_hidden_superevent(self):
         """Public user can't create VOEvents for hidden superevents"""
@@ -2560,9 +2610,11 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
         url = v_reverse('superevents:superevent-voevent-list',
             args=[self.public_superevent.superevent_id])
         response = self.request_as_user(url, "POST", data=self.voevent_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )
 
 
 class TestSupereventVOEventDetail(SupereventSetup, GraceDbApiTestBase):
@@ -2844,8 +2896,11 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
             args=[self.public_superevent.superevent_id])
         response = self.request_as_user(url, "POST",
             data=self.emobservation_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided', response.data['detail'])
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )
 
 
 class TestSupereventEMObservationDetail(SupereventSetup, GraceDbApiTestBase):
@@ -3307,18 +3362,22 @@ class TestSupereventGroupObjectPermissionList(SupereventSetup,
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         # Check response and data
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('not allowed to view superevent permissions',
-            response.content)
+        self.assertContains(
+            response,
+            'not allowed to view superevent permissions',
+            status_code=403
+        )
 
         # Public superevent
         url = v_reverse('superevents:superevent-permission-list',
             args=[self.public_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
         # Check response and data
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('not allowed to view superevent permissions',
-            response.content)
+        self.assertContains(
+            response,
+            'not allowed to view superevent permissions',
+            status_code=403
+        )
 
     def test_public_user_get_permissions(self):
         """Public user can't get permission list"""
@@ -3341,8 +3400,11 @@ class TestSupereventGroupObjectPermissionList(SupereventSetup,
             args=[self.public_superevent.superevent_id])
         response = self.request_as_user(url, "GET")
         # Check response and data
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided', response.content)
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )
 
 
 class TestSupereventGroupObjectPermissionModify(SupereventSetup,
@@ -3356,9 +3418,11 @@ class TestSupereventGroupObjectPermissionModify(SupereventSetup,
         response = self.request_as_user(url, "POST", self.internal_user,
             data={'action': 'expose'})
         # Check response
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('not allowed to expose superevents',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'not allowed to expose superevents',
+            status_code=403
+        )
 
     def test_internal_user_hide_exposed_superevent(self):
         """Internal user can't modify permissions to hide superevent"""
@@ -3367,9 +3431,11 @@ class TestSupereventGroupObjectPermissionModify(SupereventSetup,
         response = self.request_as_user(url, "POST", self.internal_user,
             data={'action': 'hide'})
         # Check response
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('not allowed to hide superevents',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'not allowed to hide superevents',
+            status_code=403
+        )
 
     def test_access_manager_expose_internal_superevent(self):
         """Access manager can modify permissions to expose superevent"""
@@ -3410,8 +3476,11 @@ class TestSupereventGroupObjectPermissionModify(SupereventSetup,
         response = self.request_as_user(url, "POST", self.lvem_user,
             data={'action': 'hide'})
         # Check response and data
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('not allowed to hide superevent', response.content)
+        self.assertContains(
+            response,
+            'not allowed to hide superevents',
+            status_code=403
+        )
 
     def test_public_user_modify_permissions(self):
         """Public user can't modify permissions"""
@@ -3427,8 +3496,11 @@ class TestSupereventGroupObjectPermissionModify(SupereventSetup,
             args=[self.public_superevent.superevent_id])
         response = self.request_as_user(url, "POST", data={'action': 'hide'})
         # Check response and data
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided', response.content)
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )
 
 
 class TestSupereventSignoffList(SupereventSetup, GraceDbApiTestBase):
@@ -3477,17 +3549,21 @@ class TestSupereventSignoffList(SupereventSetup, GraceDbApiTestBase):
         url = v_reverse('superevents:superevent-signoff-list',
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to view superevent signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to view superevent signoffs',
+            status_code=403
+        )
 
         # Public superevent
         url = v_reverse('superevents:superevent-signoff-list',
             args=[self.public_superevent.superevent_id])
         response = self.request_as_user(url, "GET", self.lvem_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to view superevent signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to view superevent signoffs',
+            status_code=403
+        )
 
     def test_public_get_hidden_signoff_list(self):
         """Public user can't view list of signoffs for hidden superevent"""
@@ -3509,9 +3585,11 @@ class TestSupereventSignoffList(SupereventSetup, GraceDbApiTestBase):
         url = v_reverse('superevents:superevent-signoff-list',
             args=[self.public_superevent.superevent_id])
         response = self.request_as_user(url, "GET")
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )
 
 
 class TestSupereventSignoffDetail(SupereventSetup, GraceDbApiTestBase):
@@ -3570,9 +3648,11 @@ class TestSupereventSignoffDetail(SupereventSetup, GraceDbApiTestBase):
             args=[self.lvem_superevent.superevent_id,
             signoff.signoff_type + signoff.instrument])
         response = self.request_as_user(url, "GET", self.lvem_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to view superevent signoffs',
-            response.content)
+        self.assertContains(
+            response,
+            'do not have permission to view superevent signoffs',
+            status_code=403
+        )
 
         # Public superevent
         signoff = self.public_superevent.signoff_set.first()
@@ -3580,9 +3660,11 @@ class TestSupereventSignoffDetail(SupereventSetup, GraceDbApiTestBase):
             args=[self.public_superevent.superevent_id,
             signoff.signoff_type + signoff.instrument])
         response = self.request_as_user(url, "GET", self.lvem_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to view superevent signoffs',
-            response.content)
+        self.assertContains(
+            response,
+            'do not have permission to view superevent signoffs',
+            status_code=403
+        )
 
     def test_public_user_get_signoff_detail_for_hidden_superevent(self):
         """Public user can't view signoff detail for hidden superevent"""
@@ -3609,8 +3691,11 @@ class TestSupereventSignoffDetail(SupereventSetup, GraceDbApiTestBase):
             args=[self.public_superevent.superevent_id,
             signoff.signoff_type + signoff.instrument])
         response = self.request_as_user(url, "GET")
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided', response.content)
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )
 
 
 class TestSupereventSignoffCreation(SignoffGroupsAndUsersSetup,
@@ -3657,9 +3742,11 @@ class TestSupereventSignoffCreation(SignoffGroupsAndUsersSetup,
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user,
             data=self.signoff_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to create superevent signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to create superevent signoffs',
+            status_code=403
+        )
 
     def test_H1_control_room_create_H1_signoff(self):
         """H1 control room user can create H1 signoffs"""
@@ -3679,9 +3766,11 @@ class TestSupereventSignoffCreation(SignoffGroupsAndUsersSetup,
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.H1_user,
             data=self.signoff_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to do L1 signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to do L1 signoffs',
+            status_code=403
+        )
 
     def test_advocate_create_adv_signoff(self):
         """EM advocate user can create advocate signoffs"""
@@ -3711,18 +3800,22 @@ class TestSupereventSignoffCreation(SignoffGroupsAndUsersSetup,
             args=[self.lvem_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=self.signoff_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to create superevent signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to create superevent signoffs',
+            status_code=403
+        )
 
         # Public superevent
         url = v_reverse('superevents:superevent-signoff-list',
             args=[self.public_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=self.signoff_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to create superevent signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to create superevent signoffs',
+            status_code=403
+        )
 
     def test_public_user_create_signoff_for_hidden_superevent(self):
         """Public user can't create signoffs for hidden superevents"""
@@ -3743,9 +3836,11 @@ class TestSupereventSignoffCreation(SignoffGroupsAndUsersSetup,
         url = v_reverse('superevents:superevent-signoff-list',
             args=[self.public_superevent.superevent_id])
         response = self.request_as_user(url, "POST", data=self.signoff_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )
 
 
 class TestSupereventSignoffUpdate(SignoffGroupsAndUsersSetup,
@@ -3813,9 +3908,11 @@ class TestSupereventSignoffUpdate(SignoffGroupsAndUsersSetup,
             signoff.signoff_type + signoff.instrument])
         response = self.request_as_user(url, "PATCH", self.internal_user,
             data=self.signoff_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to change superevent signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to change superevent signoffs',
+            status_code=403
+        )
 
     def test_H1_control_room_update_H1_signoff(self):
         """H1 control room user can update H1 signoffs"""
@@ -3842,9 +3939,11 @@ class TestSupereventSignoffUpdate(SignoffGroupsAndUsersSetup,
             signoff.signoff_type + signoff.instrument])
         response = self.request_as_user(url, "PATCH", self.H1_user,
             data=self.signoff_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to do L1 signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to do L1 signoffs',
+            status_code=403
+        )
 
     def test_advocate_update_adv_signoff(self):
         """EM advocate user can update advocate signoffs"""
@@ -3881,9 +3980,11 @@ class TestSupereventSignoffUpdate(SignoffGroupsAndUsersSetup,
             signoff.signoff_type + signoff.instrument])
         response = self.request_as_user(url, "PATCH", self.lvem_user,
             data=self.signoff_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to change superevent signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to change superevent signoffs',
+            status_code=403
+        )
 
         # Public superevent
         signoff = self.public_signoff
@@ -3892,9 +3993,11 @@ class TestSupereventSignoffUpdate(SignoffGroupsAndUsersSetup,
             signoff.signoff_type + signoff.instrument])
         response = self.request_as_user(url, "PATCH", self.lvem_user,
             data=self.signoff_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to change superevent signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to change superevent signoffs',
+            status_code=403
+        )
 
     def test_public_user_update_signoff_for_hidden_superevent(self):
         """Public user can't update signoffs for hidden superevents"""
@@ -3921,8 +4024,11 @@ class TestSupereventSignoffUpdate(SignoffGroupsAndUsersSetup,
             args=[signoff.superevent.superevent_id,
             signoff.signoff_type + signoff.instrument])
         response = self.request_as_user(url, "PATCH", data=self.signoff_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided', response.data['detail'])
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )
 
 
 class TestSupereventSignoffDeletion(SignoffGroupsAndUsersSetup,
@@ -3979,9 +4085,11 @@ class TestSupereventSignoffDeletion(SignoffGroupsAndUsersSetup,
             args=[self.internal_superevent.superevent_id,
             signoff.signoff_type + signoff.instrument])
         response = self.request_as_user(url, "DELETE", self.internal_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to delete superevent signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to delete superevent signoffs',
+            status_code=403
+        )
 
     def test_H1_control_room_delete_H1_signoff(self):
         """H1 control room user can delete H1 signoffs"""
@@ -4004,9 +4112,11 @@ class TestSupereventSignoffDeletion(SignoffGroupsAndUsersSetup,
             args=[signoff.superevent.superevent_id,
             signoff.signoff_type + signoff.instrument])
         response = self.request_as_user(url, "DELETE", self.H1_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to do L1 signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to do L1 signoffs',
+            status_code=403
+        )
 
     def test_advocate_delete_adv_signoff(self):
         """EM advocate user can delete advocate signoffs"""
@@ -4038,9 +4148,11 @@ class TestSupereventSignoffDeletion(SignoffGroupsAndUsersSetup,
             args=[signoff.superevent.superevent_id,
             signoff.signoff_type + signoff.instrument])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to delete superevent signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to delete superevent signoffs',
+            status_code=403
+        )
 
         # Public superevent
         signoff = self.public_signoff
@@ -4048,9 +4160,11 @@ class TestSupereventSignoffDeletion(SignoffGroupsAndUsersSetup,
             args=[signoff.superevent.superevent_id,
             signoff.signoff_type + signoff.instrument])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('do not have permission to delete superevent signoffs',
-            response.data['detail'])
+        self.assertContains(
+            response,
+            'do not have permission to delete superevent signoffs',
+            status_code=403
+        )
 
     def test_public_user_delete_signoff_for_hidden_superevent(self):
         """Public user can't delete signoffs for hidden superevents"""
@@ -4077,5 +4191,8 @@ class TestSupereventSignoffDeletion(SignoffGroupsAndUsersSetup,
             args=[signoff.superevent.superevent_id,
             signoff.signoff_type + signoff.instrument])
         response = self.request_as_user(url, "DELETE")
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('credentials were not provided', response.data['detail'])
+        self.assertContains(
+            response,
+            'credentials were not provided',
+            status_code=403
+        )

@@ -31,14 +31,18 @@ class TestPublicAccess(GraceDbApiTestBase):
         """Unauthenticated user can't access performance info"""
         url = v_reverse('performance-info')
         response = self.request_as_user(url, "GET")
-        self.assertEqual(response.status_code, 403)
-        self.assertIn("Authentication credentials were not provided",
-            response.content)
+        self.assertContains(
+            response,
+            'Authentication credentials were not provided',
+            status_code=403
+        )
 
     def test_lvem_user_performance_info(self):
         """LV-EM user can't access performance info"""
         url = v_reverse('performance-info')
         response = self.request_as_user(url, "GET", self.lvem_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertIn("Forbidden", response.content)
-
+        self.assertContains(
+            response,
+            'Forbidden',
+            status_code=403
+        )

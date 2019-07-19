@@ -22,9 +22,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET", "POST"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_detail(self):
         """Unauthenticated user can't access event detail"""
@@ -32,9 +34,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET", "PUT"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_log_list(self):
         """Unauthenticated user can't access event log list"""
@@ -42,9 +46,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET", "POST"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_log_detail(self):
         """Unauthenticated user can't access event log detail"""
@@ -52,9 +58,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_voevent_list(self):
         """Unauthenticated user can't access event VOEvent list"""
@@ -62,9 +70,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET", "POST"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_voevent_detail(self):
         """Unauthenticated user can't access event VOEvent detail"""
@@ -72,9 +82,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_embbeventlog_list(self):
         """Unauthenticated user can't access event EMBBEventLog list"""
@@ -82,9 +94,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET", "POST"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_embbeventlog_detail(self):
         """Unauthenticated user can't access event EMBBEventLog detail"""
@@ -92,9 +106,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_emobservation_list(self):
         """Unauthenticated user can't access event EMObservation list"""
@@ -102,9 +118,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET", "POST"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_emobservation_detail(self):
         """Unauthenticated user can't access event EMObservation detail"""
@@ -112,9 +130,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_tag_list(self):
         """Unauthenticated user can't access event tag list"""
@@ -122,9 +142,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_tag_detail(self):
         """Unauthenticated user can't access event tag detail"""
@@ -132,9 +154,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_log_tag_list(self):
         """Unauthenticated user can't access event log tag list"""
@@ -142,9 +166,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_log_tag_detail(self):
         """Unauthenticated user can't access event log tag detail"""
@@ -153,9 +179,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET", "PUT", "DELETE"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_permission_list(self):
         """Unauthenticated user can't access event permission list"""
@@ -163,9 +191,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_group_permission_list(self):
         """Unauthenticated user can't access event group permission list"""
@@ -174,9 +204,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_group_permission_detail(self):
         """Unauthenticated user can't access event group permission list"""
@@ -185,9 +217,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET", "PUT", "DELETE"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_files(self):
         """Unauthenticated user can't access event files (list or detail)"""
@@ -195,9 +229,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET", "PUT"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_labels(self):
         """Unauthenticated user can't access event labels (list or detail)"""
@@ -205,9 +241,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET", "PUT", "DELETE"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_neighbors(self):
         """Unauthenticated user can't access event neighbors list"""
@@ -215,9 +253,11 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )
 
     def test_event_signoff_list(self):
         """Unauthenticated user can't access event signoff list"""
@@ -225,7 +265,8 @@ class TestPublicAccess(EventSetup, GraceDbApiTestBase):
         methods = ["GET"]
         for http_method in methods:
             response = self.request_as_user(url, http_method)
-            self.assertEqual(response.status_code, 403)
-            self.assertIn("Authentication credentials were not provided",
-                response.content)
-
+            self.assertContains(
+                response,
+                'Authentication credentials were not provided',
+                status_code=403
+            )

@@ -389,9 +389,11 @@ class TestEventCreationPage(GraceDbTestBase):
         """Basic internal user can't create production events"""
         response = self.request_as_user(self.url, "POST", self.internal_user,
             data=self.event_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content,
-            "You do not have permission to submit events to this pipeline.")
+        self.assertContains(
+            response,
+            'You do not have permission to submit events to this pipeline',
+            status_code=403
+        )
 
     def test_basic_internal_user_create_test_event(self):
         """Basic internal user can create test events"""
@@ -490,9 +492,11 @@ class TestEventModifyPermissions(EventSetup, GraceDbTestBase):
         url = reverse('modify_permissions', args=[self.internal_event.graceid])
         response = self.request_as_user(url, "POST", self.internal_user,
             data=self.perm_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content,
-            "You aren't authorized to create permission objects.")
+        self.assertContains(
+            response,
+            "You aren't authorized to create permission objects",
+            status_code=403
+        )
 
     def test_privileged_internal_user_modify_permissions(self):
         """Privileged internal user can modify event permissions"""
@@ -521,9 +525,11 @@ class TestEventModifyPermissions(EventSetup, GraceDbTestBase):
         url = reverse('modify_permissions', args=[self.internal_event.graceid])
         response = self.request_as_user(url, "POST", self.internal_user,
             data=remove_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content,
-            "You aren't authorized to delete permission objects.")
+        self.assertContains(
+            response,
+            "You aren't authorized to delete permission objects",
+            status_code=403
+        )
 
         # Give remove permission to user and try again - should succeed
         p_remove.user_set.add(self.internal_user)
@@ -548,9 +554,11 @@ class TestEventModifyPermissions(EventSetup, GraceDbTestBase):
         url = reverse('modify_permissions', args=[self.lvem_event.graceid])
         response = self.request_as_user(url, "POST", self.lvem_user,
             data=self.perm_data)
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content,
-            "You aren't authorized to create permission objects.")
+        self.assertContains(
+            response,
+            "You aren't authorized to create permission objects",
+            status_code=403
+        )
 
     def test_public_user_modify_permissions(self):
         """Public user can't modify event permissions"""
@@ -584,9 +592,11 @@ class TestEventModifySignoff(SignoffGroupsAndUsersSetup, EventSetup,
         url = reverse('modify_signoff', args=[self.internal_event.graceid])
         response = self.request_as_user(url, "POST", self.internal_user,
             self.op_signoff_data)
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content,
-            "Unknown instrument/control room for signoff.")
+        self.assertContains(
+            response,
+            'Unknown instrument/control room for signoff.',
+            status_code=400
+        )
 
     def test_H1_control_room_modify_signoff(self):
         """H1 control room can create H1 operator signoff for event"""
@@ -624,9 +634,11 @@ class TestEventModifySignoff(SignoffGroupsAndUsersSetup, EventSetup,
         url = reverse('modify_signoff', args=[self.lvem_event.graceid])
         response = self.request_as_user(url, "POST", self.lvem_user,
             self.op_signoff_data)
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content,
-            "Unknown instrument/control room for signoff.")
+        self.assertContains(
+            response,
+            'Unknown instrument/control room for signoff.',
+            status_code=400
+        )
 
     def test_public_user_modify_signoff(self):
         """Public user can't modify event signoffs"""
@@ -773,8 +785,11 @@ class TestEventLogTag(EventSetup, GraceDbTestBase):
         url = reverse('taglogentry', args=[self.lvem_event.graceid,
             log.N, self.tag_name])
         response = self.request_as_user(url, "POST", self.lvem_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, 'Forbidden')
+        self.assertContains(
+            response,
+            'Forbidden',
+            status_code=403
+        )
 
         # Exposed log on exposed event
         log = self.lvem_event.eventlog_set.get(
@@ -843,10 +858,13 @@ class TestEventLogUntag(EventSetup, GraceDbTestBase):
         response = self.request_as_user(url, "DELETE", self.internal_user)
 
         # Returns a 200 with a message on success
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content,
-            "Removed tag {tag} for message {N}.".format(tag=self.test_tag.name,
-            N=log.N))
+        self.assertContains(
+            response,
+            "Removed tag {tag} for message {N}.".format(
+                tag=self.test_tag.name, N=log.N
+            ),
+            status_code=200
+        )
 
     def test_lvem_user_untag_log_hidden_event(self):
         """LV-EM user can't untag event logs for hidden events"""
@@ -878,8 +896,11 @@ class TestEventLogUntag(EventSetup, GraceDbTestBase):
         url = reverse('taglogentry', args=[self.lvem_event.graceid,
             log.N, self.test_tag.name])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.content, 'Forbidden')
+        self.assertContains(
+            response,
+            'Forbidden',
+            status_code=403
+        )
 
         # Exposed log on exposed event
         log = self.lvem_event.eventlog_set.get(
@@ -888,10 +909,13 @@ class TestEventLogUntag(EventSetup, GraceDbTestBase):
             log.N, self.test_tag.name])
         response = self.request_as_user(url, "DELETE", self.lvem_user)
         # Test response
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content,
-            "Removed tag {tag} for message {N}.".format(tag=self.test_tag.name,
-            N=log.N))
+        self.assertContains(
+            response,
+            "Removed tag {tag} for message {N}.".format(
+                tag=self.test_tag.name, N=log.N
+            ),
+            status_code=200
+        )
         # Test tags on event log
         self.assertEqual(log.tags.count(), 1)
         self.assertIn(self.lvem_tag, log.tags.all())
@@ -990,5 +1014,8 @@ class TestEventCreateEMObservation(EventSetup, GraceDbTestBase):
             for log in ev.eventlog_set.all():
                 url = reverse('emobservation_entry', args=[ev.graceid, ""])
                 response = self.request_as_user(url, "POST")
-                self.assertEqual(response.status_code, 403)
-                self.assertEqual(response.content, 'Forbidden')
+                self.assertContains(
+                    response,
+                    'Forbidden',
+                    status_code=403
+                )

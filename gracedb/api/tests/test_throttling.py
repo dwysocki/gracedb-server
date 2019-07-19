@@ -27,5 +27,4 @@ class TestThrottling(GraceDbApiTestBase):
 
         # Second response should get throttled
         response = self.request_as_user(url, "GET")
-        self.assertEqual(response.status_code, 429)
-        self.assertIn('Request was throttled', response.content)
+        self.assertContains(response, 'Request was throttled', status_code=429)
