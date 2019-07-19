@@ -34,9 +34,12 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
         """User can authenticate to API with correct password"""
         # Set up and make request
         url = api_reverse('api:root')
-        user_and_pass = b64encode(b"{username}:{password}".format(
-            username=self.lvem_user.username, password=self.password)) \
-            .decode("ascii")
+        user_and_pass = b64encode(
+            "{username}:{password}".format(
+                username=self.lvem_user.username,
+                password=self.password
+            ).encode()
+        ).decode("ascii")
         headers = {
             'HTTP_AUTHORIZATION': 'Basic {0}'.format(user_and_pass),
         }
@@ -56,8 +59,12 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
         """User can't authenticate with wrong password"""
         # Set up and make request
         url = api_reverse('api:root')
-        user_and_pass = b64encode(b"{username}:{password}".format(
-            username=self.lvem_user.username, password='b4d')).decode("ascii")
+        user_and_pass = b64encode(
+            "{username}:{password}".format(
+                username=self.lvem_user.username,
+                password='b4d'
+            ).encode()
+        ).decode("ascii")
         headers = {
             'HTTP_AUTHORIZATION': 'Basic {0}'.format(user_and_pass),
         }
@@ -76,9 +83,12 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
 
         # Set up and make request
         url = api_reverse('api:root')
-        user_and_pass = b64encode(b"{username}:{password}".format(
-            username=self.lvem_user.username, password=self.password)) \
-            .decode("ascii")
+        user_and_pass = b64encode(
+            "{username}:{password}".format(
+                username=self.lvem_user.username,
+                password=self.password
+            ).encode()
+        ).decode("ascii")
         headers = {
             'HTTP_AUTHORIZATION': 'Basic {0}'.format(user_and_pass),
         }

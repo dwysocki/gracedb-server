@@ -45,9 +45,12 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
         """User can authenticate to API with correct password"""
         # Set up request
         request = self.factory.get(api_reverse('api:root'))
-        user_and_pass = b64encode(b"{username}:{password}".format(
-            username=self.lvem_user.username, password=self.password)) \
-            .decode("ascii")
+        user_and_pass = b64encode(
+            "{username}:{password}".format(
+                username=self.lvem_user.username,
+                password=self.password
+            ).encode()
+        ).decode("ascii")
         request.META['HTTP_AUTHORIZATION'] = 'Basic {0}'.format(user_and_pass)
 
         # Authentication attempt
@@ -60,8 +63,12 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
         """User can't authenticate with wrong password"""
         # Set up request
         request = self.factory.get(api_reverse('api:root'))
-        user_and_pass = b64encode(b"{username}:{password}".format(
-            username=self.lvem_user.username, password='b4d')).decode("ascii")
+        user_and_pass = b64encode(
+            "{username}:{password}".format(
+                username=self.lvem_user.username,
+                password='b4d'
+            ).encode()
+        ).decode("ascii")
         request.META['HTTP_AUTHORIZATION'] = 'Basic {0}'.format(user_and_pass)
 
         # Authentication attempt should fail
@@ -77,9 +84,12 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
 
         # Set up request
         request = self.factory.get(api_reverse('api:root'))
-        user_and_pass = b64encode(b"{username}:{password}".format(
-            username=self.lvem_user.username, password=self.password)) \
-            .decode("ascii")
+        user_and_pass = b64encode(
+            "{username}:{password}".format(
+                username=self.lvem_user.username,
+                password=self.password
+            ).encode()
+        ).decode("ascii")
         request.META['HTTP_AUTHORIZATION'] = 'Basic {0}'.format(user_and_pass)
 
         # Authentication attempt should fail
@@ -91,9 +101,12 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
         """User can't authenticate to a non-API URL path"""
         # Set up request
         request = self.factory.get(reverse('home'))
-        user_and_pass = b64encode(b"{username}:{password}".format(
-            username=self.lvem_user.username, password=self.password)) \
-            .decode("ascii")
+        user_and_pass = b64encode(
+            "{username}:{password}".format(
+                username=self.lvem_user.username,
+                password=self.password
+            ).encode()
+        ).decode("ascii")
         request.META['HTTP_AUTHORIZATION'] = 'Basic {0}'.format(user_and_pass)
 
         # Try to authenticate
@@ -108,9 +121,12 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
 
         # Set up request
         request = self.factory.get(api_reverse('api:root'))
-        user_and_pass = b64encode(b"{username}:{password}".format(
-            username=self.lvem_user.username, password=self.password)) \
-            .decode("ascii")
+        user_and_pass = b64encode(
+            "{username}:{password}".format(
+                username=self.lvem_user.username,
+                password=self.password
+            ).encode()
+        ).decode("ascii")
         request.META['HTTP_AUTHORIZATION'] = 'Basic {0}'.format(user_and_pass)
 
         # Authentication attempt should fail
