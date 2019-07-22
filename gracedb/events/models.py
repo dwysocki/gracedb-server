@@ -273,7 +273,7 @@ class Event(models.Model):
 
     def neighbors(self, neighborhood=None):
         if not self.gpstime:
-            return []
+            return Event.objects.none()
         if self.group.name == 'Test':
             nearby = Event.objects.filter(group__name='Test')
         else:
