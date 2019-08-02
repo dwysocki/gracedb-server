@@ -22,7 +22,7 @@ def get_from_env(envvar, default_value=None, fail_if_not_found=True):
     return value
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.6.2'
+PROJECT_VERSION = '2.6.3'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
