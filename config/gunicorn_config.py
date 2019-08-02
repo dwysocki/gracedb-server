@@ -17,8 +17,17 @@ bind = "127.0.0.1:{port}".format(port=GUNICORN_PORT)
 # Number of workers = 2*CPU + 1 (recommendation from Gunicorn documentation)
 workers = multiprocessing.cpu_count()*2 + 1
 
-# Worker class
-worker_class = 'sync'
+# Worker class.
+# 
+worker_class = 'gthread'
+threads = 2
+
+# Adding options for timeout. Not specified, the timeout default 
+# is 30 seconds. Source:
+#
+# https://gunicorn-docs.readthedocs.io/en/stable/settings.html#worker-processes
+#
+timeout = 120
 
 # Max requests settings - a worker restarts after handling this many
 # requests. May be useful if we have memory leak problems.
