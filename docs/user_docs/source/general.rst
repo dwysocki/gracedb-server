@@ -35,7 +35,6 @@ purposes. The diagram above depicts a typical sequence of events:
 
 Overview of components
 ======================
-
 GraceDB consists of the server (`gracedb.ligo.org <https://gracedb.ligo.org>`__) 
 and a set of client tools. Two user interfaces are available: the web interface
 for browser access (i.e., the one you are using now), and the 
@@ -44,20 +43,18 @@ These interfaces represent the information in GraceDB in different ways:
 the web interface naturally represents information as HTML pages, whereas
 the REST interface delivers JSON-serialized data.
 
-The client tools (available via ``pip``, SL6 or Debian packages, and source
-build, see :ref:`installing_the_client`) provide a way to interact via the REST API. 
-These tools include a Python client class
-with methods for all common GraceDB operations. 
-There is also a ``gracedb`` executable for the command line with much of 
-the same functionality.
+The `ligo-gracedb client package <https://gw.readthedocs.io/ligo-gracedb>`__ provides a convenient way to interact with the REST API.
+This package includes a Python client class with methods for all common GraceDB operations.
+There is also a ``gracedb`` executable for the command line with much of the same functionality.
 
 The GraceDB API conforms to the RESTful principles of "uniform interface" and
 "resource-oriented architecture".
 
+
 Where can I go for help?
 ==================================
+This documentation is not as great as it could be, but we are working on it.
 
-This documentation is not as great as it could be, but
-we are working on it. For help with issues not addressed here, please
-send mail to uwm-help@ligo.org.
+LIGO/Virgo users can join the GraceDB channel in the collaboration's Mattermost instance or email the DASWG mailing list for help.
 
+To report a problem, either `post an issue <https://git.ligo.org/lscsoft/gracedb/issues>`__ or send mail to uwm-help@ligo.org.

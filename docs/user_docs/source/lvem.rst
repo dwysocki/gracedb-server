@@ -2,6 +2,15 @@
 Features for EM Collaboration
 =============================
 
+.. NOTE::
+
+    This document describes access and features provided to members of
+    collaborations which the LSC had an MOU with in O1 and O2. This access
+    is maintained at present (August 2019), but may not be going forward.
+    The information contained on this page will not be updated or
+    maintained, and will eventually be removed.
+
+
 On logging in
 =============
 
@@ -21,6 +30,7 @@ according to the identity you used for registering for LV-EM membership at
     is the one I used to register for LV-EM membership. The reason is that
     there is no way (at present) to map these different identities to the same
     underlying user.
+
 
 .. _basic_auth_for_lvem:
 
@@ -65,14 +75,12 @@ to make sure that only you can read it). The ``.netrc`` file could look like thi
 Place the resulting ``.netrc`` file in your home directory.
 Once that's done, you should be able to access the GraceDB REST API
 using any tool that supports basic auth. 
-For example, you can use the GraceDB Python client in much the same 
-way as described in :ref:`rest_client_basic_usage`, except that the 
-client class is specially formulated for basic auth::
+For example, you can use the GraceDB Python client::
 
-    from ligo.gracedb.rest import GraceDbBasic, HTTPError
+    from ligo.gracedb.rest import GraceDb, HTTPError
  
     service_url = 'https://gracedb.ligo.org/api/'
-    client = GraceDbBasic(service_url)
+    client = GraceDb(service_url, username='user', password='pass')
   
     try:
         r = client.ping()
@@ -82,16 +90,14 @@ client class is specially formulated for basic auth::
     print "Response code: %d" % r.status
     print "Response content: %s" % r.json() 
 
-The only real difference is that the ``GraceDbBasic`` client class is used instead
-of the ``GraceDb`` class (which assumes that X509 credentials are available).
 If you're not comfortable using Python for scripted access to GraceDB, it is
 also possible to use ``curl`` to directly make requests to the server with the
 same basic auth credentials. Some examples of using curl are available 
 `here <https://gw-astronomy.org/wiki/LV_EM/TechInfo>`__.
 
+
 Downloading a skymap
 ======================
-
 The GraceDB Python client can be used to download
 files from Gracedb or add comments, plots, or observation records (see 
 the next section). Here, we'll
@@ -117,11 +123,11 @@ This file can be retrieved in the following way::
     out_file.write(r.read())
     out_file.close()
 
+
 .. _create_emobservation:
 
 Reporting coordinates of followup observations
 ===============================================
-
 In the following example, the GraceDB Python client is used to create an 
 observation record consisting of three separate footprints::
 
@@ -169,7 +175,5 @@ something like "delete GraceDB EMObservation" in the subject line. Tell us
 which entry you'd like deleted, and we'll take care of it.  In the future, we
 are hoping to make these observation records editable by the submitter.
 
-For more on the GraceDB event page and creating EM observation records, see 
-`this <https://www.youtube.com/watch?v=oIJE4dTISs4>`__  helpful video
-by Roy Williams.  There is a companion video on the SkymapViewer 
-`here <https://www.youtube.com/watch?v=ydXUD9KIN98>`__.
+.. For more on the GraceDB event page and creating EM observation records, see `this <https://www.youtube.com/watch?v=oIJE4dTISs4>`__  helpful video by Roy Williams.
+.. There is a companion video on the SkymapViewer `here <https://www.youtube.com/watch?v=ydXUD9KIN98>`__.

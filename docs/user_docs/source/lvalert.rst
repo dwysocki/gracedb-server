@@ -1,23 +1,39 @@
-=====================================
-Integration with LVAlert
-=====================================
+======================================
+LVAlert notifications (LVC users only)
+======================================
 
 Introduction
-===============================================
+============
+LVAlert (LIGO-Virgo Alert system) is an XMPP-based messaging platform used within the LVC.
+This document will describe how GraceDB uses LVAlert, which nodes it manages and publishes to, and the content of LVAlert messages sent by GraceDB.
+.. GraceDB uses `LVAlert <https://wiki.ligo.org/Computing/DASWG/LVAlert>`__ to send alerts to listeners within the LVC when.
 
-GraceDB uses `LVAlert <https://wiki.ligo.org/Computing/DASWG/LVAlert>`__ to send alerts to listeners within the LVC.
-The content of the LVAlert message is designed to convey actionable information about a state change in GraceDB, whether it involves the creation of a new event, or the updating or labeling of an existing one.
+Some helpful resources for installing and configuring LVAlert are:
+
+- Main ligo-lvalert `documentation <https://lscsoft.docs.ligo.org/lvalert/index.html>`__
+- ligo-lvalert `user guide <https://lscsoft.docs.ligo.org/lvalert/guide.html>`__
+- :ref:`Tutorial<responding_to_lvalert>` on setting up LVAlert and configuring your listener.
+
+
+LVAlert and GraceDB
+===================
+Generally speaking, GraceDB uses LVAlert to send "push" notifications about different actions that may be taken on the service.
+Users can subscribe to different nodes (more below) to receive these notifications, filter their content, and optionally trigger follow-up processes, like data quality checks, parameter estimation, and more.
+The content of an LVAlert message is designed to convey actionable information about a state change in GraceDB, including event creation, annotation, and other actions.
 
 .. NOTE::
     An LVAlert message is sent out for *any* new event or annotation that arrives in the GraceDB database.
-    This means that message volumes may be very high under certain circumstances, and appropriate filtering is required in order for LVAlert to be useful.
+    This means that message volumes may be very high under certain circumstances, and listeners should be constructed to appropriately filter the messages.
 
-Listening to specific event streams
-==============================================
 
+LVAlert nodes managed by GraceDB
+================================
 By running ``lvalert_listen``, you will receive messages over all **nodes** to which you are subscribed.
 There are two types of nodes to which GraceDB broadcasts alerts: event nodes and superevent nodes.
 
+
+Event nodes
+-----------
 Event node names consist of at least two elements::
 
     <group_name>_<pipeline_name>
@@ -30,45 +46,44 @@ One can also specify the search name::
 
 which has the effect of narrowing down the messages to only those related to a specific search.
 For example, the node ``burst_cwb_allsky`` will contain messages relating to the AllSky search, but not the MDC search.
-Note that GraceDB tries to send a message to all applicable nodes.
-Thus, a message sent to the node ``burst_cwb_allsky`` will *also* be sent to the more generic node ``burst_cwb``.
-This property allows the user to filter according to search by specifying different LVAlert processing scripts for different nodes.
 
+It is important to note that GraceDB will send an LVAlert to all nodes which match the parameters of the event in question.
+For example, the creation of a Burst-cWB-AllSky event will result in messages being sent to the ``burst_cwb_allsky`` node, as well as the more generic ``burst_cwb`` node.
+This feature allows the user to filter according to search by specifying different LVAlert processing scripts for different nodes.
+
+
+Superevent nodes
+----------------
 There are only three superevent nodes; one for each category of superevent:
 
 - ``superevent``
 - ``test_superevent``
 - ``mdc_superevent``
 
-To see the names of all available nodes, simply execute::
+Most users will be interested in the ``superevent`` node in order to receive LVAlerts about real GW candidates.
 
-    lvalert_admin -a username -i
 
-For more information on how to receive and react to LVAlert messages, see :ref:`responding_to_lvalert`.
-
-LVAlert message contents
-================================================
-
-GraceDB sends messages as a JSON-encoded dictionary.
+Contents of LVAlerts sent by GraceDB
+====================================
+GraceDB sends LVAlert messages as a JSON-encoded dictionary.
 This dictionary contains the following keys:
 
-- ``alert_type``: short string representing the.  Examples: ``new``, ``update``, ``label_added``, etc.  All alert types are shown in the tables below.
+- ``alert_type``: short string representing the action which triggered the alert.  Examples: ``new``, ``update``, ``label_added``, etc.  All alert types are shown in the tables below.
 - ``data``: a dictionary representing the relevant object (label, log message, etc.)
-- ``object``: a dictionary representing the corresponding "parent" object
+- ``object``: a dictionary representing the corresponding "parent" object (i.e., the event or superevent which a log, label, etc. is attached to).
 - ``uid``: the unique ID of the relevant event or superevent
 
 Below, we describe the alert contents in more detail.
 Examples of the various ``data``/``object`` dictionaries are available in :ref:`models`.
 See :ref:`below<example_permissions_list>` for one additional example (list of permissions).
 
+
 Event alerts
 ------------
-
 For alerts related to events, the following things are always true:
 
 - ``uid`` is always the event's ``graceid`` (example: G123456).
 - ``object`` is always a dictionary corresponding to the event which is affected by the label, log, VOEvent, etc.
-
 
 The following table shows the ``alert_type`` and ``data`` for different actions:
 
@@ -113,7 +128,6 @@ The following table shows the ``alert_type`` and ``data`` for different actions:
 
 Superevent alerts
 -----------------
-
 For alerts related to superevents, the following things are always true:
 
 - ``uid`` is always the superevent's ``superevent_id`` (example: S800106D).
@@ -162,14 +176,5 @@ The following table shows the ``alert_type`` and ``data`` for different actions:
 
 Example: list of permission dictionaries
 ----------------------------------------
-
 .. literalinclude:: dicts/permissions.list
   :language: JSON
-
-
-Further reading on LVAlert
-=====================================================
-
-Further information on using LVAlert can be found on the
-`LVAlert Project Page <https://wiki.ligo.org/Computing/DASWG/LVAlert>`__
-and the `LVAlert Howto <https://wiki.ligo.org/Computing/DASWG/LVAlertHowto>`__.

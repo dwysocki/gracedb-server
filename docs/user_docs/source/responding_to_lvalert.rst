@@ -6,6 +6,14 @@ Responding to LVAlert Messages
 
 .. sectionauthor:: Reed Essick
 
+
+.. NOTE::
+    This tutorial may not be fully up-to-date. The preferred resource for
+    installing ligo-lvalert and configuring a listener is the 
+    ligo-lvalert `user guide <https://lscsoft.docs.ligo.org/lvalert/guide.html>`__.
+    However, at present (August 2019), it is not fully completed, and the tutorial
+    on this page may still provide some useful information.
+
 This tutorial will show you how to
   * register to receive LVAlerts 
   * subscribe and unsubscribe from pubsub nodes

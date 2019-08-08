@@ -11,8 +11,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   ref_manual 
+   ref_manual
    tutorials
+   Documentation for the ligo-gracedb client package <https://gw.readthedocs.io/ligo-gracedb>
    LIGO/Virgo Public Alert Guide <https://emfollow.docs.ligo.org/userguide/>
    Report a bug (LIGO/Virgo users) <https://git.ligo.org/lscsoft/gracedb/issues>
 

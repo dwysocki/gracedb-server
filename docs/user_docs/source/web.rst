@@ -44,26 +44,11 @@ The existing tags are also shown in the same column as the message itself, as is
 Users are free to create new tags for their own purposes (e.g., searching through annotations at some
 later date), but only a pre-determined list of tags is used to create title pane sections.
 
-For more on the GraceDB event page, see `this <https://www.youtube.com/watch?v=oIJE4dTISs4>`_ helpful video by Roy Williams, which is geared toward LV-EM users.
-There also is a `companion video <https://www.youtube.com/watch?v=ydXUD9KIN98>`__ on the SkymapViewer.
+.. For more on the GraceDB event page, see `this <https://www.youtube.com/watch?v=oIJE4dTISs4>`_ helpful video by Roy Williams, which is geared toward LV-EM users.
+.. There also is a `companion video <https://www.youtube.com/watch?v=ydXUD9KIN98>`__ on the SkymapViewer.
 
 Understanding the superevent detail page
 ========================================
 
 The detail page for a superevent can be accessed similarly to an event page.
 The content is analogous to that shown on the event page, although it contains information about the superevent in general, as well as a table summarizing the information about the superevent's preferred event.
-
-Signing up for email or phone alerts (LVC only)
-=======================================================
-
-LVC users may set up email or phone notifications for events that come from specific pipelines and have specific labels.
-This feature is available to LVC users only because the events are not vetted before the alert is sent out.
-For non-LVC users, GCN will provide the equivalent functionality.
-See the LV-EM `techinfo page <https://gw-astronomy.org/wiki/LV_EM/TechInfo>`__.) 
-
-In order to sign up for an alert, you must first create a contact by clicking on "OPTIONS" in the navigation menu, and then "Create New Contact."
-Follow the instructions on that page to add your contact information.
-Next, return to the options page and click "Create New Notification".
-This page allows you to set the criteria for alerts to be sent to the contact that you created in the previous step.
-
-These are currently only available for events, but may be extended to superevents in the future.

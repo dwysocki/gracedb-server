@@ -50,8 +50,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'GraceDB'
-copyright = u'2015, Brian Moe, Branson Stephens, Patrick Brady'
-author = u'Brian Moe, Branson Stephens, Patrick Brady'
+copyright = u'2019, Tanner Prestegard, Alexander Pace, Brian Moe, Branson Stephens, Patrick Brady'
+author = u'Tanner Prestegard, Alexander Pace, Brian Moe, Branson Stephens, Patrick Brady'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

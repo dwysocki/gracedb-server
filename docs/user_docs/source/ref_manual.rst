@@ -12,10 +12,10 @@ Contents:
    models
    web
    rest
+   auth
    queries
    labels
    lvalert
    notifications
    lvem
-   auth
 
