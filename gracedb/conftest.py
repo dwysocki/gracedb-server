@@ -1,9 +1,15 @@
+try:
+    from unittest import mock
+except ImportError:  # python < 3
+    import mock
 import pytest
 
 from django.conf import settings
 from django.contrib.auth.models import (
     Group, Permission, AnonymousUser,
 )
+from django.contrib.contenttypes.models import ContentType
+
 
 # Groups ----------------------------------------------------------------------
 @pytest.mark.django_db
@@ -37,6 +43,7 @@ def internal_group():
 
     return group
 
+
 @pytest.mark.django_db
 @pytest.fixture
 def em_advocates_group():
@@ -61,6 +68,27 @@ def em_advocates_group():
     return group
 
 
+@pytest.mark.django_db
+@pytest.fixture
+def grb_managers_group():
+    group, _ = Group.objects.get_or_create(name='grb_managers')
+
+    # Add permissions
+    perm_data = [
+        {'model': 'grbevent', 'codename': 't90_grbevent'},
+    ]
+    permission_list = []
+    for perm in perm_data:
+        p, _ = Permission.objects.get_or_create(
+            content_type=ContentType.objects.get(model=perm['model']),
+            codename=perm['codename']
+        )
+        permission_list.append(p)
+    group.permissions.add(*permission_list)
+
+    return group
+
+
 # Users =======================================================================
 
 ## Basic users ------------------------
@@ -78,6 +106,7 @@ def public_user():
 
 
 ## Special users ----------------------
+@pytest.mark.django_db
 @pytest.fixture
 def em_advocate_user(django_user_model, internal_group, em_advocates_group):
     user, _ = django_user_model.objects.get_or_create(
@@ -85,7 +114,16 @@ def em_advocate_user(django_user_model, internal_group, em_advocates_group):
     em_advocates_group.user_set.add(user)
     # Also add to internal group
     internal_group.user_set.add(user)
+    return user
 
+
+@pytest.mark.django_db
+@pytest.fixture
+def grb_user(django_user_model, internal_group, grb_managers_group):
+    user, _ = django_user_model.objects.get_or_create(username='grb.user')
+    grb_managers_group.user_set.add(user)
+    # Also add to internal group
+    internal_group.user_set.add(user)
     return user
 
 
@@ -95,5 +133,14 @@ def standard_user(request):
     """
     Parametrized fixture which includes 'standard' user classes:
     internal user, public user (LV-EM user to come?)
+    """
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture(params=['internal_user', 'public_user', 'grb_user'])
+def standard_plus_grb_user(request):
+    """
+    Parametrized fixture which includes:
+    internal user, public user, GRB managers user
     """
     return request.getfixturevalue(request.param)
