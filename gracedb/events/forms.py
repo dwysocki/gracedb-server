@@ -3,7 +3,7 @@ import logging
 from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
-from .models import Event, Group, Label
+from .models import Event, Group, Label, GrbEvent
 from .models import Pipeline, Search, Signoff
 from django.contrib.auth.models import User
 from django.core.exceptions import FieldError
@@ -49,3 +49,10 @@ class SignoffForm(ModelForm):
     class Meta:
         model = Signoff
         fields = [ 'status', 'comment' ] 
+
+
+class GrbEventUpdateForm(ModelForm):
+    class Meta:
+        model = GrbEvent
+        fields = ['ra', 'dec', 'error_radius', 't90', 'redshift',
+                  'designation']

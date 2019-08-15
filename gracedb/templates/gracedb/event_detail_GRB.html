@@ -90,19 +90,18 @@
 	</tbody>
 </table> 
 
-{% if can_modify_t90 %}
+{% if can_update_grbevent %}
 <div class="content-area">
-<form action="{% url "modify_t90" object.graceid %}" method="post">
-    <input type="text" name="t90" value="{{ object.t90 }}">
-    <input type="submit" value="Update T90" class="t90ButtonClass">
-</form>
-<form action="{% url "modify_t90" object.graceid %}" method="post">
-    <input type="text" name="redshift" value="{{ object.redshift }}">
-    <input type="submit" value="Update redshift" class="t90ButtonClass">
-</form>
-<form action="{% url "modify_t90" object.graceid %}" method="post">
-    <input type="text" name="designation" value="{{ object.designation }}">
-    <input type="submit" value="Update designation" class="t90ButtonClass">
+
+<h3>Update GRB Event</h3>
+<form id="update_grbevent_form" action="{% url "legacy_apiweb:default:events:update-grbevent" object.graceid %}">
+    <table>
+    {{ update_grbevent_form.as_table }}
+    <tr>
+        <td></td>
+        <td><input type="submit" value="Update" disabled></td>
+    </tr>
+    </table>
 </form>
 </div>
 {% endif %}

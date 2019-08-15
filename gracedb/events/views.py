@@ -16,7 +16,7 @@ from core.file_utils import get_file_list
 from core.http import check_and_serve_file
 from .models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
 from .models import EMGroup, Signoff, PipelineLog
-from .forms import CreateEventForm, SignoffForm
+from .forms import CreateEventForm, SignoffForm, GrbEventUpdateForm
 
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import User, Permission
@@ -369,8 +369,15 @@ def view(request, event):
     # given permission to access an event. We want it to be the observers group.
     context['lvem_group_name'] = settings.LVEM_OBSERVERS_GROUP
 
+    # GRB event update permissions/form
     if event.pipeline.name in settings.GRB_PIPELINES:
-        context['can_modify_t90'] = request.user.has_perm('events.t90_grbevent')
+        context['can_update_grbevent'] = request.user.has_perm(
+            'events.t90_grbevent')
+
+        # If the user has permission, add the form
+        if context['can_update_grbevent']:
+            context['update_grbevent_form'] = \
+                GrbEventUpdateForm(instance=event)
 
     # Is the user an external user? (I.e., not part of the LVC?) The template 
     # needs to know that in order to decide what pieces of information to show.
