@@ -47,7 +47,7 @@ class CreationRecipientGetter(object):
         if self.is_event_alert:
             return Q(pipelines__isnull=True) | Q(pipelines=self.event.pipeline)
         return Q()
-        
+
     def get_search_filter(self):
         if self.is_event_alert:
             return Q(searches__isnull=True) | Q(searches=self.event.search)
@@ -89,7 +89,7 @@ class CreationRecipientGetter(object):
 
         return email_recipients, phone_recipients
 
-    def get_recipients(self):
+    def get_notifications(self):
         # Get trigger query and apply to get baseline set of notifications
         trigger_query = self.get_trigger_query()
         base_notifications = self.queryset.filter(trigger_query)
@@ -98,18 +98,41 @@ class CreationRecipientGetter(object):
         filter_query = self.get_filter_query()
         notifications = base_notifications.filter(filter_query)
 
-        # Do label filtering
+        # Do label filtering - remove any notifications whose
+        # label requirements are not met by the event or superevent
         final_notifications = self.filter_for_labels(notifications)
 
+        return final_notifications
+
+    def get_recipients(self):
+        # Get notifications matching criteria
+        notifications = self.get_notifications()
+
         # Get email and phone recipients and return
-        return self.get_contacts_for_notifications(final_notifications)
+        email_contacts, phone_contacts = \
+            self.get_contacts_for_notifications(notifications)
+
+        # Filter to get only "distinct" contacts; i.e., don't send multiple
+        # texts to a user who has two notifications set up to point to the
+        # same contact
+        email_contacts = email_contacts.distinct()
+        phone_contacts = phone_contacts.distinct()
+
+        return email_contacts, phone_contacts
 
 
 class UpdateRecipientGetter(CreationRecipientGetter):
 
     def process_kwargs(self, **kwargs):
-        self.old_far = kwargs.get('old_far', None)
+        # We try to get old_far this way since old_far can be None, but we
+        # want the code to fail if it is not provided.
+        try:
+            self.old_far = kwargs['old_far']
+        except KeyError:
+            raise ValueError('old_far must be provided')
         self.old_nscand = kwargs.get('old_nscand', None)
+        if self.old_nscand is None:
+            raise ValueError('old_nscand must be provided')
 
     def get_trigger_query(self):
         # Initial query should match no objects
@@ -122,7 +145,7 @@ class UpdateRecipientGetter(CreationRecipientGetter):
             else:
                 query |= (Q(far_threshold__lte=self.old_far) &
                     Q(far_threshold__gt=self.event.far))
-        if not self.old_nscand and self.event.is_ns_candidate():
+        if self.old_nscand is False and self.event.is_ns_candidate():
             query |= Q(ns_candidate=True)
         return query
 
@@ -134,7 +157,7 @@ class LabelAddedRecipientGetter(CreationRecipientGetter):
         if self.label is None:
             raise ValueError('label must be provided')
 
-    def get_recipients(self):
+    def get_notifications(self):
 
         # Any notification that might be triggered by a label_added action
         # should have that label in the 'labels' field.  This includes
@@ -151,7 +174,7 @@ class LabelAddedRecipientGetter(CreationRecipientGetter):
         final_notifications = self.filter_for_labels(notifications)
 
         # Get email and phone recipients and return
-        return self.get_contacts_for_notifications(final_notifications)
+        return final_notifications
 
 
 class LabelRemovedRecipientGetter(LabelAddedRecipientGetter):

@@ -178,12 +178,17 @@ def update_superevent(superevent, updater, add_log_message=True,
                 EventAlertIssuer(new_params['preferred_event'],
                     alert_type='selected_as_preferred').issue_alerts()
 
-            # If preferred event has changed, compile kwargs for superevent
-            # alert
+        # Compile args for alert
+        if 'preferred_event' in old_params:
             superevent_alert_kwargs['old_far'] = \
                 old_params['preferred_event'].far
             superevent_alert_kwargs['old_nscand'] = \
                 old_params['preferred_event'].is_ns_candidate()
+        else:
+            superevent_alert_kwargs['old_far'] = \
+                superevent.preferred_event.far
+            superevent_alert_kwargs['old_nscand'] = \
+                superevent.preferred_event.is_ns_candidate()
 
     # Superevent alerts
     if issue_alert:
