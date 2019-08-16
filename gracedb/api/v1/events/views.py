@@ -1251,7 +1251,7 @@ class EventLogTagDetail(InheritPermissionsAPIView):
                 return Response("Tag removed, but failed to create log entry: %s" % str(e),
                      status=status.HTTP_200_OK)
 
-            return Response("Tag deleted.",status=status.HTTP_200_OK)
+            return Response("Tag deleted.",status=status.HTTP_204_NO_CONTENT)
         except:
             return Response("Tag not found.",status=status.HTTP_404_NOT_FOUND)
 
