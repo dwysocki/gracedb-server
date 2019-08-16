@@ -37,8 +37,7 @@ def issue_alerts(event_or_superevent, alert_type, serialized_object,
     if is_event(event_or_superevent):
         # Test/MDC events
         event = event_or_superevent
-        if ((event.search and event.search.name == 'MDC') \
-            or event.group.name == 'Test'):
+        if event.is_mdc() or event.is_test():
             return
 
         # Offline events
@@ -47,8 +46,7 @@ def issue_alerts(event_or_superevent, alert_type, serialized_object,
     else:
         # Test/MDC superevents
         s = event_or_superevent
-        if (s.category in [s.__class__.SUPEREVENT_CATEGORY_TEST,
-            s.__class__.SUPEREVENT_CATEGORY_MDC]):
+        if s.is_mdc() or s.is_test():
             return
 
         # Superevents with offline preferred events
