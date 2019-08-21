@@ -213,8 +213,8 @@ class SupereventPublic(DisplayFarMixin, ListView):
                 'comment', flat=True)))
             if se.retract:
                 if se.comments:
-                    se.comments += " "
-                se.comments += "RETRACTED"
+                    se.comments = " ** " + se.comments
+                se.comments = "RETRACTED" + se.comments
 
             # Get list of PE results
             pe_results = get_objects_for_user(self.request.user,
