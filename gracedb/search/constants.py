@@ -3,13 +3,13 @@ from pyparsing import Literal, Or
 # Create a parser for translating comparison operators to
 # Django queryset filter keywords
 EXPR_OPERATORS = {
-    "<" :  "__lt",
-    "<=":  "__lte",
-    "=" :  "",
-    "==" :  "",
-    ":" :  "",
-    ">" :  "__gt",
-    ">=":  "__gte",
+    "<": "__lt",
+    "<=": "__lte",
+    "=": "",
+    "==": "",
+    ":": "",
+    ">": "__gt",
+    ">=": "__gte",
 }
 ExpressionOperator = Or(map(Literal, EXPR_OPERATORS.keys()))
 ExpressionOperator.setParseAction(lambda toks: EXPR_OPERATORS[toks[0]])
@@ -17,10 +17,10 @@ ExpressionOperator.setParseAction(lambda toks: EXPR_OPERATORS[toks[0]])
 
 # Dict of LIGO run names (keys) and GPS time range tuples (values)
 RUN_MAP = {
-    # FIXME: O3 end not determined at present (May 2019), end time currently
-    # set to be 1 year from start date
-    # 01 Apr 2019 15:00:00 UTC - ?? (currently using 01 Apr 2020 15:00:00 UTC)
-    "O3": (1238166018, 1269788418),
+    # FIXME: O3 end currently specified as April 30, 2020 (no time given),
+    #        assume it is 15:00:00 UTC.
+    # 01 Apr 2019 15:00:00 UTC - 30 Apr 2020 15:00:00 UTC
+    "O3": (1238166018, 1272294018),
     # 04 Mar 2019 16:00:00 UTC - 01 Apr 2019 15:00:00 UTC
     "ER14": (1235750418, 1238166018),
     # 14 Dec 2018 16:00:00 UTC - 18 Dec 2018 14:00:00 UTC
