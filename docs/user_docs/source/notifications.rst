@@ -74,7 +74,7 @@ More information about each field will be provided in the following section wher
 
 A few notes here:
 
-- The label query field allows a complex filter on the requirement for which labels are/are not applied to an event or superevent.  To construct a label query, combine label names with binary AND: ('&' or ',') or binary OR: '|'. They can also be negated with '~' or '-'. For N labels, there must be exactly N-1 binary operators. Parentheses are not allowed. It is suggested to specify at least one label that is not negated, or you may receive more notifications than you would like.
+- The label query field allows a complex filter on the requirement for which labels are/are not applied to an event or superevent.  To construct a label query, combine label names with binary AND: ('&' or ',') or binary OR: '|'. They can also be negated with '~' or '-'. For N labels, there must be exactly N-1 binary operators. Parentheses are not allowed. It is suggested to specify at least one label that is not negated, or you may receive more notifications than you would like. Operator precedence is: NOT, AND, OR.
 - You can specify either a set of labels or a label query, but not both.
 - An event or superevent is considered a neutron star candidate if its source is thought to be a compact binary system where the secondary object has a mass less than 3 M\ :sub:`sun`\ . You can restrict your alerts to only events or superevents which are considered to be a neutron star candidate by checking the corresponding box in the form.
 

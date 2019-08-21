@@ -1,23 +1,31 @@
 from django.conf import settings
 from django.db.models import Q
 
+from events.models import Label
 from events.shortcuts import is_event
-from search.query.labels import filter_for_labels
 from superevents.shortcuts import is_superevent
 from .models import Contact, Notification
+from .utils import evaluate_label_queries
 
 
 class CreationRecipientGetter(object):
     queryset = Notification.objects.all()
 
-    def __init__(self, event_or_superevent, **kwargs):
-        self.es = event_or_superevent
-        self.is_event_alert = is_event(event_or_superevent)
-        self.event = event_or_superevent if self.is_event_alert \
-            else event_or_superevent.preferred_event
+    def __init__(self, es, **kwargs):
+        # NOTE: es = event_or_superevent
+        self.is_event_alert = is_event(es)
+        self.event = es if self.is_event_alert else es.preferred_event
         self.process_kwargs(**kwargs)
-        # event_or_superevent queryset - used for filtering by labels
-        self.es_qs = self.es._meta.model.objects.filter(pk=self.es.pk)
+
+        # Explicitly get the values for a few things and store them on a
+        # class instance.  This is because there is a possibility of race
+        # conditions if the event or superevent is updated while we are trying
+        # to figure out which notifications should trigger, which can take
+        # several seconds or more in production.
+        self.far = self.event.far
+        self.is_ns_candidate = self.event.is_ns_candidate()
+        # Force queryset evaluation with list()
+        self.label_names = list(es.labels.values_list('name', flat=True))
 
     def process_kwargs(self, **kwargs):
         pass
@@ -29,12 +37,12 @@ class CreationRecipientGetter(object):
 
     def get_far_filter(self):
         query = Q(far_threshold__isnull=True)
-        if self.event.far:
-            query |= Q(far_threshold__gt=self.event.far)
+        if self.far:
+            query |= Q(far_threshold__gt=self.far)
         return query
 
     def get_nscand_filter(self):
-        if self.event.is_ns_candidate():
+        if self.is_ns_candidate:
             return Q()
         return Q(ns_candidate=False)
 
@@ -64,16 +72,23 @@ class CreationRecipientGetter(object):
         return Q()
 
     def filter_for_labels(self, notifications):
+        # Check notifications which do NOT have a label query. Check whether
+        # their labels are a subset of what is attached to the event or
+        # superevent.  Notifications with no labels are automatically a
+        # subset.
+        # In this case, all the labels attached to the notification should
+        # be in the set attached to the event/superevent.
         notification_pks = []
-        for n in notifications:
-            if n.labels.exists() and not n.label_query:
-                if not set(n.labels.all()).issubset(self.es.labels.all()):
-                    continue
-            elif n.label_query:
-                qs_out = filter_for_labels(self.es_qs, n.label_query)
-                if not qs_out.exists():
-                    continue
-            notification_pks.append(n.pk)
+        label_set = set(self.label_names)
+        for n in notifications.filter(label_query__isnull=True):
+            n_label_set = set(n.labels.values_list('name', flat=True))
+            if n_label_set.issubset(label_set):
+                notification_pks.append(n.pk)
+
+        # Check those with label queries
+        notification_qs = notifications.filter(label_query__isnull=False)
+        pks = evaluate_label_queries(self.label_names, notification_qs)
+        notification_pks.extend(pks)
         return Notification.objects.filter(pk__in=notification_pks)
 
     def get_contacts_for_notifications(self, notifications):
@@ -139,13 +154,13 @@ class UpdateRecipientGetter(CreationRecipientGetter):
         query = Q(pk__in=[])
 
         # Then we add other options that could possibly match
-        if self.event.far is not None:
+        if self.far is not None:
             if self.old_far is None:
-                query |= Q(far_threshold__gt=self.event.far)
+                query |= Q(far_threshold__gt=self.far)
             else:
                 query |= (Q(far_threshold__lte=self.old_far) &
-                    Q(far_threshold__gt=self.event.far))
-        if self.old_nscand is False and self.event.is_ns_candidate():
+                    Q(far_threshold__gt=self.far))
+        if self.old_nscand is False and self.is_ns_candidate:
             query |= Q(ns_candidate=True)
         return query
 
@@ -183,14 +198,9 @@ class LabelRemovedRecipientGetter(LabelAddedRecipientGetter):
         # Only notifications with a label query should be triggered
         # by a label_removed alert, since notifications with a
         # label set can only have non-negated labels.
-        notification_pks = []
-        for n in notifications:
-            if n.label_query:
-                qs_out = filter_for_labels(self.es_qs, n.label_query)
-                if not qs_out.exists():
-                    continue
-                notification_pks.append(n.pk)
-        return Notification.objects.filter(pk__in=notification_pks)
+        notification_qs = notifications.filter(label_query__isnull=False)
+        pks = evaluate_label_queries(self.label_names, notification_qs)
+        return Notification.objects.filter(pk__in=pks)
 
 
 # Dict which maps alert types to recipient getter classes

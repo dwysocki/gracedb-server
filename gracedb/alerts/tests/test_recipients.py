@@ -1699,7 +1699,7 @@ def test_event_label_removed_alerts(
 # Other tests -----------------------------------------------------------------
 @pytest.mark.django_db
 def test_complex_label_query(superevent):
-    # NOTE: L1 & ~L2 | L3 == L1 & (~L2 | L3)
+    # NOTE: L1 & ~L2 | L3 == (L1 & ~L2) | L3
     n = Notification.objects.create(
         label_query='L1 & ~L2 | L3',
         user=superevent.submitter,
@@ -1733,7 +1733,8 @@ def test_complex_label_query(superevent):
     superevent.labelling_set.create(creator=superevent.submitter, label=l3)
     recipient_getter = LabelAddedRecipientGetter(superevent, label=l3)
     matched_notifications = recipient_getter.get_notifications()
-    assert matched_notifications.count() == 0
+    assert matched_notifications.count() == 1
+    assert matched_notifications.first().description == n.description
 
     # Test label added recipients for L1 being added (with L2)
     l1 = Label.objects.get(name='L1')
