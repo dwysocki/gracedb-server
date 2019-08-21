@@ -121,10 +121,14 @@ class GenericField(fields.Field):
         try:
             return self.model.objects.get(**model_dict)
         except self.model.DoesNotExist:
-            error_msg = '{model} with {lf}={data} does not exist' \
-                .format(model=self.model.__name__, lf=model_dict.keys()[0],
-                data=model_dict.values()[0])
-            raise exceptions.ValidationError(error_msg)
+            if hasattr(self, 'get_does_not_exist_error'):
+                err_msg = self.get_does_not_exist_error(data)
+            else:
+                err_msg = '{model} with {lf}={data} does not exist'.format(
+                    model=self.model.__name__, lf=model_dict.keys()[0],
+                    data=model_dict.values()[0]
+                )
+            raise exceptions.ValidationError(err_msg)
 
     def get_model_dict(self, data):
         return {self.lookup_field: data}
