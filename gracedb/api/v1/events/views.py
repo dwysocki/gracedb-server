@@ -1716,7 +1716,7 @@ class VOEventList(InheritPermissionsAPIView):
         MassGap = request.data.get('MassGap', None)
 
         if (skymap_filename and not skymap_type) or (skymap_type and not skymap_filename):
-            msg = "Both or neither of skymap_time and skymap_filename must be specified."
+            msg = "Both or neither of skymap_type and skymap_filename must be specified."
             return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
 
         # Instantiate the voevent and save in order to get the serial number
