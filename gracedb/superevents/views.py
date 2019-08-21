@@ -130,7 +130,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
     log_view_permission = 'superevents.view_log'
     noticeurl_template = 'https://gcn.gsfc.nasa.gov/notices_l/{s_id}.lvc'
     gcnurl_template = 'https://gcn.gsfc.nasa.gov/other/GW{sd_id}.gcn3'
-    skymap_filename = 'bayestar.png'
+    default_skymap_filename = 'bayestar.png'
     pe_results_tagname = 'pe_results'
 
     def get_queryset(self, **kwargs):
@@ -141,6 +141,35 @@ class SupereventPublic(DisplayFarMixin, ListView):
             .prefetch_related('voevent_set', 'log_set')
         return qs
 
+    def get_skymap_image(self, superevent):
+        skymap_image = None
+
+        # Try to get skymap from latest non-retraction VOEvent
+        voevent = superevent.voevent_set.exclude(voevent_type=
+            VOEvent.VOEVENT_TYPE_RETRACTION).order_by('-N').first()
+        voevent_skymap = voevent.skymap_filename
+        if voevent_skymap is not None:
+            # Assume filename is the same, with a different suffix.
+            voevent_skymap_image = voevent_skymap.replace('fits.gz', 'png')
+
+        # See if a public log exists with that filename
+        public_logs = superevent.log_set.filter(tags__name='public')
+        if public_logs.filter(filename=voevent_skymap_image).exists():
+            skymap_image = voevent_skymap_image
+        elif public_logs.filter(filename=self.default_skymap_filename).exists():
+            skymap_image = self.default_skymap_filename
+        if skymap_image:
+            # Add version to image name to be safe
+            log = public_logs.filter(filename=skymap_image) \
+                .order_by('-file_version').first()
+            skymap_image = log.versioned_filename
+
+            skymap_image = reverse(
+                'legacy_apiweb:default:superevents:superevent-file-detail',
+                args=[superevent.default_superevent_id, skymap_image]
+            )
+        return skymap_image
+
     def get_context_data(self, **kwargs):
         # Get base context
         context = super(SupereventPublic, self).get_context_data(**kwargs)
@@ -150,12 +179,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
         for se in self.object_list:
 
             # Get skymap image (if a public one exists)
-            se.skymap_image = None
-            if se.log_set.filter(tags__name='public',
-                filename=self.skymap_filename).exists():
-                se.skymap_image = reverse(
-                    'legacy_apiweb:default:superevents:superevent-file-detail',
-                    args=[se.default_superevent_id, self.skymap_filename])
+            se.skymap_image = self.get_skymap_image(se)
 
             # External links to GCN notice and circular
             se.noticeurl = self.noticeurl_template.format(s_id=
