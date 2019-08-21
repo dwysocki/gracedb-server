@@ -174,7 +174,8 @@ class SupereventPublic(DisplayFarMixin, ListView):
         # Get base context
         context = super(SupereventPublic, self).get_context_data(**kwargs)
 
-        #-- For each superevent, get list of log messages and construct pastro string
+        # For each superevent, get list of log messages and construct pastro
+        # string
         candidates = 0
         for se in self.object_list:
 
@@ -205,10 +206,8 @@ class SupereventPublic(DisplayFarMixin, ListView):
 
             # Get list of viewable logs for user which are tagged with
             # 'analyst_comments'
-            #viewable_logs = get_objects_for_user(self.request.user,
-            #    self.log_view_permission,
-            #    klass=se.log_set.filter(tags__name='analyst_comments'))
-            viewable_logs = se.log_set.filter(tags__name='public').filter(tags__name='analyst_comments')
+            viewable_logs = se.log_set.filter(tags__name='public').filter(
+                tags__name='analyst_comments')
             # Compile comments from these logs
             se.comments = ' ** '.join(list(viewable_logs.values_list(
                 'comment', flat=True)))
