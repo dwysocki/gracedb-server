@@ -722,7 +722,8 @@ class GrbEventPatchView(InheritPermissionsAPIView):
                                      issuer=request.user)
 
         # Send LVAlert
-        EventAlertIssuer(grbevent, alert_type='update').issue_alerts()
+        EventAlertIssuer(grbevent, alert_type='update').issue_alerts(
+            old_far=grbevent.far, old_nscand=grbevent.is_ns_candidate())
 
         return Response(eventToDict(grbevent, request=request))
 
