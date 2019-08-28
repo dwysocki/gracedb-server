@@ -141,23 +141,25 @@ class SupereventPublic(DisplayFarMixin, ListView):
             .prefetch_related('voevent_set', 'log_set')
         return qs
 
-    def get_skymap_image(self, superevent):
+    def get_skymap_image(self, superevent, voevent=None):
         skymap_image = None
+        public_logs = superevent.log_set.filter(tags__name='public')
 
         # Try to get skymap from latest non-retraction VOEvent
-        voevent = superevent.voevent_set.exclude(voevent_type=
-            VOEvent.VOEVENT_TYPE_RETRACTION).order_by('-N').first()
-        voevent_skymap = voevent.skymap_filename
-        if voevent_skymap is not None:
+        if voevent is not None and voevent.skymap_filename is not None:
             # Assume filename is the same, with a different suffix.
-            voevent_skymap_image = voevent_skymap.replace('fits.gz', 'png')
+            voevent_skymap_image = voevent.skymap_filename.replace('fits.gz',
+                                                                   'png')
+            # See if a public log exists with that filename
+            if public_logs.filter(filename=voevent_skymap_image).exists():
+                skymap_image = voevent_skymap_image
 
-        # See if a public log exists with that filename
-        public_logs = superevent.log_set.filter(tags__name='public')
-        if public_logs.filter(filename=voevent_skymap_image).exists():
-            skymap_image = voevent_skymap_image
-        elif public_logs.filter(filename=self.default_skymap_filename).exists():
+        # If skymap_image is None, we didn't find an image based on the
+        # skymap file in the VOEvent, so try the default.
+        if (skymap_image is None and
+            public_logs.filter(filename=self.default_skymap_filename).exists()):
             skymap_image = self.default_skymap_filename
+
         if skymap_image:
             # Add version to image name to be safe
             log = public_logs.filter(filename=skymap_image) \
@@ -179,9 +181,6 @@ class SupereventPublic(DisplayFarMixin, ListView):
         candidates = 0
         for se in self.object_list:
 
-            # Get skymap image (if a public one exists)
-            se.skymap_image = self.get_skymap_image(se)
-
             # External links to GCN notice and circular
             se.noticeurl = self.noticeurl_template.format(s_id=
                 se.default_superevent_id)
@@ -198,6 +197,9 @@ class SupereventPublic(DisplayFarMixin, ListView):
             # Get list of voevents, filtering out retractions
             voe = se.voevent_set.exclude(voevent_type=
                 VOEvent.VOEVENT_TYPE_RETRACTION).order_by('-N').first()
+
+            # Get skymap image (if a public one exists)
+            se.skymap_image = self.get_skymap_image(se, voe)
 
             # Was the candidate retracted?
             se.retract = se.voevent_set.filter(voevent_type=
@@ -225,21 +227,21 @@ class SupereventPublic(DisplayFarMixin, ListView):
                 'comment', flat=True)))
 
             # Get p_astro probabilities
-            pastro_values = [("BNS", voe.prob_bns),
-                ("NSBH", voe.prob_nsbh),
-                ("BBH", voe.prob_bbh),
-                ("Terrestrial", voe.prob_terrestrial),
-                ("MassGap", voe.prob_mass_gap)]
-            pastro_values.sort(reverse=True, key=lambda (a,b):b)
-            sourcelist = []
-            for key, value in pastro_values:
-                if value > 0.01:
-                    prob = int(round(100*value))
-                    if prob == 100: prob = '>99'
-                    sourcestr = "{0} ({1}%)".format(key, prob)
-                    sourcelist.append(sourcestr)
-            se.sourcetypes = ', '.join(sourcelist)
-            se.N = voe.N
+            if voe is not None:
+                pastro_values = [("BNS", voe.prob_bns),
+                    ("NSBH", voe.prob_nsbh),
+                    ("BBH", voe.prob_bbh),
+                    ("Terrestrial", voe.prob_terrestrial),
+                    ("MassGap", voe.prob_mass_gap)]
+                pastro_values.sort(reverse=True, key=lambda (a,b): b)
+                sourcelist = []
+                for key, value in pastro_values:
+                    if value > 0.01:
+                        prob = int(round(100*value))
+                        if prob == 100: prob = '>99'
+                        sourcestr = "{0} ({1}%)".format(key, prob)
+                        sourcelist.append(sourcestr)
+                se.sourcetypes = ', '.join(sourcelist)
 
         # Number of non-retracted candidate events
         context['candidates'] = candidates
