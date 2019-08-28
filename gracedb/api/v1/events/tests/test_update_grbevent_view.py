@@ -70,7 +70,7 @@ def test_access(internal_user, internal_group, standard_plus_grb_user):
     request.user = standard_plus_grb_user
     view = GrbEventPatchView.as_view()
 
-    with mock.patch('api.v1.events.views.EventAlertIssuer'):
+    with mock.patch('gracedb.api.v1.events.views.EventAlertIssuer'):
         # Process request
         response = view(request, grbevent.graceid)
         response.render()
@@ -105,7 +105,7 @@ def test_parameter_updates(grb_user, internal_group, data):
     request.user = grb_user
     view = GrbEventPatchView.as_view()
 
-    with mock.patch('api.v1.events.views.EventAlertIssuer'):
+    with mock.patch('gracedb.api.v1.events.views.EventAlertIssuer'):
         # Process request
         response = view(request, grbevent.graceid)
         response.render()
@@ -140,7 +140,7 @@ def test_update_with_no_new_data(grb_user, internal_group, data):
     request.user = grb_user
     view = GrbEventPatchView.as_view()
 
-    with mock.patch('api.v1.events.views.EventAlertIssuer'):
+    with mock.patch('gracedb.api.v1.events.views.EventAlertIssuer'):
         # Process request
         response = view(request, grbevent.graceid)
         response.render()
@@ -169,7 +169,7 @@ def test_update_with_bad_data(grb_user, internal_group, data):
     request.user = grb_user
     view = GrbEventPatchView.as_view()
 
-    with mock.patch('api.v1.events.views.EventAlertIssuer'):
+    with mock.patch('gracedb.api.v1.events.views.EventAlertIssuer'):
         # Process request
         response = view(request, grbevent.graceid)
         response.render()
@@ -198,7 +198,7 @@ def test_update_non_grbevent(grb_user, internal_group):
     request.user = grb_user
     view = GrbEventPatchView.as_view()
 
-    with mock.patch('api.v1.events.views.EventAlertIssuer'):
+    with mock.patch('gracedb.api.v1.events.views.EventAlertIssuer'):
         # Process request
         response = view(request, event.graceid)
         response.render()
