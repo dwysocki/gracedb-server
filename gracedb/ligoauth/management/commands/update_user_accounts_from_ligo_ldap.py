@@ -169,11 +169,25 @@ class LdapPersonResultProcessor(object):
     def add_certs(self, certs):
         # Add new certificates to user
         for subject in certs:
-            if self.verbose:
-                self.write('Creating certificate with subject {0} for {1}'
-                    .format(subject, self.ligoldapuser.username))
-            cert, _ = X509Cert.objects.get_or_create(subject=subject,
-                user=self.ligoldapuser)
+            # Check if certificate already exists (sometimes certificates
+            # are assigned to different users); if so, we just change the
+            # user rather than creating a new certificate
+            cert = X509Cert.objects.filter(subject=subject)
+            if cert.exists():
+                cert = cert.first()
+                if self.verbose:
+                    msg = ('Reassigning certificate with subject {0} from '
+                           '{1} to {2}').format(subject,
+                        cert.user, self.ligoldapuser.username)
+                    self.write(msg)
+                cert.user = self.ligoldapuser
+                cert.save()
+            else:
+                if self.verbose:
+                    self.write('Creating certificate with subject {0} for {1}'
+                        .format(subject, self.ligoldapuser.username))
+                cert, _ = X509Cert.objects.get_or_create(subject=subject,
+                    user=self.ligoldapuser)
 
     def remove_certs(self, certs):
         # Remove old certificates from user
