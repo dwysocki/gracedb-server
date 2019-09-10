@@ -46,12 +46,6 @@ INTERNAL_IPS = [
     INTERNAL_IP_ADDRESS,
 ]
 
-# Adjust ADMINS for dev instances
-ADMINS = [
-    ("Tanner Prestegard", "tanner.prestegard@ligo.org"),
-]
-
-
 # Set up Sentry for error logging
 sentry_dsn = get_from_env('DJANGO_SENTRY_DSN', fail_if_not_found=False)
 if sentry_dsn is not None:

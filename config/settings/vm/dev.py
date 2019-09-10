@@ -48,8 +48,3 @@ if 'silk' in INSTALLED_APPS:
 INTERNAL_IPS = [
     INTERNAL_IP_ADDRESS,
 ]
-
-# Adjust ADMINS for dev instances
-ADMINS = [
-    ("Tanner Prestegard", "tanner.prestegard@ligo.org"),
-]
