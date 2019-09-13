@@ -12,6 +12,7 @@ djangorestframework==3.9.0
 djangorestframework-guardian==0.1.1
 dnspython==1.15.0
 flake8==3.5.0
+gunicorn[gthread]==19.9.0
 html5lib==1.0.1
 ipdb==0.10.2
 ipython==5.5.0
@@ -51,6 +52,5 @@ pytz==2018.9
 # https://github.com/etingof/pyasn1/issues/112
 pyasn1==0.3.6
 pyasn1-modules==0.1.5
-# Installing future for gunicorn gthreads:
-futures==3.2.0
-gunicorn[gthread]==19.9.0
+# Installing futures for gunicorn gthreads (Python 2 only):
+futures==3.2.0; python_version < '3'
