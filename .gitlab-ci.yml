@@ -46,7 +46,7 @@ before_script:
     # set python version
     - PYTHON_VERSION="${CI_JOB_NAME##*:}"
     - PYTHON_MAJOR="${PYTHON_VERSION:0:1}"
-    - if [[ "${PYTHON_MAJOR}" -eq 2 ]]; then PYTHON="python"; else PYTHON="python3"; fi
+    - PYTHON="python3"
     # install build requirements
     - apt-get -yqq update
     - apt-get -o dir::cache::archives="${APT_CACHE_DIR}" install -yqq
@@ -58,8 +58,6 @@ before_script:
           libxml2-dev
           swig
           ${PYTHON}-pip
-    # install voeventlib for python2
-    - if [[ "${PYTHON_MAJOR}" -eq 2 ]]; then apt-get -o dir::cache::archives="${APT_CACHE_DIR}" install -yqq python-voeventlib; fi
     # install everything else from pip
     - ${PYTHON} -m pip install -r requirements.txt
     # create logs path required for tests
@@ -79,12 +77,8 @@ before_script:
       - .cache/pip
       - .cache/apt
 
-test:2.7:
+test:3.5:
   <<: *test
-
-test:3.7:
-  <<: *test
-  allow_failure: true
 
 branch_image:
   stage: branch
