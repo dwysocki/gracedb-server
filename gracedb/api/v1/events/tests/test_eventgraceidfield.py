@@ -50,4 +50,4 @@ def test_valid_graceids(graceid):
     call_args, _ = mock_super_tiv.call_args
     assert mock_super_tiv.call_count == 1
     assert len(call_args) == 1
-    assert call_args[0].encode() == graceid.upper().strip()
+    assert call_args[0] == graceid.upper().strip()

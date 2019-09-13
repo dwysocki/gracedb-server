@@ -147,7 +147,8 @@ def test_update_with_no_new_data(grb_user, internal_group, data):
 
     # Check response
     assert response.status_code == 400
-    assert 'Request would not modify the GRB event' in response.content
+    assert 'Request would not modify the GRB event' \
+        in response.content.decode()
 
 
 @pytest.mark.parametrize("data",
@@ -176,7 +177,7 @@ def test_update_with_bad_data(grb_user, internal_group, data):
 
     # Check response
     assert response.status_code == 400
-    assert 'must be a float' in response.content
+    assert 'must be a float' in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -206,4 +207,4 @@ def test_update_non_grbevent(grb_user, internal_group):
     # Check response
     assert response.status_code == 400
     assert 'Cannot update GRB event parameters for non-GRB event' \
-        in response.content
+        in response.content.decode()
