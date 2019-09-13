@@ -4,7 +4,7 @@ django-debug-toolbar==1.9.1
 django-extensions==2.0.5
 django-guardian==1.4.9
 django-model-utils==3.1.1
-django-ses
+django-ses==0.8.10
 django-silk==3.0.1
 django-twilio==0.9.0
 django-user-sessions==1.6.0
