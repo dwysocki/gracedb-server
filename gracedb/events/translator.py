@@ -15,7 +15,7 @@ from .serialize import populate_omega_tables, write_output_files
 
 from VOEventLib.Vutil import parse, getWhereWhen, findParam, getParamNames
 from core.time_utils import isoToGps, isoToGpsFloat
-from core.vfile import VersionedFile
+from core.vfile import create_versioned_file
 
 import json
 try:
@@ -178,9 +178,6 @@ def handle_uploaded_data(event, datafilename,
         event.snr              = snr
         event.false_alarm_rate = getattr(coinc_table, "false_alarm_rate", None)
         event.combined_far     = far
-
-        # XXX xml_filename unused
-        #xml_filename = os.path.join(output_dir, coinc_table_filename)
         event.save()
 
         # Extract Single Inspiral Information
@@ -292,10 +289,6 @@ def handle_uploaded_data(event, datafilename,
         event.instruments = coinc_table.ifos
         event.nevents = coinc_event_table.nevents
         event.likelihood = cleanData(coinc_event_table.likelihood, 'likelihood')
-
-        # XXX xml_filename unused.
-        #xml_filename = os.path.join(output_dir, coinc_table_filename)
-
         event.save()
     elif pipeline in ['CWB', 'CWB2G']:
 
@@ -317,7 +310,7 @@ def handle_uploaded_data(event, datafilename,
                            comment="Coinc Table Created")
             log.save()
 
-        if data.writeLogfile( os.path.join(outputDataDir, "event.log") ):
+        if data.writeLogfile(outputDataDir, "event.log"):
             log = EventLog(event=event,
                            filename="event.log",
                            file_version=0,
@@ -452,12 +445,10 @@ class Translator(object):
         logdata.append("FAR: %s" % val_or_dashes(data.get('far')))
         return "\n".join(logdata)
 
-    def writeLogfile(self, path):
+    def writeLogfile(self, data_directory, filename):
         data = self.logData()
         if data:
-            f = VersionedFile(path, 'w')
-            f.write(data)
-            f.close()
+            create_versioned_file(filename, data_directory, data)
         return True
 
 

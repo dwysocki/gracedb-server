@@ -1,6 +1,5 @@
-#!/usr/bin/python
-
 from math import log
+import os
 from time import gmtime, strftime
 
 from glue.lal import LIGOTimeGPS
@@ -8,7 +7,7 @@ from glue.ligolw import ligolw
 from glue.ligolw import table
 from glue.ligolw import lsctables
 
-from core.vfile import VersionedFile
+from core.vfile import VersionedFile, create_versioned_file
 
 ##############################################################################
 #
@@ -84,17 +83,19 @@ def compute_mchirp_eta(m1,m2):
 
 def write_output_files(root_dir, xmldoc, log_content, \
                        xml_fname = 'coinc.xml', log_fname = 'event.log'):
-  """
-  write the xml-format coinc tables and log file
-  """
+    """
+    Write the xml-format coinc tables and log file
+    """
 
-  f = VersionedFile(root_dir+'/'+xml_fname,'w')
-  xmldoc.write(f.file)
-  f.close()
+    # Write xml-formatted coinc table
+    # We do it this way instead of using create_versioned_file since the
+    # xmldoc is designed to write to a file object.
+    file_path = os.path.join(root_dir, xml_fname)
+    f = VersionedFile(file_path, 'w')
+    xmldoc.write(f.file)
 
-  f = VersionedFile(root_dir+'/'+log_fname,'w')
-  f.write(log_content)
-  f.close()
+    # Write log file
+    create_versioned_file(log_fname, root_dir, log_content)
 
 def get_ifos_for_cwb(cwb_ifos):
   """

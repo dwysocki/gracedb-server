@@ -250,7 +250,6 @@ class VersionedFile(object):
 
 
 def create_versioned_file(filename, file_dir, file_contents):
-
     # Get full file path
     full_path = os.path.join(file_dir, filename)
 
@@ -263,6 +262,9 @@ def create_versioned_file(filename, file_dir, file_contents):
         fdest = VersionedFile(full_path, 'wb')
         for chunk in file_contents.chunks():
             fdest.write(chunk)
+    else:
+        raise TypeError('Unexpected file contents in '
+                        'core.vfile.create_versioned_file')
     fdest.close()
 
     return fdest.version

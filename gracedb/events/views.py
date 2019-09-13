@@ -48,7 +48,7 @@ log = logging.getLogger(__name__)
 import os
 from django.conf import settings
 
-from core.vfile import VersionedFile
+from core.vfile import create_versioned_file
 
 # XXX This should be configurable / moddable or something
 MAX_QUERY_RESULTS = 1000
@@ -211,16 +211,9 @@ def logentry(request, event, num=None):
         file_version = None
         if uploadedFile:
             filename = uploadedFile.name
-            filepath = os.path.join(event.datadir, filename)
-
             try:
-                # Open / Write the file.
-                fdest = VersionedFile(filepath, 'w')
-                for chunk in uploadedFile.chunks():
-                    fdest.write(chunk)
-                fdest.close()
-                # Ascertain the version assigned to this particular file.
-                file_version = fdest.version
+                file_version = create_versioned_file(filename, event.datadir,
+                                                     uploadedFile)
             except Exception as e:
                 return HttpResponseServerError(str(e))
 

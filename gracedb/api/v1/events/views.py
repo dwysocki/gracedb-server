@@ -40,7 +40,7 @@ from alerts.issuers.events import EventAlertIssuer, EventLogAlertIssuer, \
     EventVOEventAlertIssuer, EventPermissionsAlertIssuer
 from api.throttling import BurstAnonRateThrottle
 from core.http import check_and_serve_file
-from core.vfile import VersionedFile
+from core.vfile import create_versioned_file
 from events.buildVOEvent import buildVOEvent, VOEventBuilderException
 from events.forms import CreateEventForm
 from events.models import Event, Group, Search, Pipeline, EventLog, Tag, \
@@ -610,29 +610,14 @@ class EventDetail(InheritPermissionsAPIView):
 #           return Response("\n".join(messages),
 #                   status=status.HTTP_400_BAD_REQUEST)
 
-        # XXX handle duplicate file names.
+        # Create versioned file
         f = request.data['eventFile']
-        uploadDestination = os.path.join(event.datadir, f.name)
-        fdest = VersionedFile(uploadDestination, 'w')
-        #for chunk in f.chunks():
-        #    fdest.write(chunk)
-        #fdest.close()
-        shutil.copyfileobj(f, fdest.file)
-        fdest.close()
+        version = create_versioned_file(f.name, event.datadir, f)
 
         # Extract Info from uploaded data
-        try:
-            handle_uploaded_data(event, uploadDestination)
-            event.submitter = request.user
-        except:
-            # XXX Bad news.  If the log file fails to save because of
-            # race conditions, then this will also be the the message
-            # returned.  Somehow, I think there are other things that
-            # could go wrong inside handle_uploaded_data besides just
-            # bad data.  We should probably check for different types
-            # of exceptions here.
-            return Response("Bad Data",
-                    status=status.HTTP_400_BAD_REQUEST)
+        uploadDestination = os.path.join(event.datadir, f.name)
+        handle_uploaded_data(event, uploadDestination)
+        event.submitter = request.user
 
         # Save event
         event.save()
@@ -894,16 +879,11 @@ class EventLogList(InheritPermissionsAPIView):
         file_version = None
         if uploadedFile:
             filename = uploadedFile.name 
-            filepath = os.path.join(event.datadir, filename)
 
             try:
                 # Open / Write the file.
-                fdest = VersionedFile(filepath, 'w')
-                for chunk in uploadedFile.chunks(): 
-                    fdest.write(chunk)
-                fdest.close()
-                # Ascertain the version assigned to this particular file.
-                file_version = fdest.version
+                file_version = create_versioned_file(filename, event.datadir,
+                                                     uploadedFile)
             except Exception as e:
                 # XXX This needs some thought.
                 response = Response(str(e), status=status.HTTP_400_BAD_REQUEST)
@@ -1613,20 +1593,15 @@ class Files(InheritPermissionsAPIView):
     def put(self, request, event, filename=""):
         """ File uploader.  Implements file versioning. """
         filename = filename or ""
-        filepath = os.path.join(event.datadir, filename)
 
         try:
             # Open / Write the file.
-            fdest = VersionedFile(filepath, 'w')
             f = request.data['upload']
-            for chunk in f.chunks(): 
-                fdest.write(chunk)
-            fdest.close()
-            file_version = fdest.version
+            file_version = create_versioned_file(filename, event.datadir, f)
 
             rv = {}
             # XXX this seems wobbly.
-            longname = fdest.name
+            longname = os.path.join(event.datadir, filename)
             shortname = longname[longname.rfind(filename):]
             rv['permalink'] = api_reverse(
                     "events:files", args=[event.graceid, shortname], request=request)
@@ -1756,11 +1731,8 @@ class VOEventList(InheritPermissionsAPIView):
 
         voevent_display_type = dict(VOEvent.VOEVENT_TYPE_CHOICES)[voevent_type].capitalize()
         filename = "%s-%d-%s.xml" % (event.graceid, voevent.N, voevent_display_type)
-        filepath = os.path.join(event.datadir, filename)
-        fdest = VersionedFile(filepath, 'w')
-        fdest.write(voevent_text)
-        fdest.close()
-        file_version = fdest.version
+        file_version = create_versioned_file(filename, event.datadir,
+                                             voevent_text)
 
         voevent.filename = filename
         voevent.file_version = file_version

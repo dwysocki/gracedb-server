@@ -17,7 +17,7 @@ from .permission_utils import assign_default_event_perms
 
 from alerts.issuers.events import EventAlertIssuer, EventLabelAlertIssuer, \
     EventEMObservationAlertIssuer, EventEMBBEventLogAlertIssuer
-from core.vfile import VersionedFile
+from core.vfile import create_versioned_file
 
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Permission
@@ -105,10 +105,7 @@ def _createEventFromForm(request, form):
         # Write the event data file to disk.
         f = request.FILES['eventFile']
         uploadDestination = os.path.join(eventDir, f.name)
-        fdest = VersionedFile(uploadDestination, 'w')
-        for chunk in f.chunks():
-            fdest.write(chunk)
-        fdest.close()
+        version = create_versioned_file(f.name, event.datadir, f)
         file_contents = None
 
         # Extract Info from uploaded data
