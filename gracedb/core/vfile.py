@@ -257,8 +257,11 @@ def create_versioned_file(filename, file_dir, file_contents):
     if isinstance(file_contents, six.string_types):
         fdest = VersionedFile(full_path, 'w')
         fdest.write(file_contents)
+    elif isinstance(file_contents, bytes):
+        fdest = VersionedFile(full_path, 'wb')
+        fdest.write(file_contents)
     elif isinstance(file_contents, (UploadedFile, InMemoryUploadedFile,
-                    TemporaryUploadedFile, SimpleUploadedFile, bytes)):
+                    TemporaryUploadedFile, SimpleUploadedFile)):
         fdest = VersionedFile(full_path, 'wb')
         for chunk in file_contents.chunks():
             fdest.write(chunk)
