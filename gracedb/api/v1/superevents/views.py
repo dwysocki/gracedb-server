@@ -19,8 +19,7 @@ from core.vfile import FileVersionError, FileVersionNameError
 from events.models import Event, Label
 from events.view_utils import reverse as gracedb_reverse
 from ligoauth.utils import is_internal
-from superevents.buildVOEvent import VOEventBuilderException
-from superevents.models import Superevent, Log, Signoff
+from superevents.models import Superevent, Log, Signoff, VOEvent
 from superevents.utils import remove_tag_from_log, \
     remove_event_from_superevent, remove_label_from_superevent, \
     confirm_superevent_as_gw, get_superevent_by_date_id_or_404, \
@@ -321,7 +320,7 @@ class SupereventVOEventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
     serializer_class = SupereventVOEventSerializer
     pagination_class = BasePaginationFactory(results_name='voevents')
     permission_classes = (SupereventVOEventModelPermissions,)
-    create_error_classes = (VOEventBuilderException)
+    create_error_classes = (VOEvent.VOEventBuilderException)
     lookup_url_kwarg = 'N'
     lookup_field = 'N'
     list_view_order_by = ('N',)

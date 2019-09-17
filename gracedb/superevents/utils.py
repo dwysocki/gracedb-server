@@ -6,7 +6,6 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import Group as DjangoGroup
 
-from .buildVOEvent import construct_voevent_file
 from .models import Superevent, Log, Labelling, EMObservation, EMFootprint, \
     VOEvent, Signoff
 from .shortcuts import is_superevent
@@ -15,6 +14,7 @@ from alerts.issuers.superevents import SupereventAlertIssuer, \
     SupereventLogAlertIssuer, SupereventLabelAlertIssuer, \
     SupereventVOEventAlertIssuer, SupereventEMObservationAlertIssuer, \
     SupereventSignoffAlertIssuer, SupereventPermissionsAlertIssuer
+from annotations.voevent_utils import construct_voevent_file
 from core.permissions import expose_log_to_lvem, expose_log_to_public, \
     hide_log_from_lvem, hide_log_from_public, assign_perms_to_obj, \
     remove_perms_from_obj

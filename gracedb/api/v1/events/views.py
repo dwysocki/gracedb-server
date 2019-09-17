@@ -38,10 +38,10 @@ from rest_framework.views import APIView
 
 from alerts.issuers.events import EventAlertIssuer, EventLogAlertIssuer, \
     EventVOEventAlertIssuer, EventPermissionsAlertIssuer
+from annotations.voevent_utils import construct_voevent_file
 from api.throttling import BurstAnonRateThrottle
 from core.http import check_and_serve_file
 from core.vfile import create_versioned_file
-from events.buildVOEvent import buildVOEvent, VOEventBuilderException
 from events.forms import CreateEventForm
 from events.models import Event, Group, Search, Pipeline, EventLog, Tag, \
     Label, Labelling, EMGroup, EMBBEventLog, EMSPECTRUM, VOEvent, GrbEvent
@@ -1673,16 +1673,11 @@ class VOEventList(InheritPermissionsAPIView):
 
     @event_and_auth_required
     def post(self, request, event):
+        # Get data from request
         voevent_type = request.data.get('voevent_type', None)
-        if not voevent_type:
-            msg = "You must provide a valid voevent_type."
-            return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
-
         internal = request.data.get('internal', 1)
-            
         skymap_type = request.data.get('skymap_type', None)
         skymap_filename = request.data.get('skymap_filename', None)
-
         open_alert = request.data.get('open_alert', 0)
         hardware_inj = request.data.get('hardware_inj', 0)
         CoincComment = request.data.get('CoincComment', None)
@@ -1694,9 +1689,44 @@ class VOEventList(InheritPermissionsAPIView):
         Terrestrial = request.data.get('Terrestrial', None)
         MassGap = request.data.get('MassGap', None)
 
-        if (skymap_filename and not skymap_type) or (skymap_type and not skymap_filename):
-            msg = "Both or neither of skymap_type and skymap_filename must be specified."
-            return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
+        # Get VOEvent types as a dict (key = short form, value = long form)
+        VOEVENT_TYPE_DICT = dict(VOEvent.VOEVENT_TYPE_CHOICES)
+
+        # Check data
+        error = False
+        if not voevent_type or voevent_type not in VOEVENT_TYPE_DICT:
+            error = True
+            msg = "You must provide a valid voevent_type."
+        elif ((skymap_filename and not skymap_type) or
+              (skymap_type and not skymap_filename)):
+            error = True
+            msg = ("Both or neither of skymap_type and skymap_filename must "
+                   "be specified.")
+        elif not event.gpstime:
+            error = True
+            msg = "Cannot build a VOEvent because event has no gpstime."
+        elif not event.far:
+            error = True
+            msg = "Cannot build a VOEvent because event has no FAR."
+        elif (voevent_type in ["IN", "UP"] or
+              voevent_type == "PR" and skymap_filename is not None):
+            if skymap_filename is None:
+                error = True
+                msg = "Skymap filename not provided."
+            if skymap_type is None:
+                error = True
+                msg = "Skymap type must be provided."
+
+            # Check if skymap file exists
+            skymap_file_path = os.path.join(event.datadir, skymap_filename)
+            if not os.path.exists(skymap_file_path):
+                error = True
+                msg = "Skymap file {fname} does not exist".format(
+                    fname=skymap_filename)
+
+        # If there's an error, return a 400 response
+        if error:
+            return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
 
         # Instantiate the voevent and save in order to get the serial number
         voevent = VOEvent(event=event, issuer=request.user,
@@ -1716,20 +1746,10 @@ class VOEventList(InheritPermissionsAPIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Now, you need to actually build the VOEvent.
-        try:
-            voevent_text, ivorn = buildVOEvent(event, voevent, request=request)
-        except VOEventBuilderException as e:
-            voevent_text, ivorn = buildVOEvent(event, voevent.N, voevent_type, request,
-                skymap_filename = skymap_filename, skymap_type = skymap_type,
-                internal = internal, open_alert=open_alert,
-                hardware_inj=hardware_inj, CoincComment=CoincComment,
-                ProbHasNS=ProbHasNS, ProbHasRemnant=ProbHasRemnant, BNS=BNS,
-                NSBH=NSBH, BBH=BBH, Terrestrial=Terrestrial, MassGap=MassGap)
+        voevent_text, ivorn = construct_voevent_file(event, voevent,
+                                                     request=request)
 
-            msg = "Problem building VOEvent: %s" % str(e)
-            return Response({'error': msg}, status = status.HTTP_400_BAD_REQUEST)
-
-        voevent_display_type = dict(VOEvent.VOEVENT_TYPE_CHOICES)[voevent_type].capitalize()
+        voevent_display_type = VOEVENT_TYPE_DICT[voevent_type].capitalize()
         filename = "%s-%d-%s.xml" % (event.graceid, voevent.N, voevent_display_type)
         file_version = create_versioned_file(filename, event.datadir,
                                              voevent_text)

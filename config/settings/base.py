@@ -201,11 +201,9 @@ GRB_PIPELINES = [
                     'Swift',
                 ]
 
-# SkyAlert stuff - used for VOEvents (?) --------------------------------------
-IVORN_PREFIX = "ivo://gwnet/LVC#"
-SKYALERT_ROLE          = "test"
-SKYALERT_DESCRIPTION   = "Report of a candidate gravitational wave event"
-SKYALERT_SUBMITTERS = ['Patrick Brady', 'Brian Moe']
+# VOEvent stream --------------------------------------------------------------
+VOEVENT_STREAM = 'gwnet/LVC'
+
 
 # Stuff related to report/plot generation -------------------------------------
 
@@ -343,6 +341,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.messages',
     'alerts',
+    'annotations',
     'api',
     'core',
     'events',

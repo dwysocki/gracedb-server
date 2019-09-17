@@ -87,12 +87,15 @@ but you still have to go through the same sequence of steps that you would
 for a true developement task. I recommend the workflow described in :ref:`new_server_feature`.
 
 In this particular case, the only necessary code change is to edit the 
-file ``gracedb/events/buildVOEvent.py`` and add something like::
+file ``gracedb/annotations/voevent_utils.py`` and add something like::
 
-    w.add_Param(Param(name="MyParam",
-        dataType="float",
+    p_new = vp.Param(
+        "MyParam",
         value=getMyParamForEvent(event),
-        Description=["My lovely new parameter"]))
+        dataType="float"
+    )
+    p_new.Description = "My lovely new parameter"
+    v.What.append(p_new)
 
 working by analogy with the other parameters present. I only wanted to give
 this example here, because it seems likely that such a task will be considered
@@ -108,7 +111,7 @@ A good starting point is to search the GraceDB server code for "L1" to see where
 Specifics (assume X1 is the IFO code):
 
 1. Add X1OPS, X1OK, X1NO labels, update ``gracedb/templates/gracedb/event_detail_script.js`` with description, and update ``gracedb/templates/search/query_help_frag.html``
-2. Add to instruments in ``gracedb/events/buildVOEvent.py``
+2. Add to instruments in ``gracedb/annotations/voevent_utils.py``
 3. Update ifoList in ``gracedb/events/query.py``
 4. Add entry to ``CONTROL_ROOM_IPS`` in ``gracedb/config/settings/base.py``
 5. Add signoff option for X1 in ``gracedb/templates/gracedb/event_detail.html``

@@ -653,7 +653,7 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         issuer = validated_data.pop('user')
 
         # Call create function - creates VOEvent object and also runs
-        # buildVOEvent to create the related file.
+        # construct_voevent_file to create the related file.
         voevent = create_voevent_for_superevent(superevent, issuer,
             **validated_data)
 

@@ -1012,6 +1012,9 @@ class VOEventBase(CleanSaveModel):
         # Override this method on derived classes
         return NotImplemented
 
+    class VOEventBuilderException(Exception):
+        pass
+
 
 class VOEvent(VOEventBase, AutoIncrementModel):
     """VOEvent class for events"""
