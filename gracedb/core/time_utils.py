@@ -68,28 +68,10 @@ def gpsToUtc(gpsTime):
     t = gpsToPosixTime(gpsTime)
     return datetime.datetime.fromtimestamp(t, pytz.utc)
 
-def isoToGps(t):
-    # The input is a string in ISO time format: 2012-10-28T05:04:31.91
-    # First strip out whitespace, then split off the factional 
-    # second.  We'll add that back later.
-    if not t:
-        return None
-    t=t.strip()
-    ISOTime = t.split('.')[0]
-    ISOTime = datetime.datetime.strptime(ISOTime,"%Y-%m-%dT%H:%M:%S")
-    # Need to set UTC time zone or this is interpreted as local time.
-    ISOTime = ISOTime.replace(tzinfo=pytz.utc)
-    sec_substr = t.split('.')[1]
-    if sec_substr:
-        fracSec = float('0.' + sec_substr)
-    else:
-        fracSec = 0
-    posixTime = calendar.timegm(ISOTime.utctimetuple()) + fracSec 
-    return int(round(posixToGpsTime(posixTime)))
 
 def isoToGpsFloat(t):
     # The input is a string in ISO time format: 2012-10-28T05:04:31.91
-    # First strip out whitespace, then split off the factional 
+    # First strip out whitespace, then split off the fractional
     # second.  We'll add that back later.
     if not t:
         return None
@@ -105,3 +87,12 @@ def isoToGpsFloat(t):
         fracSec = 0
     posixTime = calendar.timegm(ISOTime.utctimetuple()) + fracSec 
     return posixToGpsTime(posixTime)
+
+
+def isoToGps(t):
+    return int(round(isoToGpsFloat(t)))
+
+
+def utc_datetime_to_gps_float(dt):
+    posix_time = calendar.timegm(dt.timetuple()) + (dt.microsecond * 1e-6)
+    return posixToGpsTime(posix_time)
