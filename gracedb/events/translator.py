@@ -1,31 +1,29 @@
-from math import isnan
+import json
+import logging
+from math import isnan, sqrt
 import numbers
 import os
-
-from .models import EventLog
-from .models import SingleInspiral
-from .models import SimInspiralEvent
 
 from glue.ligolw.utils import load_filename, load_fileobj
 from glue.ligolw.lsctables import CoincInspiralTable, SnglInspiralTable, use_in
 from glue.ligolw.lsctables import SimInspiralTable, MultiBurstTable, CoincTable
 from glue.ligolw.ligolw import LIGOLWContentHandler
+import voeventparse as vp
 
+from core.time_utils import utc_datetime_to_gps_float
+from core.vfile import create_versioned_file
+from .models import EventLog
+from .models import SingleInspiral
+from .models import SimInspiralEvent
 from .serialize import populate_omega_tables, write_output_files
 
-from VOEventLib.Vutil import parse, getWhereWhen, findParam, getParamNames
-from core.time_utils import isoToGps, isoToGpsFloat
-from core.vfile import create_versioned_file
-
-import json
 try:
     from StringIO import StringIO
 except ImportError:  # python >= 3
     from io import StringIO
 
-from math import sqrt
 
-import logging
+# Set up logger
 logger = logging.getLogger(__name__)
 
 use_in(LIGOLWContentHandler)
@@ -338,17 +336,7 @@ def handle_uploaded_data(event, datafilename,
     elif pipeline in ['Swift', 'Fermi', 'SNEWS']:
         # Get the event time from the VOEvent file
         error = None
-        try:
-            #event.gpstime = getGpsFromVOEvent(datafilename)
-            populateGrbEventFromVOEventFile(datafilename, event)
-        except Exception as e:
-            error = "Problem parsing VOEvent: %s" % e.__repr__()
-        event.save()
-        if error is not None:
-            log = EventLog(event=event,
-                           issuer=event.submitter,
-                           comment=error)
-            log.save()
+        populateGrbEventFromVOEventFile(datafilename, event)
     elif pipeline == 'oLIB':
         # lambda function for converting to a type if not None
         typecast = lambda t, v: t(v) if v is not None else v
@@ -608,43 +596,46 @@ class CwbData(Translator):
     def writeCoincFile(self, path):
         pass
 
-def getGpsFromVOEvent(filename):
-    v = parse(filename)
-    wwd = getWhereWhen(v)
-    gpstime = isoToGps(wwd['time'])
-    return gpstime
 
 def populateGrbEventFromVOEventFile(filename, event):
-    v = parse(filename)
-    wherewhen = getWhereWhen(v)
 
-    event.gpstime = isoToGpsFloat(wherewhen['time'])
-    event.ivorn = v.ivorn
+    # Load file into vp.Voevent instance
+    with open(filename, 'rb') as f:
+        v = vp.load(f)
 
-    event.author_shortname = v.get_Who().Author.shortName[0]
-    event.author_ivorn = v.get_Who().AuthorIVORN
+    # Get gpstime
+    utc_time = vp.convenience.get_event_time_as_utc(v)
+    gpstime = utc_datetime_to_gps_float(utc_time)
 
-    event.observatory_location_id = wherewhen['observatory']
-    event.coord_system = wherewhen['coord_system']
-    event.ra = wherewhen['longitude']
-    event.dec = wherewhen['latitude']
-    event.error_radius = wherewhen['positionalError']
+    # Get event position
+    pos2d = vp.get_event_position(v)
 
-    event.how_description = v.get_How().get_Description()[0]  
-    event.how_reference_url = v.get_How().get_Reference()[0].uri
+    # Assign information to event
+    event.gpstime = gpstime
+    event.ivorn = v.get('ivorn')
+    event.author_shortname = v.Who.Author.shortName
+    event.author_ivorn = v.Who.AuthorIVORN
+    event.observatory_location_id = \
+        v.WhereWhen.ObsDataLocation.ObservatoryLocation.get('id')
+    event.coord_system = pos2d.system
+    event.ra = pos2d.ra
+    event.dec = pos2d.dec
+    event.error_radius = pos2d.err
+    event.how_description = v.How.Description
+    event.how_reference_url = v.How.Reference.get('uri')
 
-    # try to find a trigger_duration value
+    # Try to find a trigger_duration value
     # Fermi uses Trig_Dur or Data_Integ, while Swift uses Integ_Time
     # One or the other may be present, but not both
-    VOEvent_params = [pn[1] for pn in getParamNames(v)]
+    VOEvent_params = vp.convenience.get_toplevel_params(v)
     trig_dur_params = ["Trig_Dur", "Trans_Duration", "Data_Integ", 
                        "Integ_Time", "Trig_Timescale"]
     trigger_duration = None
     for param in trig_dur_params:
         if (param in VOEvent_params):
-            trigger_duration = float(findParam(v, "", param).get_value())
+            trigger_duration = float(VOEvent_params.get(param).get('value'))
             break
-    
+
     # Fermi GCNs (after the first one) often set Trig_Dur or Data_Integ
     # to 0.000 (not sure why). We don't want to overwrite the currently
     # existing value in the database with 0.000 if this has happened, so
@@ -657,6 +648,9 @@ def populateGrbEventFromVOEventFile(filename, event):
     trigger_id_params = ['TrigID', 'Trans_Num', 'EventID']
     for param in trigger_id_params:
         if (param in VOEvent_params):
-            trigger_id = findParam(v, "", param).get_value()
+            trigger_id = VOEvent_params.get(param).get('value')
             break
     event.trigger_id = trigger_id
+
+    # Save event
+    event.save()
