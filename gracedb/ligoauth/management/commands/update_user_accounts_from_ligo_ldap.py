@@ -86,8 +86,11 @@ class LdapPersonResultProcessor(object):
                     l_user.username))
                 self.user_created = True
 
+        # Attach some information to this instance
         self.ligoldapuser = l_user
         self.user = user
+        self.l_user_exists = l_user_exists
+        self.user_exists = user_exists
 
         self.check_user_accounts()
 
