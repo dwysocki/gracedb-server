@@ -1,7 +1,7 @@
 FROM ligo/base:stretch
 LABEL name="LIGO GraceDB Django application" \
       maintainer="tanner.prestegard@ligo.org" \
-      date="20190430"
+      date="20190920"
 ARG SETTINGS_MODULE="config.settings.container.dev"
 
 COPY docker/SWITCHaai-swdistrib.gpg /etc/apt/trusted.gpg.d
@@ -24,11 +24,10 @@ RUN apt-get update && \
         mariadb-client \
         nodejs \
         osg-ca-certs \
-        python2.7 \
-        python2.7-dev \
-        python-libxml2 \
-        python-pip \
-        python-voeventlib \
+        python3.5 \
+        python3.5-dev \
+        python3-libxml2 \
+        python3-pip \
         procps \
         shibboleth \
         supervisor \
@@ -61,11 +60,12 @@ ADD . /app/gracedb_project
 # install gracedb application itself
 WORKDIR /app/gracedb_project
 RUN bower install --allow-root
-RUN pip install --upgrade setuptools wheel && \
-    pip install -r requirements.txt
+RUN pip3 install --upgrade pip
+RUN pip3 install --upgrade setuptools wheel && \
+    pip3 install -r requirements.txt
 
 # Give pip-installed packages priority over distribution packages
-ENV PYTHONPATH /usr/local/lib/python2.7/dist-packages:$PYTHONPATH
+ENV PYTHONPATH /usr/local/lib/python3.5/dist-packages:$PYTHONPATH
 ENV ENABLE_SHIBD false
 ENV ENABLE_OVERSEER true
 ENV VIRTUAL_ENV dummy
@@ -97,7 +97,7 @@ RUN DJANGO_SETTINGS_MODULE=${SETTINGS_MODULE} \
     DJANGO_TWILIO_AUTH_TOKEN=fake_token \
     AWS_SES_ACCESS_KEY_ID=fake_aws_id \
     AWS_SES_SECRET_ACCESS_KEY=fake_aws_key \
-    python manage.py collectstatic --noinput
+    python3 manage.py collectstatic --noinput
 
 RUN rm -rf /app/logs/* /app/project_data/*
 
