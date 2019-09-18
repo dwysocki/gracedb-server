@@ -407,7 +407,7 @@ class EventList(InheritPermissionsAPIView):
             d = {'error': 'Too many events.' }
             return Response(d, status=status.HTTP_400_BAD_REQUEST)
 
-        last = max(0, (numRows / count)) * count
+        last = max(0, (numRows // count)) * count
         rv = {}
         links = {}
         rv['links'] = links
