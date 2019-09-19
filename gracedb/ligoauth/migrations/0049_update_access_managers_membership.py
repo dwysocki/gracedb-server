@@ -8,7 +8,7 @@ ACCESS_MANAGERS = [
     'alexander.pace@LIGO.ORG',
     'brian.oreilly@LIGO.ORG',
     'emfollow',
-    'erik.katsavounidis@LIGO.ORG'
+    'erik.katsavounidis@LIGO.ORG',
     'keita.kawabe@LIGO.ORG',
     'leo.singer@LIGO.ORG',
     'patrick.brady@LIGO.ORG',
