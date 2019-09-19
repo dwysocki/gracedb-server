@@ -108,7 +108,7 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
         for node_name in node_names:
             
             # Calculate unique message_id and log
-            message_id = sha1(node_name + msg).hexdigest()
+            message_id = sha1((node_name + msg).encode()).hexdigest()
 
             # Log message
             logger.info(("issue_xmpp_alerts: sending alert type {alert_type} "
