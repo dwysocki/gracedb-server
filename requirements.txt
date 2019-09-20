@@ -26,6 +26,7 @@ lxml==4.2.0
 matplotlib==2.0.0
 mock==2.0.0
 mysqlclient==1.4.2
+numpy==1.17.2
 packaging==17.1
 phonenumbers==8.8.11
 python-ldap==3.1.0
