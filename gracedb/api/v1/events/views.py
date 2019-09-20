@@ -1731,7 +1731,7 @@ class VOEventList(InheritPermissionsAPIView):
             if not os.path.exists(skymap_file_path):
                 error = True
                 msg = "Skymap file {fname} does not exist".format(
-                    fname=skymap_filenamei)
+                    fname=skymap_filename)
         elif time_coinc_far or space_coinc_far:
             if not ext_gcn:
                 error = True
