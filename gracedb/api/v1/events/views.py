@@ -1689,6 +1689,15 @@ class VOEventList(InheritPermissionsAPIView):
         Terrestrial = request.data.get('Terrestrial', None)
         MassGap = request.data.get('MassGap', None)
 
+        # Get RAVEN data
+        ext_gcn = request.data.get('ext_gcn', None)
+        ext_pipeline = request.data.get('ext_pipeline', None)
+        ext_search = request.data.get('ext_search', None)
+        time_coinc_far = request.data.get('time_coinc_far', None)
+        space_coinc_far = request.data.get('space_coinc_far', None)
+        comb_skymap_filename = request.data.get('comb_skymap_filename', None)
+        delta_t = request.data.get('delta_t', None)
+
         # Get VOEvent types as a dict (key = short form, value = long form)
         VOEVENT_TYPE_DICT = dict(VOEvent.VOEVENT_TYPE_CHOICES)
 
@@ -1722,8 +1731,18 @@ class VOEventList(InheritPermissionsAPIView):
             if not os.path.exists(skymap_file_path):
                 error = True
                 msg = "Skymap file {fname} does not exist".format(
-                    fname=skymap_filename)
-
+                    fname=skymap_filenamei)
+        elif time_coinc_far or space_coinc_far:
+            if not ext_gcn:
+                error = True
+                msg = "External GCN ID not provided"
+            elif not ext_pipeline:
+                error = True
+                msg = "External Pipeline not provided"
+            elif not ext_search:
+                error = True
+                msg = "External Search not provided"
+            
         # If there's an error, return a 400 response
         if error:
             return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
