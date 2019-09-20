@@ -577,6 +577,18 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
     MassGap = serializers.FloatField(write_only=True, min_value=0,
         max_value=1, required=False)
 
+    # Additional RAVEN fields
+    ext_gcn = serializers.CharField(required=False)
+    ext_pipeline = serializers.CharField(required=False) 
+    ext_search = serializers.CharField(required=False)
+    time_coinc_far = serializers.FloatField(write_only=True, min_value=0,
+        max_value=1000, required=False)
+    space_coinc_far = serializers.FloatField(write_only=True, min_value=0,
+        max_value=1000, required=False)
+    comb_skymap_filename = serializers.CharField(required=False)
+    delta_t = serializers.FloatField(write_only=True, min_value=-1000,
+        max_value=1000, required=False)
+
     class Meta:
         model = VOEvent
         fields = ('voevent_type', 'file_version', 'ivorn', 'created',
