@@ -60,6 +60,7 @@ def construct_voevent_file(obj, voevent, request=None):
         obj_is_superevent = True
         event = obj.preferred_event
         graceid = obj.default_superevent_id
+        # ext_event = obj.em_events ???
         obj_view_name = "superevents:view"
         fits_view_name = "api:default:superevents:superevent-file-detail"
     else:
