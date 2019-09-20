@@ -18,7 +18,10 @@ if __name__ == '__main__':
     if (exists(VENV_PATH) and 'VIRTUAL_ENV' not in os.environ):
         VIRTUALENV_ACTIVATOR = abspath(join(VENV_PATH, 'bin',
             'activate_this.py'))
-        execfile(VIRTUALENV_ACTIVATOR, dict(__file__=VIRTUALENV_ACTIVATOR))
+        exec(
+            open(VIRTUALENV_ACTIVATOR).read(),
+            {'__file__': VIRTUALENV_ACTIVATOR}
+        )
 
     # Set DJANGO_SETTINGS_MODULE environment variable
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', DEFAULT_SETTINGS_MODULE)
