@@ -33,13 +33,15 @@ class LdapPersonResultProcessor(object):
     def extract_user_attributes(self):
         if self.ldap_connection is None:
             raise RuntimeError('LDAP connection not configured')
+        memberships = [group_name.decode('utf-8') for group_name in
+            self.ldap_result.get('isMemberOf', [])]
         self.user_data = {
-            'first_name': str(self.ldap_result['givenName'][0], 'utf-8'),
-            'last_name': str(self.ldap_result['sn'][0], 'utf-8'),
-            'email': self.ldap_result['mail'][0],
-            'is_active': self.ldap_connection.lvc_group.ldap_name in
-                self.ldap_result.get('isMemberOf', []),
-            'username': self.ldap_result['krbPrincipalName'][0],
+            'first_name': self.ldap_result['givenName'][0].decode('utf-8'),
+            'last_name': self.ldap_result['sn'][0].decode('utf-8'),
+            'email': self.ldap_result['mail'][0].decode('utf-8'),
+            'is_active': (self.ldap_connection.lvc_group.ldap_name in
+                memberships),
+            'username': self.ldap_result['krbPrincipalName'][0].decode('utf-8'),
         }
 
     def check_situation(self, user_exists, l_user_exists):
@@ -143,7 +145,8 @@ class LdapPersonResultProcessor(object):
 
     def update_user_groups(self):
         # Get list of group names that the user belongs to from the LDAP result
-        memberships = self.ldap_result.get('isMemberOf', [])
+        memberships = [group_name.decode('utf-8') for group_name in
+            self.ldap_result.get('isMemberOf', [])]
 
         # Get groups which are listed for the user in the LDAP and whose
         # membership is controlled by the LDAP
@@ -209,7 +212,8 @@ class LdapPersonResultProcessor(object):
         # Get two lists of subjects as sets
         db_x509_subjects = set(list(self.ligoldapuser.x509cert_set.values_list(
             'subject', flat=True)))
-        ldap_x509_subjects = set(self.ldap_result.get('gridX509subject', []))
+        ldap_x509_subjects = set([x.decode('utf-8') for x in
+                                  self.ldap_result.get('gridX509subject', [])])
 
         # Get certs to add and remove
         certs_to_add = ldap_x509_subjects.difference(db_x509_subjects)
@@ -239,14 +243,14 @@ class LdapRobotResultProcessor(LdapPersonResultProcessor):
     def extract_user_attributes(self):
         if self.ldap_connection is None:
             raise RuntimeError('LDAP connection not configured')
+        memberships = [group_name.decode('utf-8') for group_name in
+            self.ldap_result.get('isMemberOf', [])]
         self.user_data = {
-            'last_name': str(self.ldap_result['x-LIGO-TWikiName'][0],
-                'utf-8'),
-            'email': self.ldap_result['mail'][0],
-            'is_active': self.ldap_connection.groups.get(
-                name='robot_accounts').name in self.ldap_result.get(
-                'isMemberOf', []),
-            'username': self.ldap_result['cn'][0],
+            'last_name': self.ldap_result['x-LIGO-TWikiName'][0].decode('utf-8'),
+            'email': self.ldap_result['mail'][0].decode('utf-8'),
+            'is_active': (self.ldap_connection.groups.get(
+                name='robot_accounts').name in memberships),
+            'username': self.ldap_result['cn'][0].decode('utf-8'),
         }
 
     def check_situation(self, user_exists, l_user_exists):
