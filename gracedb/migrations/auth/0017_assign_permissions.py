@@ -8,7 +8,6 @@ from django.contrib.auth.management import create_permissions
 
 
 # Group names
-LVC = settings.LVC_GROUP
 EXECS = 'executives'
 ACCESS = 'access_managers' # control external access
 SUPEREVENTS = 'superevent_managers' # handle superevent creation/update 
@@ -16,6 +15,9 @@ H1_CONTROL = 'h1_control_room'
 L1_CONTROL = 'l1_control_room'
 V1_CONTROL = 'v1_control_room'
 EM_ADVOCATES = 'em_advocates'
+# Previously, this was teaken from settings.LVC_GROUP, but that value has
+# changed. So we have to hard-code it for past migrations
+LVC = 'Communities:LSCVirgoLIGOGroupMembers'
 
 SUPEREVENT_PERMS = {
     # Label permissions
