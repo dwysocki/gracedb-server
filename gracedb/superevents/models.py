@@ -112,6 +112,10 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
     # superevent, we are going to use a database field to track it.
     is_exposed = models.BooleanField(default=False)
 
+    # New O3b fields for RAVEN:
+    coinc_far = models.FloatField(null=True, blank=True)
+    em_type = models.CharField(blank=True, default=b'', max_length=100)
+
     # Meta class --------------------------------------------------------------
     class Meta:
         ordering = ["-id"]
