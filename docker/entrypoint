@@ -4,7 +4,7 @@
 ## PGA: 2019-10-15: use certs from secrets for Shibboleth SP
 SHIB_SP_CERT=/run/secrets/gracedb_ligo_org_saml_cert
 SHIB_SP_KEY=/run/secrets/gracedb_ligo_org_saml_privkey
-if [ -f $SHIB_SP_CERT && -f $SHIB_SP_KEY ]
+if [[ -f $SHIB_SP_CERT && -f $SHIB_SP_KEY ]]
 then
 	echo "Using Shibboleth Cert from docker secrets over the image one"
 	cp -f $SHIB_SP_CERT /etc/shibboleth/sp-cert.pem
@@ -25,7 +25,7 @@ LIST="aws_ses_access_key_id
 for SECRET in $LIST
 do
 	VARNAME=$( tr [:lower:] [:upper:] <<<$SECRET)
-	[  -f run/secrets/$SECRET ] && export $VARNAME=\$(< /run/secrets/$SECRET)
+	[  -f /run/secrets/$SECRET ] && export $VARNAME="'$(< /run/secrets/$SECRET)'"
 done
 
 export LVALERT_OVERSEER_RESOURCE=${LVALERT_USER}_overseer_$(python  -c 'import uuid; print(uuid.uuid4().hex)')
