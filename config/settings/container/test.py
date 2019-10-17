@@ -1,7 +1,7 @@
 # Settings for a test/dev GraceDB instance running in a container
 from .base import *
 
-CONFIG_NAME = "DEV"
+CONFIG_NAME = "TEST"
 
 # Debug settings
 DEBUG = True
@@ -46,6 +46,14 @@ INTERNAL_IPS = [
     INTERNAL_IP_ADDRESS,
 ]
 
+# Define correct LVAlert settings
+LVALERT_OVERSEER_INSTANCES = [
+    {
+        "lvalert_server": "lvalert-test.cgca.uwm.edu",
+        "listen_port": 8001,
+    },
+]
+
 # Set up Sentry for error logging
 sentry_dsn = get_from_env('DJANGO_SENTRY_DSN', fail_if_not_found=False)
 if sentry_dsn is not None:
@@ -64,18 +72,18 @@ if sentry_dsn is not None:
     LOGGING['loggers']['django.request']['handlers'] = []
 
 # Home page stuff
-INSTANCE_TITLE = 'GraceDB Development Server'
+INSTANCE_TITLE = 'GraceDB Testing Server'
 INSTANCE_INFO = """
-<h3>Development Instance</h3>
+<h3>Testing Instance</h3>
 <p>
-This GraceDB instance is designed for GraceDB maintainers to develop and
-test in the AWS cloud architecture. There is <b>no guarantee</b> that the
-behavior of this instance will mimic the production system at any time. 
-Events and associated data may change or be removed at any time. 
+This GraceDB instance is designed for Quality Assurance (QA) testing and
+validation for GraceDB and electromagnetic follow-up (EMFollow) developers.
+Software should meet QA milestones on the test instance before being moved 
+to Playground or Production. Note, on this GraceDB instance:
 </p>
 <ul>
 <li>Phone and e-mail alerts are turned off.</li>
 <li>Only LIGO logins are provided (no login via InCommon or Google).</li>
-<li>LVAlert messages are sent to lvalert-dev.cgca.uwm.edu.</li>
+<li>LVAlert messages are sent to lvalert-test.cgca.uwm.edu.</li>
 </ul>
 """
