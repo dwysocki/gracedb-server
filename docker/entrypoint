@@ -1,4 +1,6 @@
 #!/bin/bash
 
 export LVALERT_OVERSEER_RESOURCE=${LVALERT_USER}_overseer_$(python  -c 'import uuid; print(uuid.uuid4().hex)')
+chown gracedb:www-data /app/db_data
+chmod 755 /app/db_data
 exec "$@"
