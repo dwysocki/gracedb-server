@@ -31,7 +31,7 @@ LIST="aws_ses_access_key_id
 for SECRET in $LIST
 do
         VARNAME=$( tr [:lower:] [:upper:] <<<$SECRET)
-        [  -f /run/secrets/$SECRET ] && export $VARNAME="'$(< /run/secrets/$SECRET)'"
+        [  -f /run/secrets/$SECRET ] && export $VARNAME="$(< /run/secrets/$SECRET)"
 done
 
 exec "$@"
