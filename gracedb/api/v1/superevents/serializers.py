@@ -71,8 +71,9 @@ class SupereventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Superevent
         fields = ('superevent_id', 'gw_id', 'category', 'created', 'submitter',
-            'preferred_event', 'events', 't_start', 't_0', 't_end',
-            'gw_events', 'em_events', 'far', 'labels', 'links', 'user')
+            'preferred_event', 'events', 'em_type', 't_start', 't_0', 't_end',
+            'gw_events', 'em_events', 'far', 'coinc_far', 'labels', 'links', 
+            'user')
 
     def validate(self, data):
         data = super(SupereventSerializer, self).validate(data)
@@ -171,7 +172,8 @@ class SupereventUpdateSerializer(SupereventSerializer):
     Used for updates ONLY (PUT/PATCH). Overrides validation which is needed
     for object creation.
     """
-    allowed_fields = ('t_start', 't_0', 't_end', 'preferred_event')
+    allowed_fields = ('t_start', 't_0', 't_end', 'preferred_event', 
+                       'em_type', 'coinc_far')
 
     def __init__(self, *args, **kwargs):
         super(SupereventUpdateSerializer, self).__init__(*args, **kwargs)
