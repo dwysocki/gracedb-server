@@ -28,6 +28,14 @@ INSTALLED_APPS += [
 # Add testserver to ALLOWED_HOSTS
 ALLOWED_HOSTS += ['testserver']
 
+# Turn on XMPP alerts
+SEND_XMPP_ALERTS = True
+
+# Enforce that phone and email alerts are off
+SEND_PHONE_ALERTS = False
+SEND_EMAIL_ALERTS = False
+
+
 # Settings for django-silk profiler
 SILKY_AUTHENTICATION = True
 SILKY_AUTHORISATION = True
