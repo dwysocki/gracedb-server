@@ -1,16 +1,22 @@
 #!/bin/bash
 
+# Export the required UUID resource for the lvalert_overseer
+export LVALERT_OVERSEER_RESOURCE=${LVALERT_USER}_overseer_$(python  -c 'import uuid; print(uuid.uuid4().hex)')
+
+# Change the file permissions and ownership on /app/db_data:
+chown gracedb:www-data /app/db_data
+chmod 755 /app/db_data
 
 ## PGA: 2019-10-15: use certs from secrets for Shibboleth SP
-SHIB_SP_CERT=/run/secrets/gracedb_ligo_org_saml_cert
-SHIB_SP_KEY=/run/secrets/gracedb_ligo_org_saml_privkey
+SHIB_SP_CERT=/run/secrets/saml_certificate
+SHIB_SP_KEY=/run/secrets/saml_private_key
 if [[ -f $SHIB_SP_CERT && -f $SHIB_SP_KEY ]]
 then
-	echo "Using Shibboleth Cert from docker secrets over the image one"
-	cp -f $SHIB_SP_CERT /etc/shibboleth/sp-cert.pem
-	cp -f $SHIB_SP_KEY /etc/shibboleth/sp-key.pem
-	chown _shibd:_shibd /etc/shibboleth/sp-{cert,key}.pem
-	chmod 0600 /etc/shibboleth/sp-key.pem
+        echo "Using Shibboleth Cert from docker secrets over the image one"
+        cp -f $SHIB_SP_CERT /etc/shibboleth/sp-cert.pem
+        cp -f $SHIB_SP_KEY /etc/shibboleth/sp-key.pem
+        chown _shibd:_shibd /etc/shibboleth/sp-{cert,key}.pem
+        chmod 0600 /etc/shibboleth/sp-key.pem
 fi
 
 ## PGA 2019-10-16: use secrets for sensitive environment variables
@@ -24,10 +30,9 @@ LIST="aws_ses_access_key_id
 
 for SECRET in $LIST
 do
-	VARNAME=$( tr [:lower:] [:upper:] <<<$SECRET)
-	[  -f /run/secrets/$SECRET ] && export $VARNAME="'$(< /run/secrets/$SECRET)'"
+        VARNAME=$( tr [:lower:] [:upper:] <<<$SECRET)
+        [  -f /run/secrets/$SECRET ] && export $VARNAME="$(< /run/secrets/$SECRET)"
 done
 
-export LVALERT_OVERSEER_RESOURCE=${LVALERT_USER}_overseer_$(python  -c 'import uuid; print(uuid.uuid4().hex)')
 exec "$@"
 
