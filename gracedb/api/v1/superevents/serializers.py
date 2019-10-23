@@ -578,6 +578,7 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         max_value=1, required=False)
 
     # Additional RAVEN fields
+    raven_coinc = serializers.BooleanField(default=False)
     ext_gcn = serializers.CharField(required=False)
     ext_pipeline = serializers.CharField(required=False) 
     ext_search = serializers.CharField(required=False)
@@ -585,7 +586,7 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         max_value=1000, required=False)
     space_coinc_far = serializers.FloatField(write_only=True, min_value=0,
         max_value=1000, required=False)
-    comb_skymap_filename = serializers.CharField(required=False)
+    combined_skymap_filename = serializers.CharField(required=False)
     delta_t = serializers.FloatField(write_only=True, min_value=-1000,
         max_value=1000, required=False)
 
@@ -599,11 +600,19 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
             'prob_has_remnant', 'prob_bns', 'prob_nsbh', 'prob_bbh',
             'prob_terrestrial', 'prob_mass_gap', 'superevent', 'user')
 
+        raven_fields = ('raven_coinc','ext_gcn', 'ext_pipeline', 'ext_search',
+            'time_coinc_far', 'space_coinc_far', 'combined_skymap_filename',
+            'delta_t')
+
+        # Combine the fields:
+        fields = fields + raven_fields
+
     def __init__(self, *args, **kwargs):
         super(SupereventVOEventSerializer, self).__init__(*args, **kwargs)
         read_only_fields = ['file_version', 'filename', 'ivorn',
             'coinc_comment', 'prob_has_ns', 'prob_has_remnant', 'prob_bns',
-            'prob_nsbh', 'prob_bbh', 'prob_terrestrial', 'prob_mass_gap']
+            'prob_nsbh', 'prob_bbh', 'prob_terrestrial', 'prob_mass_gap',
+            'raven_coinc']
         for f in read_only_fields:
             self.fields.get(f).read_only = True
 

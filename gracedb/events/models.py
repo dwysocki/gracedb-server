@@ -1009,6 +1009,7 @@ class VOEventBase(CleanSaveModel):
         models.fields.validators.MaxValueValidator(1.0)])
 
     # Additional RAVEN Fields
+    raven_coinc = models.BooleanField(null=False, default=True, blank=True)
     ext_gcn = models.CharField(max_length=20, default="", blank=True,
         editable=False)
     ext_pipeline = models.CharField(max_length=20, default="", blank=True,
@@ -1019,7 +1020,7 @@ class VOEventBase(CleanSaveModel):
         validators=[models.fields.validators.MinValueValidator(0.0)])
     space_coinc_far = models.FloatField(null=True, default=None, blank=True,
         validators=[models.fields.validators.MinValueValidator(0.0)])
-    comb_skymap_filename = models.CharField(max_length=100, null=True,
+    combined_skymap_filename = models.CharField(max_length=100, null=True,
         default=None, blank=True)
     delta_t = models.FloatField(null=True, default=None, blank=True,
         validators=[models.fields.validators.MinValueValidator(-1000),

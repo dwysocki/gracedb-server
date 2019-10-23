@@ -1695,8 +1695,10 @@ class VOEventList(InheritPermissionsAPIView):
         ext_search = request.data.get('ext_search', None)
         time_coinc_far = request.data.get('time_coinc_far', None)
         space_coinc_far = request.data.get('space_coinc_far', None)
-        comb_skymap_filename = request.data.get('comb_skymap_filename', None)
+        combined_skymap_filename = request.data.get('combined_skymap_filename',
+             None)
         delta_t = request.data.get('delta_t', None)
+        raven_coinc = request.data.get('raven_coinc', None)
 
         # Get VOEvent types as a dict (key = short form, value = long form)
         VOEVENT_TYPE_DICT = dict(VOEvent.VOEVENT_TYPE_CHOICES)
