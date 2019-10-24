@@ -60,7 +60,6 @@ def construct_voevent_file(obj, voevent, request=None):
         obj_is_superevent = True
         event = obj.preferred_event
         graceid = obj.default_superevent_id
-        # ext_event = obj.em_events ???
         obj_view_name = "superevents:view"
         fits_view_name = "api:default:superevents:superevent-file-detail"
     else:
@@ -288,6 +287,84 @@ def construct_voevent_file(obj, voevent, request=None):
             p_search.Description = "Specific low-latency search"
             v.What.append(p_search)
 
+        ## RAVEN specific entries
+        if (is_superevent(obj) and voevent.raven_coinc):
+            ext_id = obj.em_type
+            ext_event = ###???
+
+            ## External GCN ID
+            if ext_event.extra_attributes.GRB.trigger_id:
+                p_extid = vp.Param(
+                    "External_GCN_Notice_Id",
+                    value=ext_event.extra_attributes.GRB.trigger_id,
+                    ucd="meta.id",
+                    dataType="string"
+                )
+                p_search.Description = ("GCN trigger ID of external event")
+                v.What.append(p_extid)
+
+            ## External Pipeline
+            if ext_event.pipeline:
+                p_extpipeline = vp.Param(
+                    "External_Alert_Type",
+                    value=ext_event.pipeline,
+                    ucd="meta.code",
+                    dataType="string"
+                )
+                p_search.Description = ("External Observatory")
+                v.What.append(p_extpipeline)
+
+            ## External Search
+            if ext_event.search:
+                p_extsearch = vp.Param(
+                    "External_Search",
+                    value=ext_event.search,
+                    ucd="meta.code",
+                    dataType="string"
+                )
+                p_search.Description = ("External astrophysical search")
+                v.What.append(p_extpipeline)
+
+             ## Time Difference
+             if ext_event.gpstime and event.t_0:
+                deltat = round(ext_event.gpstime - event.t_0, 2)
+                p_extsearch = vp.Param(
+                    "Time_Difference",
+                    value=delta,
+                    ucd="meta.code",
+                    dataType="string"
+                )
+                p_search.Description = ("External astrophysical search")
+                v.What.append(p_extpipeline)
+
+            ## Temporal Coinc FAR
+            if obj.coinc_far:
+                p_coincfar = vp.Param(
+                    "Time_Coincidence_FAR",
+                    value=obj.coinc_far,
+                    ucd="arith.rate;stat.falsealarm",
+                    dataType="float",
+                    unit="Hz"
+                )
+                p_search.Description = ("Estimated coincidence false alarm "
+                                        "rate in Hz using timing")
+                v.What.append(p_coincfar)
+
+            ## Spatial-Temporal Coinc FAR
+            ## FIXME: Find a way to supply this value
+            if False:
+                p_coincfar = vp.Param(
+                    "Time_Sky_Position_Coincidence_FAR",
+                    value=obj.coinc_far_space,
+                    ucd="arith.rate;stat.falsealarm",
+                    dataType="float",
+                    unit="Hz"
+                )
+                p_search.Description = ("Estimated coincidence false alarm "
+                                        "rate in Hz using timing and sky "
+                                        "position")
+                v.What.append(p_coincfar_space)
+
     # initial and update VOEvents must have a skymap.
     # new feature (10/24/2016): preliminary VOEvents can have a skymap,
     # but they don't have to.
@@ -317,6 +394,33 @@ def construct_voevent_file(obj, voevent, request=None):
 
         ### Add to What
         v.What.append(skymap_group)
+
+        ## RAVEN combined sky map
+        if (voevent.combined_skymap_filename and voevent.raven_coinc):
+            ## Skymap group
+            ### fits skymap URL
+            fits_skymap_url_comb = build_absolute_uri(
+                reverse(fits_view_name, args=[graceid,
+                                              combined_skymap_filename]),
+                request
+            )
+            p_fits_url_comb = vp.Param(
+                "skymap_fits",
+                value=fits_skymap_url_comb,
+                ucd="meta.ref.url",
+                dataType="string"
+            )
+            p_fits_url_comb.Description = "Combined GW-External Sky Map FITS"
+
+            ### Create skymap group with params
+            skymap_group_comb = vp.Group(
+                [p_fits_url],
+                name="GW-External_SKYMAP",
+                type="GW-External_SKYMAP",
+            )
+
+            ### Add to What
+            v.What.append(skymap_group_comb)
 
     ## Analysis specific attributes
     if voevent_type != 'retraction':
