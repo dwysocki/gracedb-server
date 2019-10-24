@@ -300,7 +300,7 @@ def construct_voevent_file(obj, voevent, request=None):
                     ucd="meta.id",
                     dataType="string"
                 )
-                p_search.Description = ("GCN trigger ID of external event")
+                p_extid.Description = ("GCN trigger ID of external event")
                 v.What.append(p_extid)
 
             ## External Pipeline
@@ -311,7 +311,7 @@ def construct_voevent_file(obj, voevent, request=None):
                     ucd="meta.code",
                     dataType="string"
                 )
-                p_search.Description = ("External Observatory")
+                p_extpipeline.Description = ("External Observatory")
                 v.What.append(p_extpipeline)
 
             ## External Search
@@ -322,13 +322,13 @@ def construct_voevent_file(obj, voevent, request=None):
                     ucd="meta.code",
                     dataType="string"
                 )
-                p_search.Description = ("External astrophysical search")
-                v.What.append(p_extpipeline)
+                p_extsearch.Description = ("External astrophysical search")
+                v.What.append(p_extsearch)
 
             ## Time Difference
             if ext_event.gpstime and obj.t_0:
                deltat = round(ext_event.gpstime - obj.t_0, 2)
-               p_extsearch = vp.Param(
+               p_deltat = vp.Param(
                    "Time_Difference",
                    value=float(deltat),
                    ucd="meta.code",
@@ -336,8 +336,8 @@ def construct_voevent_file(obj, voevent, request=None):
                    #AEP--> figure this out
                    ac=True,
                )
-               p_search.Description = ("External astrophysical search")
-               v.What.append(p_extpipeline)
+               p_deltat.Description = ("External astrophysical search")
+               v.What.append(p_deltat)
 
             ## Temporal Coinc FAR
             if obj.coinc_far:
@@ -350,14 +350,14 @@ def construct_voevent_file(obj, voevent, request=None):
                     ac=True,
                     unit="Hz"
                 )
-                p_search.Description = ("Estimated coincidence false alarm "
+                p_coincfar.Description = ("Estimated coincidence false alarm "
                                         "rate in Hz using timing")
                 v.What.append(p_coincfar)
 
             ## Spatial-Temporal Coinc FAR
             ## FIXME: Find a way to supply this value
             if False:
-                p_coincfar = vp.Param(
+                p_coincfar_space = vp.Param(
                     "Time_Sky_Position_Coincidence_FAR",
                     value=obj.coinc_far_space,
                     ucd="arith.rate;stat.falsealarm",
@@ -366,7 +366,7 @@ def construct_voevent_file(obj, voevent, request=None):
                     ac=True,
                     unit="Hz"
                 )
-                p_search.Description = ("Estimated coincidence false alarm "
+                p_coincfar_space.Description = ("Estimated coincidence false alarm "
                                         "rate in Hz using timing and sky "
                                         "position")
                 v.What.append(p_coincfar_space)
