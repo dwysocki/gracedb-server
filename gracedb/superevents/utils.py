@@ -594,7 +594,8 @@ def create_voevent_for_superevent(superevent, issuer, voevent_type,
     skymap_type=None, skymap_filename=None, internal=True, open_alert=False,
     hardware_inj=False, CoincComment=False, ProbHasNS=None,
     ProbHasRemnant=None, BNS=None, NSBH=None, BBH=None, Terrestrial=None,
-    MassGap=None, add_log_message=True, issue_alert=True):
+    MassGap=None, add_log_message=True, issue_alert=True,
+    combined_skymap_filename=None, raven_coinc=False):
 
     # Instantiate VOEvent object
     voevent = VOEvent.objects.create(superevent=superevent, issuer=issuer,
@@ -603,7 +604,9 @@ def create_voevent_for_superevent(superevent, issuer, voevent_type,
         open_alert=open_alert, hardware_inj=hardware_inj,
         coinc_comment=CoincComment, prob_has_ns=ProbHasNS,
         prob_has_remnant=ProbHasRemnant, prob_bns=BNS, prob_nsbh=NSBH,
-        prob_bbh=BBH, prob_terrestrial=Terrestrial, prob_mass_gap=MassGap)
+        prob_bbh=BBH, prob_terrestrial=Terrestrial, prob_mass_gap=MassGap,
+        combined_skymap_filename=combined_skymap_filename, 
+        raven_coinc=raven_coinc)
 
     # Construct VOEvent file text
     voevent_text, ivorn = construct_voevent_file(superevent, voevent)

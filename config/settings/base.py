@@ -51,7 +51,6 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 # MANAGERS defines who gets broken link notifications when
 # BrokenLinkEmailsMiddleware is enabled
 ADMINS = [
-    ("Tanner Prestegard", "tanner.prestegard@ligo.org"),
     ("Alexander Pace", "alexander.pace@ligo.org"),
     ("Duncan Meacher", "duncan.meacher@ligo.org"),
 ]
