@@ -13,7 +13,7 @@ from django.urls import reverse
 
 from core.time_utils import gpsToUtc
 from core.urls import build_absolute_uri
-from events.models import VOEventBase
+from events.models import VOEventBase, Event
 from events.models import CoincInspiralEvent, MultiBurstEvent, \
     LalInferenceBurstEvent
 from superevents.shortcuts import is_superevent
@@ -290,13 +290,13 @@ def construct_voevent_file(obj, voevent, request=None):
         ## RAVEN specific entries
         if (is_superevent(obj) and voevent.raven_coinc):
             ext_id = obj.em_type
-            ext_event = ###???
+            ext_event = Event.getByGraceid(ext_id)
 
             ## External GCN ID
-            if ext_event.extra_attributes.GRB.trigger_id:
+            if ext_event.trigger_id:
                 p_extid = vp.Param(
                     "External_GCN_Notice_Id",
-                    value=ext_event.extra_attributes.GRB.trigger_id,
+                    value=ext_event.trigger_id,
                     ucd="meta.id",
                     dataType="string"
                 )
@@ -307,7 +307,7 @@ def construct_voevent_file(obj, voevent, request=None):
             if ext_event.pipeline:
                 p_extpipeline = vp.Param(
                     "External_Alert_Type",
-                    value=ext_event.pipeline,
+                    value=ext_event.pipeline.name,
                     ucd="meta.code",
                     dataType="string"
                 )
@@ -318,24 +318,26 @@ def construct_voevent_file(obj, voevent, request=None):
             if ext_event.search:
                 p_extsearch = vp.Param(
                     "External_Search",
-                    value=ext_event.search,
+                    value=ext_event.search.name,
                     ucd="meta.code",
                     dataType="string"
                 )
                 p_search.Description = ("External astrophysical search")
                 v.What.append(p_extpipeline)
 
-             ## Time Difference
-             if ext_event.gpstime and event.t_0:
-                deltat = round(ext_event.gpstime - event.t_0, 2)
-                p_extsearch = vp.Param(
-                    "Time_Difference",
-                    value=delta,
-                    ucd="meta.code",
-                    dataType="string"
-                )
-                p_search.Description = ("External astrophysical search")
-                v.What.append(p_extpipeline)
+            ## Time Difference
+            if ext_event.gpstime and obj.t_0:
+               deltat = round(ext_event.gpstime - obj.t_0, 2)
+               p_extsearch = vp.Param(
+                   "Time_Difference",
+                   value=float(deltat),
+                   ucd="meta.code",
+                   #dataType="float"
+                   #AEP--> figure this out
+                   ac=True,
+               )
+               p_search.Description = ("External astrophysical search")
+               v.What.append(p_extpipeline)
 
             ## Temporal Coinc FAR
             if obj.coinc_far:
@@ -343,7 +345,9 @@ def construct_voevent_file(obj, voevent, request=None):
                     "Time_Coincidence_FAR",
                     value=obj.coinc_far,
                     ucd="arith.rate;stat.falsealarm",
-                    dataType="float",
+                    #dataType="float",
+                   #AEP--> figure this out
+                    ac=True,
                     unit="Hz"
                 )
                 p_search.Description = ("Estimated coincidence false alarm "
@@ -357,7 +361,9 @@ def construct_voevent_file(obj, voevent, request=None):
                     "Time_Sky_Position_Coincidence_FAR",
                     value=obj.coinc_far_space,
                     ucd="arith.rate;stat.falsealarm",
-                    dataType="float",
+                    #dataType="float",
+                    #AEP--> figure this out
+                    ac=True,
                     unit="Hz"
                 )
                 p_search.Description = ("Estimated coincidence false alarm "
