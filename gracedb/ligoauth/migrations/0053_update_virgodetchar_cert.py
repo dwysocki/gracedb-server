@@ -10,7 +10,7 @@ from django.db import migrations
 
 ACCOUNT = {
     'name': 'virgo_detchar',
-    'new_cert': 'DC=org/DC=cilogon/C=US/O=LIGO/OU=Robots/CN=lscgw.virgo.infn.it/CN=Virgodetchar/CN=Nicolas Arnaud/CN=UID:nicolas.arnaud.robot',
+    'new_cert': '/DC=org/DC=cilogon/C=US/O=LIGO/OU=Robots/CN=lscgw.virgo.infn.it/CN=Virgodetchar/CN=Nicolas Arnaud/CN=UID:nicolas.arnaud.robot',
 }
 
 
