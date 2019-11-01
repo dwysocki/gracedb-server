@@ -192,6 +192,7 @@
             </th>
             <th>FAR (Hz)</th>
             <th>FAR (yr<sup>-1</sup>)</th>
+            <th> Latency (s) </th>
             <th>Links</th>
             <th>
                 <div id="basic_info_created_ts"></div>
@@ -219,6 +220,7 @@
         {# NOTE: XXX Using event_far so it can be floored for external users. #}
         <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
         <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_yr }}</td>
+        <td>{{ object.reportingLatency }} </td>
         <td><a href="{{ object.weburl }}">Data</a></td>
         <td>{{ object.created|multiTime:"created" }}</td>
         {% if object.superevent %}
