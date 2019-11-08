@@ -6,7 +6,7 @@ from django.db import migrations
 
 
 ACCOUNT = {
-    'name': 'virgo_detchar',
+    'name': 'pycbclive',
     'new_cert': '/DC=org/DC=cilogon/C=US/O=LIGO/OU=Robots/CN=ldas-grid.ligo.caltech.edu/CN=pycbclive/CN=Tito Canton/CN=UID:tito.canton.robot',
 }
 
