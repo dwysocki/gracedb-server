@@ -35,6 +35,12 @@
 {% include "superevents/superevent_detail_script.js" %}
 </script>
 
+<script>
+ function clickConfirm() {
+   return confirm(" {{confirmation_dialog_text}} ");
+}
+</script>
+
 {% endblock %}
 
 {% block content %}
@@ -68,9 +74,11 @@
 {#-- XXX This next bit is super hacky. #}
 {% if can_modify_permissions %}
 <div class="content-area">
-<form action="{% url "legacy_apiweb:default:superevents:superevent-permission-modify" superevent.superevent_id %}" method="POST" id="permissions_form">
+<form action="{% url "legacy_apiweb:default:superevents:superevent-permission-modify" superevent.superevent_id %}" 
+               method="POST" 
+               id="permissions_form">
     <input type="hidden" name="action" value="{{ permissions_action }}">
-    <input type="submit" value="{{ permissions_form_button_text }}" class="permButtonClass" disabled>
+    <input type="submit" value="{{ permissions_form_button_text }}" class="permButtonClass" id="permissions_submit_link"  onclick="return clickConfirm()">
 </form>
 </div>
 {% endif %}

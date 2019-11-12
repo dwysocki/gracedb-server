@@ -178,18 +178,23 @@ class ExposeHideMixin(ContextMixin):
             # Object is hidden and user can expose
             can_modify_permissions = True
             button_text = 'Make this superevent publicly visible'
+            confirmation_text = 'Warning: You are attempting to make this \
+                                 event publicly visible. Continue?'
             action = 'expose'
         elif (self.request.user.has_perm(self.hide_perm_name) and
               self.object.is_exposed):
             # Object is visible and user can hide
             can_modify_permissions = True
             button_text = 'Make this superevent internal-only'
+            confirmation_text = 'Warning: You are attempting to make this \
+                                 event internal only. Continue?'
             action = 'hide'
 
         # Update context
         context['can_modify_permissions'] = can_modify_permissions
         if can_modify_permissions:
             context['permissions_form_button_text'] = button_text
+            context['confirmation_dialog_text'] = confirmation_text
             context['permissions_action'] = action
 
         return context
