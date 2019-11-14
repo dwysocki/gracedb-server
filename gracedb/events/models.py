@@ -1025,6 +1025,9 @@ class VOEventBase(CleanSaveModel):
     delta_t = models.FloatField(null=True, default=None, blank=True,
         validators=[models.fields.validators.MinValueValidator(-1000),
         models.fields.validators.MaxValueValidator(1000)])
+    ivorn = models.CharField(max_length=300, default="", blank=True,
+        editable=False)
+
 
     def fileurl(self):
         # Override this method on derived classes
