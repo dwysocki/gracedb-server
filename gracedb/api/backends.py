@@ -221,7 +221,6 @@ class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
 
     def authenticate(self, request):
 
-        raise ValueError(request)
         # Make sure this request is directed to the API
         if self.api_only and not is_api_request(request.path):
             return None
