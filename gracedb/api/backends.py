@@ -221,6 +221,7 @@ class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
 
     def authenticate(self, request):
 
+        raise ValueError(request)
         # Make sure this request is directed to the API
         if self.api_only and not is_api_request(request.path):
             return None
@@ -298,17 +299,20 @@ class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
     @staticmethod
     def get_certificate_subject_string(certificate):
         subject = certificate.get_subject()
+        subject_decoded = [[word.decode("utf8") for word in sets]
+                for sets in subject.get_components()]
         subject_string = '/' + "/".join(["=".join(c) for c in
-            subject.get_components()])
+            subject_decoded])
         return subject_string
 
     @staticmethod
     def get_certificate_issuer_string(certificate):
         issuer = certificate.get_issuer()
+        issuer_decoded = [[word.decode("utf8") for word in sets]
+                for sets in issuer.get_components()]
         issuer_string = '/' + "/".join(["=".join(c) for c in
-            issuer.get_components()])
+            issuer_decoded])
         return issuer_string
-
 
 
 class GraceDbAuthenticatedAuthentication(authentication.BaseAuthentication):
