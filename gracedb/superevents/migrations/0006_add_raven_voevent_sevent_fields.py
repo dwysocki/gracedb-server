@@ -63,4 +63,9 @@ class Migration(migrations.Migration):
             name='time_coinc_far',
             field=models.FloatField(blank=True, default=None, null=True, validators=[django.core.validators.MinValueValidator(0.0)]),
         ),
+        migrations.AddField(
+            model_name='voevent',
+            name='ivorn',
+            field=models.CharField(blank=True, default='', editable=False, max_length=300),
+        )
     ]

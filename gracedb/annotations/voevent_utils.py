@@ -303,6 +303,17 @@ def construct_voevent_file(obj, voevent, request=None):
                 p_extid.Description = ("GCN trigger ID of external event")
                 emcoinc_params.append(p_extid)
 
+            ## External IVORN
+            if voevent.ivorn:
+                p_extivorn = vp.Param(
+                    "External_Ivorn",
+                    value=ext_event.trigger_id,
+                    ucd="meta.id",
+                    dataType="string"
+                )
+                p_extivorn.Description = ("IVORN of external event")
+                emcoinc_params.append(p_extivorn)
+
             ## External Pipeline
             if ext_event.pipeline:
                 p_extpipeline = vp.Param(
