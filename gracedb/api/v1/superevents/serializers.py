@@ -612,7 +612,7 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         super(SupereventVOEventSerializer, self).__init__(*args, **kwargs)
         read_only_fields = ['file_version', 'filename', 'ivorn',
             'coinc_comment', 'prob_has_ns', 'prob_has_remnant', 'prob_bns',
-            'prob_nsbh', 'prob_bbh', 'prob_terrestrial', 'prob_mass_gap']
+            'prob_nsbh', 'prob_bbh', 'prob_terrestrial', 'prob_mass_gap', ]
         for f in read_only_fields:
             self.fields.get(f).read_only = True
 

@@ -67,5 +67,5 @@ class Migration(migrations.Migration):
             model_name='voevent',
             name='ivorn',
             field=models.CharField(blank=True, default='', editable=False, max_length=300),
-        )
+        ),
     ]

@@ -291,6 +291,7 @@ def construct_voevent_file(obj, voevent, request=None):
         if (is_superevent(obj) and voevent.raven_coinc):
             ext_id = obj.em_type
             ext_event = Event.getByGraceid(ext_id)
+            emcoinc_params = []
 
             ## External GCN ID
             if ext_event.trigger_id:
