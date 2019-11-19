@@ -318,7 +318,7 @@ def construct_voevent_file(obj, voevent, request=None):
             ## External Pipeline
             if ext_event.pipeline:
                 p_extpipeline = vp.Param(
-                    "External_Alert_Type",
+                    "External_Observatory",
                     value=ext_event.pipeline.name,
                     ucd="meta.code",
                     dataType="string"
