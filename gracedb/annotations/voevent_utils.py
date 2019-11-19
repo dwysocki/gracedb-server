@@ -308,7 +308,7 @@ def construct_voevent_file(obj, voevent, request=None):
             if ext_event.ivorn:
                 p_extivorn = vp.Param(
                     "External_Ivorn",
-                    value=ext_event.trigger_id,
+                    value=ext_event.ivorn,
                     ucd="meta.id",
                     dataType="string"
                 )
