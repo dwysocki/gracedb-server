@@ -540,6 +540,12 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
                               'superevent.'),
         'skymap_image_not_found': _('Skymap image file {filename} not found '
                                     'for this superevent.'),
+        'em_type_none': _('em_type for superevent {s_event} not set (is None)'),
+        'invalid_em_type': _('em_type for superevent {s_event} is not a valid '
+                              'graceid'),
+        'em_type_not_found': _('event for em_type={em_type} not found'),
+        'comb_skymap_not_found': _('Combined skymap file {filename} not found '
+                              'for this superevent.'),
     }
     # Read only fields
     issuer = serializers.SlugRelatedField(slug_field='username',
@@ -640,6 +646,9 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         voevent_type = data.get('voevent_type')
         skymap_filename = data.get('skymap_filename', None)
         skymap_type = data.get('skymap_type', None)
+        raven_coinc = data.get('raven_coinc')
+        combined_smfn = data.get('combined_skymap_filename',None)
+        
 
         # Checks to do:
         # Preferred event must have gpstime
@@ -664,6 +673,23 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
                 skymap_filename)
             if not os.path.exists(full_skymap_path):
                 self.fail('skymap_not_found', filename=skymap_filename)
+
+        if raven_coinc: 
+            if superevent.em_type is None:
+                self.fail('em_type_none', s_event=superevent.graceid)
+            else:
+                try:
+                    em_event = Event.getByGraceid(superevent.em_type)
+                except ValueError:
+                    self.fail('invalid_em_type', s_event=superevent.graceid)
+                except Event.DoesNotExist: 
+                    self.fail('em_type_not_found',em_type=superevent.em_type)
+            if combined_smfn != None:
+                comb_skymap_path = os.path.join(superevent.datadir,
+                    combined_smfn)
+                if not os.path.exists(comb_skymap_path):
+                    self.fail('comb_skymap_not_found', filename=combined_smfn)
+              
 
         return data
 
