@@ -391,7 +391,7 @@ def construct_voevent_file(obj, voevent, request=None):
                 ### fits skymap URL
                 fits_skymap_url_comb = build_absolute_uri(
                     reverse(fits_view_name, args=[graceid,
-                                                  combined_skymap_filename]),
+                                                  voevent.combined_skymap_filename]),
                     request
                 )
                 p_fits_url_comb = vp.Param(
