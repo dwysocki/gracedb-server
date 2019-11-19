@@ -589,6 +589,7 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
     combined_skymap_filename = serializers.CharField(required=False)
     delta_t = serializers.FloatField(write_only=True, min_value=-1000,
         max_value=1000, required=False)
+    ivorn = serializers.CharField(required=False)
 
     class Meta:
         model = VOEvent
@@ -602,7 +603,7 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
 
         raven_fields = ('raven_coinc','ext_gcn', 'ext_pipeline', 'ext_search',
             'time_coinc_far', 'space_coinc_far', 'combined_skymap_filename',
-            'delta_t')
+            'delta_t', 'ivorn')
 
         # Combine the fields:
         fields = fields + raven_fields
