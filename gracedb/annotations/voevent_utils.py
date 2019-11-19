@@ -305,7 +305,7 @@ def construct_voevent_file(obj, voevent, request=None):
                 emcoinc_params.append(p_extid)
 
             ## External IVORN
-            if event.ivorn:
+            if ext_event.ivorn:
                 p_extivorn = vp.Param(
                     "External_Ivorn",
                     value=ext_event.trigger_id,
