@@ -29,9 +29,9 @@ Here is a table showing the currently available labels and their meanings.
 +-----------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | EM_COINC        | Signifies that a coincidence was found between gravitational-wave candidates and External triggers.                                    |
 +-----------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| EM_READY        | Has been processed by GDB Processor. Skymaps have been produced.                                                                       |
+| EM_READY        | Indicates data products associated with a Superevent's preferred event are complete                                                    |
 +-----------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| EM_Selected     | GraceID automatically chosen as the most promising candidate out of a set of entries thought to correspond to the same physical event. |
+| EM_Selected     | Indicates Superevent has been selected to be sent out as a public alert and freezes the preferred event from updates                   |
 +-----------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | EM_SENT         | Has been sent to MOU partners.                                                                                                         |
 +-----------------+----------------------------------------------------------------------------------------------------------------------------------------+
