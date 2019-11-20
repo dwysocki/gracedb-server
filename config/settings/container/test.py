@@ -46,6 +46,21 @@ INTERNAL_IPS = [
     INTERNAL_IP_ADDRESS,
 ]
 
+# Turn on XMPP alerts
+SEND_XMPP_ALERTS = True
+
+# Enforce that phone and email alerts are off
+SEND_PHONE_ALERTS = False
+SEND_EMAIL_ALERTS = False
+
+# Define correct LVAlert settings
+LVALERT_OVERSEER_INSTANCES = [
+    {
+        "lvalert_server": "lvalert-playground.cgca.uwm.edu",
+        "listen_port": 8001,
+    },
+]
+
 # Define correct LVAlert settings
 LVALERT_OVERSEER_INSTANCES = [
     {
