@@ -19,14 +19,6 @@ SEND_XMPP_ALERTS = True
 SEND_PHONE_ALERTS = False
 SEND_EMAIL_ALERTS = False
 
-# Define correct LVAlert settings
-LVALERT_OVERSEER_INSTANCES = [
-    {
-        "lvalert_server": "lvalert-playground.cgca.uwm.edu",
-        "listen_port": 8001,
-    },
-]
-
 # Add testserver to ALLOWED_HOSTS
 ALLOWED_HOSTS += ['testserver']
 

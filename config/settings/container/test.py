@@ -54,14 +54,6 @@ SEND_PHONE_ALERTS = False
 SEND_EMAIL_ALERTS = False
 
 
-# Define correct LVAlert settings
-LVALERT_OVERSEER_INSTANCES = [
-    {
-        "lvalert_server": "lvalert-test.cgca.uwm.edu",
-        "listen_port": 8001,
-    },
-]
-
 # Set up Sentry for error logging
 sentry_dsn = get_from_env('DJANGO_SENTRY_DSN', fail_if_not_found=False)
 if sentry_dsn is not None:
