@@ -798,7 +798,7 @@ class EventLabel(InheritPermissionsAPIView):
         try:
             rv, label_created = create_label(event, request, label)
         except (ValueError, Label.ProtectedLabelError) as e:
-            return Response(e.message,
+            return Response(str(e),
                         status=status.HTTP_400_BAD_REQUEST)
 
         # Return response and status code
@@ -813,9 +813,9 @@ class EventLabel(InheritPermissionsAPIView):
         try:
             rv = delete_label(event, request, label)
         except Labelling.DoesNotExist as e:
-            return Response(e.message, status=status.HTTP_404_NOT_FOUND)
+            return Response(str(e), status=status.HTTP_404_NOT_FOUND)
         except (ValueError, Label.ProtectedLabelError) as e:
-            return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
