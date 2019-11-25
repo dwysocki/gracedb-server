@@ -613,15 +613,15 @@ def populateGrbEventFromVOEventFile(filename, event):
     # Assign information to event
     event.gpstime = gpstime
     event.ivorn = v.get('ivorn')
-    event.author_shortname = v.Who.Author.shortName
-    event.author_ivorn = v.Who.AuthorIVORN
+    event.author_shortname = v.Who.Author.shortName.text
+    event.author_ivorn = v.Who.AuthorIVORN.text
     event.observatory_location_id = \
         v.WhereWhen.ObsDataLocation.ObservatoryLocation.get('id')
     event.coord_system = pos2d.system
     event.ra = pos2d.ra
     event.dec = pos2d.dec
     event.error_radius = pos2d.err
-    event.how_description = v.How.Description
+    event.how_description = v.How.Description.text
     event.how_reference_url = v.How.Reference.get('uri')
 
     # Try to find a trigger_duration value
