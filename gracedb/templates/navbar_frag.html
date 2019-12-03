@@ -1,4 +1,4 @@
-<div style="padding-bottom: 30px;">
+<!--<div style="padding-bottom: 30px;">
 <ul id="nav">
     <li id="nav-home"><a href="{% url "home" %}">Home</a></li>
     <li id="nav-public"><a href="{% url "superevents:public-alerts-O3" %}">Public Alerts</a></li>
@@ -41,4 +41,84 @@ return to the regular GraceDB site. This will ensure that your group memberships
 are correct the next time you log in. 
 </div>
 {% endif %}
-</div>
+</div> -->
+
+
+<nav>
+  <div class="nav-wrapper blue darken-3" style="padding-left: 15px;">
+         {% if user.is_authenticated %}
+          <span class="gray-text" style="font-size:8pt" >Authenticated as:</span>
+          {% if user.first_name %}
+              <span class="gray-text" style="font-size:8pt">{{ user.get_full_name }}</span>
+          {% else %}
+              <span class="gray-text" style="font-size:8pt">{{ user.username }}</span>
+          {% endif %}
+         {% endif %}
+    <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+    <ul class="right hide-on-med-and-down">
+      <li id="nav-public" style="font-weight: bold"><a href="{% url "superevents:public-alerts-O3" %}">Public Alerts</a></li>
+      <li id="nav-latest"><a href="{% url "latest" %}">Latest</a></li>
+      <li id="nav-search"><a href="{% url "mainsearch" %}">Search</a></li>
+      {% if user_is_internal %}
+       <li id="nav-alerts"><a href="{% url "alerts:index" %}">Alerts</a></li>
+       <li id="nav-pipelines"><a href="{% url "manage-pipelines" %}">Pipelines</a></li>
+      {% elif user_is_lvem %}
+       <li id="nav-password"><a href="{% url "manage-password" %}">Manage Password</a></li>
+      {% endif %}
+      <li id="nav-docs"><a href="{% url "home" %}documentation/">Documentation</a></li>
+      {% if user %}
+          {% if user.is_superuser %}
+              <li id="nav-admin-docs"><a href="{% url "home" %}admin_docs/">Admin Docs</a></li>
+          {% endif %}
+      {% endif %}
+      {% if user.is_authenticated %}
+          <li id="nav-logout"><a href="{% url "logout" %}?next={{ request.path }}">Logout</a></li>
+      {% else %}
+          <li id="nav-login"><a href="{% url "login" %}?next={{ request.path }}">Login</a></li>
+      {% endif %}
+    </ul>
+  </div>
+</nav>
+
+<ul class="sidenav" id="mobile-demo">
+  <li id="nav-public" style="font-weight: bold"><a href="{% url "superevents:public-alerts-O3" %}">Public Alerts</a></li>
+  <li id="nav-latest"><a href="{% url "latest" %}">Latest</a></li>
+  <li id="nav-search"><a href="{% url "mainsearch" %}">Search</a></li>
+  {% if user_is_internal %}
+   <li id="nav-alerts"><a href="{% url "alerts:index" %}">Alerts</a></li>
+   <li id="nav-pipelines"><a href="{% url "manage-pipelines" %}">Pipelines</a></li>
+  {% elif user_is_lvem %}
+   <li id="nav-password"><a href="{% url "manage-password" %}">Manage Password</a></li>
+  {% endif %}
+  <li id="nav-docs"><a href="{% url "home" %}documentation/">Documentation</a></li>
+   {% if user %}
+       {% if user.is_superuser %}
+           <li id="nav-admin-docs"><a href="{% url "home" %}admin_docs/">Admin Docs</a></li>
+       {% endif %}
+   {% endif %}
+  {% if user.is_authenticated %}
+      <li id="nav-logout"><a href="{% url "logout" %}?next={{ request.path }}">Logout</a></li>
+  {% else %}
+      <li id="nav-login"><a href="{% url "login" %}?next={{ request.path }}">Login</a></li>
+  {% endif %}
+</ul>
+
+
+<script>
+
+options = {
+    edge: 'left',
+    draggable: true,
+    inDuration: 250,
+    outDuration: 200,
+    onOpenStart: null,
+    onOpenEnd: null,
+    onCloseStart: null,
+    onCloseEnd: null,
+    preventScrolling: true
+};
+  document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.sidenav');
+    var instances = M.Sidenav.init(elems, options);
+  });
+</script>

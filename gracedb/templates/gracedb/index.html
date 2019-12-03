@@ -3,26 +3,6 @@
 {% block heading %}{% endblock %}
 {% block pageid %}home{% endblock %}
 {% block jscript %}
-    <style>
-        .question {
-            font-family: Helvetica, sans-serif;
-            /*font-variant: small-caps; */
-            font-style: bold;
-            font-size: 18px;
-            padding-bottom: 5px;
-        }
-
-        .answer {
-            margin-left: 30px;
-            margin-right: 30px;
-            font-size: 14px;
-            background-color: #e2ebf2;
-            padding-top: 1px;
-            padding-bottom: 1px;
-            padding-left: 20px;
-            padding-right: 20px;
-        }
-    </style>
 {% endblock %}
 
 {% block content %}
@@ -31,9 +11,8 @@
 
 <style>
 body {
-  font: 10px sans-serif;
+  font: 12px ;
 }
-
 .axis text {
   font: 16px sans-serif;
   /*font-weight: bold; */
@@ -67,28 +46,25 @@ body {
 <!-- I find myself needing some more space. -->
 <!-- <br/>  -->
 
-<h2>
-{% if title %}
-    {{ title }}
-{% else %}
-    GraceDB Overview
-{% endif %}
-</h2>
-
-<div class="text">
+<div class="section">
+  <h5>GraceDB Overview</h5>
+  <div class="divider"></div>
     <p>
     The gravitational-wave candidate event database (GraceDB) is a service operated by the <a href="https://www.ligo.org/">LIGO Scientific Collaboration</a>. It provides a centralized location for aggregating and retrieving information about candidate gravitational-wave events. GraceDB provides an <a href="{% url "legacy_apiweb:default:root" %}">API</a> for programmatic access, and a <a href="https://ligo-gracedb.readthedocs.io/">client package</a> is available for interacting with the API.
     </p>
-    <h3>Useful information</h3>
-    <ul>
-    <li><b style="color: red;">*NEW*</b> O3 public alert <a href="{% url "superevents:public-alerts-O3" %}">summary page</a>.</li>
+</div>
+
+<div class="section">
+   <h5>Useful information</h5>
+   <div class="divider"></div>
     <li>Information about GW alerts and real-time data products is available in the <a href="https://emfollow.docs.ligo.org/userguide/">LIGO/Virgo Public Alert Guide</a>.</li>
+    <li><a href="https://monitor.ligo.org/ldg">Real-time status of the LIGO Data Grid</a>.</li>
     <li>Found a bug? LIGO/Virgo users can report issues on the GraceDB <a href="https://git.ligo.org/lscsoft/gracedb/issues">Gitlab page</a>.</li>
     </ul>
 {% if information %}
     {{ information|safe }}
 {% endif %}
-    <p><b>Server code version: <a href="https://git.ligo.org/lscsoft/gracedb/tree/gracedb-{{server_version}}">{{server_version}}</a></b></p>
+    <p><b>Server code version: </b> <a href="https://git.ligo.org/lscsoft/gracedb/tree/gracedb-{{server_version}}" style="font-family: 'Courier New'">{{server_version}}</a></p>
 </div>
 
 <!--XXX Infrastructure for human signoffs. Hopefully this will not be permanent. -->
