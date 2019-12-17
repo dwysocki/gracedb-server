@@ -233,9 +233,11 @@ class SupereventPublic(DisplayFarMixin, ListView):
                     ("BBH", voe.prob_bbh),
                     ("Terrestrial", voe.prob_terrestrial),
                     ("MassGap", voe.prob_mass_gap)]
-                pastro_values.sort(reverse=True, key=lambda p_a: p_a[1])
+                pastro_values.sort(reverse=True, key=lambda p_a: 0.0 if p_a[1] is None else p_a[1])
                 sourcelist = []
                 for key, value in pastro_values:
+                    if value is None:
+                        value = 0.0
                     if value > 0.01:
                         prob = int(round(100*value))
                         if prob == 100: prob = '>99'
