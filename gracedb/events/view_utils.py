@@ -375,10 +375,8 @@ def eventLogToDict(log, request=None):
     taglist_uri = api_reverse("events:eventlogtag-list",
             args=[log.event.graceid, log.N],
             request=request)
-    if log.filename:
-        actual_filename = log.filename
-        if log.file_version >= 0:
-            actual_filename += ',%d' % log.file_version
+    if log.filename and log.file_version is not None:
+        actual_filename = log.filename + ',%d' % log.file_version
         # NOTE: the reverse function will return a urlquoted
         # result, so we don't need urlquote here. Effectively
         # escaping twice results in wrong urls. 
