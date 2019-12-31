@@ -12,7 +12,7 @@ from guardian.conf import settings as guardian_settings
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
 from events.models import Tag
-from ligoauth.models import AuthGroup
+from ligoauth.models import AuthGroup, AuthorizedLdapMember
 
 # Set up user model
 UserModel = get_user_model()
@@ -69,6 +69,14 @@ class InternalGroupAndUserSetup(TestCase):
             cls.internal_group.ldap_name = 'internal_ldap_group'
             cls.internal_group.save(update_fields=['ldap_name'])
 
+        # Create AuthorizedLdapMember, link it to internal group:
+        cls.authldapmember, created = AuthorizedLdapMember.objects.get_or_create(
+            name='TestLDAPAuthMember')
+        if created:
+            cls.authldapmember.ldap_gname='internal_ldap_group'
+            cls.authldapmember.ldap_authgroup=cls.internal_group 
+            cls.authldapmember.save()
+
         # Get or create user
         cls.internal_user, _ = UserModel.objects.get_or_create(
             username='internal.user')
@@ -116,6 +124,14 @@ class LvemGroupAndUserSetup(TestCase):
             cls.lvem_group.ldap_name = 'lvem_ldap_group'
             cls.lvem_group.save(update_fields=['ldap_name'])
 
+        # Create AuthorizedLdapMember, link it to LV-EM group:
+        cls.authldapmember_lvem, created = AuthorizedLdapMember.objects.get_or_create(
+            name='TestLDAPAuthMember_LVEM')
+        if created:
+            cls.authldapmember_lvem.ldap_gname='lvem_ldap_group'
+            cls.authldapmember_lvem.ldap_authgroup=cls.lvem_group
+            cls.authldapmember_lvem.save()
+
         # Get or create LV-EM observers group
         lvem_obs_tag, _ = Tag.objects.get_or_create(name='lvem')
         cls.lvem_obs_group, created = AuthGroup.objects.get_or_create(
@@ -124,6 +140,14 @@ class LvemGroupAndUserSetup(TestCase):
             cls.lvem_obs_group.ldap_name = 'lvem_observers_ldap_group'
             cls.lvem_obs_group.tag = lvem_obs_tag
             cls.lvem_obs_group.save(update_fields=['ldap_name', 'tag'])
+
+        # Create AuthorizedLdapMember, link it to LV-EM observers group:
+        cls.authldapmember_lvemob, created = AuthorizedLdapMember.objects.get_or_create(
+            name='TestLDAPAuthMember_LVEMOB')
+        if created:
+            cls.authldapmember_lvemob.ldap_gname='lvem_observers_ldap_group'
+            cls.authldapmember_lvemob.ldap_authgroup=cls.lvem_group
+            cls.authldapmember_lvemob.save()
 
         # Get or create user
         cls.lvem_user, _ = UserModel.objects.get_or_create(
@@ -163,6 +187,15 @@ class SupereventManagersGroupAndUserSetup(TestCase):
         if created:
             internal_group.ldap_name = 'internal_ldap_group'
             internal_group.save(update_fields=['ldap_name'])
+
+        # Create AuthorizedLdapMember, link it to internal group:
+        authldapmember, created = AuthorizedLdapMember.objects.get_or_create(
+            name='TestLDAPAuthMember')
+        if created:
+            authldapmember.ldap_gname='internal_ldap_group'
+            authldapmember.ldap_authgroup=internal_group 
+            authldapmember.save()
+
         internal_group.user_set.add(cls.sm_user)
 
         # Get permissions
@@ -212,6 +245,15 @@ class AccessManagersGroupAndUserSetup(TestCase):
         if created:
             internal_group.ldap_name = 'internal_ldap_group'
             internal_group.save(update_fields=['ldap_name'])
+
+        # Create AuthorizedLdapMember, link it to internal group:
+        authldapmember, created = AuthorizedLdapMember.objects.get_or_create(
+            name='TestLDAPAuthMember')
+        if created:
+            authldapmember.ldap_gname='internal_ldap_group'
+            authldapmember.ldap_authgroup=internal_group 
+            authldapmember.save()
+
         internal_group.user_set.add(cls.am_user)
 
         # Get permissions
@@ -247,6 +289,14 @@ class SignoffGroupsAndUsersSetup(TestCase):
         if created:
             internal_group.ldap_name = 'internal_ldap_group'
             internal_group.save(update_fields=['ldap_name'])
+
+        # Create AuthorizedLdapMember, link it to internal group:
+        cls.authldapmember, created = AuthorizedLdapMember.objects.get_or_create(
+            name='TestLDAPAuthMember')
+        if created:
+            cls.authldapmember.ldap_gname='internal_ldap_group'
+            cls.authldapmember.ldap_authgroup=internal_group 
+            cls.authldapmember.save()
 
         # Get or create IFO control room groups and users, and add perms
         ifos = ['H1', 'L1', 'V1']
