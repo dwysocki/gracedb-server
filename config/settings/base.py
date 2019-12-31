@@ -26,7 +26,7 @@ MAINTENANCE_MODE = False
 MAINTENANCE_MODE_MESSAGE = None
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.8.0'
+PROJECT_VERSION = '2.8.1'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
