@@ -22,7 +22,7 @@ function IdPSelectUIParms(){
     this.maxResults = 10;            // How many results to show at once or the number at which to
                                      // start showing if alwaysShow is false
     this.myEntityID = null;          // If non null then this string must match the string provided in the DS parms
-    this.preferredIdP = ['https://login.ligo.org/idp/shibboleth', 'https://login2.ligo.org/idp/shibboleth', 'https://google.cirrusidentity.com/gateway'];
+    this.preferredIdP = ['https://login.ligo.org/idp/shibboleth', 'https://shibbi.pki.itc.u-tokyo.ac.jp/idp/shibboleth', 'https://google.cirrusidentity.com/gateway'];
     this.hiddenIdPs = null;          // Array of entityIds to delete
     this.ignoreKeywords = false;     // Do we ignore the <mdui:Keywords/> when looking for candidates
     this.showListFirst = false;      // Do we start with a list of IdPs or just the dropdown
