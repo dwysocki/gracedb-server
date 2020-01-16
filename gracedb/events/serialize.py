@@ -90,9 +90,11 @@ def write_output_files(root_dir, xmldoc, log_content, \
     # Write xml-formatted coinc table
     # We do it this way instead of using create_versioned_file since the
     # xmldoc is designed to write to a file object.
+
     file_path = os.path.join(root_dir, xml_fname)
     f = VersionedFile(file_path, 'w')
     xmldoc.write(f.file)
+    f.close()
 
     # Write log file
     create_versioned_file(log_fname, root_dir, log_content)

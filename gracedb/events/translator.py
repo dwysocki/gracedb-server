@@ -398,12 +398,6 @@ class Translator(object):
         raise(NotImplemented)
 
     def castData(self, data):
-        # convert ints to ints
-        # No longer casting gpstime to integer.
-        #for key in ['gpstime', 'likelihood']:
-        for key in ['likelihood']:
-            if data[key]:
-                data[key] = int(float(data[key]))
 
         # convert floats to floats
         for key in ['far']:

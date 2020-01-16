@@ -344,8 +344,6 @@ def construct_voevent_file(obj, voevent, request=None):
                    "Time_Difference",
                    value=float(deltat),
                    ucd="meta.code",
-                   #dataType="float"
-                   #AEP--> figure this out
                    ac=True,
                )
                p_deltat.Description = ("Time difference between GW candidate "
@@ -359,8 +357,6 @@ def construct_voevent_file(obj, voevent, request=None):
                     "Time_Coincidence_FAR",
                     value=obj.coinc_far,
                     ucd="arith.rate;stat.falsealarm",
-                    #dataType="float",
-                   #AEP--> figure this out
                     ac=True,
                     unit="Hz"
                 )
@@ -375,8 +371,6 @@ def construct_voevent_file(obj, voevent, request=None):
                     "Time_Sky_Position_Coincidence_FAR",
                     value=obj.coinc_far_space,
                     ucd="arith.rate;stat.falsealarm",
-                    #dataType="float",
-                    #AEP--> figure this out
                     ac=True,
                     unit="Hz"
                 )
@@ -545,7 +539,7 @@ def construct_voevent_file(obj, voevent, request=None):
                 value=float(event.central_freq),
                 ucd="gw.frequency",
                 unit="Hz",
-                dataType="float"
+                ac=True,
             )
             p_central_freq.Description = \
                 "Central frequency of GW burst signal"
@@ -557,7 +551,7 @@ def construct_voevent_file(obj, voevent, request=None):
                 value=float(event.duration),
                 unit="s",
                 ucd="time.duration",
-                dataType="float"
+                ac=True,
             )
             p_duration.Description = "Measured duration of GW burst signal"
             v.What.append(p_duration)
@@ -607,7 +601,7 @@ def construct_voevent_file(obj, voevent, request=None):
                 value=float(event.frequency_mean),
                 ucd="gw.frequency",
                 unit="Hz",
-                dataType="float"
+                ac=True,
             )
             p_freq.Description = "Mean frequency of GW burst signal"
             v.What.append(p_freq)

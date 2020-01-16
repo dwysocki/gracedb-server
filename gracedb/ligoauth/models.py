@@ -21,7 +21,6 @@ class X509Cert(models.Model):
     subject = models.CharField(max_length=255, unique=True, null=False)
     user = models.ForeignKey(User)
 
-
 class AuthGroup(Group):
     """Enhanced version of Django Group model"""
     # Description of the group
@@ -40,3 +39,16 @@ class AuthGroup(Group):
     objects = models.Manager()
     ldap_objects = LdapGroupManager()
     tag_objects = TagGroupManager()
+
+class AuthorizedLdapMember(models.Model):
+    """Model for authorized ldap membership"""
+    # Group membership in ldap. This is analogous to the `ldap_name` in the 
+    # AuthGroup class:
+    ldap_gname = models.CharField(max_length=50, unique=True, null=True)
+
+    # Add support for authorized membership:
+    ldap_authgroup = models.ForeignKey(AuthGroup, null=True)
+
+    # Give it a name:
+    name = models.CharField(max_length=50, unique=True, null=True)
+

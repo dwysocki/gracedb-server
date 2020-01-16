@@ -8,7 +8,7 @@ from django.contrib.auth.middleware import PersistentRemoteUserMiddleware
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import reverse_lazy
 
-from .models import AuthGroup
+from .models import AuthGroup, AuthorizedLdapMember
 
 
 # Set up logger
@@ -88,9 +88,31 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
         # Get groups from session which are in database as a QuerySet
         session_group_names = request.META.get(cls.group_header, '').split(
             cls.group_delimiter)
-        session_groups = AuthGroup.ldap_objects.filter(ldap_name__in=
+
+        #session_groups = AuthGroup.ldap_objects.filter(ldap_name__in=
+        #    session_group_names)
+
+        # Get the authorized ldap membership object based on the request header:
+        session_ldap_membership = AuthorizedLdapMember.objects.filter(ldap_gname__in=
             session_group_names)
 
+        # Get the list of AuthGroup objects that don't have a null set of 
+        # AuthorizedLdapMembers. Note that this step seems redundant right now.
+        # However, it's necessary for the new many-to-one relationship with
+        # multiple ldap memberships. Plus, this will allow for adding new ldap
+        # memberships and multiple group affiliations. Note for me:
+        # If an ldap member needs to be associated with another group (like, 
+        # not just internal_users), then there should be a new authorizedldapmember-ship
+        # with a new ForeignKey relation. FYI.
+
+        group_set = AuthGroup.objects.exclude(authorizedldapmember__isnull=True)
+
+        # Return a queryset of group memberships associated with the ldap
+        # community id
+
+        ldap_group_ids = session_ldap_membership.values_list('id')
+        session_groups = group_set.filter(authorizedldapmember__in=ldap_group_ids)
+        
         # Add groups which are in session but not in database
         user.groups.add(*session_groups)
 

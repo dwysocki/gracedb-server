@@ -8,7 +8,7 @@ from django.urls import reverse
 
 from user_sessions.middleware import SessionMiddleware
 
-from ligoauth.models import AuthGroup
+from ligoauth.models import AuthGroup, AuthorizedLdapMember
 from ligoauth.middleware import (
     ControlRoomMiddleware, ShibbolethWebAuthMiddleware,
 )
@@ -311,8 +311,14 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         request = self.factory.get(self.url)
         request.META.update(**{
             settings.SHIB_USER_HEADER: self.lvem_user.username,
-            settings.SHIB_GROUPS_HEADER: self.lvem_obs_group.ldap_name,
+            settings.SHIB_GROUPS_HEADER: self.lvem_obs_group.ldap_name + 'test_lvemapl',
         })
+        new_lvem_ldap_member, created = AuthorizedLdapMember.objects.get_or_create(name='test_lvem')
+        if created:
+            new_lvem_ldap_member.ldap_gname=self.lvem_obs_group.ldap_name  + 'test_lvemapl'
+            new_lvem_ldap_member.ldap_authgroup=self.lvem_obs_group
+            new_lvem_ldap_member.save()
+        
         # Necessary pre-processing middleware
         SessionMiddleware().process_request(request)
         AuthenticationMiddleware().process_request(request)
@@ -386,14 +392,23 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         request = self.factory.get(self.url)
         request.META.update(**{
             settings.SHIB_USER_HEADER: new_user_dict['username'],
-            settings.SHIB_GROUPS_HEADER: self.lvem_obs_group.ldap_name,
+            settings.SHIB_GROUPS_HEADER: self.lvem_obs_group.ldap_name + 'test_lvemuc',
             settings.SHIB_ATTRIBUTE_MAP['email']: new_user_dict['email'],
         })
+        
+        # Set up ldap membership
+        new_test_lvem_ldap_member, created = AuthorizedLdapMember.objects.get_or_create(name='new_test_lvem')
+        if created:
+            new_test_lvem_ldap_member.ldap_gname=self.lvem_obs_group.ldap_name  + 'test_lvemuc'
+            new_test_lvem_ldap_member.ldap_authgroup=self.lvem_obs_group
+            new_test_lvem_ldap_member.save()
+
         # Necessary pre-processing middleware
         SessionMiddleware().process_request(request)
         AuthenticationMiddleware().process_request(request)
         self.mw_instance.process_request(request)
 
+        
         # Make sure user is authenticated and was authenticated by
         # the shibboleth backend and that the LV-EM observers group is
         # attached to the user account
@@ -418,6 +433,13 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
             ldap_name='new_ldap_group')
         # Compile group header - add one random additional group name string
         other_group_ldap_str = 'other_group'
+
+        new_auth_ldap_member, created = AuthorizedLdapMember.objects.get_or_create(name='new_membership')
+        if created:
+            new_auth_ldap_member.ldap_gname=other_group_ldap_str
+            new_auth_ldap_member.ldap_authgroup=new_ldap_group
+            new_auth_ldap_member.save()
+        
         delim = ShibbolethWebAuthMiddleware.group_delimiter
         groups_str = delim.join([self.internal_group.ldap_name,
             new_ldap_group.ldap_name, other_group_ldap_str])
