@@ -33,7 +33,7 @@ phonenumbers==8.8.11
 python-ldap==3.1.0
 python-memcached==1.59
 # Install django-elasticache along with python memcached:
-git+git://github.com/gusdan/django-elasticache.git#egg=django-elasticache
+#git+git://github.com/gusdan/django-elasticache.git#egg=django-elasticache
 scipy==1.2.1
 sentry-sdk==0.7.10
 service_identity==17.0.0
