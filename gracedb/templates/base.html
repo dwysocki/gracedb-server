@@ -4,11 +4,12 @@
 <head>
 {% load static %}
 
-
-      <!--Import Google Icon Font-->
-      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-      <!--Import materialize.css-->
-      <link type="text/css" rel="stylesheet" href="{% static "css/materialize.min.css" %}"  media="screen,projection"/>
+      <!--Import bootstrap and custom colors-->
+      <link type="text/css" rel="stylesheet" href="{% static "bootstrap/dist/css/bootstrap.min.css" %}"  media="screen,projection"/>
+      <link type="text/css" rel="stylesheet" href="{% static "css/override.css" %}" />
+      <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono&display=fallback">
+      <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
 
       <!--Let browser know website is optimized for mobile-->
       <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -18,88 +19,58 @@
     {# remove requests for favicon #}
     <link rel="icon" href="data:,">
     <title>GraceDB | {% block title %}{% endblock %}</title>
-<!-- START TESTING -->
-<script type="text/javascript">
-function changeTime(obj, label) {
-    //var timetype = obj.get("value");
-    var timetype = obj.value;
-    if (timetype=="") { return; }
-    var times = document.getElementsByName("time-"+label);
-    for (i=0; i<times.length; i++) {
-        newtime =  times[i].getAttribute(timetype);
-        times[i].innerHTML = newtime;
-    }
-}
-</script>
-{% endblock %}
-<!-- END TESTING -->
-{% block jscript %}{% endblock %}
+    <!-- START TESTING -->
+    <script type="text/javascript">
+       function changeTime(obj, label) {
+           //var timetype = obj.get("value");
+           var timetype = obj.value;
+           if (timetype=="") { return; }
+           var times = document.getElementsByName("time-"+label);
+           for (i=0; i<times.length; i++) {
+               newtime =  times[i].getAttribute(timetype);
+               times[i].innerHTML = newtime;
+           }
+       }
+     </script>
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+     {% endblock %}
+     <!-- END TESTING -->
+     {% block jscript %}
+     {% endblock %}
 
-<!-- override other CSS templates as necessary 
-<link rel="stylesheet" href="{% static "css/override.css" %}" />-->
+
+
 
 </head>
 
-<script src="{% static "js/materialize.js" %}"></script>
-
 <body id="{% block pageid %}{% endblock %}"{% block bodyattrs %}{% endblock %}>
 
-<div class="container">
-<div class="card-panel blue darken-3">
 
-   <table border="0" cellpadding="0">
-    <tbody>
-     <tr style="border-bottom: 0px ">
-      <td rowspan=2>
-          <a href="/">
-          <img src="{% static "images/logo.svg" %}" width=56>
-          </a>
-      </td>
-      <td> 
-        <a href="/">
-        <span class="light-blue-text text-lighten-5" style="font-weight: bold"><h5>
-         GraceDB &mdash; </span> 
-         {% if config_name %}
-         <span class="red-text text-lighten-4">({{ config_name }})</span>
-         {% endif %}<br>
-          <span class="light-blue-text text-lighten-5" style="font-weight: 100">
-            Gravitational-Wave Candidate Event Database
-          </span></h5>
-         </a>
-      </td> 
-     </tr>
-    </tbody>
-   </table>
+   {% block nav %}
+       {% include "navbar_frag.html" %}
+   {% endblock %}
 
-</div>
-
-{% block nav %}
-    {% include "navbar_frag.html" %}
-{% endblock %}
-
-    <h2>{% block heading %}Title{% endblock %}</h2>
-
-        {% block content %}{% endblock %}
-
-
-<div class="divider"></div>
-<br>
-</div>
-
-<div id=footer" class="container">
-    <center>
-    <img height="36" src="{% static "images/kagra.png" %}" />
-    <img height="36" src="{% static "images/ligo-blue.gif" %}" />
-    <img height="36" src="{% static "images/LSC_logo50.png" %}" />
-    <img height="36" src="{% static "images/Virgo_logo50.png" %}" />
-    {% if user and user.username == "chad.hanna@LIGO.ORG" %}
-     <img width="194" height="37" src="{% static "images/PI_Logo-anim.gif" %}" />
-    {% endif %}
-    {% if user and user.username == "kipp.cannon@LIGO.ORG" %}
-     <img width="194" height="37" src="{% static "images/CITA_logo-anim.gif" %}" />
-    {% endif %}
-    </center>
-</div>
+   <div class="container-fluid">
+           <h2>{% block heading %}Title{% endblock %}</h2>
+               {% block content %}{% endblock %}
+        
+        
+        
+            <center>
+            <img height="36" src="{% static "images/kagra.png" %}" />
+            <img height="36" src="{% static "images/ligo-blue.gif" %}" />
+            <img height="36" src="{% static "images/LSC_logo50.png" %}" />
+            <img height="36" src="{% static "images/Virgo_logo50.png" %}" />
+            {% if user and user.username == "chad.hanna@LIGO.ORG" %}
+             <img width="194" height="37" src="{% static "images/PI_Logo-anim.gif" %}" />
+            {% endif %}
+            {% if user and user.username == "kipp.cannon@LIGO.ORG" %}
+             <img width="194" height="37" src="{% static "images/CITA_logo-anim.gif" %}" />
+            {% endif %}
+            </center>
+    </div>
 
 </body>
 </html>

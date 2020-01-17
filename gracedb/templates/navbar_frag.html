@@ -1,82 +1,89 @@
-<nav>
-  <div class="nav-wrapper blue darken-3" style="padding-left: 15px;">
-         {% if user.is_authenticated %}
-           <span class="gray-text" style="font-size:8pt" >Authenticated as:</span>
-           {% if user.first_name %}
-               <span class="gray-text" style="font-size:8pt">{{ user.get_full_name }}</span>
-           {% else %}
-               <span class="gray-text" style="font-size:8pt">{{ user.username }}</span>
-           {% endif %}
-         {% else %}
-           <span class="gray-text" style="font-size:8pt" >
-           Please log in to view full database contents.
-           </span>
-         {% endif %}
-    <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-    <ul class="right hide-on-med-and-down">
-      <li id="nav-public" style="font-weight: bold"><a href="{% url "superevents:public-alerts-O3" %}">Public Alerts</a></li>
-      <li id="nav-latest"><a href="{% url "latest" %}">Latest</a></li>
-      <li id="nav-search"><a href="{% url "mainsearch" %}">Search</a></li>
-      {% if user_is_internal %}
-       <li id="nav-alerts"><a href="{% url "alerts:index" %}">Alerts</a></li>
-       <li id="nav-pipelines"><a href="{% url "manage-pipelines" %}">Pipelines</a></li>
-      {% elif user_is_lvem %}
-       <li id="nav-password"><a href="{% url "manage-password" %}">Manage Password</a></li>
+{% load static %}
+
+
+  <nav class="navbar navbar-expand-sm navbar-gracedb navbar-dark">
+    <a class="navbar-brand text-white" href="/">
+      <img src="{% static "images/logo.svg" %}" style="width:40px;">
+      GraceDB  
+      {% if config_name %}
+      <span class="text-danger">({{ config_name }})</span>
       {% endif %}
-      <li id="nav-docs"><a href="{% url "home" %}documentation/">Documentation</a></li>
+    </a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="collapsibleNavbar">
+
+    <ul class="navbar-nav">
+      <li class="nav-item">
+         <a class="nav-link text-light font-weight-bold" href="{% url "superevents:public-alerts-O3" %}">Public Alerts</a>
+      </li>
+
+      <li class="nav-item">
+         <a class="nav-link text-light" href="{% url "latest" %}">Latest</a>
+      </li>
+
+      <li class="nav-item">
+         <a class="nav-link text-light" href="{% url "mainsearch" %}">Search</a>
+      </li>
+
+      {% if user_is_internal %}
+
+        <li class="nav-item">
+           <a class="nav-link text-light" href="{% url "alerts:index" %}">Alerts</a>
+        </li>
+
+        <li class="nav-item">
+           <a class="nav-link text-light" href="{% url "manage-pipelines" %}">Pipelines</a>
+        </li>
+
+      {% elif user_is_lvem %}
+        <li class="nav-item">
+           <a class="nav-link text-light" href="{% url "manage-password" %}">Manage Password</a>
+        </li>
+
+      {% endif %}
+
+      <li class="nav-item">
+         <a class="nav-link text-light" href="{% url "home" %}documentation/">Documentation</a>
+      </li>
+
       {% if user %}
           {% if user.is_superuser %}
-              <li id="nav-admin-docs"><a href="{% url "home" %}admin_docs/">Admin Docs</a></li>
+              <li class="nav-item">
+                 <a class="nav-link text-light" href="{% url "home" %}admin_docs/">Admin Docs</a>
+              </li>
           {% endif %}
       {% endif %}
+
       {% if user.is_authenticated %}
-          <li id="nav-logout"><a href="{% url "logout" %}?next={{ request.path }}">Logout</a></li>
+
+         <li class="nav-item">
+            <a class="nav-link text-light" href="{% url "logout" %}?next={{ request.path }}">Logout</a>
+         </li>
+
       {% else %}
-          <li id="nav-login"><a href="{% url "login" %}?next={{ request.path }}">Login</a></li>
+         <li class="nav-item">
+            <a class="nav-link text-light" href="{% url "login" %}?next={{ request.path }}">Login</a>
+         </li>
       {% endif %}
     </ul>
   </div>
-</nav>
+  </nav>
 
-<ul class="sidenav" id="mobile-demo">
-  <li id="nav-public" style="font-weight: bold"><a href="{% url "superevents:public-alerts-O3" %}">Public Alerts</a></li>
-  <li id="nav-latest"><a href="{% url "latest" %}">Latest</a></li>
-  <li id="nav-search"><a href="{% url "mainsearch" %}">Search</a></li>
-  {% if user_is_internal %}
-   <li id="nav-alerts"><a href="{% url "alerts:index" %}">Alerts</a></li>
-   <li id="nav-pipelines"><a href="{% url "manage-pipelines" %}">Pipelines</a></li>
-  {% elif user_is_lvem %}
-   <li id="nav-password"><a href="{% url "manage-password" %}">Manage Password</a></li>
-  {% endif %}
-  <li id="nav-docs"><a href="{% url "home" %}documentation/">Documentation</a></li>
-   {% if user %}
-       {% if user.is_superuser %}
-           <li id="nav-admin-docs"><a href="{% url "home" %}admin_docs/">Admin Docs</a></li>
-       {% endif %}
-   {% endif %}
-  {% if user.is_authenticated %}
-      <li id="nav-logout"><a href="{% url "logout" %}?next={{ request.path }}">Logout</a></li>
-  {% else %}
-      <li id="nav-login"><a href="{% url "login" %}?next={{ request.path }}">Login</a></li>
-  {% endif %}
-</ul>
-
-
-<script>
-
-options = {
-    edge: 'left',
-    draggable: true,
-    inDuration: 250,
-    outDuration: 200,
-    onOpenStart: null,
-    onOpenEnd: null,
-    onCloseStart: null,
-    onCloseEnd: null,
-    preventScrolling: true
-};
-  document.addEventListener('DOMContentLoaded', function() {
-    var elems = document.querySelectorAll('.sidenav');
-    var instances = M.Sidenav.init(elems, options);
-  });
-</script>
+  <div class="container-fluid navbar-gracedb text-right">
+           <span class="text-muted" style="font-size:8pt">  
+           {% if user.is_authenticated %}
+           Authenticated as:
+           {% if user.first_name %}
+               {{ user.get_full_name }}
+           {% else %}
+               {{ user.username }}
+           {% endif %}
+           {% else %}
+           Please log in to view full database contents.
+           </span>
+         {% endif %}
+  </div>
