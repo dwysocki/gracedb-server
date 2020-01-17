@@ -139,7 +139,6 @@ DATABASES = {
         'PORT': os.environ.get('DJANGO_DB_PORT', ''),
         'OPTIONS': {
             'init_command': 'SET storage_engine=MyISAM',
-            'CONN_MAX_AGE': 3600,
             # NOTE: for mysql>=5.7 this will need to be changed to
             #'init_command': 'SET default_storage_engine=MyISAM',
         },
