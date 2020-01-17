@@ -11,11 +11,3 @@
   border-color: #FFFFFF;
 }
 
-ul {
-  list-style-position: outside;
-}
-
-li {
-list-style-position: inside;
-text-indent: -1em;
-}
