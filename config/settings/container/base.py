@@ -89,8 +89,8 @@ AWS_ELASTICACHE_ADDR = get_from_env('DJANGO_AWS_ELASTICACHE_ADDR')
 CACHES['default'] = {
         'BACKEND': 'django_elasticache.memcached.ElastiCache',
         'LOCATION': AWS_ELASTICACHE_ADDR,
-        'OPTIONS' {
-            'IGNORE_CLUSTER_ERRORS': [True,False],
+        'OPTIONS': {
+            'IGNORE_CLUSTER_ERRORS': True,
         },
     }
 MIDDLEWARE = [
