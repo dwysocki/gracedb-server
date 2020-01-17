@@ -84,6 +84,32 @@ AWS_SES_REGION_ENDPOINT = get_from_env('AWS_SES_REGION_ENDPOINT',
 AWS_SES_AUTO_THROTTLE = 0.25
 ALERT_EMAIL_FROM = get_from_env('DJANGO_ALERT_EMAIL_FROM')
 
+# AWS Elasticache settings:
+AWS_ELASTICACHE_ADDR = get_from_env('DJANGO_AWS_ELASTICACHE_ADDR')
+CACHES['default'] = {
+        'BACKEND': 'django_elasticache.memcached.ElastiCache',
+        'LOCATION': AWS_ELASTICACHE_ADDR,
+        'OPTIONS' {
+            'IGNORE_CLUSTER_ERRORS': [True,False],
+        },
+    }
+MIDDLEWARE = [
+    'core.middleware.maintenance.MaintenanceModeMiddleware',
+    'events.middleware.PerformanceMiddleware',
+    'core.middleware.accept.AcceptMiddleware',
+    'core.middleware.api.ClientVersionMiddleware',
+    'core.middleware.api.CliExceptionMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
+    'core.middleware.proxy.XForwardedForMiddleware',
+    'user_sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'ligoauth.middleware.ShibbolethWebAuthMiddleware',
+    'ligoauth.middleware.ControlRoomMiddleware',
+]
+
 
 
 # Priority server settings ----------------------------------------------------
@@ -113,6 +139,7 @@ DATABASES = {
         'PORT': os.environ.get('DJANGO_DB_PORT', ''),
         'OPTIONS': {
             'init_command': 'SET storage_engine=MyISAM',
+            'CONN_MAX_AGE': 3600,
             # NOTE: for mysql>=5.7 this will need to be changed to
             #'init_command': 'SET default_storage_engine=MyISAM',
         },
