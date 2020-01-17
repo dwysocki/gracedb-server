@@ -9,6 +9,7 @@
 
 <!-- stuff for the recent events plot -->
 
+
 <style>
 body {
   font: 12px ;
@@ -37,6 +38,9 @@ body {
 
 </style>
 
+<div class="row">
+<div class="col-1"></div>
+<div class="col-10">
 {% if recent_events != "" %}
 <h2>Recent Events</h2>
 <div id="recent_events_plot"></div>
@@ -46,17 +50,14 @@ body {
 <!-- I find myself needing some more space. -->
 <!-- <br/>  -->
 
-<div class="section">
   <h5>GraceDB Overview</h5>
-  <div class="divider"></div>
+    <hr>
     <p>
     The gravitational-wave candidate event database (GraceDB) is a service operated by the <a href="https://www.ligo.org/">LIGO Scientific Collaboration</a>. It provides a centralized location for aggregating and retrieving information about candidate gravitational-wave events. GraceDB provides an <a href="{% url "legacy_apiweb:default:root" %}">API</a> for programmatic access, and a <a href="https://ligo-gracedb.readthedocs.io/">client package</a> is available for interacting with the API.
     </p>
-</div>
-
-<div class="section">
+   <br>
    <h5>Useful information</h5>
-   <div class="divider"></div>
+    <hr>
     <li>Information about GW alerts and real-time data products is available in the <a href="https://emfollow.docs.ligo.org/userguide/">LIGO/Virgo Public Alert Guide</a>.</li>
     <li><a href="https://monitor.ligo.org/ldg">Real-time status of the LIGO Data Grid</a>.</li>
     <li>Found a bug? LIGO/Virgo users can report issues on the GraceDB <a href="https://git.ligo.org/lscsoft/gracedb/issues">Gitlab page</a>.</li>
@@ -64,7 +65,8 @@ body {
 {% if information %}
     {{ information|safe }}
 {% endif %}
-    <p><b>Server code version: </b> <a href="https://git.ligo.org/lscsoft/gracedb/tree/gracedb-{{server_version}}" style="font-family: 'Courier New'">{{server_version}}</a></p>
+     <br>
+    <p><small><b>Server code version: </b> <a href="https://git.ligo.org/lscsoft/gracedb/tree/gracedb-{{server_version}}" style="font-family: 'Courier New'">{{server_version}}</a></p></small>
 </div>
 
 <!--XXX Infrastructure for human signoffs. Hopefully this will not be permanent. -->
@@ -106,6 +108,10 @@ body {
     </div>
     {% endif %}
 {% endif %}
+
+</div>
+<div class="col-1"></div>
+</div>
 
 <!-- lots of script for the recent events plot -->
 {% if recent_events %}

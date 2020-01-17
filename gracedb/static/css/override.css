@@ -4,3 +4,18 @@
 .nano-image {
     background-color: white;
 }
+
+.navbar-gracedb{
+  /*background-color: #000066 ; */
+  background-color: #08258C ;
+  border-color: #FFFFFF;
+}
+
+ul {
+  list-style-position: outside;
+}
+
+li {
+list-style-position: inside;
+text-indent: -1em;
+}
