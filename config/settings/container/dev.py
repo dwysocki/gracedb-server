@@ -74,7 +74,8 @@ if sentry_dsn is not None:
 # Home page stuff
 INSTANCE_TITLE = 'GraceDB Development Server'
 INSTANCE_INFO = """
-<h3>Development Instance</h3>
+<h5>Development Instance</h5>
+<hr>
 <p>
 This GraceDB instance is designed for GraceDB maintainers to develop and
 test in the AWS cloud architecture. There is <b>no guarantee</b> that the

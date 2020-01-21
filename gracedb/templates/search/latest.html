@@ -4,7 +4,11 @@
 {% load scientific %}
 
 {% block title %}Latest{% endblock %}
-{% block heading %}Latest &mdash; as of {% now "j F Y H:i:s T" %}{% endblock %}
+
+<div class="row">
+<div class="col-1"></div>
+<div class="col-10">
+{% block heading %}<h3>Latest as of {% now "j F Y H:i:s T" %} </h3>{% endblock %}
 {% block pageid %}latest{% endblock %}
 
 
@@ -144,3 +148,6 @@
 {% endif %} <!-- if eventss -->
 
 {% endblock %}
+</div>
+<div class="col-1"></div>
+</div>

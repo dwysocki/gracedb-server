@@ -74,7 +74,8 @@ if sentry_dsn is not None:
 # Home page stuff
 INSTANCE_TITLE = 'GraceDB Testing Server'
 INSTANCE_INFO = """
-<h3>Testing Instance</h3>
+<h5>Testing Instance</h5>
+<hr>
 <p>
 This GraceDB instance is designed for Quality Assurance (QA) testing and
 validation for GraceDB and electromagnetic follow-up (EMFollow) developers.
