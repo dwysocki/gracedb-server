@@ -5,9 +5,14 @@
     background-color: white;
 }
 
-.navbar-gracedb{
-  /*background-color: #000066 ; */
-  background-color: #08258C ;
+.navbar-gracedb {
+  background-color: #08258C;
   border-color: #FFFFFF;
+}
+
+.table-event {
+ /* font-size: 10px;*/
+  margin: auto;
+  width: 75% 
 }
 
