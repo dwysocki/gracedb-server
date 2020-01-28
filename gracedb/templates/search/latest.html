@@ -34,7 +34,7 @@
 
 {% if events %}
 
-<table class="table table-hover table-responsive table-event">
+<table class="table table-hover table-responsive table-latest">
   <thead class="thead-light">
     <tr>
         <th>UID</th>
@@ -55,7 +55,7 @@
 
 {% for ev in events %}
   <tbody>
-    <tr data-toggle="collapse" data-target="#{{ ev.graceid }}" class="accordian-toggle">
+    <tr data-toggle="collapse" data-target="#{{ ev.graceid }}" class="accordian-toggle collapse-row collapsed">
         <td><a href="{% url "view" ev.graceid %}">{{ ev.graceid }}</a></td>
         <td>
              {% for labelling in ev.labelling_set.all %}
@@ -126,7 +126,7 @@
 {% elif superevents %}
 
 <!-- Superevent listing -->
-<table class="table table-hover table-responsive table-event">
+<table class="table table-hover table-responsive table-latest">
   <thead class="thead-light">
     <tr>
         <th>UID</th>
@@ -146,7 +146,7 @@
 
 {% for sv in superevents %}
   <tbody>
-    <tr data-toggle="collapse" data-target="#{{ sv.superevent_id }}" class="accordian-toggle">
+    <tr data-toggle="collapse" data-target="#{{ sv.superevent_id }}" class="accordian-toggle collapse-row collapsed">
 
         <td><a href="{% url "superevents:view" sv.superevent_id %}">{{ sv.superevent_id }}</a></td>
         <td>
@@ -214,7 +214,7 @@
              <br>
              <a href="{% url "superevents:view" sv.superevent_id %}" class="btn btn-primary" role="button">Continue to {{ sv.superevent_id }} Superevent Page</a>
 
-            <!-- Superevent Table -->
+            <!-- Preferred Event Table -->
             <br>
             <br>
             <table class="table-sm">
@@ -226,7 +226,7 @@
              <tbody>
                <tr>
                  <td><b>Event ID:</b></td>
-                 <td>{{ sv.preferred_event.graceid }}</td>
+                 <td><a href="{% url "view" sv.preferred_event.graceid %}">{{ sv.preferred_event.graceid }}</a></td>
                </tr>
     
                <tr>
@@ -257,6 +257,12 @@
                  <td>{{sngl.snr|floatformat:"-2"}}</td>
                </tr>
                {% endfor %}
+
+               {% elif sv.preferred_event.multiburstevent %}
+               <tr>
+                 <td><b>SNR:</b></td>
+                 <td>{{ sv.preferred_event.multiburstevent.snr|floatformat:"-2" }}</td>
+               </tr>
 
                {% endif %}
                <!-- end CoincInpsiralEvent Table -->
