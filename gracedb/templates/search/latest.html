@@ -26,7 +26,7 @@
 <form method="GET" name="search_form">
     <table>
         {{ form.as_table }}
-    <td><input type="Submit" value="Search" class="btn btn-secondamy"></td>
+    <td><center><input type="Submit" value="Search" class="btn btn-secondary"></center></td>
     </table>
 </form>
 <br>
@@ -65,7 +65,7 @@
         <td>{{ ev.pipeline.name }} </td>
         <td>{% if ev.gpstime%}
                 <!-- <span title="{{ ev.gpstime|gpsdate }}">{{ ev.gpstime }}</span> -->
-                {{ ev.gpstime|floatformat:"-1" }}
+                {{ ev.gpstime|floatformat:"0" }}
                 <!--{{ ev.gpstime|multiTimeMicroSeconds:"gps" }} -->
             {% endif %}</td>
         <!-- this is a bug. The far should be floored for display purposes. --> 
