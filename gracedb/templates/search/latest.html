@@ -26,9 +26,11 @@
 <form method="GET" name="search_form">
     <table>
         {{ form.as_table }}
-    <tr><td></td><td><input type="Submit" value="Search" class="searchButtonClass"></td></tr>
+    <td><input type="Submit" value="Search" class="btn btn-secondamy"></td>
     </table>
 </form>
+<br>
+<h5> Tap on entry for detailed information </h5>
 
 {% if events %}
 
@@ -63,7 +65,8 @@
         <td>{{ ev.pipeline.name }} </td>
         <td>{% if ev.gpstime%}
                 <!-- <span title="{{ ev.gpstime|gpsdate }}">{{ ev.gpstime }}</span> -->
-                {{ ev.gpstime|multiTimeMicroSeconds:"gps" }}
+                {{ ev.gpstime|floatformat:"-1" }}
+                <!--{{ ev.gpstime|multiTimeMicroSeconds:"gps" }} -->
             {% endif %}</td>
         <!-- this is a bug. The far should be floored for display purposes. --> 
         {% if user_is_external %}
@@ -83,7 +86,7 @@
             <table class="table-sm">
              <thead>
               <tr>
-               <th>Additional Event Information:<th>
+               <th>Additional Event Information<th>
               </tr>
              </thead>
              <tbody>
@@ -104,14 +107,14 @@
 
               <tr>
                <td><b>Latency:</b></td>
-               <td>{{ ev.reportingLatency }}</td>
+               <td>{{ ev.reportingLatency|floatformat:"-2" }}</td>
               </tr>
 
                </tr>
              </tbody>
              </table>
              <br>
-             <a href="{% url "view" ev.graceid %}" class="btn btn-primary" role="button">Continue to {{ev.graceid}} Event Page</a>
+             <a href="{% url "view" ev.graceid %}" class="btn btn-success" role="button">Continue to {{ev.graceid}} Event Page</a>
           </div> 
         </div></td>
     </tr>
@@ -156,7 +159,7 @@
         <td><a href="{% url "view" sv.preferred_event.graceid %}">{{ sv.preferred_event.graceid }}</a></td>
         {% endif %}
 
-        <td>{{ s.t_0 }} </td>
+        <td>{{ sv.t_0|floatformat:"-1" }} </td>
 
         {% if user_is_external %}
             {% if sv.preferred_event.far and sv.preferred_event.far < far_floor %} 
@@ -174,10 +177,12 @@
     <tr>
         <td colspan="6" class="hiddenRow"><div class="accordian-body collapse" id="{{ sv.superevent_id }}">
           <div class="container-sm p-3 my-3">
+
+            <!-- Superevent Table -->
             <table class="table-sm">
              <thead>
               <tr>
-               <th>Additional Superevent Information:<th>
+               <th>Additional Superevent Information<th>
               </tr>
              </thead>
              <tbody>
@@ -196,18 +201,71 @@
 
               <tr>
                <td><b>t<sub>start</sub>:</b></td>
-               <td>{{ sv.t_start }} </td>
+               <td>{{ sv.t_start|floatformat:"-1" }} </td>
               </tr>
 
               <tr>
                <td><b>t<sub>end</sub>:</b></td>
-               <td>{{ sv.t_end }} </td>
+               <td>{{ sv.t_end|floatformat:"-1" }} </td>
               </tr>
                </tr>
              </tbody>
              </table>
              <br>
-             <a href="{% url "superevents:view" sv.superevent_id %}" class="btn btn-primary" role="button">Continue to {{ sv.superevent_id }} Event Page</a>
+             <a href="{% url "superevents:view" sv.superevent_id %}" class="btn btn-primary" role="button">Continue to {{ sv.superevent_id }} Superevent Page</a>
+
+            <!-- Superevent Table -->
+            <br>
+            <br>
+            <table class="table-sm">
+             <thead>
+              <tr>
+               <th>Preferred Event Information<th>
+              </tr>
+             </thead>
+             <tbody>
+               <tr>
+                 <td><b>Event ID:</b></td>
+                 <td>{{ sv.preferred_event.graceid }}</td>
+               </tr>
+    
+               <tr>
+                 <td><b>Pipeline:</b></td>
+                 <td>{{ sv.preferred_event.pipeline }}</td>
+               </tr>
+
+               <tr>
+                 <td><b>Instruments:</b></td>
+                 <td>{{ sv.preferred_event.instruments }}</td>
+               </tr>
+
+               <!-- CoincInpsiralEvent Table -->
+               {% if sv.preferred_event.coincinspiralevent %}
+               <tr>
+                 <td><b>SNR:</b></td>
+                 <td>{{ sv.preferred_event.coincinspiralevent.snr|floatformat:"-2" }}</td>
+               </tr>
+
+               <tr>
+                 <td><b>Chrip Mass:</b></td>
+                 <td>{{ sv.preferred_event.coincinspiralevent.mchirp|floatformat:"-2" }}&nbsp;M<sub>&#x2299;</sub></td>
+               </tr>
+
+               {% for sngl in sv.preferred_event.coincinspiralevent.singleinspiral_set.all %}
+               <tr>
+                 <td><b>{{ sngl.ifo }} SNR:</b></td>
+                 <td>{{sngl.snr|floatformat:"-2"}}</td>
+               </tr>
+               {% endfor %}
+
+               {% endif %}
+               <!-- end CoincInpsiralEvent Table -->
+
+             </tbody>
+             </table>
+             <br>
+             <a href="{% url "view" sv.preferred_event.graceid %}" class="btn btn-success" role="button">Continue to {{ sv.preferred_event.graceid }} Event Page</a>
+
           </div> 
         </div></td>
     </tr>
