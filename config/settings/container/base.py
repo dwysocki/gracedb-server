@@ -115,6 +115,7 @@ DATABASES = {
             # NOTE: for mysql>=5.7 this will need to be changed to
             #'init_command': 'SET default_storage_engine=MyISAM',
         },
+        'CONN_MAX_AGE': 3600,
     }
 }
 
