@@ -74,6 +74,9 @@
         {% if object.trigger_duration %}
 		<tr><th>Trigger duration</th><td colspan="2">{{object.trigger_duration}}</td></tr>
         {% endif %}
+        {% if object.far %}
+		<tr><th>FAR (Hz)</th><td colspan="2">{{object.far}}</td></tr>
+        {% endif %}
         {% if object.t90 %}
 		<tr><th>T90</th><td colspan="2">{{object.t90}}</td></tr>
         {% endif %}

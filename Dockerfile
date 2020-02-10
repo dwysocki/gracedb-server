@@ -33,6 +33,7 @@ RUN apt-get update && \
         supervisor \
         libssl-dev \
         swig \
+        htop \
         vim && \
     apt-get clean && \
     npm install -g bower

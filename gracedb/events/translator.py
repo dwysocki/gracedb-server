@@ -646,5 +646,12 @@ def populateGrbEventFromVOEventFile(filename, event):
             break
     event.trigger_id = trigger_id
 
+    # Check for the existance of FAR in the VOEvent_params. if it exists,
+    # Then add it to the event. This change was made on 2/7/2020 in support
+    # of SWIFT event uploads. Note: FAR is in Hz.
+
+    if ('FAR' in VOEvent_params):
+        event.far = float(VOEvent_params.get('FAR').get('value'))
+
     # Save event
     event.save()
