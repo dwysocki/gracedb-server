@@ -88,3 +88,20 @@ Events and associated data may change or be removed at any time.
 <li>LVAlert messages are sent to lvalert-dev.cgca.uwm.edu.</li>
 </ul>
 """
+
+# AWS Elasticache settings:
+AWS_ELASTICACHE_ADDR = get_from_env('DJANGO_AWS_ELASTICACHE_ADDR')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': AWS_ELASTICACHE_ADDR,
+        'TIMEOUT': 30,
+        'KEY_PREFIX': "1",
+    },
+    # For API throttles
+    'throttles': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'api_throttle_cache', # Table name
+    },
+}

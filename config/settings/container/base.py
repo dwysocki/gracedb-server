@@ -84,20 +84,6 @@ AWS_SES_REGION_ENDPOINT = get_from_env('AWS_SES_REGION_ENDPOINT',
 AWS_SES_AUTO_THROTTLE = 0.25
 ALERT_EMAIL_FROM = get_from_env('DJANGO_ALERT_EMAIL_FROM')
 
-# AWS Elasticache settings:
-AWS_ELASTICACHE_ADDR = get_from_env('DJANGO_AWS_ELASTICACHE_ADDR')
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': AWS_ELASTICACHE_ADDR,
-    },
-    # For API throttles
-    'throttles': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'api_throttle_cache', # Table name
-    },
-}
 
 MIDDLEWARE = [
     'core.middleware.maintenance.MaintenanceModeMiddleware',
@@ -115,6 +101,21 @@ MIDDLEWARE = [
     'ligoauth.middleware.ShibbolethWebAuthMiddleware',
     'ligoauth.middleware.ControlRoomMiddleware',
 ]
+#AWS_ELASTICACHE_ADDR = get_from_env('DJANGO_AWS_ELASTICACHE_ADDR')
+#
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+#        'LOCATION': AWS_ELASTICACHE_ADDR,
+#        'TIMEOUT': 30,
+#        'KEY_PREFIX': CONFIG_NAME,
+#    },
+#    # For API throttles
+#    'throttles': {
+#        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+#        'LOCATION': 'api_throttle_cache', # Table name
+#    },
+#}
 
 
 # Priority server settings ----------------------------------------------------

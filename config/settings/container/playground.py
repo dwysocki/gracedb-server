@@ -42,3 +42,20 @@ A nightly cron job removes events older than 21 days.</li>
 # Safety check on debug mode for playground
 if (DEBUG == True):
     raise RuntimeError("Turn off debug mode for playground")
+
+# AWS Elasticache settings:
+AWS_ELASTICACHE_ADDR = get_from_env('DJANGO_AWS_ELASTICACHE_ADDR')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': AWS_ELASTICACHE_ADDR,
+        'TIMEOUT': 30,
+        'KEY_PREFIX': '3',
+    },
+    # For API throttles
+    'throttles': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'api_throttle_cache', # Table name
+    },
+}
