@@ -1,4 +1,4 @@
-FROM ligo/base:stretch
+FROM igwn/base:stretch
 LABEL name="LIGO GraceDB Django application" \
       maintainer="tanner.prestegard@ligo.org" \
       date="20190920"
@@ -33,6 +33,8 @@ RUN apt-get update && \
         supervisor \
         libssl-dev \
         swig \
+        htop \
+        telnet \
         vim && \
     apt-get clean && \
     npm install -g bower
