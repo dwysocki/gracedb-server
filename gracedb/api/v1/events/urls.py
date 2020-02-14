@@ -1,4 +1,6 @@
 from django.conf.urls import url, include
+# Turn off api caching:
+from django.views.decorators.cache import never_cache
 
 from .views import * 
 
@@ -6,76 +8,76 @@ from .views import *
 urlpatterns = [
     # Event Resources
     # events/[{graceid}[/{version}]]
-    url(r'^$', EventList.as_view(), name='event-list'),
-    url(r'^(?P<graceid>[GEHMT]\d+)$', EventDetail.as_view(),
+    url(r'^$', never_cache(EventList.as_view()), name='event-list'),
+    url(r'^(?P<graceid>[GEHMT]\d+)$', never_cache(EventDetail.as_view()),
         name='event-detail'),
     url(r'^(?P<graceid>[GEHMT]\d+)/update-grbevent/$',
-        GrbEventPatchView.as_view(), name='update-grbevent'),
+        never_cache(GrbEventPatchView.as_view()), name='update-grbevent'),
 
     # Event Log Resources
     # events/{graceid}/logs/[{logid}]
-    url(r'^(?P<graceid>[GEHMT]\d+)/log/$', EventLogList.as_view(),
+    url(r'^(?P<graceid>[GEHMT]\d+)/log/$', never_cache(EventLogList.as_view()),
         name='eventlog-list'),
     url(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)$',
-        EventLogDetail.as_view(), name='eventlog-detail'),
+        never_cache(EventLogDetail.as_view()), name='eventlog-detail'),
 
     # VOEvent Resources
     # events/{graceid}/voevent/[{serial_number}]
-    url(r'^(?P<graceid>[GEHMT]\d+)/voevent/$', VOEventList.as_view(),
+    url(r'^(?P<graceid>[GEHMT]\d+)/voevent/$', never_cache(VOEventList.as_view()),
         name='voevent-list'),
     url(r'^(?P<graceid>[GEHMT]\d+)/voevent/(?P<n>\d+)$',
-        VOEventDetail.as_view(), name='voevent-detail'),
+        never_cache(VOEventDetail.as_view()), name='voevent-detail'),
 
     # EMBB Resources
     # events/{graceid}/logs/[{logid}]
-    url(r'^(?P<graceid>[GEHMT]\d+)/embb/$', EMBBEventLogList.as_view(),
+    url(r'^(?P<graceid>[GEHMT]\d+)/embb/$', never_cache(EMBBEventLogList.as_view()),
         name='embbeventlog-list'),
     url(r'^(?P<graceid>[GEHMT]\d+)/embb/(?P<n>\d+)$',
-        EMBBEventLogDetail.as_view(), name='embbeventlog-detail'),
+        never_cache(EMBBEventLogDetail.as_view()), name='embbeventlog-detail'),
     url(r'^(?P<graceid>[GEHMT]\d+)/emobservation/$',
-        EMObservationList.as_view(), name='emobservation-list'),
+        never_cache(EMObservationList.as_view()), name='emobservation-list'),
     url(r'^(?P<graceid>[GEHMT]\d+)/emobservation/(?P<n>\d+)$',
-        EMObservationDetail.as_view(), name='emobservation-detail'),
+        never_cache(EMObservationDetail.as_view()), name='emobservation-detail'),
 #    url(r'(?P<graceid>[GEHMT]\d+)/emobservation/(?P<n>\d+)/emfootprint/$',
 #        EMFootprintList.as_view(), name='emfootprint-list'),
 #    url(r'(?P<graceid>[GEHMT]\d+)/emobservation/(?P<n>\d+)/emfootprint/(?P<m>\d+)$',
 #        EMFootprintDetail.as_view(), name='emfootprint-detail'),
 
     # Tag Resources
-    url(r'^(?P<graceid>[GEHMT]\d+)/tag/$', EventTagList.as_view(),
+    url(r'^(?P<graceid>[GEHMT]\d+)/tag/$', never_cache(EventTagList.as_view()),
         name='eventtag-list'),
     url(r'^(?P<graceid>[GEHMT]\d+)/tag/(?P<tagname>.+)$',
-        EventTagDetail.as_view(), name='eventtag-detail'),
+        never_cache(EventTagDetail.as_view()), name='eventtag-detail'),
     url(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)/tag/$',
-        EventLogTagList.as_view(), name='eventlogtag-list'),
+        never_cache(EventLogTagList.as_view()), name='eventlogtag-list'),
     url(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<n>\d+)/tag/(?P<tagname>.+)$',
-        EventLogTagDetail.as_view(), name='eventlogtag-detail'),
+        never_cache(EventLogTagDetail.as_view()), name='eventlogtag-detail'),
 
     # Permission Resources
     url(r'^(?P<graceid>[GEHMT]\d+)/perms/$',
-        EventPermissionList.as_view(), name='eventpermission-list'),
+        never_cache(EventPermissionList.as_view()), name='eventpermission-list'),
     url(r'^(?P<graceid>[GEHMT]\d+)/perms/(?P<group_name>.+)/$', 
-        GroupEventPermissionList.as_view(), name='groupeventpermission-list'),
+        never_cache(GroupEventPermissionList.as_view()), name='groupeventpermission-list'),
     url(r'^(?P<graceid>[GEHMT]\d+)/perms/(?P<group_name>.+)/(?P<perm_shortname>\w+)$', 
-        GroupEventPermissionDetail.as_view(), name='groupeventpermission-detail'),
+        never_cache(GroupEventPermissionDetail.as_view()), name='groupeventpermission-detail'),
 
     # Event File Resources
     # events/{graceid}/files/[{filename}[/{version}]]
     url(r'^(?P<graceid>\w[\d]+)/files/(?P<filename>.+)?$',
-        Files.as_view(), name="files"),
+        never_cache(Files.as_view()), name="files"),
 
     # Event Labels
     # events/{graceid}/labels/[{label}]
     url(r'^(?P<graceid>\w[\d]+)/labels/(?P<label>.+)?$',
-        EventLabel.as_view(), name="labels"),
+        never_cache(EventLabel.as_view()), name="labels"),
 
     # Event Neighbors
     # events/{graceid}/neighbors/[?delta=(N|(N,N))]
-    url(r'^(?P<graceid>\w[\d]+)/neighbors/$', EventNeighbors.as_view(),
+    url(r'^(?P<graceid>\w[\d]+)/neighbors/$', never_cache(EventNeighbors.as_view()),
         name="neighbors"),
 
     # Operator Signoff Resources
     url(r'^(?P<graceid>[GEHMT]\d+)/signoff/$',
-        OperatorSignoffList.as_view(), name='signoff-list'),
+        never_cache(OperatorSignoffList.as_view()), name='signoff-list'),
 
 ]
