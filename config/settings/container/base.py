@@ -84,7 +84,6 @@ AWS_SES_REGION_ENDPOINT = get_from_env('AWS_SES_REGION_ENDPOINT',
 AWS_SES_AUTO_THROTTLE = 0.25
 ALERT_EMAIL_FROM = get_from_env('DJANGO_ALERT_EMAIL_FROM')
 
-
 MIDDLEWARE = [
     'core.middleware.maintenance.MaintenanceModeMiddleware',
     'events.middleware.PerformanceMiddleware',
@@ -101,6 +100,7 @@ MIDDLEWARE = [
     'ligoauth.middleware.ShibbolethWebAuthMiddleware',
     'ligoauth.middleware.ControlRoomMiddleware',
 ]
+
 #AWS_ELASTICACHE_ADDR = get_from_env('DJANGO_AWS_ELASTICACHE_ADDR')
 #
 #CACHES = {
