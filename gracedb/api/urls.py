@@ -9,8 +9,8 @@ from .v2 import urls as v2_urls
 
 app_name = 'api'
 
-
 def never_cache_patterns(prefix, *args):
+    raise ValueError(prefix,args)
     pattern_list = [], tterns,
     for t in args:
         if isinstance(t, (list, tuple)): 
@@ -23,15 +23,20 @@ def never_cache_patterns(prefix, *args):
 
     return pattern_list
 
-
-urlpatterns = [
-    url(r'^', include((never_cache(v1_urls), 'default'))),
-    url(r'^v1/', include((never_cache(v1_urls), 'v1'))),
-    url(r'^v2/', include((never_cache(v2_urls), 'v2'))),
-]
+#urlpatterns = [
+#    url(r'^', include((never_cache(v1_urls), 'default'))),
+#    url(r'^v1/', include((never_cache(v1_urls), 'v1'))),
+#    url(r'^v2/', include((never_cache(v2_urls), 'v2'))),
+#]
 
 #urlpatterns = [
 #    url(r'^', include((v1_urls, 'default'))),
 #    url(r'^v1/', include((v1_urls, 'v1'))),
 #    url(r'^v2/', include((v2_urls, 'v2'))),
 #]
+
+urlpatterns = [
+    url(r'^', include((v1_urls, 'default'))),
+    url(r'^v1/', never_cache(include((v1_urls, 'v1')))),
+    url(r'^v2/', never_cache(include((v2_urls, 'v2')))),
+]
