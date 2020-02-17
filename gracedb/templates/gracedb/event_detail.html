@@ -44,7 +44,7 @@
 <div id='event_detail_content'>
 {% if object.offline %}
 <div style="text-align: center;">
-    <h2 style="color: red;">OFFLINE EVENT</h2>
+    <h3 style="color: red;">OFFLINE EVENT</h3>
 </div>
 {% endif %}
 
@@ -59,7 +59,7 @@
 <form action="{% url "modify_permissions" object.graceid %}" method="post">
     <input type="hidden" name="group_name" value="{{ lvem_group_name }}">
     <input type="hidden" name="action" value="expose">
-    <input type="submit" value="Expose this event to LV-EM" class="permButtonClass">
+    <button type="button" class="btn btn-danger">Expose this event to LV-EM</button>
 </form>
 </div>
 {% elif can_protect_from_lvem %}
@@ -67,7 +67,7 @@
 <form action="{% url "modify_permissions" object.graceid %}" method="post">
     <input type="hidden" name="group_name" value="{{ lvem_group_name }}">
     <input type="hidden" name="action" value="protect">
-    <input type="submit" value="Revoke LV-EM permissions for this event" class="permButtonClass">
+    <button type="button" class="btn btn-warning">Revoke LV-EM permissions for this event</button>
 </form>
 </div>
 {% endif %}
@@ -177,25 +177,28 @@
 
 <div class="content-area">
 {% block basic_info %}
-<h2> Basic Info </h2>
+<br>
+<br>
+<h4> Basic Info </h4>
 
-<table class="event">
+<table class="table table-bordered-sm">
+    <thead class="thead-dark">
     <tr>
-            <th valign="top">UID</th>
-            <th>Labels</th>
-            <th>Group</th>
-            <th>Pipeline</th>
-            <th>Search</th>
-            <th>Instruments</th>
-            <th>
+            <th scope="col" valign="top">UID</th>
+            <th scope="col">Labels</th>
+            <th scope="col">Group</th>
+            <th scope="col">Pipeline</th>
+            <th scope="col">Search</th>
+            <th scope="col" >Instruments</th>
+            <th scope="col">
                 <div id="basic_info_event_ts"></div>
                 <div> Event Time </div>
             </th>
-            <th>FAR (Hz)</th>
-            <th>FAR (yr<sup>-1</sup>)</th>
-            <th> Latency (s) </th>
-            <th>Links</th>
-            <th>
+            <th scope="col">FAR (Hz)</th>
+            <th scope="col">FAR (yr<sup>-1</sup>)</th>
+            <th scope="col"> Latency (s) </th>
+            <th scope="col">Links</th>
+            <th scope="col">
                 <div id="basic_info_created_ts"></div>
                 <div> Submitted </div>
             </th>
@@ -203,6 +206,7 @@
             <th>Superevent</th>
             {% endif %}
     </tr>
+    </thead>
     <tr>
         <td>{{ object.graceid }}</td>
         <td>
