@@ -61,3 +61,8 @@ if sentry_dsn is not None:
 # Safety check on debug mode for production
 if (DEBUG == True):
     raise RuntimeError("Turn off debug mode for production")
+
+
+# Set elasticache prefix if the correct variables are set.
+if AWS_ELASTICACHE_ADDR:
+    CACHES['default']['KEY_PREFIX'] = '4'

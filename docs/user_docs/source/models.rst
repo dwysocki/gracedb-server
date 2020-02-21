@@ -12,7 +12,7 @@ The different types of events in GraceDB are distinguished by the following para
 - ``Group``: the working group responsible for finding the candidate
     - values: ``CBC``, ``Burst``, ``External``, ``Test`` 
 - ``Pipeline``: the data analysis software tool used make the detection 
-    - values: ``MBTAOnline``, ``CWB``, ``CWB2G``, ``gstlal``, ``spiir``, ``HardwareInjection``, ``Fermi``, ``Swift``, ``SNEWS``, ``oLIB``
+    - values: ``MBTAOnline``, ``CWB``, ``CWB2G``, ``gstlal``, ``spiir``, ``HardwareInjection``, ``Fermi``, ``Swift``, ``INTEGRAL``, ``AGILE``, ``SNEWS``, ``oLIB``
 - ``Search``: the search activity which led to the detection 
     - values: ``AllSky``, ``AllSkyLong``, ``LowMass``, ``HighMass``, ``GRB``, ``Supernova``, ``MDC``, ``BBH``
 
