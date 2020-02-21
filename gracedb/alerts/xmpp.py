@@ -8,6 +8,7 @@ import sys
 
 from django.core.mail import EmailMessage
 from django.conf import settings
+from xml.sax.saxutils import escape
 
 from core.time_utils import gpsToUtc
 from events.permission_utils import is_external
@@ -92,6 +93,9 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
     # Dump to JSON format:
     # simplejson.dumps is needed to properly handle Decimal fields
     msg = simplejson.dumps(lva_data)
+  
+    # Try 'escaping' the message:
+    msg = escape(msg)
 
     # Log message for debugging
     logger.info("issue_xmpp_alerts: sending message {msg} for {uid}" \

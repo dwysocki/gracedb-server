@@ -85,6 +85,7 @@ AWS_SES_AUTO_THROTTLE = 0.25
 ALERT_EMAIL_FROM = get_from_env('DJANGO_ALERT_EMAIL_FROM')
 
 
+
 # Priority server settings ----------------------------------------------------
 PRIORITY_SERVER = False
 is_priority_server = get_from_env('DJANGO_PRIORITY_SERVER', None,
@@ -118,6 +119,64 @@ DATABASES = {
         'CONN_MAX_AGE': 3600,
     }
 }
+
+
+# Adding a fun conditional to control Amazon AWS Elasticache settings.
+# Here's the logic: 
+#  1) check for the existence of the DJANGO_AWS_ELASTICACHE_ADDR address
+#     variable. If it's present, then load the CACHE settings and MIDDLEWARE
+#     settings required for AWS elasticache'ing
+#
+#  2) Check for the existence of DJANGO_AWS_ELASTICACHE_TIMEOUT variable. This
+#     will control the cache timeout. If it's not set, default to 30s.
+#
+#  3) If not, default to old cache settings, which is effectively no-caches. 
+
+try:
+    AWS_ELASTICACHE_ADDR = get_from_env('DJANGO_AWS_ELASTICACHE_ADDR')
+
+    # I *think* if the variable isn't set, then that should raise an exception 
+    # and then it should skip the rest:
+
+    try:
+        AWS_ELASTICACHE_TIMEOUT = get_from_env('DJANGO_AWS_ELASTICACHE_TIMEOUT')
+    except:
+        AWS_ELASTICACHE_TIMEOUT = 30
+
+    # Load modified caching middleware:
+    MIDDLEWARE = [
+        'core.middleware.maintenance.MaintenanceModeMiddleware',
+        'events.middleware.PerformanceMiddleware',
+        'core.middleware.accept.AcceptMiddleware',
+        'core.middleware.api.ClientVersionMiddleware',
+        'core.middleware.api.CliExceptionMiddleware',
+        'django.middleware.cache.UpdateCacheMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.cache.FetchFromCacheMiddleware',
+        'core.middleware.proxy.XForwardedForMiddleware',
+        'user_sessions.middleware.SessionMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'ligoauth.middleware.ShibbolethWebAuthMiddleware',
+        'ligoauth.middleware.ControlRoomMiddleware',
+    ]
+
+    # Set caches:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+            'LOCATION': AWS_ELASTICACHE_ADDR,
+            'TIMEOUT': AWS_ELASTICACHE_TIMEOUT,
+            'KEY_PREFIX': 'NULL',
+        },
+        # For API throttles
+        'throttles': {
+            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+            'LOCATION': 'api_throttle_cache', # Table name
+        },    
+    }
+except:
+    pass
 
 # Main server "hostname" - a little hacky but OK
 SERVER_HOSTNAME = SERVER_FQDN.split('.')[0]

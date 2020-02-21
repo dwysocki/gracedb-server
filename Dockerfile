@@ -1,4 +1,4 @@
-FROM ligo/base:stretch
+FROM igwn/base:stretch
 LABEL name="LIGO GraceDB Django application" \
       maintainer="tanner.prestegard@ligo.org" \
       date="20190920"
@@ -34,6 +34,7 @@ RUN apt-get update && \
         libssl-dev \
         swig \
         htop \
+        telnet \
         vim && \
     apt-get clean && \
     npm install -g bower
@@ -96,6 +97,7 @@ RUN DJANGO_SETTINGS_MODULE=${SETTINGS_MODULE} \
     LVALERT_OVERSEER_PORT=2 \
     DJANGO_TWILIO_ACCOUNT_SID=fake_sid \
     DJANGO_TWILIO_AUTH_TOKEN=fake_token \
+    DJANGO_AWS_ELASTICACHE_ADDR=fake_address:11211 \
     AWS_SES_ACCESS_KEY_ID=fake_aws_id \
     AWS_SES_SECRET_ACCESS_KEY=fake_aws_key \
     python3 manage.py collectstatic --noinput

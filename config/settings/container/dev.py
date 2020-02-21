@@ -87,3 +87,6 @@ Events and associated data may change or be removed at any time.
 <li>LVAlert messages are sent to lvalert-dev.cgca.uwm.edu.</li>
 </ul>
 """
+
+if AWS_ELASTICACHE_ADDR:
+    CACHES['default']['KEY_PREFIX'] = '1'

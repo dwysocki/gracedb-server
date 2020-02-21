@@ -1,4 +1,5 @@
 from django.conf.urls import url, include
+from django.views.decorators.cache import never_cache
 
 from .views import *
 from .settings import SUPEREVENT_LOOKUP_REGEX
@@ -13,94 +14,94 @@ SUPEREVENT_DETAIL_ROOT = '(?P<{lookup_url_kwarg}>{regex})'.format(
 # These are included under a superevent's id URL prefix (see below)
 suburlpatterns = [
     # Superevent detail and update
-    url(r'^$', SupereventViewSet.as_view({'get': 'retrieve',
-        'patch': 'partial_update'}), name='superevent-detail'),
+    url(r'^$', never_cache(SupereventViewSet.as_view({'get': 'retrieve',
+        'patch': 'partial_update'})), name='superevent-detail'),
     # Superevent GW confirmation
-    url(r'^confirm-as-gw/$', SupereventViewSet.as_view(
-        {'post': 'confirm_as_gw'}), name='superevent-confirm-as-gw'),
+    url(r'^confirm-as-gw/$', never_cache(SupereventViewSet.as_view(
+        {'post': 'confirm_as_gw'})), name='superevent-confirm-as-gw'),
 
     # Event list and creation (addition to superevent)
-    url(r'^events/$', SupereventEventViewSet.as_view({'get': 'list',
-        'post': 'create'}), name='superevent-event-list'),
+    url(r'^events/$', never_cache(SupereventEventViewSet.as_view({'get': 'list',
+        'post': 'create'})), name='superevent-event-list'),
     # Event detail and delete (remove from superevent)
     url(r'^events/(?P<{lookup_url_kwarg}>[GEHMT]\d+)/$'.format(
         lookup_url_kwarg=SupereventEventViewSet.lookup_url_kwarg),
-        SupereventEventViewSet.as_view({'get': 'retrieve',
-        'delete': 'destroy'}), name='superevent-event-detail'),
+        never_cache(SupereventEventViewSet.as_view({'get': 'retrieve',
+        'delete': 'destroy'})), name='superevent-event-detail'),
 
     # Labelling list and creation
-    url(r'^labels/$', SupereventLabelViewSet.as_view({'get': 'list',
-        'post': 'create'}), name='superevent-label-list'),
+    url(r'^labels/$', never_cache(SupereventLabelViewSet.as_view({'get': 'list',
+        'post': 'create'})), name='superevent-label-list'),
     # Labelling detail and deletion
     url(r'^labels/(?P<{lookup_url_kwarg}>.+)/$'.format(lookup_url_kwarg=
         SupereventLabelViewSet.lookup_url_kwarg),
-        SupereventLabelViewSet.as_view({'get': 'retrieve',
-        'delete': 'destroy'}), name='superevent-label-detail'),
+        never_cache(SupereventLabelViewSet.as_view({'get': 'retrieve',
+        'delete': 'destroy'})), name='superevent-label-detail'),
 
     # Log list and creation
-    url(r'^logs/$', SupereventLogViewSet.as_view({'get': 'list',
-        'post': 'create'}), name='superevent-log-list'),
+    url(r'^logs/$', never_cache(SupereventLogViewSet.as_view({'get': 'list',
+        'post': 'create'})), name='superevent-log-list'),
     # Log detail
     url(r'^logs/(?P<{lookup_url_kwarg}>\d+)/$'.format(lookup_url_kwarg=
-        SupereventLogViewSet.lookup_url_kwarg), SupereventLogViewSet.as_view({
-        'get': 'retrieve'}), name='superevent-log-detail'),
+        SupereventLogViewSet.lookup_url_kwarg), never_cache(SupereventLogViewSet.as_view({
+        'get': 'retrieve'})), name='superevent-log-detail'),
     # Tag list (for log) and creation (addition of tag to log)
     url(r'^logs/(?P<{lookup_url_kwarg}>\d+)/tags/$'.format(
         lookup_url_kwarg=SupereventLogViewSet.lookup_url_kwarg),
-        SupereventLogTagViewSet.as_view({'get': 'list', 'post': 'create'}),
+        never_cache(SupereventLogTagViewSet.as_view({'get': 'list', 'post': 'create'})),
         name='superevent-log-tag-list'),
     # Tag detail and deletion (removal of tag from log)
     url(r'^logs/(?P<{log_lookup}>\d+)/tags/(?P<{tag_lookup}>.+)/$'.format(
         log_lookup=SupereventLogViewSet.lookup_url_kwarg, tag_lookup=
         SupereventLogTagViewSet.lookup_url_kwarg),
-        SupereventLogTagViewSet.as_view({'get': 'retrieve',
-        'delete': 'destroy'}), name='superevent-log-tag-detail'),
+        never_cache(SupereventLogTagViewSet.as_view({'get': 'retrieve',
+        'delete': 'destroy'})), name='superevent-log-tag-detail'),
 
     # File list
-    url(r'^files/$', SupereventFileViewSet.as_view({'get': 'list',}),
+    url(r'^files/$', never_cache(SupereventFileViewSet.as_view({'get': 'list',})),
         name='superevent-file-list'),
     # File detail (download)
     url(r'^files/(?P<{lookup_url_kwarg}>.+)$'.format(lookup_url_kwarg=
-        SupereventFileViewSet.lookup_url_kwarg), SupereventFileViewSet.as_view(
-        {'get': 'retrieve'}), name='superevent-file-detail'),
+        SupereventFileViewSet.lookup_url_kwarg), never_cache(SupereventFileViewSet.as_view(
+        {'get': 'retrieve'})), name='superevent-file-detail'),
     # Note: no option for POST since file uploads should be handled
     # by writing a log message
 
     # VOEvent list and creation
-    url(r'^voevents/$', SupereventVOEventViewSet.as_view({'get': 'list',
-        'post': 'create'}), name='superevent-voevent-list'),
+    url(r'^voevents/$', never_cache(SupereventVOEventViewSet.as_view({'get': 'list',
+        'post': 'create'})), name='superevent-voevent-list'),
     # VOEvent detail
     url(r'^voevents/(?P<{lookup_url_kwarg}>\d+)/$'.format(lookup_url_kwarg=
         SupereventVOEventViewSet.lookup_url_kwarg),
-        SupereventVOEventViewSet.as_view({'get': 'retrieve'}),
+        never_cache(SupereventVOEventViewSet.as_view({'get': 'retrieve'})),
         name='superevent-voevent-detail'),
 
     # EMObservation list and creation
-    url(r'^emobservations/$', SupereventEMObservationViewSet.as_view(
-        {'get': 'list', 'post': 'create'}),
+    url(r'^emobservations/$', never_cache(SupereventEMObservationViewSet.as_view(
+        {'get': 'list', 'post': 'create'})),
         name='superevent-emobservation-list'),
     # EMObservation detail
     url(r'^emobservations/(?P<{lookup_url_kwarg}>\d+)/$'.format(
         lookup_url_kwarg=SupereventEMObservationViewSet.lookup_url_kwarg),
-        SupereventEMObservationViewSet.as_view({'get': 'retrieve'}),
+        never_cache(SupereventEMObservationViewSet.as_view({'get': 'retrieve'})),
         name='superevent-emobservation-detail'),
 
     # Signoff list and creation
-    url(r'signoffs/$', SupereventSignoffViewSet.as_view(
-        {'get': 'list', 'post': 'create'}), name='superevent-signoff-list'),
+    url(r'signoffs/$', never_cache(SupereventSignoffViewSet.as_view(
+        {'get': 'list', 'post': 'create'})), name='superevent-signoff-list'),
     # Signoff detail
     url(r'signoffs/(?P<{lookup_url_kwarg}>.+)/$'.format(lookup_url_kwarg=
         SupereventSignoffViewSet.lookup_url_kwarg),
-        SupereventSignoffViewSet.as_view({'get': 'retrieve',
-        'patch': 'partial_update', 'delete': 'destroy'}),
+        never_cache(SupereventSignoffViewSet.as_view({'get': 'retrieve',
+        'patch': 'partial_update', 'delete': 'destroy'})),
         name='superevent-signoff-detail'),
 
     # Permissions list and creation
-    url(r'permissions/$', SupereventGroupObjectPermissionViewSet.as_view(
-        {'get': 'list'}), name='superevent-permission-list'),
+    url(r'permissions/$', never_cache(SupereventGroupObjectPermissionViewSet.as_view(
+        {'get': 'list'})), name='superevent-permission-list'),
     # Permissions modification (expose/hide superevent).
     url(r'^permissions/modify/$',
-        SupereventGroupObjectPermissionViewSet.as_view({'post': 'modify'}),
+        never_cache(SupereventGroupObjectPermissionViewSet.as_view({'post': 'modify'})),
         name='superevent-permission-modify'),
 ]
 
@@ -108,7 +109,7 @@ suburlpatterns = [
 urlpatterns = [
 
     # Superevent list and creation
-    url(r'^$', SupereventViewSet.as_view({'get': 'list', 'post': 'create'}),
+    url(r'^$', never_cache(SupereventViewSet.as_view({'get': 'list', 'post': 'create'})),
         name='superevent-list'),
 
     # All sub-URLs for a single superevent

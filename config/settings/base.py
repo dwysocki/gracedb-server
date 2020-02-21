@@ -26,7 +26,7 @@ MAINTENANCE_MODE = False
 MAINTENANCE_MODE_MESSAGE = None
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.8.2'
+PROJECT_VERSION = '2.8.3'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -198,6 +198,8 @@ COINC_PIPELINES = [
 GRB_PIPELINES = [
                     'Fermi',
                     'Swift',
+                    'INTEGRAL',
+                    'AGILE',
                 ]
 
 # VOEvent stream --------------------------------------------------------------
@@ -386,8 +388,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_THROTTLE_RATES': {
         'anon_burst': '300/minute',
-        'event_creation': '10/second',
-        'annotation'    : '10/second',
+        'event_creation': '25/second',
+        'annotation'    : '25/second',
     },
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'api.backends.GraceDbAuthenticatedAuthentication',

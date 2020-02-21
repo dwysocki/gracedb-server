@@ -8,20 +8,23 @@ from .main.views import GracedbRoot, PerformanceInfo, TagList, UserInfoView, \
 from .events import urls as event_urls
 from .superevents import urls as superevent_urls
 
+# Turn off api caching:
+from django.views.decorators.cache import never_cache
+
 
 urlpatterns = [
     # Root level API resources ------------------------------------------------
     # API root
-    url(r'^$', GracedbRoot.as_view(), name="root"),
+    url(r'^$', never_cache(GracedbRoot.as_view()), name="root"),
 
     # User information
-    url(r'^user-info/', UserInfoView.as_view(), name='user-info'),
+    url(r'^user-info/', never_cache(UserInfoView.as_view()), name='user-info'),
 
     # Tags
-    url(r'^tag/', TagList.as_view(), name='tag-list'),
+    url(r'^tag/', never_cache(TagList.as_view()), name='tag-list'),
 
     # Performance stats
-    url(r'^performance/', PerformanceInfo.as_view(), name='performance-info'),
+    url(r'^performance/', never_cache(PerformanceInfo.as_view()), name='performance-info'),
 
     # Certificate debugging
     #url(r'^cert-debug/', CertDebug.as_view(), name='cert-debug'),

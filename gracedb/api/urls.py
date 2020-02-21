@@ -5,7 +5,6 @@ from .v2 import urls as v2_urls
 
 app_name = 'api'
 
-
 urlpatterns = [
     url(r'^', include((v1_urls, 'default'))),
     url(r'^v1/', include((v1_urls, 'v1'))),

@@ -87,3 +87,6 @@ to Playground or Production. Note, on this GraceDB instance:
 <li>LVAlert messages are sent to lvalert-test.cgca.uwm.edu.</li>
 </ul>
 """
+
+if AWS_ELASTICACHE_ADDR:
+    CACHES['default']['KEY_PREFIX'] = '2'

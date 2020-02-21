@@ -34,6 +34,7 @@ before_script:
     DJANGO_SETTINGS_MODULE: "config.settings.container.dev"
     DJANGO_TWILIO_ACCOUNT_SID: "fake_sid"
     DJANGO_TWILIO_AUTH_TOKEN: "fake_token"
+    DJANGO_AWS_ELASTICACHE_ADDR: "fake_server:80"
     LVALERT_OVERSEER_PORT: "2"
     LVALERT_SERVER: "fake_server"
     LVALERT_USER: "fake_user"
