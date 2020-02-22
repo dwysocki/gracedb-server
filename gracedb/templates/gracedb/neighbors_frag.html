@@ -1,15 +1,16 @@
 {% load timeutil %}
 {% load scientific %}
 <div id="neighbors" class="content-area">
-<h2>Neighbors &nbsp;
+<h5>Neighbors &nbsp;
     <span data-dojo-type="dijit/InlineEditBox"
         data-dojo-props="editor:'dijit/form/TextBox', editorParams:{constraints:{places:0} }" width="100px" 
         title="window"
-        onchange="refresh_neighbors(this.value)">{{neighbor_delta}}</span></h2>
+        onchange="refresh_neighbors(this.value)">{{neighbor_delta}}</span></h5>
 
 {% if nearby %}
 
-<table class="event">
+<table class="table table-responsive table-sm w-auto table-detail table-hover">
+  <thead class="thead-dark">
     <tr>
             <th valign="top">UID</th>
             <th>Labels</th>
@@ -29,6 +30,7 @@
                 <div> Submitted </div>
             </th>
     </tr>
+  </thead>
     {% for delta, object in nearby %}
     <tr class={% cycle 'odd' 'even' %}>
         <td><a href="{% url "view" object.graceid %}">{{ object.graceid }}</a></td>

@@ -11,3 +11,19 @@
   border-color: #FFFFFF;
 }
 
+.table-latest {
+  /*font-size: 12px;*/
+  border-collapse: separate;
+  border-spacing: 0px;
+  margin: auto;
+  width: 75% 
+}
+
+.collapse-row.collapsed + tr {
+  display: none;
+}
+
+.table-detail {
+  font-size: 12px;
+  font-stretch: condensed;
+}  
