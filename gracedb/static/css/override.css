@@ -21,3 +21,8 @@
 .collapse-row.collapsed + tr {
   display: none;
 }
+
+.table-detail {
+  font-size: 12px;
+  font-stretch: condensed;
+}  
