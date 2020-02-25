@@ -2,7 +2,6 @@
 from .base import *
 
 DEBUG = False
-CONFIG_NAME="PROD"
 
 # Turn on alerts
 SEND_XMPP_ALERTS = True
