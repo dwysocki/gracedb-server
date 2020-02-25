@@ -5,8 +5,14 @@
     background-color: white;
 }
 
+body {
+  background-color: #f2f4f8;
+  font: 12px;
+}
+
 .navbar-gracedb {
-  background-color: #08258C;
+  /*background-color: #08258C; */
+  background-color: #336699;
   border-color: #FFFFFF;
 }
 
