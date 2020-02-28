@@ -1,5 +1,18 @@
 import os
+import logging
+from retry import retry
 
+# Set up logger
+logger = logging.getLogger(__name__)
+
+# This is a bandaid to overcome some very very 
+# intermittent errors we've been seeing on AWS. 
+# I'm going to let this play on playground and test 
+# and if it doesn't fail castastropically, I'll
+# move it into production before the root cause 
+# can be determined.
+
+@retry(tries=5, delay=0.25, logger=logger)
 def get_file_list(logs, file_dir):
     """
     For a queryset of logs (corresponding to a single event or superevent),
