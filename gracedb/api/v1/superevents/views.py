@@ -51,6 +51,9 @@ from ..paginators import BasePaginationFactory, CustomLabelPagination, \
     CustomLogTagPagination
 from ...utils import api_reverse
 
+# Import rety decorator
+from retry import retry
+
 # Set up logger
 logger = logging.getLogger(__name__)
 
@@ -270,6 +273,14 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
 
         return Response(file_dict)
 
+    # This is a bandaid to overcome some very very
+    # intermittent errors we've been seeing on AWS.
+    # I'm going to let this play on playground and test
+    # and if it doesn't fail castastropically, I'll
+    # move it into production before the root cause
+    # can be determined.
+    
+    @retry(tries=5, delay=0.25, logger=logger)
     def retrieve(self, request, *args, **kwargs):
         # Get parent superevent
         parent_superevent = self.get_parent_object()
