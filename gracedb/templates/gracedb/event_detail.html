@@ -41,7 +41,6 @@
 {% endblock %}
 
 <!-- AEP starting container div -->
-<div class="container-fluid">
     {% block content %}
     <div id='event_detail_content'>
     {% if object.offline %}
@@ -183,14 +182,16 @@
     {% endif %} {# lvem_view not in request.path #}
     
     
-    <div class="content-area align-items-center">
     {% block basic_info %}
     <br>
     <br>
-    <h5> Basic Event Information </h5>
+    <div class="table-responsive table-detail">
     
-    <table class="table table-responsive table-sm w-auto table-detail">
+    <table class="table table-sm table-detail">
         <thead class="thead-dark">
+        <tr>
+         <th colspan="23" class="table-detail-th"> <h5>Basic Event Information</h5> </th>
+        </tr>
         <tr>
                 <th scope="col" valign="top">UID</th>
                 <th scope="col">Labels</th>
@@ -241,8 +242,8 @@
             {% endif %}
         </tr>
     </table>
-    {% endblock %}
     </div>
+    {% endblock %}
     
     <div class="content-area">
     {% if user_is_external %}
@@ -293,4 +294,3 @@
     </div> <!-- end event_detail_content div -->
     {% endblock %}
 
-<div>
