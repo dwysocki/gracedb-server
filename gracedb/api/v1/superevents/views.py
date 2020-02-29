@@ -256,6 +256,14 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
         return get_objects_for_user(self.request.user,
             'superevents.view_log', log_queryset)
 
+    # This is a bandaid to overcome some very very
+    # intermittent errors we've been seeing on AWS.
+    # I'm going to let this play on playground and test
+    # and if it doesn't fail castastropically, I'll
+    # move it into production before the root cause
+    # can be determined.
+    
+    @retry(tries=5, delay=0.25, logger=logger)
     def list(self, request, *args, **kwargs):
         # Get logs which are viewable by the current user and
         # have files attached
