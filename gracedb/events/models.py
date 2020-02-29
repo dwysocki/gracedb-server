@@ -105,8 +105,8 @@ class PipelineLog(models.Model):
         (PIPELINE_LOG_ACTION_DISABLE, 'disable'),
         (PIPELINE_LOG_ACTION_ENABLE, 'enable'),
     )
-    creator = models.ForeignKey(UserModel)
-    pipeline = models.ForeignKey(Pipeline)
+    creator = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+    pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     action = models.CharField(max_length=10,
         choices=PIPELINE_LOG_ACTION_CHOICES)
@@ -173,9 +173,9 @@ class Event(models.Model):
 #    )
     DEFAULT_EVENT_NEIGHBORHOOD = (-5,5)
 
-    submitter = models.ForeignKey(UserModel)
+    submitter = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
-    group = models.ForeignKey(Group)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
     #uid = models.CharField(max_length=20, default="")  # XXX deprecated.  should be removed.
     #analysisType = models.CharField(max_length=20, choices=ANALYSIS_TYPE_CHOICES)
 
@@ -188,8 +188,8 @@ class Event(models.Model):
     # that creates this column. After that, we can safely remove it.
     # The presence or absence of the default value has no effect on the DB
     # tables, so removing it does not necessitate a migration.
-    pipeline = models.ForeignKey(Pipeline) 
-    search = models.ForeignKey(Search, null=True)
+    pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE) 
+    search = models.ForeignKey(Search, null=True, on_delete=models.CASCADE)
 
     # from coinc_event
     instruments = models.CharField(max_length=20, default="")
@@ -471,7 +471,7 @@ class EventLog(CleanSaveModel, LogBase, AutoIncrementModel):
     AUTO_CONSTRAINTS = ('event',)
 
     # Extra fields
-    event = models.ForeignKey(Event, null=False)
+    event = models.ForeignKey(Event, null=False, on_delete=models.CASCADE)
     tags = models.ManyToManyField('Tag', related_name='event_logs')
 
     class Meta(LogBase.Meta):
@@ -509,11 +509,11 @@ class EMObservationBase(models.Model):
     N = models.IntegerField(null=False, editable=False)
     created = models.DateTimeField(auto_now_add=True)
     submitter  = models.ForeignKey(UserModel, null=False,
-        related_name='%(app_label)s_%(class)s_set')
+        related_name='%(app_label)s_%(class)s_set', on_delete=models.CASCADE)
 
     # The MOU group responsible 
     group = models.ForeignKey(EMGroup, null=False,
-        related_name='%(app_label)s_%(class)s_set')
+        related_name='%(app_label)s_%(class)s_set', on_delete=models.CASCADE)
 
     # The following fields should be calculated from the footprint info
     # provided by the user. These fields are just for convenience and
@@ -635,8 +635,8 @@ class Labelling(m2mThroughBase):
     """
     Model which provides the "through" relationship between Events and Labels.
     """
-    event = models.ForeignKey(Event)
-    label = models.ForeignKey(Label)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    label = models.ForeignKey(Label, on_delete=models.CASCADE)
 
     def __str__(self):
         return six.text_type(
@@ -711,7 +711,7 @@ class LalInferenceBurstEvent(Event):
     frequency_median    = models.FloatField(null=True)
 
 class SingleInspiral(models.Model):
-    event             = models.ForeignKey(Event, null=False)
+    event             = models.ForeignKey(Event, null=False, on_delete=models.CASCADE)
     ifo               = models.CharField(max_length=20, null=True)
     search            = models.CharField(max_length=20, null=True)
     channel           = models.CharField(max_length=100, blank=True)
@@ -970,7 +970,7 @@ class VOEventBase(CleanSaveModel):
     # Fields
     created = models.DateTimeField(auto_now_add=True)
     issuer = models.ForeignKey(UserModel, null=False,
-        related_name='%(app_label)s_%(class)s_set')
+        related_name='%(app_label)s_%(class)s_set', on_delete=models.CASCADE)
     ivorn = models.CharField(max_length=200, default="", blank=True,
         editable=False)
     filename = models.CharField(max_length=100, default="", blank=True,
@@ -1088,7 +1088,7 @@ class SignoffBase(models.Model):
 
     # Field definitions
     submitter = models.ForeignKey(UserModel, related_name=
-        '%(app_label)s_%(class)s_set')
+        '%(app_label)s_%(class)s_set', on_delete=models.CASCADE)
     comment = models.TextField(blank=True)
     instrument = models.CharField(max_length=2, blank=True,
         choices=INSTRUMENT_CHOICES)
@@ -1150,7 +1150,7 @@ class SignoffBase(models.Model):
 class Signoff(SignoffBase):
     """Class for Event signoffs"""
 
-    event = models.ForeignKey(Event)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('event', 'instrument')
@@ -1249,13 +1249,13 @@ class EMBBEventLog(AutoIncrementModel):
     created = models.DateTimeField(auto_now_add=True)
 
     # The gracedb event that this Eel relates to
-    event = models.ForeignKey(Event)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
 
     # The responsible author of this communication
-    submitter  = models.ForeignKey(UserModel)  # from a table of people
+    submitter  = models.ForeignKey(UserModel, on_delete=models.CASCADE)  # from a table of people
 
     # The MOU group responsible 
-    group = models.ForeignKey(EMGroup)       # from a table of facilities
+    group = models.ForeignKey(EMGroup, on_delete=models.CASCADE)       # from a table of facilities
 
     # The instrument used or intended for the imaging implied by this footprint
     instrument = models.CharField(max_length=200, blank=True)

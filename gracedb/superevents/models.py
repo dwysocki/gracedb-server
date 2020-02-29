@@ -78,7 +78,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
     AUTO_CONSTRAINTS = ('t_0_date', 'category',)
 
     # Fields ------------------------------------------------------------------
-    submitter = models.ForeignKey(UserModel)
+    submitter = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
 
     # Type of superevent (Production, Test, MDC)
