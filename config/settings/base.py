@@ -52,7 +52,7 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 # BrokenLinkEmailsMiddleware is enabled
 ADMINS = [
     ("Alexander Pace", "alexander.pace@ligo.org"),
-    ("Duncan Meacher", "duncan.meacher@ligo.org"),
+#    ("Duncan Meacher", "duncan.meacher@ligo.org"),
 ]
 MANAGERS = ADMINS
 
@@ -319,6 +319,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'core.middleware.proxy.XForwardedForMiddleware',
     'user_sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'ligoauth.middleware.ShibbolethWebAuthMiddleware',

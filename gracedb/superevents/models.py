@@ -147,7 +147,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
             ('expose_superevent', 'Can expose a superevent to be viewed by '
                 'external users'),
             ('hide_superevent', 'Can hide a superevent from external users'),
-            ('view_superevent', 'Can view superevent'),
+            #('view_superevent', 'Can view superevent'),
         )
 
     # Class method overrides --------------------------------------------------
@@ -468,8 +468,8 @@ class SupereventGroupObjectPermission(GroupObjectPermissionBase):
 
     class Meta(GroupObjectPermissionBase.Meta):
         permissions = (
-            ('view_supereventgroupobjectpermission',
-                'Can view superevent groupobjectpermission'),
+            #('view_supereventgroupobjectpermission',
+            #    'Can view superevent groupobjectpermission'),
         )
 
 class SupereventUserObjectPermission(UserObjectPermissionBase):
@@ -494,7 +494,7 @@ class Log(CleanSaveModel, LogBase, AutoIncrementModel):
             ('hide_log', 'Can hide a log from external users'),
             ('tag_log', 'Add tag to log'),
             ('untag_log', 'Remove tag from log'),
-            ('view_log', 'Can view log'),
+            #('view_log', 'Can view log'),
         )
 
     def get_full_file_path(self):
@@ -556,7 +556,7 @@ class Signoff(CleanSaveModel, SignoffBase):
     class Meta:
         unique_together = (('superevent', 'instrument'),)
         permissions = (
-            ('view_signoff', 'Can view signoff'),
+            #('view_signoff', 'Can view signoff'),
             ('do_H1_signoff', 'Can interact with H1 signoffs'),
             ('do_L1_signoff', 'Can interact with L1 signoffs'),
             ('do_V1_signoff', 'Can interact with V1 signoffs'),
