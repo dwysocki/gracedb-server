@@ -263,7 +263,7 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
     # move it into production before the root cause
     # can be determined.
     
-    @retry(tries=5, delay=0.25, logger=logger)
+    @retry(tries=5, delay=1.0, logger=logger)
     def list(self, request, *args, **kwargs):
         # Get logs which are viewable by the current user and
         # have files attached
@@ -288,7 +288,7 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
     # move it into production before the root cause
     # can be determined.
     
-    @retry(tries=5, delay=0.25, logger=logger)
+    @retry(tries=5, delay=1.0, logger=logger)
     def retrieve(self, request, *args, **kwargs):
         # Get parent superevent
         parent_superevent = self.get_parent_object()
