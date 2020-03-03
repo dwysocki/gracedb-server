@@ -1,6 +1,5 @@
 import os
 
-
 def get_file_list(logs, file_dir):
     """
     For a queryset of logs (corresponding to a single event or superevent),
