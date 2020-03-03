@@ -90,6 +90,7 @@ class Pipeline(models.Model):
     external_objects = ExternalPipelineManager()
 
     class Meta:
+        default_permissions = ('add', 'change', 'delete')
         permissions = (
             ('manage_pipeline', 'Can enable or disable pipeline'),
         )
