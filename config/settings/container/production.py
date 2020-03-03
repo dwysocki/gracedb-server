@@ -65,3 +65,4 @@ if (DEBUG == True):
 # Set elasticache prefix if the correct variables are set.
 if AWS_ELASTICACHE_ADDR:
     CACHES['default']['KEY_PREFIX'] = '4'
+    CACHE_MIDDLEWARE_KEY_PREFIX = '4'

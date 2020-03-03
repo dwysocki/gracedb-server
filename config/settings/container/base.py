@@ -143,6 +143,9 @@ try:
     except:
         AWS_ELASTICACHE_TIMEOUT = 30
 
+    # Set the middleware timeout equal to the cache timeout:
+    CACHE_MIDDLEWARE_SECONDS = AWS_ELASTICACHE_TIMEOUT
+
     # Load modified caching middleware:
     MIDDLEWARE = [
         'core.middleware.maintenance.MaintenanceModeMiddleware',
