@@ -26,7 +26,8 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterModelOptions(
             name='pipeline',
-            options={'permissions': (('manage_pipeline', 'Can enable or disable pipeline'),)},
+            #options={'permissions': (('manage_pipeline', 'Can enable or disable pipeline'),)},
+            options={'default_permissions': ('add', 'change', 'delete'), 'permissions': (('manage_pipeline', 'Can enable or disable pipeline'),)},
         ),
         migrations.AddField(
             model_name='pipeline',

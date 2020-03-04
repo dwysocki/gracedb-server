@@ -76,6 +76,7 @@ class Migration(migrations.Migration):
             options={
                 'ordering': ['-created', '-N'],
                 'abstract': False,
+                'default_permissions': ('add', 'change', 'delete'),
                 'permissions': (('expose_log', 'Can expose a log to be viewed by external users'), ('hide_log', 'Can hide a log from external users'), ('tag_log', 'Add tag to log'), ('untag_log', 'Remove tag from log'), ('view_log', 'Can view log')),
             },
         ),
@@ -114,6 +115,7 @@ class Migration(migrations.Migration):
                 ('submitter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='superevents_signoff_set', to=settings.AUTH_USER_MODEL)),
             ],
             options={
+                'default_permissions': ('add', 'change', 'delete'),
                 'permissions': (('view_signoff', 'Can view signoff'), ('do_H1_signoff', 'Can interact with H1 signoffs'), ('do_L1_signoff', 'Can interact with L1 signoffs'), ('do_V1_signoff', 'Can interact with V1 signoffs'), ('do_adv_signoff', 'Can interact with advocate signoffs')),
             },
         ),
@@ -139,6 +141,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'ordering': ['-id'],
+                'default_permissions': ('add', 'change', 'delete'),
                 'permissions': (('add_test_superevent', 'Can add test superevent'), ('add_mdc_superevent', 'Can add MDC superevent'), ('change_test_superevent', 'Can change test superevent'), ('change_mdc_superevent', 'Can change MDC superevent'), ('confirm_gw_superevent', 'Can confirm superevent as GW'), ('confirm_gw_test_superevent', 'Can confirm test superevent as GW'), ('confirm_gw_mdc_superevent', 'Can confirm MDC superevent as GW'), ('annotate_superevent', 'Can add log messages and EM observation data to uperevent'), ('expose_superevent', 'Can expose a superevent to be viewed by external users'), ('hide_superevent', 'Can hide a superevent from external users'), ('view_superevent', 'Can view superevent')),
             },
         ),
@@ -152,6 +155,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'abstract': False,
+                'default_permissions': ('add', 'change', 'delete'),
                 'permissions': (('view_supereventgroupobjectpermission', 'Can view superevent groupobjectpermission'),),
             },
         ),

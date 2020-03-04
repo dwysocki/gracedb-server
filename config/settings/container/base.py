@@ -119,6 +119,7 @@ MIDDLEWARE = [
 
 
 
+
 # Priority server settings ----------------------------------------------------
 PRIORITY_SERVER = False
 is_priority_server = get_from_env('DJANGO_PRIORITY_SERVER', None,
@@ -172,9 +173,13 @@ try:
     # and then it should skip the rest:
 
     try:
-        AWS_ELASTICACHE_TIMEOUT = get_from_env('DJANGO_AWS_ELASTICACHE_TIMEOUT')
+        # This has to be an int, but it gets it from then env as a string.
+        AWS_ELASTICACHE_TIMEOUT = int(get_from_env('DJANGO_AWS_ELASTICACHE_TIMEOUT'))
     except:
         AWS_ELASTICACHE_TIMEOUT = 30
+
+    # Set the middleware timeout equal to the cache timeout:
+    CACHE_MIDDLEWARE_SECONDS = AWS_ELASTICACHE_TIMEOUT
 
     # Load modified caching middleware:
     MIDDLEWARE = [
@@ -187,6 +192,7 @@ try:
         'django.middleware.common.CommonMiddleware',
         'django.middleware.cache.FetchFromCacheMiddleware',
         'core.middleware.proxy.XForwardedForMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
         'user_sessions.middleware.SessionMiddleware',
         'django.contrib.messages.middleware.MessageMiddleware',
         'django.contrib.auth.middleware.AuthenticationMiddleware',

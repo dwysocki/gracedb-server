@@ -42,7 +42,7 @@ class Contact(CleanSaveModel):
     CODE_DIGITS = 6
 
     # Fields
-    user = models.ForeignKey(UserModel, null=False)
+    user = models.ForeignKey(UserModel, null=False, on_delete=models.CASCADE)
     description = models.CharField(max_length=30, blank=False, null=False)
     email = models.EmailField(blank=True, null=True)
     phone = PhoneNumberField(blank=True, max_length=255, null=True)
@@ -177,7 +177,7 @@ class Notification(models.Model):
         (NOTIFICATION_CATEGORY_EVENT, 'Event'),
         (NOTIFICATION_CATEGORY_SUPEREVENT, 'Superevent'),
     )
-    user = models.ForeignKey(UserModel, null=False)
+    user = models.ForeignKey(UserModel, null=False, on_delete=models.CASCADE)
     contacts = models.ManyToManyField(Contact)
     description = models.CharField(max_length=40, blank=False, null=False)
     far_threshold = models.FloatField(blank=True, null=True)

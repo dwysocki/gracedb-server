@@ -78,7 +78,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
     AUTO_CONSTRAINTS = ('t_0_date', 'category',)
 
     # Fields ------------------------------------------------------------------
-    submitter = models.ForeignKey(UserModel)
+    submitter = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
 
     # Type of superevent (Production, Test, MDC)
@@ -131,6 +131,11 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
             ('t_0_date', 'base_letter_suffix', 'category'),
             ('t_0_date', 'gw_letter_suffix', 'category'),
         )
+
+        # New in django 2.2: adds a view_* permission, so add the following
+        # line so the new default doesn't override the existing permission:
+
+        default_permissions = ('add', 'change', 'delete')
 
         # Extra permissions beyond the standard add, change, delete perms
         permissions = (
@@ -467,6 +472,9 @@ class SupereventGroupObjectPermission(GroupObjectPermissionBase):
     content_object = models.ForeignKey(Superevent, on_delete=models.CASCADE)
 
     class Meta(GroupObjectPermissionBase.Meta):
+
+        default_permissions = ('add', 'change', 'delete')
+
         permissions = (
             ('view_supereventgroupobjectpermission',
                 'Can view superevent groupobjectpermission'),
@@ -489,6 +497,7 @@ class Log(CleanSaveModel, LogBase, AutoIncrementModel):
 
     class Meta(LogBase.Meta):
         unique_together = (('superevent', 'N'),)
+        default_permissions = ('add', 'change', 'delete')
         permissions = (
             ('expose_log', 'Can expose a log to be viewed by external users'),
             ('hide_log', 'Can hide a log from external users'),
@@ -555,6 +564,7 @@ class Signoff(CleanSaveModel, SignoffBase):
 
     class Meta:
         unique_together = (('superevent', 'instrument'),)
+        default_permissions = ('add', 'change', 'delete')
         permissions = (
             ('view_signoff', 'Can view signoff'),
             ('do_H1_signoff', 'Can interact with H1 signoffs'),
