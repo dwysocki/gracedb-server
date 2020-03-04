@@ -139,7 +139,8 @@ try:
     # and then it should skip the rest:
 
     try:
-        AWS_ELASTICACHE_TIMEOUT = get_from_env('DJANGO_AWS_ELASTICACHE_TIMEOUT')
+        # This has to be an int, but it gets it from then env as a string.
+        AWS_ELASTICACHE_TIMEOUT = int(get_from_env('DJANGO_AWS_ELASTICACHE_TIMEOUT'))
     except:
         AWS_ELASTICACHE_TIMEOUT = 30
 
