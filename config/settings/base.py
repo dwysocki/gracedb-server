@@ -52,7 +52,7 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 # BrokenLinkEmailsMiddleware is enabled
 ADMINS = [
     ("Alexander Pace", "alexander.pace@ligo.org"),
-#    ("Duncan Meacher", "duncan.meacher@ligo.org"),
+    ("Duncan Meacher", "duncan.meacher@ligo.org"),
 ]
 MANAGERS = ADMINS
 
