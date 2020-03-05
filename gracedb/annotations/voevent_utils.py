@@ -30,11 +30,15 @@ VOEVENT_TYPE_DICT = dict(VOEventBase.VOEVENT_TYPE_CHOICES)
 
 
 # Used to create the Packet_Type parameter block
+# Note: order matters. The order of this dict is the 
+# same as VOEVENT_TYPE_DICT.
+
 PACKET_TYPES = {
     VOEventBase.VOEVENT_TYPE_PRELIMINARY: (150, 'LVC_PRELIMINARY'),
     VOEventBase.VOEVENT_TYPE_INITIAL: (151, 'LVC_INITIAL'),
     VOEventBase.VOEVENT_TYPE_UPDATE: (152, 'LVC_UPDATE'),
     VOEventBase.VOEVENT_TYPE_RETRACTION: (164, 'LVC_RETRACTION'),
+    VOEventBase.VOEVENT_TYPE_EARLYWARNING: (163, 'LVC_EARLY_WARNING'),
 }
 
 
@@ -92,6 +96,10 @@ def construct_voevent_file(obj, voevent, request=None):
     ## Set root Description
     if voevent_type != 'retraction':
         v.Description = "Report of a candidate gravitational wave event"
+
+    # Overwrite the description for early warning events:
+    if voevent_type == 'earlywarning':
+        v.Description = "Early warning report of a candidate gravitational wave event"
 
     # Who #####################################################################
     ## Remove Who.Description
@@ -711,6 +719,8 @@ def construct_voevent_file(obj, voevent, request=None):
             desc = 'Updated localization is now available'
         elif voevent_type == 'retraction':
             desc = 'Determined to not be a viable GW event candidate'
+        elif voevent_type == 'earlywarning':
+            desc = 'Early warning localization is now available'
         if desc is not None:
             v.Citations.Description = desc
 
