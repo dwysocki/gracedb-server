@@ -50,6 +50,7 @@ MIDDLEWARE = [
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.cache.FetchFromCacheMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'core.middleware.proxy.XForwardedForMiddleware',
     'user_sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
