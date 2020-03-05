@@ -79,8 +79,11 @@ def construct_voevent_file(obj, voevent, request=None):
     ## Let's convert that voevent_type to something nicer looking
     voevent_type = VOEVENT_TYPE_DICT[voevent.voevent_type]
 
-    ## Now build the IVORN. 
-    type_string = voevent_type.capitalize()
+    ## Now build the IVORN.
+    if voevent_type == 'earlywarning':
+        type_string = 'EarlyWarning'
+    else: 
+        type_string = voevent_type.capitalize()
     voevent_id = '{gid}-{N}-{type_str}'.format(type_str=type_string,
         gid=graceid, N=voevent.N)
 
@@ -193,9 +196,14 @@ def construct_voevent_file(obj, voevent, request=None):
     v.What.append(p_gid)
 
     ## Alert type parameter
+    if voevent_type == 'earlywarning':
+        voevent_at = 'EarlyWarning'
+    else:
+        voevent_at = voevent_type.capitalize()
+
     p_alert_type = vp.Param(
         "AlertType",
-        value = voevent_type.capitalize(),
+        value = voevent_at,
         ucd="meta.version",
         dataType="string"
     )
