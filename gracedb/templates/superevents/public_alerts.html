@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load cache %}
+{% cache 300 publicalerts %}
 {% load sanitize_html %}
 {% load logtags %}
 {% load static %}
@@ -106,4 +108,4 @@
 <br /><br /><br />
 
 {% endblock %}
-
+{% endcache %}

@@ -19,7 +19,7 @@ class LigoLdapUser(User):
 class X509Cert(models.Model):
     """Model for storing X.509 certificate subjects for API access"""
     subject = models.CharField(max_length=255, unique=True, null=False)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 class AuthGroup(Group):
     """Enhanced version of Django Group model"""
@@ -33,7 +33,7 @@ class AuthGroup(Group):
     ldap_name = models.CharField(max_length=50, unique=True, null=True)
     # Tag used to expose access to log messages for group; if null, there is no
     # such tag and access is not granted via this mechanism
-    tag = models.ForeignKey('events.Tag', null=True)
+    tag = models.ForeignKey('events.Tag', null=True, on_delete=models.CASCADE)
 
     # Add custom managers, must manually define objects as well
     objects = models.Manager()
@@ -47,7 +47,7 @@ class AuthorizedLdapMember(models.Model):
     ldap_gname = models.CharField(max_length=50, unique=True, null=True)
 
     # Add support for authorized membership:
-    ldap_authgroup = models.ForeignKey(AuthGroup, null=True)
+    ldap_authgroup = models.ForeignKey(AuthGroup, null=True, on_delete=models.CASCADE)
 
     # Give it a name:
     name = models.CharField(max_length=50, unique=True, null=True)

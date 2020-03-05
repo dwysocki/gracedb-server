@@ -233,7 +233,7 @@ class LogBase(models.Model):
     Used in events.EventLog, superevents.Log
     """
     created = models.DateTimeField(auto_now_add=True)
-    issuer = models.ForeignKey(UserModel, null=False)
+    issuer = models.ForeignKey(UserModel, null=False, on_delete=models.CASCADE)
     filename = models.CharField(max_length=100, default="", blank=True)
     file_version = models.IntegerField(null=True, default=None, blank=True)
     comment = models.TextField(null=False)
@@ -275,7 +275,7 @@ class m2mThroughBase(models.Model):
     creation time.
     """
     creator = models.ForeignKey(UserModel, null=False, related_name=
-        '%(app_label)s_%(class)s_set')
+        '%(app_label)s_%(class)s_set', on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:

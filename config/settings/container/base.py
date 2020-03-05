@@ -158,6 +158,7 @@ try:
         'django.middleware.common.CommonMiddleware',
         'django.middleware.cache.FetchFromCacheMiddleware',
         'core.middleware.proxy.XForwardedForMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
         'user_sessions.middleware.SessionMiddleware',
         'django.contrib.messages.middleware.MessageMiddleware',
         'django.contrib.auth.middleware.AuthenticationMiddleware',

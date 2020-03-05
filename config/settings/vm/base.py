@@ -19,6 +19,8 @@ DATABASES = {
     }
 }
 
+
+
 # Set up allowed hosts
 SERVER_FQDN = socket.getfqdn()
 SERVER_HOSTNAME = INTERNAL_HOSTNAME
@@ -38,3 +40,37 @@ EMBB_MAIL_ADDRESS = 'embb@{fqdn}.ligo.org'.format(fqdn=SERVER_FQDN)
 EMBB_SMTP_SERVER = 'localhost'
 EMBB_MAIL_ADMINS = [admin[1] for admin in ADMINS]
 EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@{fqdn}'.format(fqdn=SERVER_FQDN)]
+
+MIDDLEWARE = [
+    'core.middleware.maintenance.MaintenanceModeMiddleware',
+    'events.middleware.PerformanceMiddleware',
+    'core.middleware.accept.AcceptMiddleware',
+    'core.middleware.api.ClientVersionMiddleware',
+    'core.middleware.api.CliExceptionMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
+    'core.middleware.proxy.XForwardedForMiddleware',
+    'user_sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'ligoauth.middleware.ShibbolethWebAuthMiddleware',
+    'ligoauth.middleware.ControlRoomMiddleware',
+]
+
+# Set caches:
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': 'localhost:11211',
+        'TIMEOUT': 60,
+        'KEY_PREFIX': 'NULL',
+    },
+    # For API throttles
+    'throttles': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'api_throttle_cache', # Table name
+    },    
+}
+ 
+CACHE_MIDDLEWARE_SECONDS = 5

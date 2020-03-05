@@ -17,9 +17,9 @@ before_script:
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
 
 .test: &test
-  image: ligo/base:stretch
+  image: igwn/base:stretch
   services:
-    - mysql:5.5
+    - mysql:5.6
   variables:
     AWS_SES_ACCESS_KEY_ID: "fake_aws_id"
     AWS_SES_SECRET_ACCESS_KEY: "fake_aws_key"
