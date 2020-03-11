@@ -20,6 +20,8 @@ from ..fields import ParentObjectDefault, DelimitedOrListField, \
 from ..events.fields import EventGraceidField
 from ...utils import api_reverse
 
+from events.view_utils import eventToDict
+
 # Set up user model
 UserModel = get_user_model()
 
@@ -61,6 +63,10 @@ class SupereventSerializer(serializers.ModelSerializer):
     links = serializers.SerializerMethodField(read_only=True)
     labels = serializers.SlugRelatedField(slug_field='name', many=True,
         queryset=Label.objects.all(), required=False)
+
+    # Add read-only field that contains dictionary of preferred event:
+    preferred_event_data = serializers.SerializerMethodField(read_only=True)
+
     # Write only fields (user field is used to set submitter for instance
     # creation)
     user = serializers.HiddenField(write_only=True,
@@ -73,7 +79,7 @@ class SupereventSerializer(serializers.ModelSerializer):
         fields = ('superevent_id', 'gw_id', 'category', 'created', 'submitter',
             'preferred_event', 'events', 'em_type', 't_start', 't_0', 't_end',
             'gw_events', 'em_events', 'far', 'coinc_far', 'labels', 'links', 
-            'user')
+            'user', 'preferred_event_data')
 
     def validate(self, data):
         data = super(SupereventSerializer, self).validate(data)
@@ -165,6 +171,9 @@ class SupereventSerializer(serializers.ModelSerializer):
             ret.pop('em_events')
             ret.pop('preferred_event')
         return ret
+
+    def get_preferred_event_data(self, obj):
+        return eventToDict(obj.preferred_event)
 
 
 class SupereventUpdateSerializer(SupereventSerializer):
