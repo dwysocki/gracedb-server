@@ -173,7 +173,8 @@ class SupereventSerializer(serializers.ModelSerializer):
         return ret
 
     def get_preferred_event_data(self, obj):
-        return eventToDict(obj.preferred_event)
+        request = self.context.get('request', None)
+        return eventToDict(obj.preferred_event, request=request)
 
 
 class SupereventUpdateSerializer(SupereventSerializer):
