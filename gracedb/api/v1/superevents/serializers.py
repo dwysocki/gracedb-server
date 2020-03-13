@@ -78,7 +78,8 @@ class SupereventSerializer(serializers.ModelSerializer):
         model = Superevent
         fields = ('superevent_id', 'gw_id', 'category', 'created', 'submitter',
             'preferred_event', 'events', 'em_type', 't_start', 't_0', 't_end',
-            'gw_events', 'em_events', 'far', 'coinc_far', 'labels', 'links', 
+            'gw_events', 'em_events', 'far', 'time_coinc_far', 
+            'space_coinc_far', 'labels', 'links', 
             'user', 'preferred_event_data')
 
     def validate(self, data):
@@ -183,7 +184,7 @@ class SupereventUpdateSerializer(SupereventSerializer):
     for object creation.
     """
     allowed_fields = ('t_start', 't_0', 't_end', 'preferred_event', 
-                       'em_type', 'coinc_far')
+                       'em_type', 'time_coinc_far', 'space_coinc_far')
 
     def __init__(self, *args, **kwargs):
         super(SupereventUpdateSerializer, self).__init__(*args, **kwargs)

@@ -119,7 +119,8 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
     is_exposed = models.BooleanField(default=False)
 
     # New O3b fields for RAVEN:
-    coinc_far = models.FloatField(null=True, blank=True)
+    time_coinc_far = models.FloatField(null=True, blank=True)
+    space_coinc_far = models.FloatField(null=True, blank=True)
     em_type = models.CharField(blank=True, null=True, max_length=100)
 
     # Meta class --------------------------------------------------------------

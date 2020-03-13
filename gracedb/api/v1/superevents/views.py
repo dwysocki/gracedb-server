@@ -76,7 +76,7 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
     ordering_fields = ('created', 't_0', 't_start', 't_end',
         'preferred_event__id', 't_0_date', 'is_gw', 'base_date_number',
         'gw_date_number', 'category',
-        'coinc_far','em_type')
+        'time_coinc_far','space_coinc_far','em_type')
 
     def get_serializer_class(self):
         """Select a different serializer for updates"""
