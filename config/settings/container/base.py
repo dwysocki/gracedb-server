@@ -149,6 +149,7 @@ try:
 
     # Load modified caching middleware:
     MIDDLEWARE = [
+        'django.middleware.gzip.GZipMiddleware',
         'core.middleware.maintenance.MaintenanceModeMiddleware',
         'events.middleware.PerformanceMiddleware',
         'core.middleware.accept.AcceptMiddleware',
