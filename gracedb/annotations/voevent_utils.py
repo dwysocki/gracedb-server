@@ -368,10 +368,10 @@ def construct_voevent_file(obj, voevent, request=None):
                emcoinc_params.append(p_deltat)
 
             ## Temporal Coinc FAR
-            if obj.coinc_far:
+            if obj.time_coinc_far:
                 p_coincfar = vp.Param(
                     "Time_Coincidence_FAR",
-                    value=obj.coinc_far,
+                    value=obj.time_coinc_far,
                     ucd="arith.rate;stat.falsealarm",
                     ac=True,
                     unit="Hz"
@@ -381,11 +381,10 @@ def construct_voevent_file(obj, voevent, request=None):
                 emcoinc_params.append(p_coincfar)
 
             ## Spatial-Temporal Coinc FAR
-            ## FIXME: Find a way to supply this value
-            if False:
+            if obj.space_coinc_far:
                 p_coincfar_space = vp.Param(
                     "Time_Sky_Position_Coincidence_FAR",
-                    value=obj.coinc_far_space,
+                    value=obj.space_coinc_far,
                     ucd="arith.rate;stat.falsealarm",
                     ac=True,
                     unit="Hz"
