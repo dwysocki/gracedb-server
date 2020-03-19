@@ -74,6 +74,14 @@ class SupereventSerializer(serializers.ModelSerializer):
     events = DelimitedOrListField(required=False, write_only=True,
         child=EventGraceidField())
 
+    def __init__(self, *args, **kwargs):
+        if 'is_alert' in kwargs:
+             self.is_alert = kwargs.pop('is_alert')
+        else:
+             self.is_alert = False
+
+        super(SupereventSerializer, self).__init__(*args,**kwargs)
+
     class Meta:
         model = Superevent
         fields = ('superevent_id', 'gw_id', 'category', 'created', 'submitter',
@@ -175,7 +183,7 @@ class SupereventSerializer(serializers.ModelSerializer):
 
     def get_preferred_event_data(self, obj):
         request = self.context.get('request', None)
-        return eventToDict(obj.preferred_event, request=request)
+        return eventToDict(obj.preferred_event, request=request, is_alert=self.is_alert)
 
 
 class SupereventUpdateSerializer(SupereventSerializer):
