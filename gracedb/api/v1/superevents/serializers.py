@@ -75,11 +75,12 @@ class SupereventSerializer(serializers.ModelSerializer):
         child=EventGraceidField())
 
     def __init__(self, *args, **kwargs):
+        # In the case where the is_alert argument is provided,
+        # then pass that to eventToDict
         if 'is_alert' in kwargs:
              self.is_alert = kwargs.pop('is_alert')
         else:
              self.is_alert = False
-
         super(SupereventSerializer, self).__init__(*args,**kwargs)
 
     class Meta:
