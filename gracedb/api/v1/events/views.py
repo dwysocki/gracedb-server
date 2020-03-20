@@ -1770,7 +1770,11 @@ class VOEventList(InheritPermissionsAPIView):
         voevent_text, ivorn = construct_voevent_file(event, voevent,
                                                      request=request)
 
-        voevent_display_type = VOEVENT_TYPE_DICT[voevent_type].capitalize()
+        if VOEVENT_TYPE_DICT[voevent_type] == 'earlywarning':
+            voevent_display_type = 'EarlyWarning'
+        else:
+            voevent_display_type = VOEVENT_TYPE_DICT[voevent_type].capitalize()
+
         filename = "%s-%d-%s.xml" % (event.graceid, voevent.N, voevent_display_type)
         file_version = create_versioned_file(filename, event.datadir,
                                              voevent_text)

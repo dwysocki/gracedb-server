@@ -961,11 +961,13 @@ class VOEventBase(CleanSaveModel):
     VOEVENT_TYPE_INITIAL = 'IN'
     VOEVENT_TYPE_UPDATE = 'UP'
     VOEVENT_TYPE_RETRACTION = 'RE'
+    VOEVENT_TYPE_EARLYWARNING = 'EW'
     VOEVENT_TYPE_CHOICES = (
         (VOEVENT_TYPE_PRELIMINARY, 'preliminary'),
         (VOEVENT_TYPE_INITIAL, 'initial'),
         (VOEVENT_TYPE_UPDATE, 'update'),
         (VOEVENT_TYPE_RETRACTION, 'retraction'),
+        (VOEVENT_TYPE_EARLYWARNING, 'earlywarning'),
     )
 
     # Fields

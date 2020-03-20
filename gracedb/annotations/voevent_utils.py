@@ -30,11 +30,15 @@ VOEVENT_TYPE_DICT = dict(VOEventBase.VOEVENT_TYPE_CHOICES)
 
 
 # Used to create the Packet_Type parameter block
+# Note: order matters. The order of this dict is the 
+# same as VOEVENT_TYPE_DICT.
+
 PACKET_TYPES = {
     VOEventBase.VOEVENT_TYPE_PRELIMINARY: (150, 'LVC_PRELIMINARY'),
     VOEventBase.VOEVENT_TYPE_INITIAL: (151, 'LVC_INITIAL'),
     VOEventBase.VOEVENT_TYPE_UPDATE: (152, 'LVC_UPDATE'),
     VOEventBase.VOEVENT_TYPE_RETRACTION: (164, 'LVC_RETRACTION'),
+    VOEventBase.VOEVENT_TYPE_EARLYWARNING: (163, 'LVC_EARLY_WARNING'),
 }
 
 
@@ -75,8 +79,11 @@ def construct_voevent_file(obj, voevent, request=None):
     ## Let's convert that voevent_type to something nicer looking
     voevent_type = VOEVENT_TYPE_DICT[voevent.voevent_type]
 
-    ## Now build the IVORN. 
-    type_string = voevent_type.capitalize()
+    ## Now build the IVORN.
+    if voevent_type == 'earlywarning':
+        type_string = 'EarlyWarning'
+    else: 
+        type_string = voevent_type.capitalize()
     voevent_id = '{gid}-{N}-{type_str}'.format(type_str=type_string,
         gid=graceid, N=voevent.N)
 
@@ -92,6 +99,10 @@ def construct_voevent_file(obj, voevent, request=None):
     ## Set root Description
     if voevent_type != 'retraction':
         v.Description = "Report of a candidate gravitational wave event"
+
+    # Overwrite the description for early warning events:
+    if voevent_type == 'earlywarning':
+        v.Description = "Early warning report of a candidate gravitational wave event"
 
     # Who #####################################################################
     ## Remove Who.Description
@@ -185,9 +196,14 @@ def construct_voevent_file(obj, voevent, request=None):
     v.What.append(p_gid)
 
     ## Alert type parameter
+    if voevent_type == 'earlywarning':
+        voevent_at = 'EarlyWarning'
+    else:
+        voevent_at = voevent_type.capitalize()
+
     p_alert_type = vp.Param(
         "AlertType",
-        value = voevent_type.capitalize(),
+        value = voevent_at,
         ucd="meta.version",
         dataType="string"
     )
@@ -352,10 +368,10 @@ def construct_voevent_file(obj, voevent, request=None):
                emcoinc_params.append(p_deltat)
 
             ## Temporal Coinc FAR
-            if obj.coinc_far:
+            if obj.time_coinc_far:
                 p_coincfar = vp.Param(
                     "Time_Coincidence_FAR",
-                    value=obj.coinc_far,
+                    value=obj.time_coinc_far,
                     ucd="arith.rate;stat.falsealarm",
                     ac=True,
                     unit="Hz"
@@ -365,11 +381,10 @@ def construct_voevent_file(obj, voevent, request=None):
                 emcoinc_params.append(p_coincfar)
 
             ## Spatial-Temporal Coinc FAR
-            ## FIXME: Find a way to supply this value
-            if False:
+            if obj.space_coinc_far:
                 p_coincfar_space = vp.Param(
                     "Time_Sky_Position_Coincidence_FAR",
-                    value=obj.coinc_far_space,
+                    value=obj.space_coinc_far,
                     ucd="arith.rate;stat.falsealarm",
                     ac=True,
                     unit="Hz"
@@ -711,6 +726,8 @@ def construct_voevent_file(obj, voevent, request=None):
             desc = 'Updated localization is now available'
         elif voevent_type == 'retraction':
             desc = 'Determined to not be a viable GW event candidate'
+        elif voevent_type == 'earlywarning':
+            desc = 'Early warning localization is now available'
         if desc is not None:
             v.Citations.Description = desc
 
