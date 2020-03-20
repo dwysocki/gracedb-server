@@ -426,7 +426,7 @@ def construct_voevent_file(obj, voevent, request=None):
     # new feature (10/24/2016): preliminary VOEvents can have a skymap,
     # but they don't have to.
     if (voevent_type in ["initial", "update"] or 
-       (voevent_type == "preliminary" and voevent.skymap_filename != None)):
+       (voevent_type in ["preliminary", "earlywarning"] and voevent.skymap_filename != None)):
 
         ## Skymap group
         ### fits skymap URL
