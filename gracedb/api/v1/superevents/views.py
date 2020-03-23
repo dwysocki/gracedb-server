@@ -76,7 +76,7 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
     ordering_fields = ('created', 't_0', 't_start', 't_end',
         'preferred_event__id', 't_0_date', 'is_gw', 'base_date_number',
         'gw_date_number', 'category',
-        'coinc_far','em_type')
+        'time_coinc_far','space_coinc_far','em_type')
 
     def get_serializer_class(self):
         """Select a different serializer for updates"""
@@ -263,7 +263,7 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
     # move it into production before the root cause
     # can be determined.
     
-    @retry(tries=5, delay=1.0, logger=logger)
+    @retry(exceptions=OSError, tries=5, delay=1.0, logger=logger)
     def list(self, request, *args, **kwargs):
         # Get logs which are viewable by the current user and
         # have files attached
@@ -288,7 +288,7 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
     # move it into production before the root cause
     # can be determined.
     
-    @retry(tries=5, delay=1.0, logger=logger)
+    @retry(exceptions=OSError, tries=5, delay=1.0, logger=logger)
     def retrieve(self, request, *args, **kwargs):
         # Get parent superevent
         parent_superevent = self.get_parent_object()

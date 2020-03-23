@@ -126,12 +126,12 @@ def update_superevent(superevent, updater, add_log_message=True,
     """
     kwargs which are used as superevent parameters:
         t_start, t_0, t_end, preferred_event,
-        em_type, coinc_far
+        em_type, time_coinc_far, space_coinc_far
     """
 
     # Extract "updatable" superevent params from kwargs
     param_names = ['t_start', 't_0', 't_end', 'preferred_event',
-                   'em_type','coinc_far']
+                   'em_type','time_coinc_far','space_coinc_far']
     new_params = {k: v for k,v in kwargs.items() if k in param_names}
 
     # Get old parameters
@@ -612,8 +612,12 @@ def create_voevent_for_superevent(superevent, issuer, voevent_type,
     voevent_text, ivorn = construct_voevent_file(superevent, voevent)
 
     # Save versioned VOEvent file
-    voevent_display_type = dict(VOEvent.VOEVENT_TYPE_CHOICES) \
-        [voevent.voevent_type].capitalize()
+    voevent_name = dict(VOEvent.VOEVENT_TYPE_CHOICES)[voevent.voevent_type]
+    if voevent_name == 'earlywarning':
+        voevent_display_type = 'EarlyWarning'
+    else:
+        voevent_display_type = voevent_name.capitalize()
+
     voevent_filename = "{superevent}-{N}-{voevent_type}.xml".format(
         superevent=superevent.default_superevent_id, N=voevent.N,
         voevent_type=voevent_display_type)

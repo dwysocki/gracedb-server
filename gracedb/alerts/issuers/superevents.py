@@ -10,7 +10,7 @@ class AlertIssuerWithParentSuperevent(AlertIssuerWithParentObject):
     parent_serializer_class = SupereventSerializer
 
     def serialize_parent(self):
-        return self.parent_serializer_class(self.get_parent_obj()).data
+        return self.parent_serializer_class(self.get_parent_obj(), is_alert=True).data
 
     def _get_parent_obj(self):
         # Assumes that the obj has a direct relation to a superevent

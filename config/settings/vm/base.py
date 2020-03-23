@@ -41,19 +41,23 @@ EMBB_SMTP_SERVER = 'localhost'
 EMBB_MAIL_ADMINS = [admin[1] for admin in ADMINS]
 EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@{fqdn}'.format(fqdn=SERVER_FQDN)]
 
+# Load modified caching middleware:
+# https://docs.djangoproject.com/en/2.2/ref/middleware/#middleware-ordering
 MIDDLEWARE = [
-    'core.middleware.maintenance.MaintenanceModeMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     'events.middleware.PerformanceMiddleware',
     'core.middleware.accept.AcceptMiddleware',
     'core.middleware.api.ClientVersionMiddleware',
     'core.middleware.api.CliExceptionMiddleware',
-    'django.middleware.cache.UpdateCacheMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
     'core.middleware.proxy.XForwardedForMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'user_sessions.middleware.SessionMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'core.middleware.maintenance.MaintenanceModeMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
     'ligoauth.middleware.ShibbolethWebAuthMiddleware',
     'ligoauth.middleware.ControlRoomMiddleware',
 ]

@@ -20,6 +20,8 @@ from ..fields import ParentObjectDefault, DelimitedOrListField, \
 from ..events.fields import EventGraceidField
 from ...utils import api_reverse
 
+from events.view_utils import eventToDict
+
 # Set up user model
 UserModel = get_user_model()
 
@@ -61,6 +63,10 @@ class SupereventSerializer(serializers.ModelSerializer):
     links = serializers.SerializerMethodField(read_only=True)
     labels = serializers.SlugRelatedField(slug_field='name', many=True,
         queryset=Label.objects.all(), required=False)
+
+    # Add read-only field that contains dictionary of preferred event:
+    preferred_event_data = serializers.SerializerMethodField(read_only=True)
+
     # Write only fields (user field is used to set submitter for instance
     # creation)
     user = serializers.HiddenField(write_only=True,
@@ -68,12 +74,22 @@ class SupereventSerializer(serializers.ModelSerializer):
     events = DelimitedOrListField(required=False, write_only=True,
         child=EventGraceidField())
 
+    def __init__(self, *args, **kwargs):
+        # In the case where the is_alert argument is provided,
+        # then pass that to eventToDict
+        if 'is_alert' in kwargs:
+             self.is_alert = kwargs.pop('is_alert')
+        else:
+             self.is_alert = False
+        super(SupereventSerializer, self).__init__(*args,**kwargs)
+
     class Meta:
         model = Superevent
         fields = ('superevent_id', 'gw_id', 'category', 'created', 'submitter',
             'preferred_event', 'events', 'em_type', 't_start', 't_0', 't_end',
-            'gw_events', 'em_events', 'far', 'coinc_far', 'labels', 'links', 
-            'user')
+            'gw_events', 'em_events', 'far', 'time_coinc_far', 
+            'space_coinc_far', 'labels', 'links', 
+            'user', 'preferred_event_data')
 
     def validate(self, data):
         data = super(SupereventSerializer, self).validate(data)
@@ -166,6 +182,10 @@ class SupereventSerializer(serializers.ModelSerializer):
             ret.pop('preferred_event')
         return ret
 
+    def get_preferred_event_data(self, obj):
+        request = self.context.get('request', None)
+        return eventToDict(obj.preferred_event, request=request, is_alert=self.is_alert)
+
 
 class SupereventUpdateSerializer(SupereventSerializer):
     """
@@ -173,7 +193,7 @@ class SupereventUpdateSerializer(SupereventSerializer):
     for object creation.
     """
     allowed_fields = ('t_start', 't_0', 't_end', 'preferred_event', 
-                       'em_type', 'coinc_far')
+                       'em_type', 'time_coinc_far', 'space_coinc_far')
 
     def __init__(self, *args, **kwargs):
         super(SupereventUpdateSerializer, self).__init__(*args, **kwargs)
