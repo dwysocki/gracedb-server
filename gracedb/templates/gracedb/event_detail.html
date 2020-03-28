@@ -33,10 +33,10 @@
 <!-- Local style declarations -->
 <link rel="stylesheet" href="{% static "dijit/themes/tundra/tundra.css" %}" />
 
-<!-- the main JavaScript block is pulled in with an include -->
+<!-- the main JavaScript block is pulled in with an include
 <script>
 {% include "gracedb/event_detail_script.js" %}
-</script>
+</script> -->
 
 {% endblock %}
 
@@ -185,6 +185,8 @@
     {% block basic_info %}
     <br>
     <br>
+    <div class="row pt-3 justify-content-center" style="border:1px solid #cecece;">
+    <div class="col">
     <div class="table-responsive table-detail">
     
     <table class="table table-sm table-detail">
@@ -243,9 +245,10 @@
         </tr>
     </table>
     </div>
+    </div>
+    </div>
     {% endblock %}
     
-    <div class="content-area">
     {% if user_is_external %}
     {# Analysis-specific attributes which can be exposed to external partners #}
     {% block external_analysis_specific %}
@@ -257,7 +260,6 @@
     {# This block is empty in the base event_detail template #}
     {% endblock %}
     {% endif %}
-    </div>
     
     {# Neighbors #}
     <script type="text/javascript">
@@ -288,6 +290,8 @@
     </script>
     
     {% include "gracedb/neighbors_frag.html" %}
+
+    {% include "gracedb/log_entry_details.html" %}
     
     {% include "gracedb/emo_form_frag.html" %}
     

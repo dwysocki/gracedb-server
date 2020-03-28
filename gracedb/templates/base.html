@@ -54,24 +54,27 @@
        {% include "navbar_frag.html" %}
    {% endblock %}
 
-   <div class="container-fluid">
+   <div class="container" style="border:1px solid #cecece;">
            <h2>{% block heading %}Title{% endblock %}</h2>
                {% block content %}{% endblock %}
         
         
-        
-            <center>
-            <img height="36" src="{% static "images/kagra.png" %}" />
-            <img height="36" src="{% static "images/ligo-blue.gif" %}" />
-            <img height="36" src="{% static "images/LSC_logo50.png" %}" />
-            <img height="36" src="{% static "images/Virgo_logo50.png" %}" />
-            {% if user and user.username == "chad.hanna@LIGO.ORG" %}
-             <img width="194" height="37" src="{% static "images/PI_Logo-anim.gif" %}" />
-            {% endif %}
-            {% if user and user.username == "kipp.cannon@LIGO.ORG" %}
-             <img width="194" height="37" src="{% static "images/CITA_logo-anim.gif" %}" />
-            {% endif %}
-            </center>
+            <div class="row">
+                <div class="col align-self-center">
+                <center>
+                <img height="36" src="{% static "images/kagra.png" %}" />
+                <img height="36" src="{% static "images/ligo-blue.gif" %}" />
+                <img height="36" src="{% static "images/LSC_logo50.png" %}" />
+                <img height="36" src="{% static "images/Virgo_logo50.png" %}" />
+                {% if user and user.username == "chad.hanna@LIGO.ORG" %}
+                 <img width="194" height="37" src="{% static "images/PI_Logo-anim.gif" %}" />
+                {% endif %}
+                {% if user and user.username == "kipp.cannon@LIGO.ORG" %}
+                 <img width="194" height="37" src="{% static "images/CITA_logo-anim.gif" %}" />
+                {% endif %}
+                </center>
+            </div>
+            </div>
     </div>
 
 </body>
