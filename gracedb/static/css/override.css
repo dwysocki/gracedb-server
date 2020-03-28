@@ -31,7 +31,6 @@ body {
 .table-detail {
   font-size: 12px;
   font-stretch: condensed;
-  width: auto;
   margin: auto;
   border-collapse: collapse !important;
   border-spacing: 0 !important;
@@ -47,4 +46,8 @@ body {
   border-spacing: 0 !important;
   outline:none;
   vertical-align: middle;
+}
+
+.neighborsTextBox.InlineEditBox.dijitFocused.dijitInputInner {
+  background-color: red;
 }
