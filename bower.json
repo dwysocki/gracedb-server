@@ -10,7 +10,9 @@
     "moment": "2.11.1",
     "tablesaw": "3.1.2",
     "materialize": "1.0.0",
-    "bootstrap": "4.0.0"
+    "bootstrap": "4.0.0",
+    "datatables.net": "^1.10.20",
+    "datatables.net-bs4": "^3.2.2"
   },
   "resolutions": {
     "webcomponentsjs": "^0.6.0"

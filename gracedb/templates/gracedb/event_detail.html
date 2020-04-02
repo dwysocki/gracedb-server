@@ -14,6 +14,7 @@
 <script src="{% static "moment-timezone/builds/moment-timezone-with-data.min.js" %}"></script>
 <script src="{% static "dojo/dojo.js" %}" data-dojo-config="async: true"></script>
 <script src="{% static "jquery/dist/jquery.min.js" %}"></script>
+
 <!-- Styles for dgrid -->
 <!-- <link rel="stylesheet" href="{% static "dgrid/css/dgrid.css" %}" /> -->
 <!-- Styles for the editor components -->
@@ -33,10 +34,9 @@
 <!-- Local style declarations -->
 <link rel="stylesheet" href="{% static "dijit/themes/tundra/tundra.css" %}" />
 
-<!-- the main JavaScript block is pulled in with an include
 <script>
 {% include "gracedb/event_detail_script.js" %}
-</script> -->
+</script> 
 
 {% endblock %}
 
@@ -202,16 +202,14 @@
                 <th scope="col">Search</th>
                 <th scope="col" >Instruments</th>
                 <th scope="col">
-                    <div id="basic_info_event_ts"></div>
-                    <div> Event Time </div>
+                    {{ "gps"|timeselect:"gps" }}
                 </th>
                 <th scope="col">FAR (Hz)</th>
                 <th scope="col">FAR (yr<sup>-1</sup>)</th>
                 <th scope="col"> Latency (s) </th>
                 <th scope="col">Links</th>
                 <th scope="col">
-                    <div id="basic_info_created_ts"></div>
-                    <div> Submitted </div>
+                    {{ "submitted"|timeselect:"utc" }}
                 </th>
                 {% if object.superevent %}
                 <th>Superevent</th>
@@ -238,7 +236,7 @@
             <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_yr }}</td>
             <td>{{ object.reportingLatency }} </td>
             <td><a href="{{ object.weburl }}">Data</a></td>
-            <td>{{ object.created|multiTime:"created" }}</td>
+            <td>{{ object.created|multiTime:"submitted" }}</td>
             {% if object.superevent %}
             <td><a href="{{ object.superevent.get_web_url }}">{{ object.superevent.superevent_id }}</a></td>
             {% endif %}

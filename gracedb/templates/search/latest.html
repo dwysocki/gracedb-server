@@ -42,12 +42,10 @@
         <th>Pipeline</th>
         <th>
             {{ "gps"|timeselect:"gps" }}
-            Event Time
         </th>
         <th>FAR (Hz)</th>
         <th>
-            {{"created"|timeselect:"utc" }}
-            Created
+            {{ "created"|timeselect:"utc" }}
         </th>
     </tr>
   </thead>
@@ -65,8 +63,8 @@
         <td>{{ ev.pipeline.name }} </td>
         <td>{% if ev.gpstime%}
                 <!-- <span title="{{ ev.gpstime|gpsdate }}">{{ ev.gpstime }}</span> -->
-                {{ ev.gpstime|floatformat:"0" }}
-                <!--{{ ev.gpstime|multiTimeMicroSeconds:"gps" }} -->
+                <!-- {{ ev.gpstime|floatformat:"0" }} -->
+                {{ ev.gpstime|multiTimeMicroSeconds:"gps" }}
             {% endif %}</td>
         <!-- this is a bug. The far should be floored for display purposes. --> 
         {% if user_is_external %}
@@ -138,7 +136,6 @@
         <th>FAR (Hz)</th>
         <th>
             {{"created"|timeselect:"utc" }}
-            Created
         </th>
     </tr>
   </thead>

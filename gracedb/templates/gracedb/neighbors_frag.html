@@ -20,22 +20,20 @@
           </tr>
         </thead>
           <tr>
-                  <th valign="top">UID</th>
-                  <th>Labels</th>
-                  <th>Group</th>
-                  <th>Pipeline</th>
-                  <th>Search</th>
-                  <th>Instruments</th>
-                  <th>
-                      <div id="neighbors_event_ts"></div>
-                      <div> Event Time </div>
+                  <th class="align-bottom">UID</th>
+                  <th class="align-bottom">Labels</th>
+                  <th class="align-bottom">Group</th>
+                  <th class="align-bottom">Pipeline</th>
+                  <th class="align-bottom">Search</th>
+                  <th class="align-bottom">Instruments</th>
+                  <th class="align-bottom">
+                      {{ "ngps"|timeselect:"gps" }}
                   </th>
-                  <th>&Delta;gpstime</th>
-                  <th>FAR (Hz)</th>
-                  <th>Links</th>
-                  <th>
-                      <div id="neighbors_created_ts"></div>
-                      <div> Submitted </div>
+                  <th class="align-bottom">&Delta;gpstime</th>
+                  <th class="align-bottom">FAR (Hz)</th>
+                  <th class="align-bottom">Links</th>
+                  <th class="align-bottom">
+                      {{ "nsubmitted"|timeselect:"utc" }}
                   </th>
           </tr>
         </thead>
@@ -58,7 +56,7 @@
               <td>{{ delta }}</td>
               <td>{{ object.far|scientific }}</td>
               <td><a href="{{ object.weburl }}">Data</a></td>
-              <td>{{ object.created|multiTime:"ncreated" }}</td>
+              <td>{{ object.created|multiTime:"nsubmitted" }}</td>
           </tr>
           {% endfor %}
       </table>

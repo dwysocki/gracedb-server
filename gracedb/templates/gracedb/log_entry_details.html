@@ -2,7 +2,10 @@
 {% load scientific %}
 
 <div class="row pt-3 justify-content-center" style="border:1px solid #cecece;">
-<div class="col">
+<div class="col-sm">
+
+   <!-- Header for Log Messages -->
+
    <div class="table-responsive table-detail">
       <table class="table table-sm table-detail">
           <thead class="thead-dark">
@@ -10,6 +13,56 @@
            <th colspan="23" class="table-detail-th"> <h5>Log Messages</h5> </th>
           </tr>
        </table>
+        
+
+        <p><center>
+        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#FullLog" aria-expanded="false" aria-controls="FullLog">
+            Full Event Log
+        </button>
+        </center></p>
+   
+
+        <!-- Full event log table --> 
+
+        <script>
+           $(document).ready(function() {
+               $('#full_event_log').DataTable();
+           } );
+        </script>
+
+        <div class="collapse" id="FullLog">
+           <div class="card card-body">
+
+              <div class="table-responsive table-detail">
+              <table class="table table-sm table-detail table-hover" id="full_event_log">
+                <thead class="thead-light">
+                   <tr>
+                   <th colspan="23" class="table-detail-th"> <h6>Full Event Log</h6> </th>
+                </thead>
+                   </tr>
+                   <tr>
+                      <th scope="col" class="align-bottom"> No. </th>
+                      <th scope="col" class="align-bottom"> <div id="log_entry_created_ts"></div><div>Log Entry Created</div></th>
+                      <th scope="col" class="align-bottom"> Submitter </th>
+                      <th scope="col" class="align-bottom"> Comment </th>
+                   </tr>
+                   {% for log in object.eventlog_set.all %}
+                   <tr>
+                    <td> {{ log.N }} </td>
+                    <td> {{ log.created|multiTime:"lcreated" }} </td>
+                    <td> {{ log.issuer }} </td>
+                    <td> {{ log.comment }} 
+                    {% if log.filename %}
+                     (<a href="{{ log.fileurl }}">{{ log.filename }}</a>)
+                    {% endif %}
+                    </td>
+                   </tr>
+                   {% endfor %}
+              </table>
+              </div>
+        
+           </div>
+        </div>
 
    </div>
 </div>

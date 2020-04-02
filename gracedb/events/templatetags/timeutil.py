@@ -59,7 +59,7 @@ def get_multitime_value(t, label, autoescape, format):
         # Note: must convert to server timezone before calling mktime
         posix_time = time.mktime(dt.astimezone(SERVER_TZ).timetuple())
     elif isinstance(t, decimal.Decimal):
-        gps_time = float(t)
+        gps_time = round(float(t),2)
         dt = gpsToUtc(t)
         posix_time = time.mktime(dt.astimezone(SERVER_TZ).timetuple())
     else:
@@ -82,7 +82,7 @@ def get_multitime_value(t, label, autoescape, format):
     else:
         display_time = gps_time
 
-    rv = '<time utc="%s" gps="%14.4f" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
+    rv = '<time utc="%s" gps="%14.2f" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
             (utc_time, gps_time, llo_time, lho_time, virgo_time, js_parsable_time, label_attr, display_time)
 
     return mark_safe(rv)
@@ -105,7 +105,19 @@ def timeselect(label, default, autoescape=None):
         esc = conditional_escape
     else:
         esc = lambda x: x
-    rv = """<form><select onChange="changeTime(this, '%s')">""" % esc(label)
+
+    menu_style="""style="font-size:12px; height:20px" """
+    #menu_style="""style="height:20px; font-size=12px" """
+
+    rv =  """<div class="input-group input-group-sm">"""
+    rv += """<div class="input-group-prepend">"""
+    rv += """<label class="input-group-text" placeholder="Start" {} """.format(menu_style)
+    rv += """for="{}">{}</label>""".format(esc(label),ts_label(label))
+    rv += """</div>"""
+
+    rv += """<select class="custom-select" placeholder="End" {} """.format('')
+    rv += """id="{}" onChange="changeTime(this, '{}')">""".format(esc(label),esc(label))
+
     for value, displayname in [
             ("gps", "GPS Time"),
             ("llo", "LLO Local"),
@@ -114,12 +126,24 @@ def timeselect(label, default, autoescape=None):
             ("utc", "UTC"),]:
         selected = ""
         if value == default:
-            selected = " SELECTED"
-        rv += '<option value="%s"%s>%s</option>' % (esc(value), selected, esc(displayname))
-    rv += "</select></form>"
+            selected = " selected"
+        rv += '<option class="custom-option" value="{}"{}>{}</option>'.format(esc(value), selected, esc(displayname))
+    rv += """</select>"""
+    rv += """</div>"""
+
+
     return mark_safe(rv)
 timeselect.needs_autoescape = True
 
+# Makes a nice looking label for display 
+# out of the 'label' used for a time select.
+def ts_label(label):
+    label_choices = {'gps': 'Event Time',
+                     'ngps': 'Event Time',
+                     'created': 'Created',
+                     'submitted': 'Submitted',
+                     'nsubmitted': 'Submitted',}
+    return label_choices[label]
 
 @register.filter(name='utc')
 def utc(dt, format=FORMAT):
@@ -205,3 +229,4 @@ def end_time(event,digits=4):
         return str(event.end_time) + decimal_part
     except Exception:
         return None
+
