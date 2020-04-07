@@ -1,4 +1,5 @@
 {% load timeutil %}
+{% load mediaviews %}
 {% load scientific %}
 
 <div class="row pt-3 justify-content-center" style="border:1px solid #cecece;">
@@ -13,7 +14,12 @@
            <th colspan="23" class="table-detail-th"> <h5>Log Messages</h5> </th>
           </tr>
        </table>
-        
+
+       <p><center>
+       {{ object|logboxes }}
+       </center></p>
+
+        <hr/>        
 
         <p><center>
         <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#FullLog" aria-expanded="false" aria-controls="FullLog">
@@ -24,11 +30,6 @@
 
         <!-- Full event log table --> 
 
-        <script>
-           $(document).ready(function() {
-               $('#full_event_log').DataTable();
-           } );
-        </script>
 
         <div class="collapse" id="FullLog">
            <div class="card card-body">
