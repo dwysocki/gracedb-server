@@ -52,7 +52,9 @@
                     <td> {{ log.N }} </td>
                     <td> {{ log.created|multiTime:"lcreated" }} </td>
                     <td> {{ log.issuer }} </td>
+                    {% autoescape off %}
                     <td> {{ log.comment }} 
+                    {% endautoescape %}
                     {% if log.filename %}
                      (<a href="{{ log.fileurl }}">{{ log.filename }}</a>)
                     {% endif %}

@@ -7,6 +7,7 @@
       <!--Import bootstrap and custom colors-->
       <link type="text/css" rel="stylesheet" href="{% static "bootstrap/dist/css/bootstrap.min.css" %}"  media="screen,projection"/>
       <link type="text/css" rel="stylesheet" href="{% static "css/override.css" %}" />
+      <link type="text/css" rel="stylesheet" href="{% static "/ekko-lightbox/dist/ekko-lightbox.css" %}" />
       <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono&display=fallback">
       <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Condensed|Alegreya:700" rel="stylesheet" type="text/css" />
@@ -34,9 +35,19 @@
            }
        }
      </script>
+
+
      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+     <script src="{% static "ekko-lightbox/dist/ekko-lightbox.js" %}"></script>
+     <!-- lightbox script --->
+     <script type="text/javascript">
+        $(document).on('click', '[data-toggle="lightbox"]', function(event) {
+                        event.preventDefault();
+                        $(this).ekkoLightbox();
+                    });
+     </script>
      {% endblock %}
      <!-- END TESTING -->
      {% block jscript %}
@@ -76,6 +87,7 @@
             </div>
             </div>
     </div>
+
 
 </body>
 </html>

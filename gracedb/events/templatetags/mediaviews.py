@@ -4,6 +4,11 @@ from django.conf import settings
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 
+#Django filtering stuff:
+import operator
+from django.db.models import Q
+from functools import reduce
+
 from events.models import Event, Tag
 from gracedb.core.urls import build_absolute_uri
 import os
@@ -24,7 +29,20 @@ blessed_tag_priority_order = [
     'audio',
 ]
 
+
+# This section is for image formatting purposes. I want to assign 
+# "blessed" file extensions, and then set up a django Q-filter. 
+# Then, define which images get displayed as high aspect-ratio. 
+# This is a little hacky, but I didn't take the time to learn how to 
+# incorporate javascript or the django.core.files.images models. If 
+# pipelines want to upload new images that are a different aspect ratio, 
+# add its name to the blessed list, or figure out a better way :-/
+
 img_file_extensions = ['.png','.jpg','.jpeg','.gif']
+images_filter = reduce(operator.or_, (Q(filename__contains=ex) for ex in img_file_extensions))
+
+wide_image_names = ['omegascan','coherence']
+wide_filter = reduce(operator.or_, (Q(filename__contains=name) for name in wide_image_names))
 
 #styles, etc
 
@@ -38,45 +56,77 @@ button_template = """<button class="btn btn-primary"
                       </button>
 """
 
-collapse_template = """<p><div class="collapse" id="{}">
+collapsed_card_template = """
+<p><div class="collapse" id="{}">
   <div class="card card-body">
-   <table class="table table-sm table-detail table-hover" id="subsec_table">
-     <thead class="thead-light">
-        <tr>
-        <th colspan="23" class="table-detail-th"> <h6>{}</h6> </th>
-     </thead>
-        </tr>
-    </table>
+    <div class="card-header text-left">
+      <h6>{}</h6>
+    </div>
    {}
   </div>
 </div></p>
 """
 
-img_style_template = """max-height;
+img_style_template = """max-height= 250px;`;
 """
 
-image_card_div = """<div class="card">
-  <img class="card-img-top img-fluid" src="{}" />
-      <div class="card-block">
-        <p class="card-text">{}</p>
+image_card_div = """
+<div class="card m-1" style="">
+  <a href="{}" data-toggle="lightbox" data-type="image" data-gallery="{}">
+  <img class="card-img-top img-fluid" src="{}" style="width:auto;"/>
+  </a>
+      <div class="card-body">
+        <hr width="50%"/>
+        {}
       </div>
     </div>
 """
 
-image_card_caption = """{}. Submitted by {} on {}"""
+comment_card_div = """
+<div class="card m-1">
+  <div class="card-header text-left">
+    <h7>Log Comment</h7>
+  </div>
+  <div class="card-body">
+    <p class="card-text">{}</p>
+    <footer class="blockquote-footer">{}</footer>
+  </div>
+</div>
+"""
 
-def card_content(tagged_log_list):
+image_card_caption = """{} <footer class="blockquote-footer"> Submitted by {} on {} </footer>"""
+
+comment_card_title = """Submitted by {} on {} """
+
+def card_content(tagged_log_list, tag_name):
     # Takes in a list of log messages that are tagged. 
     # First deal with images. Check if extension is in allowed
     # list of extensions:
     rv =""""""
-    for l in tagged_log_list:
-        if os.path.splitext(l.filename)[1] in img_file_extensions:
-            rv += img_div(l)
+
+   # First, wide images:
+    for l in tagged_log_list.filter(images_filter & wide_filter):
+        rv += img_div(l,tag_name)
+
+   # deal with "normal" (non-wide) images.
+    rv += """<div class="card-deck">"""
+    for l in tagged_log_list.filter(images_filter & ~ wide_filter):
+        rv += img_div(l,tag_name)
+    rv += """</div>"""
+
+   # now make a table for tagged non-image log entries,
+   # like tables.
+
+    for l in tagged_log_list.filter(~images_filter):
+        rv_title = comment_card_title.format(l.issuer.username,
+                              l.created.strftime("%B %-d, %Y %H:%M:%S %Z"))
+        rv += comment_card_div.format(l.comment, rv_title)
+
+   
 
     return rv
 
-def img_div(logline):
+def img_div(logline, tag_name):
     rv = """"""
     # Construct caption:
     comment = image_card_caption.format(logline.comment,
@@ -88,7 +138,10 @@ def img_div(logline):
     img_uri = build_absolute_uri(logline.fileurl())
 
     # Format div:
-    rv = image_card_div.format(img_uri, comment)
+    rv = image_card_div.format(img_uri, 
+                         tag_name,
+                         img_uri, 
+                         comment)
     return rv
      
     
@@ -135,9 +188,9 @@ def logboxes(obj, autoescape=None):
                                               tag_name,
                                               tag.displayName)
 
-            rv_section += collapse_template.format(tag_name,
+            rv_section += collapsed_card_template.format(tag_name,
                                               tag.displayName,
-                                              card_content(tagged_log_list))
+                                              card_content(tagged_log_list, tag_name))
 
 
     rv += rv_buttons + rv_section
