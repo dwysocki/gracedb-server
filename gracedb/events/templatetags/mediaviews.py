@@ -56,6 +56,15 @@ button_template = """<button class="btn btn-primary"
                       </button>
 """
 
+embedded_button_template = """<button class="btn btn-secondary btn-sm" 
+                      type="button" 
+                      data-toggle="collapse" 
+                      data-target="#{}" 
+                      aria-expanded="false" 
+                      aria-controls="{}">
+                         Collapse {} 
+                      </button>
+"""
 collapsed_card_template = """
 <p><div class="collapse" id="{}">
   <div class="card card-body">
@@ -64,6 +73,8 @@ collapsed_card_template = """
     </div>
    {}
   </div>
+  <br>
+   {}
 </div></p>
 """
 
@@ -175,7 +186,8 @@ def logboxes(obj, autoescape=None):
 
     for tag_name in blessed_tag_priority_order:
         # retrieve the tag object:
-        tag = Tag.objects.get(name=tag_name)
+        tag, created  = Tag.objects.get_or_create(name=tag_name)
+        #tag = Tag.objects.get(name=tag_name)
 
         # Filter the log list that contain the tag:
         tagged_log_list = log_list.filter(tags=tag)
@@ -190,9 +202,10 @@ def logboxes(obj, autoescape=None):
 
             rv_section += collapsed_card_template.format(tag_name,
                                               tag.displayName,
-                                              card_content(tagged_log_list, tag_name))
-
-
+                                              card_content(tagged_log_list, tag_name),
+                                              embedded_button_template.format(tag_name,
+                                                                  tag_name,
+                                                                  tag.displayName))
     rv += rv_buttons + rv_section
 
     return mark_safe(rv)
