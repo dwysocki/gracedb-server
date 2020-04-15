@@ -11,6 +11,58 @@
           </tr>
        </table>
 
+       <p><center>
+       {{ object|logboxes }}
+       </center></p>
+
+        <hr/>        
+
+        <p><center>
+        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#FullLog" aria-expanded="false" aria-controls="FullLog">
+            Full Event Log
+        </button>
+        </center></p>
+   
+
+        <!-- Full event log table --> 
+
+
+        <div class="collapse" id="FullLog">
+           <div class="card card-body">
+
+              <div class="table-responsive table-detail">
+              <table class="table table-sm table-detail table-hover" id="full_event_log">
+                <thead class="thead-light">
+                   <tr>
+                   <th colspan="23" class="table-detail-th"> <h6>Full Event Log</h6> </th>
+                </thead>
+                   </tr>
+                   <tr>
+                      <th scope="col" class="align-bottom"> No. </th>
+                      <th scope="col" class="align-bottom"> <div id="log_entry_created_ts"></div><div>Log Entry Created</div></th>
+                      <th scope="col" class="align-bottom"> Submitter </th>
+                      <th scope="col" class="align-bottom"> Comment </th>
+                   </tr>
+                   {% for log in object.eventlog_set.all %}
+                   <tr>
+                    <td> {{ log.N }} </td>
+                    <td> {{ log.created|multiTime:"lcreated" }} </td>
+                    <td> {{ log.issuer }} </td>
+                    {% autoescape off %}
+                    <td> {{ log.comment }} 
+                    {% endautoescape %}
+                    {% if log.filename %}
+                     (<a href="{{ log.fileurl }}">{{ log.filename }}</a>)
+                    {% endif %}
+                    </td>
+                   </tr>
+                   {% endfor %}
+              </table>
+              </div>
+        
+           </div>
+        </div>
+
    </div>
 </div>
 </div>

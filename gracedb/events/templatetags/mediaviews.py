@@ -1,0 +1,200 @@
+from django import template
+from django.conf import settings
+
+from django.utils.html import conditional_escape
+from django.utils.safestring import mark_safe
+
+#Django filtering stuff:
+import operator
+from django.db.models import Q
+from functools import reduce
+
+from events.models import Event, Tag
+from gracedb.core.urls import build_absolute_uri
+import os
+
+register = template.Library()
+
+# Define some stuff:
+blessed_tag_priority_order = [
+    'analyst_comments',
+    'psd',
+    'data_quality',
+    'sky_loc',
+    'background',
+    'ext_coinc',
+    'strain',
+    'tfplots',
+    'sig_info',
+    'audio',
+]
+
+
+# This section is for image formatting purposes. I want to assign 
+# "blessed" file extensions, and then set up a django Q-filter. 
+# Then, define which images get displayed as high aspect-ratio. 
+# This is a little hacky, but I didn't take the time to learn how to 
+# incorporate javascript or the django.core.files.images models. If 
+# pipelines want to upload new images that are a different aspect ratio, 
+# add its name to the blessed list, or figure out a better way :-/
+
+img_file_extensions = ['.png','.jpg','.jpeg','.gif']
+images_filter = reduce(operator.or_, (Q(filename__contains=ex) for ex in img_file_extensions))
+
+wide_image_names = ['omegascan','coherence']
+wide_filter = reduce(operator.or_, (Q(filename__contains=name) for name in wide_image_names))
+
+#styles, etc
+
+button_template = """<button class="btn btn-primary" 
+                      type="button" 
+                      data-toggle="collapse" 
+                      data-target="#{}" 
+                      aria-expanded="false" 
+                      aria-controls="{}">
+                         {} 
+                      </button>
+"""
+
+collapsed_card_template = """
+<p><div class="collapse" id="{}">
+  <div class="card card-body">
+    <div class="card-header text-left">
+      <h6>{}</h6>
+    </div>
+   {}
+  </div>
+</div></p>
+"""
+
+img_style_template = """max-height= 250px;`;
+"""
+
+image_card_div = """
+<div class="card m-1" style="">
+  <a href="{}" data-toggle="lightbox" data-type="image" data-gallery="{}">
+  <img class="card-img-top img-fluid" src="{}" style="width:auto;"/>
+  </a>
+      <div class="card-body">
+        <hr width="50%"/>
+        {}
+      </div>
+    </div>
+"""
+
+comment_card_div = """
+<div class="card m-1">
+  <div class="card-header text-left">
+    <h7>Log Comment</h7>
+  </div>
+  <div class="card-body">
+    <p class="card-text">{}</p>
+    <footer class="blockquote-footer">{}</footer>
+  </div>
+</div>
+"""
+
+image_card_caption = """{} <footer class="blockquote-footer"> Submitted by {} on {} </footer>"""
+
+comment_card_title = """Submitted by {} on {} """
+
+def card_content(tagged_log_list, tag_name):
+    # Takes in a list of log messages that are tagged. 
+    # First deal with images. Check if extension is in allowed
+    # list of extensions:
+    rv =""""""
+
+   # First, wide images:
+    for l in tagged_log_list.filter(images_filter & wide_filter):
+        rv += img_div(l,tag_name)
+
+   # deal with "normal" (non-wide) images.
+    rv += """<div class="card-deck">"""
+    for l in tagged_log_list.filter(images_filter & ~ wide_filter):
+        rv += img_div(l,tag_name)
+    rv += """</div>"""
+
+   # now make a table for tagged non-image log entries,
+   # like tables.
+
+    for l in tagged_log_list.filter(~images_filter):
+        rv_title = comment_card_title.format(l.issuer.username,
+                              l.created.strftime("%B %-d, %Y %H:%M:%S %Z"))
+        rv += comment_card_div.format(l.comment, rv_title)
+
+   
+
+    return rv
+
+def img_div(logline, tag_name):
+    rv = """"""
+    # Construct caption:
+    comment = image_card_caption.format(logline.comment,
+                                  logline.issuer.username,
+                                  logline.created.strftime("%B %-d, %Y %H:%M:%S %Z"))
+
+
+    # Construct absolute uri:
+    img_uri = build_absolute_uri(logline.fileurl())
+
+    # Format div:
+    rv = image_card_div.format(img_uri, 
+                         tag_name,
+                         img_uri, 
+                         comment)
+    return rv
+     
+    
+
+
+@register.filter
+def logboxes(obj, autoescape=None):
+    if autoescape:
+        esc = conditional_escape
+    else:
+        esc = lambda x: x
+
+    #rv = "{}".format(obj.graceid)
+
+    # clear the response for the buttons, and 
+    # for the collapsable sections. The next step
+    # is to loop through the blessed tags list, 
+    # query the logset for logs that contain the tag,
+    # and if they're present, then construct a button
+    # and a collapsed/exapnded log section. 
+
+    rv = """"""
+    rv_buttons = """"""
+    rv_section = """"""
+
+    # First fetch the complete log list as a
+    # queryset object. This should reduce the number of 
+    # database queries. 
+
+    log_list = obj.eventlog_set.all()
+
+    for tag_name in blessed_tag_priority_order:
+        # retrieve the tag object:
+        tag = Tag.objects.get(name=tag_name)
+
+        # Filter the log list that contain the tag:
+        tagged_log_list = log_list.filter(tags=tag)
+
+        # If there are log entries, then construct buttons
+        # and a box:
+
+        if tagged_log_list:
+            rv_buttons += button_template.format(tag_name,
+                                              tag_name,
+                                              tag.displayName)
+
+            rv_section += collapsed_card_template.format(tag_name,
+                                              tag.displayName,
+                                              card_content(tagged_log_list, tag_name))
+
+
+    rv += rv_buttons + rv_section
+
+    return mark_safe(rv)
+
+logboxes.needs_autoescape = True
