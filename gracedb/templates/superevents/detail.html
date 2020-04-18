@@ -8,10 +8,7 @@
 {% block jscript %}
 {% load static %}
 <link rel="stylesheet" href="{% static "css/labeltips.css" %}" />
-<script src="{% static "moment/moment.js" %}"></script>
-<script src="{% static "moment-timezone/builds/moment-timezone-with-data.min.js" %}"></script>
 <script src="{% static "dojo/dojo.js" %}" data-dojo-config="async: true"></script>
-<script src="{% static "jquery/dist/jquery.min.js" %}"></script>
 <!-- Styles for dgrid -->
 <!-- <link rel="stylesheet" href="{% static "dgrid/css/dgrid.css" %}" /> -->
 <!-- Styles for the editor components -->
@@ -49,7 +46,10 @@
 
 {% if superevent.is_exposed and not user_is_external %}
 <!-- Show internal users that this superevent is publicly exposed -->
-<h2 style="color: red; text-align: center;">PUBLIC SUPEREVENT</h2>
+    <div style="text-align: center;">
+        <h3 style="font-family: 'Alegreya', serif; font-weight: 700; color: red;">PUBLIC SUPEREVENT</h3>
+    </div>
+    <br>
 {% endif %}
 
 {% if messages %}
@@ -61,12 +61,14 @@
 {% endif %}
 
 {% if show_gw_status_form %}
-<div class="content-area">
-<form action="{% url "legacy_apiweb:default:superevents:superevent-confirm-as-gw" superevent.superevent_id %}" method="POST" id="confirm_as_gw_form">
-    <input type="submit" value="Confirm this superevent as a GW" class="permButtonClass" disabled>
-</form>
+<center>
+<div class="content-area col-sm-4">
 <div><b>Note:</b> this action is irreversible without manual intervention by an admin.</div>
+<form action="{% url "legacy_apiweb:default:superevents:superevent-confirm-as-gw" superevent.superevent_id %}" method="POST" id="confirm_as_gw_form">
+    <input type="submit" value="Confirm this superevent as a GW" class="btn btn-danger permButtonClass" disabled>
+</form>
 </div>
+</center>
 {% endif %}
 
 {# not sure why we need this if statement, maybe can delete in the future #}
@@ -74,14 +76,17 @@
 
 {#-- XXX This next bit is super hacky. #}
 {% if can_modify_permissions %}
-<div class="content-area">
+<center>
+<br>
+<div class="content-area" style="margin: 0 auto">
 <form action="{% url "legacy_apiweb:default:superevents:superevent-permission-modify" superevent.superevent_id %}" 
                method="POST" 
                id="permissions_form">
     <input type="hidden" name="action" value="{{ permissions_action }}">
-    <input type="submit" value="{{ permissions_form_button_text }}" class="permButtonClass" id="permissions_submit_link"  onclick="return clickConfirm()">
+    <input type="submit" value="{{ permissions_form_button_text }}" class="btn btn-danger permButtonClass" id="permissions_submit_link"  onclick="return clickConfirm()">
 </form>
 </div>
+</center>
 {% endif %}
 
 {% if operator_signoff_authorized and operator_signoff_active %}
@@ -151,36 +156,32 @@
 
 {% endif %} {# lvem_view not in request.path #}
 
-<div class="content-area">
 {% block superevent_info %}
-<h2>Superevent Info</h2>
-    <div style="overflow-x: auto;">
     {% if user.is_authenticated %}
         {% include "superevents/superevent_info_table.html" %}
     {% else %}
         {% include "superevents/superevent_info_table_public.html" %}
     {% endif %}
-    </div>
 {% endblock %}
 
 <br />
 <br />
 
 {% block basic_info %}
-<h2>Preferred Event Info</h2>
-    <div style="overflow-x: auto;">
     {% if user.is_authenticated %}
         {% include "superevents/preferred_event_info_table.html" %}
     {% else %}
         {% include "superevents/preferred_event_info_table_public.html" %}
     {% endif %}
-    </div>
 {% endblock %}
+
+{% include "superevents/log_entry_details.html" %}
+
+
 
 {% if user.is_authenticated %}
 {% include "superevents/emo_form_frag.html" %}
 {% endif %}
 
-</div> <!-- end event_detail_content div -->
 {% endblock %}
 

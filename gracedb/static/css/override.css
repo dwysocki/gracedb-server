@@ -36,6 +36,7 @@ body {
   border-spacing: 0 !important;
   border-top: 0 dark !important;
   border-bottom: 0 dark !important;
+  border-radius: 5px !important
 }  
 
 .table-detail-th {

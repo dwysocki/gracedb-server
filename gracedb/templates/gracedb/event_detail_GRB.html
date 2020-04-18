@@ -2,14 +2,15 @@
 {% load timeutil %}
 
 {% block basic_info %}
-<h2> Basic Info </h2>
-
-<table class="event">
-    {% if skyalert_authorized  %}
-        <tr><td colspan="4">
-           <a href="{% url "skyalert" object.graceid %}"><button type="button">Submit to Skyalert</button></a>
-        </td></tr>
-    {% endif %}
+<div class="row pt-3">
+    <div class="col-sm">
+    <div class="table-responsive table-detail">
+      <table class="table table-sm table-detail">
+        <thead class="thead-dark">
+        <tr>
+         <th colspan="23" class="table-detail-th"> <h5>Basic Info</h5> </th>
+        </tr>
+        </thead>
 
     <tr>
             <th valign="top">UID</th>
@@ -19,13 +20,11 @@
             <th>Search</th>
             <th>Instruments</th>
             <th>
-                <div id="basic_info_event_ts"></div>
-                <div> Event Time </div>
+                {{ "gps"|timeselect:"gps" }}
             </th>
             <th>Links</th>
             <th>
-                <div id="basic_info_created_ts"></div>
-                <div> Submitted </div>
+                {{ "submitted"|timeselect:"utc" }}
             </th>
     </tr>
 
@@ -46,16 +45,26 @@
                 {{ object.gpstime|multiTime:"gps" }}
             {% endif %}</td>
         <td><a href="{{ object.weburl }}">Data</a></td>
-        <td>{{ object.created|multiTime:"created" }}</td>
+        <td>{{ object.created|multiTime:"submitted" }}</td>
     </tr>
 
 </table>
+</div>
+</div>
+</div>
 {% endblock %}
 
 {% block analysis_specific %}
 {% if object.grbevent %}
-
-<table class="analysis_specific">
+<div class="row pt-3">
+    <div class="col-sm">
+    <div class="table-responsive table-detail">
+<table class="table table-sm table-detail">
+        <thead class="thead-dark">
+        <tr>
+         <th colspan="23" class="table-detail-th"> <h6>GRB Info</h6> </th>
+        </tr>
+        </thead>
        	<tbody>
 		<tr><th>IVORN</th><td colspan="2">{{object.ivorn}}</td></tr>
 		<tr><th>Author</th><td colspan="2">{{object.author_shortname}}</td></tr>
@@ -92,6 +101,10 @@
 		<tr><td></td><th>Err</th><td>{{object.error_radius}}</td></tr>
 	</tbody>
 </table> 
+</div>
+</div>
+</div>
+
 
 {% if can_update_grbevent %}
 <div class="content-area">

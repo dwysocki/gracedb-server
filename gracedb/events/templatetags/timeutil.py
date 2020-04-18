@@ -120,6 +120,16 @@ def timeselect(label, default, autoescape=None):
     return mark_safe(rv)
 timeselect.needs_autoescape = True
 
+# Makes a nice looking label for display 
+# out of the 'label' used for a time select.
+def ts_label(label):
+    label_choices = {'gps': 'Event Time',
+                     'ngps': 'Event Time',
+                     'created': 'Created',
+                     'submitted': 'Submitted',
+                     'nsubmitted': 'Submitted',
+                     'created': 'Submitted',}
+    return label_choices[label]
 
 @register.filter(name='utc')
 def utc(dt, format=FORMAT):

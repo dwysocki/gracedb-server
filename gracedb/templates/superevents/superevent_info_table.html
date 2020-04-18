@@ -1,21 +1,30 @@
 {% load timeutil %}
-<table class="superevent">
+    <br>
+    <br>
+    <div class="row pt-3 justify-content-center">
+    <div class="col">
+    <div class="table-responsive table-detail">
+
+    <table class="table table-sm table-detail">
+        <thead class="thead-dark">
     <tr>
-        <th>Superevent ID</th>
+         <th colspan="23" class="table-detail-th"> <h5>Superevent Information</h5> </th>
+    </tr>
+    <tr>
+        <th scope="col" valign="top" >Superevent ID</th>
         {% if superevent.is_gw %}
-        <th>GW ID</th>
+        <th scope="col">GW ID</th>
         {% endif %}
-        <th>Category</th>
-        <th>Labels</th>
-        <th>Preferred event</th>
-        <th>GW events</th>
-        <th>External events</th>
-        <th>t_start</th>
-        <th>t_0</th>
-        <th>t_end</th>
-        <th>
-            <div id="superevent_created_ts"></div>
-            <div>Submission time</div>
+        <th scope="col">Category</th>
+        <th scope="col">Labels</th>
+        <th scope="col">Preferred event</th>
+        <th scope="col">GW events</th>
+        <th scope="col">External events</th>
+        <th scope="col">t<sub>start</sub></th>
+        <th scope="col">t<sub>0</sub></th>
+        <th scope="col">t<sub>end</sub></th>
+        <th  scope="col">
+            {{ "submitted"|timeselect:"utc" }}
         </th>
         <th>Links</th>
     </tr>
@@ -50,8 +59,10 @@
         <td>{{ superevent.t_start }}</td>
         <td>{{ superevent.t_0 }}</td>
         <td>{{ superevent.t_end }}</td>
-        <td>{{ superevent.created|multiTime:"superevent_created" }}</td>
+        <td>{{ superevent.created|multiTime:"submitted" }}</td>
         <td><a href="{% url "superevents:file-list" superevent.superevent_id %}">Data</a></td>
     </tr>
 </table>
-
+</div>
+</div>
+</div>

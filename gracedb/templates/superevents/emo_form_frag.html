@@ -1,60 +1,73 @@
-<div data-dojo-type="dijit/form/Form" id="emoFormContainer"
-data-dojo-id="emoFormContainer" encType="multipart/form-data" action=""
-method="">
-<script>
- require(["dojo/parser", "dijit/form/Form", "dijit/form/Button", "dijit/form/ValidationTextBox", "dijit/form/DateTextBox"]);
- </script>
-		 
-<script type="dojo/on" data-dojo-event="reset">
-return confirm('Press OK to reset widget values');
-</script>
-<script type="dojo/on" data-dojo-event="submit">
-if(this.validate()){
-return confirm('Form is valid, press OK to submit');
-}else{
-alert('Form contains invalid data.  Please correct first');
-return false;
-}
-return true;
-</script>
+<div class="row pt-3 justify-content-center">
+<div class="col">
 
-<form method="POST" id="emo_submit_form">
-<table>
+<p><center>
+<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#EMOform" aria-expanded="false" aria-controls="EMOform">
+    Expand/Collapse EM Observation Report
+</button>
+</center></p>
+<div class="collapse" id="EMOform">      
 
-<tr><td><a href=# onclick="alert('Group with which the LSC has signed a trust agreement, hereby providing data 
-under its trust (required).'); return false;">
-Which MOU Group provides this report?</a></td>       <td><select name="group">
-<option value=""></option>
-{% for g in emgroups %}
-<option value="{{ g }}">{{ g }}</option>
-{% endfor %} </select> </td> </tr>
-
-<tr><td><a href=# onclick="alert('RA and Dec specify a center point of a rectangle that is aligned equatorially. Or list of centers. They must be in decimal degrees 0<=RA<=360 -90<=Dec<=90, in the J2000 frame.');return false;">
-RA (decimal degrees)</a></td>             <td><input type="text" name="ra_list" value="" size=80/></td></tr>
-
-<tr><td><a href=# onclick="alert('RA and Dec specify a center point of a rectangle that is aligned equatorially. Or list of centers. They must be in decimal degrees 0<=RA<=360 -90<=Dec<=90, in the J2000 frame.');return false;">
-Dec (decimal degrees)</a></td>            <td><input type="text" name="dec_list" value="" size=80/></td></tr>
-
-<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
-RAwidth (decimal degrees)</a></td>        <td><input type="text" name="ra_width_list" value=""/></td></tr>
-
-<tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
-Decwidth (decimal degrees)</a></td>       <td><input type="text" name="dec_width_list" value=""/></td></tr>
-
-<tr><td><a href=# onclick="alert('The time at the beginning of a time interval during which the observation was taken. Or list of times. UTC in ISO 8601 format.');return false;">
-StartTime</a></td>
-<td><input type="text" name="start_time_list" value="" size=80/></td>
-</tr>
-
-<tr><td><a href=# onclick="alert('This is the on-source exposure time in seconds (or the duration of the observation).');return false;">
-On source exposure (seconds)</a></td>       <td><input type="text" name="duration_list" value=""/></td></tr>
-
-<tr><td><a href=# onclick="alert('A natural language report.');return false;">
-Report as text</a></td>         <td colspan=2><textarea name="comment" rows="8" cols="50"></textarea></td></tr>
-
-</table>
-<input type="submit" value="Submit EMBB Observation Report"/>
-</form>
-
+    <div data-dojo-type="dijit/form/Form" id="emoFormContainer"
+        data-dojo-id="emoFormContainer" encType="multipart/form-data" action=""
+        method="">
+        <script>
+         require(["dojo/parser", "dijit/form/Form", "dijit/form/Button", "dijit/form/ValidationTextBox", "dijit/form/DateTextBox"]);
+         </script>
+        		 
+        <script type="dojo/on" data-dojo-event="reset">
+        return confirm('Press OK to reset widget values');
+        </script>
+        <script type="dojo/on" data-dojo-event="submit">
+        if(this.validate()){
+        return confirm('Form is valid, press OK to submit');
+        }else{
+        alert('Form contains invalid data.  Please correct first');
+        return false;
+        }
+        return true;
+        </script>
+        
+        <form method="POST" id="emo_submit_form">
+        <table>
+        
+        <tr><td><a href=# onclick="alert('Group with which the LSC has signed a trust agreement, hereby providing data 
+        under its trust (required).'); return false;">
+        Which MOU Group provides this report?</a></td>       <td><select name="group">
+        <option value=""></option>
+        {% for g in emgroups %}
+        <option value="{{ g }}">{{ g }}</option>
+        {% endfor %} </select> </td> </tr>
+        
+        <tr><td><a href=# onclick="alert('RA and Dec specify a center point of a rectangle that is aligned equatorially. Or list of centers. They must be in decimal degrees 0<=RA<=360 -90<=Dec<=90, in the J2000 frame.');return false;">
+        RA (decimal degrees)</a></td>             <td><input type="text" name="ra_list" value="" size=80/></td></tr>
+        
+        <tr><td><a href=# onclick="alert('RA and Dec specify a center point of a rectangle that is aligned equatorially. Or list of centers. They must be in decimal degrees 0<=RA<=360 -90<=Dec<=90, in the J2000 frame.');return false;">
+        Dec (decimal degrees)</a></td>            <td><input type="text" name="dec_list" value="" size=80/></td></tr>
+        
+        <tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
+        RAwidth (decimal degrees)</a></td>        <td><input type="text" name="ra_width_list" value=""/></td></tr>
+        
+        <tr><td><a href=# onclick="alert('RAWidth and DecWidth specify the size of a a rectangle that is aligned equatorially. Thus the edge of the box is distant from the center by half of the width.');return false;">
+        Decwidth (decimal degrees)</a></td>       <td><input type="text" name="dec_width_list" value=""/></td></tr>
+        
+        <tr><td><a href=# onclick="alert('The time at the beginning of a time interval during which the observation was taken. Or list of times. UTC in ISO 8601 format.');return false;">
+        StartTime</a></td>
+        <td><input type="text" name="start_time_list" value="" size=80/></td>
+        </tr>
+        
+        <tr><td><a href=# onclick="alert('This is the on-source exposure time in seconds (or the duration of the observation).');return false;">
+        On source exposure (seconds)</a></td>       <td><input type="text" name="duration_list" value=""/></td></tr>
+        
+        <tr><td><a href=# onclick="alert('A natural language report.');return false;">
+        Report as text</a></td>         <td colspan=2><textarea name="comment" rows="8" cols="50"></textarea></td></tr>
+        
+        </table>
+        <input type="submit" value="Submit EMBB Observation Report"/>
+        </form>
+        
+        </div>
 </div>
 
+</div>
+</div>
