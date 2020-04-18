@@ -1,17 +1,24 @@
 {% load timeutil %}
-<table class="event">
+{% load scientific %}
+<div class="row pt-3 justify-content-center">
+<div class="col">
+<div class="table-responsive table-detail">
+
+<table class="table table-sm table-detail">
+    <thead class="thead-dark">
     <tr>
-        <th>Group</th>
-        <th>Pipeline</th>
-        <th>Search</th>
-        <th>Instruments</th>
-        <th>
-            <div id="preferred_event_gps_ts"></div>
-            <div>Event time</div>
+     <th colspan="23" class="table-detail-th"> <h5>Preferred Event Information</h5> </th>
+    </tr>
+    <tr>
+        <th scope="col">Group</th>
+        <th scope="col">Pipeline</th>
+        <th scope="col">Search</th>
+        <th scope="col">Instruments</th>
+        <th scope="col">
+            {{ "gps"|timeselect:"gps" }}
         </th>
-        <th>
-            <div id="preferred_event_created_ts"></div>
-            <div>Submission time</div>
+        <th scope="col">
+            {{ "created"|timeselect:"utc" }}
         </th>
     </tr>
     <tr>
@@ -21,10 +28,12 @@
         <td>{{ preferred_event.instruments }}</td>
         <td>
             {% if preferred_event.gpstime %}
-            {{ preferred_event.gpstime|multiTime:"pref_event_gps" }}
+            {{ preferred_event.gpstime|multiTime:"gps" }}
             {% endif %}
         </td>
-        <td>{{ preferred_event.created|multiTime:"pref_event_created" }}</td>
+        <td>{{ preferred_event.created|multiTime:"created" }}</td>
     </tr>
 </table>
-
+</div>
+</div>
+</div>

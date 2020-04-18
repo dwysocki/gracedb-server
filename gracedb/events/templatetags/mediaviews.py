@@ -159,13 +159,12 @@ def img_div(logline, tag_name):
 
 
 @register.filter
-def logboxes(obj, autoescape=None):
+def logboxes(log_list, autoescape=None):
     if autoescape:
         esc = conditional_escape
     else:
         esc = lambda x: x
 
-    #rv = "{}".format(obj.graceid)
 
     # clear the response for the buttons, and 
     # for the collapsable sections. The next step
@@ -182,8 +181,6 @@ def logboxes(obj, autoescape=None):
     # queryset object. This should reduce the number of 
     # database queries. 
 
-    log_list = obj.eventlog_set.all()
-
     for tag_name in blessed_tag_priority_order:
         # retrieve the tag object:
         tag, created  = Tag.objects.get_or_create(name=tag_name)
@@ -191,23 +188,35 @@ def logboxes(obj, autoescape=None):
 
         # Filter the log list that contain the tag:
         tagged_log_list = log_list.filter(tags=tag)
-
+        
         # If there are log entries, then construct buttons
         # and a box:
-
+        
         if tagged_log_list:
             rv_buttons += button_template.format(tag_name,
-                                              tag_name,
-                                              tag.displayName)
-
+                    tag_name,
+                    tag.displayName)
+            
             rv_section += collapsed_card_template.format(tag_name,
-                                              tag.displayName,
-                                              card_content(tagged_log_list, tag_name),
-                                              embedded_button_template.format(tag_name,
-                                                                  tag_name,
-                                                                  tag.displayName))
-    rv += rv_buttons + rv_section
-
+                    tag.displayName,
+                    card_content(tagged_log_list, tag_name),
+                    embedded_button_template.format(tag_name,
+                        tag_name,
+                        tag.displayName))
+            rv += rv_buttons + rv_section
+        
     return mark_safe(rv)
 
 logboxes.needs_autoescape = True
+
+# Filter that filters a queryset of log entries 
+# and a tag name (most likely 'public') and then 
+# returns all the logs that have that tag.
+@register.filter
+def filter_logs(log_list, tag_name=None, autoescape=None):
+    if tag_name:
+        tag, created = Tag.objects.get_or_create(name=tag_name)
+        log_list = log_list.filter(tags=tag) 
+
+    return log_list 
+

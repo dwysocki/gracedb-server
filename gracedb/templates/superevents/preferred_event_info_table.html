@@ -1,23 +1,29 @@
 {% load timeutil %}
 {% load scientific %}
-<table class="event">
+<div class="row pt-3 justify-content-center">
+<div class="col">
+<div class="table-responsive table-detail">
+
+<table class="table table-sm table-detail">
+    <thead class="thead-dark">
     <tr>
-        <th>UID</th>
-        <th>Labels</th>
-        <th>Group</th>
-        <th>Pipeline</th>
-        <th>Search</th>
-        <th>Instruments</th>
-        <th>
-            <div id="basic_info_event_ts"></div>
-            <div> Event Time </div>
+     <th colspan="23" class="table-detail-th"> <h5>Preferred Event Information</h5> </th>
+    </tr>
+    <tr>
+        <th scope="col" valign="top">UID</th>
+        <th scope="col">Labels</th>
+        <th scope="col">Group</th>
+        <th scope="col">Pipeline</th>
+        <th scope="col">Search</th>
+        <th scope="col">Instruments</th>
+        <th scope="col">
+            {{ "gps"|timeselect:"gps" }}
         </th>
-        <th>FAR (Hz)</th>
-        <th>FAR (yr<sup>-1</sup>)</th>
-        <th>Links</th>
-        <th>
-            <div id="basic_info_created_ts"></div>
-            <div>Submitted</div>
+        <th scope="col">FAR (Hz)</th>
+        <th scope="col">FAR (yr<sup>-1</sup>)</th>
+        <th scope="col">Links</th>
+        <th scope="col">
+            {{ "created"|timeselect:"utc" }}
         </th>
     </tr>
     <tr>
@@ -44,4 +50,6 @@
         <td>{{ preferred_event.created|multiTime:"created" }}</td>
     </tr>
 </table>
-
+</div>
+</div>
+</div>

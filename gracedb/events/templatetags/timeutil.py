@@ -142,7 +142,8 @@ def ts_label(label):
                      'ngps': 'Event Time',
                      'created': 'Created',
                      'submitted': 'Submitted',
-                     'nsubmitted': 'Submitted',}
+                     'nsubmitted': 'Submitted',
+                     'created': 'Submitted',}
     return label_choices[label]
 
 @register.filter(name='utc')

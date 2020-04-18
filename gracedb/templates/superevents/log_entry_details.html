@@ -5,7 +5,10 @@
 <div class="row pt-3 justify-content-center">
 <div class="col-sm">
 
+
    <!-- Header for Log Messages -->
+   {% with log_filter=user_is_external|yesno:"public," %}
+   {% with log_list=object.log_set.all|filter_logs:log_filter %}
 
    <div class="table-responsive table-detail">
       <table class="table table-sm table-detail">
@@ -16,26 +19,26 @@
        </table>
 
        <p><center>
-       {{ object.eventlog_set.all|logboxes }}
+       {{ log_list|logboxes }}
        </center></p>
 
-        <hr/>        
+        <hr/>
 
         <p><center>
         <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#FullLog" aria-expanded="false" aria-controls="FullLog">
             Full Event Log
         </button>
         </center></p>
-   
 
-        <!-- Full event log table --> 
+
+        <!-- Full event log table -->
 
 
         <div class="collapse" id="FullLog">
            <div class="card card-body">
 
               <div class="table-responsive table-detail">
-              <table class="table table-sm table-detail table-hover" id="full_event_log">
+              <table class="table table-sm table-detail table-hover" id="full_superevent_log">
                 <thead class="thead-light">
                    <tr>
                    <th colspan="23" class="table-detail-th"> <h6>Full Event Log</h6> </th>
@@ -47,13 +50,13 @@
                       <th scope="col" class="align-bottom"> Submitter </th>
                       <th scope="col" class="align-bottom"> Comment </th>
                    </tr>
-                   {% for log in object.eventlog_set.all %}
+                   {% for log in log_list %}
                    <tr>
                     <td> {{ log.N }} </td>
                     <td> {{ log.created|multiTime:"lcreated" }} </td>
                     <td> {{ log.issuer }} </td>
                     {% autoescape off %}
-                    <td> {{ log.comment }} 
+                    <td> {{ log.comment }}
                     {% endautoescape %}
                     {% if log.filename %}
                      (<a href="{{ log.fileurl }}">{{ log.filename }}</a>)
@@ -63,10 +66,12 @@
                    {% endfor %}
               </table>
               </div>
-        
+
            </div>
         </div>
 
    </div>
+   {% endwith %}
+   {% endwith %}
 </div>
 </div>
