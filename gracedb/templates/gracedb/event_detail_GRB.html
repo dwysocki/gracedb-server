@@ -107,19 +107,32 @@
 
 
 {% if can_update_grbevent %}
-<div class="content-area">
+<div class="row pt-3">
+    <div class="col-sm">
+    <div class="table-responsive table-detail">
+<table class="table table-sm table-detail">
+        <thead class="thead-dark">
+        <tr>
+         <th colspan="23" class="table-detail-th"> <h6>GRB Info</h6> </th>
+        </tr>
+        </thead>
+        <tbody>
 
 <h3>Update GRB Event</h3>
 <form id="update_grbevent_form" action="{% url "legacy_apiweb:default:events:update-grbevent" object.graceid %}">
-    <table>
     {{ update_grbevent_form.as_table }}
     <tr>
         <td></td>
         <td><input type="submit" value="Update" disabled></td>
     </tr>
-    </table>
+</tbody>
+</table>
 </form>
 </div>
+</div>
+</div>
+
+
 {% endif %}
 
 {% endif %}
