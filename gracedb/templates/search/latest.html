@@ -4,7 +4,7 @@
 {% load scientific %}
 
 {% block title %}Latest{% endblock %}
-{% block heading %}Latest &mdash; as of {% now "j F Y H:i:s T" %}{% endblock %}
+{% block heading %}<h5>Latest as of {% now "j F Y H:i:s T" %} </h5> <hr>{% endblock %}
 {% block pageid %}latest{% endblock %}
 
 
@@ -17,12 +17,16 @@
 
 {% block content %}
 
-<p>Test and MDC events and superevents are not included in the search results by default; see the <a href="/documentation/queries.html">query help</a> for information on how to search for events and superevents in those categories.</p>
+<p>Test and MDC events and superevents are not included in the search results by default; see the <a href="/documentation/queries.html" target="_blank">query help</a> for information on how to search for events and superevents in those categories.</p>
 <!-- Search form -->
 <form method="GET" name="search_form">
     <table>
         {{ form.as_table }}
+<<<<<<< HEAD
     <tr><td></td><td><input type="Submit" value="Search" class="searchButtonClass"></td></tr>
+=======
+    <td><center><input type="Submit" value="Search" class="btn btn-sm btn-primary"></center></td>
+>>>>>>> documentation and style differences
     </table>
 </form>
 
