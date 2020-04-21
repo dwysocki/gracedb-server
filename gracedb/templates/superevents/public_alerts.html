@@ -24,15 +24,15 @@
 
 {% block content %}
 <br />
-<h1>LIGO/Virgo O3 Public Alerts</h1>
+<h5>LIGO/Virgo O3 Public Alerts</h5>
 
-<h3>Detection candidates: {{ candidates }}</h3>
+<h7>Detection candidates: {{ candidates }}</h7>
 <br /><br />
 
 {% if candidates > 0 %}
 <div class="tablesaw-overflow">
-<table class="tablesaw" data-tablesaw-sortable data-tablesaw-sortable-switch data-tablesaw-mode="columntoggle" data-tablesaw-minimap>
-  <thead><tr>
+<table class="tablesaw table-detail" data-tablesaw-sortable data-tablesaw-sortable-switch data-tablesaw-mode="columntoggle" data-tablesaw-minimap>
+  <thead class="table-detail-th"><tr>
       <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="persist">Event ID</th>
       <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="1">Possible Source (Probability)</th>
       <th scope="col" data-tablesaw-sortable-col data-tablesaw-sortable-string data-tablesaw-priority="2">UTC</th>

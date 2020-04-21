@@ -20,7 +20,8 @@
 </div>
 {% endif %}
 
-<h1>Phone and email alerts</h1>
+<h5>Phone and email alerts</h5>
+<hr>
 <div style="max-width: 1000px;">
 <p>
 This is the central page for managing phone and email alerts.
@@ -35,10 +36,10 @@ From here, you can create new contacts and notifications, edit or delete existin
 
 <p>More detailed documentation is provided <a href="{% url "home" %}documentation/notifications.html">here</a>.</p>
 
-<p><b>Note:</b> email alerts in ER14 and O3 will come from the <b><code style="font-size: 1.8rem;">gravitationalwave.services</code></b> domain.</p>
+<p><b>Note:</b> email alerts in ER14 and O3 will come from the <b><code>gravitationalwave.services</code></b> domain.</p>
 </div>
 
-<h2>Contacts</h2>
+<h5>Contacts</h5>
 {% if contacts %}
 <table style="padding-bottom: 10px">
 {% for contact in contacts %}
@@ -68,21 +69,21 @@ From here, you can create new contacts and notifications, edit or delete existin
 </table>
 {% endif %}
 
-<a class="btn btn-success" href="{% url "alerts:create-contact" %}">Create new contact</a>
+<a class="btn btn-sm btn-success" href="{% url "alerts:create-contact" %}">Create new contact</a>
 <br /><br /><br />
 
-<h2>Notifications</h2>
+<h5>Notifications</h5>
 {% if notifications %}
 <table style="padding-bottom: 10px;">
 {% for notification in notifications %}
     <tr>
-        <td><a class="btn btn-secondary" href="{% url "alerts:edit-notification" notification.pk %}">Edit</a></td>
-        <td><a class="btn btn-danger" href="{% url "alerts:delete-notification" notification.pk %}">Delete</a></td>
+        <td><a class="btn btn-sm btn-secondary" href="{% url "alerts:edit-notification" notification.pk %}">Edit</a></td>
+        <td><a class="btn btn-sm btn-danger" href="{% url "alerts:delete-notification" notification.pk %}">Delete</a></td>
         <td><b>{{ notification.description }}</b> | {{ notification.display }}</td>
     </tr>
 {% endfor %}
 </table>
 {% endif %}
 
-<a class="btn btn-success" href="{% url "alerts:create-notification" %}">Create new notification</a>
+<a class="btn btn-sm btn-success" href="{% url "alerts:create-notification" %}">Create new notification</a>
 {% endblock %}
