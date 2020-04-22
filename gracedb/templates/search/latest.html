@@ -3,9 +3,6 @@
 {% load timeutil %}
 {% load scientific %}
 
-<div class="row">
-<div class="col-1"></div>
-<div class="col-10">
 
 {% block title %}Latest{% endblock %}
 {% block heading %}<h5>Latest as of {% now "j F Y H:i:s T" %} </h5> <hr>{% endblock %}
@@ -279,10 +276,7 @@
 
 
 {% else %} <!-- !events -->
-<h1>No results. Please login to see complete results.</h1>
+<h4>No results. Please login to see complete results.</h4>
 {% endif %} <!-- if eventss -->
 
 {% endblock %}
-</div>
-<div class="col-1"></div>
-</div>

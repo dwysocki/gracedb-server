@@ -18,7 +18,7 @@
             {{ "gps"|timeselect:"gps" }}
         </th>
         <th scope="col">
-            {{ "created"|timeselect:"utc" }}
+            {{ "nsubmitted"|timeselect:"utc" }}
         </th>
     </tr>
     <tr>
@@ -31,7 +31,7 @@
             {{ preferred_event.gpstime|multiTime:"gps" }}
             {% endif %}
         </td>
-        <td>{{ preferred_event.created|multiTime:"created" }}</td>
+        <td>{{ preferred_event.created|multiTime:"nsubmitted" }}</td>
     </tr>
 </table>
 </div>

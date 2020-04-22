@@ -106,17 +106,13 @@ def timeselect(label, default, autoescape=None):
     else:
         esc = lambda x: x
 
-    menu_style="""style="font-size:12px; height:20px" """
-    #menu_style="""style="height:20px; font-size=12px" """
 
-    rv =  """<div class="input-group input-group-sm">"""
-    rv += """<div class="input-group-prepend">"""
-    rv += """<label class="input-group-text" placeholder="Start" {} """.format(menu_style)
-    rv += """for="{}">{}</label>""".format(esc(label),ts_label(label))
-    rv += """</div>"""
-
-    rv += """<select class="custom-select" placeholder="End" {} """.format('')
+    rv = """"""
+    rv += """<select class="form-control form-control-sm" style="width:auto;"
+          """
     rv += """id="{}" onChange="changeTime(this, '{}')">""".format(esc(label),esc(label))
+    rv += """<option value="" disabled selected>{}</option>""".format(ts_label(label))
+    rv += """<option data-divider="true"></option>"""
 
     for value, displayname in [
             ("gps", "GPS Time"),
@@ -124,12 +120,8 @@ def timeselect(label, default, autoescape=None):
             ("lho", "LHO Local"),
             ("virgo", "Virgo Local"),
             ("utc", "UTC"),]:
-        selected = ""
-        if value == default:
-            selected = " selected"
-        rv += '<option class="custom-option" value="{}"{}>{}</option>'.format(esc(value), selected, esc(displayname))
+        rv += '<option value="{}">{}</option>'.format(esc(value), esc(displayname))
     rv += """</select>"""
-    rv += """</div>"""
 
 
     return mark_safe(rv)
@@ -143,7 +135,7 @@ def ts_label(label):
                      'created': 'Created',
                      'submitted': 'Submitted',
                      'nsubmitted': 'Submitted',
-                     'created': 'Submitted',}
+                     'lcreated': 'Log Entry Created'}
     return label_choices[label]
 
 @register.filter(name='utc')
