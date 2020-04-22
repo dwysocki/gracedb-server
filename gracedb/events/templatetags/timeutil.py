@@ -105,18 +105,25 @@ def timeselect(label, default, autoescape=None):
         esc = conditional_escape
     else:
         esc = lambda x: x
-    rv = """<form><select onChange="changeTime(this, '%s')">""" % esc(label)
+
+
+    rv = """"""
+    rv += """<select class="form-control form-control-sm" style="width:auto;"
+          """
+    rv += """id="{}" onChange="changeTime(this, '{}')">""".format(esc(label),esc(label))
+    rv += """<option value="" disabled selected>{}</option>""".format(ts_label(label))
+    rv += """<option data-divider="true"></option>"""
+
     for value, displayname in [
             ("gps", "GPS Time"),
             ("llo", "LLO Local"),
             ("lho", "LHO Local"),
             ("virgo", "Virgo Local"),
             ("utc", "UTC"),]:
-        selected = ""
-        if value == default:
-            selected = " SELECTED"
-        rv += '<option value="%s"%s>%s</option>' % (esc(value), selected, esc(displayname))
-    rv += "</select></form>"
+        rv += '<option value="{}">{}</option>'.format(esc(value), esc(displayname))
+    rv += """</select>"""
+
+
     return mark_safe(rv)
 timeselect.needs_autoescape = True
 
@@ -128,7 +135,7 @@ def ts_label(label):
                      'created': 'Created',
                      'submitted': 'Submitted',
                      'nsubmitted': 'Submitted',
-                     'created': 'Submitted',}
+                     'lcreated': 'Log Entry Created'}
     return label_choices[label]
 
 @register.filter(name='utc')

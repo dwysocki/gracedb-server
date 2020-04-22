@@ -41,9 +41,9 @@
         </td>
         <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
         <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_hr }}</td>
-        <td>{{ superevent.t_start }}</td>
-        <td>{{ superevent.t_0 }}</td>
-        <td>{{ superevent.t_end }}</td>
+        <td>{{ superevent.t_start|floatformat:2 }}</td>
+        <td>{{ superevent.t_0|floatformat:2 }}</td>
+        <td>{{ superevent.t_end|floatformat:2 }}</td>
         <td>{{ superevent.created|multiTime:"submitted" }}</td>
         <td><a href="{% url "superevents:file-list" superevent.superevent_id %}">Data</a></td>
     </tr>
