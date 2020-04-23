@@ -25,7 +25,9 @@
         <th scope="col">
             {{ "nsubmitted"|timeselect:"utc" }}
         </th>
+    </thead>
     </tr>
+    
     <tr>
         <td><a href="{% url "view" preferred_event.graceid %}">{{ preferred_event.graceid }}</a></td>
         <td>
