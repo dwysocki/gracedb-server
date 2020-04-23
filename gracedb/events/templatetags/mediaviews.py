@@ -203,7 +203,9 @@ def logboxes(log_list, autoescape=None):
                     embedded_button_template.format(tag_name,
                         tag_name,
                         tag.displayName))
-            rv += rv_buttons + rv_section
+
+    # append the response after cycling through all the tags
+    rv += rv_buttons + rv_section
         
     return mark_safe(rv)
 
