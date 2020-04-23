@@ -4,9 +4,17 @@
 
 {# Analysis-specific attributes for a cWB event#}
 {% block analysis_specific %}
-<h2>Analysis-Specific Attributes</h2>
+<div class="row pt-3">
+    <div class="col-sm">
+    <div class="table-responsive table-detail">
+<table class="table table-sm table-detail">
+        <thead class="thead-dark">
+        <tr>
+         <th colspan="23" class="table-detail-th"> <h6>CWB Info</h6> </th>
+        </tr>
+        </thead>
 
-<table class="analysis_specific"> <tbody>
+    <tbody>
     <tr>
         <td>  <table class="event"> <tbody>
                     <!-- Note:  commenting out ifos so that we'll have a multiple of three --> 
@@ -41,6 +49,10 @@
               </tbody></table>
         </td>
     </tr>
-</tbody> </table> 
+    </tbody>
+</table>
+</div>
+</div>
+</div>
 
 {% endblock %}

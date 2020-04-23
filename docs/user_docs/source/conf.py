@@ -120,7 +120,7 @@ html_theme = 'bootstrap'
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    'navbar_title': "GraceDb",
+    'navbar_title': "GraceDB",
     'navbar_site_name': "Doc", 
     'googlewebfont': True,
     'googlewebfont_url': 'http://fonts.googleapis.com/css?family=Text+Me+One',
