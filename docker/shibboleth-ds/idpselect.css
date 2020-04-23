@@ -1,8 +1,12 @@
 /* Top level is idpSelectIdPSelector */
 #idpSelectIdPSelector
 {
-    width: 512px;
-    text-align: left;
+    width: auto;
+    display: contents;
+    max-width: 550px;
+    text-align: center;
+    font-family: sans-serif, "Helvetica Neue", "Lucida Grande", Arial;
+    font-stretch: expanded;
     background-color: #FFFFFF;
     border: 2px #A40000 solid;
     padding: 10px;
@@ -62,6 +66,7 @@ div.IdPSelectPreferredIdPImg
 
 img.IdPSelectIdPImg {
    width:auto;
+   display: block
 }
 
 div.IdPSelectautoDispatchTile {

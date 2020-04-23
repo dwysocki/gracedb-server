@@ -131,7 +131,16 @@ def card_content(tagged_log_list, tag_name):
     for l in tagged_log_list.filter(~images_filter):
         rv_title = comment_card_title.format(l.issuer.username,
                               l.created.strftime("%B %-d, %Y %H:%M:%S %Z"))
-        rv += comment_card_div.format(l.comment, rv_title)
+
+        # Append the log message on the comment card
+        msg = l.comment
+
+        # Include a link the tagged file, if applicable.
+        if l.filename:
+            msg += """ (<a href="{}">{}</a>)""".format(build_absolute_uri(l.fileurl()),
+                                                       l.filename)
+        
+        rv += comment_card_div.format(msg, rv_title)
 
    
 
