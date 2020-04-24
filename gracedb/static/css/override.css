@@ -31,7 +31,7 @@ body {
 
 
 .table-detail {
-  font-size: 12px;
+  font-size: 13px;
   font-stretch: condensed;
   margin: auto;
   border-collapse: collapse;
@@ -49,13 +49,26 @@ body {
   border-spacing: 0px !important;
   outline:none;
   vertical-align: middle;
+  text-align:left;
+}
+
+.table-detail-lh {
+  /*padding: 0 !important; */
+  margin: 0 !important;
+  border-top: 0px !important;
+  border-bottom: 0px !important;
+  border-spacing: 0px !important;
+  outline:none;
+  vertical-align: bottom;
+  text-align:center;
+  font-weight:lighter;
 }
 
 .thead-gdbdark {
   color: #fff;
   background-color: #19538A;
-  border-bottom: 0px #19538A;
-  border-top: 0px #19538A;
+  border-bottom: 0px;
+  border-top: 0px;
   border-collapse: collapse;
 }
 
