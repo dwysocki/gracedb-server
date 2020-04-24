@@ -79,11 +79,11 @@ collapsed_card_template = """
 </div></p>
 """
 
-img_style_template = """max-height= 250px;`;
+img_style_template = """max-height= 250px;
 """
 
 image_card_div = """
-<div class="card m-1" style="">
+<div class="card m-1" style="min-width:200px; width:auto">
   <a href="{}" data-toggle="lightbox" data-type="image" data-gallery="{}">
   <img class="card-img-top img-fluid" src="{}" style="width:auto;"/>
   </a>

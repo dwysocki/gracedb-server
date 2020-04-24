@@ -91,7 +91,8 @@
 
 {% if operator_signoff_authorized and operator_signoff_active %}
 <div class="signoff-area">
-    <h2>{{ operator_signoff_instrument }} Operator Signoff</h2>
+    <h5>{{ operator_signoff_instrument }} Operator Signoff</h5>
+    <hr style="width:250px; margin-left:0;">
     <p>You are seeing this section because you've connected from a machine that, according to our records, is in the {{ signoff_instrument }} control room.</p>
     {% if operator_signoff_exists %}
     <p>This event has already been signed off on. Use the form below if you wish to edit or delete the record.</p>
@@ -123,7 +124,8 @@
 {# Here is a section for the EM advocate signoffs. #}
 {% if advocate_signoff_authorized and advocate_signoff_active %}
 <div class="signoff-area">
-    <h2>Advocate Signoff</h2>
+    <h5>Advocate Signoff</h5>
+    <hr style="width:250px; margin-left:0;">
     <p>You are seeing this section because you're a designated EM followup advocate.
     {% if advocate_signoff_exists %}
     This event has already been signed off on. Use the form below if you wish to edit or delete the record.
