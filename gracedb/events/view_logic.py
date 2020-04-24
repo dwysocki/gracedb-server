@@ -92,11 +92,7 @@ def _createEventFromForm(request, form):
         # XXX In case this is a subclass, let's check and assign default
         # perms on the underlying Event as well.
 
-        # The original implementation of this check doesn't work, at least it
-        # broke in some later implementation of django. The type() of the event 
-        # is never the event. There are cases when the event is a subclass of
-        # Event:
-        if not issubclass(type(event),Event):
+        if not type(event) is Event:
             underlying_event = Event.objects.get(id=event.id)
             assign_default_event_perms(underlying_event)
             underlying_event.refresh_perms()
