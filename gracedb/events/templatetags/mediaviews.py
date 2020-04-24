@@ -27,6 +27,7 @@ blessed_tag_priority_order = [
     'tfplots',
     'sig_info',
     'audio',
+    'em_follow',
 ]
 
 
@@ -41,7 +42,7 @@ blessed_tag_priority_order = [
 img_file_extensions = ['.png','.jpg','.jpeg','.gif']
 images_filter = reduce(operator.or_, (Q(filename__contains=ex) for ex in img_file_extensions))
 
-wide_image_names = ['omegascan','coherence']
+wide_image_names = ['omegascan','coherence', 'em_bright']
 wide_filter = reduce(operator.or_, (Q(filename__contains=name) for name in wide_image_names))
 
 #styles, etc
