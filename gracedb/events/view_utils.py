@@ -672,19 +672,28 @@ def groupeventpermissionToDict(gop, event=None, request=None):
 #---------------------------------------------------------------------------------------
 
 def assembleLigoLw(objects):
-    from glue.ligolw import ligolw
-    # lsctables MUST be loaded before utils.
-    from glue.ligolw import utils
-    from glue.ligolw.utils import ligolw_add
-    from glue.ligolw.ligolw import LIGOLWContentHandler
-    from glue.ligolw.lsctables import use_in
+    from ligo.lw import ligolw
+    # Branson:
+    # #lsctables MUST be loaded before utils.
+    #
+    # Also Branson:
+    #    from glue.ligolw import utils
+    #    from glue.ligolw.utils import ligolw_add <---- ?
+    #    from glue.ligolw.ligolw import LIGOLWContentHandler
+    #    from glue.ligolw.lsctables import use_in <---- ?
 
-    use_in(LIGOLWContentHandler)
+    from ligo.lw.lsctables import use_in
+    from ligo.lw import utils
+    from ligo.lw.utils import ligolw_add
+    # AEP load custom ContentHandler for glue-->ligo.lw compatibility
+    from core.ligolw import FlexibleLIGOLWContentHandler
+
+    use_in(FlexibleLIGOLWContentHandler)
 
     xmldoc = ligolw.Document()
     for obj in objects:
         fname = os.path.join(obj.datadir, "coinc.xml")
-        utils.load_filename(fname, xmldoc=xmldoc, contenthandler=LIGOLWContentHandler)
+        utils.load_filename(fname, xmldoc=xmldoc, contenthandler=FlexibleLIGOLWContentHandler)
 
     ligolw_add.reassign_ids(xmldoc)
     ligolw_add.merge_ligolws(xmldoc)

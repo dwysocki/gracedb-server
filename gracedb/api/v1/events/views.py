@@ -19,13 +19,14 @@ from django.http.request import QueryDict
 from django.utils.functional import wraps
 from django.utils.http import urlencode
 
-# Stuff for the LigoLwRenderer
-from glue.ligolw import ligolw
+# Stuff for the LigoLwRenderer (converted from glue to ligo.lw)
+from ligo.lw import ligolw
 # lsctables MUST be loaded before utils.
-from glue.ligolw import utils
-from glue.ligolw.utils import ligolw_add
-from glue.ligolw.ligolw import LIGOLWContentHandler
-from glue.ligolw.lsctables import use_in
+from ligo.lw import utils
+from ligo.lw.utils import ligolw_add
+from core.ligolw import FlexibleLIGOLWContentHandler
+from ligo.lw.lsctables import use_in
+
 from guardian.models import GroupObjectPermission
 from rest_framework import authentication, parsers, serializers, status
 from rest_framework.exceptions import ValidationError as DrfValidationError
@@ -66,12 +67,11 @@ from ...utils import api_reverse
 logger = logging.getLogger(__name__)
 
 # Set up content handler
-use_in(LIGOLWContentHandler)
+use_in(FlexibleLIGOLWContentHandler)
 
 # For checking queries in the event that the user is external
 REST_FRAMEWORK_SETTINGS = getattr(settings, 'REST_FRAMEWORK', {})
 PAGINATE_BY = REST_FRAMEWORK_SETTINGS.get('PAGINATE_BY', 10)
-
 
 # Custom APIView class for inheriting default permissions
 class InheritPermissionsAPIView(InheritDefaultPermissionsMixin, APIView):
@@ -258,7 +258,7 @@ def assembleLigoLw(data):
             raise MissingCoinc
         elif not os.access(fname, os.R_OK):
             raise CoincAccess
-        utils.load_filename(fname, xmldoc=xmldoc, contenthandler=LIGOLWContentHandler)
+        utils.load_filename(fname, xmldoc=xmldoc, contenthandler=FlexibleLIGOLWContentHandler)
     ligolw_add.reassign_ids(xmldoc)
     ligolw_add.merge_ligolws(xmldoc)
     ligolw_add.merge_compatible_tables(xmldoc)
@@ -463,58 +463,67 @@ class EventList(InheritPermissionsAPIView):
     def post(self, request, format=None):
         rv = {}
         rv['warnings'] = []
+        pipeline_name = request.data['pipeline']
 
-        # Check user authorization for pipeline. 
-        group_name = request.data.get('group', None) 
-        if not group_name=='Test':
-            try:
-                pipeline = Pipeline.objects.get(name=request.data['pipeline'])
-            except:
-                return Response({'error': "Please provide a valid pipeline."},
-                    status = status.HTTP_400_BAD_REQUEST)
-            if not user_has_perm(request.user, "populate", pipeline):
-                return HttpResponseForbidden("You don't have permission on this pipeline.")
-
-            # Get search since we won't block MDC event submissions even if the
-            # pipeline is disabled
-            search_name = request.data.get('search', None)
-            if not pipeline.enabled and search_name != 'MDC':
-                err_msg = ('The {0} pipeline has been temporarily disabled by '
-                    'an EM advocate due to suspected misbehavior.').format(
-                    pipeline.name)
-                return HttpResponseBadRequest(err_msg)
-
-        # The following looks a bit funny but it is actually necessary. The 
-        # django form expects a dict containing the POST data as the first
-        # arg, and a dict containing the FILE data as the second. In the 
-        # django-restframework, however, both are in request.data
-
-        # TP (21 Nov 2017): Hack to allow basic event submission without
-        # labels to function with versions of gracedb-client before 1.26.
-        # Should be removed eventually.
-        if (request.data.get('labels') == ''):
-            request.data.pop('labels', None)
-
-        form = CreateEventForm(request.data, request.data)
-        if form.is_valid():
-            event, warnings = _createEventFromForm(request, form)
-            if event:
-                rv.update(eventToDict(event, request=request))
-                rv['warnings'] += warnings
-                response = Response(rv, status=status.HTTP_201_CREATED)
-                response["Location"] = api_reverse(
-                        'events:event-detail',
-                        args=[event.graceid],
-                        request=request)
-                return response
-            else: # no event created
-                return Response({'warnings':warnings},
-                        status=status.HTTP_400_BAD_REQUEST)
-        else: # form not valid
-            rv = {}
-            rv['errors'] = ["%s: %s" % (key, form.errors[key].as_text())
-                    for key in form.errors]
-            return Response(rv, status=status.HTTP_400_BAD_REQUEST)
+        # AEP (May 2020): begin to depreciate pipelines that are no longer 
+        # maintained or supported. Not sure this conditional is the best way
+        # to do it, but it's a start.
+        if pipeline_name not in settings.DEPRECIATED_PIPELINES:
+            # Check user authorization for pipeline. 
+            group_name = request.data.get('group', None) 
+            if not group_name=='Test':
+                try:
+                    pipeline = Pipeline.objects.get(name=pipeline_name)
+                except:
+                    return Response({'error': "Please provide a valid pipeline."},
+                        status = status.HTTP_400_BAD_REQUEST)
+                if not user_has_perm(request.user, "populate", pipeline):
+                    return HttpResponseForbidden("You don't have permission on this pipeline.")
+    
+                # Get search since we won't block MDC event submissions even if the
+                # pipeline is disabled
+                search_name = request.data.get('search', None)
+                if not pipeline.enabled and search_name != 'MDC':
+                    err_msg = ('The {0} pipeline has been temporarily disabled by '
+                        'an EM advocate due to suspected misbehavior.').format(
+                        pipeline.name)
+                    return HttpResponseBadRequest(err_msg)
+    
+            # The following looks a bit funny but it is actually necessary. The 
+            # django form expects a dict containing the POST data as the first
+            # arg, and a dict containing the FILE data as the second. In the 
+            # django-restframework, however, both are in request.data
+    
+            # TP (21 Nov 2017): Hack to allow basic event submission without
+            # labels to function with versions of gracedb-client before 1.26.
+            # Should be removed eventually.
+            if (request.data.get('labels') == ''):
+                request.data.pop('labels', None)
+    
+            form = CreateEventForm(request.data, request.data)
+            if form.is_valid():
+                event, warnings = _createEventFromForm(request, form)
+                if event:
+                    rv.update(eventToDict(event, request=request))
+                    rv['warnings'] += warnings
+                    response = Response(rv, status=status.HTTP_201_CREATED)
+                    response["Location"] = api_reverse(
+                            'events:event-detail',
+                            args=[event.graceid],
+                            request=request)
+                    return response
+                else: # no event created
+                    return Response({'warnings':warnings},
+                            status=status.HTTP_400_BAD_REQUEST)
+            else: # form not valid
+                rv = {}
+                rv['errors'] = ["%s: %s" % (key, form.errors[key].as_text())
+                        for key in form.errors]
+                return Response(rv, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            err_msg =("The %s pipeline is no longer supported in GraceDB. Please "
+                    "contact an administrator to re-enable support." % pipeline_name)
+            return HttpResponseBadRequest(err_msg)
 
 
 class RawdataParser(parsers.BaseParser):
@@ -858,6 +867,7 @@ class EventLogList(InheritPermissionsAPIView):
 
     @event_and_auth_required
     def post(self, request, event):
+        #raise ValueError(request.data, event)
         message = request.data.get('comment')
         # Handle requests encoded as multipart/form or regular JSONs
         if isinstance(request.data, QueryDict):
@@ -913,7 +923,14 @@ class EventLogList(InheritPermissionsAPIView):
             use_display_names = True
         else:
             use_display_names = False
-            request.data['displayName'] = ''
+            #https://stackoverflow.com/questions/52367379/why-is-django-rest-frameworks-request-data-sometimes-immutable
+            try:
+                request.data['displayName'] = ''
+            except AttributeError:
+                mutable = request.data._mutable # save state
+                request.data._mutable = True    # make mutable
+                request.data['displayName'] = ''
+                request.data._mutable = mutable # return to original state
 
         tw_dict = {}
         if tagnames and len(tagnames):

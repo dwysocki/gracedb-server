@@ -4,10 +4,10 @@ from math import isnan, sqrt
 import numbers
 import os
 
-from glue.ligolw.utils import load_filename, load_fileobj
-from glue.ligolw.lsctables import CoincInspiralTable, SnglInspiralTable, use_in
-from glue.ligolw.lsctables import SimInspiralTable, MultiBurstTable, CoincTable
-from glue.ligolw.ligolw import LIGOLWContentHandler
+from ligo.lw.utils import load_filename, load_fileobj
+from ligo.lw.lsctables import CoincInspiralTable, SnglInspiralTable, use_in
+from ligo.lw.lsctables import SimInspiralTable, CoincTable
+from core.ligolw import FlexibleLIGOLWContentHandler
 import voeventparse as vp
 
 from core.time_utils import utc_datetime_to_gps_float
@@ -26,7 +26,7 @@ except ImportError:  # python >= 3
 # Set up logger
 logger = logging.getLogger(__name__)
 
-use_in(LIGOLWContentHandler)
+use_in(FlexibleLIGOLWContentHandler)
 
 # This function checks for 'inf' in a float field, asks the database
 # what's the maximum value it can accept for that field, and returns
@@ -76,7 +76,7 @@ def handle_uploaded_data(event, datafilename,
         # Wildly speculative wrt HM
 
         try:
-            xmldoc = load_filename(datafilename, contenthandler = LIGOLWContentHandler)
+            xmldoc = load_filename(datafilename, contenthandler = FlexibleLIGOLWContentHandler)
         except Exception as e:
             message = "Could not read data (%s)" % str(e)
             EventLog(event=event, issuer=event.submitter, comment=message).save()
@@ -188,10 +188,10 @@ def handle_uploaded_data(event, datafilename,
     elif pipeline == 'HardwareInjection':
         log_comment = "Log File Created"
         if datafilename:
-            xmldoc = load_filename(datafilename, contenthandler=LIGOLWContentHandler)
+            xmldoc = load_filename(datafilename, contenthandler=FlexibleLIGOLWContentHandler)
         elif file_contents:
             f = StringIO(file_contents)
-            xmldoc, digest = load_fileobj(f, contenthandler=LIGOLWContentHandler)
+            xmldoc, digest = load_fileobj(f, contenthandler=FlexibleLIGOLWContentHandler)
         else:
             msg = "If you wanna make an injection event, I'm gonna need a filepath or filecontents."
             raise ValueError(msg)
@@ -246,48 +246,48 @@ def handle_uploaded_data(event, datafilename,
         #               comment=log_comment)
         #log.save()
 
-    elif pipeline == 'Omega':
-        #here's how it works for bursts
-        #xmldoc, log_data, temp_data_loc = populate_burst_tables("initial.data")
-        #write_output_files('.', final_xmldoc, log_data)
+#   elif pipeline == 'Omega':
+#       #here's how it works for bursts
+#       #xmldoc, log_data, temp_data_loc = populate_burst_tables("initial.data")
+#       #write_output_files('.', final_xmldoc, log_data)
 
-        xmldoc, log_data, temp_data_loc = populate_omega_tables(datafilename)
-        output_dir = os.path.dirname(datafilename)
-        write_output_files(output_dir, xmldoc, log_data)
+#       xmldoc, log_data, temp_data_loc = populate_omega_tables(datafilename)
+#       output_dir = os.path.dirname(datafilename)
+#       write_output_files(output_dir, xmldoc, log_data)
 
-        # Create EventLog entries about these files.
-        log = EventLog(event=event,
-                       filename=log_filename,
-                       file_version=0,
-                       issuer=event.submitter,
-                       comment="Log File Created" )
-        log.save()
+#       # Create EventLog entries about these files.
+#       log = EventLog(event=event,
+#                      filename=log_filename,
+#                      file_version=0,
+#                      issuer=event.submitter,
+#                      comment="Log File Created" )
+#       log.save()
 
-        log = EventLog(event=event,
-                       filename=coinc_table_filename,
-                       file_version=0,
-                       issuer=event.submitter,
-                       comment="Coinc Table Created")
-        log.save()
+#       log = EventLog(event=event,
+#                      filename=coinc_table_filename,
+#                      file_version=0,
+#                      issuer=event.submitter,
+#                      comment="Coinc Table Created")
+#       log.save()
 
-        # Extract relevant data from xmldoc.
-        mb_table = MultiBurstTable.get_table(xmldoc)
-        mb_table = mb_table[0]
-        event.gpstime = mb_table.start_time
+#       # Extract relevant data from xmldoc.
+#       mb_table = MultiBurstTable.get_table(xmldoc)
+#       mb_table = mb_table[0]
+#       event.gpstime = mb_table.start_time
 
-        # Try reading the CoincInspiralTable to get the ifos
-        warnings = []
-        try:
-            coinc_table = CoincInspiralTable.get_table(xmldoc)[0]
-        except Exception as e:
-            warnings += "Could not extract coinc inspiral table."
-            return temp_data_loc, warnings
+#       # Try reading the CoincInspiralTable to get the ifos
+#       warnings = []
+#       try:
+#           coinc_table = CoincInspiralTable.get_table(xmldoc)[0]
+#       except Exception as e:
+#           warnings += "Could not extract coinc inspiral table."
+#           return temp_data_loc, warnings
 
-        coinc_event_table = CoincTable.get_table(xmldoc)[0]
-        event.instruments = coinc_table.ifos
-        event.nevents = coinc_event_table.nevents
-        event.likelihood = cleanData(coinc_event_table.likelihood, 'likelihood')
-        event.save()
+#       coinc_event_table = CoincTable.get_table(xmldoc)[0]
+#       event.instruments = coinc_table.ifos
+#       event.nevents = coinc_event_table.nevents
+#       event.likelihood = cleanData(coinc_event_table.likelihood, 'likelihood')
+#       event.save()
     elif pipeline in ['CWB', 'CWB2G']:
 
         data = CwbData(datafilename)

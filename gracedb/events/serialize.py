@@ -2,10 +2,10 @@ from math import log
 import os
 from time import gmtime, strftime
 
-from glue.lal import LIGOTimeGPS
-from glue.ligolw import ligolw
-from glue.ligolw import table
-from glue.ligolw import lsctables
+from lal import LIGOTimeGPS
+from ligo.lw import ligolw
+from ligo.lw import table
+from ligo.lw import lsctables
 
 from core.vfile import VersionedFile, create_versioned_file
 

@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import decimal
+from decimal import InvalidOperation
 import logging
 
 from django.utils import six
@@ -140,9 +141,33 @@ class CustomDecimalField(fields.DecimalField):
         # Proper handling of floats: convert to quantized decimal.Decimal
         # and then back to a string, so that the rest of the processing
         # can continue
-        if isinstance(data, float):
-            data = decimal.Decimal(data).quantize(
-                decimal.Decimal(10)**(-1 * self.decimal_places))
-            data = data.to_eng_string()
+
+        # AEP Update: This required some tweaking. When requests are made 
+        # as application/json, then the resulting 'request.data' is a dict,
+        # and the values within the raw dict are what they should be (floats,
+        # etc.) BUT, for form-encoded data, the request.data a QueryDict object
+        # and the containing fields are strings. So what was happening if the 
+        # POSTed */form/* fields had too many decimal places was, the conditional
+        # wouuldn't recognize it as a float, then it would pass the raw string 
+        # back to the serializer, which would fail when it tried to insert it into 
+        # the database (which was expecting a max number of decimal places"
+
+        # What is does now is, it will accept either a float or a string, but if the
+        # decimal conversion fails because you're not inputting a valid number, then
+        # it just passes it right along and lets the serializer's error checking 
+        # return an error to the user. 
+
+        # I confirmed that it has the same behavior for json requests (i.e., db
+        # modification for numbers, and a 400 "A valid number is reuqired" otherwise) 
+        # *and* for form-encoded requests. So changing t_start on a superevent 
+        # to 'apple' fails gracefully. 
+        
+        if isinstance(data, float) or isinstance(data, str):
+            try:
+                data = decimal.Decimal(data).quantize(
+                    decimal.Decimal(10)**(-1 * self.decimal_places))
+                data = data.to_eng_string()
+            except InvalidOperation:
+                pass
 
         return super(CustomDecimalField, self).to_internal_value(data)

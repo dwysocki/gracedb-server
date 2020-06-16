@@ -202,6 +202,13 @@ GRB_PIPELINES = [
                     'AGILE',
                 ]
 
+# List of pipelines that have been depreciated:
+DEPRECIATED_PIPELINES = [
+                          'X',
+                          'Q',
+                          'Omega',
+                        ]
+
 # VOEvent stream --------------------------------------------------------------
 VOEVENT_STREAM = 'gwnet/LVC'
 

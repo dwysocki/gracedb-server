@@ -2,6 +2,7 @@ from math import isnan
 import numbers
 
 from django.db import models, IntegrityError
+from django.db.models import NOT_PROVIDED
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.utils import six
@@ -17,13 +18,16 @@ from guardian.models import GroupObjectPermission
 import logging; log = logging.getLogger(__name__)
 
 import os
-import glue
-import glue.ligolw
-import glue.ligolw.utils
-import glue.ligolw.table
-import glue.ligolw.lsctables
-from glue.ligolw.ligolw import LIGOLWContentHandler
-from glue.lal import LIGOTimeGPS
+import ligo.lw
+import ligo.lw.ligolw
+from ligo.lw import utils as ligolw_utils
+from ligo.lw import table as ligolw_table
+from ligo.lw import lsctables
+
+# AEP: import FlexibleLIGOLWContentHandler for 
+# compatibility:
+from core.ligolw import FlexibleLIGOLWContentHandler
+from lal import LIGOTimeGPS
 
 import json, re
 
@@ -794,7 +798,7 @@ class SingleInspiral(models.Model):
             e = cls(event=event)
             #log.debug("Single/creating event")
             for f in [cls._meta.get_field(f) for f in cls.field_names()]:
-                value = getattr(row, f.attname, f.default)
+                value = getattr(row, f.attname, None if f.default is NOT_PROVIDED else f.default)
 
                 # Awful kludge for handling nan for eff_distance
                 try:
@@ -824,12 +828,12 @@ class SingleInspiral(models.Model):
             datafile = os.path.join(event.datadir, 'coinc.xml')
 
         try:
-            xmldoc = glue.ligolw.utils.load_filename(datafile, contenthandler=LIGOLWContentHandler)
+            xmldoc = ligolw_utils.load_filename(datafile, contenthandler=FlexibleLIGOLWContentHandler)
         except IOError:
             return None
 
         # Extract Single Inspiral Information
-        s_inspiral_tables = glue.ligolw.lsctables.SnglInspiralTable.get_table(xmldoc)
+        s_inspiral_tables = lsctables.SnglInspiralTable.get_table(xmldoc)
 
         # Concatentate the tables' rows into a single table
         table = sum(s_inspiral_tables, [])
@@ -845,7 +849,7 @@ class SingleInspiral(models.Model):
         except AttributeError: pass
         model_field_names = set([ x.name for x in cls._meta.get_fields(include_parents=False) ])
         ligolw_field_names = set(list(
-                glue.ligolw.lsctables.SnglInspiralTable.validcolumns))
+                lsctables.SnglInspiralTable.validcolumns))
         cls._field_names = model_field_names.intersection(ligolw_field_names)
         return cls._field_names
 
