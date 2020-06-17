@@ -39,7 +39,7 @@ UNAUTHENTICATED_ACCESS = True
 DEBUG = False
 
 # Number of results to show on latest page
-LATEST_RESULTS_NUMBER = 50
+LATEST_RESULTS_NUMBER = 25
 
 # Path to root URLconf
 ROOT_URLCONF = '{module}.urls'.format(module=os.path.basename(CONFIG_ROOT))

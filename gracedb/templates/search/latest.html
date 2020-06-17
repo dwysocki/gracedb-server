@@ -26,46 +26,44 @@
     <td><center><input type="Submit" value="Search" class="btn btn-sm btn-primary"></center></td>
     </table>
 </form>
+<br>
+<h5> Tap on entry for detailed information </h5>
 
 {% if events %}
-<!-- Event listing -->
-<table class="event">
+
+<table class="table table-hover table-responsive table-latest">
+  <thead class="thead-light">
     <tr>
-        <th valign="top">UID</th>
+        <th>UID</th>
         <th>Labels</th>
-        <th>Group</th>
         <th>Pipeline</th>
-        <th>Search</th>
         <th>
             {{ "gps"|timeselect:"gps" }}
-            Event Time
         </th>
-        <th>Instruments</th>
         <th>FAR (Hz)</th>
-        <th>Latency (sec)</th>
         <th>
-            {{"created"|timeselect:"utc" }}
-            Created
+            {{ "created"|timeselect:"utc" }}
         </th>
     </tr>
+  </thead>
+
 
 {% for ev in events %}
-    <tr class={% cycle 'odd' 'even' %}>
+  <tbody>
+    <tr data-toggle="collapse" data-target="#{{ ev.graceid }}" class="accordian-toggle collapse-row collapsed">
         <td><a href="{% url "view" ev.graceid %}">{{ ev.graceid }}</a></td>
         <td>
              {% for labelling in ev.labelling_set.all %}
                 <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
              {% endfor %}
         </td>
-        <td>{{ ev.group.name }} </td>
         <td>{{ ev.pipeline.name }} </td>
-        <td>{{ ev.search.name }} </td>
         <td>{% if ev.gpstime%}
                 <!-- <span title="{{ ev.gpstime|gpsdate }}">{{ ev.gpstime }}</span> -->
+                <!-- {{ ev.gpstime|floatformat:"0" }} -->
                 {{ ev.gpstime|multiTimeMicroSeconds:"gps" }}
             {% endif %}</td>
         <!-- this is a bug. The far should be floored for display purposes. --> 
-        <td>{{ ev.instruments }}</td>
         {% if user_is_external %}
             {% if ev.far and ev.far < far_floor %} 
             <td>&lt; {{ far_floor|scientific }}</td>
@@ -75,70 +73,207 @@
         {% else %}
         <td>{{ ev.far|scientific }}</td>
         {% endif %}
-        <td style="text-align:center">{{ ev.reportingLatency }}</td>
         <td>{{ ev.created|multiTime:"created" }}</td>
+    </tr>
+    <tr>
+        <td colspan="6" class="hiddenRow"><div class="accordian-body collapse" id="{{ ev.graceid }}">
+          <div class="container-sm p-3 my-3">
+            <table class="table-sm">
+             <thead>
+              <tr>
+               <th>Additional Event Information<th>
+              </tr>
+             </thead>
+             <tbody>
+              <tr>
+               <td><b>Group:</b></td>
+               <td>{{ ev.group.name }}</td>
+              </tr>
+
+              <tr>
+               <td><b>Search:</b></td>
+               <td>{{ ev.search.name }}</td>
+              </tr>
+
+              <tr>
+               <td><b>Instruments:</b></td>
+               <td>{{ ev.instruments }}</td>
+              </tr>
+
+              <tr>
+               <td><b>Latency:</b></td>
+               <td>{{ ev.reportingLatency|floatformat:"-2" }}</td>
+              </tr>
+
+               </tr>
+             </tbody>
+             </table>
+             <br>
+             <a href="{% url "view" ev.graceid %}" class="btn btn-success" role="button">Continue to {{ev.graceid}} Event Page</a>
+          </div> 
+        </div></td>
     </tr>
 
 {% endfor %}
+  </tbody>
 </table>
 
 {% elif superevents %}
+
 <!-- Superevent listing -->
-<table class="event">
+<table class="table table-hover table-responsive table-latest">
+  <thead class="thead-light">
     <tr>
-        <th valign="top">UID</th>
+        <th>UID</th>
         <th>Labels</th>
         {% if user.is_authenticated %}
         <th>Preferred Event</th>
-        <th>GW Events</th>
         {% endif %}
-        <th>t_start</th>
-        <th>t_0</th>
-        <th>t_end</th>
+        <th>t<sub>0</sub></th>
         <th>FAR (Hz)</th>
         <th>
             {{"created"|timeselect:"utc" }}
-            Created
         </th>
     </tr>
+  </thead>
 
-{% for s in superevents %}
-    <tr class={% cycle 'odd' 'even' %}>
-        <td><a href="{% url "superevents:view" s.superevent_id %}">{{ s.superevent_id }}</a></td>
+
+{% for sv in superevents %}
+  <tbody>
+    <tr data-toggle="collapse" data-target="#{{ sv.superevent_id }}" class="accordian-toggle collapse-row collapsed">
+
+        <td><a href="{% url "superevents:view" sv.superevent_id %}">{{ sv.superevent_id }}</a></td>
         <td>
-             {% for labelling in s.labelling_set.all %}
+             {% for labelling in sv.labelling_set.all %}
                 <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
              {% endfor %}
         </td>
+
         {% if user.is_authenticated %}
-        <td><a href="{% url "view" s.preferred_event.graceid %}">{{ s.preferred_event.graceid }}</a></td>
-        <td>
-        {% for ev in s.get_internal_events %}
-            {% if forloop.last %}
-                <a href="{% url "view" ev.graceid %}">{{ ev.graceid }}</a>
-            {% else %}
-                <a href="{% url "view" ev.graceid %}">{{ ev.graceid }}</a>,
-            {% endif %}
-        {% endfor %}
-        </td>
+        <td><a href="{% url "view" sv.preferred_event.graceid %}">{{ sv.preferred_event.graceid }}</a></td>
         {% endif %}
-        <td>{{ s.t_start }} </td>
-        <td>{{ s.t_0 }} </td>
-        <td>{{ s.t_end }} </td>
+
+        <td>{{ sv.t_0|floatformat:"-1" }} </td>
+
         {% if user_is_external %}
-            {% if s.preferred_event.far and s.preferred_event.far < far_floor %} 
+            {% if sv.preferred_event.far and sv.preferred_event.far < far_floor %} 
             <td>&lt; {{ far_floor|scientific }}</td>
             {% else %}
-            <td>{{ s.preferred_event.far|scientific }}</td>
+            <td>{{ sv.preferred_event.far|scientific }}</td>
             {% endif %}
         {% else %}
-        <td>{{ s.preferred_event.far|scientific }}</td>
+        <td>{{ sv.preferred_event.far|scientific }}</td>
         {% endif %}
-        <td>{{ s.created|multiTime:"created" }}</td>
+        <td>{{ sv.created|multiTime:"created" }}</td>
+
+    </tr>
+
+    <tr>
+        <td colspan="6" class="hiddenRow"><div class="accordian-body collapse" id="{{ sv.superevent_id }}">
+          <div class="container-sm p-3 my-3">
+
+            <!-- Superevent Table -->
+            <table class="table-sm">
+             <thead>
+              <tr>
+               <th>Additional Superevent Information<th>
+              </tr>
+             </thead>
+             <tbody>
+              <tr>
+               <td><b>GW Events:</b></td>
+               <td>
+                {% for ev in sv.get_internal_events %}
+                    {% if forloop.last %}
+                        <a href="{% url "view" ev.graceid %}">{{ ev.graceid }}</a>
+                    {% else %}
+                        <a href="{% url "view" ev.graceid %}">{{ ev.graceid }}</a>,
+                    {% endif %}
+                {% endfor %}
+               </td>
+              </tr>
+
+              <tr>
+               <td><b>t<sub>start</sub>:</b></td>
+               <td>{{ sv.t_start|floatformat:"-1" }} </td>
+              </tr>
+
+              <tr>
+               <td><b>t<sub>end</sub>:</b></td>
+               <td>{{ sv.t_end|floatformat:"-1" }} </td>
+              </tr>
+               </tr>
+             </tbody>
+             </table>
+             <br>
+             <a href="{% url "superevents:view" sv.superevent_id %}" class="btn btn-primary" role="button">Continue to {{ sv.superevent_id }} Superevent Page</a>
+
+            <!-- Preferred Event Table -->
+            <br>
+            <br>
+            <table class="table-sm">
+             <thead>
+              <tr>
+               <th>Preferred Event Information<th>
+              </tr>
+             </thead>
+             <tbody>
+               <tr>
+                 <td><b>Event ID:</b></td>
+                 <td><a href="{% url "view" sv.preferred_event.graceid %}">{{ sv.preferred_event.graceid }}</a></td>
+               </tr>
+    
+               <tr>
+                 <td><b>Pipeline:</b></td>
+                 <td>{{ sv.preferred_event.pipeline }}</td>
+               </tr>
+
+               <tr>
+                 <td><b>Instruments:</b></td>
+                 <td>{{ sv.preferred_event.instruments }}</td>
+               </tr>
+
+               <!-- CoincInpsiralEvent Table -->
+               {% if sv.preferred_event.coincinspiralevent %}
+               <tr>
+                 <td><b>SNR:</b></td>
+                 <td>{{ sv.preferred_event.coincinspiralevent.snr|floatformat:"-2" }}</td>
+               </tr>
+
+               <tr>
+                 <td><b>Chrip Mass:</b></td>
+                 <td>{{ sv.preferred_event.coincinspiralevent.mchirp|floatformat:"-2" }}&nbsp;M<sub>&#x2299;</sub></td>
+               </tr>
+
+               {% for sngl in sv.preferred_event.coincinspiralevent.singleinspiral_set.all %}
+               <tr>
+                 <td><b>{{ sngl.ifo }} SNR:</b></td>
+                 <td>{{sngl.snr|floatformat:"-2"}}</td>
+               </tr>
+               {% endfor %}
+
+               {% elif sv.preferred_event.multiburstevent %}
+               <tr>
+                 <td><b>SNR:</b></td>
+                 <td>{{ sv.preferred_event.multiburstevent.snr|floatformat:"-2" }}</td>
+               </tr>
+
+               {% endif %}
+               <!-- end CoincInpsiralEvent Table -->
+
+             </tbody>
+             </table>
+             <br>
+             <a href="{% url "view" sv.preferred_event.graceid %}" class="btn btn-success" role="button">Continue to {{ sv.preferred_event.graceid }} Event Page</a>
+
+          </div> 
+        </div></td>
     </tr>
 
 {% endfor %}
+  </tbody>
 </table>
+
 
 {% else %} <!-- !events -->
 <h4>No results. Please login to see complete results.</h4>

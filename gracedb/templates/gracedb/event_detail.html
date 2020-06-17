@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load timeutil %}
+{% load mediaviews %}
 {% load scientific %}
 {% load sanitize_html %}
 {% load logtags %}
@@ -34,10 +35,9 @@
 <!-- Local style declarations -->
 <link rel="stylesheet" href="{% static "dijit/themes/tundra/tundra.css" %}" />
 
-<!-- the main JavaScript block is pulled in with an include
 <script>
 {% include "gracedb/event_detail_script.js" %}
-</script> -->
+</script> 
 
 {% endblock %}
 
@@ -237,7 +237,7 @@
             <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_yr }}</td>
             <td>{{ object.reportingLatency }} </td>
             <td><a href="{{ object.weburl }}">Data</a></td>
-            <td>{{ object.created|multiTime:"created" }}</td>
+            <td>{{ object.created|multiTime:"submitted" }}</td>
             {% if object.superevent %}
             <td><a href="{{ object.superevent.get_web_url }}">{{ object.superevent.superevent_id }}</a></td>
             {% endif %}

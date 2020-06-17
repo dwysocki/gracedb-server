@@ -59,7 +59,7 @@ def get_multitime_value(t, label, autoescape, format):
         # Note: must convert to server timezone before calling mktime
         posix_time = time.mktime(dt.astimezone(SERVER_TZ).timetuple())
     elif isinstance(t, decimal.Decimal):
-        gps_time = float(t)
+        gps_time = round(float(t),2)
         dt = gpsToUtc(t)
         posix_time = time.mktime(dt.astimezone(SERVER_TZ).timetuple())
     else:
@@ -82,7 +82,7 @@ def get_multitime_value(t, label, autoescape, format):
     else:
         display_time = gps_time
 
-    rv = '<time utc="%s" gps="%14.4f" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
+    rv = '<time utc="%s" gps="%14.2f" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
             (utc_time, gps_time, llo_time, lho_time, virgo_time, js_parsable_time, label_attr, display_time)
 
     return mark_safe(rv)
@@ -222,3 +222,4 @@ def end_time(event,digits=4):
         return str(event.end_time) + decimal_part
     except Exception:
         return None
+
