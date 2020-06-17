@@ -164,6 +164,10 @@ class FlexibleLIGOLWContentHandler(LIGOLWContentHandler, object):
            "coinc_event_map": {
              "event_id": "ilwd:char",
              "coinc_event_id": "ilwd:char"
+           },
+           "postcoh": {
+             "process_id": "ilwd:char",
+             "event_id": "ilwd:char"
            }
          }
 
@@ -222,7 +226,12 @@ class FlexibleLIGOLWContentHandler(LIGOLWContentHandler, object):
                 raise type(e)('Problem parsing attribute qname("Name")')
 
             if element == 'table':
-                self.current_table = TableByName[qname]
+                # Adding in Error trap for unknown table names that aren't part
+                # of the lsctables spec. I'm looking at you spiir/postcoh...
+                try:
+                    self.current_table = TableByName[qname]
+                except:
+                    self.current_table = None
             else:
                 raise Exception('Problem determining table name')
         return
