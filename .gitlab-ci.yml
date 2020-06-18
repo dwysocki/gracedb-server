@@ -70,7 +70,7 @@ before_script:
   after_script:
     - rm -fvr ${PIP_CACHE_DIR}/log
   retry:
-    max: 10
+    max: 2
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
@@ -92,7 +92,7 @@ branch_image:
     - docker build --pull -t $DOCKER_BRANCH .
     - docker push $DOCKER_BRANCH
   retry:
-    max: 10
+    max: 2
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
@@ -108,7 +108,7 @@ latest_image:
     - docker tag $DOCKER_BRANCH $DOCKER_LATEST
     - docker push $DOCKER_LATEST
   retry:
-    max: 10
+    max: 2
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
