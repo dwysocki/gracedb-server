@@ -69,6 +69,11 @@ before_script:
     - PYTHONPATH=${PYTHONPATH}:${PWD}/gracedb ${PYTHON} -m pytest --cov ./gracedb --junitxml=${CI_PROJECT_DIR}/junit.xml
   after_script:
     - rm -fvr ${PIP_CACHE_DIR}/log
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
   artifacts:
     reports:
       junit: junit.xml
@@ -86,6 +91,11 @@ branch_image:
   script:
     - docker build --pull -t $DOCKER_BRANCH .
     - docker push $DOCKER_BRANCH
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
 
 latest_image:
   stage: latest
@@ -97,3 +107,8 @@ latest_image:
   script:
     - docker tag $DOCKER_BRANCH $DOCKER_LATEST
     - docker push $DOCKER_LATEST
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
