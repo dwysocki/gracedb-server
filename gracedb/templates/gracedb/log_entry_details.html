@@ -58,6 +58,10 @@
                     {% if log.filename %}
                      (<a href="{{ log.fileurl }}">{{ log.filename }}</a>)
                     {% endif %}
+                    
+                    {% for tag in log.tags.all %}
+                      <button type="button" class="btn-xs btn-outline-primary">{{ tag.name }}</button>
+                    {% endfor %}
                     </td>
                    </tr>
                    {% endfor %}
