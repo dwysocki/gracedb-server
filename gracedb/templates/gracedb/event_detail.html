@@ -235,7 +235,7 @@
             {# NOTE: XXX Using event_far so it can be floored for external users. #}
             <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
             <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_yr }}</td>
-            <td>{{ object.reportingLatency }} </td>
+            <td>{{ object.reportingLatency|floatformat:"-3" }} </td>
             <td><a href="{{ object.weburl }}">Data</a></td>
             <td>{{ object.created|multiTime:"submitted" }}</td>
             {% if object.superevent %}

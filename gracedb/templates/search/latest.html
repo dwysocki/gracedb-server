@@ -102,8 +102,8 @@
               </tr>
 
               <tr>
-               <td><b>Latency:</b></td>
-               <td>{{ ev.reportingLatency|floatformat:"-2" }}</td>
+               <td><b>Latency (s):</b></td>
+               <td>{{ ev.reportingLatency|floatformat:"-3" }}</td>
               </tr>
 
                </tr>
@@ -195,17 +195,17 @@
 
               <tr>
                <td><b>t<sub>start</sub>:</b></td>
-               <td>{{ sv.t_start|floatformat:"-1" }} </td>
+               <td>{{ sv.t_start|floatformat:"-3" }} </td>
               </tr>
 
               <tr>
                <td><b>t<sub>0</sub>:</b></td>
-               <td>{{ sv.t_0|floatformat:"-1" }} </td>
+               <td>{{ sv.t_0|floatformat:"-3" }} </td>
               </tr>
 
               <tr>
                <td><b>t<sub>end</sub>:</b></td>
-               <td>{{ sv.t_end|floatformat:"-1" }} </td>
+               <td>{{ sv.t_end|floatformat:"-3" }} </td>
               </tr>
                </tr>
              </tbody>
