@@ -130,7 +130,6 @@
         {% if user.is_authenticated %}
         <th>Preferred Event</th>
         {% endif %}
-        <th>t<sub>0</sub></th>
         <th>FAR (Hz)</th>
         <th>
             {{"created"|timeselect:"utc" }}
@@ -153,8 +152,6 @@
         {% if user.is_authenticated %}
         <td><a class="no-collapse-link" href="{% url "view" sv.preferred_event.graceid %}">{{ sv.preferred_event.graceid }}</a></td>
         {% endif %}
-
-        <td>{{ sv.t_0|floatformat:"-1" }} </td>
 
         {% if user_is_external %}
             {% if sv.preferred_event.far and sv.preferred_event.far < far_floor %} 
@@ -181,6 +178,7 @@
               </tr>
              </thead>
              <tbody>
+             {% if user.is_authenticated %}
               <tr>
                <td><b>GW Events:</b></td>
                <td>
@@ -193,10 +191,16 @@
                 {% endfor %}
                </td>
               </tr>
+             {% endif %}
 
               <tr>
                <td><b>t<sub>start</sub>:</b></td>
                <td>{{ sv.t_start|floatformat:"-1" }} </td>
+              </tr>
+
+              <tr>
+               <td><b>t<sub>0</sub>:</b></td>
+               <td>{{ sv.t_0|floatformat:"-1" }} </td>
               </tr>
 
               <tr>
@@ -211,6 +215,7 @@
 
             <!-- Preferred Event Table -->
             <br>
+            {% if user.is_authenticated %}
             <br>
             <table class="table-sm">
              <thead>
@@ -266,6 +271,7 @@
              </table>
              <br>
              <a href="{% url "view" sv.preferred_event.graceid %}" class="btn btn-success" role="button">Continue to {{ sv.preferred_event.graceid }} Event Page</a>
+             {% endif %}
 
           </div> 
         </div></td>
