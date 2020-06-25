@@ -71,7 +71,9 @@
 
           {% if info_banner_enabled %}
             <div class="alert alert-info" role="alert">
+               {% autoescape off%}
                {{ info_banner_message }}
+               {% endautoescape%}
             </div>
           {% endif %}
         
