@@ -67,9 +67,13 @@
 
    <div class="container">
             </br>
+
+
+          {% if info_banner_enabled %}
             <div class="alert alert-info" role="alert">
-              The comment period for GraceDB's visual interface will be closing on June 25. Please post feedback to the <a href="https://git.ligo.org/lscsoft/gracedb/-/issues/198">issue on Gitlab</a>.
+               {{ info_banner_message }}
             </div>
+          {% endif %}
         
            <h2>{% block heading %}Title{% endblock %}</h2>
                {% block content %}{% endblock %}

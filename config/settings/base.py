@@ -25,6 +25,10 @@ def get_from_env(envvar, default_value=None, fail_if_not_found=True):
 MAINTENANCE_MODE = False
 MAINTENANCE_MODE_MESSAGE = None
 
+# Enable/Disable Information Banner:
+INFO_BANNER_ENABLED = False
+INFO_BANNER_MESSAGE = None
+
 # Version ---------------------------------------------------------------------
 PROJECT_VERSION = '2.10.0'
 
@@ -52,7 +56,7 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 # BrokenLinkEmailsMiddleware is enabled
 ADMINS = [
     ("Alexander Pace", "alexander.pace@ligo.org"),
-#    ("Duncan Meacher", "duncan.meacher@ligo.org"),
+    ("Duncan Meacher", "duncan.meacher@ligo.org"),
 ]
 MANAGERS = ADMINS
 

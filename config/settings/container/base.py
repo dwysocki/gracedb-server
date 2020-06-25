@@ -73,6 +73,19 @@ if (isinstance(maintenance_mode, str) and
 MAINTENANCE_MODE_MESSAGE = \
     get_from_env('DJANGO_MAINTENANCE_MODE_MESSAGE', fail_if_not_found=False)
 
+# Get info banner settings from environment
+info_banner_enabled = get_from_env(
+    'DJANGO_INFO_BANNER_ENABLED',
+    default_value=False,
+    fail_if_not_found=False
+)
+# fix for other booleans:
+if (isinstance(info_banner_enabled, str) and
+    info_banner_enabled.lower() in ['true','t','1']):
+    INFO_BANNER_ENABLED = True
+INFO_BANNER_MESSAGE = \
+    get_from_env('DJANGO_INFO_BANNER_MESSAGE', fail_if_not_found=False)
+
 # Get email settings from environment
 EMAIL_BACKEND = 'django_ses.SESBackend'
 AWS_SES_ACCESS_KEY_ID = get_from_env('AWS_SES_ACCESS_KEY_ID')
