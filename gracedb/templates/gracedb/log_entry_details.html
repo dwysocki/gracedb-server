@@ -51,7 +51,7 @@
                    <tr>
                     <td> {{ log.N }} </td>
                     <td> {{ log.created|multiTime:"lcreated" }} </td>
-                    <td> {{ log.issuer }} </td>
+                    <td> {{ log.issuer.get_full_name }} </td>
                     {% autoescape off %}
                     <td> {{ log.comment }} 
                     {% endautoescape %}
