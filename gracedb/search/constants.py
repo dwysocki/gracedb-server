@@ -17,10 +17,10 @@ ExpressionOperator.setParseAction(lambda toks: EXPR_OPERATORS[toks[0]])
 
 # Dict of LIGO run names (keys) and GPS time range tuples (values)
 RUN_MAP = {
-    # FIXME: O3 end currently specified as April 30, 2020 (no time given),
-    #        assume it is 15:00:00 UTC.
-    # 01 Apr 2019 15:00:00 UTC - 30 Apr 2020 15:00:00 UTC
-    "O3": (1238166018, 1272294018),
+    # O3 suspended early due to COVID-19:
+    # https://www.ligo.caltech.edu/news/ligo20200326
+    # 01 Apr 2019 15:00:00 UTC - 27 Mar 2020 16:00:00 UTC
+    "O3": (1238166018, 1269363618),
     # 04 Mar 2019 16:00:00 UTC - 01 Apr 2019 15:00:00 UTC
     "ER14": (1235750418, 1238166018),
     # 14 Dec 2018 16:00:00 UTC - 18 Dec 2018 14:00:00 UTC
