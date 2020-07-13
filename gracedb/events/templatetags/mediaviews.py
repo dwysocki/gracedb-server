@@ -164,9 +164,6 @@ def img_div(logline, tag_name):
                          img_uri, 
                          comment)
     return rv
-     
-    
-
 
 @register.filter
 def logboxes(log_list, autoescape=None):
@@ -232,3 +229,15 @@ def filter_logs(log_list, tag_name=None, autoescape=None):
 
     return log_list 
 
+@register.filter
+def tag_selecter(name, autoescape=None):
+    rv = """"""
+    rv += """<select class="form-control" multiple="multiple"
+                      name="{}">""".format(name)
+    for tag_name in blessed_tag_priority_order:
+        # retrieve the tag object:
+        tag, created  = Tag.objects.get_or_create(name=tag_name)
+        rv += """<option value="{}">{}</option>""".format(tag_name, tag.displayName)
+    rv += """</select>"""
+
+    return mark_safe(rv)

@@ -867,7 +867,6 @@ class EventLogList(InheritPermissionsAPIView):
 
     @event_and_auth_required
     def post(self, request, event):
-        #raise ValueError(request.data, event)
         message = request.data.get('comment')
         # Handle requests encoded as multipart/form or regular JSONs
         if isinstance(request.data, QueryDict):

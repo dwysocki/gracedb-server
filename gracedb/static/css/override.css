@@ -7,7 +7,7 @@
 
 body {
   background-color: #f2f4f8;
-  font: 12px;
+  font: 1.0em;
 }
 
 .navbar-gracedb {
@@ -31,7 +31,7 @@ body {
 
 
 .table-detail {
-  font-size: 13px;
+  font-size: 1.0em;
   font-stretch: condensed;
   margin: auto;
   border-collapse: collapse;
@@ -72,22 +72,11 @@ body {
   border-collapse: collapse;
 }
 
-/* .custom-select {
-     position: relative;
-     display: flex;
-     flex-direction: column;
-     height: 20px;
-     padding: 0;
+/* Button Stuff */
+.btn-group .button:first-child {
+    border-radius: 8px 0 0 8px;
 }
 
- .custom-option {
-     position: relative;
-     display: block;
-     padding: 0 22px 0 22px;
-     font-size: 22px;
-     font-weight: 300;
-     color: #3b3b3b;
-     line-height: 60px;
-     cursor: pointer;
-     transition: all 0.5s;
-}*/
+.btn-group .button:last-child {
+    border-radius: 0 8px 8px 0;
+}

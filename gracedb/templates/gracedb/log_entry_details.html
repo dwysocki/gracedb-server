@@ -1,6 +1,7 @@
 {% load timeutil %}
 {% load mediaviews %}
 {% load scientific %}
+{% load static %}
 
 <div class="row pt-3 justify-content-center">
 <div class="col-sm">
@@ -22,16 +23,58 @@
         <hr/>        
 
         <p><center>
-        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#FullLog" aria-expanded="false" aria-controls="FullLog">
-            Full Event Log
+        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#FullLog" aria-expanded="true" aria-controls="FullLog">
+            Expand/Collapse Full Event Log
         </button>
+        {% if user.is_authenticated %}
+        <button class="btn btn-info" type="button" data-toggle="modal" data-target="#AnalystComments">
+            Add Log Entry
+        </button>
+        {% endif %}
+
         </center></p>
+
    
+        <!-- Analyst comments modal -->
+        <div class="modal fade" id="AnalystComments" tabindex="-1" role="dialog" aria-labelledby="AnalystCommentsTitle" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="AnalystCommentsTitle">Add Log Message</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+                <form id ='logcomment' action='{% url "logentry" object.graceid "" %}' method='POST' enctype='multipart/form-data'>
+              <div class="modal-body">
+               <div class="form-group">
+                <label  for="textarea1">Log Message</label>
+                <textarea id="textarea1" name="comment" class="custom-textarea"></textarea>
+               </div>
+               <div class="form-group">
+                <label for="tagSelect" class="col-form-label">Log Message Tag</label>
+                {{ "tagname" | tag_selecter }}
+               </div>
+               <div class="form-group">
+                 <label for="fileInput">(Optional) Upload File with Log Message</label>
+                 <input  multiple="false" type="file" id="fileInput" name='uploadedFile'>
+               </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+              </div>
+                </form>
+            </div>
+          </div>
+        </div>
+        <!-- End analyst comments modal-->
 
         <!-- Full event log table --> 
 
 
-        <div class="collapse" id="FullLog">
+        <div class="collapse show" id="FullLog">
+
            <div class="card card-body">
 
               <div class="table-responsive table-detail">
@@ -60,10 +103,58 @@
                     {% endif %}
                     
                     {% for tag in log.tags.all %}
-                      <button type="button" class="btn-xs btn-outline-primary">{{ tag.name }}</button>
+                      <div class='btn-group' role='group'>
+                        <button type="button" class="button btn-xs btn-outline-primary">{{ tag.name }}</button>
+                      <form class='tag-button-form'
+                            action="{% url "taglogentry" object.graceid log.N "temptemptemp" %}"
+                            method="DELETE" 
+                            id="deleteTag-{{ log.N}}-{{ tag.name }}"
+                            server_action="removed from"
+                            log_num="{{ log.N }}"
+                            tag_name="{{ tag.name }}">
+                        <button class="button btn-xs btn-primary">&#10060;</button>
+                      </form>
+                      </div>
                     {% endfor %}
+                      <div style="float: right">
+                       <button class="button btn-xs btn-primary" data-toggle="modal" data-target="#addTag-{{ log.N }}">+</button>
+                      </div>
                     </td>
                    </tr>
+
+        <!-- Start add tag modal -->
+        <div class="modal fade" id="addTag-{{ log.N }}" tabindex="-1" role="dialog" aria-labelledby="addTagTitle" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="addTagTitle">Add Tag to Log {{ log.N }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+                <form class="tag-button-form"  
+                      action='{% url "taglogentry" object.graceid log.N "temptemptemp" %}' 
+                      method='POST'
+                      id='addTag-{{ log.N }}'
+                      server_action="added to"
+                      log_num="{{ log.N }}">
+              <div class="modal-body">
+               <div class="form-group">
+                <label for="tagSelect" class="col-form-label">Log Message Tag</label>
+                {{ "tag_name" | tag_selecter }}
+               </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+              </div>
+                </form>
+            </div>
+          </div>
+        </div>        
+        <!-- End add tag modal -->
+
+
                    {% endfor %}
               </table>
               </div>
@@ -74,3 +165,41 @@
    </div>
 </div>
 </div>
+
+<!-- Custom Text Box -->
+
+<script type="text/javascript">
+    $('.custom-textarea').trumbowyg();
+</script>
+
+<!-- Tag posting/removal -->
+<script> 
+$(".tag-button-form").submit(function(event){
+    event.preventDefault(); //prevent default action 
+    var post_url = $(this).attr("action"); //get form action url
+    var request_method = $(this).attr("method"); //get form GET/POST method
+    var server_action = $(this).attr("server_action");
+    var log_num = $(this).attr("log_num"); 
+    var tag_name = $(this).attr("tag_name");
+
+    if (typeof tag_name == 'undefined' ) {
+        // Process form data:
+        var form_data = {}
+        $.each($(this).serializeArray(), function() {
+            form_data[this.name] = this.value;
+        });
+        // get tag name from form.
+        var tag_name = form_data.tag_name;
+    }
+    
+    $.ajax({
+        url : post_url.replace("temptemptemp", tag_name),
+        type: request_method,
+        data : form_data
+    }).done(function(response){ //
+        $("#server-results").html(response)
+        alert("Tag '" + tag_name + "' " + server_action + " log number " + log_num);
+        location.reload(true);
+    });
+});
+</script>
