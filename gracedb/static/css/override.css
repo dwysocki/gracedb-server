@@ -80,3 +80,9 @@ body {
 .btn-group .button:last-child {
     border-radius: 0 8px 8px 0;
 }
+
+/* Comment Textarea */
+.trumbowyg-box,
+.trumbowyg-editor {
+  min-height: 150px;
+}

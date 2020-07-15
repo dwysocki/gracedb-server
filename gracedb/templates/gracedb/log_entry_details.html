@@ -49,7 +49,7 @@
               <div class="modal-body">
                <div class="form-group">
                 <label  for="textarea1">Log Message</label>
-                <textarea id="textarea1" name="comment" class="custom-textarea"></textarea>
+                <textarea id="textarea1" name="comment" class="trumbowyg-editor"></textarea>
                </div>
                <div class="form-group">
                 <label for="tagSelect" class="col-form-label">Log Message Tag</label>
@@ -80,7 +80,7 @@
               <div class="table-responsive table-detail">
               <table class="table table-sm table-detail table-hover" id="full_event_log">
                 <thead class="thead-light">
-                   <tr>
+                  <tr>
                    <th colspan="23" class="table-detail-th"> <h6>Full Event Log</h6> </th>
                 </thead>
                    </tr>
@@ -169,7 +169,9 @@
 <!-- Custom Text Box -->
 
 <script type="text/javascript">
-    $('.custom-textarea').trumbowyg();
+    $('.trumbowyg-editor').trumbowyg();
+    $('.trumbowyg-editor').closest(".trumbowyg-box").css("min-height", "100px");
+    $('.trumbowyg-editor').prev(".trumbowyg-editor").css("min-height", "100px");
 </script>
 
 <!-- Tag posting/removal -->

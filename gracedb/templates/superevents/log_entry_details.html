@@ -49,8 +49,8 @@
                 <form id ='logcomment' action='{% url "legacy_apiweb:default:superevents:superevent-log-list" superevent.superevent_id %}' method='POST' enctype='multipart/form-data' class="se-submit-form">
               <div class="modal-body">
                <div class="form-group">
-                <label  for="textarea1">Log Message</label>
-                <textarea id="textarea1" name="comment" class="custom-textarea"></textarea>
+                <label  for="logtextarea">Log Message</label>
+                <textarea id="logtextarea" name="comment" class="trumbowyg-editor"></textarea>
                </div>
                <div class="form-group">
                 <label for="tagSelect" class="col-form-label">Log Message Tag</label>
@@ -105,6 +105,8 @@
                     {% for tag in log.tags.all %}
                       <div class='btn-group' role='group'>
                         <button type="button" class="button btn-xs btn-outline-primary">{{ tag.name }}</button>
+                    {% if user.is_authenticated %} 
+                    <!--only show delete button for authorized users -->
                       <form class='se-submit-form'
                             action="{% url "legacy_apiweb:default:superevents:superevent-log-tag-detail" superevent.superevent_id log.N "temptemptemp" %}"
                             method="DELETE"
@@ -114,11 +116,15 @@
                             tag_name="{{ tag.name }}">
                         <button class="button btn-xs btn-primary">&#10060;</button>
                       </form>
+                    {% endif %}
                       </div>
                     {% endfor %}
+                    {% if user.is_authenticated %} 
+                    <!--only show add button for authorized users -->
                       <div style="float: right">
                        <button class="button btn-xs btn-primary" data-toggle="modal" data-target="#addTag-{{ log.N }}">+</button>
                       </div>
+                    {% endif %}
                     </td>
                    </tr>
 
@@ -174,7 +180,9 @@
 <!-- Custom Text Box -->
 
 <script type="text/javascript">
-    $('.custom-textarea').trumbowyg();
+    $('.trumbowyg-editor').trumbowyg();
+    $('.trumbowyg-editor').closest(".trumbowyg-box").css("min-height", "100px");
+    $('.trumbowyg-editor').prev(".trumbowyg-editor").css("min-height", "100px");
 </script>
 
 <!-- js/ajax for superevent requests -->
