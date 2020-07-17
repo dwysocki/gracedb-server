@@ -323,4 +323,72 @@ def superevent_datatables_response(request, objects):
     response.write(msg)
 
     return response
- 
+
+def event_datatables_response(request, objects): 
+    response = HttpResponse(content_type='application/json')
+    # The column order is: (omitting the 'links')
+    #  1. UID
+    #  2. Labels
+    #  3. Group
+    #  4. Pipeline
+    #  5. Search
+    #  6. Event Time
+    #  7. Instruments
+    #  8. FAR
+    #  9. Submitted
+    # 10. Submitted By
+
+    # Initialize 'data':
+    data =[]
+
+    for e in objects:
+        row = []
+        # UID:
+        row.append(EVENT_HTTP_TEMPLATE.format(
+            django_reverse("view", args=[e.graceid,]),
+            e.graceid))
+
+        # Labels, unformatted for now:
+        row.append(" ".join([LABEL_HTML_TEMPLATE.format(a.label.defaultColor, a.label.name) for a in e.labelling_set.all()]))
+
+        # Group:
+        row.append(e.group.name)
+
+        # Pipeline
+        row.append(e.pipeline.name)
+
+        # Search, might be empty:
+        if e.search:
+            search_name = e.search.name
+        else:
+            search_name = ' '
+        row.append(search_name)
+
+        # Event Time
+        row.append(timeSelections(e.gpstime).get('gps'))
+
+        # Instruments:
+        row.append(e.instruments)
+
+        # FAR: Note, the switch is in here to hide the "true" FAR from 
+        # external searches. 
+        display_far = scientific(e.far)
+        if e.far and is_external(request.user):
+            if e.far < settings.VOEVENT_FAR_FLOOR:
+                display_far = "< %s" % scientific(settings.VOEVENT_FAR_FLOOR)
+        row.append(display_far)
+
+        # Submitted:
+        row.append(timeSelections(e.created)['utc'])
+
+        # Submitted By:
+        row.append(e.submitter.get_full_name())
+
+        # Add the row to the data output:
+        data.append(row)
+
+    msg = json.dumps({"data": data})
+    response['Content-length'] = len(msg)
+    response.write(msg)
+
+    return response

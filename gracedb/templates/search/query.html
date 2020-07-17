@@ -56,12 +56,46 @@
             </tr>
         </tfoot>
     </table>
+{% elif query_type == 'E' %}
+<table id="searchForm" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>UID</th>
+                <th>Labels</th>
+                <th>Group</th>
+                <th>Pipeline</th>
+                <th>Search</th>
+                <th>Event Time</th>
+                <th>Instruments</th>
+                <th>FAR</th>
+                <th>Submitted:</th>
+                <th>Submitted By:</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>UID</th>
+                <th>Labels</th>
+                <th>Group</th>
+                <th>Pipeline</th>
+                <th>Search</th>
+                <th>Event Time</th>
+                <th>Instruments</th>
+                <th>FAR</th>
+                <th>Submitted:</th>
+                <th>Submitted By:</th>
+            </tr>
+        </tfoot>
+    </table>
 {% endif %}
+
+
 
 <script type="text/javascript">
 $(document).ready(function() {
     $('#searchForm').DataTable( {
-        ajax:'{% url "mainsearch"  %}?query={{raw_query|urlencode}}&query_type={{query_type}}&results_format=F'
+        ajax:'{% url "mainsearch"  %}?query={{raw_query|urlencode}}&query_type={{query_type}}&results_format=F',
+        order:[[7,'dsc']],
     } );
 } );
 </script>

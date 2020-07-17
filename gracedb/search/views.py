@@ -9,7 +9,7 @@ from django.views.decorators.http import require_GET
 from guardian.shortcuts import get_objects_for_user
 
 from .forms import MainSearchForm
-from .response import get_search_results_as_ligolw, event_flexigrid_response, \
+from .response import get_search_results_as_ligolw, event_datatables_response, \
     superevent_datatables_response
 
 # Set up logger
@@ -56,7 +56,7 @@ def search(request):
                     flex_func = superevent_datatables_response
                 elif query_type == 'E':
                     # Event query
-                    flex_func = event_flexigrid_response
+                    flex_func = event_datatables_response
                 else:
                     # TODO: raise error
                     pass 
