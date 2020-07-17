@@ -27,6 +27,10 @@ MAX_FLEXI_ROWS = 250
 # Limit on number of LIGOLW results
 RESULTS_LIMIT = 1000
 
+# Define some response templates:
+LABEL_HTML_TEMPLATE = '<span style="color: {}">{}</span>'
+EVENT_HTTP_TEMPLATE = '<a href="{}">{}</a>'
+
 
 def get_search_results_as_ligolw(objects):
 
@@ -261,3 +265,62 @@ def event_flexigrid_response(request, objects):
     response.write(msg)
 
     return response
+
+def superevent_datatables_response(request, objects):
+    response = HttpResponse(content_type='application/json')
+    # The column order is: (omitting the 'links')
+    #  1. UID
+    #  2. Labels
+    #  3. FAR
+    #  4. Preferred Event
+    #  5. GW Events
+    #  6. t_0
+    #  7. Submitted
+    #  8. Submitted By
+ 
+    # Initialize 'data':
+    data =[]
+
+    # Loop through objects:
+    for s in objects:
+        row = []
+        # UID:
+        row.append(EVENT_HTTP_TEMPLATE.format(
+            django_reverse("superevents:view", args=[s.superevent_id]),
+            s.superevent_id))
+
+        # Labels, unformatted for now:
+        # row.append(' '.join([a.label.name for a in s.labelling_set.all()]))
+        row.append(" ".join([LABEL_HTML_TEMPLATE.format(a.label.defaultColor, a.label.name) for a in s.labelling_set.all()]))
+
+        # FAR
+        row.append(s.far)
+
+        # Preferred Event:
+        row.append(EVENT_HTTP_TEMPLATE.format(
+            django_reverse("view", args=[s.preferred_event.graceid,]),
+            s.preferred_event.graceid))
+
+        # GW Events:
+        row.append(' '.join([EVENT_HTTP_TEMPLATE.format(
+             django_reverse("view", args=[a.graceid]),
+             a.graceid) for a in s.events.all()]))
+
+        # t_0:
+        row.append(str(round(s.t_0,3)))
+
+        # Submission Time:
+        row.append(timeSelections(s.created)['utc'])
+
+        # Submitted By:
+        row.append(s.submitter.get_full_name())
+
+        # Add the row to the data output:
+        data.append(row)
+
+    msg = json.dumps({"data": data})
+    response['Content-length'] = len(msg)
+    response.write(msg)
+
+    return response
+ 

@@ -10,7 +10,7 @@ from guardian.shortcuts import get_objects_for_user
 
 from .forms import MainSearchForm
 from .response import get_search_results_as_ligolw, event_flexigrid_response, \
-    superevent_flexigrid_response
+    superevent_datatables_response
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ def search(request):
                 # Flex format
                 if query_type == 'S':
                     # Superevent query
-                    flex_func = superevent_flexigrid_response
+                    flex_func = superevent_datatables_response
                 elif query_type == 'E':
                     # Event query
                     flex_func = event_flexigrid_response

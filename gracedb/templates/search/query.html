@@ -1,142 +1,12 @@
 {% extends "base.html" %}
 
-{% block bodyattrs %}
-onload="document.search_form.query.focus();"
-{% endblock %}
-
 {% block title %}Search{% endblock %}
 {% block heading %}<h5>Search for events or superevents</h5><hr>{% endblock %} 
 {% block pageid %}search{% endblock %}
 
-{% block jscript %}
-{% load static %}
-<link rel="stylesheet" type="text/css" media="screen" href="{% static "css/jqgrid/theme/jquery-ui.css" %}" />
-<link rel="stylesheet" type="text/css" media="screen" href="{% static "css/jqgrid/theme/ui.all.css" %}" />
-<link rel="stylesheet" type="text/css" media="screen" href="{% static "css/jqgrid/ui.jqgrid.css" %}" />
-<link rel="stylesheet" href="{% static "css/labeltips.css" %}" />
-<script src="{% static "js/jquery-1.3.2.min.js" %}" type="text/javascript"></script>
-<script src="{% static "js/grid.locale-en.js" %}" type="text/javascript"></script>
-<script src="{% static "js/jquery.jqGrid.min.js" %}" type="text/javascript"></script>
-<script src="{% static "js/jquery-ui-1.7.2.custom.min.js" %}" type="text/javascript"></script>
-<script type="text/javascript">
-    $(document).ready(function(){
-      $("#flex_superevents").jqGrid
-        (
-        {
-        sortable: true,
-        url: '{% url "mainsearch"  %}?query={{raw_query|urlencode}}&query_type={{query_type}}&results_format=F',
-        datatype: 'json',
-        mtype: "GET",
-        {% if user.is_authenticated %}
-        colNames : ["UID", "Labels", "FAR", "Preferred Event", "GW events", "External events", "t_start", "t_0", "t_end", "is_gw", "Links", "Submitted", "Submitted By",
-        ],
-        {% else %}
-        colNames : ["UID", "Labels", "FAR", "t_start", "t_0", "t_end", "is_gw", "Links", "Submitted", "Submitted By",
-        ],
-        {% endif %}
-        colModel : [
-           {name: 'id', index: 'id', width: 30, sortable: true, align: 'left', hidden: false},
-           {name: 'labels', index: 'labels', width: 40, sortable: true, align: 'left'},
-           {name: 'far', index: 'preferred_event__far', width: 40, sortable: true, align: 'left'},
-           {% if user.is_authenticated %}
-           {name: 'preferred_event', index: 'preferred_event__id', width: 20, sortable: true, align: 'left', hidden: false},
-           {name: 'gw_events', index: 'gw_events', width: 50, sortable: false, align: 'left', hidden: false},
-           {name: 'em_events', index: 'em_events', width: 50, sortable: false, align: 'left', hidden: true},
-           {% endif %}
-           {name: 't_start', index: 't_start', width: 20, sortable: true, align: 'left', hidden: true},
-           {name: 't_0', index: 't_0', width: 20, sortable: true, align: 'left', hidden: false},
-           {name: 't_end', index: 't_end', width: 20, sortable: true, align: 'left', hidden: true},
-           {name: 'is_gw', index: 'is_gw', width: 20, sortable: true, align: 'left', hidden: true},
-           {name: 'links', index: 'links', width: 20, sortable: false, align: 'center'},
-           {name: 'created', index: 'created', width: 40, sortable: true, align: 'left'},
-           {name: 'submitter', index: 'submitter', width: 60, sortable: true, align: 'left'},
-    
-            ],
-        pager: '#pager1',
-        rowNum:20,
-        rowList:[10,20,30,40,50,75,100,-1],
-        sortname: 'id',
-        sortorder: "desc",
-        viewrecords: true,
-        caption: 'Query Results',
-        //forceFit: true,
-        //height: '150px',
-        height: 'auto',
-        //loadui: 'enable',  // block, disable
-        toolbar: [true, "top"],
-        autowidth: true,
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('Error, ' + jqXHR.status + ': ' + jqXHR.responseText);
-            },
-        }
-        );   
-    
-      //$("#flex_superevents").jqGrid('gridResize',{});
-      //$("#flex_superevents").jqGrid('gridResize',{ minWidth:350,maxWidth:800,minHeight:80, maxHeight:350 });
-      $("#flex_superevents").jqGrid('navGrid','#pager1',{search: false, edit:false,add:false,del:false});
-      $("#t_flex_superevents").append("<input type='button' value='Select Columns' style='height:20px;font-size:-3'/>");
-      $("input","#t_flex_superevents").click(function(){
-        $("#flex_superevents").jqGrid('setColumns');
-        });
-    });
-    $(document).ready(function(){
-      $("#flex_events").jqGrid
-        (
-        {
-        sortable: true,
-        url: '{% url "mainsearch" %}?query={{raw_query|urlencode}}&query_type={{query_type}}&get_neighbors={{get_neighbors}}&results_format=F',
-        datatype: 'json',
-        mtype: "GET",
-        colNames : ["UID", "Labels", {% if get_neighbors %} "Neighbors (+/-5sec)", {% endif %} "Group", "Pipeline", "Search", "Event Time", "Instruments", "FAR (Hz)", "Links", "Submitted", "Submitted By",
-                   ],
-        colModel : [
-           {name: 'id', index: 'id', width: 50, sortable: true, align: 'left', hidden: false},
-           {name: 'labels', index: 'labels', width: 70, sortable: true, align: 'left'},
-           {% if get_neighbors %}
-           {name: 'neighbors', index: 'neighbors', width: 100, sortable: false, align: 'left'},
-           {% endif %}
-           {name: 'group', index: 'group', width: 50, sortable: true, align: 'left', hidden: false},
-           {name: 'pipeline', index: 'pipeline', width: 50, sortable: false, align: 'left', hidden: false},
-           {name: 'search', index: 'search', width: 50, sortable: true, align: 'left', hidden: false},
-           {name: 'gpstime', index: 'gpstime', width: 70, sortable: true, align: 'right'},
-           {name: 'instruments', index: 'instruments', width: 50, sortable: true, align: 'right', hidden: false},
-           {name: 'far', index: 'far', width: 80, sortable: true, align: 'right', hidden: false},
-           {name: 'links', index: 'links', width: 80, sortable: false, align: 'center', hidden: true},
-           {name: 'created', index: 'created', width: 100, sortable: true, align: 'right'},
-           {name: 'submitter', index: 'submitter', width: 80, sortable: true, align: 'right'},
-    
-            ],
-        pager: '#pager1',
-        rowNum:20,
-        rowList:[10,20,30,40,50,75,100,-1],
-        sortname: 'id',
-        sortorder: "desc",
-        viewrecords: true,
-        caption: 'Query Results',
-        //forceFit: true,
-        //height: '150px',
-        height: 'auto',
-        //loadui: 'enable',  // block, disable
-        toolbar: [true, "top"],
-        autowidth: true,
-        loadError: function (jqXHR, textStatus, errorThrown) {
-            alert('Error, ' + jqXHR.status + ': ' + jqXHR.responseText);
-            },
-        }
-        );   
-    
-      //$("#flex_events").jqGrid('gridResize',{});
-      //$("#flex_events").jqGrid('gridResize',{ minWidth:350,maxWidth:800,minHeight:80, maxHeight:350 });
-      $("#flex_events").jqGrid('navGrid','#pager1',{search: false, edit:false,add:false,del:false});
-      $("#t_flex_events").append("<input type='button' value='Select Columns' style='height:20px;font-size:-3'/>");
-      $("input","#t_flex_events").click(function(){
-        $("#flex_events").jqGrid('setColumns');
-        });
-    });
-</script>
-{% endblock %}
-
 {% block content %}
+
+<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
 
 <p>Test and MDC events and superevents are not included in the search results by default. See the query help (link below) for information on how to search for events and superevents in those categories.</p>
 
@@ -159,6 +29,41 @@ onload="document.search_form.query.focus();"
 <table id="flex_events"></table>
 {% endif %}
 
-<div id="pager1"></div>
+{% if query_type == 'S' %}
+<table id="searchForm" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>UID</th>
+                <th>Labels</th>
+                <th>FAR</th>
+                <th>Preferred Event</th>
+                <th>GW Events</th>
+                <th>t<sub>0</sub></th>
+                <th>Submitted:</th>
+                <th>Submitted By:</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>UID</th>
+                <th>Labels</th>
+                <th>FAR</th>
+                <th>Preferred Event</th>
+                <th>GW Events</th>
+                <th>t<sub>0</sub></th>
+                <th>Submitted:</th>
+                <th>Submitted By:</th>
+            </tr>
+        </tfoot>
+    </table>
+{% endif %}
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#searchForm').DataTable( {
+        ajax:'{% url "mainsearch"  %}?query={{raw_query|urlencode}}&query_type={{query_type}}&results_format=F'
+    } );
+} );
+</script>
 
 {% endblock %}
