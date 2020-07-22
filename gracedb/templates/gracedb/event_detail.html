@@ -16,25 +16,6 @@
 <script src="{% static "dojo/dojo.js" %}" data-dojo-config="async: true"></script>
 <!-- <script src="{% static "jquery/dist/jquery.min.js" %}"></script> -->
 
-<!-- Styles for dgrid -->
-<!-- <link rel="stylesheet" href="{% static "dgrid/css/dgrid.css" %}" /> -->
-<!-- Styles for the editor components -->
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/PageBreak.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/ShowBlockNodes.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Preview.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Save.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Breadcrumb.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/FindReplace.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/PasteFromWord.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/InsertAnchor.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/CollapsibleToolbar.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Blockquote.css" %}" />
-<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Smiley.css" %}" />
-<!-- Styles for the lightboxes. --> 
-<!--<link rel="stylesheet" href="{% static "dojox/image/resources/LightboxNano.css" %}" />-->
-<!-- Local style declarations -->
-<link rel="stylesheet" href="{% static "dijit/themes/tundra/tundra.css" %}" />
-
 <script>
 {% include "gracedb/event_detail_script.js" %}
 </script> 
@@ -188,62 +169,64 @@
     <br>
     <div class="row pt-3 justify-content-center">
     <div class="col">
-    <div class="table-responsive table-detail table-basic">
+    <div id="gracedb-resp-table">
     
-    <table class="table-basic">
-        <thead class="thead-basic">
-        <!--<tr class="tr-basic">
-         <th colspan="23" class="th-basic"> <h5>Basic Event Information</h5> </th>
-        </tr>-->
-        <tr class="tr-basic">
-                <th scope="col" class="th-basic" valign="top">UID</th>
-                <th scope="col" class="th-basic">Labels</th>
-                <th scope="col" class="th-basic">Group</th>
-                <th scope="col" class="th-basic">Pipeline</th>
-                <th scope="col" class="th-basic">Search</th>
-                <th scope="col" class="th-basic" >Instruments</th>
-                <th scope="col" class="th-basic">
+    <table class="table table-sm table-detail">
+        <thead class="thead-gdbdark">
+        <tr>
+         <th colspan="23" class="table-detail-th"> <h5>Basic Event Information</h5> </th>
+        </tr>
+        <tr>
+                <th scope="col" class="table-detail-lh" valign="top">UID</th>
+                <th scope="col" class="table-detail-lh">Labels</th>
+                <th scope="col" class="table-detail-lh">Group</th>
+                <th scope="col" class="table-detail-lh">Pipeline</th>
+                <th scope="col" class="table-detail-lh">Search</th>
+                <th scope="col" class="table-detail-lh" >Instruments</th>
+                <th scope="col" class="table-detail-lh">
                     {{ "gps"|timeselect:"gps" }}
                 </th>
-                <th scope="col" class="th-basic">FAR (Hz)</th>
-                <th scope="col" class="th-basic">FAR (yr<sup>-1</sup>)</th>
-                <th scope="col" class="th-basic"> Latency (s) </th>
-                <th scope="col" class="th-basic">Links</th>
-                <th scope="col" class="th-basic">
+                <th scope="col" class="table-detail-lh">FAR (Hz)</th>
+                <th scope="col" class="table-detail-lh">FAR (yr<sup>-1</sup>)</th>
+                <th scope="col" class="table-detail-lh">Latency (s)</th>
+                <th scope="col" class="table-detail-lh">Links</th>
+                <th scope="col" class="table-detail-lh">
                     {{ "submitted"|timeselect:"utc" }}
                 </th>
                 {% if object.superevent %}
-                <th scope="col" class="th-basic">Superevent</th>
+                <th scope="col" class="table-detail-lh">Superevent</th>
                 {% endif %}
         </tr>
         </thead>
-        <tbody class="tbody-basic">
-        <tr class="tr-basic">
-            <td class="td-basic">{{ object.graceid }}</td>
-            <td class="td-basic">
+        <tr>
+            <td data-title="UID">{{ object.graceid }}</td>
+            <td data-title="Labels">
+                 {% if object.labelling_set.all %}
                  {% for labelling in object.labelling_set.all %}
                     <span onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}};" class="label">{{ labelling.label.name }}</span>
                  {% endfor %}
+                 {% else %}
+                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
+                 {% endif %}
             </td>
-            <td class="td-basic">{{ object.group.name }} </td>
-            <td class="td-basic">{{ object.pipeline.name }} </td>
-            <td class="td-basic">{{ object.search.name }} </td>
-            <td class="td-basic">{{ object.instruments }}</td>
-            <td class="td-basic">{% if object.gpstime %}
+            <td data-title="Group">{{ object.group.name }} </td>
+            <td data-title="Pipeline">{{ object.pipeline.name }} </td>
+            <td data-title="Search">{{ object.search.name }} </td>
+            <td data-title="Instruments">{{ object.instruments }}</td>
+            <td data-title='Event Time'>{% if object.gpstime %}
                     <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
                     {{ object.gpstime|multiTime:"gps" }}
                 {% endif %}</td>
             {# NOTE: XXX Using event_far so it can be floored for external users. #}
-            <td class="td-basic">{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
-            <td class="td-basic">{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_yr }}</td>
-            <td class="td-basic">{{ object.reportingLatency|floatformat:"-3" }} </td>
-            <td class="td-basic"><a href="{{ object.weburl }}">Data</a></td>
-            <td class="td-basic">{{ object.created|multiTime:"submitted" }}</td>
+            <td data-title="FAR (Hz)">{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
+            <td data-title="FAR (yr<sup>-1</sup>)">>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_yr }}</td>
+            <td data-title="Latency (s)">{{ object.reportingLatency|floatformat:"-3" }} </td>
+            <td data-title="Links"><a href="{{ object.weburl }}">Data</a></td>
+            <td data-title='Submitted'>{{ object.created|multiTime:"submitted" }}</td>
             {% if object.superevent %}
-            <td class="td-basic"><a href="{{ object.superevent.get_web_url }}">{{ object.superevent.superevent_id }}</a></td>
+            <td data-title="Links"><a href="{{ object.superevent.get_web_url }}">{{ object.superevent.superevent_id }}</a></td>
             {% endif %}
         </tr>
-        </tbody>
     </table>
     </div>
     </div>
