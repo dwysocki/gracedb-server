@@ -188,60 +188,62 @@
     <br>
     <div class="row pt-3 justify-content-center">
     <div class="col">
-    <div class="table-responsive table-detail">
+    <div class="table-responsive table-detail table-basic">
     
-    <table class="table table-sm table-detail">
-        <thead class="thead-gdbdark">
-        <tr>
-         <th colspan="23" class="table-detail-th"> <h5>Basic Event Information</h5> </th>
-        </tr>
-        <tr>
-                <th scope="col" class="table-detail-lh" valign="top">UID</th>
-                <th scope="col" class="table-detail-lh">Labels</th>
-                <th scope="col" class="table-detail-lh">Group</th>
-                <th scope="col" class="table-detail-lh">Pipeline</th>
-                <th scope="col" class="table-detail-lh">Search</th>
-                <th scope="col" class="table-detail-lh" >Instruments</th>
-                <th scope="col" class="table-detail-lh">
+    <table class="table-basic">
+        <thead class="thead-basic">
+        <!--<tr class="tr-basic">
+         <th colspan="23" class="th-basic"> <h5>Basic Event Information</h5> </th>
+        </tr>-->
+        <tr class="tr-basic">
+                <th scope="col" class="th-basic" valign="top">UID</th>
+                <th scope="col" class="th-basic">Labels</th>
+                <th scope="col" class="th-basic">Group</th>
+                <th scope="col" class="th-basic">Pipeline</th>
+                <th scope="col" class="th-basic">Search</th>
+                <th scope="col" class="th-basic" >Instruments</th>
+                <th scope="col" class="th-basic">
                     {{ "gps"|timeselect:"gps" }}
                 </th>
-                <th scope="col" class="table-detail-lh">FAR (Hz)</th>
-                <th scope="col" class="table-detail-lh">FAR (yr<sup>-1</sup>)</th>
-                <th scope="col" class="table-detail-lh"> Latency (s) </th>
-                <th scope="col" class="table-detail-lh">Links</th>
-                <th scope="col" class="table-detail-lh">
+                <th scope="col" class="th-basic">FAR (Hz)</th>
+                <th scope="col" class="th-basic">FAR (yr<sup>-1</sup>)</th>
+                <th scope="col" class="th-basic"> Latency (s) </th>
+                <th scope="col" class="th-basic">Links</th>
+                <th scope="col" class="th-basic">
                     {{ "submitted"|timeselect:"utc" }}
                 </th>
                 {% if object.superevent %}
-                <th scope="col" class="table-detail-lh">Superevent</th>
+                <th scope="col" class="th-basic">Superevent</th>
                 {% endif %}
         </tr>
         </thead>
-        <tr>
-            <td>{{ object.graceid }}</td>
-            <td>
+        <tbody class="tbody-basic">
+        <tr class="tr-basic">
+            <td class="td-basic">{{ object.graceid }}</td>
+            <td class="td-basic">
                  {% for labelling in object.labelling_set.all %}
                     <span onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}};" class="label">{{ labelling.label.name }}</span>
                  {% endfor %}
             </td>
-            <td>{{ object.group.name }} </td>
-            <td>{{ object.pipeline.name }} </td>
-            <td>{{ object.search.name }} </td>
-            <td>{{ object.instruments }}</td>
-            <td>{% if object.gpstime %}
+            <td class="td-basic">{{ object.group.name }} </td>
+            <td class="td-basic">{{ object.pipeline.name }} </td>
+            <td class="td-basic">{{ object.search.name }} </td>
+            <td class="td-basic">{{ object.instruments }}</td>
+            <td class="td-basic">{% if object.gpstime %}
                     <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
                     {{ object.gpstime|multiTime:"gps" }}
                 {% endif %}</td>
             {# NOTE: XXX Using event_far so it can be floored for external users. #}
-            <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
-            <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_yr }}</td>
-            <td>{{ object.reportingLatency|floatformat:"-3" }} </td>
-            <td><a href="{{ object.weburl }}">Data</a></td>
-            <td>{{ object.created|multiTime:"submitted" }}</td>
+            <td class="td-basic">{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
+            <td class="td-basic">{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_yr }}</td>
+            <td class="td-basic">{{ object.reportingLatency|floatformat:"-3" }} </td>
+            <td class="td-basic"><a href="{{ object.weburl }}">Data</a></td>
+            <td class="td-basic">{{ object.created|multiTime:"submitted" }}</td>
             {% if object.superevent %}
-            <td><a href="{{ object.superevent.get_web_url }}">{{ object.superevent.superevent_id }}</a></td>
+            <td class="td-basic"><a href="{{ object.superevent.get_web_url }}">{{ object.superevent.superevent_id }}</a></td>
             {% endif %}
         </tr>
+        </tbody>
     </table>
     </div>
     </div>
