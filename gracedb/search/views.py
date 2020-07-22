@@ -42,7 +42,7 @@ def search(request):
                     "query_type should be 'S' or 'E'")
             objects = get_objects_for_user(request.user, view_perm, objects)
 
-            # Get call from template for populating flexigrid table
+            # Get call from template for populating datatable
             if _format == 'F':
                 if not request.is_ajax():
                     err_msg = ("You have tried to access an internal view "
@@ -50,7 +50,7 @@ def search(request):
                         "results. Set 'results_format' to 'S' in your "
                         "query parameters.")
                     return HttpResponseBadRequest(err_msg)
-                # Flex format
+                # datatable format
                 if query_type == 'S':
                     # Superevent query
                     flex_func = superevent_datatables_response

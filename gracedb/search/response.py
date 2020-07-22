@@ -31,7 +31,6 @@ RESULTS_LIMIT = 1000
 LABEL_HTML_TEMPLATE = '<span style="color: {}">{}</span>'
 EVENT_HTTP_TEMPLATE = '<a href="{}">{}</a>'
 
-
 def get_search_results_as_ligolw(objects):
 
     if objects.count() > RESULTS_LIMIT:
@@ -277,6 +276,10 @@ def superevent_datatables_response(request, objects):
     #  6. t_0
     #  7. Submitted
     #  8. Submitted By
+
+    # select related objects to reduce the number of queries.
+    objects = objects.select_related('submitter', 'preferred_event')
+    objects = objects.prefetch_related('events', 'labels')
  
     # Initialize 'data':
     data =[]
@@ -340,6 +343,7 @@ def event_datatables_response(request, objects):
 
     # Initialize 'data':
     data =[]
+    objects = objects.select_related('group', 'pipeline', 'search', 'submitter')
 
     for e in objects:
         row = []
