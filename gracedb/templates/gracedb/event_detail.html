@@ -169,32 +169,32 @@
     <br>
     <div class="row pt-3 justify-content-center">
     <div class="col">
-    <div id="gracedb-resp-table">
+    <div id="gdb-table-basic-event">
     
-    <table class="table table-sm table-detail">
-        <thead class="thead-gdbdark">
+    <table class="table-basic-info table-condensed">
+        <thead>
         <tr>
-         <th colspan="23" class="table-detail-th"> <h5>Basic Event Information</h5> </th>
+         <th colspan="23" class="banner-row" data-title="">Basic Event Information</th>
         </tr>
-        <tr>
-                <th scope="col" class="table-detail-lh" valign="top">UID</th>
-                <th scope="col" class="table-detail-lh">Labels</th>
-                <th scope="col" class="table-detail-lh">Group</th>
-                <th scope="col" class="table-detail-lh">Pipeline</th>
-                <th scope="col" class="table-detail-lh">Search</th>
-                <th scope="col" class="table-detail-lh" >Instruments</th>
-                <th scope="col" class="table-detail-lh">
+        <tr class="header-row">
+                <th scope="col">UID</th>
+                <th scope="col">Labels</th>
+                <th scope="col">Group</th>
+                <th scope="col">Pipeline</th>
+                <th scope="col">Search</th>
+                <th scope="col">Instruments</th>
+                <th scope="col">
                     {{ "gps"|timeselect:"gps" }}
                 </th>
-                <th scope="col" class="table-detail-lh">FAR (Hz)</th>
-                <th scope="col" class="table-detail-lh">FAR (yr<sup>-1</sup>)</th>
-                <th scope="col" class="table-detail-lh">Latency (s)</th>
-                <th scope="col" class="table-detail-lh">Links</th>
-                <th scope="col" class="table-detail-lh">
+                <th scope="col">FAR (Hz)</th>
+                <th scope="col">FAR (yr<sup>-1</sup>)</th>
+                <th scope="col">Latency (s)</th>
+                <th scope="col">Links</th>
+                <th scope="col">
                     {{ "submitted"|timeselect:"utc" }}
                 </th>
                 {% if object.superevent %}
-                <th scope="col" class="table-detail-lh">Superevent</th>
+                <th scope="col">Superevent</th>
                 {% endif %}
         </tr>
         </thead>
@@ -219,7 +219,7 @@
                 {% endif %}</td>
             {# NOTE: XXX Using event_far so it can be floored for external users. #}
             <td data-title="FAR (Hz)">{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
-            <td data-title="FAR (yr<sup>-1</sup>)">>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_yr }}</td>
+            <td data-title="FAR (per year)">>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_yr }}</td>
             <td data-title="Latency (s)">{{ object.reportingLatency|floatformat:"-3" }} </td>
             <td data-title="Links"><a href="{{ object.weburl }}">Data</a></td>
             <td data-title='Submitted'>{{ object.created|multiTime:"submitted" }}</td>

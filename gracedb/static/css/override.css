@@ -7,11 +7,12 @@
 
 body {
   background-color: #f2f4f8;
-  font: 1.0em;
+  font: 0.875em;
 }
 
 .navbar-gracedb {
-  background-color: #336699;
+  /*background-color: #336699;*/
+  background-color: #0a1b31;
   border-color: #FFFFFF;
 }
 
@@ -22,13 +23,49 @@ body {
   border-bottom: 0px !important;
   border-top: 0px !important;
   margin: auto;
-  /*width: 75% */
 }
 
 .collapse-row.collapsed + tr {
   display: none;
 }
 
+.table-condensed {
+  font-size: 14px;
+}
+
+.table-basic-info {
+  border-collapse: collapse;
+  font-stretch: extra-condensed;
+  width: 100%;
+}
+
+.table-basic-info th {
+  font-weight: lighter;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.table-basic-info td {
+  text-align: center;
+}
+
+.banner-row {
+  /*background-color: #19538A;*/
+  background-color: #1b365a;
+  border-radius: 10px 10px 0px 0px;
+  padding-left: 10px;
+  color: #fff;
+  font-size: 18px;
+}
+
+.header-row {
+  /*background-color: #19538A;*/
+  background-color: #1b365a;
+  color: #fff;
+  font-weight: lighter;
+  padding-left: 10px;
+  text-align: center;
+}
 
 .table-detail {
   font-size: 1.0em;
@@ -38,39 +75,9 @@ body {
   border-spacing: 0px !important;
   border-top: 0px !important;
   border-bottom: 0px !important;
-  border-radius: 5px !important
+  border-radius: 5px !important;
 }  
 
-.table-detail-th {
-  /*padding: 0 !important; */
-  margin: 0 !important;
-  border-top: 0px !important;
-  border-bottom: 0px !important;
-  border-spacing: 0px !important;
-  outline:none;
-  vertical-align: middle;
-  text-align:left;
-}
-
-.table-detail-lh {
-  /*padding: 0 !important; */
-  margin: 0 !important;
-  border-top: 0px !important;
-  border-bottom: 0px !important;
-  border-spacing: 0px !important;
-  outline:none;
-  vertical-align: bottom;
-  text-align:center;
-  font-weight:lighter;
-}
-
-.thead-gdbdark {
-  color: #fff;
-  background-color: #19538A;
-  border-bottom: 0px;
-  border-top: 0px;
-  border-collapse: collapse;
-}
 
 /* Button Stuff */
 .btn-group .button:first-child {
@@ -89,25 +96,37 @@ body {
 
 @media only screen and (max-width: 800px) {
         /* Force table to not be like tables anymore */
-        #gracedb-resp-table table,
-        #gracedb-resp-table thead,
-        #gracedb-resp-table tbody,
-        #gracedb-resp-table th,
-        #gracedb-resp-table td,
-        #gracedb-resp-table tr {
+        div[id^="gdb-table-"] table,
+        div[id^="gdb-table-"] thead,
+        div[id^="gdb-table-"] tbody,
+        div[id^="gdb-table-"] th,
+        div[id^="gdb-table-"] td,
+        div[id^="gdb-table-"] tr {
         display: block;
         }
          
         /* Hide table headers (but not display: none;, for accessibility) */
-        #gracedb-resp-table thead tr {
+        div[id^="gdb-table-"] thead .header-row {
         position: absolute;
         top: -9999px;
         left: -9999px;
         }
+
+        /* Format the header that serves as the banner above the table */
+        div[id^="gdb-table-"] .banner-row {
+          border: none;
+          padding-left: 10px;
+          border-bottom: 0px solid #eee;
+          position: relative;
+          white-space: normal;
+          text-align: left;
+          color: white;
+          border-radius: 10px 10px 0px 0px;
+        }
          
-        #gracedb-resp-table tr { border: 1px solid #ccc; }
+        div[id^="gdb-table-"] tr { border: 0px solid #ccc; }
           
-        #gracedb-resp-table td {
+        div[id^="gdb-table-"] td {
         /* Behave like a "row" */
         border: none;
         border-bottom: 1px solid #eee;
@@ -117,7 +136,7 @@ body {
         text-align:left;
         }
          
-        #gracedb-resp-table td:before {
+        div[id^="gdb-table-"] td:before {
         /* Now like a table header */
         position: absolute;
         /* Top/left values mimic padding */
@@ -133,5 +152,5 @@ body {
         /*
         Label the data
         */
-        #gracedb-resp-table td:before { content: attr(data-title); }
+        div[id^="gdb-table-"] td:before { content: attr(data-title); }
         }
