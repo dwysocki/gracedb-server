@@ -1,62 +1,61 @@
 {% load timeutil %}
 {% load scientific %}
 
-<div class="row pt-3">
-    <div class="col-sm">
+<div class="row my-5 justify-content-center">
+    <div class="col">
 
-      <div id="neighbors" class="table-responsive table-detail">
+      <div id="gdb-table-neighbors" class="table-responsive">
       
       
-      <table class="table table-sm table-detail table-hover">
-        <thead class="thead-gdbdark">
+      <table class="table-basic-info table-condensed table-hover">
+        <thead>
           <tr>
-             <th colspan="23" class="table-detail-th"> <h5>Neighbors &nbsp;
+             <th colspan="23" class="banner-row" data-title=""> Neighbors &nbsp;
                 <span data-dojo-type="dijit/InlineEditBox" class="neighborsTextBox"
                     data-dojo-props="editor:'dijit/form/TextBox', editorParams:{constraints:{places:0} }" width="100px" 
                     title="window"
-                    onchange="refresh_neighbors(this.value)">{{neighbor_delta}}</span></h5>
+                    onchange="refresh_neighbors(this.value)">{{neighbor_delta}}</span>
 
              </th>
           </tr>
-        </thead>
-          <tr>
-                  <th class="align-bottom">UID</th>
-                  <th class="align-bottom">Labels</th>
-                  <th class="align-bottom">Group</th>
-                  <th class="align-bottom">Pipeline</th>
-                  <th class="align-bottom">Search</th>
-                  <th class="align-bottom">Instruments</th>
-                  <th class="align-bottom">
+          <tr class="header-row">
+                  <th>UID</th>
+                  <th>Labels</th>
+                  <th>Group</th>
+                  <th>Pipeline</th>
+                  <th>Search</th>
+                  <th>Instruments</th>
+                  <th>
                       {{ "ngps"|timeselect:"gps" }}
                   </th>
-                  <th class="align-bottom">&Delta;gpstime</th>
-                  <th class="align-bottom">FAR (Hz)</th>
-                  <th class="align-bottom">Links</th>
-                  <th class="align-bottom">
+                  <th>&Delta;gpstime</th>
+                  <th>FAR (Hz)</th>
+                  <th>Links</th>
+                  <th>
                       {{ "nsubmitted"|timeselect:"utc" }}
                   </th>
           </tr>
         </thead>
           {% if nearby %}
           {% for delta, object in nearby %}
-          <tr class={% cycle 'odd' 'even' %}>
-              <td><a href="{% url "view" object.graceid %}">{{ object.graceid }}</a></td>
-              <td>
+          <tr>
+              <th class="collapsed-header" data-title="UID"><a href="{% url "view" object.graceid %}">{{ object.graceid }}</a></td>
+              <td data-title="Labels">
                    {% for labelling in object.labelling_set.all %}
                       <span onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.name}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
                    {% endfor %}
               </td>
-              <td>{{ object.group.name }} </td>
-              <td>{{ object.pipeline.name }} </td>
-              <td>{{ object.search.name }} </td>
-              <td>{{ object.instruments }}</td>
-              <td>{% if object.gpstime%}
+              <td data-title="Group">{{ object.group.name }} </td>
+              <td data-title="Pipeline">{{ object.pipeline.name }} </td>
+              <td data-title="Search">{{ object.search.name }} </td>
+              <td data-title="Instruments">{{ object.instruments }}</td>
+              <td data-title="Event Time">{% if object.gpstime%}
                       {{ object.gpstime|multiTime:"ngps" }}
                   {% endif %}</td>
-              <td>{{ delta }}</td>
-              <td>{{ object.far|scientific }}</td>
-              <td><a href="{{ object.weburl }}">Data</a></td>
-              <td>{{ object.created|multiTime:"nsubmitted" }}</td>
+              <td data-title="Time Delta (s)">{{ delta }}</td>
+              <td data-title="FAR (Hz)">{{ object.far|scientific }}</td>
+              <td data-title="Links"><a href="{{ object.weburl }}">Data</a></td>
+              <td data-title="Submitted">{{ object.created|multiTime:"nsubmitted" }}</td>
           </tr>
           {% endfor %}
       </table>

@@ -8,7 +8,7 @@
 {# Test whether the object has the end_time property. Older (non CoincInspiral) events don't. #}
 {% if object.end_time %}
 
-<div class="row pt-3">
+<div class="row my-5">
     <div class="col-sm">
     <div id="table-coinc-event">
       <table class="table-basic-info table-condensed">
@@ -50,25 +50,25 @@
      	</tr>
         </thead>
 	<tr>
-		<th>Channel</th>
+		<th class="collapsed-header">Channel</th>
 		{% for e in single_inspiral_events %}
 		<td data-title="{{ e.ifo }}">{{ e.channel }}</td>
 		{% endfor %}
 	</tr>
 	<tr>
-		<th>End Time (GPS)</th>
+		<th class="collapsed-header">End Time (GPS)</th>
 		{% for e in single_inspiral_events %}
 		<td data-title="{{ e.ifo }}">{{ e.end_time_full|floatformat:"-3" }}&nbsp;s</td>
 		{% endfor %}
 	</tr>
 	<tr>
-		<th>Template Duration</th>
+		<th class="collapsed-header">Template Duration</th>
 		{% for e in single_inspiral_events %}
 		<td data-title="{{ e.ifo }}">{{ e.template_duration }}&nbsp;s</td>
 		{% endfor %}
 	</tr>
 	<tr>
-		<th>Effective Distance</th>
+		<th class="collapsed-header">Effective Distance</th>
 		{% for e in single_inspiral_events %}
         <td data-title="{{ e.ifo }}">
         {% if e.eff_distance %}
@@ -80,61 +80,61 @@
 		{% endfor %}
 	</tr>
 	<tr>
-		<th>COA Phase</th>
+		<th class="collapsed-header">COA Phase</th>
 		{% for e in single_inspiral_events %}
 		<td data-title="{{ e.ifo }}">{{ e.coa_phase }}&nbsp;rad</td>
 		{% endfor %}
 	</tr>
 	<tr>
-		<th>Mass 1</th>
+		<th class="collapsed-header">Mass 1</th>
 		{% for e in single_inspiral_events %}
 		<td data-title="{{ e.ifo }}">{{ e.mass1 }}&nbsp;M<sub>&#x2299;</sub></td>
 		{% endfor %}
 	</tr>
 	<tr>
-		<th>Mass 2</th>
+		<th class="collapsed-header">Mass 2</th>
 		{% for e in single_inspiral_events %}
 		<td data-title="{{ e.ifo }}">{{ e.mass2 }}&nbsp;M<sub>&#x2299;</sub></td>
 		{% endfor %}
 	</tr>
 	<tr>
-		<th>&eta;</th>
+		<th class="collapsed-header">&eta;</th>
 		{% for e in single_inspiral_events %}
 		<td data-title="{{ e.ifo }}">{{ e.eta }}</td>
 		{% endfor %}
 	</tr>
 	<tr>
-		<th>F Final</th>
+		<th class="collapsed-header">F Final</th>
 		{% for e in single_inspiral_events %}
 		<td data-title="{{ e.ifo }}">{{ e.f_final }}&nbsp;Hz</td>
 		{% endfor %}
 	</tr>
 	<tr>
-		<th>SNR</th>
+		<th class="collapsed-header">SNR</th>
 		{% for e in single_inspiral_events %}
 		<td data-title="{{ e.ifo }}">{{ e.snr }}</td>
 		{% endfor %}
 	</tr>
 	<tr>
-		<th>&chi;<sup>2</sup></th>
+		<th class="collapsed-header">&chi;<sup>2</sup></th>
 		{% for e in single_inspiral_events %}
 		<td data-title="{{ e.ifo }}">{{ e.chisq }}</td>
 		{% endfor %}
 	</tr>
 	<tr>
-		<th>&chi;<sup>2</sup> DOF</th>
+		<th class="collapsed-header">&chi;<sup>2</sup> DOF</th>
 		{% for e in single_inspiral_events %}
 		<td data-title="{{ e.ifo }}">{{ e.chisq_dof }}</td>
 		{% endfor %}
 	</tr>
 	<tr>
-		<th>spin1z</th>
+		<th class="collapsed-header">spin1z</th>
 		{% for e in single_inspiral_events %}
 		<td data-title="{{ e.ifo }}">{{ e.spin1z }}</td>
 		{% endfor %}
     </tr> 
 	<tr>
-		<th>spin2z</th>
+		<th class="collapsed-header">spin2z</th>
 		{% for e in single_inspiral_events %}
 		<td data-title="{{ e.ifo }}">{{ e.spin2z }}</td>
 		{% endfor %}
