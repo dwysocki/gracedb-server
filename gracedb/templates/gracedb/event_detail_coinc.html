@@ -10,7 +10,7 @@
 
 <div class="row pt-3">
     <div class="col-sm">
-    <div id="gdb-table-coinc-event">
+    <div id="table-coinc-event">
       <table class="table-basic-info table-condensed">
         <thead>
         <tr>
@@ -41,67 +41,40 @@
         <tr>
          <th colspan="23" class="banner-row">Single Inspiral Tables</th>
         </tr>
-        </thead>
 
-<!--<div id="single_inspiral_tables"> -->
-<!-- <div id="single_inspiral_tables"
-       	data-dojo-type="dijit/TitlePane"
-        data-dojo-props="title: 'Single Inspiral Tables', open: false"> -->
-        <!--<table class="analysis_specific_lm"> -->
-	<tr>
-		<th>IFO</th>
-		{% for e in single_inspiral_events %}
-		<th>{{ e.ifo }}</th>
-		{% endfor %}
-	</tr>
-	<!-- <tr>
-		<th>Search</th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.search }}</td>
-		{% endfor %}
-    </tr> -->
+     	<tr class="header-row">
+     		<th>IFO</th>
+     		{% for e in single_inspiral_events %}
+     		<th>{{ e.ifo }}</th>
+     		{% endfor %}
+     	</tr>
+        </thead>
 	<tr>
 		<th>Channel</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.channel }}</td>
+		<td data-title="{{ e.ifo }}">{{ e.channel }}</td>
 		{% endfor %}
 	</tr>
 	<tr>
 		<th>End Time (GPS)</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.end_time_full|floatformat:"-3" }}&nbsp;s</td>
+		<td data-title="{{ e.ifo }}">{{ e.end_time_full|floatformat:"-3" }}&nbsp;s</td>
 		{% endfor %}
 	</tr>
-	<!-- <tr>
-		<th>Impulse Time</th>
-		{# for e in single_inspiral_events #}
-		<td>{# e.impulse_time_full #}</td>
-		{# endfor #}
-    </tr> -->
 	<tr>
 		<th>Template Duration</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.template_duration }}&nbsp;s</td>
+		<td data-title="{{ e.ifo }}">{{ e.template_duration }}&nbsp;s</td>
 		{% endfor %}
 	</tr>
-	<!-- <tr>
-		<th>Event Duration</th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.event_duration }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>Amplitude</th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.amplitude }}</td>
-		{% endfor %}
-    </tr> -->
 	<tr>
 		<th>Effective Distance</th>
 		{% for e in single_inspiral_events %}
-        <td>
+        <td data-title="{{ e.ifo }}">
         {% if e.eff_distance %}
 		{{ e.eff_distance }}&nbsp;Mpc
+        {% else %}
+        &nbsp; &nbsp; &nbsp; &nbsp;
         {% endif %}
         </td>
 		{% endfor %}
@@ -109,277 +82,61 @@
 	<tr>
 		<th>COA Phase</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.coa_phase }}&nbsp;rad</td>
+		<td data-title="{{ e.ifo }}">{{ e.coa_phase }}&nbsp;rad</td>
 		{% endfor %}
 	</tr>
 	<tr>
 		<th>Mass 1</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.mass1 }}&nbsp;M<sub>&#x2299;</sub></td>
+		<td data-title="{{ e.ifo }}">{{ e.mass1 }}&nbsp;M<sub>&#x2299;</sub></td>
 		{% endfor %}
 	</tr>
 	<tr>
 		<th>Mass 2</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.mass2 }}&nbsp;M<sub>&#x2299;</sub></td>
+		<td data-title="{{ e.ifo }}">{{ e.mass2 }}&nbsp;M<sub>&#x2299;</sub></td>
 		{% endfor %}
 	</tr>
-	<!-- <tr>
-		<th>MChirp</th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.mchirp }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>MTotal</th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.mtotal }}</td>
-		{% endfor %}
-    </tr> -->
 	<tr>
 		<th>&eta;</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.eta }}</td>
+		<td data-title="{{ e.ifo }}">{{ e.eta }}</td>
 		{% endfor %}
 	</tr>
-	<!-- <tr>
-		<th>&kappa;</th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.kappa }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&chi;</th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.chi }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&tau;<sub>0</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.tau0 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&tau;<sub>2</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.tau2 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&tau;<sub>3</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.tau3 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&tau;<sub>4</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.tau4 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&tau;<sub>5</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.tau5 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&tau;<sub>Total</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.ttotal }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&Psi;<sub>0</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.psi0 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&Psi;<sub>3</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.psi3 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&alpha;</th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.alpha }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&alpha;<sub>1</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.alpha1 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&alpha;<sub>2</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.alpha2 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&alpha;<sub>3</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.alpha3 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&alpha;<sub>4</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.alpha4 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&alpha;<sub>5</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.alpha5 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&alpha;<sub>6</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.alpha6 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&beta;</th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.beta }}</td>
-		{% endfor %}
-    </tr> -->
 	<tr>
 		<th>F Final</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.f_final }}&nbsp;Hz</td>
+		<td data-title="{{ e.ifo }}">{{ e.f_final }}&nbsp;Hz</td>
 		{% endfor %}
 	</tr>
 	<tr>
 		<th>SNR</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.snr }}</td>
+		<td data-title="{{ e.ifo }}">{{ e.snr }}</td>
 		{% endfor %}
 	</tr>
 	<tr>
 		<th>&chi;<sup>2</sup></th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.chisq }}</td>
+		<td data-title="{{ e.ifo }}">{{ e.chisq }}</td>
 		{% endfor %}
 	</tr>
 	<tr>
 		<th>&chi;<sup>2</sup> DOF</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.chisq_dof }}</td>
+		<td data-title="{{ e.ifo }}">{{ e.chisq_dof }}</td>
 		{% endfor %}
 	</tr>
-	<!-- <tr>
-		<th>Bank &chi;<sup>2</sup></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.bank_chisq }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>Bank &chi;<sup>2</sup> DOF</th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.bank_chisq_dof }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>Cont &chi;<sup>2</sup></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.cont_chisq }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>Cont &chi;<sup>2</sup> DOF</th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.cont_chisq_dof }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&Sigma;<sup>2</sup></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.sigmasq }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>RSQ Veto Duration</th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.rsqveto_duration }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&Gamma;<sub>0</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.gamma0 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&Gamma;<sub>1</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.gamma1 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&Gamma;<sub>2</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.gamma2 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&Gamma;<sub>3</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.gamma3 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&Gamma;<sub>4</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.gamma4 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&Gamma;<sub>5</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.gamma5 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&Gamma;<sub>6</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.gamma6 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&Gamma;<sub>7</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.gamma7 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&Gamma;<sub>8</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.gamma8 }}</td>
-		{% endfor %}
-    </tr> -->
-	<!-- <tr>
-		<th>&Gamma;<sub>9</sub></th>
-		{% for e in single_inspiral_events %}
-		<td>{{ e.gamma9 }}</td>
-		{% endfor %}
-    </tr> -->
 	<tr>
 		<th>spin1z</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.spin1z }}</td>
+		<td data-title="{{ e.ifo }}">{{ e.spin1z }}</td>
 		{% endfor %}
     </tr> 
 	<tr>
 		<th>spin2z</th>
 		{% for e in single_inspiral_events %}
-		<td>{{ e.spin2z }}</td>
+		<td data-title="{{ e.ifo }}">{{ e.spin2z }}</td>
 		{% endfor %}
     </tr> 
 </table>
