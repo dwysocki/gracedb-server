@@ -54,22 +54,22 @@ body {
 
   <h5>GraceDB Overview</h5>
     <hr>
-    <p class="font-weight-lighter">
+    <p >
     The <b>Gra</b>vitational-Wave <b>C</b>andidate <b>E</b>vent <b>D</b>ata<b>b</b>ase (<b>GraceDB</b>) is a service operated by the <a href="https://www.ligo.org/">LIGO Scientific Collaboration</a>. It provides a centralized location for aggregating and retrieving information about candidate gravitational-wave events. GraceDB provides an <a href="{% url "legacy_apiweb:default:root" %}">API</a> for programmatic access, and a <a href="https://ligo-gracedb.readthedocs.io/">client package</a> is available for interacting with the API.
     </p>
    <br>
    <h5>Useful information</h5>
     <hr>
-    <li class="font-weight-lighter">Information about GW alerts and real-time data products is available in the <a href="https://emfollow.docs.ligo.org/userguide/">LIGO/Virgo Public Alert Guide</a>.</li>
-    <li class="font-weight-lighter"><a href="https://monitor.ligo.org/ldg">Real-time status of the LIGO Data Grid</a>.</li>
-    <li class="font-weight-lighter">Found a bug? LIGO/Virgo users can report issues on the GraceDB <a href="https://git.ligo.org/lscsoft/gracedb/issues">Gitlab page</a>.</li>
+    <li >Information about GW alerts and real-time data products is available in the <a href="https://emfollow.docs.ligo.org/userguide/">LIGO/Virgo Public Alert Guide</a>.</li>
+    <li ><a href="https://monitor.ligo.org/ldg">Real-time status of the LIGO Data Grid</a>.</li>
+    <li >Found a bug? LIGO/Virgo users can report issues on the GraceDB <a href="https://git.ligo.org/lscsoft/gracedb/issues">Gitlab page</a>.</li>
     </ul>
     <br>
 {% if information %}
     {{ information|safe }}
 {% endif %}
      <br>
-    <p class="font-weight-lighter"><small><b>Server code version: </b> <a href="https://git.ligo.org/lscsoft/gracedb/tree/gracedb-{{server_version}}" class="text-monospace" >{{server_version}}</a></p></small>
+    <p ><small><b>Server code version: </b> <a href="https://git.ligo.org/lscsoft/gracedb/tree/gracedb-{{server_version}}" class="text-monospace" >{{server_version}}</a></p></small>
 </div>
 
 <!--XXX Infrastructure for human signoffs. Hopefully this will not be permanent. -->
