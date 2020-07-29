@@ -8,15 +8,18 @@
 
    <!-- Header for Log Messages -->
 
-   <div class="table-responsive table-detail">
-      <table class="table table-sm table-detail">
-          <thead class="thead-gdbdark">
+   <div class="table-responsive">
+      <table class="table-basic-info">
+          <thead>
           <tr>
-           <th colspan="23" class="table-detail-th"> <h5>Log Messages</h5> </th>
+           <th colspan="23" class="banner-row">Log Messages</th>
           </tr>
+          </thead>
        </table>
 
        <p><center>
+       Use buttons to expand/collapse log sections.</p>
+       <p>
        {{ object.eventlog_set.all|logboxes }}
        </center></p>
 
@@ -77,19 +80,19 @@
 
            <div class="card card-body">
 
-              <div class="table-responsive table-detail">
-              <table class="table table-sm table-detail table-hover" id="full_event_log">
-                <thead class="thead-light">
+              <div class="table-responsive">
+              <table class="table-basic-info table-condensed table-hover" id="full_event_log">
+                <thead>
                   <tr>
-                   <th colspan="23" class="table-detail-th"> <h6>Full Event Log</h6> </th>
-                </thead>
+                   <th colspan="23" class="banner-row"> <h6>Full Event Log</h6> </th>
                    </tr>
-                   <tr>
+                   <tr class="header-row">
                       <th scope="col" class="align-bottom"> No. </th>
                       <th scope="col" class="align-bottom"> {{ "lcreated"|timeselect:"utc" }}</th>
                       <th scope="col" class="align-bottom"> Submitter </th>
                       <th scope="col" class="align-bottom"> Comment </th>
                    </tr>
+                </thead>
                    {% for log in object.eventlog_set.all %}
                    <tr>
                     <td> {{ log.N }} </td>

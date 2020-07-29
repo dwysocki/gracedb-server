@@ -62,12 +62,12 @@
 
 {% if show_gw_status_form %}
 <center>
-<div class="content-area col-sm-4">
+<div class="col">
 <div><b>Note:</b> this action is irreversible without manual intervention by an admin.</div>
+<br>
 <form action="{% url "legacy_apiweb:default:superevents:superevent-confirm-as-gw" superevent.superevent_id %}" method="POST" id="confirm_as_gw_form">
     <input type="submit" value="Confirm this superevent as a GW" class="btn btn-danger permButtonClass" disabled>
 </form>
-</div>
 </center>
 {% endif %}
 
@@ -87,6 +87,7 @@
 </form>
 </div>
 </center>
+</div>
 {% endif %}
 
 {% if operator_signoff_authorized and operator_signoff_active %}

@@ -12,7 +12,7 @@ body {
 
 .navbar-gracedb {
   /*background-color: #336699;*/
-  background-color: #0a1b31;
+  background-color: #254e77;
   border-color: #FFFFFF;
 }
 
@@ -23,6 +23,25 @@ body {
   border-bottom: 0px !important;
   border-top: 0px !important;
   margin: auto;
+}
+
+.form-control-picker {
+  width:fit-content;
+  outline: 0;
+  box-shadow: none;
+  border: 0 !important;
+  background: #3D648A;
+  color:whitesmoke;
+  font-size:inherit;
+}
+
+.form-control-picker:focus{
+  background: #3D648A;
+  color:whitesmoke;
+  outline: 0;
+  box-shadow: none;
+  border: 0 !important;
+  font-size:inherit;
 }
 
 .collapse-row.collapsed + tr {
@@ -49,9 +68,19 @@ body {
   text-align: center;
 }
 
+.log-card-header {
+  background-color:#3a5374;
+  color:whitesmoke;   
+}
+
+.image-card {
+  min-width:200px;
+  width:auto;
+}
+
 .banner-row {
   /*background-color: #19538A;*/
-  background-color: #1b365a;
+  background-color: #3D648A;
   border-radius: 10px 10px 0px 0px;
   padding-left: 10px;
   color: #fff;
@@ -60,11 +89,15 @@ body {
 
 .header-row {
   /*background-color: #19538A;*/
-  background-color: #1b365a;
+  background-color: #3D648A;
   color: #fff;
   font-weight: lighter;
   padding-left: 10px;
   text-align: center;
+}
+
+#full_event_log {
+  font-size:12px;
 }
 
 .table-detail {

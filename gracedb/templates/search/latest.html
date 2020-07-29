@@ -32,9 +32,9 @@
 
 {% if events %}
 
-<table class="table table-hover table-responsive table-latest">
-  <thead class="thead-light">
-    <tr>
+<table class="table table-hover table-responsive table-basic-info">
+  <thead>
+    <tr class="header-row">
         <th>UID</th>
         <th>Labels</th>
         <th>Pipeline</th>
@@ -122,9 +122,9 @@
 {% elif superevents %}
 
 <!-- Superevent listing -->
-<table class="table table-hover table-responsive table-latest">
-  <thead class="thead-light">
-    <tr>
+<table class="table table-hover table-responsive table-basic-info">
+  <thead> 
+    <tr class="header-row">
         <th>UID</th>
         <th>Labels</th>
         {% if user.is_authenticated %}

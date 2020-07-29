@@ -51,7 +51,7 @@ button_template = """<button class="btn btn-primary"
                       type="button" 
                       data-toggle="collapse" 
                       data-target="#{}" 
-                      aria-expanded="false" 
+                      aria-expanded="true" 
                       aria-controls="{}">
                          {} 
                       </button>
@@ -61,15 +61,15 @@ embedded_button_template = """<button class="btn btn-secondary btn-sm"
                       type="button" 
                       data-toggle="collapse" 
                       data-target="#{}" 
-                      aria-expanded="false" 
+                      aria-expanded="true" 
                       aria-controls="{}">
                          Collapse {} 
                       </button>
 """
 collapsed_card_template = """
-<p><div class="collapse" id="{}">
+<p><div class="collapse show" id="{}">
   <div class="card card-body">
-    <div class="card-header text-left">
+    <div class="card-header log-card-header text-left">
       <h6>{}</h6>
     </div>
    {}
@@ -83,7 +83,7 @@ img_style_template = """max-height= 250px;
 """
 
 image_card_div = """
-<div class="card m-1" style="min-width:200px; width:auto">
+<div class="card my-3 image-card">
   <a href="{}" data-toggle="lightbox" data-type="image" data-gallery="{}">
   <img class="card-img-top img-fluid" src="{}" style="width:auto;"/>
   </a>
@@ -95,7 +95,7 @@ image_card_div = """
 """
 
 comment_card_div = """
-<div class="card m-1">
+<div class="card">
   <div class="card-header text-left">
     <h7>Log Comment</h7>
   </div>
@@ -130,7 +130,7 @@ def card_content(tagged_log_list, tag_name):
    # like tables.
 
     for l in tagged_log_list.filter(~images_filter):
-        rv_title = comment_card_title.format(l.issuer.username,
+        rv_title = comment_card_title.format(l.issuer.get_full_name(),
                               l.created.strftime("%B %-d, %Y %H:%M:%S %Z"))
 
         # Append the log message on the comment card
@@ -151,7 +151,7 @@ def img_div(logline, tag_name):
     rv = """"""
     # Construct caption:
     comment = image_card_caption.format(logline.comment,
-                                  logline.issuer.username,
+                                  logline.issuer.get_full_name(),
                                   logline.created.strftime("%B %-d, %Y %H:%M:%S %Z"))
 
 

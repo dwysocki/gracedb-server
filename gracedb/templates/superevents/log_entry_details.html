@@ -11,11 +11,11 @@
    {% with log_filter=user_is_external|yesno:"public," %}
    {% with log_list=object.log_set.all|filter_logs:log_filter %}
 
-   <div class="table-responsive table-detail">
-      <table class="table table-sm table-detail">
-          <thead class="thead-gdbdark">
+   <div class="table-responsive">
+      <table class="table-basic-info">
+          <thead>
           <tr>
-           <th colspan="23" class="table-detail-th"> <h5>Log Messages</h5> </th>
+           <th colspan="23" class="banner-row">Log Messages</th>
           </tr>
        </table>
 

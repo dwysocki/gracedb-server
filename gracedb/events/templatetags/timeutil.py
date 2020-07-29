@@ -108,7 +108,7 @@ def timeselect(label, default, autoescape=None):
 
 
     rv = """"""
-    rv += """<select class="form-control form-control-sm" style="width:auto;"
+    rv += """<select class="form-control form-control-sm form-control-picker"
           """
     rv += """id="{}" onChange="changeTime(this, '{}')">""".format(esc(label),esc(label))
     rv += """<option value="" disabled selected>{}</option>""".format(ts_label(label))

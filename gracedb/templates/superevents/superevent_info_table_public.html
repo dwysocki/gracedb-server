@@ -2,51 +2,51 @@
 {% load scientific %}
 <div class="row pt-3 justify-content-center">
 <div class="col">
-<div class="table-responsive table-detail">
+<div class="table-responsive" id="gdb-table-superevent">
 
-    <table class="table table-sm table-detail">
-        <thead class="thead-gdbdark">
+    <table class="table-condensed table-basic-info">
+        <thead>
         <tr>
-         <th colspan="23" class="table-detail-th"> <h5>Superevent Information</h5> </th>
+         <th colspan="23" class="banner-row">Superevent Information</th>
         </tr>
-    <tr>
-        <th scope="col" class="table-detail-lh" valign="top">Superevent ID</th>
+    <tr class="header-row">
+        <th scope="col">Superevent ID</th>
         {% if superevent.is_gw %}
-        <th scope="col" class="table-detail-lh">GW ID</th>
+        <th scope="col">GW ID</th>
         {% endif %}
-        <th scope="col" class="table-detail-lh">Category</th>
-        <th scope="col" class="table-detail-lh">Labels</th>
-        <th scope="col" class="table-detail-lh">FAR (Hz)</th>
-        <th scope="col" class="table-detail-lh">FAR (yr<sup>-1</sup>)</th>
-        <th scope="col" class="table-detail-lh">t<sub>start</sub></th>
-        <th scope="col" class="table-detail-lh">t<sub>0</sub></th>
-        <th scope="col" class="table-detail-lh">t<sub>end</sub></th>
-        <th scope="col" class="table-detail-lh">
+        <th scope="col">Category</th>
+        <th scope="col">Labels</th>
+        <th scope="col">FAR (Hz)</th>
+        <th scope="col">FAR (yr<sup>-1</sup>)</th>
+        <th scope="col">t<sub>start</sub></th>
+        <th scope="col">t<sub>0</sub></th>
+        <th scope="col">t<sub>end</sub></th>
+        <th scope="col">
             {{ "submitted"|timeselect:"utc" }}
         </th>
-        <th scope="col" class="table-detail-lh">Links</th>
+        <th scope="col">Links</th>
         </thead>
     </tr>
     <tr>
-        <td>{{ superevent.default_superevent_id }}</td>
+        <td data-title="Superevent ID">{{ superevent.default_superevent_id }}</td>
         {% if superevent.is_gw %}
-        <td>{{ superevent.gw_id }}</td>
+        <td data-title="GW ID">{{ superevent.gw_id }}</td>
         {% endif %}
-        <td>{{ superevent.get_category_display }}</td>
-        <td>
+        <td data-title="Category">{{ superevent.get_category_display }}</td>
+        <td data-title="Labels">
         {% for labelling in superevent.labelling_set.all %}
             <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();" style="color: {{labelling.label.defaultColor}};" class="label">
                 {{ labelling.label.name }}
             </div>
        {% endfor %}
         </td>
-        <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
-        <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_hr }}</td>
-        <td>{{ superevent.t_start|floatformat:2 }}</td>
-        <td>{{ superevent.t_0|floatformat:2 }}</td>
-        <td>{{ superevent.t_end|floatformat:2 }}</td>
-        <td>{{ superevent.created|multiTime:"submitted" }}</td>
-        <td><a href="{% url "superevents:file-list" superevent.superevent_id %}">Data</a></td>
+        <td data-title="FAR (Hz)">{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
+        <td data-title="FAR (/year)">{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_hr }}</td>
+        <td data-title="t_start">{{ superevent.t_start|floatformat:2 }}</td>
+        <td data-title="t_0">{{ superevent.t_0|floatformat:2 }}</td>
+        <td data-title="t_end">{{ superevent.t_end|floatformat:2 }}</td>
+        <td data-title="Submitted">{{ superevent.created|multiTime:"submitted" }}</td>
+        <td data-title="Links"><a href="{% url "superevents:file-list" superevent.superevent_id %}">Data</a></td>
     </tr>
    </table>
 </div>
