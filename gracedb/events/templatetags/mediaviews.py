@@ -83,7 +83,10 @@ img_style_template = """max-height= 250px;
 """
 
 image_card_div = """
-<div class="card my-3 image-card">
+<div class="card my-3 log-comment-card">
+  <div class="card-header log-comment-card-header text-left">
+    <h7>Log Image</h7>
+  </div>
   <a href="{}" data-toggle="lightbox" data-type="image" data-gallery="{}">
   <img class="card-img-top img-fluid" src="{}" style="width:auto;"/>
   </a>
@@ -95,8 +98,8 @@ image_card_div = """
 """
 
 comment_card_div = """
-<div class="card">
-  <div class="card-header text-left">
+<div class="card my-3 log-comment-card">
+  <div class="card-header log-comment-card-header text-left">
     <h7>Log Comment</h7>
   </div>
   <div class="card-body">

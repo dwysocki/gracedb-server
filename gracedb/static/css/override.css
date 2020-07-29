@@ -58,6 +58,11 @@ body {
   width: 100%;
 }
 
+.card-deck {
+  margin-left: 1%;
+  margin-right: 1%;
+}
+
 .table-basic-info th {
   font-weight: lighter;
   padding-left: 10px;
@@ -66,6 +71,17 @@ body {
 
 .table-basic-info td {
   text-align: center;
+}
+
+.log-comment-card{
+ border-radius:15px;
+ margin:2.5%;
+ border-color: darkgray
+}
+
+.log-comment-card-header{
+  padding:0px;
+  padding-left:10px
 }
 
 .log-card-header {
