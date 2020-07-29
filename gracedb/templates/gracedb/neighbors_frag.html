@@ -42,7 +42,12 @@
               <th class="collapsed-header" data-title="UID"><a href="{% url "view" object.graceid %}">{{ object.graceid }}</a></td>
               <td data-title="Labels">
                    {% for labelling in object.labelling_set.all %}
-                      <span onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.name}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
+                    <span style="color: {{labelling.label.defaultColor}};" class="label"
+                       data-toggle="tooltip"
+                       data-placement="top"
+                       data-html="true"
+                       title="<em>{{labelling.label.description}}</em><br>">
+               {{ labelling.label.name }}</span>
                    {% endfor %}
               </td>
               <td data-title="Group">{{ object.group.name }} </td>

@@ -32,9 +32,14 @@
         <td data-title="UID"><a href="{% url "view" preferred_event.graceid %}">{{ preferred_event.graceid }}</a></td>
         <td data-title="Labels">
         {% for labelling in preferred_event_labelling %}
-            <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();" style="color: {{labelling.label.defaultColor}};" class="label">
-                {{ labelling.label.name }}
-            </div>
+                    <span style="color: {{labelling.label.defaultColor}};" class="label"
+                       data-toggle="tooltip"
+                       data-placement="top"
+                       data-html="true"
+                       title="<em>{{labelling.label.description}}</em><br>
+                      <b>Added by:</b> {{labelling.creator.get_full_name}}<br>
+                      <b>Added:</b> {{labelling.created}}">
+               {{ labelling.label.name }}</span>
         {% endfor %}
         </td>
         <td data-title="Group">{{ preferred_event.group.name }} </td>

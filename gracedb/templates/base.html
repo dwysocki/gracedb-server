@@ -58,7 +58,11 @@
 
      <script type="text/javascript">
         $(function () {
-          $('[data-toggle="tooltip"]').tooltip()
+          $('[data-toggle="tooltip"]').tooltip({
+           placement: 'top',
+           container: 'body',
+           boundary: 'viewport'
+        })
         })
 </script>
      {% endblock %}

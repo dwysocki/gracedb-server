@@ -35,9 +35,12 @@
         <td data-title="Category">{{ superevent.get_category_display }}</td>
         <td data-title="Labels">
         {% for labelling in superevent.labelling_set.all %}
-            <div onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.username}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();" style="color: {{labelling.label.defaultColor}};" class="label">
-                {{ labelling.label.name }}
-            </div>
+                    <span style="color: {{labelling.label.defaultColor}};" class="label"
+                       data-toggle="tooltip"
+                       data-placement="top"
+                       data-html="true"
+                       title="<em>{{labelling.label.description}}</em><br>">
+               {{ labelling.label.name }}</span>
        {% endfor %}
         </td>
         <td data-title="FAR (Hz)">{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
