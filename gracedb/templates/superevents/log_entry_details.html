@@ -20,6 +20,8 @@
        </table>
 
        <p><center>
+       Use buttons to expand/collapse log sections.</p>
+       <p><center>
        {{ log_list|logboxes }}
        </center></p>
 
@@ -78,14 +80,14 @@
         <div class="collapse" id="FullLog">
            <div class="card card-body">
 
-              <div class="table-responsive table-detail">
-              <table class="table table-sm table-detail table-hover" id="full_superevent_log">
-                <thead class="thead-light">
+              <div class="table-responsive">
+              <table class="table-basic-info table-condensed table-hover" id="full_event_log">
+                <thead>
                    <tr>
-                   <th colspan="23" class="table-detail-th"> <h6>Full Event Log</h6> </th>
+                   <th colspan="23" class="banner-row"> <h6>Full Event Log</h6> </th>
                 </thead>
                    </tr>
-                   <tr>
+                   <tr class="header-row">
                       <th scope="col" class="align-bottom"> No. </th>
                       <th scope="col" class="align-bottom"> {{ "lcreated"|timeselect:"utc" }}</th>
                       <th scope="col" class="align-bottom"> Submitter </th>

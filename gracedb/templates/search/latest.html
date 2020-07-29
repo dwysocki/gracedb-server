@@ -28,10 +28,10 @@
     </table>
 </form>
 <br>
-<h5> Tap on entry for detailed information </h5>
 
 {% if events %}
 
+<h5> Tap on entry for detailed information </h5>
 <table class="table table-hover table-responsive table-basic-info">
   <thead>
     <tr class="header-row">
@@ -122,6 +122,7 @@
 {% elif superevents %}
 
 <!-- Superevent listing -->
+<h5> Tap on entry for detailed information </h5>
 <table class="table table-hover table-responsive table-basic-info">
   <thead> 
     <tr class="header-row">
@@ -302,7 +303,7 @@
 
 
 {% else %} <!-- !events -->
-<h4>No results. Please login to see complete results.</h4>
+<h5>No results. Please login to see complete results.</h5>
 {% endif %} <!-- if eventss -->
 
      <script type="text/javascript">
