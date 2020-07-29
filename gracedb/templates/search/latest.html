@@ -150,7 +150,14 @@
         </td>
 
         {% if user.is_authenticated %}
-        <td><a class="no-collapse-link" href="{% url "view" sv.preferred_event.graceid %}">{{ sv.preferred_event.graceid }}</a></td>
+        <td><a class="no-collapse-link" 
+               href="{% url "view" sv.preferred_event.graceid %}"
+               data-toggle="tooltip"
+               data-placement="top"
+               data-html="true"
+               title="<b>{{ sv.preferred_event.graceid }}</b><br>
+                      <b>Pipeline:</b> {{ sv.preferred_event.pipeline.name }}<br>
+                      <b>FAR (Hz):</b> {{ sv.preferred_event.far|scientific }}  ">{{ sv.preferred_event.graceid }}</a></td>
         {% endif %}
 
         {% if user_is_external %}
@@ -184,9 +191,21 @@
                <td>
                 {% for ev in sv.get_internal_events %}
                     {% if forloop.last %}
-                        <a class="no-collapse-link" href="{% url "view" ev.graceid %}">{{ ev.graceid }}</a>
+                        <a class="no-collapse-link" href="{% url "view" ev.graceid %}"
+                           data-toggle="tooltip"
+                           data-placement="top"
+                           data-html="true"
+                           title="<b>{{ ev.graceid }}</b><br>
+                                  <b>Pipeline:</b> {{ ev.pipeline.name }}<br>
+                                  <b>FAR (Hz):</b> {{ ev.far|scientific }}">{{ ev.graceid }}</a>
                     {% else %}
-                        <a class="no-collapse-link" href="{% url "view" ev.graceid %}">{{ ev.graceid }}</a>,
+                        <a class="no-collapse-link" href="{% url "view" ev.graceid %}"
+                           data-toggle="tooltip"
+                           data-placement="top"
+                           data-html="true"
+                           title="<b>{{ ev.graceid }}</b><br>
+                                  <b>Pipeline:</b> {{ ev.pipeline.name }}<br>
+                                  <b>FAR (Hz):</b> {{ ev.far|scientific }}">{{ ev.graceid }}</a>,
                     {% endif %}
                 {% endfor %}
                </td>
