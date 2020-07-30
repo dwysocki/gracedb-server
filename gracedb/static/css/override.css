@@ -11,18 +11,21 @@ body {
 }
 
 .navbar-gracedb {
-  /*background-color: #336699;*/
   background-color: #254e77;
   border-color: #FFFFFF;
 }
 
 .table-latest {
-  /*font-size: 10px;*/
   border-collapse: separate;
   border-spacing: 0px;
   border-bottom: 0px !important;
   border-top: 0px !important;
   margin: auto;
+}
+
+.table-detail-th {
+  background-color:gray;
+  font-size:14px
 }
 
 .form-control-picker {
