@@ -106,22 +106,26 @@ def timeselect(label, default, autoescape=None):
     else:
         esc = lambda x: x
 
-
     rv = """"""
-    rv += """<select class="form-control form-control-sm form-control-picker"
-          """
-    rv += """id="{}" onChange="changeTime(this, '{}')">""".format(esc(label),esc(label))
-    rv += """<option value="" disabled selected>{}</option>""".format(ts_label(label))
-    rv += """<option data-divider="true"></option>"""
-
+    rv += """<div class="dropdown">"""
+    rv += """<button class="btn btn-header-dropdown dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">"""
+    rv += """{display}""".format(display=ts_label(label))
+    rv += """</button>"""
+    rv += """<div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="{}">""".format(label)
     for value, displayname in [
             ("gps", "GPS Time"),
             ("llo", "LLO Local"),
             ("lho", "LHO Local"),
             ("virgo", "Virgo Local"),
             ("utc", "UTC"),]:
-        rv += '<option value="{}">{}</option>'.format(esc(value), esc(displayname))
-    rv += """</select>"""
+        rv += """<a value="{value}" class="dropdown-item" href="#">{display}</a>""".format(value=value,
+                                                                                    display=displayname)
+    rv += """</div>"""
+    rv += """</div>"""
+    rv += """<script>$("#{label} a").click(function(e){{ 
+                 e.preventDefault();
+                 changeTime($(this),'{label}');
+                 }}) </script>""".format(label=label)
 
 
     return mark_safe(rv)

@@ -103,6 +103,16 @@ body {
   font-size: 18px;
 }
 
+.btn-header-dropdown {
+ color: #fff;
+ font-weight:100;
+}
+
+.btn-header-dropdown:hover, .btn-header-dropdown:focus {
+ color: whitesmoke;
+ border-color:whitesmoke;
+}
+
 .header-row {
   /*background-color: #19538A;*/
   background-color: #3D648A;
@@ -142,6 +152,10 @@ body {
 .trumbowyg-editor {
   min-height: 150px;
 }
+
+div[id^="gdb-table-"] {
+  overflow: visible;
+        }
 
 @media only screen and (max-width: 800px) {
         /* Force table to not be like tables anymore */

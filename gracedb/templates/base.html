@@ -29,8 +29,7 @@
     <!-- START TESTING -->
     <script type="text/javascript">
        function changeTime(obj, label) {
-           //var timetype = obj.get("value");
-           var timetype = obj.value;
+           var timetype = obj.attr("value");
            if (timetype=="") { return; }
            var times = document.getElementsByName("time-"+label);
            for (i=0; i<times.length; i++) {
@@ -64,7 +63,7 @@
            boundary: 'viewport'
         })
         })
-</script>
+     </script>
      {% endblock %}
      <!-- END TESTING -->
      {% block jscript %}
