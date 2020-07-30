@@ -104,6 +104,7 @@ comment_card_div = """
   </div>
   <div class="card-body">
     <p class="card-text">{}</p>
+    <hr width="50%"/>
     <footer class="blockquote-footer">{}</footer>
   </div>
 </div>
