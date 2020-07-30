@@ -11,7 +11,7 @@ body {
 }
 
 .navbar-gracedb {
-  background-color: #254e77;
+  background-color: #29527A;
   border-color: #FFFFFF;
 }
 
@@ -26,25 +26,6 @@ body {
 .table-detail-th {
   background-color:gray;
   font-size:14px
-}
-
-.form-control-picker {
-  width:fit-content;
-  outline: 0;
-  box-shadow: none;
-  border: 0 !important;
-  background: #3D648A;
-  color:whitesmoke;
-  font-size:inherit;
-}
-
-.form-control-picker:focus{
-  background: #3D648A;
-  color:whitesmoke;
-  outline: 0;
-  box-shadow: none;
-  border: 0 !important;
-  font-size:inherit;
 }
 
 .collapse-row.collapsed + tr {
@@ -88,8 +69,10 @@ body {
 }
 
 .log-card-header {
-  background-color:#3a5374;
+  background-color:#6B8BAA;
   color:whitesmoke;   
+  padding: 3px;
+  padding-left:5%;
 }
 
 .image-card {
@@ -99,7 +82,7 @@ body {
 
 .banner-row {
   /*background-color: #19538A;*/
-  background-color: #3D648A;
+  background-color: #336699;
   border-radius: 10px 10px 0px 0px;
   padding-left: 10px;
   color: #fff;
@@ -108,17 +91,18 @@ body {
 
 .btn-header-dropdown {
  color: #fff;
- font-weight:100;
+ font-weight:inherit;
+ font-size:inherit;
 }
 
 .btn-header-dropdown:hover, .btn-header-dropdown:focus {
- color: whitesmoke;
- border-color:whitesmoke;
+  color: #fff;
+  border-color:whitesmoke;
 }
 
 .header-row {
   /*background-color: #19538A;*/
-  background-color: #3D648A;
+  background-color: #336699;
   color: #fff;
   font-weight: lighter;
   padding-left: 10px;
