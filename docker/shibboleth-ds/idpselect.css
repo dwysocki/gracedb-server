@@ -1,15 +1,13 @@
 /* Top level is idpSelectIdPSelector */
 #idpSelectIdPSelector
 {
-    width: auto;
-    display: contents;
-    max-width: 550px;
+    width:fit-content;
     text-align: center;
-    font-family: sans-serif, "Helvetica Neue", "Lucida Grande", Arial;
-    font-stretch: expanded;
     background-color: #FFFFFF;
     border: 2px #A40000 solid;
     padding: 10px;
+    margin-top:25px;
+    margin-bottom:25px;
 }
 
 /* Next down are the idpSelectPreferredIdPTile, idpSelectIdPEntryTile & idpSelectIdPListTile */
@@ -20,7 +18,7 @@
  */
 #idpSelectPreferredIdPTile
 {
-    height:138px; /* Force the height so that the  selector box
+    height: 138px /* Force the height so that the  selector box
                    * goes below when there is only one preslect 
                    */
 }
@@ -66,7 +64,6 @@ div.IdPSelectPreferredIdPImg
 
 img.IdPSelectIdPImg {
    width:auto;
-   display: block
 }
 
 div.IdPSelectautoDispatchTile {
