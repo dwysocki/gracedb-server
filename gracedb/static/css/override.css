@@ -140,9 +140,11 @@ body {
   min-height: 150px;
 }
 
+/*
 div[id^="gdb-table-"] {
   overflow: visible;
         }
+*/
 
 @media only screen and (max-width: 800px) {
         /* Force table to not be like tables anymore */
