@@ -146,6 +146,16 @@ div[id^="gdb-table-"] {
         }
 */
 
+@media (max-width: 1045px) {
+    .table-responsive .dropdown-menu {
+        position: static !important;
+    }
+}
+@media (min-width: 1046px) {
+    .table-responsive {
+        overflow: inherit;
+    }
+}
 @media only screen and (max-width: 800px) {
         /* Force table to not be like tables anymore */
         div[id^="gdb-table-"] table,

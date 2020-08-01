@@ -107,11 +107,11 @@ def timeselect(label, default, autoescape=None):
         esc = lambda x: x
 
     rv = """"""
-    rv += """<div class="dropdown">"""
+    rv += """<div class="dropdown" id="{label}-dd">""".format(label=label)
     rv += """<button class="btn btn-header-dropdown dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">"""
     rv += """{display}""".format(display=ts_label(label))
     rv += """</button>"""
-    rv += """<div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="{}" data-boundary="viewport">""".format(label)
+    rv += """<div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="{}">""".format(label)
     for value, displayname in [
             ("gps", "GPS Time"),
             ("llo", "LLO Local"),
