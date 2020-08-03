@@ -20,6 +20,7 @@ blessed_tag_priority_order = [
     'analyst_comments',
     'psd',
     'data_quality',
+    'public',
     'sky_loc',
     'background',
     'ext_coinc',
