@@ -1,4 +1,5 @@
 {% load timeutil %}
+{% load scientific %}
     <br>
     <br>
     <div class="row my-3 justify-content-center">
@@ -47,11 +48,23 @@
                {{ labelling.label.name }}</span>
        {% endfor %}
         </td>
-        <td data-title="Preferred Event"><a href="{% url "view" preferred_event.graceid %}">{{ preferred_event.graceid }}</a></td>
+        <td data-title="Preferred Event"><a href="{% url "view" preferred_event.graceid %}"
+                                            data-toggle="tooltip"
+                                            data-placement="top"
+                                            data-html="true"
+                                            title="<b>{{ preferred_event.graceid }}</b><br>
+                                           <b>Pipeline:</b> {{ preferred_event.pipeline.name }}<br>
+                                           <b>FAR:</b> {{ preferred_event.far|scientific }}">{{ preferred_event.graceid }}</a></td>
         <td data-title="GW Events">
             <div>
-            {% for graceid in internal_events %}
-            <a href="{% url "view" graceid %}">{{ graceid }}</a>
+            {% for ev in internal_events %}
+            <a href="{% url "view" ev.graceid %}"
+               data-toggle="tooltip"
+               data-placement="top"
+               data-html="true"
+               title="<b>{{ ev.graceid }}</b><br>
+               <b>Pipeline:</b> {{ ev.pipeline.name }}<br>
+               <b>FAR:</b> {{ ev.far|scientific }}">{{ ev.graceid }}</a>
             {% endfor %}
             </div>
         </td>
