@@ -41,6 +41,7 @@
           <tr>
               <th class="collapsed-header" data-title="UID"><a href="{% url "view" object.graceid %}">{{ object.graceid }}</a></td>
               <td data-title="Labels">
+                   {% if object.labelling_set.all %}
                    {% for labelling in object.labelling_set.all %}
                     <span style="color: {{labelling.label.defaultColor}};" class="label"
                        data-toggle="tooltip"
@@ -49,24 +50,47 @@
                        title="<em>{{labelling.label.description}}</em><br>">
                {{ labelling.label.name }}</span>
                    {% endfor %}
+                   {% else %}
+                   &nbsp; &nbsp; &nbsp; &nbsp;
+                   {% endif %}
               </td>
               <td data-title="Group">{{ object.group.name }} </td>
               <td data-title="Pipeline">{{ object.pipeline.name }} </td>
-              <td data-title="Search">{{ object.search.name }} </td>
-              <td data-title="Instruments">{{ object.instruments }}</td>
+              <td data-title="Search">
+                {% if object.search.name %}
+                   {{ object.search.name }} 
+                {% else %}
+                   &nbsp; &nbsp; &nbsp; &nbsp;
+                {% endif %}
+               </td>
+              <td data-title="Instruments">
+                {% if object.instruments %}
+                   {{ object.instruments }} 
+                {% else %}
+                   &nbsp; &nbsp; &nbsp; &nbsp;
+                {% endif %}
+               </td>
               <td data-title="Event Time">{% if object.gpstime%}
                       {{ object.gpstime|multiTime:"ngps" }}
                   {% endif %}</td>
               <td data-title="Time Delta (s)">{{ delta }}</td>
-              <td data-title="FAR (Hz)">{{ object.far|scientific }}</td>
+              <td data-title="FAR (Hz)">
+                {% if object.far|scientific %}
+                   {{ object.far|scientific }} 
+                {% else %}
+                   &nbsp; &nbsp; &nbsp; &nbsp;
+                {% endif %}
+               </td>
               <td data-title="Links"><a href="{{ object.weburl }}">Data</a></td>
               <td data-title="Submitted">{{ object.created|multiTime:"nsubmitted" }}</td>
           </tr>
           {% endfor %}
-      </table>
       {% else %}
-      <h4>No neighbors in range.</h4>
+      <tr><td>
+      No neighbors in range.
+      </td></tr>
       {% endif %}
+      </table>
       </div>
 
     </div>
