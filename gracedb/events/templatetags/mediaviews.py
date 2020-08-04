@@ -241,7 +241,8 @@ def tag_selecter(name, autoescape=None):
     for tag_name in blessed_tag_priority_order:
         # retrieve the tag object:
         tag, created  = Tag.objects.get_or_create(name=tag_name)
-        rv += """<option value="{}">{}</option>""".format(tag_name, tag.displayName)
+        rv += """<option value="{tag_name}">{disp} ({tag_name})</option>""".format(tag_name=tag_name,
+                                                                      disp=tag.displayName)
     rv += """</select>"""
 
     return mark_safe(rv)

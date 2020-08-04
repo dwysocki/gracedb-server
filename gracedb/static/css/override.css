@@ -110,7 +110,7 @@ body {
 }
 
 #full_event_log {
-  font-size:12px;
+  font-size:13px;
 }
 
 .table-detail {
@@ -123,16 +123,6 @@ body {
   border-bottom: 0px !important;
   border-radius: 5px !important;
 }  
-
-
-/* Button Stuff */
-.btn-group .button:first-child {
-    border-radius: 8px 0 0 8px;
-}
-
-.btn-group .button:last-child {
-    border-radius: 0 8px 8px 0;
-}
 
 /* Comment Textarea */
 .trumbowyg-box,

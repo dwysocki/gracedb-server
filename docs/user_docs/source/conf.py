@@ -17,7 +17,7 @@ import os
 import shlex
 
 # Import bootstrap theme:
-import sphinx_bootstrap_theme
+import sphinx_rtd_theme
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -33,6 +33,7 @@ import sphinx_bootstrap_theme
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinx_rtd_theme",
     'sphinx.ext.autodoc',
     'sphinx.ext.todo',
 ]
@@ -116,19 +117,18 @@ todo_include_todos = True
 # a list of builtin themes.
 sys.path.append(os.path.abspath('_themes'))
 html_theme_path = ['_themes']
-html_theme = 'bootstrap'
-html_translator_class = 'bootstrap.HTMLTranslator'
+html_theme = 'sphinx_rtd_theme'
+#html_translator_class = 'bootstrap.HTMLTranslator'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    'navbar_title': "GraceDB",
-    'navbar_site_name': "Doc", 
+    'navbar_site_name': "Documentation Contents", 
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+html_theme_path = sphinx_rtd_theme.get_html_theme_path()
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
