@@ -105,26 +105,25 @@
                      (<a href="{{ log.fileurl }}">{{ log.filename }}</a>)
                     {% endif %}
                     {% for tag in log.tags.all %}
-                      <div class='btn-group' role='group'>
-                        <button type="button" class="button btn-xs btn-outline-primary">{{ tag.name }}</button>
-                    {% if user.is_authenticated %} 
-                    <!--only show delete button for authorized users -->
-                      <form class='se-submit-form'
-                            action="{% url "legacy_apiweb:default:superevents:superevent-log-tag-detail" superevent.superevent_id log.N "temptemptemp" %}"
-                            method="DELETE"
-                            id="deleteTag-{{ log.N}}-{{ tag.name }}"
-                            server_action="removed from"
-                            log_num="{{ log.N }}"
-                            tag_name="{{ tag.name }}">
-                        <button class="button btn-xs btn-primary">&#10060;</button>
-                      </form>
+                      <span class="badge badge-dark">{{ tag.name }}
+                       {% if user.is_authenticated %} 
+                         <form class='se-submit-form'
+                               style="display:inline;"
+                               action="{% url "legacy_apiweb:default:superevents:superevent-log-tag-detail" superevent.superevent_id log.N "temptemptemp" %}"
+                               method="DELETE"
+                               id="deleteTag-{{ log.N}}-{{ tag.name }}"
+                               server_action="removed from"
+                               log_num="{{ log.N }}"
+                               tag_name="{{ tag.name }}">
+                         <a href="javascript:$('#deleteTag-{{ log.N}}-{{ tag.name }}').submit();" data-toggle="tooltip" title="Delete tag">&#10060;</a></form>
                     {% endif %}
-                      </div>
+                    </span>
+
                     {% endfor %}
                     {% if user.is_authenticated %} 
                     <!--only show add button for authorized users -->
                       <div style="float: right">
-                       <button class="button btn-xs btn-primary" data-toggle="modal" data-target="#addTag-{{ log.N }}">+</button>
+                       <a href="javascript:$('#addTag-{{ log.N }}').modal()" class="badge badge-info" data-toggle="tooltip" title="Add tag for log #{{ log.N }}">+</a>
                       </div>
                     {% endif %}
                     </td>
