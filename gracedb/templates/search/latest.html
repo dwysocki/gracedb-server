@@ -49,8 +49,8 @@
   </thead>
 
 
-{% for ev in events %}
   <tbody>
+{% for ev in events %}
     <tr data-toggle="collapse" data-target="#{{ ev.graceid }}" class="accordian-toggle collapse-row collapsed">
         <td><a class="no-collapse-link" href="{% url "view" ev.graceid %}">{{ ev.graceid }}</a></td>
         <td>
@@ -78,8 +78,8 @@
     </tr>
     <tr>
         <td colspan="6" class="hiddenRow"><div class="accordian-body collapse" id="{{ ev.graceid }}">
-          <div class="container-sm p-3 my-3">
-            <table class="table-sm">
+          <div class="container p-3 my-3" >
+            <table class="table-sm" style="margin-left:auto;margin-right:auto;">
              <thead>
               <tr>
                <th>Additional Event Information<th>
@@ -139,8 +139,8 @@
   </thead>
 
 
-{% for sv in superevents %}
   <tbody>
+{% for sv in superevents %}
     <tr data-toggle="collapse" data-target="#{{ sv.superevent_id }}" class="accordian-toggle collapse-row collapsed">
 
         <td><a class="no-collapse-link" href="{% url "superevents:view" sv.superevent_id %}" >{{ sv.superevent_id }}</a></td>
@@ -176,10 +176,10 @@
 
     <tr>
         <td colspan="6" class="hiddenRow"><div class="accordian-body collapse" id="{{ sv.superevent_id }}">
-          <div class="container-sm p-3 my-3">
+          <div class="container p-3 my-3">
 
             <!-- Superevent Table -->
-            <table class="table-sm">
+            <table class="table-sm"  class="accordian-toggle collapse-row collapsed" style="margin-left:auto;margin-right:auto;">
              <thead>
               <tr>
                <th>Additional Superevent Information<th>
@@ -237,7 +237,7 @@
             <br>
             {% if user.is_authenticated %}
             <br>
-            <table class="table-sm">
+            <table class="table-sm"  class="accordian-toggle collapse-row collapsed" style="margin-left:auto;margin-right:auto;">
              <thead>
               <tr>
                <th>Preferred Event Information<th>
