@@ -91,11 +91,13 @@
 
 
           {% if info_banner_enabled %}
-            <div class="alert alert-info" role="alert">
+            <center>
+            <div class="alert alert-success" role="alert" style="max-width:750px;">
                {% autoescape off%}
                {{ info_banner_message }}
                {% endautoescape%}
             </div>
+            </center>
           {% endif %}
         
            <h2>{% block heading %}Title{% endblock %}</h2>
