@@ -19,6 +19,11 @@ RUN apt-get update && \
         libldap2-dev \
         libsasl2-dev \
         libxml2-dev \
+        pkg-config \
+        libpng-dev \
+        libfreetype6-dev \
+        libmariadb-dev-compat \
+        libxslt-dev \
         libsqlite3-dev \
         ligo-ca-certs \
         mariadb-client \
