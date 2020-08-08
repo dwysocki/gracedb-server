@@ -1,7 +1,7 @@
-FROM igwn/base:stretch
+FROM igwn/base:buster
 LABEL name="LIGO GraceDB Django application" \
-      maintainer="tanner.prestegard@ligo.org" \
-      date="20190920"
+      maintainer="alexander.pace@ligo.org" \
+      date="20200807"
 ARG SETTINGS_MODULE="config.settings.container.dev"
 
 COPY docker/SWITCHaai-swdistrib.gpg /etc/apt/trusted.gpg.d
@@ -24,8 +24,8 @@ RUN apt-get update && \
         mariadb-client \
         nodejs \
         osg-ca-certs \
-        python3.5 \
-        python3.5-dev \
+        python3.7 \
+        python3.7-dev \
         python3-libxml2 \
         python3-pip \
         procps \
@@ -67,7 +67,7 @@ RUN pip3 install --upgrade setuptools wheel && \
     pip3 install -r requirements.txt
 
 # Give pip-installed packages priority over distribution packages
-ENV PYTHONPATH /usr/local/lib/python3.5/dist-packages:$PYTHONPATH
+ENV PYTHONPATH /usr/local/lib/python3.7/dist-packages:$PYTHONPATH
 ENV ENABLE_SHIBD false
 ENV ENABLE_OVERSEER true
 ENV VIRTUAL_ENV dummy
