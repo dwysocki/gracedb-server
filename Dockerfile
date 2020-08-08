@@ -43,7 +43,7 @@ RUN apt-get update && \
         vim && \
     apt-get clean && \
     curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    apt-get update && apt-get install yarn && \
+    apt-get update && apt-get install --assume-yes yarn && \
     npm install -g bower
 
 COPY docker/entrypoint /usr/local/bin/entrypoint
