@@ -27,7 +27,7 @@ MAINTENANCE_MODE_MESSAGE = None
 
 # Enable/Disable Information Banner:
 INFO_BANNER_ENABLED = False
-INFO_BANNER_MESSAGE = None
+INFO_BANNER_MESSAGE = "TEST MESSAGE"
 
 # Version ---------------------------------------------------------------------
 PROJECT_VERSION = '2.10.0'
