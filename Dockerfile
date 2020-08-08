@@ -8,7 +8,7 @@ COPY docker/SWITCHaai-swdistrib.gpg /etc/apt/trusted.gpg.d
 COPY docker/backports.pref /etc/apt/preferences.d
 RUN echo 'deb http://pkg.switch.ch/switchaai/debian buster main' > /etc/apt/sources.list.d/shibboleth.list
 RUN echo 'deb http://deb.debian.org/debian buster-backports main' > /etc/apt/sources.list.d/backports.list
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
 RUN apt-get update && \
     apt-get install --install-recommends --assume-yes \
         apache2 \
@@ -37,6 +37,8 @@ RUN apt-get update && \
         telnet \
         vim && \
     apt-get clean && \
+    curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    apt-get update && apt-get install yarn && \
     npm install -g bower
 
 COPY docker/entrypoint /usr/local/bin/entrypoint
