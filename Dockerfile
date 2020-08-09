@@ -125,4 +125,4 @@ RUN chmod 0755 /usr/local/bin/entrypoint && \
     find /app/gracedb_project -type f -exec chmod 0644 {} +
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint" ]
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+CMD ["/usr/local/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
