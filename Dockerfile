@@ -35,7 +35,6 @@ RUN apt-get update && \
         python3-pip \
         procps \
         shibboleth \
-        supervisor \
         libssl-dev \
         swig \
         htop \
@@ -72,6 +71,9 @@ RUN bower install --allow-root
 RUN pip3 install --upgrade pip
 RUN pip3 install --upgrade setuptools wheel && \
     pip3 install -r requirements.txt
+
+# install supervisor from pip
+RUN pip3 install supervisor
 
 # Give pip-installed packages priority over distribution packages
 ENV PYTHONPATH /usr/local/lib/python3.7/dist-packages:$PYTHONPATH
