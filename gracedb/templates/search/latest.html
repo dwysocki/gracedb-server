@@ -198,7 +198,12 @@
                            data-html="true"
                            title="<b>{{ ev.graceid }}</b><br>
                                   <b>Pipeline:</b> {{ ev.pipeline.name }}<br>
-                                  <b>FAR (Hz):</b> {{ ev.far|scientific }}">{{ ev.graceid }}</a>
+                                  <b>FAR (Hz):</b> {{ ev.far|scientific }}<br>
+                                  <b>SNR:</b> {% if ev.coincinspiralevent %}
+                                    {{ ev.coincinspiralevent.snr|floatformat:"3" }}
+                                  {% elif ev.multiburstevent %}
+                                    {{ ev.multiburstevent.snr|floatformat:"3" }}
+                                  {% endif %}">{{ ev.graceid }}</a>
                     {% else %}
                         <a class="no-collapse-link" href="{% url "view" ev.graceid %}"
                            data-toggle="tooltip"
@@ -206,7 +211,12 @@
                            data-html="true"
                            title="<b>{{ ev.graceid }}</b><br>
                                   <b>Pipeline:</b> {{ ev.pipeline.name }}<br>
-                                  <b>FAR (Hz):</b> {{ ev.far|scientific }}">{{ ev.graceid }}</a>,
+                                  <b>FAR (Hz):</b> {{ ev.far|scientific }}<br>
+                                  <b>SNR:</b> {% if ev.coincinspiralevent %}
+                                 {{ ev.coincinspiralevent.snr|floatformat:"3" }}
+                               {% elif ev.multiburstevent %}
+                                 {{ ev.multiburstevent.snr|floatformat:"3" }}
+                               {% endif %}">{{ ev.graceid }}</a>
                     {% endif %}
                 {% endfor %}
                </td>
