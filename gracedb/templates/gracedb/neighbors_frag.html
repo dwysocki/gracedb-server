@@ -30,6 +30,7 @@
                   </th>
                   <th>&Delta;gpstime</th>
                   <th>FAR (Hz)</th>
+                  <th>SNR</th>
                   <th>Links</th>
                   <th>
                       {{ "nsubmitted"|timeselect:"utc" }}
@@ -77,6 +78,15 @@
               <td data-title="FAR (Hz)">
                 {% if object.far|scientific %}
                    {{ object.far|scientific }} 
+                {% else %}
+                   &nbsp; &nbsp; &nbsp; &nbsp;
+                {% endif %}
+               </td>
+              <td data-title="SNR">
+                {% if object.coincinspiralevent %}
+                  {{ object.coincinspiralevent.snr|floatformat:"3" }}
+                {% elif preferred_event.multiburstevent %}
+                  {{ object.multiburstevent.snr|floatformat:"3" }}
                 {% else %}
                    &nbsp; &nbsp; &nbsp; &nbsp;
                 {% endif %}

@@ -21,6 +21,7 @@
         </th>
         <th scope="col">FAR (Hz)</th>
         <th scope="col">FAR (yr<sup>-1</sup>)</th>
+        <th scope="col">SNR</th>
         <th scope="col">Links</th>
         <th scope="col">
             {{ "nsubmitted"|timeselect:"utc" }}
@@ -53,6 +54,13 @@
         </td>
         <td data-title="FAR (Hz)">{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
         <td data-title="FAR (/year)">{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_hr }}</td>
+        <td data-title="SNR">
+            {% if preferred_event.coincinspiralevent %}
+              {{ preferred_event.coincinspiralevent.snr|floatformat:"3" }}
+            {% elif preferred_event.multiburstevent %}
+              {{ preferred_event.multiburstevent.snr|floatformat:"3" }}
+            {% endif %}
+        </td>
         <td data-title="Links"><a href="{{ preferred_event.weburl }}">Data</a></td>
         <td data-title="Submitted">{{ preferred_event.created|multiTime:"nsubmitted" }}</td>
     </tr>
