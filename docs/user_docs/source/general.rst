@@ -57,4 +57,5 @@ This documentation is not as great as it could be, but we are working on it.
 
 LIGO/Virgo users can join the GraceDB channel in the collaboration's Mattermost instance or email the DASWG mailing list for help.
 
-To report a problem, either `post an issue <https://git.ligo.org/lscsoft/gracedb/issues>`__ or send mail to uwm-help@ligo.org.
+To report a problem, either `post an issue <https://git.ligo.org/lscsoft/gracedb/issues>`__ or email the 
+`IGWN Computing Helpdesk <mailto:computing-help@igwn.org>`__.
