@@ -83,7 +83,7 @@ img_style_template = """max-height= 250px;
 """
 
 image_card_div = """
-<div class="card my-3 log-comment-card">
+<div class="card my-3 log-comment-card" style="min-width:250px;">
   <div class="card-header log-comment-card-header text-left">
     <h7>Log Image</h7>
   </div>
