@@ -530,14 +530,14 @@ def get_superevent_by_date_id_or_404(superevent_id, queryset=None):
     return get_object_or_404(queryset, **filter_kwargs)
 
 
-def confirm_superevent_as_gw(superevent, user, add_log_message=True,
+def confirm_superevent_as_gw(superevent, user, gw_id, add_log_message=True,
     issue_alert=True):
 
     # Save old ID temporarily
     old_id = superevent.superevent_id
 
     # Update superevent (mark as a GW, construct new ID, etc.)
-    superevent.confirm_as_gw()
+    superevent.confirm_as_gw(gw_id)
 
     # Create log message
     gw_log = None

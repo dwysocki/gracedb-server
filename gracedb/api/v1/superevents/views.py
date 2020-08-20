@@ -103,9 +103,12 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
         # Get superevent
         superevent = self.get_object()
 
+        # Get gw_id from request, if it exists:
+        gw_id = request.data.get('gw_id')
+
         # If already a GW, return an error
         if not superevent.is_gw:
-            confirm_superevent_as_gw(superevent, self.request.user)
+            confirm_superevent_as_gw(superevent, self.request.user, gw_id)
         else:
             return Response('Superevent is already confirmed as a GW',
                 status=status.HTTP_400_BAD_REQUEST)

@@ -112,6 +112,9 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
     gw_letter_suffix = models.CharField(max_length=10, null=True,
         editable=False)
 
+    # Cannibalizing gw_id field, putting into DB as a user-defined parameter. 
+    gw_id = models.CharField(max_length=25, null=True, blank=True)
+
     # Booleans
     is_gw = models.BooleanField(default=False)
     # Because there are multiple actions/permissions involved with exposing a
@@ -256,7 +259,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
     def is_mdc(self):
         return self.category == self.SUPEREVENT_CATEGORY_MDC
 
-    def confirm_as_gw(self):
+    def confirm_as_gw(self, gw_id=None):
         """
         Sets is_gw to True, calculates the gw_date_number in the database, and
         the gw_letter_suffix afterward.
@@ -265,6 +268,10 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
         self.is_gw = True
 
         # Prep for custom autoincrement update
+        # Go through all the same steps for constructing a GW number. This will
+        # be the default, and will serve as a placeholder GW id, if nothing 
+        # else is specified. 
+
         meta = self._meta
         constraint_fields = ['t_0_date', 'is_gw', 'category']
 
@@ -274,8 +281,15 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
         # Update gw_letter_suffix from gw_date_number
         self.gw_letter_suffix = int_to_letters(self.gw_date_number).upper()
 
+        # Update gw_id. If the user supplied one, use that. If not, then just 
+        # put in the "default" (old) gw_id format. 
+        if gw_id:
+            self.gw_id = gw_id
+        else:
+            self.gw_id = self.default_gw_id
+
         # Save the fields which have changed
-        self.save(update_fields=['is_gw', 'gw_letter_suffix'])
+        self.save(update_fields=['is_gw', 'gw_letter_suffix', 'gw_id'])
 
     def get_groups_with_groupobjectpermissions(self):
         gops = self.supereventgroupobjectpermission_set.all()
@@ -405,11 +419,11 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
             self.t_0_date.strftime(self.DATE_STR_FMT) + self.base_letter_suffix
 
     @property
-    def gw_id(self):
+    def default_gw_id(self):
         if not self.is_gw:
             return None
 
-        # Prepend category prefix (if not production)
+       # Prepend category prefix (if not production)
         pre_prefix = ""
         if self.category != self.SUPEREVENT_CATEGORY_PRODUCTION:
             pre_prefix = self.category
