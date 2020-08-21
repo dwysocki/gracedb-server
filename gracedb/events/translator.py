@@ -71,7 +71,7 @@ def handle_uploaded_data(event, datafilename,
 
     pipeline = event.pipeline.name
 
-    if pipeline in [ 'gstlal', 'spiir', 'pycbc', ] or (pipeline=='MBTAOnline' and '.xml' in datafilename):
+    if pipeline in [ 'gstlal', 'spiir', 'pycbc', ] or (pipeline in ['MBTA', 'MBTAOnline'] and '.xml' in datafilename):
         log_comment = "Log File Created"
         # Wildly speculative wrt HM
 
