@@ -23,7 +23,7 @@ def remove_pipelines(apps, schema_editor):
     Pipeline = apps.get_model('events', 'Pipeline')
 
     # Delete pipelines
-    Pipeline.objects.filter(name__in=SEARCH_PIPELINES).delete()
+    Pipeline.objects.filter(name__in=NEW_GRB_PIPELINES).delete()
 
 class Migration(migrations.Migration):
 

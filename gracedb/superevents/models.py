@@ -113,7 +113,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
         editable=False)
 
     # Cannibalizing gw_id field, putting into DB as a user-defined parameter. 
-    gw_id = models.CharField(max_length=25, null=True, unique=True)
+    gw_id = models.CharField(max_length=25, blank=True, null=True, unique=True)
 
     # Booleans
     is_gw = models.BooleanField(default=False)
