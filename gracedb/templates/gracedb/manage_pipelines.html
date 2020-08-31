@@ -2,7 +2,7 @@
 {% load util_tags %}
 
 {% block title %}Manage pipelines{% endblock %}
-{% block heading %}Enable/disable analysis pipelines{% endblock %}
+{% block heading %}<h5>Enable/disable analysis pipelines</h5><hr>{% endblock %}
 {% block pageid %}pipelines{% endblock %}
 
 {% load static %}
@@ -17,14 +17,14 @@
 <p>This page provides a brief summary of a pipeline's recent activity and provides the ability for EM advocates to disable (or enable) a pipeline's ability to submit events.
 When a pipeline is disabled, non-Test, non-MDC events cannot be submitted for it.
 This functionality is intended to mitigate the effects of a pipeline that is misbehaving and submitting erroneous event data.</p>
-<p>All users: if you suspect any problems with a pipeline, you should contact one of the EM advocates who is currently on duty. The EM advocate schedule for O3 is <a href="https://ldas-jobs.ligo.caltech.edu/~emfollow/followup-advocate-guide/roster.html#shift-calendar">here</a>.</p>
+<p>All users: if you suspect any problems with a pipeline, you should contact one of the EM advocates who is currently on duty. The EM advocate schedule for O3 is <a href="https://emfollow.docs.ligo.org/followup-advocate-guide/roster.html" target="_blank">here</a>.</p>
 <p>EM advocates: after you disable or enable a pipeline, you should contact the <a href="mailto:emfollow@ligo.org">low-latency group</a> to describe the action you have taken and the reasons for it.</p>
 </div>
 
 {% if user_can_manage %}
 <div align="center" style="padding-bottom: 20px;">
 <div style="background-color: red; color: white; display: inline-block; padding: 10px; border-radius: 5px;">
-<p align="center" style="font-weight: bold; font-size: 1.8rem; margin: 0;">WARNING: this page is live and any actions you take here will have consequences. Please be careful!</p>
+<p align="center" style="font-weight: bold; margin: 0;">WARNING: this page is live and any actions you take here will have consequences. Please be careful!</p>
 </div>
 </div>
 {% endif %}
@@ -68,15 +68,15 @@ This functionality is intended to mitigate the effects of a pipeline that is mis
         <td class="center">
         {% if pipeline.enabled %}
             {% if user_can_manage %}
-            <a class="btn btn-danger" href="{% url "disable-pipeline" pipeline.pk %}">Disable</a>
+            <a class="btn btn-sm btn-danger" href="{% url "disable-pipeline" pipeline.pk %}">Disable</a>
             {% else %}
-            <button class="btn btn-danger" disabled>Disable</button>
+            <button class="btn btn-sm btn-danger" disabled>Disable</button>
             {% endif %}
         {% else %}
             {% if user_can_manage %}
-            <a class="btn btn-success" href="{% url "enable-pipeline" pipeline.pk %}">Enable</a>
+            <a class="btn btn-sm btn-success" href="{% url "enable-pipeline" pipeline.pk %}">Enable</a>
             {% else %}
-            <button class="btn btn-success" disabled>Enable</button>
+            <button class="btn btn-sm btn-success" disabled>Enable</button>
             {% endif %}
         {% endif %}
         </td>

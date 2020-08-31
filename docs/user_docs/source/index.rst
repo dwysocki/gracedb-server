@@ -3,7 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to GraceDB's documentation!
+===================================
+GraceDB Documentation
 ===================================
 
 Contents:
@@ -17,11 +18,4 @@ Contents:
    LIGO/Virgo Public Alert Guide <https://emfollow.docs.ligo.org/userguide/>
    Report a bug (LIGO/Virgo users) <https://git.ligo.org/lscsoft/gracedb/issues>
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 

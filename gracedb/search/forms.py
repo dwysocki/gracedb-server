@@ -39,7 +39,7 @@ class MainSearchForm(forms.Form):
     )
 
     query = forms.CharField(required=False, widget=forms.TextInput(
-        attrs={'size': 60}))
+        attrs={'size': 40, 'style': 'width:300px'}))
     query_type = forms.ChoiceField(required=True,
         choices=QUERY_TYPE_CHOICES, label="Search for", initial='S')
     get_neighbors = forms.BooleanField(required=False,

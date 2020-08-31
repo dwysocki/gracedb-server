@@ -1,11 +1,13 @@
 /* Top level is idpSelectIdPSelector */
 #idpSelectIdPSelector
 {
-    width: 512px;
-    text-align: left;
+    width:fit-content;
+    text-align: center;
     background-color: #FFFFFF;
     border: 2px #A40000 solid;
     padding: 10px;
+    margin-top:25px;
+    margin-bottom:25px;
 }
 
 /* Next down are the idpSelectPreferredIdPTile, idpSelectIdPEntryTile & idpSelectIdPListTile */
@@ -16,7 +18,7 @@
  */
 #idpSelectPreferredIdPTile
 {
-    height:138px; /* Force the height so that the  selector box
+    height: 138px /* Force the height so that the  selector box
                    * goes below when there is only one preslect 
                    */
 }

@@ -1,0 +1,238 @@
+{% load timeutil %}
+{% load mediaviews %}
+{% load scientific %}
+{% load static %}
+
+<div class="row pt-3 justify-content-center">
+<div class="col-sm">
+
+
+   <!-- Header for Log Messages -->
+   {% with log_filter=user_is_external|yesno:"public," %}
+   {% with log_list=object.log_set.all|filter_logs:log_filter %}
+
+   <div class="table-responsive">
+      <table class="table-basic-info">
+          <thead>
+          <tr>
+           <th colspan="23" class="banner-row">Log Messages</th>
+          </tr>
+       </table>
+
+       <p><center>
+       Use buttons to expand/collapse log sections.</p>
+       <p>
+       {{ log_list|logboxes }}
+       </center></p>
+
+        <hr/>
+
+        <p><center>
+        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#FullLog" aria-expanded="false" aria-controls="FullLog">
+            Full Event Log
+        </button>
+        {% if user.is_authenticated %}
+        <button class="btn btn-info" type="button" data-toggle="modal" data-target="#AnalystComments">
+            Add Log Entry
+        </button>
+        {% endif %}
+        </center></p>
+
+        <!-- Analyst comments modal -->
+        <div class="modal fade" id="AnalystComments" tabindex="-1" role="dialog" aria-labelledby="AnalystCommentsTitle" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="AnalystCommentsTitle">Add Log Message</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+                <form id ='logcomment' action='{% url "legacy_apiweb:default:superevents:superevent-log-list" superevent.superevent_id %}' method='POST' enctype='multipart/form-data' class="se-submit-form">
+              <div class="modal-body">
+               <div class="form-group">
+                <label  for="logtextarea">Log Message</label>
+                <textarea id="logtextarea" name="comment" class="trumbowyg-editor"></textarea>
+               </div>
+               <div class="form-group">
+                <label for="tagSelect" class="col-form-label">Log Message Tag</label>
+                {{ "tagname" | tag_selecter }}
+               </div>
+               <div class="form-group">
+                 <label for="fileInput">(Optional) Upload File with Log Message</label>
+                 <input  multiple="false" type="file" id="fileInput" name='upload'>
+               </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+              </div>
+                </form>
+            </div>
+          </div>
+        </div>
+        <!-- End analyst comments modal-->
+
+
+        <!-- Full event log table -->
+
+
+        <div class="collapse" id="FullLog">
+           <div class="card card-body">
+
+              <div class="table-responsive">
+              <table class="table-basic-info table-condensed table-hover" id="full_event_log">
+                <thead>
+                   <tr>
+                   <th colspan="23" class="banner-row"> <h6>Full Event Log</h6> </th>
+                   </tr>
+                   <tr class="header-row">
+                      <th scope="col" class="align-bottom"> No. </th>
+                      <th scope="col" class="align-bottom"> {{ "lcreated"|timeselect:"utc" }}</th>
+                      <th scope="col" class="align-bottom"> Submitter </th>
+                      <th scope="col" class="align-bottom"> Comment </th>
+                   </tr>
+                </thead>
+                   {% for log in log_list %}
+                   <tr>
+                    <td> {{ log.N }} </td>
+                    <td> {{ log.created|multiTime:"lcreated" }} </td>
+                    <td> {{ log.issuer.get_full_name }} </td>
+                    {% autoescape off %}
+                    <td> {{ log.comment }}
+                    {% endautoescape %}
+                    {% if log.filename %}
+                     (<a href="{{ log.fileurl }}">{{ log.filename }}</a>)
+                    {% endif %}
+                    {% for tag in log.tags.all %}
+                      <span class="badge badge-dark">{{ tag.name }}
+                       {% if user.is_authenticated %} 
+                         <form class='se-submit-form'
+                               style="display:inline;"
+                               action="{% url "legacy_apiweb:default:superevents:superevent-log-tag-detail" superevent.superevent_id log.N "temptemptemp" %}"
+                               method="DELETE"
+                               id="deleteTag-{{ log.N}}-{{ tag.name }}"
+                               server_action="removed from"
+                               log_num="{{ log.N }}"
+                               tag_name="{{ tag.name }}">
+                         <a href="javascript:$('#deleteTag-{{ log.N}}-{{ tag.name }}').submit();" data-toggle="tooltip" title="Delete tag">&#10060;</a></form>
+                    {% endif %}
+                    </span>
+
+                    {% endfor %}
+                    {% if user.is_authenticated %} 
+                    <!--only show add button for authorized users -->
+                      <div style="float: right">
+                       <a href="javascript:$('#addTag-{{ log.N }}').modal()" class="badge badge-info" data-toggle="tooltip" title="Add tag for log #{{ log.N }}">+</a>
+                      </div>
+                    {% endif %}
+                    </td>
+                   </tr>
+
+        <!-- Start add tag modal -->
+        <div class="modal fade" id="addTag-{{ log.N }}" tabindex="-1" role="dialog" aria-labelledby="addTagTitle" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="addTagTitle">Add Tag to Log {{ log.N }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+                <form class="se-submit-form"
+                      action='{% url "legacy_apiweb:default:superevents:superevent-log-tag-list" superevent.superevent_id log.N %}'
+                      method='POST'
+                      id='addTag-{{ log.N }}'
+                      server_action="added to"
+                      log_num="{{ log.N }}">
+              <div class="modal-body">
+               <div class="form-group">
+                <label for="tagSelect" class="col-form-label">Log Message Tag</label>
+                {{ "name" | tag_selecter }}
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="public" name="name" id="publicCheck">
+                  <label class="form-check-label" for="publicCheck"> Make log message public </label>
+                </div>
+               </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+              </div>
+                </form>
+            </div>
+          </div>
+        </div>
+        <!-- End add tag modal -->
+
+                   {% endfor %}
+              </table>
+              </div>
+
+           </div>
+        </div>
+
+   </div>
+   {% endwith %}
+   {% endwith %}
+</div>
+</div>
+
+<!-- Custom Text Box -->
+
+<script type="text/javascript">
+    $('.trumbowyg-editor').trumbowyg();
+    $('.trumbowyg-editor').closest(".trumbowyg-box").css("min-height", "100px");
+    $('.trumbowyg-editor').prev(".trumbowyg-editor").css("min-height", "100px");
+</script>
+
+<!-- js/ajax for superevent requests -->
+<!-- this is partially motivated by superevent posts 
+     not 302'ing the user back to the se view page after
+     submitting. This bit of ajax should trigger a page reload
+     after 'success' without resubmitting the form --->
+
+<script>
+$(".se-submit-form").submit(function(event){
+    event.preventDefault(); //prevent default action
+    var post_url = $(this).attr("action"); //get form action url
+    var request_method = $(this).attr("method"); //get form GET/POST method
+    var server_action = $(this).attr("server_action");
+    var log_num = $(this).attr("log_num");
+    // the presence of the tag_name attribute acts as sort-of 
+    // a switch between normal form submission and a tag-specific
+    // one that has to modify the action URL.
+    var tag_name = $(this).attr("tag_name");
+
+    if (typeof tag_name == 'undefined' ) {
+        // Process form data:
+        var form_data = {};
+        var formData = new FormData($(this)[0]);
+
+        $.each($(this).serializeArray(), function() {
+            form_data[this.name] = this.value;
+        });
+        // get tag name from form.
+        var tag_name = form_data.tag_name;
+    }
+
+
+    $.ajax({
+        url : post_url.replace("temptemptemp", tag_name),
+        type: request_method,
+        data : formData,
+        processData: false,
+        contentType: false,
+        success:function(msg){
+            if (typeof tag_name != 'undefined') {
+                alert("Removed tag " + tag_name + " from log number " + log_num)
+            }
+            window.location.reload();
+        },
+        error:function(msg){
+            alert("error: "+msg.text)
+            window.location.reload();
+        }
+    });
+});
+</script>

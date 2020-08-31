@@ -4,3 +4,213 @@
 .nano-image {
     background-color: white;
 }
+
+body {
+  background-color: #f2f4f8;
+  font: 0.875em;
+}
+
+.navbar-gracedb {
+  background-color: #29527A;
+  border-color: #FFFFFF;
+}
+
+.table-latest {
+  border-collapse: separate;
+  border-spacing: 0px;
+  border-bottom: 0px !important;
+  border-top: 0px !important;
+  margin: auto;
+}
+
+.table-detail-th {
+  background-color:gray;
+  font-size:14px
+}
+
+.collapse-row.collapsed + tr {
+  display: none;
+}
+
+.table-condensed {
+  font-size: 14px;
+}
+
+.table-basic-info {
+  border-collapse: collapse;
+  font-stretch: extra-condensed;
+  width: 100%;
+}
+
+.card-deck {
+  margin-left: 1%;
+  margin-right: 1%;
+}
+
+.table-basic-info th {
+  font-weight: lighter;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.table-basic-info td {
+  text-align: center;
+}
+
+.log-comment-card{
+ border-radius:15px;
+ margin:2.5%;
+ border-color: darkgray
+}
+
+.log-comment-card-header{
+  padding:0px;
+  padding-left:10px
+}
+
+.log-card-header {
+  background-color:#6B8BAA;
+  color:whitesmoke;   
+  padding: 3px;
+  padding-left:5%;
+}
+
+.image-card {
+  min-width:200px;
+  width:auto;
+}
+
+.banner-row {
+  /*background-color: #19538A;*/
+  background-color: #336699;
+  border-radius: 10px 10px 0px 0px;
+  padding-left: 10px;
+  color: #fff;
+  font-size: 18px;
+}
+
+.btn-header-dropdown {
+ color: #fff;
+ font-weight:inherit;
+ font-size:inherit;
+}
+
+.btn-header-dropdown:hover, .btn-header-dropdown:focus {
+  color: #fff;
+  border-color:whitesmoke;
+}
+
+.header-row {
+  /*background-color: #19538A;*/
+  background-color: #336699;
+  color: #fff;
+  font-weight: lighter;
+  padding-left: 10px;
+  text-align: center;
+}
+
+#full_event_log {
+  font-size:13px;
+}
+
+.table-detail {
+  font-size: 1.0em;
+  font-stretch: condensed;
+  margin: auto;
+  border-collapse: collapse;
+  border-spacing: 0px !important;
+  border-top: 0px !important;
+  border-bottom: 0px !important;
+  border-radius: 5px !important;
+}  
+
+/* Comment Textarea */
+.trumbowyg-box,
+.trumbowyg-editor {
+  min-height: 150px;
+}
+
+/*
+div[id^="gdb-table-"] {
+  overflow: visible;
+        }
+*/
+
+@media (max-width: 1045px) {
+    .table-responsive .dropdown-menu {
+        position: static !important;
+    }
+}
+@media (min-width: 1046px) {
+    .table-responsive {
+        overflow: inherit;
+    }
+}
+@media only screen and (max-width: 800px) {
+        /* Force table to not be like tables anymore */
+        div[id^="gdb-table-"] table,
+        div[id^="gdb-table-"] thead,
+        div[id^="gdb-table-"] tbody,
+        div[id^="gdb-table-"] th,
+        div[id^="gdb-table-"] th,
+        div[id^="gdb-table-"] td,
+        div[id^="gdb-table-"] tr {
+        display: block;
+        }
+         
+        /* Hide table headers (but not display: none;, for accessibility) */
+        div[id^="gdb-table-"] thead .header-row {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+        }
+
+        /* Format the header that serves as the banner above the table */
+        div[id^="gdb-table-"] .banner-row {
+          border: none;
+          padding-left: 10px;
+          border-bottom: 0px solid #eee;
+          position: relative;
+          white-space: normal;
+          text-align: left;
+          color: white;
+          border-radius: 10px 10px 0px 0px;
+        }
+         
+        div[id^="gdb-table-"] tr { border: 0px solid #ccc; }
+
+        div[id^="gdb-table-"] .collapsed-header { 
+        text-align:center;
+        font-size:larger;
+        font-weight:bold;
+        margin:5px;
+        text-decoration: underline;}
+          
+        div[id^="gdb-table-"] td {
+        /* Behave like a "row" */
+        border: none;
+        border-bottom: 1px solid #eee;
+        position: relative;
+        padding-left: 35%;
+        white-space: normal;
+        text-align:left;
+        }
+         
+        div[id^="gdb-table-"] td:before {
+        /* Now like a table header */
+        position: absolute;
+        /* Top/left values mimic padding */
+        top: 6px;
+        left: 6px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align:left;
+        font-weight: bold;
+        }
+         
+        /*
+        Label the data
+        */
+        div[id^="gdb-table-"] td:before { content: attr(data-title); }
+        }

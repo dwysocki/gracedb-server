@@ -17,7 +17,7 @@ before_script:
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
 
 .test: &test
-  image: igwn/base:stretch
+  image: igwn/base:buster
   services:
     - mysql:5.6
   variables:
@@ -58,6 +58,11 @@ before_script:
           libssl-dev
           libxml2-dev
           swig
+          pkg-config 
+          libpng-dev 
+          libfreetype6-dev 
+          libmariadb-dev-compat 
+          libxslt-dev
           ${PYTHON}-pip
     # install everything else from pip
     - ${PYTHON} -m pip install -r requirements.txt
@@ -83,7 +88,7 @@ before_script:
       - .cache/pip
       - .cache/apt
 
-test:3.5:
+test:3.7:
   <<: *test
 
 branch_image:

@@ -25,7 +25,7 @@ ALLOWED_HOSTS += ['testserver']
 # Home page stuff
 INSTANCE_TITLE = 'GraceDB Playground'
 INSTANCE_INFO = """
-<h3>Playground instance</h3>
+<h5>Playground instance</h5>
 <p>
 This GraceDB instance is designed for users to develop and test their own
 applications. It mimics the production instance in all but the following ways:

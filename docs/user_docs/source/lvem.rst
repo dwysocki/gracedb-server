@@ -170,7 +170,8 @@ observation records:
 
 If you discover a mistake in your observation record, the best way to correct
 it is to submit a new observation record with corrected values and request that
-the old one be deleted. Please send an email to uwm-help@cgca.uwm.edu with
+the old one be deleted. Please send an email to the
+`IGWN Computing Helpdesk <mailto:computing-help@igwn.org>`__ with
 something like "delete GraceDB EMObservation" in the subject line. Tell us
 which entry you'd like deleted, and we'll take care of it.  In the future, we
 are hoping to make these observation records editable by the submitter.

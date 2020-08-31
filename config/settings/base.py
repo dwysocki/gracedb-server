@@ -25,8 +25,12 @@ def get_from_env(envvar, default_value=None, fail_if_not_found=True):
 MAINTENANCE_MODE = False
 MAINTENANCE_MODE_MESSAGE = None
 
+# Enable/Disable Information Banner:
+INFO_BANNER_ENABLED = False
+INFO_BANNER_MESSAGE = "TEST MESSAGE"
+
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.10.0'
+PROJECT_VERSION = '2.10.0-1'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -39,7 +43,7 @@ UNAUTHENTICATED_ACCESS = True
 DEBUG = False
 
 # Number of results to show on latest page
-LATEST_RESULTS_NUMBER = 50
+LATEST_RESULTS_NUMBER = 25
 
 # Path to root URLconf
 ROOT_URLCONF = '{module}.urls'.format(module=os.path.basename(CONFIG_ROOT))

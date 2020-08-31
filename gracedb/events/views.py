@@ -146,6 +146,10 @@ def index(request):
 
     # Informational text
     context['information'] = getattr(settings, 'INSTANCE_INFO', None)
+
+    # Information banner enabled
+    context['info_banner_enabled'] = getattr(settings,'INFO_BANNER_ENABLED', False)
+    context['info_banner_message'] = getattr(settings,'INFO_BANNER_MESSAGE', None)
     
     return render(request, 'gracedb/index.html', context=context)
 

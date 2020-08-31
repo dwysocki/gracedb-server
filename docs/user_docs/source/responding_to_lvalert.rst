@@ -32,10 +32,11 @@ Registering to receive LVAlert messages
 =======================================
 
 LSC-Virgo members can activate accounts by simply completing the form 
-`here <https://www.lsc-group.phys.uwm.edu/cgi-bin/jabber-acct.cgi>`__.
+`here <https://lvalert-test.cgca.uwm.edu>`__.
 
 If you need to create an account that is not attached to your user.name, you
-can email uwm-help@cgca.uwm.edu and request an account.  Once you have created an
+can email `IGWN Computing Helpdesk <mailto:computing-help@igwn.org>`__ 
+and request an account.  Once you have created an
 account, you will be able to subscribe the account to different pubsub nodes
 and receive lvalert messages.
 
@@ -404,8 +405,8 @@ these events is available `here <https://gracedb.ligo.org/events/search/?query=g
 like G184098 (the cWB entry for GW150914) or others with low FAR.*
 Instead, please use a test event as described above. There are also test instances of
 GraceDB available if you'd prefer to not work with the production server right
-away. Contact uwm-help@cgca.uwm.edu with a descriptive subject line for more
-information.
+away. Contact `IGWN Computing Helpdesk <mailto:computing-help@igwn.org>`__  
+with a descriptive subject line for more information.
 
 At this point, you're pretty much ready to go. However, I'll leave you with one
 more example for what ``iReact.py`` might look like::

@@ -73,6 +73,19 @@ if (isinstance(maintenance_mode, str) and
 MAINTENANCE_MODE_MESSAGE = \
     get_from_env('DJANGO_MAINTENANCE_MODE_MESSAGE', fail_if_not_found=False)
 
+# Get info banner settings from environment
+info_banner_enabled = get_from_env(
+    'DJANGO_INFO_BANNER_ENABLED',
+    default_value=False,
+    fail_if_not_found=False
+)
+# fix for other booleans:
+if (isinstance(info_banner_enabled, str) and
+    info_banner_enabled.lower() in ['true','t','1']):
+    INFO_BANNER_ENABLED = True
+INFO_BANNER_MESSAGE = \
+    get_from_env('DJANGO_INFO_BANNER_MESSAGE', fail_if_not_found=False)
+
 # Get email settings from environment
 EMAIL_BACKEND = 'django_ses.SESBackend'
 AWS_SES_ACCESS_KEY_ID = get_from_env('AWS_SES_ACCESS_KEY_ID')
@@ -83,6 +96,46 @@ AWS_SES_REGION_ENDPOINT = get_from_env('AWS_SES_REGION_ENDPOINT',
     default_value='email.us-west-2.amazonaws.com', fail_if_not_found=False)
 AWS_SES_AUTO_THROTTLE = 0.25
 ALERT_EMAIL_FROM = get_from_env('DJANGO_ALERT_EMAIL_FROM')
+
+# AWS Elasticache settings:
+AWS_ELASTICACHE_ADDR = get_from_env('DJANGO_AWS_ELASTICACHE_ADDR')
+#CACHES['default'] = {
+#        'BACKEND': 'django_elasticache.memcached.ElastiCache',
+#        'LOCATION': AWS_ELASTICACHE_ADDR,
+#        'OPTIONS': {
+#            'IGNORE_CLUSTER_ERRORS': True,
+#        },
+#    }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': AWS_ELASTICACHE_ADDR,
+    },
+    # For API throttles
+    'throttles': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'api_throttle_cache', # Table name
+    },
+}
+
+MIDDLEWARE = [
+    'core.middleware.maintenance.MaintenanceModeMiddleware',
+    'events.middleware.PerformanceMiddleware',
+    'core.middleware.accept.AcceptMiddleware',
+    'core.middleware.api.ClientVersionMiddleware',
+    'core.middleware.api.CliExceptionMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
+    'core.middleware.proxy.XForwardedForMiddleware',
+    'user_sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'ligoauth.middleware.ShibbolethWebAuthMiddleware',
+    'ligoauth.middleware.ControlRoomMiddleware',
+]
+
 
 
 

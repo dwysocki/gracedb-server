@@ -2,61 +2,78 @@
 {% load timeutil %}
 
 {% block basic_info %}
-<h2> Basic Info </h2>
+<div class="row my-3 justify-content-center">
+    <div class="col">
+    <div id="gdb-table-basic-grb" class="table-responsive">
+      <table class="table-basic-info table-condensed my-1">
+        <thead>
+        <tr>
+         <th colspan="23" class="banner-row">Basic Event Information</th>
+        </tr>
 
-<table class="event">
-    {% if skyalert_authorized  %}
-        <tr><td colspan="4">
-           <a href="{% url "skyalert" object.graceid %}"><button type="button">Submit to Skyalert</button></a>
-        </td></tr>
-    {% endif %}
-
-    <tr>
-            <th valign="top">UID</th>
+    <tr class="header-row">
+            <th>UID</th>
             <th>Labels</th>
             <th>Group</th>
             <th>Pipeline</th>
             <th>Search</th>
-            <th>Instruments</th>
             <th>
-                <div id="basic_info_event_ts"></div>
-                <div> Event Time </div>
+                {{ "gps"|timeselect:"gps" }}
             </th>
             <th>Links</th>
             <th>
-                <div id="basic_info_created_ts"></div>
-                <div> Submitted </div>
+                {{ "submitted"|timeselect:"utc" }}
             </th>
     </tr>
+        </thead>
 
 
     <tr>
-        <td>{{ object.graceid }}</td>
-        <td>
-             {% for labelling in object.labelling_set.all %}
-                <span onmouseover="tooltip.show(tooltiptext('{{labelling.label.name}}', '{{labelling.creator.name}}', '{{labelling.created|utc}}', '{{labelling.label.description}}'));" onmouseout="tooltip.hide();"  style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
-             {% endfor %}
+        <td data-title="UID">{{ object.graceid }}</td>
+        <td data-title="Labels">
+                 {% if object.labelling_set.all %}
+                 {% for labelling in object.labelling_set.all %}
+                    <span style="color: {{labelling.label.defaultColor}};" class="label"
+                       data-toggle="tooltip"
+                       data-placement="top"
+                       data-html="true"
+                       title="<em>{{labelling.label.description}}</em><br>
+                      <b>Added by:</b> {{labelling.creator.get_full_name}}<br>
+                      <b>Added:</b> {{labelling.created}}">
+               {{ labelling.label.name }}</span>
+                 {% endfor %}
+                 {% else %}
+                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                 {% endif %}
         </td>
-        <td>{{ object.group.name }} </td>
-        <td>{{ object.pipeline.name }} </td>
-        <td>{{ object.search.name }} </td>
-        <td>{{ object.instruments }}</td>
-        <td>{% if object.gpstime%}
+        <td data-title="Group">{{ object.group.name }} </td>
+        <td data-title="Pipeline">{{ object.pipeline.name }} </td>
+        <td data-title="Search">{{ object.search.name }} </td>
+        <td data-title="Event Time">{% if object.gpstime%}
                 <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
                 {{ object.gpstime|multiTime:"gps" }}
             {% endif %}</td>
-        <td><a href="{{ object.weburl }}">Data</a></td>
-        <td>{{ object.created|multiTime:"created" }}</td>
+        <td data-title="Links"><a href="{{ object.weburl }}">Data</a></td>
+        <td data-title="Submitted">{{ object.created|multiTime:"submitted" }}</td>
     </tr>
 
 </table>
+</div>
+</div>
+</div>
 {% endblock %}
 
 {% block analysis_specific %}
 {% if object.grbevent %}
-
-<table class="analysis_specific">
-       	<tbody>
+<div class="row my-3 justify-content-center">
+    <div class="col">
+    <div id="grb-info" class="table-responsive">
+<table class="table-basic-info table-condensed my-1">
+        <thead>
+        <tr>
+         <th colspan="23" class="banner-row">GRB Info</th>
+        </tr>
+        </thead>
 		<tr><th>IVORN</th><td colspan="2">{{object.ivorn}}</td></tr>
 		<tr><th>Author</th><td colspan="2">{{object.author_shortname}}</td></tr>
 		<tr><th>Author IVORN</th><td colspan="2">{{object.author_ivorn}}</td></tr>
@@ -90,23 +107,38 @@
 		<tr><td></td><th width="150px">RA</th><td>{{object.ra}}</td></tr>
 		<tr><td></td><th>Dec</th><td>{{object.dec}}</td></tr>
 		<tr><td></td><th>Err</th><td>{{object.error_radius}}</td></tr>
-	</tbody>
 </table> 
+</div>
+</div>
+</div>
+
 
 {% if can_update_grbevent %}
-<div class="content-area">
+<div class="row my-3">
+    <div class="col">
+    <div class="table-basic-info table-condensed my-1">
+<table class="table-basic-info table-condensed my-1">
+        <thead>
+        <tr>
+         <th colspan="23" class="banner-row">Update GRB Event</th>
+        </tr>
+        </thead>
+        <tbody>
 
-<h3>Update GRB Event</h3>
 <form id="update_grbevent_form" action="{% url "legacy_apiweb:default:events:update-grbevent" object.graceid %}">
-    <table>
     {{ update_grbevent_form.as_table }}
     <tr>
         <td></td>
         <td><input type="submit" value="Update" disabled></td>
     </tr>
-    </table>
 </form>
+</tbody>
+</table>
 </div>
+</div>
+</div>
+
+
 {% endif %}
 
 {% endif %}

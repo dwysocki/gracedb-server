@@ -61,23 +61,6 @@ MIDDLEWARE = [
     'ligoauth.middleware.ShibbolethWebAuthMiddleware',
     'ligoauth.middleware.ControlRoomMiddleware',
 ]
-#MIDDLEWARE = [
-#    'core.middleware.maintenance.MaintenanceModeMiddleware',
-#    'events.middleware.PerformanceMiddleware',
-#    'core.middleware.accept.AcceptMiddleware',
-#    'core.middleware.api.ClientVersionMiddleware',
-#    'core.middleware.api.CliExceptionMiddleware',
-#    'django.middleware.cache.UpdateCacheMiddleware',
-#    'django.middleware.common.CommonMiddleware',
-#    'django.middleware.cache.FetchFromCacheMiddleware',
-#    'django.contrib.sessions.middleware.SessionMiddleware',
-#    'core.middleware.proxy.XForwardedForMiddleware',
-#    'user_sessions.middleware.SessionMiddleware',
-#    'django.contrib.messages.middleware.MessageMiddleware',
-#    'django.contrib.auth.middleware.AuthenticationMiddleware',
-#    'ligoauth.middleware.ShibbolethWebAuthMiddleware',
-#    'ligoauth.middleware.ControlRoomMiddleware',
-#]
 
 # Set caches:
 CACHES = {

@@ -59,7 +59,7 @@ def get_multitime_value(t, label, autoescape, format):
         # Note: must convert to server timezone before calling mktime
         posix_time = time.mktime(dt.astimezone(SERVER_TZ).timetuple())
     elif isinstance(t, decimal.Decimal):
-        gps_time = float(t)
+        gps_time = round(float(t),3)
         dt = gpsToUtc(t)
         posix_time = time.mktime(dt.astimezone(SERVER_TZ).timetuple())
     else:
@@ -82,7 +82,7 @@ def get_multitime_value(t, label, autoescape, format):
     else:
         display_time = gps_time
 
-    rv = '<time utc="%s" gps="%14.4f" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
+    rv = '<time utc="%s" gps="%14.3f" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
             (utc_time, gps_time, llo_time, lho_time, virgo_time, js_parsable_time, label_attr, display_time)
 
     return mark_safe(rv)
@@ -105,21 +105,42 @@ def timeselect(label, default, autoescape=None):
         esc = conditional_escape
     else:
         esc = lambda x: x
-    rv = """<form><select onChange="changeTime(this, '%s')">""" % esc(label)
+
+    rv = """"""
+    rv += """<div class="dropdown" id="{label}-dd">""".format(label=label)
+    rv += """<button class="btn btn-header-dropdown dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">"""
+    rv += """{display}""".format(display=ts_label(label))
+    rv += """</button>"""
+    rv += """<div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="{}">""".format(label)
     for value, displayname in [
             ("gps", "GPS Time"),
             ("llo", "LLO Local"),
             ("lho", "LHO Local"),
             ("virgo", "Virgo Local"),
             ("utc", "UTC"),]:
-        selected = ""
-        if value == default:
-            selected = " SELECTED"
-        rv += '<option value="%s"%s>%s</option>' % (esc(value), selected, esc(displayname))
-    rv += "</select></form>"
+        rv += """<a value="{value}" class="dropdown-item" href="#">{display}</a>""".format(value=value,
+                                                                                    display=displayname)
+    rv += """</div>"""
+    rv += """</div>"""
+    rv += """<script>$("#{label} a").click(function(e){{ 
+                 e.preventDefault();
+                 changeTime($(this),'{label}');
+                 }}) </script>""".format(label=label)
+
+
     return mark_safe(rv)
 timeselect.needs_autoescape = True
 
+# Makes a nice looking label for display 
+# out of the 'label' used for a time select.
+def ts_label(label):
+    label_choices = {'gps': 'Event Time',
+                     'ngps': 'Event Time',
+                     'created': 'Created',
+                     'submitted': 'Submitted',
+                     'nsubmitted': 'Submitted',
+                     'lcreated': 'Log Entry Created'}
+    return label_choices[label]
 
 @register.filter(name='utc')
 def utc(dt, format=FORMAT):
@@ -205,3 +226,4 @@ def end_time(event,digits=4):
         return str(event.end_time) + decimal_part
     except Exception:
         return None
+

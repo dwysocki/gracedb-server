@@ -3,92 +3,126 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 {% load static %}
+
+      <!--Import bootstrap and custom colors-->
+      <link type="text/css" rel="stylesheet" href="{% static "bootstrap/dist/css/bootstrap.min.css" %}"  media="screen,projection"/>
+      <link type="text/css" rel="stylesheet" href="{% static "css/themecolors.css" %}" />
+      <link type="text/css" rel="stylesheet" href="{% static "css/override.css" %}" />
+      <link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" />
+      <link type="text/css" rel="stylesheet" href="{% static "/ekko-lightbox/dist/ekko-lightbox.css" %}" />
+      <link rel="stylesheet" href="{% static "trumbowyg/dist/ui/trumbowyg.min.css" %}">
+<!--
+      <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono&display=fallback">
+      <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Condensed|Alegreya:700" rel="stylesheet" type="text/css" />
+
+      <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+-->
+      <!--Let browser know website is optimized for mobile-->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
 {% block headcontents %}
 
     {# remove requests for favicon #}
     <link rel="icon" href="data:,">
-    {% block csslink %}
-    <link rel="stylesheet" href="{% static "css/style.css" %}" />
-    {% endblock %}
     <title>GraceDB | {% block title %}{% endblock %}</title>
-<!-- START TESTING -->
-<script type="text/javascript">
-function changeTime(obj, label) {
-    //var timetype = obj.get("value");
-    var timetype = obj.value;
-    if (timetype=="") { return; }
-    var times = document.getElementsByName("time-"+label);
-    for (i=0; i<times.length; i++) {
-        newtime =  times[i].getAttribute(timetype);
-        times[i].innerHTML = newtime;
-    }
-}
-</script>
-{% endblock %}
-<!-- END TESTING -->
-{% block jscript %}{% endblock %}
+    <!-- START TESTING -->
+    <script type="text/javascript">
+       function changeTime(obj, label) {
+           var timetype = obj.attr("value");
+           if (timetype=="") { return; }
+           var times = document.getElementsByName("time-"+label);
+           for (i=0; i<times.length; i++) {
+               newtime =  times[i].getAttribute(timetype);
+               times[i].innerHTML = newtime;
+           }
+       }
 
-<!-- override other CSS templates as necessary -->
-<link rel="stylesheet" href="{% static "css/override.css" %}" />
+     </script>
+<!--
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+-->
+
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.3.0/jquery.form.js"></script>
+     <script src="{% static "trumbowyg/dist/trumbowyg.min.js" %}"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+
+     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+     <script src="{% static "ekko-lightbox/dist/ekko-lightbox.js" %}"></script>
+     <!-- lightbox script --->
+     <script type="text/javascript">
+        $(document).on('click', '[data-toggle="lightbox"]', function(event) {
+                        event.preventDefault();
+                        $(this).ekkoLightbox();
+                    });
+     </script>
+
+     <script type="text/javascript">
+        $(function () {
+          $('[data-toggle="tooltip"]').tooltip({
+           placement: 'top',
+           container: 'body',
+           boundary: 'viewport'
+        })
+        })
+     </script>
+     {% endblock %}
+     <!-- END TESTING -->
+     {% block jscript %}
+     {% endblock %}
+
+
+
 
 </head>
 
 <body id="{% block pageid %}{% endblock %}"{% block bodyattrs %}{% endblock %}>
 
-<div id="content">
 
-<center>
-<h1>
-GraceDB &mdash; Gravitational-Wave Candidate Event Database
-{% if config_name %}
-<span style="color: red;">({{ config_name }})</span>
-{% endif %}
-</h1>
-</center>
+   {% block nav %}
+       {% include "navbar_frag.html" %}
+   {% endblock %}
 
-{% block nav %}
-    {% include "navbar_frag.html" %}
-{% endblock %}
+   <div class="container-fluid">
+            </br>
 
-    <h2>{% block heading %}Title{% endblock %}</h2>
 
-        {% block content %}{% endblock %}
+          {% if info_banner_enabled %}
+            <center>
+            <div class="alert alert-success" role="alert" style="max-width:750px;">
+               {% autoescape off%}
+               {{ info_banner_message }}
+               {% endautoescape%}
+            </div>
+            </center>
+          {% endif %}
+        
+           <h2>{% block heading %}Title{% endblock %}</h2>
+               {% block content %}{% endblock %}
 
+        
+            <div class="row">
+                <div class="col align-self-center">
+                <center>
+                <img height="36" src="{% static "images/nsf_4-color_bitmap_logo.png" %}" />
+                <img height="36" src="{% static "images/ligo-blue.gif" %}" />
+                <img height="36" src="{% static "images/LSC_logo50.png" %}" />
+                <img height="36" src="{% static "images/Virgo_logo50.png" %}" />
+                <img height="36" src="{% static "images/kagra.png" %}" />
+                {% if user and user.username == "chad.hanna@LIGO.ORG" %}
+                 <img width="194" height="37" src="{% static "images/PI_Logo-anim.gif" %}" />
+                {% endif %}
+                {% if user and user.username == "kipp.cannon@LIGO.ORG" %}
+                 <img width="194" height="37" src="{% static "images/CITA_logo-anim.gif" %}" />
+                {% endif %}
+                </center>
+            </div>
+            </div>
     </div>
 
-<div id="header">
-<!-- Header. Yea, this is actually a footer.  It *was* as header once, though. -->
- <table align="center" width="90%">
-  <tr>
-   <td align="center">
-    <img width="52" height="36" src="{% static "images/ligo-blue.gif" %}" />
-    <!-- 673px 487px -->
-   </td>
-
-   <td align="center">
-    <img width="164" height="30" src="{% static "images/Virgo_logo50.png" %}" />
-    <!-- 4,829px 884px -->
-   </td>
-
-   <td align="center">
-    {% if user and user.username == "chad.hanna@LIGO.ORG" %}
-        <img width="194" height="37" src="{% static "images/PI_Logo-anim.gif" %}" />
-    {% else %}
-        {% if user and user.username == "kipp.cannon@LIGO.ORG" %}
-            <img width="194" height="37" src="{% static "images/CITA_logo-anim.gif" %}" />
-        {% endif %}
-    {% endif %}
-    <!-- 287px 101px -->
-   </td>
-
-   <td align="center">
-    <img width="87" height="37" src="{% static "images/LSC_logo50.png" %}" />
-    <!-- 6,261px 2,652px -->
-   </td>
-  </tr>
- </table>
-<!-- End Header -->
-</div>
 
 </body>
 </html>

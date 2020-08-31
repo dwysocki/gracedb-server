@@ -91,6 +91,7 @@ def _createEventFromForm(request, form):
  
         # XXX In case this is a subclass, let's check and assign default
         # perms on the underlying Event as well.
+
         if not type(event) is Event:
             underlying_event = Event.objects.get(id=event.id)
             assign_default_event_perms(underlying_event)

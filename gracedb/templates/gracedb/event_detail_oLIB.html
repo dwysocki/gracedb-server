@@ -4,34 +4,46 @@
 
 {# Analysis-specific attributes for a cWB event#}
 {% block analysis_specific %}
-<h2>Analysis-Specific Attributes</h2>
 
-<table class="analysis_specific"> <tbody>
-    <tr valign="top">
-        <td> <table class="event eventmulti"> <tbody>
+<div class="row my-3">
+  <div class="col">
+    <div id="table-olib" class="table-responsive">
+      <table class="table-basic-info table-condensed my-1">
+        <thead>
+        <tr>
+         <th colspan="23" class="banner-row">Analysis-Specific Attributes</th>
+        </tr>
+        </thead>
+      </table>
+     </div>
+     </div>
+</div>
+
+
+<div class="row my-3">
+  <div class="col">
+        <table id="gdb-table-omicron" class="table-basic-info"> <tbody>
                 <tr> <th>       </th> <th>Omicron SNR                                    </th> </tr>
                 <tr> <th>Network</th> <td>{{object.omicron_snr_network|floatformat:"-4"}}</td> </tr>
                 <tr> <th>H1     </th> <td>{{object.omicron_snr_H1|floatformat:"-4"}}     </td> </tr>
                 <tr> <th>L1     </th> <td>{{object.omicron_snr_L1|floatformat:"-4"}}     </td> </tr>
                 <tr> <th>V1     </th> <td>{{object.omicron_snr_V1|floatformat:"-4"}}     </td> </tr>
             </tbody> </table>
-        </td>
-
-        <td> <table class="event eventmulti"> <tbody>
+  </div>
+  <div class="col">
+        <table id="gdb-table-post" class="table-basic-info"> <tbody>
                 <tr> <th>         </th> <th>Posterior mean                            </th> <th>Posterior median                            </th></tr>
                 <tr> <th>frequency</th> <td>{{object.frequency_mean|floatformat:"-4"}}</td> <td>{{object.frequency_median|floatformat:"-4"}}</td> </tr>
                 <tr> <th>hrss     </th> <td>{{object.hrss_mean|scientific}}           </td> <td>{{object.hrss_median|scientific}}           </td> </tr>
                 <tr> <th>quality  </th> <td>{{object.quality_mean|floatformat:"-4"}}  </td> <td>{{object.quality_median|floatformat:"-4"}}  </td> </tr>
             </tbody> </table>
-        </td>
-
-        <td>  <table class="event"> <tbody>
+  </div>
+  <div class="col">
+         <table id="gdb-table-bci" class="table-basic-info"> <tbody>
                     <tr> <th> BCI </th> <td> {{object.bci|floatformat:"-4"}} </td> </tr>
                     <tr> <th> BSN </th> <td> {{object.bsn|floatformat:"-4"}} </td> </tr>
               </tbody></table>
-        </td>
 
-    </tr>
-</tbody> </table> 
-
+  </div>
+</div>
 {% endblock %}
