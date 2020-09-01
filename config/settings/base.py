@@ -352,6 +352,7 @@ INSTALLED_APPS = [
     'alerts',
     'annotations',
     'api',
+    'computedfields',
     'core',
     'events',
     'ligoauth',
