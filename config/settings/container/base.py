@@ -227,3 +227,7 @@ EMBB_IGNORE_ADDRESSES = ['Mailer-Daemon@{fqdn}'.format(fqdn=SERVER_FQDN)]
 for key in LOGGING['loggers']:
     LOGGING['loggers'][key]['handlers'] = ['console']
 LOGGING['loggers']['django.request']['handlers'].append('mail_admins')
+
+# Turn off debug/error emails when in maintenance mode.
+if MAINTENANCE_MODE:
+    LOGGING['loggers']['django.request']['handlers'].remove('mail_admins')
