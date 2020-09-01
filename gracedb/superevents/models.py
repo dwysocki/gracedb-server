@@ -30,6 +30,10 @@ from core.utils import int_to_letters, letters_to_int
 from events.models import Event, SignoffBase, VOEventBase, EMObservationBase, \
     EMFootprintBase
 
+# AEP experimental: try computedfields stuff:
+# https://django-computedfields.readthedocs.io/en/
+from computedfields.models import ComputedFieldsModel, computed
+
 # Other setup
 UserModel = get_user_model()
 logger = logging.getLogger(__name__)
@@ -41,7 +45,7 @@ SUPEREVENT_DATE_END = datetime.datetime(2080, 1, 1, 0, 0, 0, 0, pytz.utc)
 
 
 @python_2_unicode_compatible
-class Superevent(CleanSaveModel, AutoIncrementModel):
+class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
     """
     Superevent date-based IDs:
         Initially, a superevent has an ID like 'S180725a'
@@ -289,7 +293,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
             self.gw_id = self.default_gw_id
 
         # Save the fields which have changed
-        self.save(update_fields=['is_gw', 'gw_letter_suffix', 'gw_id'])
+        self.save(update_fields=['is_gw', 'gw_letter_suffix', 'gw_id', 'superevent_id'])
 
     def get_groups_with_groupobjectpermissions(self):
         gops = self.supereventgroupobjectpermission_set.all()
@@ -398,14 +402,15 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
         nodes.append(hdf.read())
         return os.path.join(settings.GRACEDB_DATA_DIR, *nodes)
 
-    @property
+    @computed(models.CharField(max_length=32, null=True), depends=[['self', ['default_superevent_id', 'gw_id']]])
     def superevent_id(self):
         if self.is_gw:
             return self.gw_id
         else:
             return self.default_superevent_id
 
-    @property
+
+    @computed(models.CharField(max_length=32, null=True), depends=[['self', ['category', 'base_date_number', 'base_letter_suffix']]])
     def default_superevent_id(self):
         id_prefix = self.DEFAULT_ID_PREFIX
         letter_suffix = self.base_letter_suffix

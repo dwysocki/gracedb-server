@@ -17,7 +17,8 @@ from ligoauth.decorators import public_if_public_access_allowed
 from .mixins import ExposeHideMixin, OperatorSignoffMixin, \
     AdvocateSignoffMixin, PermissionsFilterMixin, ConfirmGwFormMixin
 from .models import Superevent, VOEvent
-from .utils import get_superevent_by_date_id_or_404
+from .utils import get_superevent_by_date_id_or_404, \
+    get_superevent_by_sid_or_gwid_or_404
 
 
 # Set up logger
@@ -49,7 +50,7 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
         if queryset is None:
             queryset = self.get_queryset()
         superevent_id = self.kwargs.get('superevent_id')
-        obj = get_superevent_by_date_id_or_404(superevent_id, queryset)
+        obj = get_superevent_by_sid_or_gwid_or_404(superevent_id, queryset)
         return obj
 
     def get_context_data(self, **kwargs):

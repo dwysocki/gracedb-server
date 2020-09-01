@@ -23,6 +23,7 @@ from superevents.models import Superevent, Log, Signoff, VOEvent
 from superevents.utils import remove_tag_from_log, \
     remove_event_from_superevent, remove_label_from_superevent, \
     confirm_superevent_as_gw, get_superevent_by_date_id_or_404, \
+    get_superevent_by_sid_or_gwid_or_404, \
     expose_superevent, hide_superevent, delete_signoff
 from .filters import SupereventSearchFilter, SupereventOrderingFilter
 from .paginators import CustomSupereventPagination
@@ -76,6 +77,7 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
     ordering_fields = ('created', 't_0', 't_start', 't_end',
         'preferred_event__id', 't_0_date', 'is_gw', 'base_date_number',
         'gw_date_number', 'category',
+        'default_superevent_id',
         'time_coinc_far','space_coinc_far','em_type')
 
     def get_serializer_class(self):
@@ -88,9 +90,11 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
         superevent_id = self.kwargs.get(self.lookup_url_kwarg)
+        #raise ValueError(self.lookup_url_kwarg, queryset)
 
         # Get superevent by id
-        obj = get_superevent_by_date_id_or_404(superevent_id, queryset)
+        #obj = get_superevent_by_date_id_or_404(superevent_id, queryset)
+        obj = get_superevent_by_sid_or_gwid_or_404(superevent_id, queryset)
 
         # Check permissions
         self.check_object_permissions(self.request, obj)

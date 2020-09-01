@@ -1,4 +1,5 @@
 from django.conf.urls import url, include
+from django.urls import path
 from .models import Superevent
 from . import views
 
@@ -20,21 +21,21 @@ suburlpatterns = [
 # convenience of users who may be accustomed to the legacy event URL patterns
 legacy_urlpatterns = [
     # Legacy URLs for superevent detail view
-    url(r'^(?P<superevent_id>{regex})/$'.format(
-        regex=Superevent.ID_REGEX), views.SupereventDetailView.as_view(),
+    path('<str:superevent_id>/',
+        views.SupereventDetailView.as_view(),
         name="legacyview1"),
-    url(r'^view/(?P<superevent_id>{regex})/$'.format(
-        regex=Superevent.ID_REGEX), views.SupereventDetailView.as_view(),
+    path('view/<str:superevent_id>/',
+        views.SupereventDetailView.as_view(),
         name="legacyview2"),
 ]
 
 # Full urlpatterns: legacy urls plus suburlpatterns nested under
 # superevent_id
 urlpatterns = legacy_urlpatterns + [
-    url(r'^(?P<superevent_id>{regex})/'.format(regex=Superevent.ID_REGEX),
+    path('<str:superevent_id>/',
         include(suburlpatterns)),
 
     # View of all candidates
-    url(r'^public/O3/$', views.SupereventPublic.as_view(),
+    path('public/O3/', views.SupereventPublic.as_view(),
         name="public-alerts-O3"),
 ]
