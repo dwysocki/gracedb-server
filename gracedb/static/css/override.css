@@ -23,6 +23,11 @@ body {
   margin: auto;
 }
 
+.table-hover > tbody > tr.select-row:hover > td,
+.nohover-row > td {
+    background-color: #f2f4f8;
+}
+
 .table-detail-th {
   background-color:gray;
   font-size:14px
