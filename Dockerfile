@@ -1,14 +1,14 @@
-FROM igwn/base:stretch
+FROM igwn/base:buster
 LABEL name="LIGO GraceDB Django application" \
-      maintainer="tanner.prestegard@ligo.org" \
-      date="20190920"
+      maintainer="alexander.pace@ligo.org" \
+      date="20200807"
 ARG SETTINGS_MODULE="config.settings.container.dev"
 
 COPY docker/SWITCHaai-swdistrib.gpg /etc/apt/trusted.gpg.d
 COPY docker/backports.pref /etc/apt/preferences.d
-RUN echo 'deb http://pkg.switch.ch/switchaai/debian stretch main' > /etc/apt/sources.list.d/shibboleth.list
-RUN echo 'deb http://deb.debian.org/debian stretch-backports main' > /etc/apt/sources.list.d/backports.list
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+RUN echo 'deb http://pkg.switch.ch/switchaai/debian buster main' > /etc/apt/sources.list.d/shibboleth.list
+RUN echo 'deb http://deb.debian.org/debian buster-backports main' > /etc/apt/sources.list.d/backports.list
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
 RUN apt-get update && \
     apt-get install --install-recommends --assume-yes \
         apache2 \
@@ -19,24 +19,30 @@ RUN apt-get update && \
         libldap2-dev \
         libsasl2-dev \
         libxml2-dev \
+        pkg-config \
+        libpng-dev \
+        libfreetype6-dev \
+        libmariadb-dev-compat \
+        libxslt-dev \
         libsqlite3-dev \
         ligo-ca-certs \
         mariadb-client \
         nodejs \
         osg-ca-certs \
-        python3.5 \
-        python3.5-dev \
+        python3.7 \
+        python3.7-dev \
         python3-libxml2 \
         python3-pip \
         procps \
         shibboleth \
-        supervisor \
         libssl-dev \
         swig \
         htop \
         telnet \
         vim && \
     apt-get clean && \
+    curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    apt-get update && apt-get install --assume-yes yarn && \
     npm install -g bower
 
 COPY docker/entrypoint /usr/local/bin/entrypoint
@@ -66,8 +72,11 @@ RUN pip3 install --upgrade pip
 RUN pip3 install --upgrade setuptools wheel && \
     pip3 install -r requirements.txt
 
+# install supervisor from pip
+RUN pip3 install supervisor
+
 # Give pip-installed packages priority over distribution packages
-ENV PYTHONPATH /usr/local/lib/python3.5/dist-packages:$PYTHONPATH
+ENV PYTHONPATH /usr/local/lib/python3.7/dist-packages:$PYTHONPATH
 ENV ENABLE_SHIBD false
 ENV ENABLE_OVERSEER true
 ENV VIRTUAL_ENV dummy
@@ -116,4 +125,4 @@ RUN chmod 0755 /usr/local/bin/entrypoint && \
     find /app/gracedb_project -type f -exec chmod 0644 {} +
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint" ]
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+CMD ["/usr/local/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
