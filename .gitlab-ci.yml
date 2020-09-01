@@ -58,11 +58,6 @@ before_script:
           libssl-dev
           libxml2-dev
           swig
-          pkg-config 
-          libpng-dev 
-          libfreetype6-dev 
-          libmariadb-dev-compat 
-          libxslt-dev
           ${PYTHON}-pip
     # install everything else from pip
     - ${PYTHON} -m pip install -r requirements.txt
