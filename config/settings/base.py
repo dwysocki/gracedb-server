@@ -623,3 +623,7 @@ LOGGING = {
         },
    },
 }
+
+# Turn off debug/error emails when in maintenance mode. 
+if MAINTENANCE_MODE:
+    LOGGING['loggers']['django.request']['handlers'].remove('mail_admins')
