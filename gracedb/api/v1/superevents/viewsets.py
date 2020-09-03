@@ -1,7 +1,7 @@
 import logging
 
 from superevents.models import Superevent
-from superevents.utils import get_superevent_by_date_id_or_404
+from superevents.utils import get_superevent_by_sid_or_gwid_or_404
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG
 from ..mixins import OrderedListModelMixin
 from ..viewsets import NestedModelViewSet
@@ -26,6 +26,9 @@ class SupereventNestedViewSet(OrderedListModelMixin, NestedModelViewSet):
     def _set_parent(self):
         parent_lookup_value = self.get_parent_lookup_value()
         parent_queryset = self.get_parent_queryset()
-        parent = get_superevent_by_date_id_or_404(parent_lookup_value,
-            parent_queryset)
+        #raise ValueError(parent_lookup_value)
+        #parent = get_superevent_by_date_id_or_404(parent_lookup_value,
+        #    parent_queryset)
+        parent = get_superevent_by_sid_or_gwid_or_404(parent_lookup_value,
+             parent_queryset)
         self._parent = parent
