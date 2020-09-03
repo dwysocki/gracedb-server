@@ -193,7 +193,8 @@ class SupereventUpdateSerializer(SupereventSerializer):
     for object creation.
     """
     allowed_fields = ('t_start', 't_0', 't_end', 'preferred_event', 
-                       'em_type', 'time_coinc_far', 'space_coinc_far')
+                      'em_type', 'time_coinc_far', 'space_coinc_far',
+                      'gw_id')
 
     def __init__(self, *args, **kwargs):
         super(SupereventUpdateSerializer, self).__init__(*args, **kwargs)

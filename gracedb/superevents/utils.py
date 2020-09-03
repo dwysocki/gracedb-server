@@ -132,7 +132,8 @@ def update_superevent(superevent, updater, add_log_message=True,
 
     # Extract "updatable" superevent params from kwargs
     param_names = ['t_start', 't_0', 't_end', 'preferred_event',
-                   'em_type','time_coinc_far','space_coinc_far']
+                   'em_type','time_coinc_far','space_coinc_far',
+                   'gw_id']
     new_params = {k: v for k,v in kwargs.items() if k in param_names}
 
     # Get old parameters
