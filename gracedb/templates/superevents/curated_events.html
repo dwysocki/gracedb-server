@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load cache %}
+{% cache 300 publicalerts %}
+{% load sanitize_html %}
+{% load logtags %}
+{% load static %}
+
+
+{% block csslink %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static "css/public.css" %}" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{% endblock %}
+
+{% block title %}LIGO/Virgo Curated Events{% endblock %}
+{% block heading %}{% endblock %}
+{% block pageid %}curated{% endblock %}
+
+{% block jscript %}
+<link rel="stylesheet" type="text/css" href="{% static "tablesaw/dist/tablesaw.css" %}" />
+<script language="javascript" type="text/javascript" src="{% static "tablesaw/dist/tablesaw.js" %}"></script>
+<script language="javascript" type="text/javascript" src="{% static "tablesaw/dist/tablesaw-init.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+<br />
+<h1>LIGO/Virgo Curated Events</h1>
+
+{% for gw in curated_gws %}
+  <br>
+  {{ gw.superevent_id }}
+{% endfor %}
+
+
+{% endblock %}
+{% endcache %}

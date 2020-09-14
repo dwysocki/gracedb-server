@@ -38,4 +38,8 @@ urlpatterns = legacy_urlpatterns + [
     # View of all candidates
     path('public/O3/', views.SupereventPublic.as_view(),
         name="public-alerts-O3"),
+
+    path('catalog/O3/', views.SupereventCurated.as_view(),
+        name="curated-events-O3"),
+
 ]

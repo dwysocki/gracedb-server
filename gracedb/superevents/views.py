@@ -250,3 +250,31 @@ class SupereventPublic(DisplayFarMixin, ListView):
         context['candidates'] = candidates
 
         return context
+
+
+@method_decorator(public_if_public_access_allowed, name='dispatch')
+class SupereventCurated(DisplayFarMixin, ListView):
+    model = Superevent
+    template_name = 'superevents/curated_events.html'
+    filter_permissions = ['superevents.view_superevent']
+    log_view_permission = 'superevents.view_log'
+
+    def get_queryset(self, **kwargs):
+        # Query only for public events
+        # NOTE: may want to fix this to only O3 events at some point
+        qs = Superevent.objects.filter(is_gw=True,
+            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION) \
+            .prefetch_related('voevent_set', 'log_set')
+        return qs
+
+    def get_context_data(self, **kwargs):
+        # Get base context
+        context = super(SupereventCurated, self).get_context_data(**kwargs)
+
+        # For each superevent, get list of log messages and construct pastro
+        # string
+        candidates = self.object_list
+
+        context['curated_gws'] = candidates
+
+        return context
