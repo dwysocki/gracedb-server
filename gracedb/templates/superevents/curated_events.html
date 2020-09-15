@@ -26,11 +26,19 @@
 <br />
 <h1>LIGO/Virgo Curated Events</h1>
 
-{% for gw in curated_gws %}
+<h3> O3A Catalog </h3>
+
+{% for gw in O3A_CBC_CATALOG %}
   <br>
   {{ gw.superevent_id }}
 {% endfor %}
 
+<h3> O3B Catalog </h3>
+
+{% for gw in O3B_CBC_CATALOG %}
+  <br>
+  {{ gw.superevent_id }}
+{% endfor %}
 
 {% endblock %}
 {% endcache %}

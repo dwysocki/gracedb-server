@@ -11,6 +11,7 @@ from guardian.shortcuts import get_objects_for_user
 
 from core.file_utils import get_file_list
 from events.models import EMGroup
+from events.models import Label
 from events.mixins import DisplayFarMixin
 from events.permission_utils import is_external
 from ligoauth.decorators import public_if_public_access_allowed
@@ -258,6 +259,12 @@ class SupereventCurated(DisplayFarMixin, ListView):
     template_name = 'superevents/curated_events.html'
     filter_permissions = ['superevents.view_superevent']
     log_view_permission = 'superevents.view_log'
+    
+    # Curated event categories, differentiated by label:
+    catalog_label_names = ['O3A_CBC_CATALOG',
+                           'O3B_CBC_CATALOG',
+                           'O3A_CBC_SUBTHRESHOLD',
+                           'O3B_CBC_SUBTHRESHOLD',]
 
     def get_queryset(self, **kwargs):
         # Query only for public events
@@ -271,9 +278,10 @@ class SupereventCurated(DisplayFarMixin, ListView):
         # Get base context
         context = super(SupereventCurated, self).get_context_data(**kwargs)
 
-        # For each superevent, get list of log messages and construct pastro
-        # string
         candidates = self.object_list
+
+        for section_label in self.catalog_label_names:
+            context[section_label] = candidates.filter(labels__name=section_label)
 
         context['curated_gws'] = candidates
 
