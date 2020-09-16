@@ -13,6 +13,9 @@ suburlpatterns = [
     # Superevent detail view
     url(r'^view/$', views.SupereventDetailView.as_view(), name="view"),
 
+    # Superevent catalog view
+    url(r'^catalog/$', views.SupereventDetailCuratedView.as_view(), name="catalog"),
+
     # File list (file detail/download is handled through the API)
     url(r'^files/$', views.SupereventFileList.as_view(), name="file-list"),
 ]

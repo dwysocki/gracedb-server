@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load sanitize_html %}
+{% load logtags %}
+{% block title %}{{ superevent.superevent_id }}{% endblock %}
+{% block heading %}{% endblock %}
+{% block bodyattrs %}class="tundra eventDetail"{% endblock %}
+
+{% block jscript %}
+{% load static %}
+<link rel="stylesheet" href="{% static "css/labeltips.css" %}" />
+<script src="{% static "moment/moment.js" %}"></script>
+<script src="{% static "moment-timezone/builds/moment-timezone-with-data.min.js" %}"></script>
+<script src="{% static "dojo/dojo.js" %}" data-dojo-config="async: true"></script>
+<script src="{% static "jquery/dist/jquery.min.js" %}"></script>
+<!-- Styles for dgrid -->
+<!-- <link rel="stylesheet" href="{% static "dgrid/css/dgrid.css" %}" /> -->
+<!-- Styles for the editor components -->
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/PageBreak.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/ShowBlockNodes.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Preview.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Save.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Breadcrumb.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/FindReplace.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/PasteFromWord.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/InsertAnchor.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/CollapsibleToolbar.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Blockquote.css" %}" />
+<link rel="stylesheet" href="{% static "dojox/editor/plugins/resources/css/Smiley.css" %}" />
+<!-- Styles for the lightboxes. --> 
+<link rel="stylesheet" href="{% static "dojox/image/resources/LightboxNano.css" %}" />
+<!-- Local style declarations -->
+<link rel="stylesheet" href="{% static "dijit/themes/tundra/tundra.css" %}" />
+
+<!-- the main JavaScript block is pulled in with an include -->
+
+<script>
+ function clickConfirm() {
+   return confirm(" {{confirmation_dialog_text}} ");
+}
+</script>
+
+{% endblock %}
+
+{% block content %}
+<div id='event_detail_content'>
+<h2 style="color: red; text-align: center;">CURATED EVENT CURATED EVENT CURATED EVENT</h2>
+
+{% if superevent.is_exposed and not user_is_external %}
+<!-- Show internal users that this superevent is publicly exposed -->
+<h2 style="color: red; text-align: center;">PUBLIC SUPEREVENT</h2>
+{% endif %}
+
+<div class="content-area">
+{% block superevent_info %}
+<h2>Superevent Info</h2>
+    <div style="overflow-x: auto;">
+    {% if user.is_authenticated %}
+        {% include "superevents/superevent_info_table.html" %}
+    {% else %}
+        {% include "superevents/superevent_info_table_public.html" %}
+    {% endif %}
+    </div>
+{% endblock %}
+
+<br />
+<br />
+
+{% block basic_info %}
+<h2>Preferred Event Info</h2>
+    <div style="overflow-x: auto;">
+    {% if user.is_authenticated %}
+        {% include "superevents/preferred_event_info_table.html" %}
+    {% else %}
+        {% include "superevents/preferred_event_info_table_public.html" %}
+    {% endif %}
+    </div>
+{% endblock %}
+
+
+</div> <!-- end event_detail_content div -->
+{% endblock %}
+

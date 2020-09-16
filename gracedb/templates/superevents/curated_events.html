@@ -30,14 +30,14 @@
 
 {% for gw in O3A_CBC_CATALOG %}
   <br>
-  {{ gw.superevent_id }}
+  <a href="{% url "superevents:catalog" gw.superevent_id %}">{{ gw.superevent_id }}</a></td>
 {% endfor %}
 
 <h3> O3B Catalog </h3>
 
 {% for gw in O3B_CBC_CATALOG %}
   <br>
-  {{ gw.superevent_id }}
+  <a href="{% url "superevents:catalog" gw.superevent_id %}">{{ gw.superevent_id }}</a></td>
 {% endfor %}
 
 {% endblock %}
