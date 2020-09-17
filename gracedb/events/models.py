@@ -227,6 +227,14 @@ class Event(models.Model):
     # "online" by default.
     offline = models.BooleanField(default=False)
 
+    # backporting the gw_id flag from superevents back to events. There were
+    # pre-O2 events that were never made part of a superevents (eg.e., GW190514-->
+    # G184098). I assume there's no plans to update them. Modifying this parameter
+    # will allow one to query with a GWid for past events. 
+
+    gw_id = models.CharField(max_length=25, blank=True, null=True, unique=True)
+
+
     class Meta:
         ordering = ["-id"]
 
@@ -240,6 +248,8 @@ class Event(models.Model):
             return "H%04d" % self.id
         elif self.group.name == "External":
             return "E%04d" % self.id
+        elif str(self.search) == str("Catalog"):
+            return "C%04d" % self.id
         return "G%04d" % self.id
 
     def weburl(self):
@@ -282,6 +292,10 @@ class Event(models.Model):
         return (self.search and self.search.name == 'MDC' and
                 self.group.name != 'Test')
 
+    def is_catalog(self):
+        return (self.search and self.search.name == 'Catalog' and
+                self.group.name != 'Test')
+
     def is_production(self):
         return not (self.is_test() or self.is_mdc())
 
@@ -290,6 +304,8 @@ class Event(models.Model):
             return 'Test'
         elif self.is_mdc():
             return 'MDC'
+        elif self.is_catalog():
+            return 'Catalog'
         else:
             return 'Production'
 
@@ -339,6 +355,8 @@ class Event(models.Model):
         if (id[0] == "E") and (e.group.name == "External"):
             return e
         if (id[0] == "M") and (e.search and e.search.name == "MDC"):
+            return e
+        if (id[0] == "C") and (e.search and e.search.name == "Catalog"):
             return e
         if (id[0] == "G"):
             return e
