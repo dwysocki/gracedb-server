@@ -24,7 +24,7 @@ suburlpatterns = [
     url(r'^events/$', never_cache(SupereventEventViewSet.as_view({'get': 'list',
         'post': 'create'})), name='superevent-event-list'),
     # Event detail and delete (remove from superevent)
-    url(r'^events/(?P<{lookup_url_kwarg}>[GEHMT]\d+)/$'.format(
+    url(r'^events/(?P<{lookup_url_kwarg}>[GEHMTC]\d+)/$'.format(
         lookup_url_kwarg=SupereventEventViewSet.lookup_url_kwarg),
         never_cache(SupereventEventViewSet.as_view({'get': 'retrieve',
         'delete': 'destroy'})), name='superevent-event-detail'),

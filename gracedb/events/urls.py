@@ -13,33 +13,33 @@ urlpatterns = [
     url(r'^create/$', views.create, name="create"),
 
     # Event detail page
-    url(r'^(?P<graceid>[GEHMT]\d+)/view/$', views.view, name="view"),
+    url(r'^(?P<graceid>[GEHMTC]\d+)/view/$', views.view, name="view"),
 
     # Event file list and file download
-    url(r'^(?P<graceid>[GEHMT]\d+)/files/$', views.file_list,
+    url(r'^(?P<graceid>[GEHMTC]\d+)/files/$', views.file_list,
         name="file_list"),
-    url(r'^(?P<graceid>[GEHMT]\d+)/files/(?P<filename>.*)$',
+    url(r'^(?P<graceid>[GEHMTC]\d+)/files/(?P<filename>.*)$',
         views.file_download, name="file-download"),
 
     # Neighbors
-    url((r'^(?P<graceid>[GEHMT]\d+)/neighbors/\(?(?P<delta1>[-+]?\d+)'
+    url((r'^(?P<graceid>[GEHMTC]\d+)/neighbors/\(?(?P<delta1>[-+]?\d+)'
          '(,(?P<delta2>[-+]?\d+)\)?)?/$'), views.neighbors, name="neighbors"),
 
     # Form processing ---------------------------------------------------------
     # Modify permissions
-    url(r'^(?P<graceid>[GEHMT]\d+)/perms/$', views.modify_permissions,
+    url(r'^(?P<graceid>[GEHMTC]\d+)/perms/$', views.modify_permissions,
         name="modify_permissions"),
     # Modify signoffs
-    url(r'^(?P<graceid>[GEHMT]\d+)/signoff/$', views.modify_signoff,
+    url(r'^(?P<graceid>[GEHMTC]\d+)/signoff/$', views.modify_signoff,
         name="modify_signoff"),
     # Create log entry
-    url(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>([\d]*|preview))$',
+    url(r'^(?P<graceid>[GEHMTC]\d+)/log/(?P<num>([\d]*|preview))$',
         views.logentry, name="logentry"),
     # Add tag to log
-    url(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>\d+)/tag/(?P<tagname>.*)$',
+    url(r'^(?P<graceid>[GEHMTC]\d+)/log/(?P<num>\d+)/tag/(?P<tagname>.*)$',
         views.taglogentry, name="taglogentry"),
     # Process EMObservation
-    url(r'^(?P<graceid>[GEHMT]\d+)/emobservation/(?P<num>([\d]*|preview))$',
+    url(r'^(?P<graceid>[GEHMTC]\d+)/emobservation/(?P<num>([\d]*|preview))$',
         views.emobservation_entry, name="emobservation_entry"),
 
     # Manage pipelines
@@ -52,11 +52,11 @@ urlpatterns = [
 
     # Legacy URLs -------------------------------------------------------------
     # Event detail
-    url(r'^view/(?P<graceid>[GEHMT]\d+)', views.view, name="legacyview"),
-    url(r'^(?P<graceid>[GEHMT]\d+)$', views.view, name="legacyview2"),
+    url(r'^view/(?P<graceid>[GEHMTC]\d+)', views.view, name="legacyview"),
+    url(r'^(?P<graceid>[GEHMTC]\d+)$', views.view, name="legacyview2"),
 
     # Neighbors
-    url((r'^neighbors/(?P<graceid>[GEHMT]\d+)/\(?(?P<delta1>[-+]?\d+)'
+    url((r'^neighbors/(?P<graceid>[GEHMTC]\d+)/\(?(?P<delta1>[-+]?\d+)'
          '(,(?P<delta2>[-+]?\d+)\)?)?'), views.neighbors,
         name="legacyneighbors"),
 ]
