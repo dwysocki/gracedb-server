@@ -13,6 +13,8 @@ from model_utils.managers import InheritanceManager
 
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericRelation
 
 from guardian.models import GroupObjectPermission
 import logging; log = logging.getLogger(__name__)
@@ -158,6 +160,23 @@ class Label(models.Model):
         # applied, but a user tries to apply 'ADVREQ')
         pass
 
+# Creating "Nickname" object class. Set up a generic foreign key so that a
+# nickname object can be linked to either an event or a superevent. 
+#
+# https://medium.com/@bhrigu/django-how-to-add-foreignkey-to-multiple-models-394596f06e84
+
+@python_2_unicode_compatible
+class Nickname(models.Model):
+    name = models.CharField(max_length=50,  unique=True)
+    description = models.TextField(blank=False)
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self):
+        return self.name
+
 
 @python_2_unicode_compatible
 class Event(models.Model):
@@ -233,6 +252,14 @@ class Event(models.Model):
     # will allow one to query with a GWid for past events. 
 
     gw_id = models.CharField(max_length=25, blank=True, null=True, unique=True)
+
+    # Update: new development. many-to-one relationship between nickname(s) and 
+    # events and superevents. Some GWs were "confirmed" before the advent of 
+    # superevents and so the nickname object should be applied to either events or 
+    # superevents. That's why there's all this genericforeignkey business instead of
+    # just a foreignkey.
+
+    gw_ids = GenericRelation(Nickname)
 
 
     class Meta:

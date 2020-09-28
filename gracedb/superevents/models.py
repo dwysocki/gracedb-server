@@ -14,6 +14,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as AuthGroup
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models, IntegrityError
 from django.urls import reverse
@@ -28,7 +29,7 @@ from core.models import CleanSaveModel, AutoIncrementModel, LogBase, \
 from core.time_utils import posixToGpsTime, gpsToUtc
 from core.utils import int_to_letters, letters_to_int
 from events.models import Event, SignoffBase, VOEventBase, EMObservationBase, \
-    EMFootprintBase
+    EMFootprintBase, Nickname
 
 # AEP experimental: try computedfields stuff:
 # https://django-computedfields.readthedocs.io/en/
@@ -118,6 +119,9 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
 
     # Cannibalizing gw_id field, putting into DB as a user-defined parameter. 
     gw_id = models.CharField(max_length=25, blank=True, null=True, unique=True)
+
+    # Adding gw_ids generic relation.
+    gw_ids = GenericRelation(Nickname)
 
     # Booleans
     is_gw = models.BooleanField(default=False)
