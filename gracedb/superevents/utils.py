@@ -3,7 +3,7 @@ import os
 
 from django.conf import settings
 from django.db.models import Q
-from django.http import Http404
+from django.http import Http404, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import Group as DjangoGroup
 
@@ -20,7 +20,7 @@ from core.permissions import expose_log_to_lvem, expose_log_to_public, \
     hide_log_from_lvem, hide_log_from_public, assign_perms_to_obj, \
     remove_perms_from_obj
 from core.vfile import create_versioned_file
-from events.models import Event, EventLog, Tag, Label
+from events.models import Event, EventLog, Tag, Label, Nickname
 from events.permission_utils import is_external
 from events.shortcuts import is_event
 
@@ -549,9 +549,26 @@ def get_superevent_by_sid_or_gwid_or_404(superevent_id, queryset=None):
 
     return get_object_or_404(queryset, sid_filt | dsid_filt)
 
+def get_object_by_nickname_or_404(nickname, queryset=None):
+
+    if queryset is None:
+        queryset = Nickname.objects.all()
+
+    try:
+        obj = queryset.get(name=nickname)
+    except Nickname.DoesNotExist:
+        raise Http404("No event or superevent matches that nickname")
+
+    return obj.content_object
+
+
 
 def confirm_superevent_as_gw(superevent, user, gw_id, add_log_message=True,
     issue_alert=True):
+
+    #if nickname_exists(gw_id):
+    #    return HttpResponseNotAllowed("Identifier '{gw_id}' is already in use "
+    #                                 "as a gw_id or nickname.".format(gw_id=gw_id))
 
     # Save old ID temporarily
     old_id = superevent.superevent_id
@@ -913,3 +930,13 @@ def hide_superevent(superevent, user, add_log_message=True,
     if issue_alert:
         SupereventPermissionsAlertIssuer(superevent, alert_type='hidden') \
             .issue_alerts()
+
+# Determine if a GW nickname exists. A GW_ID is added to the table of nicknames
+# automatically upon confirmation, so this is another avenue to enforce uniqueness
+# of GW id's. 
+
+def nickname_exists(nickname):
+    if Nickname.objects.filter(name=nickname):
+        return True
+    
+    return False

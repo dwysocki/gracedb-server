@@ -3,7 +3,7 @@ from collections import OrderedDict
 import logging
 import os
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404
 
 from guardian.shortcuts import get_objects_for_user
@@ -24,7 +24,8 @@ from superevents.utils import remove_tag_from_log, \
     remove_event_from_superevent, remove_label_from_superevent, \
     confirm_superevent_as_gw, get_superevent_by_date_id_or_404, \
     get_superevent_by_sid_or_gwid_or_404, \
-    expose_superevent, hide_superevent, delete_signoff
+    expose_superevent, hide_superevent, delete_signoff, \
+    nickname_exists
 from .filters import SupereventSearchFilter, SupereventOrderingFilter
 from .paginators import CustomSupereventPagination
 from .permissions import SupereventModelPermissions, \
@@ -112,6 +113,10 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
 
         # If already a GW, return an error
         if not superevent.is_gw:
+            if nickname_exists(gw_id):
+                return Response("{gw_id} is already in use "
+                                "as a gw_id or nickname.".format(gw_id=gw_id), 
+                                status=status.HTTP_400_BAD_REQUEST)
             confirm_superevent_as_gw(superevent, self.request.user, gw_id)
         else:
             return Response('Superevent is already confirmed as a GW',

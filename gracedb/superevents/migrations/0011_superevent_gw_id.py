@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='superevent',
             name='gw_id',
-            field=models.CharField(blank=True, max_length=25, null=True, unique=True),
+            field=models.CharField(blank=True, max_length=50, null=True, unique=True),
         ),
     ]

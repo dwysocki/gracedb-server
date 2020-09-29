@@ -118,10 +118,10 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
         editable=False)
 
     # Cannibalizing gw_id field, putting into DB as a user-defined parameter. 
-    gw_id = models.CharField(max_length=25, blank=True, null=True, unique=True)
+    gw_id = models.CharField(max_length=50, blank=True, null=True, unique=True)
 
     # Adding gw_ids generic relation.
-    gw_ids = GenericRelation(Nickname)
+    nicknames = GenericRelation(Nickname)
 
     # Booleans
     is_gw = models.BooleanField(default=False)
@@ -298,6 +298,13 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
 
         # Save the fields which have changed
         self.save(update_fields=['is_gw', 'gw_letter_suffix', 'gw_id', 'superevent_id'])
+
+        # Since the superevent's updated properties are saved, now create
+        # a nickname based on the gw_id and save it. 
+
+        nn = Nickname(content_object=self,
+                      name=self.gw_id)
+        nn.save()
 
     def get_groups_with_groupobjectpermissions(self):
         gops = self.supereventgroupobjectpermission_set.all()

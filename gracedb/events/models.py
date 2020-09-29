@@ -259,7 +259,7 @@ class Event(models.Model):
     # superevents. That's why there's all this genericforeignkey business instead of
     # just a foreignkey.
 
-    gw_ids = GenericRelation(Nickname)
+    nicknames = GenericRelation(Nickname)
 
 
     class Meta:
