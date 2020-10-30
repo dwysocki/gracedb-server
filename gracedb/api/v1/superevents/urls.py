@@ -38,6 +38,14 @@ suburlpatterns = [
         never_cache(SupereventLabelViewSet.as_view({'get': 'retrieve',
         'delete': 'destroy'})), name='superevent-label-detail'),
 
+    # Nickname detail and deletion
+    url(r'^nicknames/$', never_cache(SupereventNicknameViewSet.as_view({'get': 'list',
+        'post': 'create'})), name='superevent-nickname-list'),
+    url(r'^nicknames/(?P<{lookup_url_kwarg}>.+)/$'.format(lookup_url_kwarg=
+        SupereventNicknameViewSet.lookup_url_kwarg),
+        never_cache(SupereventNicknameViewSet.as_view({'get': 'retrieve',
+        'delete': 'destroy'})), name='superevent-nickname-detail'),
+
     # Log list and creation
     url(r'^logs/$', never_cache(SupereventLogViewSet.as_view({'get': 'list',
         'post': 'create'})), name='superevent-log-list'),

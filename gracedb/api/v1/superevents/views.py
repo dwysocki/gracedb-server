@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from core.file_utils import get_file_list
 from core.http import check_and_serve_file
 from core.vfile import FileVersionError, FileVersionNameError
-from events.models import Event, Label
+from events.models import Event, Label, Nickname
 from events.view_utils import reverse as gracedb_reverse
 from ligoauth.utils import is_internal
 from superevents.models import Superevent, Log, Signoff, VOEvent
@@ -42,7 +42,8 @@ from .serializers import (
     SupereventLogSerializer, SupereventLogTagSerializer,
     SupereventVOEventSerializer, SupereventVOEventSerializerExternal,
     SupereventEMObservationSerializer, SupereventSignoffSerializer,
-    SupereventGroupObjectPermissionSerializer
+    SupereventGroupObjectPermissionSerializer, SupereventNicknameSerializer,
+    NicknamedObjectRelatedField
 )
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
 from .viewsets import SupereventNestedViewSet
@@ -91,7 +92,6 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
         superevent_id = self.kwargs.get(self.lookup_url_kwarg)
-        #raise ValueError(self.lookup_url_kwarg, queryset)
 
         # Get superevent by id
         #obj = get_superevent_by_date_id_or_404(superevent_id, queryset)
@@ -192,6 +192,26 @@ class SupereventLabelViewSet(ValidateDestroyMixin,
     def perform_destroy(self, instance):
         remove_label_from_superevent(instance, self.request.user,
             add_log_message=True, issue_alert=True)
+
+class SupereventNicknameViewSet(viewsets.ModelViewSet):
+    """Superevent Nicknames"""
+   
+    serializer_class = SupereventNicknameSerializer
+    pagination_class = BasePaginationFactory(results_name='nicknames')
+    lookup_url_kwarg = 'nickname'
+    #queryset = Nickname.objects.all()
+    #queryset = Superevent.objects.all()
+
+    def get_queryset(self):
+        superevent_id = self.kwargs['superevent_id']
+        superevent_obj = get_superevent_by_sid_or_gwid_or_404(superevent_id)
+        return superevent_obj.nicknames.all()
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        nn = self.kwargs.get(self.lookup_url_kwarg)
+        nickname = queryset.get(name=nn)
+        return nickname
 
 
 class SupereventLogViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,

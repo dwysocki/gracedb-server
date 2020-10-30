@@ -267,7 +267,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
     def is_mdc(self):
         return self.category == self.SUPEREVENT_CATEGORY_MDC
 
-    def confirm_as_gw(self, gw_id=None):
+    def confirm_as_gw(self, user, gw_id=None):
         """
         Sets is_gw to True, calculates the gw_date_number in the database, and
         the gw_letter_suffix afterward.
@@ -293,8 +293,10 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
         # put in the "default" (old) gw_id format. 
         if gw_id:
             self.gw_id = gw_id
+            gw_comment = "Nickname assigned as {}, supplied by the user when confirmed as GW".format(self.gw_id)
         else:
             self.gw_id = self.default_gw_id
+            gw_comment = "Nickname assigned as {}, set automatically by GraceDB when confirmed as GW".format(self.gw_id)
 
         # Save the fields which have changed
         self.save(update_fields=['is_gw', 'gw_letter_suffix', 'gw_id', 'superevent_id'])
@@ -303,7 +305,9 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
         # a nickname based on the gw_id and save it. 
 
         nn = Nickname(content_object=self,
-                      name=self.gw_id)
+                      name=self.gw_id,
+                      comment=gw_comment,
+                      creator=user)
         nn.save()
 
     def get_groups_with_groupobjectpermissions(self):

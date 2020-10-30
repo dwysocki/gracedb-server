@@ -168,11 +168,19 @@ class Label(models.Model):
 @python_2_unicode_compatible
 class Nickname(models.Model):
     name = models.CharField(max_length=50,  unique=True)
-    description = models.TextField(blank=False)
+    comment = models.TextField(blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    creator = models.ForeignKey(UserModel, on_delete=models.CASCADE)
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
+
+    def natural_key(self):
+       return self.name
+
+    class Meta():
+        unique_together = [('object_id', 'content_type')]
 
     def __str__(self):
         return self.name

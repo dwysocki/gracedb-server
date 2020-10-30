@@ -203,6 +203,7 @@ class UserInfoView(RetrieveAPIView):
     #        return self.serializer_class
 
     def retrieve(self, request, *args, **kwargs):
+        #raise ValueError(request.META)
         if request.user.is_anonymous:
             output = {'username': 'AnonymousUser'}
         else:

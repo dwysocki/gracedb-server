@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import fields, serializers, validators
 from rest_framework.exceptions import ValidationError
 
-from events.models import Event, Label, Tag, EMGroup
+from events.models import Event, Label, Tag, EMGroup, Nickname
 from superevents.models import Superevent, Labelling, Log, VOEvent, \
     EMObservation, EMFootprint, Signoff, SupereventGroupObjectPermission
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG
@@ -63,6 +63,8 @@ class SupereventSerializer(serializers.ModelSerializer):
     links = serializers.SerializerMethodField(read_only=True)
     labels = serializers.SlugRelatedField(slug_field='name', many=True,
         queryset=Label.objects.all(), required=False)
+    #nicknames = serializers.SlugRelatedField(queryset=Nickname.objects.all(),
+    #    many=True, required=False, slug_field='name')
 
     # Add read-only field that contains dictionary of preferred event:
     preferred_event_data = serializers.SerializerMethodField(read_only=True)
@@ -375,6 +377,42 @@ class SupereventLabelSerializer(serializers.ModelSerializer):
         labelling , _ = add_label_to_superevent(superevent, label, creator,
             add_log_message=True, issue_alert=True)
         return labelling
+
+class NicknamedObjectRelatedField(serializers.RelatedField):
+    def to_representation(self, value):
+        # 'value' is being passed in as a 'Nickname' object instead of a 
+        # event or superevent..
+
+        obj = value.content_object
+
+        if isinstance(obj, Superevent):
+            serializer = SupereventNicknameSerializer(obj)
+        elif isinstance(obj, Event):
+            serializer = EventNicknameSerializer(obj)
+        else:
+            raise Exception('Unexpected type of nicknamed object')
+
+        return serializer.data
+
+class SupereventNicknameSerializer(serializers.ModelSerializer):
+
+    self = serializers.SerializerMethodField(read_only=True)
+    created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
+        read_only=True)
+    creator = serializers.SlugRelatedField(slug_field='username',
+        read_only=True)
+    # Read/write
+    #name = serializers.SlugRelatedField(source='nicknames', slug_field='name',
+    #    queryset=Nickname.objects.all(), required=True)
+
+    class Meta:
+        model = Nickname
+        fields = ('self', 'name', 'created', 'creator')
+
+    def get_self(self, obj):
+        return api_reverse('superevents:superevent-nickname-detail', args=[
+            obj.content_object, obj.name],
+            request=self.context.get('request', None))
 
 
 class SupereventLogSerializer(serializers.ModelSerializer):

@@ -4,6 +4,7 @@
         <th>Superevent ID</th>
         {% if superevent.is_gw %}
         <th>GW ID</th>
+        <th>Nicknames</th>
         {% endif %}
         <th>Category</th>
         <th>Labels</th>
@@ -23,6 +24,11 @@
         <td>{{ superevent.default_superevent_id }}</td>
         {% if superevent.is_gw %}
         <td>{{ superevent.gw_id }}</td>
+        <td>
+          {% for nickname in superevent.nicknames.all %}
+             {{nickname.name}}
+          {% endfor %}
+        </td>
         {% endif %}
         <td>{{ superevent.get_category_display }}</td>
         <td>
