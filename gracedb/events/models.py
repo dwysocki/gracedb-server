@@ -179,8 +179,8 @@ class Nickname(models.Model):
     def natural_key(self):
        return self.name
 
-    class Meta():
-        unique_together = [('object_id', 'content_type')]
+    #class Meta():
+        #unique_together = [('object_id', 'content_type')]
 
     def __str__(self):
         return self.name

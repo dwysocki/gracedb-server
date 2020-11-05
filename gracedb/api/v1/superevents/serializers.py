@@ -407,7 +407,7 @@ class SupereventNicknameSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Nickname
-        fields = ('self', 'name', 'created', 'creator')
+        fields = ('self', 'name', 'created', 'creator', 'comment')
 
     def get_self(self, obj):
         return api_reverse('superevents:superevent-nickname-detail', args=[
