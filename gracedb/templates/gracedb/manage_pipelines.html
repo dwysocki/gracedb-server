@@ -30,8 +30,9 @@ This functionality is intended to mitigate the effects of a pipeline that is mis
 {% endif %}
 
 <div style="padding-bottom: 40px;">
-<table class="bootstrap-dark" align="center">
+<table class="table-resp-gracedb" align="center">
 <caption>Pipeline status</caption>
+    <thead>
     <tr>
         <th></th>
         <th></th>
@@ -48,6 +49,7 @@ This functionality is intended to mitigate the effects of a pipeline that is mis
         <th class="center">Last day</th>
         <th class="center">Action</th>
     </tr>
+    </thead>
     {% for pipeline in pipeline_list %}
     <tr>
         <td>{{ pipeline.name }}</td>
@@ -87,7 +89,7 @@ This functionality is intended to mitigate the effects of a pipeline that is mis
 
 {% if log_messages %}
 <div style="padding-bottom: 10px;">
-<table class="bootstrap-dark" align="center">
+<table class="table table-striped table-condensed" align="center">
 <caption>Recent activity</caption>
 <tr>
     <th>#</th>

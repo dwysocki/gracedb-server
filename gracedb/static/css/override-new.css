@@ -15,6 +15,57 @@ body {
   border-color: #FFFFFF;
 }
 
+body h2 {
+  font-weight: 100;
+  padding-top: 95px;
+  margin-top: -95px;
+}
+
+body h3 {
+  font-weight: 100;
+  padding-top: 95px;
+  margin-top: -95px;
+}
+.table-resp-gracedb {
+  /*margin: auto;*/
+  width: 100%;
+}
+
+.table-resp-gracedb > thead {
+  background-color: #5C7691;
+  padding: .6rem .8rem;
+  font-weight: 100;
+  color: white;
+}
+
+.table-hover thead tr:hover {
+  color:white;
+  background-color: rgba(0,0,0,0);
+}
+
+.table-resp-gracedb th {
+  padding: .6rem .8rem;
+  font-weight: 100;
+}
+
+
+.table-resp-gracedb td {
+  padding: .6rem .8rem;
+}
+
+.table-resp-gracedb tbody tr {
+  border-top: 1px solid #d9e0e7;
+}
+
+.table-resp-gracedb h3 {
+  font-size: 1.25em;
+  margin-bottom: 0.0rem;
+  color: white;
+  font-weight: 100;
+  padding-top: 95px;
+  margin-top: -95px;
+}
+
 .table-latest {
   border-collapse: separate;
   border-spacing: 0px;
@@ -95,14 +146,14 @@ body {
 }
 
 .btn-header-dropdown {
- color: #fff;
- font-weight:inherit;
+ color: inherit;
  font-size:inherit;
+ padding-left:2px
 }
 
 .btn-header-dropdown:hover, .btn-header-dropdown:focus {
-  color: #fff;
-  border-color:whitesmoke;
+  color: inherit;
+  border-color:#6b6b6b;
 }
 
 .header-row {
@@ -135,87 +186,89 @@ body {
   min-height: 150px;
 }
 
-/*
-div[id^="gdb-table-"] {
-  overflow: visible;
-        }
+nav[data-toggle="toc"] {
+  top: 42px;
+}
+
+/* small screens */
+@media (max-width: 768px) {
+  /* override stickyness so that the navigation does not follow scrolling */
+  nav[data-toggle="toc"] {
+    margin-bottom: 42px;
+    position: static;
+  }
+
+  /* PICK ONE */
+  /* don't expand nested items, which pushes down the rest of the page when navigating */
+  /*
+  nav[data-toggle="toc"] .nav .active .nav {
+    display: none;
+  }
 */
-
-@media (max-width: 1045px) {
-    .table-responsive .dropdown-menu {
-        position: static !important;
-    }
+  /* alternatively, if you *do* want the second-level navigation to be shown (as seen on this page on mobile), use this */
+  nav[data-toggle='toc'] .nav .nav {
+    display: block;
+  }
 }
-@media (min-width: 1046px) {
-    .table-responsive {
-        overflow: inherit;
-    }
+
+/* spinner stuff */
+.lds-ellipsis {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
 }
-@media only screen and (max-width: 800px) {
-        /* Force table to not be like tables anymore */
-        div[id^="gdb-table-"] table,
-        div[id^="gdb-table-"] thead,
-        div[id^="gdb-table-"] tbody,
-        div[id^="gdb-table-"] th,
-        div[id^="gdb-table-"] th,
-        div[id^="gdb-table-"] td,
-        div[id^="gdb-table-"] tr {
-        display: block;
-        }
-         
-        /* Hide table headers (but not display: none;, for accessibility) */
-        div[id^="gdb-table-"] thead .header-row {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-        }
+.lds-ellipsis div {
+  position: absolute;
+  top: 0px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #001D46;
+  animation-timing-function: cubic-bezier(0, 1, 1, 0);
+}
+.lds-ellipsis div:nth-child(1) {
+  left: 8px;
+  animation: lds-ellipsis1 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(2) {
+  left: 8px;
+  animation: lds-ellipsis2 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(3) {
+  left: 32px;
+  animation: lds-ellipsis2 0.6s infinite;
+}
+.lds-ellipsis div:nth-child(4) {
+  left: 56px;
+  animation: lds-ellipsis3 0.6s infinite;
+}
+@keyframes lds-ellipsis1 {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes lds-ellipsis3 {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(0);
+  }
+}
+@keyframes lds-ellipsis2 {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(24px, 0);
+  }
+}
 
-        /* Format the header that serves as the banner above the table */
-        div[id^="gdb-table-"] .banner-row {
-          border: none;
-          padding-left: 10px;
-          border-bottom: 0px solid #eee;
-          position: relative;
-          white-space: normal;
-          text-align: left;
-          color: white;
-          border-radius: 10px 10px 0px 0px;
-        }
-         
-        div[id^="gdb-table-"] tr { border: 0px solid #ccc; }
-
-        div[id^="gdb-table-"] .collapsed-header { 
-        text-align:center;
-        font-size:larger;
-        font-weight:bold;
-        margin:5px;
-        text-decoration: underline;}
-          
-        div[id^="gdb-table-"] td {
-        /* Behave like a "row" */
-        border: none;
-        border-bottom: 1px solid #eee;
-        position: relative;
-        padding-left: 35%;
-        white-space: normal;
-        text-align:left;
-        }
-         
-        div[id^="gdb-table-"] td:before {
-        /* Now like a table header */
-        position: absolute;
-        /* Top/left values mimic padding */
-        top: 6px;
-        left: 6px;
-        width: 45%;
-        padding-right: 10px;
-        white-space: nowrap;
-        text-align:left;
-        font-weight: bold;
-        }
-         
-        /*
-        Label the data
-        */
-        div[id^="gdb-table-"] td:before { content: attr(data-title); }
-        }
+div.dataTables_processing {
+  z-index: 1;
+}
+/* end spinner stuff */

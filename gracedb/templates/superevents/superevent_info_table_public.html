@@ -1,57 +1,75 @@
 {% load timeutil %}
 {% load scientific %}
-<div class="row pt-3 justify-content-center">
-<div class="col">
-<div class="table-responsive" id="gdb-table-superevent">
+<br>
+<br>
 
-    <table class="table-condensed table-basic-info my-1">
-        <thead>
-        <tr>
-         <th colspan="23" class="banner-row">Superevent Information</th>
-        </tr>
-    <tr class="header-row">
-        <th scope="col">Superevent ID</th>
-        {% if superevent.is_gw %}
-        <th scope="col">GW ID</th>
-        {% endif %}
-        <th scope="col">Category</th>
-        <th scope="col">Labels</th>
-        <th scope="col">FAR (Hz)</th>
-        <th scope="col">FAR (yr<sup>-1</sup>)</th>
-        <th scope="col">t<sub>start</sub></th>
-        <th scope="col">t<sub>0</sub></th>
-        <th scope="col">t<sub>end</sub></th>
-        <th scope="col">
-            {{ "submitted"|timeselect:"utc" }}
-        </th>
-        <th scope="col">Links</th>
-        </thead>
-    </tr>
-    <tr>
-        <td data-title="Superevent ID">{{ superevent.default_superevent_id }}</td>
-        {% if superevent.is_gw %}
-        <td data-title="GW ID">{{ superevent.gw_id }}</td>
-        {% endif %}
-        <td data-title="Category">{{ superevent.get_category_display }}</td>
-        <td data-title="Labels">
+    <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
+      <!-- Table Header -->
+      <thead>
+      <tr>
+        <th colspan="2"><h3>Superevent Information</h3></th>
+      </tr>
+      </thead>
+
+      <!-- Begin Table Data -->
+      <tbody>
+      <tr>
+        <td> Superevent ID </td>
+        <td> {{ superevent.default_superevent_id }} </td>
+      </tr>
+
+      {% if superevent.is_gw %}
+      <tr>
+        <td> GW ID </td>
+        <td> {{ superevent.gw_id }} </td>
+      </tr>
+      {% endif %}
+
+      <tr>
+        <td> Category </td>
+        <td> {{ superevent.get_category_display }} </td>
+      </tr>
+
+      <tr>
+        <td> Labels </td>
+        <td>
         {% for labelling in superevent.labelling_set.all %}
                     <span style="color: {{labelling.label.defaultColor}};" class="label"
                        data-toggle="tooltip"
                        data-placement="top"
                        data-html="true"
-                       title="<em>{{labelling.label.description}}</em><br>">
+                       title="<em>{{labelling.label.description}}</em><br>
+                      <b>Added by:</b> {{labelling.creator.get_full_name}}<br>
+                      <b>Added:</b> {{labelling.created}}">
                {{ labelling.label.name }}</span>
        {% endfor %}
         </td>
-        <td data-title="FAR (Hz)">{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
-        <td data-title="FAR (/year)">{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_hr }}</td>
-        <td data-title="t_start">{{ superevent.t_start|floatformat:2 }}</td>
-        <td data-title="t_0">{{ superevent.t_0|floatformat:2 }}</td>
-        <td data-title="t_end">{{ superevent.t_end|floatformat:2 }}</td>
-        <td data-title="Submitted">{{ superevent.created|multiTime:"submitted" }}</td>
-        <td data-title="Links"><a href="{% url "superevents:file-list" superevent.superevent_id %}">Data</a></td>
-    </tr>
-   </table>
-</div>
-</div>
-</div>
+      </tr>
+
+      <tr>
+        <td> t<sub>start</sub> </td>
+        <td> {{ superevent.t_start|floatformat:2 }} </td>
+      </tr>
+
+      <tr>
+        <td> t<sub>0</sub> </td>
+        <td> {{ superevent.t_0|floatformat:2 }} </td>
+      </tr>
+
+      <tr>
+        <td> t<sub>end</sub> </td>
+        <td> {{ superevent.t_end|floatformat:2 }} </td>
+      </tr>
+
+      <tr>
+        <td> {{ "submitted"|timeselect:"utc" }} </td>
+        <td> {{ superevent.created|multiTime:"submitted" }} </td>
+      </tr>
+
+      <tr>
+        <td> Links </td>
+        <td> <a href="{% url "superevents:file-list" superevent.superevent_id %}">Data</a> </td>
+      </tr>
+      </tbody>
+
+    </table>

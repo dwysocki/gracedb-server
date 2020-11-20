@@ -8,6 +8,7 @@
 {% block jscript %}
 {% load static %}
 <link rel="stylesheet" href="{% static "css/labeltips.css" %}" />
+
 <script src="{% static "dojo/dojo.js" %}" data-dojo-config="async: true"></script>
 <!-- Styles for dgrid -->
 <!-- <link rel="stylesheet" href="{% static "dgrid/css/dgrid.css" %}" /> -->
@@ -30,161 +31,176 @@
 
 <!-- the main JavaScript block is pulled in with an include -->
 <script>
-{% include "superevents/superevent_detail_script.js" %}
+    {% include "superevents/superevent_detail_script.js" %}
 </script>
 
 <script>
- function clickConfirm() {
-   return confirm(" {{confirmation_dialog_text}} ");
-}
+    function clickConfirm() {
+        return confirm(" {{confirmation_dialog_text}} ");
+    }
 </script>
 
 {% endblock %}
 
 {% block content %}
-<div id='event_detail_content'>
-
-{% if superevent.is_exposed and not user_is_external %}
-<!-- Show internal users that this superevent is publicly exposed -->
-    <div style="text-align: center;">
-        <h3 style="font-family: 'Alegreya', serif; font-weight: 700; color: red;">PUBLIC SUPEREVENT</h3>
+<div class='row'>
+    <div class='col-md-2'>
+        <div class="sticky-top" style="top: 85px;">
+            <nav id="toc" data-toggle="toc"></nav>
+        </div>
     </div>
-    <br>
-{% endif %}
+    <div class='col-md'>
 
-{% if messages %}
-<div class="flash">
-    {% for m in messages %}
-        <p>{{ m }}</p>
-    {% endfor %}
+
+        {% if superevent.is_exposed and not user_is_external %}
+        <!-- Show internal users that this superevent is publicly exposed -->
+        <div style="text-align: center;">
+            <div style="font-weight: 300; color: red; font-size:xx-large">PUBLIC SUPEREVENT</div>
+        </div>
+        <br>
+        {% endif %}
+
+        {% if messages %}
+        <div class="flash">
+            {% for m in messages %}
+            <p>{{ m }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <h2> {{ superevent.superevent_id }} </h2>
+        <hr style="width:250px; text-align:left; margin-left:0;">
+
+        <div class="row my-3 justify-content-md-center">
+            <div class="col-md">
+                {% if show_gw_status_form %}
+                <center><h3> Advocate Actions </h3></center>
+                <center>
+                    <b>Note:</b> this action is irreversible without manual intervention by an admin.
+                    <br>
+                    <form action="{% url "legacy_apiweb:default:superevents:superevent-confirm-as-gw" superevent.superevent_id %}" method="POST" id="confirm_as_gw_form">
+                        <input type="submit" value="Confirm this superevent as a GW" class="btn btn-danger permButtonClass" disabled>
+                    </form>
+                </center>
+                {% endif %}
+
+                {# not sure why we need this if statement, maybe can delete in the future #}
+                {% if 'lvem_view' not in request.path %}
+
+                {#-- XXX This next bit is super hacky. #}
+                {% if can_modify_permissions %}
+                <center>
+                    <br>
+                    <form action="{% url "legacy_apiweb:default:superevents:superevent-permission-modify" superevent.superevent_id %}" 
+                          method="POST" 
+                          id="permissions_form">
+                        <input type="hidden" name="action" value="{{ permissions_action }}">
+                        <input type="submit" value="{{ permissions_form_button_text }}" class="btn btn-danger permButtonClass" id="permissions_submit_link"  onclick="return clickConfirm()">
+                    </form>
+                </center>
+                {% endif %}
+
+                {% if operator_signoff_authorized and operator_signoff_active %}
+                <div class="signoff-area">
+                    <div style="font-size:x-large">{{ operator_signoff_instrument }} Operator Signoff</div>
+                    <hr style="width:250px; margin-left:0;">
+                    <p>You are seeing this section because you've connected from a machine that, according to our records, is in the {{ signoff_instrument }} control room.</p>
+                    {% if operator_signoff_exists %}
+                    <p>This event has already been signed off on. Use the form below if you wish to edit or delete the record.</p>
+                    {% else %}
+                    <p>This superevent still requires operator signoff. Please answer the following (and optionally enter a comment): At the time of the superevent ({{ object_gpstime_in_operator_tz }}), was the operating status of the detector basically okay, or not?</p>
+                    {% endif %}
+                    <form class="signoff_form">
+                        <table>
+                            {{ operator_signoff_form.as_table }}
+                            <tr>
+                                <td></td>
+                                <td>
+                                    {# inputs are disabled here, enabled by jquery code on page load. Otherwise users who click quickly can activate the form before the jquery is fully loaded #}
+                                    {% if operator_signoff_exists %}
+                                    {% with operator_signoff_type|add:operator_signoff_instrument as typeinst %}
+                                    <input type="submit" formaction="{% url "legacy_apiweb:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Update signoff" class="searchButtonClass" id="update" disabled>
+                                    <input type="submit" formaction="{% url "legacy_apiweb:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Delete signoff" class="searchButtonClass" id="delete" disabled>
+                                    {% endwith %}
+                                    {% else %}
+                                    <input type="submit" value="Create signoff" class="searchButtonClass" formaction={% url "legacy_apiweb:default:superevents:superevent-signoff-list" superevent.superevent_id %} disabled>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                </div>
+                {% endif %}
+
+                {# Here is a section for the EM advocate signoffs. #}
+                {% if advocate_signoff_authorized and advocate_signoff_active %}
+                <div class="signoff-area">
+                    <div style="font-size:x-large">Advocate Signoff</div>
+                    <hr style="width:250px; margin-left:0;">
+                    <p>You are seeing this section because you're a designated EM followup advocate.
+                    {% if advocate_signoff_exists %}
+                    This event has already been signed off on. Use the form below if you wish to edit or delete the record.
+                    {% else %}
+                    This event still requires EM Followup advocate signoff.
+                    {% endif %}
+                    </p>
+
+                    <form class="signoff_form">
+                        <table>
+                            {{ advocate_signoff_form.as_table }}
+                            <tr>
+                                <td></td>
+                                <td>
+                                    {# inputs are disabled here, enabled by jquery code on page load. Otherwise users who click quickly can activate the form before the jquery is fully loaded #}
+                                    {% if advocate_signoff_exists %}
+                                    {% with advocate_signoff_type|add:advocate_signoff_instrument as typeinst %}
+                                    <input type="submit" formaction="{% url "legacy_apiweb:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Update signoff" class="searchButtonClass" id="update" disabled>
+                                    <input type="submit" formaction="{% url "legacy_apiweb:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Delete signoff" class="searchButtonClass" id="delete" disabled>
+                                    {% endwith %}
+                                    {% else %}
+                                    <input type="submit" value="Create signoff" class="searchButtonClass" formaction={% url "legacy_apiweb:default:superevents:superevent-signoff-list" superevent.superevent_id %} disabled>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                </div>
+                {% endif %}
+
+                {% endif %} {# lvem_view not in request.path #}
+
+            </div>
+        </div>
+
+        <div class="row my-3 justify-content-center">
+            <div class="col-md-10">
+
+                {% block superevent_info %}
+                {% if user.is_authenticated %}
+                {% include "superevents/superevent_info_table.html" %}
+                {% else %}
+                {% include "superevents/superevent_info_table_public.html" %}
+                {% endif %}
+                {% endblock %}
+
+                <br />
+                <br />
+
+                {% block basic_info %}
+                {% if user.is_authenticated %}
+                {% include "superevents/preferred_event_info_table.html" %}
+                {% else %}
+                {% include "superevents/preferred_event_info_table_public.html" %}
+                {% endif %}
+                {% endblock %}
+
+            </div>
+        </div>
+
+        {% include "superevents/log_entry_details.html" %}
+
+
+    </div>
 </div>
-{% endif %}
-
-{% if show_gw_status_form %}
-<center>
-<div class="col">
-<div><b>Note:</b> this action is irreversible without manual intervention by an admin.</div>
-<br>
-<form action="{% url "legacy_apiweb:default:superevents:superevent-confirm-as-gw" superevent.superevent_id %}" method="POST" id="confirm_as_gw_form">
-    <input type="submit" value="Confirm this superevent as a GW" class="btn btn-danger permButtonClass" disabled>
-</form>
-</center>
-{% endif %}
-
-{# not sure why we need this if statement, maybe can delete in the future #}
-{% if 'lvem_view' not in request.path %}
-
-{#-- XXX This next bit is super hacky. #}
-{% if can_modify_permissions %}
-<center>
-<br>
-<div class="content-area" style="margin: 0 auto">
-<form action="{% url "legacy_apiweb:default:superevents:superevent-permission-modify" superevent.superevent_id %}" 
-               method="POST" 
-               id="permissions_form">
-    <input type="hidden" name="action" value="{{ permissions_action }}">
-    <input type="submit" value="{{ permissions_form_button_text }}" class="btn btn-danger permButtonClass" id="permissions_submit_link"  onclick="return clickConfirm()">
-</form>
-</div>
-</center>
-</div>
-{% endif %}
-
-{% if operator_signoff_authorized and operator_signoff_active %}
-<div class="signoff-area">
-    <h5>{{ operator_signoff_instrument }} Operator Signoff</h5>
-    <hr style="width:250px; margin-left:0;">
-    <p>You are seeing this section because you've connected from a machine that, according to our records, is in the {{ signoff_instrument }} control room.</p>
-    {% if operator_signoff_exists %}
-    <p>This event has already been signed off on. Use the form below if you wish to edit or delete the record.</p>
-    {% else %}
-    <p>This superevent still requires operator signoff. Please answer the following (and optionally enter a comment): At the time of the superevent ({{ object_gpstime_in_operator_tz }}), was the operating status of the detector basically okay, or not?</p>
-    {% endif %}
-    <form class="signoff_form">
-        <table>
-        {{ operator_signoff_form.as_table }}
-        <tr>
-            <td></td>
-            <td>
-            {# inputs are disabled here, enabled by jquery code on page load. Otherwise users who click quickly can activate the form before the jquery is fully loaded #}
-            {% if operator_signoff_exists %}
-            {% with operator_signoff_type|add:operator_signoff_instrument as typeinst %}
-                <input type="submit" formaction="{% url "legacy_apiweb:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Update signoff" class="searchButtonClass" id="update" disabled>
-                <input type="submit" formaction="{% url "legacy_apiweb:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Delete signoff" class="searchButtonClass" id="delete" disabled>
-            {% endwith %}
-            {% else %}
-            <input type="submit" value="Create signoff" class="searchButtonClass" formaction={% url "legacy_apiweb:default:superevents:superevent-signoff-list" superevent.superevent_id %} disabled>
-            {% endif %}
-            </td>
-        </tr>
-        </table>
-    </form>
-</div>
-{% endif %}
-
-{# Here is a section for the EM advocate signoffs. #}
-{% if advocate_signoff_authorized and advocate_signoff_active %}
-<div class="signoff-area">
-    <h5>Advocate Signoff</h5>
-    <hr style="width:250px; margin-left:0;">
-    <p>You are seeing this section because you're a designated EM followup advocate.
-    {% if advocate_signoff_exists %}
-    This event has already been signed off on. Use the form below if you wish to edit or delete the record.
-    {% else %}
-    This event still requires EM Followup advocate signoff.
-    {% endif %}
-    </p>
-    
-    <form class="signoff_form">
-        <table>
-        {{ advocate_signoff_form.as_table }}
-        <tr>
-            <td></td>
-            <td>
-            {# inputs are disabled here, enabled by jquery code on page load. Otherwise users who click quickly can activate the form before the jquery is fully loaded #}
-            {% if advocate_signoff_exists %}
-            {% with advocate_signoff_type|add:advocate_signoff_instrument as typeinst %}
-                <input type="submit" formaction="{% url "legacy_apiweb:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Update signoff" class="searchButtonClass" id="update" disabled>
-                <input type="submit" formaction="{% url "legacy_apiweb:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" value="Delete signoff" class="searchButtonClass" id="delete" disabled>
-            {% endwith %}
-            {% else %}
-            <input type="submit" value="Create signoff" class="searchButtonClass" formaction={% url "legacy_apiweb:default:superevents:superevent-signoff-list" superevent.superevent_id %} disabled>
-            {% endif %}
-            </td>
-        </tr>
-        </table>
-    </form>
-</div>
-{% endif %}
-
-{% endif %} {# lvem_view not in request.path #}
-
-{% block superevent_info %}
-    {% if user.is_authenticated %}
-        {% include "superevents/superevent_info_table.html" %}
-    {% else %}
-        {% include "superevents/superevent_info_table_public.html" %}
-    {% endif %}
-{% endblock %}
-
-<br />
-<br />
-
-{% block basic_info %}
-    {% if user.is_authenticated %}
-        {% include "superevents/preferred_event_info_table.html" %}
-    {% else %}
-        {% include "superevents/preferred_event_info_table_public.html" %}
-    {% endif %}
-{% endblock %}
-
-{% include "superevents/log_entry_details.html" %}
-
-
-
-{% if user.is_authenticated %}
-{% include "superevents/emo_form_frag.html" %}
-{% endif %}
-
 {% endblock %}
 

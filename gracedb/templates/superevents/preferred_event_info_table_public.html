@@ -1,41 +1,46 @@
 {% load timeutil %}
 {% load scientific %}
-<div class="row pt-3 justify-content-center">
-<div class="col">
-<div class="table-responsive table-detail" id="gdb-table-preferred">
+    <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
+      <!-- Table Header -->
+      <thead>
+      <tr>
+        <th colspan="2"><h3>Preferred Event Information</h3></th>
+      </tr>
+      </thead>
 
-<table class="table-condensed table-basic-info my-1">
-    <thead>
-    <tr>
-     <th colspan="23" class="banner-row">Preferred Event Information</th>
-    </tr>
-    <tr class="header-row">
-        <th scope="col">Group</th>
-        <th scope="col">Pipeline</th>
-        <th scope="col">Search</th>
-        <th scope="col">Instruments</th>
-        <th scope="col">
-            {{ "gps"|timeselect:"gps" }}
-        </th>
-        <th scope="col">
-            {{ "nsubmitted"|timeselect:"utc" }}
-        </th>
-    </thead>
-    </tr>
+      <tbody>
+      <tr>
+        <td> Group </td>
+        <td>{{ preferred_event.group.name }} </td>
+      </tr>
 
-    <tr>
-        <td data-title="Group">{{ preferred_event.group.name }} </td>
-        <td data-title="Pipeline">{{ preferred_event.pipeline.name }} </td>
-        <td data-title="Search">{{ preferred_event.search.name }} </td>
-        <td data-title="Instruments">{{ preferred_event.instruments }}</td>
-        <td data-title="Event Time">
+      <tr>
+        <td> Pipeline </td>
+        <td>{{ preferred_event.pipeline.name }} </td>
+      </tr>
+
+      <tr>
+        <td> Search </td>
+        <td>{{ preferred_event.search.name }} </td>
+      </tr>
+
+      <tr>
+        <td> Instruments </td>
+        <td>{{ preferred_event.instruments }}</td>
+      </tr>
+
+      <tr>
+        <td> {{ "gps"|timeselect:"gps" }} </td>
+        <td>
             {% if preferred_event.gpstime %}
             {{ preferred_event.gpstime|multiTime:"gps" }}
             {% endif %}
         </td>
-        <td data-title="Submitted">{{ preferred_event.created|multiTime:"nsubmitted" }}</td>
-    </tr>
-</table>
-</div>
-</div>
-</div>
+      </tr>
+      <tr>
+        <td> {{ "nsubmitted"|timeselect:"utc" }} </td>
+        <td>{{ preferred_event.created|multiTime:"nsubmitted" }}</td>
+      </tr>
+
+      </tbody>
+    </table>

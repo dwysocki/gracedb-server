@@ -3,139 +3,165 @@
 
 {% block basic_info %}
 <div class="row my-3 justify-content-center">
-    <div class="col">
-    <div id="gdb-table-basic-grb" class="table-responsive">
-      <table class="table-basic-info table-condensed my-1">
-        <thead>
-        <tr>
-         <th colspan="23" class="banner-row">Basic Event Information</th>
-        </tr>
+    <div class="col-md-10">
+        <div id="gdb-table-basic-grb">
+            <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" id="full_event_log">
+                <thead>
+                    <tr>
+                        <th colspan="8"><h3>Basic Event Information</h3></th>
+                    </tr>
+                </thead>
+                <tbody>
 
-    <tr class="header-row">
-            <th>UID</th>
-            <th>Labels</th>
-            <th>Group</th>
-            <th>Pipeline</th>
-            <th>Search</th>
-            <th>
-                {{ "gps"|timeselect:"gps" }}
-            </th>
-            <th>Links</th>
-            <th>
-                {{ "submitted"|timeselect:"utc" }}
-            </th>
-    </tr>
-        </thead>
+                    <tr>
+                        <td>UID</td>
+                        <td data-title="UID">{{ object.graceid }}</td>
+                    </tr>
+                    <tr>
+                        <td>Labels</td>
+                        <td data-title="Labels">
+                            {% if object.labelling_set.all %}
+                            {% for labelling in object.labelling_set.all %}
+                            <span style="color: {{labelling.label.defaultColor}};" class="label"
+                                                                                   data-toggle="tooltip"
+                                                                                   data-placement="top"
+                                                                                   data-html="true"
+                                                                                   title="<em>{{labelling.label.description}}</em><br>
+                                                                                   <b>Added by:</b> {{labelling.creator.get_full_name}}<br>
+                                                                                   <b>Added:</b> {{labelling.created}}">
+                                                                                   {{ labelling.label.name }}</span>
+                            {% endfor %}
+                            {% else %}
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Group</td>
+                        <td data-title="Group">{{ object.group.name }} </td>
+                    </tr>
+                    <tr>
+                        <td>Pipeline</td>
+                        <td data-title="Pipeline">{{ object.pipeline.name }} </td>
+                    </tr>
+                    <tr>
+                        <td>Search</td>
+                        <td data-title="Search">{{ object.search.name }} </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {{ "gps"|timeselect:"gps" }}
+                        </td>
+                        <td data-title="Event Time">{% if object.gpstime%}
+                            <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
+                            {{ object.gpstime|multiTime:"gps" }}
+                            {% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td>Links</td>
+                        <td data-title="Links"><a href="{{ object.weburl }}">Data</a></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {{ "submitted"|timeselect:"utc" }}
+                        </td>
+                        <td data-title="Submitted">{{ object.created|multiTime:"submitted" }}</td>
+                    </tr>
+                </tbody>
 
-
-    <tr>
-        <td data-title="UID">{{ object.graceid }}</td>
-        <td data-title="Labels">
-                 {% if object.labelling_set.all %}
-                 {% for labelling in object.labelling_set.all %}
-                    <span style="color: {{labelling.label.defaultColor}};" class="label"
-                       data-toggle="tooltip"
-                       data-placement="top"
-                       data-html="true"
-                       title="<em>{{labelling.label.description}}</em><br>
-                      <b>Added by:</b> {{labelling.creator.get_full_name}}<br>
-                      <b>Added:</b> {{labelling.created}}">
-               {{ labelling.label.name }}</span>
-                 {% endfor %}
-                 {% else %}
-                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                 {% endif %}
-        </td>
-        <td data-title="Group">{{ object.group.name }} </td>
-        <td data-title="Pipeline">{{ object.pipeline.name }} </td>
-        <td data-title="Search">{{ object.search.name }} </td>
-        <td data-title="Event Time">{% if object.gpstime%}
-                <!-- <span title="{{ object.gpstime|gpsdate }}">{{ object.gpstime }}</span> -->
-                {{ object.gpstime|multiTime:"gps" }}
-            {% endif %}</td>
-        <td data-title="Links"><a href="{{ object.weburl }}">Data</a></td>
-        <td data-title="Submitted">{{ object.created|multiTime:"submitted" }}</td>
-    </tr>
-
-</table>
-</div>
-</div>
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block analysis_specific %}
 {% if object.grbevent %}
 <div class="row my-3 justify-content-center">
-    <div class="col">
-    <div id="grb-info" class="table-responsive">
-<table class="table-basic-info table-condensed my-1">
-        <thead>
-        <tr>
-         <th colspan="23" class="banner-row">GRB Info</th>
-        </tr>
-        </thead>
-		<tr><th>IVORN</th><td colspan="2">{{object.ivorn}}</td></tr>
-		<tr><th>Author</th><td colspan="2">{{object.author_shortname}}</td></tr>
-		<tr><th>Author IVORN</th><td colspan="2">{{object.author_ivorn}}</td></tr>
-		<tr><th>Observatory</th><td colspan="2">{{object.observatory_location_id}}</td></tr>
-		<tr><th>How</th><td colspan="2">
-{% if object.how_reference_url %}
-				<a href="{{object.how_reference_url}}" target="_new">{{object.how_description}}</a>
-{% else %}
-				{{object.how_description}}
-{% endif %}
-		</td></tr>
-        {% if object.trigger_id %}
-		<tr><th>Trigger ID</th><td colspan="2">{{object.trigger_id}}</td></tr>
-        {% endif %}
-        {% if object.trigger_duration %}
-		<tr><th>Trigger duration</th><td colspan="2">{{object.trigger_duration}}</td></tr>
-        {% endif %}
-        {% if object.far %}
-		<tr><th>FAR (Hz)</th><td colspan="2">{{object.far}}</td></tr>
-        {% endif %}
-        {% if object.t90 %}
-		<tr><th>T90</th><td colspan="2">{{object.t90}}</td></tr>
-        {% endif %}
-        {% if object.redshift %}
-		<tr><th>Redshift</th><td colspan="2">{{object.redshift}}</td></tr>
-        {% endif %}
-        {% if object.designation %}
-		<tr><th>Event designation</th><td colspan="2">{{object.designation}}</td></tr>
-        {% endif %}
-		<tr><th>Location</th><th>Coord System</th><td>{{object.coord_system}}</td></tr>
-		<tr><td></td><th width="150px">RA</th><td>{{object.ra}}</td></tr>
-		<tr><td></td><th>Dec</th><td>{{object.dec}}</td></tr>
-		<tr><td></td><th>Err</th><td>{{object.error_radius}}</td></tr>
-</table> 
+    <div class="col-md-10">
+        <div id="grb-info">
+            <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" id="full_event_log">
+                <thead>
+                    <tr>
+                        <th colspan="2"><h3>GRB Info</h3></th>
+                    </tr>
+                </thead>
+                <tr><td>IVORN</td><td>{{object.ivorn}}</td></tr>
+                <tr><td>Author</td><td>{{object.author_shortname}}</td></tr>
+                <tr><td>Author IVORN</td><td>{{object.author_ivorn}}</td></tr>
+                <tr><td>Observatory</td><td>{{object.observatory_location_id}}</td></tr>
+                <tr><td>How</th><td>
+                        {% if object.how_reference_url %}
+                        <a href="{{object.how_reference_url}}" target="_new">{{object.how_description}}</a>
+                        {% else %}
+                        {{object.how_description}}
+                        {% endif %}
+                    </td></tr>
+                    {% if object.trigger_id %}
+                    <tr><td>Trigger ID</td><td>{{object.trigger_id}}</td></tr>
+                    {% endif %}
+                    {% if object.trigger_duration %}
+                    <tr><td>Trigger duration</td><td>{{object.trigger_duration}}</td></tr>
+                    {% endif %}
+                    {% if object.far %}
+                    <tr><td>FAR (Hz)</td><td>{{object.far}}</td></tr>
+                    {% endif %}
+                    {% if object.t90 %}
+                    <tr><td>T90</td><td>{{object.t90}}</td></tr>
+                    {% endif %}
+                    {% if object.redshift %}
+                    <tr><td>Redshift</td><td>{{object.redshift}}</td></tr>
+                    {% endif %}
+                    {% if object.designation %}
+                    <tr><td>Event designation</td><td>{{object.designation}}</td></tr>
+                    {% endif %}
+            </table>
+        </div>
+    </div>
 </div>
-</div>
+
+<div class="row my-3 justify-content-center">
+    <div class="col-md-10">
+        <div id="grb-info">
+            <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" id="full_event_log">
+                <thead>
+                    <tr>
+                        <th colspan="2"><h3>GRB Location</h3></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Coord System</td><td>{{object.coord_system}}</td></tr>
+                    <tr><td>RA</td><td>{{object.ra}}</td></tr>
+                    <tr><td>Dec</td><td>{{object.dec}}</td></tr>
+                    <tr><td>Err</td><td>{{object.error_radius}}</td></tr>
+                </tbody>
+            </table> 
+        </div>
+    </div>
 </div>
 
 
 {% if can_update_grbevent %}
-<div class="row my-3">
-    <div class="col">
-    <div class="table-basic-info table-condensed my-1">
-<table class="table-basic-info table-condensed my-1">
-        <thead>
-        <tr>
-         <th colspan="23" class="banner-row">Update GRB Event</th>
-        </tr>
-        </thead>
-        <tbody>
+<div class="row my-3 justify-content-center">
+    <div class="col-md-10">
+        <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
+            <thead>
+                <tr>
+                    <th colspan="2"><h3>Update GRB Event</h3></th>
+                </tr>
+            </thead>
+            <tbody>
 
-<form id="update_grbevent_form" action="{% url "legacy_apiweb:default:events:update-grbevent" object.graceid %}">
-    {{ update_grbevent_form.as_table }}
-    <tr>
-        <td></td>
-        <td><input type="submit" value="Update" disabled></td>
-    </tr>
-</form>
-</tbody>
-</table>
-</div>
-</div>
+                <form id="update_grbevent_form" action="{% url "legacy_apiweb:default:events:update-grbevent" object.graceid %}">
+                    {{ update_grbevent_form.as_table }}
+                    <tr>
+                        <td></td>
+                        <td><input type="submit" value="Update" disabled></td>
+                    </tr>
+                </form>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 

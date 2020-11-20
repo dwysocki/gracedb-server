@@ -29,12 +29,15 @@
 </form>
 <br>
 
+        <div class="row my-3 justify-content-md-center">
+                    <div class="col-md">
+
 {% if events %}
 
 <h5> Tap on entry for detailed information </h5>
-<table class="table table-hover table-responsive table-basic-info">
+<table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
   <thead>
-    <tr class="header-row">
+    <tr>
         <th>UID</th>
         <th>Labels</th>
         <th>Pipeline</th>
@@ -78,8 +81,8 @@
     </tr>
     <tr class="nohover-row">
         <td colspan="6" class="hiddenRow"><div class="accordian-body collapse" id="{{ ev.graceid }}">
-          <div class="container p-3 my-3" >
-            <table class="table-sm" style="margin-left:auto;margin-right:auto;">
+          <div class="container p-5 my-3" style="all:unset">
+            <table class="table-xs table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" style="margin-left:auto;margin-right:auto;width:auto;">
              <thead>
               <tr>
                <th>Additional Event Information<th>
@@ -87,30 +90,31 @@
              </thead>
              <tbody>
               <tr>
-               <td><b>Group:</b></td>
-               <td>{{ ev.group.name }}</td>
+               <td scope="col"><b>Group:</b></td>
+               <td scope="col">{{ ev.group.name }}</td>
               </tr>
 
               <tr>
-               <td><b>Search:</b></td>
-               <td>{{ ev.search.name }}</td>
+               <td scope="col"><b>Search:</b></td>
+               <td scope="col">{{ ev.search.name }}</td>
               </tr>
 
               <tr>
-               <td><b>Instruments:</b></td>
-               <td>{{ ev.instruments }}</td>
+               <td scope="col"><b>Instruments:</b></td>
+               <td scope="col">{{ ev.instruments }}</td>
               </tr>
 
               <tr>
-               <td><b>Latency (s):</b></td>
-               <td>{{ ev.reportingLatency|floatformat:"-3" }}</td>
+               <td scope="col"><b>Latency (s):</b></td>
+               <td scope="col">{{ ev.reportingLatency|floatformat:"-3" }}</td>
               </tr>
 
                </tr>
              </tbody>
              </table>
-             <br>
+             <center>
              <a href="{% url "view" ev.graceid %}" class="btn btn-success" role="button">Continue to {{ev.graceid}} Event Page</a>
+             </center>
           </div> 
         </div></td>
     </tr>
@@ -123,9 +127,9 @@
 
 <!-- Superevent listing -->
 <h5> Tap on entry for detailed information </h5>
-<table class="table table-hover table-responsive table-basic-info">
+<table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
   <thead> 
-    <tr class="header-row">
+    <tr>
         <th>UID</th>
         <th>Labels</th>
         {% if user.is_authenticated %}
@@ -176,10 +180,10 @@
 
     <tr class="nohover-row">
         <td colspan="6" class="hiddenRow"><div class="accordian-body collapse" id="{{ sv.superevent_id }}">
-          <div class="container p-3 my-3">
+          <div class="container p-3 my-3" style="all:unset">
 
             <!-- Superevent Table -->
-            <table class="table-sm"  class="accordian-toggle collapse-row collapsed" style="margin-left:auto;margin-right:auto;">
+            <table class="table-xs table-condensed table-resp-gracedb shadow p-3 mb-5 rounded"  class="accordian-toggle collapse-row collapsed" style="margin-left:auto;margin-right:auto;width:auto;">
              <thead>
               <tr>
                <th>Additional Superevent Information<th>
@@ -240,14 +244,15 @@
                </tr>
              </tbody>
              </table>
-             <br>
+             <center>
              <a href="{% url "superevents:view" sv.superevent_id %}" class="btn btn-primary" role="button">Continue to {{ sv.superevent_id }} Superevent Page</a>
+             </center>
 
             <!-- Preferred Event Table -->
             <br>
             {% if user.is_authenticated %}
             <br>
-            <table class="table-sm"  class="accordian-toggle collapse-row collapsed" style="margin-left:auto;margin-right:auto;">
+            <table class="table-xs table-condensed table-resp-gracedb shadow p-3 mb-5 rounded"  class="accordian-toggle collapse-row collapsed" style="margin-left:auto;margin-right:auto;width:auto;">
              <thead>
               <tr>
                <th>Preferred Event Information<th>
@@ -299,8 +304,9 @@
 
              </tbody>
              </table>
-             <br>
+             <center>
              <a href="{% url "view" sv.preferred_event.graceid %}" class="btn btn-success" role="button">Continue to {{ sv.preferred_event.graceid }} Event Page</a>
+             </center>
              {% endif %}
 
           </div> 
@@ -321,5 +327,8 @@
             e.stopPropagation();
         });
      </script>
+
+     </div>
+     </div>
 
 {% endblock %}

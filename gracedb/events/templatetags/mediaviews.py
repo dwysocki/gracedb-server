@@ -66,14 +66,29 @@ embedded_button_template = """<button class="btn btn-secondary btn-sm"
                          Collapse {} 
                       </button>
 """
+#collapsed_card_template = """
+#<p><div class="collapse show" id="{}">
+#  <div class="card card-body">
+#    <div class="card-header log-card-header text-left">
+#      <h3>{}</h3>
+#    </div>
+#   {}
+#  </div>
+#  <br>
+#   {}
+#</div></p>
+#"""
+
 collapsed_card_template = """
 <p><div class="collapse show" id="{}">
-  <div class="card card-body">
-    <div class="card-header log-card-header text-left">
-      <h6>{}</h6>
-    </div>
-   {}
-  </div>
+  <table class="table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
+    <thead>
+     <tr><th colspan="2"> <h3>{}</h3> </th></tr>
+    </thead>
+    <tbody>
+   <tr><td>{}<td></tr>
+    </tbody>
+  </table>
   <br>
    {}
 </div></p>
@@ -84,11 +99,11 @@ img_style_template = """max-height= 250px;
 
 image_card_div = """
 <div class="card my-3 log-comment-card" style="min-width:250px;">
-  <div class="card-header log-comment-card-header text-left">
+  <div class="card-header log-comment-card-header">
     <h7>Log Image</h7>
   </div>
   <a href="{}" data-toggle="lightbox" data-type="image" data-gallery="{}">
-  <img class="card-img-top img-fluid" src="{}" style="width:auto;"/>
+  <center><img class="card-img-top img-fluid" src="{}" style="width:auto;"/></center>
   </a>
       <div class="card-body">
         <hr width="50%"/>

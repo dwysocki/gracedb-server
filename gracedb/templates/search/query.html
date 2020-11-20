@@ -6,7 +6,7 @@
 
 {% block content %}
 
-<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
 
 <p>Test and MDC events and superevents are not included in the search results by default. See the query help (link below) for information on how to search for events and superevents in those categories.</p>
 
@@ -95,6 +95,10 @@
 $(document).ready(function() {
     $('#searchForm').DataTable( {
         ajax:'{% url "mainsearch"  %}?query={{raw_query|urlencode}}&query_type={{query_type}}&results_format=F',
+        processing: true,
+        language:{
+           processing: '<div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>'
+        },
         order:[[7,'dsc']],
     } );
 } );
