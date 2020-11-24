@@ -80,19 +80,15 @@
 
 		<div class="collapse" id="FullLog">
 
-			<div class="card card-body">
 
 				<div class="table-responsive">
-					<table class="table-basic-info table-condensed table-hover" id="full_event_log">
+					<table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" id="full_event_log">
 						<thead>
 							<tr>
-								<th colspan="23" class="banner-row"> <h6>Full Event Log</h6> </th>
-							</tr>
-							<tr class="header-row">
-								<th scope="col" class="align-bottom"> No. </th>
-								<th scope="col" class="align-bottom"> {{ "lcreated"|timeselect:"utc" }}</th>
-								<th scope="col" class="align-bottom"> Submitter </th>
-								<th scope="col" class="align-bottom"> Comment </th>
+								<th scope="col"> No. </th>
+								<th scope="col"> {{ "lcreated"|timeselect:"utc" }}</th>
+								<th scope="col"> Submitter </th>
+								<th scope="col"> Comment </th>
 							</tr>
 						</thead>
 						{% for log in object.eventlog_set.all %}
@@ -163,7 +159,6 @@
 				</div>
 
 			</div>
-		</div>
 
 	</div>
 </div>
