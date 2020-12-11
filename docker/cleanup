@@ -1,5 +1,6 @@
 #!/bin/sh
 
 python3 /app/gracedb_project/manage.py update_user_accounts_from_ligo_ldap people
+python3 /app/gracedb_project/manage.py update_user_accounts_from_ligo_ldap kagra
 python3 /app/gracedb_project/manage.py remove_inactive_alerts
 python3 /app/gracedb_project/manage.py clearsessions
