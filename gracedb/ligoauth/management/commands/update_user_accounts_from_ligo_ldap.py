@@ -403,12 +403,15 @@ class LdapKagraResultProcessor(LdapPersonResultProcessor):
     def update_user_certificates(self):
 
         re_prefix = 'voPersonCertificateDN;.'
-        # Get two lists of subjects as sets
+        # Get two lists of subjects as sets. Then convert to lowercase. 
         db_x509_subjects = set(list(self.ligoldapuser.user.x509cert_set.values_list(
             'subject', flat=True)))
+        db_x509_subjects = {str.casefold(x) for x in db_x509_subjects}
+
         ldap_x509_subjects = [self.ldap_result[key] for key in
                                   self.ldap_result.keys() if re.match(re_prefix, key)]
         ldap_x509_subjects = set(self.dekagrafy_subject(item.decode('utf-8')) for st in ldap_x509_subjects for item in st)
+        ldap_x509_subjects = {str.casefold(x) for x in ldap_x509_subjects}
 
         # Clean up certs' ldap ownership. Most of the time, this function does 
         # nothing, but it'll be run a lot the first time after adding the genericldapuser
@@ -417,8 +420,11 @@ class LdapKagraResultProcessor(LdapPersonResultProcessor):
         self.assign_genericldapuser_to_cert(ldap_x509_subjects)
 
         # Get certs to add and remove
-        certs_to_add = ldap_x509_subjects.difference(db_x509_subjects)
-        certs_to_remove = db_x509_subjects.difference(ldap_x509_subjects)
+        # certs_to_add = ldap_x509_subjects.difference(db_x509_subjects)
+        # certs_to_remove = db_x509_subjects.difference(ldap_x509_subjects)
+
+        certs_to_add = ldap_x509_subjects - db_x509_subjects
+        certs_to_remove = db_x509_subjects - ldap_x509_subjects
 
         # Add and remove certificates
         self.add_certs(certs_to_add)
