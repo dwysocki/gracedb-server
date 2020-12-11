@@ -1,15 +1,15 @@
 ConcurrentLogHandler==0.9.1
-Django==2.2.10
+Django==2.2.17
 django-debug-toolbar==1.9.1
 django-extensions==2.2.9
 django-guardian==2.2.0
 django-model-utils==4.0.0
-django-ses==0.8.10
-django-silk==3.0.1
-django-twilio==0.9.0
+django-ses==1.0.3
+django-silk==4.1.0
+django-twilio==0.13.0
 django-user-sessions==1.7.1
-djangorestframework==3.9.0
-djangorestframework-guardian==0.1.1
+djangorestframework==3.12.2
+djangorestframework-guardian==0.3.0
 dnspython==1.15.0
 flake8==3.5.0
 gunicorn[gthread]==19.9.0
@@ -24,12 +24,12 @@ git+https://git.ligo.org/lscsoft/lvalert-overseer.git@python3-overseer#egg=ligo-
 #ligo-lvalert-overseer==0.1.3
 lscsoft-glue==2.0.0
 lxml==4.2.0
-matplotlib==2.0.0
+matplotlib==3.3.3
 mock==2.0.0
-mysqlclient==1.4.2
-numpy==1.17.2
+mysqlclient==2.0.1
+numpy==1.19.4
 packaging==17.1
-phonenumbers==8.8.11
+phonenumbers==8.10.22
 python-ldap==3.1.0
 python-memcached==1.59
 scipy==1.2.1
@@ -45,17 +45,14 @@ voevent-parse==1.0.3
 # problematic API changes in 2.3.1 and beyond that will need to be handled
 # appropriately.
 pyparsing==2.3.0
-pytest<5; python_version < '3'
-pytest==5.1.2; python_version >= '3'
+pytest==5.4.0; python_version >= '3'
 pytest-cov==2.6.1
-pytest-django==3.9.0
+pytest-django==4.1.0
 pytz==2018.9
 # Fixed at old versions to prevent bugs:
 # https://github.com/fritzy/SleekXMPP/issues/477
 # https://github.com/etingof/pyasn1/issues/112
-pyasn1==0.3.6
+pyasn1==0.3.7
 pyasn1-modules==0.1.5
-# Installing futures for gunicorn gthreads (Python 2 only):
-futures==3.2.0; python_version < '3'
 # retry bandaid for efs errors:
 retry==0.9.2
