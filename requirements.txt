@@ -1,4 +1,5 @@
 ConcurrentLogHandler==0.9.1
+cryptography==3.3.2
 Django==2.2.17
 django-debug-toolbar==1.9.1
 django-extensions==2.2.9
