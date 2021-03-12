@@ -14,11 +14,7 @@
     <table>
         {{ form.as_table }}
         <tr><td></td><td><input type="Submit" value="Search" class="searchButtonClass"></td></tr>
-        <tr><td></td><td><a href="/documentation/queries.html" target="_blank">Query help</a>
-        {% if raw_query and  query_type == 'E' %}
-            | <a href="{% url "mainsearch" %}?query={{raw_query|urlencode}}&query_type={{query_type}}&get_neighbors={{get_neighbors}}&results_format=L">Download LIGOLW file</a>
-        {% endif %}
-        </td></tr>
+        <tr><td></td><td><a href="/documentation/queries.html" target="_blank">Query help</a></td></tr>
   </table>
 </form>
 
