@@ -131,7 +131,7 @@ class LdapPersonResultProcessor(object):
                 'username: {0}, ligoldapuser.user_ptr.username: {1}')
                 .format(self.user_data['username'],
                 self.ligoldapuser.user.username))
-            raise UserConfigError('User configuration error')
+            raise self.UserConfigError('User configuration error')
 
     def update_user(self):
         if not hasattr(self, 'user'):
