@@ -64,6 +64,8 @@ before_script:
           libmariadb-dev-compat 
           libxslt-dev
           ${PYTHON}-pip
+    # upgrade pip (requirement for lalsuite)
+    - ${PYTHON} -m pip install --upgrade pip
     # install everything else from pip
     - ${PYTHON} -m pip install -r requirements.txt
     # create logs path required for tests
