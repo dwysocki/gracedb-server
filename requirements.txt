@@ -1,6 +1,6 @@
 ConcurrentLogHandler==0.9.1
 cryptography==3.3.2
-Django==2.2.17
+Django==2.2.19
 django-debug-toolbar==1.9.1
 django-extensions==2.2.9
 django-guardian==2.2.0
@@ -12,28 +12,28 @@ django-user-sessions==1.7.1
 djangorestframework==3.12.2
 djangorestframework-guardian==0.3.0
 dnspython==1.15.0
-flake8==3.5.0
-gunicorn[gthread]==19.9.0
-html5lib==1.0.1
-ipdb==0.10.2
-ipython==5.5.0
-lalsuite==6.70 # undocumented requirement for lscsoft-glue
-python-ligo-lw==1.6.0 # adding support ligo un-ilwdchar'ed events
+flake8==3.8.0
+gunicorn==20.0.4
+html5lib==1.1.0
+ipdb==0.13.6
+ipython==7.21.0
+lalsuite==6.82 # undocumented requirement for lscsoft-glue
+python-ligo-lw==1.7.1 # adding support ligo un-ilwdchar'ed events
 ligo-lvalert==1.5.6
 # Temporary pin of lvalert-overseer for Python 3 update
 git+https://git.ligo.org/lscsoft/lvalert-overseer.git@python3-overseer#egg=ligo-lvalert-overseer
 #ligo-lvalert-overseer==0.1.3
 lscsoft-glue==2.0.0
-lxml==4.2.0
-matplotlib==3.3.3
+lxml==4.6.0
+matplotlib==3.3.4
 mock==2.0.0
-mysqlclient==2.0.1
-numpy==1.19.4
+mysqlclient==2.0.3
+numpy==1.20.0
 packaging==17.1
 phonenumbers==8.10.22
-python-ldap==3.1.0
-python-memcached==1.59
-scipy==1.2.1
+python-ldap==3.3.1
+python3-memcached==1.51
+scipy==1.6.1
 sentry-sdk==0.7.10
 service_identity==17.0.0
 simplejson==3.15.0
@@ -46,10 +46,10 @@ voevent-parse==1.0.3
 # problematic API changes in 2.3.1 and beyond that will need to be handled
 # appropriately.
 pyparsing==2.3.0
-pytest==5.4.0; python_version >= '3'
-pytest-cov==2.6.1
+pytest==6.2.2
+pytest-cov==2.11.1
 pytest-django==4.1.0
-pytz==2018.9
+pytz==2021.1
 # Fixed at old versions to prevent bugs:
 # https://github.com/fritzy/SleekXMPP/issues/477
 # https://github.com/etingof/pyasn1/issues/112
