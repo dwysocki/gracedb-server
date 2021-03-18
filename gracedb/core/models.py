@@ -3,6 +3,7 @@ import logging
 import re
 
 from django.db import models, connection
+from django.db.models import Q
 from django.utils import six
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
@@ -58,39 +59,29 @@ class AutoIncrementModel(models.Model):
 
     def auto_increment_insert(self, *args, **kwargs):
         """
-        This custom save method does a SELECT and INSERT in a single raw SQL
-        query in order to properly handle a quasi-autoincrementing field, which
-        is used to identify instances associated with a ForeignKey. With this
-        method, concurrency issues are handled by the database backend.
-        Ex: EventLog instances associated with an Event should be numbered from
-        1 to N, based on the order of their submission.
 
         This has been tested with the following classes:
             EventLog, EMObservation, EMFootprint, EMBBEventLog, VOEvent
 
-        Thorough testing is needed to use this method for a new model. Note
-        that this method may not work properly for non-MySQL backends.
 
         Requires AUTO_FIELD and AUTO_CONSTRAINTS to be defined.
         """
 
-        # Check database type
-        if connection.vendor != 'mysql':
-            raise DatabaseError(_('The custom AutoIncrementModel '
-                'auto_increment_save method is not compatible with non-MySQL '
-                'backends'))
-
-        # Get some useful information
-        meta = self.__class__._meta
-        pk_set = self._get_pk_val() is not None
-
-        # Get model fields, except for primary key field.
-        fields = [f for f in meta.local_concrete_fields if not
-            isinstance(f, models.fields.AutoField)]
+        # Check for the existence of the required fields:
+        if not self.AUTO_CONSTRAINTS or not self.AUTO_FIELD:
+            raise TypeError('AUTO_CONSTRAINTS or AUTO_FIELD not set.')
 
         # Check type of self.AUTO_CONSTRAINTS
         if not isinstance(self.AUTO_CONSTRAINTS, (tuple, list)):
             raise TypeError(_('AUTO_CONSTRAINTS should be a tuple or list'))
+
+        # Get some useful information
+        meta = self.__class__._meta
+        current_class = self.__class__
+
+        # Get model fields, except for primary key field.
+        fields = [f for f in meta.local_concrete_fields if not
+            isinstance(f, models.fields.AutoField)]
 
         # Check constraint fields
         f_names = [f.name for f in fields]
@@ -98,80 +89,36 @@ class AutoIncrementModel(models.Model):
             if constraint_field not in f_names:
                 raise ValueError(_(('Constraint {0} is not a field for '
                     'model {1}').format(constraint_field,
-                    self.__class__.__name__)))
+                    current_class.__name__)))
 
         # Check auto field
         if self.AUTO_FIELD not in f_names:
             raise ValueError(_(('AUTO_FIELD {0} is not a field for '
                 'model {1}').format(self.auto_field, self.__class__.__name__)))
 
-        # Setup for generating base SQL query for doing an INSERT.
-        query = models.sql.InsertQuery(self.__class__)
-        query.insert_values(fields, objs=[self])
-        compiler = query.get_compiler(using=self.__class__._base_manager.db)
-        compiler.return_id = meta.auto_field is not None and not pk_set
+        # Get the AUTO_CONSTRAINT object (i.e, superevent or event)
+        # Note that this assumes that there's one constaint, which appears to
+        # be the case for all objects that I (Alex) can find. Make this more 
+        # general, if need be. This could be accomplished with Q(...) filters.
 
-        # Useful function
-        qn = compiler.quote_name_unless_alias
+        auto_const_object = getattr(self, self.AUTO_CONSTRAINTS[0])
 
-        # Compile multiple constraints with AND
-        constraint_fields = list(map(meta.get_field, self.AUTO_CONSTRAINTS))
-        constraint_list = ["{0}=%s".format(qn(f.column))
-            for f in constraint_fields]
-        constraint_values = [f.get_db_prep_value(getattr(self, f.column),
-            compiler.connection) for f in constraint_fields]
-        constraint_str = " AND ".join(constraint_list)
+        # If there is no value for the constrained autofield set, then set it to one
+        # more than the total number of objects constraint to the auto_constraint. 
+        # Clear enough?
 
-        with compiler.connection.cursor() as cursor:
-            # Get base SQL query as string.
-            for sql, params in compiler.as_sql():
-                # Modify SQL string to do an INSERT with SELECT.
-                # NOTE: it's unlikely that the following will generate
-                # a functional database query for non-MySQL backends.
+        if not getattr(self, self.AUTO_FIELD):
+            setattr(self, self.AUTO_FIELD,
+                    current_class.objects.filter(**{self.AUTO_CONSTRAINTS[0]: auto_const_object}).count()+1)
+        else:
+            num_objects = current_class.objects.filter(**{self.AUTO_CONSTRAINTS[0]: auto_const_object}).count()
+            setattr(self, self.AUTO_FIELD, 
+                    max(num_objects, num_objects + 1))
 
-                # Replace VALUES (%s, %s, ..., %s) with
-                # SELECT %s, %s, ..., %s
-                sql = re.sub(r"VALUES \((.*)\)", r"SELECT \1", sql)
 
-                # Add table to SELECT from, as well as constraints
-                sql += " FROM {tbl_name} WHERE {constraints}".format(
-                    tbl_name=qn(meta.db_table),
-                    constraints=constraint_str
-                )
-
-                # Get index corresponding to AUTO_FIELD.
-                af_idx = [f.attname for f in fields].index(self.AUTO_FIELD)
-                # Put this directly in the SQL; cursor.execute quotes it
-                # as a literal, which causes the SQL command to fail.
-                # We shouldn't have issues with SQL injection because
-                # AUTO_FIELD should never be a user-defined parameter.
-                del params[af_idx]
-                sql = re.sub(r"((%s, ){{{0}}})%s".format(af_idx),
-                    r"\1IFNULL(MAX({af}),0)+1", sql, 1).format(
-                    af=self.AUTO_FIELD)
-
-                # Add constraint values to params
-                params += constraint_values
-
-                # Execute SQL command.
-                cursor.execute(sql, params)
-
-            # Get primary key from database and set it in memory.
-            if compiler.connection.features.can_return_id_from_insert:
-                id = compiler.connection.ops.fetch_returned_insert_id(cursor)
-            else:
-                id = compiler.connection.ops.last_insert_id(cursor,
-                    meta.db_table, meta.pk.column)
-            self._set_pk_val(id)
-
-            # Refresh object in memory in order to get AUTO_FIELD value.
-            self.refresh_from_db()
-
-            # Prevents check for unique primary key - needed to prevent an
-            # IntegrityError when the object was just created and we try to
-            # update it while it's still in memory
-            self._state.adding = False
-
+        # Save object and check constraints:
+        self.full_clean()
+        super(AutoIncrementModel, self).save(*args, **kwargs)
 
     def auto_increment_update(self, update_field_name, constraints=[],
         allow_update_to_nonnull=False):
@@ -184,45 +131,19 @@ class AutoIncrementModel(models.Model):
             raise ValueError(_(('Attempt to update a non-null constrained auto'
                 'field for object {0}. Not allowed.').format(self.__str__())))
 
-        # Setup for generating base SQL query for doing an update
-        meta = self._meta
-        field = meta.get_field(update_field_name)
-        values = [(field, None, field.pre_save(self, False))]
-        query = models.sql.UpdateQuery(self.__class__)
-        query.add_update_fields(values)
-        compiler = query.get_compiler(using=self.__class__._base_manager.db)
+        # Get current class:
+        current_class = self.__class__
 
-        # Useful function
-        qn = compiler.quote_name_unless_alias
+        # Set up query based on the constraints:
+        query = Q()
+        for i in constraints:
+            query = query & Q(**{i: getattr(self, i)})
 
-        # SQL for doing autoincrement
-        custom_sql= ("(SELECT N FROM (SELECT IFNULL(MAX({field}),0)+1 AS N "
-            "FROM {tbl_name}").format(tbl_name=qn(meta.db_table),
-            field=update_field_name)
+        # Perform query and get number of objects:
+        num_results = current_class.objects.filter(query).count()
 
-        # Convert list of field names to be used as constraints into database
-        # column names and their values (retrieved from the instance itself)
-        constraint_fields = [meta.get_field(f) for f in constraints]
-        constraint_list = ["{0}=%s".format(qn(f.column)) for f in constraint_fields]
-        values = [f.get_db_prep_value(getattr(self, f.column),
-            compiler.connection) for f in constraint_fields]
+        setattr(self, update_field_name, num_results + 1)
 
-        # Add constraints to custom SQL (if they are provided)
-        if constraint_list:
-            custom_sql += (" WHERE " + " AND ".join(constraint_list))
-
-        # Add end
-        custom_sql += (") AS temp) WHERE id={pk};".format(pk=self.pk))
-
-        # Replace NULL in base sql update query
-        base_sql = compiler.as_sql()[0]
-        sql = base_sql.replace('NULL', custom_sql)
-
-        # Execute sql
-        compiler.connection.cursor().execute(sql, values)
-
-        # Refresh from database
-        self.refresh_from_db(fields=[update_field_name])
 
 
 class LogBase(models.Model):

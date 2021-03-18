@@ -30,7 +30,7 @@ INFO_BANNER_ENABLED = False
 INFO_BANNER_MESSAGE = "TEST MESSAGE"
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.11.0-2'
+PROJECT_VERSION = '2.11.1'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -627,3 +627,12 @@ LOGGING = {
 # Turn off debug/error emails when in maintenance mode. 
 if MAINTENANCE_MODE:
     LOGGING['loggers']['django.request']['handlers'].remove('mail_admins')
+
+# Define some words for the instance stub:
+ENABLED = {True: "enabled", False: "disabled"}
+
+INSTANCE_STUB = """
+<li>Phone alerts (calls/SMS) are {0}</li>
+<li>Email alerts are {1}</li>
+<li>LVAlert messages to <span class="text-monospace">{2}</span> are {3}</li>
+"""

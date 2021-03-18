@@ -275,7 +275,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel):
         self.gw_letter_suffix = int_to_letters(self.gw_date_number).upper()
 
         # Save the fields which have changed
-        self.save(update_fields=['is_gw', 'gw_letter_suffix'])
+        self.save(update_fields=['is_gw', 'gw_letter_suffix', 'gw_date_number'])
 
     def get_groups_with_groupobjectpermissions(self):
         gops = self.supereventgroupobjectpermission_set.all()

@@ -46,8 +46,22 @@ INTERNAL_IPS = [
     INTERNAL_IP_ADDRESS,
 ]
 
-# Turn on XMPP alerts
-SEND_XMPP_ALERTS = True
+# Turn LVAlert on/off from the environment. Adding this
+# to turn lvalerts on/off from docker compose/update instead
+# of having to rebuild containers. If the environment variable
+# isn't set, then revert to the hardwired behavior:
+xmpp_env_var = get_from_env('SEND_LVALERT_XMPP_ALERTS',
+                   default_value=SEND_XMPP_ALERTS,
+                   fail_if_not_found=False)
+# Fix for other boolean values:
+if (isinstance(xmpp_env_var, str) and
+    xmpp_env_var.lower() in ['true','t','1']):
+    SEND_XMPP_ALERTS=True
+elif (isinstance(xmpp_env_var, str) and
+    xmpp_env_var.lower() in ['false','f','0']):
+    SEND_XMPP_ALERTS=False
+else:
+    SEND_XMPP_ALERTS = True
 
 # Enforce that phone and email alerts are off
 SEND_PHONE_ALERTS = False
@@ -73,6 +87,10 @@ if sentry_dsn is not None:
 
 # Home page stuff
 INSTANCE_TITLE = 'GraceDB Testing Server'
+INSTANCE_LIST = INSTANCE_STUB.format(ENABLED[SEND_PHONE_ALERTS],
+                                ENABLED[SEND_EMAIL_ALERTS],
+                                LVALERT_OVERSEER_INSTANCES[0]['lvalert_server'],
+                                ENABLED[SEND_XMPP_ALERTS])
 INSTANCE_INFO = """
 <h5>Testing Instance</h5>
 <hr>
@@ -83,11 +101,10 @@ Software should meet QA milestones on the test instance before being moved
 to Playground or Production. Note, on this GraceDB instance:
 </p>
 <ul>
-<li>Phone and e-mail alerts are turned off.</li>
+{}
 <li>Only LIGO logins are provided (no login via InCommon or Google).</li>
-<li>LVAlert messages are sent to lvalert-test.cgca.uwm.edu.</li>
 </ul>
-"""
+""".format(INSTANCE_LIST)
 
 if AWS_ELASTICACHE_ADDR:
     CACHES['default']['KEY_PREFIX'] = '2'

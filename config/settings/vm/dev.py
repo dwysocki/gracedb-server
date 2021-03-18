@@ -48,3 +48,22 @@ if 'silk' in INSTALLED_APPS:
 INTERNAL_IPS = [
     INTERNAL_IP_ADDRESS,
 ]
+INSTANCE_TITLE = 'GraceDB Development VM'
+INSTANCE_LIST = INSTANCE_STUB.format(ENABLED[SEND_PHONE_ALERTS],
+                                ENABLED[SEND_EMAIL_ALERTS],
+                                LVALERT_OVERSEER_INSTANCES[0]['lvalert_server'],
+                                ENABLED[SEND_XMPP_ALERTS])
+INSTANCE_INFO = """
+<h5>Development Instance</h5>
+<hr>
+<p>
+This GraceDB instance is designed for GraceDB maintainers to develop and
+test in the AWS cloud architecture. There is <b>no guarantee</b> that the
+behavior of this instance will mimic the production system at any time.
+Events and associated data may change or be removed at any time.
+</p>
+<ul>
+{}
+<li>Only LIGO logins are provided (no login via InCommon or Google).</li>
+</ul>
+""".format(INSTANCE_LIST)
