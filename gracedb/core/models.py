@@ -3,7 +3,7 @@ import logging
 import re
 
 from django.db import models, connection
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.utils import six
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
@@ -67,6 +67,7 @@ class AutoIncrementModel(models.Model):
         Requires AUTO_FIELD and AUTO_CONSTRAINTS to be defined.
         """
 
+
         # Check for the existence of the required fields:
         if not self.AUTO_CONSTRAINTS or not self.AUTO_FIELD:
             raise TypeError('AUTO_CONSTRAINTS or AUTO_FIELD not set.')
@@ -96,25 +97,31 @@ class AutoIncrementModel(models.Model):
             raise ValueError(_(('AUTO_FIELD {0} is not a field for '
                 'model {1}').format(self.auto_field, self.__class__.__name__)))
 
-        # Get the AUTO_CONSTRAINT object (i.e, superevent or event)
-        # Note that this assumes that there's one constaint, which appears to
-        # be the case for all objects that I (Alex) can find. Make this more 
-        # general, if need be. This could be accomplished with Q(...) filters.
 
-        auto_const_object = getattr(self, self.AUTO_CONSTRAINTS[0])
+        # Set up Q query for multiple constraints. For instance, superevents'
+        # base_date_number is constrained by both category and the date. So
+        # for example, there can exist S123456a, TS123456a, and MS123456a. The
+        # t_0_date is the same, but the category is different. So they each get
+        # an "a". 
 
-        # If there is no value for the constrained autofield set, then set it to one
-        # more than the total number of objects constraint to the auto_constraint. 
-        # Clear enough?
+        const_query = Q()
+        for const in self.AUTO_CONSTRAINTS:
+            const_query = const_query & Q(**{const: getattr(self, const)})
 
-        if not getattr(self, self.AUTO_FIELD):
+        # get the queryset that meets the constraints: 
+
+        qs = current_class.objects.filter(const_query)
+
+        # Set AUTO_FIELD to one-plus-the-maximum of the value of AUTO_FIELD
+        # in the constained set. Note that since some superevents get removed
+        # or other circumstances, the max does not always equal to the number 
+        # entries in the set. This caused some db integrity errors in testing.
+
+        if qs:
             setattr(self, self.AUTO_FIELD,
-                    current_class.objects.filter(**{self.AUTO_CONSTRAINTS[0]: auto_const_object}).count()+1)
+                    qs.aggregate(max_val=Max(self.AUTO_FIELD))['max_val'] + 1)
         else:
-            num_objects = current_class.objects.filter(**{self.AUTO_CONSTRAINTS[0]: auto_const_object}).count()
-            setattr(self, self.AUTO_FIELD, 
-                    max(num_objects, num_objects + 1))
-
+            setattr(self, self.AUTO_FIELD, 1)
 
         # Save object and check constraints:
         self.full_clean()
@@ -139,11 +146,20 @@ class AutoIncrementModel(models.Model):
         for i in constraints:
             query = query & Q(**{i: getattr(self, i)})
 
-        # Perform query and get number of objects:
-        num_results = current_class.objects.filter(query).count()
+        # get the queryset that meets the constraints:
 
-        setattr(self, update_field_name, num_results + 1)
+        qs = current_class.objects.filter(query)
 
+        # Set AUTO_FIELD to one-plus-the-maximum of the value of AUTO_FIELD
+        # in the constained set. Note that since some superevents get removed
+        # or other circumstances, the max does not always equal to the number
+        # entries in the set. This caused some db integrity errors in testing.
+
+        if qs:
+            setattr(self, update_field_name,
+                    qs.aggregate(max_val=Max(update_field_name))['max_val'] + 1)
+        else:
+            setattr(self, update_field_name, 1)
 
 
 class LogBase(models.Model):
