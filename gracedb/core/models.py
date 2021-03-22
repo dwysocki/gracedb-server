@@ -132,7 +132,7 @@ class AutoIncrementModel(models.Model):
             try:
                 self.full_clean()
                 super(AutoIncrementModel, self).save(*args, **kwargs)
-            except IntegrityError as e:
+            except:
                 logger.warning("Database integrity error when saving {}. ",
                 "Incrementing and retrying.".format(self))
                 setattr(self, self.AUTO_FIELD, 
