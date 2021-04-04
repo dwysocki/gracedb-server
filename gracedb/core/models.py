@@ -1,16 +1,19 @@
 from collections import OrderedDict
 import logging
-import re
 
 from django.db import models, connection, IntegrityError
 from django.db.models import Q, Max
-from django.utils import six
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db.models import QuerySet
 from django.forms.models import model_to_dict
 from django.utils.translation import ugettext_lazy as _
 
 from core.vfile import VersionedFile
+
+# Testing waiting:
+from time import sleep
+from random import random
 
 # Set up user model
 UserModel = get_user_model()
@@ -77,6 +80,7 @@ class AutoIncrementModel(models.Model):
         if not isinstance(self.AUTO_CONSTRAINTS, (tuple, list)):
             raise TypeError(_('AUTO_CONSTRAINTS should be a tuple or list'))
 
+
         # Get some useful information
         meta = self.__class__._meta
         current_class = self.__class__
@@ -109,37 +113,38 @@ class AutoIncrementModel(models.Model):
         for const in self.AUTO_CONSTRAINTS:
             const_query = const_query & Q(**{const: getattr(self, const)})
 
-        # get the queryset that meets the constraints: 
-
-        qs = current_class.objects.filter(const_query)
 
         # Set AUTO_FIELD to one-plus-the-maximum of the value of AUTO_FIELD
         # in the constained set. Note that since some superevents get removed
         # or other circumstances, the max does not always equal to the number 
         # entries in the set. This caused some db integrity errors in testing.
 
-        if qs:
-            setattr(self, self.AUTO_FIELD,
-                    qs.aggregate(max_val=Max(self.AUTO_FIELD))['max_val'] + 1)
-        else:
-            setattr(self, self.AUTO_FIELD, 1)
-
         # Save object and check constraints. Add ability to retry on the event
         # of DB Integrity errors. 
 
-        this_try = 0
-        while this_try < self.max_retries:
+        number_of_tries = 0
+        success = False
+        while not success:
             try:
-                self.full_clean()
-            except:
-                logger.warning("Database integrity error when saving {}. ",
-                "Incrementing and retrying.".format(self))
-                setattr(self, self.AUTO_FIELD, 
-                        getattr(self,self.AUTO_FIELD) + 1)
-                this_try += 1
-            else:
+                setattr(self, self.AUTO_FIELD,
+                        self.updated_autofield_value(current_class, const_query))
                 super(AutoIncrementModel, self).save(*args, **kwargs)
-                break
+            except (IntegrityError, ValidationError):
+                logger.warning("Sleeping to stabilize database. try= {}, object={}".format(number_of_tries, self))
+                sleep(random())
+                number_of_tries += 1
+                if number_of_tries > 3:
+                    raise
+            else:
+                success = True
+
+    def updated_autofield_value(self, current_class, query):
+        # get the queryset:
+        query_set = current_class.objects.filter(query)
+        if query_set:
+            return query_set.aggregate(max_val=Max(self.AUTO_FIELD))['max_val'] + 1
+        else:
+            return 1
 
     def auto_increment_update(self, update_field_name, constraints=[],
         allow_update_to_nonnull=False):
