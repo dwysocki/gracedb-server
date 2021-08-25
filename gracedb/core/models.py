@@ -133,7 +133,7 @@ class AutoIncrementModel(models.Model):
                 logger.warning("Sleeping to stabilize database. try= {}, object={}".format(number_of_tries, self))
                 sleep(random())
                 number_of_tries += 1
-                if number_of_tries > 3:
+                if number_of_tries > 6:
                     raise
             else:
                 success = True

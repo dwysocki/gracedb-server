@@ -14,7 +14,7 @@ Contents:
 
    ref_manual
    tutorials
-   Documentation for the ligo-gracedb client package <https://gw.readthedocs.io/ligo-gracedb>
+   Documentation for the ligo-gracedb client package <https://ligo-gracedb.readthedocs.io/>
    LIGO/Virgo Public Alert Guide <https://emfollow.docs.ligo.org/userguide/>
    Report a bug (LIGO/Virgo users) <https://git.ligo.org/lscsoft/gracedb/issues>
 

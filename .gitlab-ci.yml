@@ -57,6 +57,9 @@ before_script:
           libsasl2-dev
           libssl-dev
           libxml2-dev
+          krb5-user
+          libkrb5-dev
+          libsasl2-modules-gssapi-mit
           swig
           pkg-config 
           libpng-dev 

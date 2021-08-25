@@ -82,7 +82,7 @@ ServerName ${DJANGO_PRIMARY_FQDN}
     Require all granted
   </Directory>
 
-  Alias /robots.txt /home/gracedb/gracedb_project/static_root/robots.txt
+  Alias /robots.txt /app/gracedb_project/static_root/robots.txt
 
   <Location /Shibboleth.sso>
     SetHandler shib

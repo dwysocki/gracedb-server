@@ -476,6 +476,10 @@ class LigoPeopleLdap(object):
         self.ldap_object = ldap.initialize(ldap_address)
         self.ldap_object.protocol_version = self.ldap_protocol_version
 
+        # Start SASL secure connection:
+        sasl_auth = ldap.sasl.sasl({} ,'GSSAPI')
+        self.ldap_object.sasl_interactive_bind_s("", sasl_auth)
+
     def initialize_user_processor(self, *args, **kwargs):
         self.user_processor = self.user_processor_class(*args, **kwargs)
         self.user_processor.ldap_connection = self
@@ -550,6 +554,12 @@ class KagraPeopleLdap(LigoPeopleLdap):
             if (self.kagra_dn_key_substring in ''.join(val[1].keys())):
                 filtered_results.append(val)
         return filtered_results
+
+    def initialize(self):
+        ldap_address = '{host}:{port}'.format(host=self.ldap_host,
+            port=self.ldap_port)
+        self.ldap_object = ldap.initialize(ldap_address)
+        self.ldap_object.protocol_version = self.ldap_protocol_version
 
     def perform_query(self):
         ldap_result_id = self.ldap_object.search(self.base_dn,

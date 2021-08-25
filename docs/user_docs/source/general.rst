@@ -43,7 +43,7 @@ These interfaces represent the information in GraceDB in different ways:
 the web interface naturally represents information as HTML pages, whereas
 the REST interface delivers JSON-serialized data.
 
-The `ligo-gracedb client package <https://gw.readthedocs.io/ligo-gracedb>`__ provides a convenient way to interact with the REST API.
+The `ligo-gracedb client package <https://ligo-gracedb.readthedocs.io/>`__ provides a convenient way to interact with the REST API.
 This package includes a Python client class with methods for all common GraceDB operations.
 There is also a ``gracedb`` executable for the command line with much of the same functionality.
 

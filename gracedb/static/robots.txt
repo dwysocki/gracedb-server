@@ -1,2 +1,23 @@
+# Custom robots.txt file. Modified by AEP 2021/06/03.
+
+# Block everything from everyone:
+#User-agent: *
+#Disallow: /
+
+# I would like the public events page to be public and searchable
+# by search engines. That way, at least the SID's will show up. 
+# Everything else should be hidden. Documentation should be
+# visible too. 
+
 User-agent: *
-Disallow: /
+Disallow: /api/
+Disallow: /apiweb/
+Disallow: /superevents/
+Disallow: /events/
+Disallow: /search/
+Disallow: /alerts/
+
+# Logins paths:
+Disallow: /Shibboleth.sso/
+Disallow: /shibboleth-sp/
+Disallow: /login/

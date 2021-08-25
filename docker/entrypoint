@@ -25,13 +25,18 @@ LIST="aws_ses_access_key_id
   django_secret_key
   django_twilio_account_sid
   django_twilio_auth_token
-  lvalert_password"
+  lvalert_password
+  gracedb_ldap_keytab"
 
 for SECRET in $LIST
 do
         VARNAME=$( tr [:lower:] [:upper:] <<<$SECRET)
         [  -f /run/secrets/$SECRET ] && export $VARNAME="$(< /run/secrets/$SECRET)"
 done
+
+# get x509 cert for ldap access from environment variable. 
+echo "${GRACEDB_LDAP_KEYTAB}" | base64 -d | install -m 0600 /dev/stdin keytab
+kinit ldap/gracedb.ligo.org@LIGO.ORG -k -t keytab
 
 exec "$@"
 

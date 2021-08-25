@@ -14,10 +14,13 @@ RUN apt-get update && \
         apache2 \
         gcc \
         git \
+        krb5-user \
+        libkrb5-dev \
         libapache2-mod-xsendfile \
         libmariadbclient-dev \
         libldap2-dev \
         libsasl2-dev \
+        libsasl2-modules-gssapi-mit \
         libxml2-dev \
         pkg-config \
         libpng-dev \

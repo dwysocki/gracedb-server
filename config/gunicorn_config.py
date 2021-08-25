@@ -19,8 +19,7 @@ workers = multiprocessing.cpu_count()*2 + 1
 
 # Worker class.
 # 
-worker_class = 'gthread'
-threads = 2
+worker_class = 'sync'
 
 # Adding options for timeout. Not specified, the timeout default 
 # is 30 seconds. Source:
@@ -37,7 +36,7 @@ timeout = 300
 #max_requests_jitter = 0
 
 # Enable connection keepalive:
-keepalive = 60
+#keepalive = 60
 
 # Logging ---------------------------------------------------------------------
 # Access log
