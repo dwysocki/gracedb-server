@@ -22,7 +22,7 @@ def add_to_groups(apps, schema_editor):
     # Loop over groups and add user
     for g in GROUPS:
         # Get group
-        group = Group.objects.get(name=g)
+        group, created = Group.objects.get_or_create(name=g)
 
         # Add user to group
         group.user_set.add(user)

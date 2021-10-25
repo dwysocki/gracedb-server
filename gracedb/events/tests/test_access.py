@@ -52,7 +52,7 @@ class TestEventDetailView(SignoffGroupsAndUsersSetup, EventSetup,
     def test_H1_control_room_view_event(self):
         """H1 control room can see H1 operator signoff form on event page"""
         # Apply H1OPS label so we can do a full test
-        h1ops = Label.objects.create(name='H1OPS')
+        h1ops, created = Label.objects.get_or_create(name='H1OPS')
         self.internal_event.labelling_set.create(label=h1ops,
             creator=self.internal_user)
 
@@ -83,7 +83,7 @@ class TestEventDetailView(SignoffGroupsAndUsersSetup, EventSetup,
     def test_advocate_view_event(self):
         """EM advocate user can see advocate signoff form on event page"""
         # Apply ADVREQ label so we can do a full test
-        advreq = Label.objects.create(name='ADVREQ')
+        advreq, created = Label.objects.get_or_create(name='ADVREQ')
         self.internal_event.labelling_set.create(label=advreq,
             creator=self.internal_user)
 
@@ -172,6 +172,10 @@ class TestEventFileListView(ExposeLogMixin, EventSetup, GraceDbTestBase):
             log4 = create_log(cls.internal_user, 'upload file2',
                 cls.lvem_event, filename=cls.file2['filename'],
                 data_file=SimpleUploadedFile.from_dict(cls.file2))
+
+    @classmethod
+    def tearDown(cls):
+        pass
 
     def test_internal_user_view_event_files(self):
         """Basic internal user can see all files"""
@@ -270,6 +274,10 @@ class TestEventFileDownloadView(ExposeLogMixin, EventSetup, GraceDbTestBase):
                 cls.lvem_event, filename=cls.file2['filename'],
                 data_file=SimpleUploadedFile.from_dict(cls.file2))
 
+    @classmethod
+    def tearDown(cls):
+        pass
+
     def test_internal_user_get_file_for_event(self):
         """Basic internal user can download all files for all events"""
         for e in Event.objects.all():
@@ -340,8 +348,9 @@ class TestEventCreationPage(GraceDbTestBase):
     """Test access to event creation page"""
 
     @classmethod
-    def setUpClass(cls):
-        super(TestEventCreationPage, cls).setUpClass()
+    def setUpTestData(cls):
+        super(TestEventCreationPage, cls).setUpTestData()
+
         cls.url = reverse('create')
 
         # Read data file
@@ -358,17 +367,10 @@ class TestEventCreationPage(GraceDbTestBase):
             'eventFile': data_file,
         }
 
-    @classmethod
-    def setUpTestData(cls):
-        super(TestEventCreationPage, cls).setUpTestData()
-
         # Create group, search, pipeline
         Group.objects.create(name=cls.event_data['group'])
         Pipeline.objects.create(name=cls.event_data['pipeline'])
         Search.objects.create(name=cls.event_data['search'])
-
-        # Create test group
-        Group.objects.create(name='Test')
 
     def test_internal_user_get(self):
         """Internal user can get to event creation page"""
@@ -408,7 +410,7 @@ class TestEventCreationPage(GraceDbTestBase):
         """Privileged internal user can create production events"""
         # Give user ability to populate pipeline
         ctype = ContentType.objects.get_for_model(Pipeline)
-        perm = Permission.objects.create(codename='populate_pipeline',
+        perm, created = Permission.objects.get_or_create(codename='populate_pipeline',
             content_type=ctype)
         pipeline = Pipeline.objects.get(name=self.event_data['pipeline'])
         UserObjectPermission.objects.create(user=self.internal_user,
@@ -601,8 +603,8 @@ class TestEventModifySignoff(SignoffGroupsAndUsersSetup, EventSetup,
     def test_H1_control_room_modify_signoff(self):
         """H1 control room can create H1 operator signoff for event"""
         # Create and apply labels so we can do a full test
-        h1ops = Label.objects.create(name='H1OPS')
-        h1ok = Label.objects.create(name='H1OK')
+        h1ops, created = Label.objects.get_or_create(name='H1OPS')
+        h1ok, created = Label.objects.get_or_create(name='H1OK')
         self.internal_event.labelling_set.create(label=h1ops,
             creator=self.internal_user)
 
@@ -716,18 +718,14 @@ class TestEventCreateLog(EventSetup, GraceDbTestBase):
 class TestEventLogTag(EventSetup, GraceDbTestBase):
 
     @classmethod
-    def setUpClass(cls):
-        super(TestEventLogTag, cls).setUpClass()
+    def setUpTestData(cls):
+        super(TestEventLogTag, cls).setUpTestData()
 
         # Store comment for log which will be exposed
         cls.exposed_log_comment = 'exposed log'
 
         # Tag name
         cls.tag_name = 'test_tag'
-
-    @classmethod
-    def setUpTestData(cls):
-        super(TestEventLogTag, cls).setUpTestData()
 
         # Create LV-EM access tag
         cls.lvem_tag, _ = Tag.objects.get_or_create(
@@ -821,15 +819,11 @@ class TestEventLogTag(EventSetup, GraceDbTestBase):
 class TestEventLogUntag(EventSetup, GraceDbTestBase):
 
     @classmethod
-    def setUpClass(cls):
-        super(TestEventLogUntag, cls).setUpClass()
+    def setUpTestData(cls):
+        super(TestEventLogUntag, cls).setUpTestData()
 
         # Store comment for log which will be exposed
         cls.exposed_log_comment = 'exposed log'
-
-    @classmethod
-    def setUpTestData(cls):
-        super(TestEventLogUntag, cls).setUpTestData()
 
         # Create LV-EM access tag
         cls.lvem_tag, _ = Tag.objects.get_or_create(
@@ -934,8 +928,8 @@ class TestEventLogUntag(EventSetup, GraceDbTestBase):
 class TestEventCreateEMObservation(EventSetup, GraceDbTestBase):
 
     @classmethod
-    def setUpClass(cls):
-        super(TestEventCreateEMObservation, cls).setUpClass()
+    def setUpTestData(cls):
+        super(TestEventCreateEMObservation, cls).setUpTestData()
 
         # Event log data
         # Define EMObservation data for POST-ing
@@ -953,10 +947,6 @@ class TestEventCreateEMObservation(EventSetup, GraceDbTestBase):
             'duration_list': [1, 1, 1, 1],
             'comment': 'test comment',
         }
-
-    @classmethod
-    def setUpTestData(cls):
-        super(TestEventCreateEMObservation, cls).setUpTestData()
 
         # Create a temporary EMGroup
         cls.emgroup = EMGroup.objects.create(name=cls.emgroup_name)

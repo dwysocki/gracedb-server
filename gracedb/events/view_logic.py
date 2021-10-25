@@ -53,7 +53,7 @@ def _createEventFromForm(request, form):
         else:
             search = None
         # Create Event
-        if pipeline.name in ['gstlal', 'spiir', 'MBTAOnline', 'pycbc',]:
+        if pipeline.name in ['gstlal', 'spiir', 'MBTAOnline', 'MBTA', 'pycbc',]:
             event = CoincInspiralEvent()
         elif pipeline.name in ['Fermi', 'Swift', 'SNEWS','INTEGRAL','AGILE']:
             event = GrbEvent()

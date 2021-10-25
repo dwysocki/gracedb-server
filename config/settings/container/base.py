@@ -67,6 +67,20 @@ maintenance_mode = get_from_env(
     default_value=False,
     fail_if_not_found=False
 )
+
+# DB "cool-down" factor for when a db conflict is detected. This
+# factor scales a random number of seconds between zero and one.
+DB_SLEEP_FACTOR = get_from_env(
+        'DJANGO_DB_SLEEP_FACTOR',
+        default_value=1.0,
+        fail_if_not_found=False
+)
+# Fix the factor (str to float)
+try:
+    DB_SLEEP_FACTOR = float(DB_SLEEP_FACTOR)
+except:
+    DB_SLEEP_FACTOR = 1.0
+
 if (isinstance(maintenance_mode, str) and
     maintenance_mode.lower() in ['true', 't', '1']):
     MAINTENANCE_MODE = True
@@ -156,21 +170,20 @@ if PRIORITY_SERVER:
 
 
 # Database settings -----------------------------------------------------------
+
+# New postgresql database
+# Configured for the CI pipeline:
+# https://docs.gitlab.com/ee/ci/services/postgres.html
 DATABASES = {
     'default' : {
         'NAME': db_name,
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'USER': db_user,
         'PASSWORD': db_password,
         'HOST': os.environ.get('DJANGO_DB_HOST', ''),
         'PORT': os.environ.get('DJANGO_DB_PORT', ''),
-        'OPTIONS': {
-            'init_command': 'SET storage_engine=MyISAM',
-            # NOTE: for mysql>=5.7 this will need to be changed to
-            #'init_command': 'SET default_storage_engine=MyISAM',
-        },
         'CONN_MAX_AGE': 3600,
-    }
+    },
 }
 
 

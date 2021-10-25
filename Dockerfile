@@ -8,6 +8,8 @@ COPY docker/SWITCHaai-swdistrib.gpg /etc/apt/trusted.gpg.d
 COPY docker/backports.pref /etc/apt/preferences.d
 RUN echo 'deb http://pkg.switch.ch/switchaai/debian buster main' > /etc/apt/sources.list.d/shibboleth.list
 RUN echo 'deb http://deb.debian.org/debian buster-backports main' > /etc/apt/sources.list.d/backports.list
+RUN echo 'deb http://apt.postgresql.org/pub/repos/apt buster-pgdg main' > /etc/apt/sources.list.d/pgdg.list
+RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
 RUN apt-get update && \
     apt-get install --install-recommends --assume-yes \
@@ -17,21 +19,24 @@ RUN apt-get update && \
         krb5-user \
         libkrb5-dev \
         libapache2-mod-xsendfile \
-        libmariadbclient-dev \
         libldap2-dev \
         libsasl2-dev \
         libsasl2-modules-gssapi-mit \
         libxml2-dev \
         pkg-config \
         libpng-dev \
+        libpq-dev \
         libfreetype6-dev \
-        libmariadb-dev-compat \
         libxslt-dev \
         libsqlite3-dev \
         ligo-ca-certs \
-        mariadb-client \
         nodejs \
         osg-ca-certs \
+        php \
+        php7.3-mysql \
+        php7.3-pgsql \
+        php7.3-mbstring \
+        postgresql-client-12 \
         python3.7 \
         python3.7-dev \
         python3-libxml2 \
@@ -72,8 +77,7 @@ ADD . /app/gracedb_project
 WORKDIR /app/gracedb_project
 RUN bower install --allow-root
 RUN pip3 install --upgrade pip
-RUN pip3 install --upgrade setuptools wheel && \
-    pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 # install supervisor from pip
 RUN pip3 install supervisor

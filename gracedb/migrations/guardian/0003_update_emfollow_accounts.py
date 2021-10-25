@@ -30,7 +30,7 @@ def update_perms(apps, schema_editor):
         user = LocalUser.objects.get(username=username)
         for pipeline_name in pipelines:
             pipeline = Pipeline.objects.get(name=pipeline_name)
-            uop = UserObjectPermission.objects.get(user=user,
+            uop, created = UserObjectPermission.objects.get_or_create(user=user,
                 permission=perm, content_type=ctype, object_pk=pipeline.id)
             uop.delete()
 

@@ -19,16 +19,16 @@ before_script:
 .test: &test
   image: igwn/base:buster
   services:
-    - mysql:5.6
+    - postgres:12.5
   variables:
     AWS_SES_ACCESS_KEY_ID: "fake_aws_id"
     AWS_SES_SECRET_ACCESS_KEY: "fake_aws_key"
     DJANGO_ALERT_EMAIL_FROM: "fake_email"
-    DJANGO_DB_HOST: "mysql"
-    DJANGO_DB_PORT: "3306"
+    DJANGO_DB_HOST: "postgres"
+    DJANGO_DB_PORT: "5432"
     DJANGO_DB_NAME: "fake_name"
-    DJANGO_DB_USER: "root"
-    DJANGO_DB_PASSWORD: "fake_password"
+    DJANGO_DB_USER: "runner"
+    DJANGO_DB_PASSWORD: ""
     DJANGO_PRIMARY_FQDN: "fake_fqdn"
     DJANGO_SECRET_KEY: "fake_key"
     DJANGO_SETTINGS_MODULE: "config.settings.container.dev"
@@ -39,8 +39,10 @@ before_script:
     LVALERT_SERVER: "fake_server"
     LVALERT_USER: "fake_user"
     LVALERT_PASSWORD: "fake_password"
-    MYSQL_DB: "${DJANGO_DB_NAME}"
-    MYSQL_ROOT_PASSWORD: "${DJANGO_DB_PASSWORD}"
+    POSTGRES_DB: "${DJANGO_DB_NAME}"
+    POSTGRES_USER: "${DJANGO_DB_USER}"
+    POSTGRES_PASSWORD: "${DJANGO_DB_PASSWORD}"
+    POSTGRES_HOST_AUTH_METHOD: trust
   before_script:
     # create apt cache directory
     - mkdir -pv ${APT_CACHE_DIR}
@@ -49,6 +51,8 @@ before_script:
     - PYTHON_MAJOR="${PYTHON_VERSION:0:1}"
     - PYTHON="python3"
     # install build requirements
+    - sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+    - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
     - apt-get -yqq update
     - apt-get -o dir::cache::archives="${APT_CACHE_DIR}" install -yqq
           git
@@ -67,6 +71,9 @@ before_script:
           libmariadb-dev-compat 
           libxslt-dev
           ${PYTHON}-pip
+          postgresql-12 
+          postgresql-client-12 
+          libpq-dev
     # upgrade pip (requirement for lalsuite)
     - ${PYTHON} -m pip install --upgrade pip
     # install everything else from pip

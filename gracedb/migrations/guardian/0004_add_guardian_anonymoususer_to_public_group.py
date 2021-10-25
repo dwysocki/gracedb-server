@@ -17,7 +17,7 @@ def add_to_group(apps, schema_editor):
         guardian_settings.ANONYMOUS_USER_NAME)
 
     # Get public group
-    group = Group.objects.get(name=settings.PUBLIC_GROUP)
+    group, created = Group.objects.get_or_create(name=settings.PUBLIC_GROUP)
 
     # Add user to group
     group.user_set.add(user)

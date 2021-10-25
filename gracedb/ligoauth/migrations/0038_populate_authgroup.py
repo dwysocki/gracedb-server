@@ -104,7 +104,7 @@ def create_authgroups(apps, schema_editor):
 
     # Create AuthGroup instances
     for group in GROUP_DATA:
-        g = DjangoGroup.objects.get(name=group['name'])
+        g, created = DjangoGroup.objects.get_or_create(name=group['name'])
         ag = AuthGroup(group_ptr=g)
         ag.description = group['description']
 

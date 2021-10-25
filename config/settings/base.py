@@ -30,7 +30,7 @@ INFO_BANNER_ENABLED = False
 INFO_BANNER_MESSAGE = "TEST MESSAGE"
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.11.1-2'
+PROJECT_VERSION = '2.12.0'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -198,6 +198,7 @@ COINC_PIPELINES = [
                     'spiir',
                     'MBTAOnline',
                     'pycbc',
+                    'MBTA',
                    ]
 GRB_PIPELINES = [
                     'Fermi',
@@ -627,6 +628,10 @@ LOGGING = {
 # Turn off debug/error emails when in maintenance mode. 
 if MAINTENANCE_MODE:
     LOGGING['loggers']['django.request']['handlers'].remove('mail_admins')
+
+# Turn off logging emails of django requests:
+# FIXME: figure out more reliable logging solution
+LOGGING['loggers']['django.request']['handlers'].remove('mail_admins')
 
 # Define some words for the instance stub:
 ENABLED = {True: "enabled", False: "disabled"}

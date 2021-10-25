@@ -1416,15 +1416,12 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
     SupereventSetup, GraceDbApiTestBase):
 
     @classmethod
-    def setUpClass(cls):
-        super(TestSupereventLogList, cls).setUpClass()
+    def setUpTestData(cls):
+        super(TestSupereventLogList, cls).setUpTestData()
+
         cls.num_logs = 3
         cls.lvem_log_index = 1
         cls.public_log_index = 2
-
-    @classmethod
-    def setUpTestData(cls):
-        super(TestSupereventLogList, cls).setUpTestData()
         
         # Add logs to superevents
         comment = "test comment {n}"
@@ -1744,16 +1741,13 @@ class TestSupereventLogDetail(SupereventSetup, GraceDbApiTestBase):
     """Test GET-ing superevent log detail pages for all user classes"""
 
     @classmethod
-    def setUpClass(cls):
-        super(TestSupereventLogDetail, cls).setUpClass()
+    def setUpTestData(cls):
+        super(TestSupereventLogDetail, cls).setUpTestData()
+        
         cls.num_logs = 3
         cls.lvem_log_index = 1
         cls.public_log_index = 2
 
-    @classmethod
-    def setUpTestData(cls):
-        super(TestSupereventLogDetail, cls).setUpTestData()
-        
         # Add logs to superevents
         comment = "test comment {n}"
         for i in range(cls.num_logs):
@@ -1867,15 +1861,12 @@ class TestSupereventLogTagList(AccessManagersGroupAndUserSetup,
     """Test getting log tag lists and adding tags to logs"""
 
     @classmethod
-    def setUpClass(cls):
-        super(TestSupereventLogTagList, cls).setUpClass()
+    def setUpTestData(cls):
+        super(TestSupereventLogTagList, cls).setUpTestData()
+
         cls.num_logs = 3
         cls.lvem_log_index = 1
         cls.public_log_index = 2
-
-    @classmethod
-    def setUpTestData(cls):
-        super(TestSupereventLogTagList, cls).setUpTestData()
         
         # Add logs to superevents
         comment = "test comment {n}"
@@ -2203,16 +2194,13 @@ class TestSupereventLogTagDetail(AccessManagersGroupAndUserSetup,
     """Test getting log tag details and deleting tags"""
 
     @classmethod
-    def setUpClass(cls):
-        super(TestSupereventLogTagDetail, cls).setUpClass()
+    def setUpTestData(cls):
+        super(TestSupereventLogTagDetail, cls).setUpTestData()
+        
         cls.num_logs = 3
         cls.lvem_log_index = 1
         cls.public_log_index = 2
 
-    @classmethod
-    def setUpTestData(cls):
-        super(TestSupereventLogTagDetail, cls).setUpTestData()
-        
         # Add logs to superevents
         comment = "test comment {n}"
         for i in range(cls.num_logs):
@@ -2710,27 +2698,6 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
     """Test getting EMObservation list and creating EMObservations"""
 
     @classmethod
-    def setUpTestData(cls):
-        super(TestSupereventEMObservationList, cls).setUpTestData()
-
-        # Create a temporary EMGroup
-        cls.emgroup = EMGroup.objects.create(name=cls.emgroup_name)
-
-        # Create simple EMObservations
-        emo1 = EMObservation.objects.create(submitter=cls.internal_user,
-            superevent=cls.internal_superevent, group=cls.emgroup)
-        emo2 = EMObservation.objects.create(submitter=cls.internal_user,
-            superevent=cls.internal_superevent, group=cls.emgroup)
-        emo3 = EMObservation.objects.create(submitter=cls.internal_user,
-            superevent=cls.lvem_superevent, group=cls.emgroup)
-        emo4 = EMObservation.objects.create(submitter=cls.internal_user,
-            superevent=cls.lvem_superevent, group=cls.emgroup)
-        emo5 = EMObservation.objects.create(submitter=cls.internal_user,
-            superevent=cls.public_superevent, group=cls.emgroup)
-        emo6 = EMObservation.objects.create(submitter=cls.internal_user,
-            superevent=cls.public_superevent, group=cls.emgroup)
-
-    @classmethod
     def setUpClass(cls):
         super(TestSupereventEMObservationList, cls).setUpClass()
 
@@ -2749,6 +2716,23 @@ class TestSupereventEMObservationList(SupereventSetup, GraceDbApiTestBase):
             'duration_list': [1, 1, 1, 1],
             'comment': 'test comment',
         }
+
+        # Create a temporary EMGroup
+        cls.emgroup = EMGroup.objects.create(name=cls.emgroup_name)
+
+        # Create simple EMObservations
+        emo1 = EMObservation.objects.create(submitter=cls.internal_user,
+            superevent=cls.internal_superevent, group=cls.emgroup)
+        emo2 = EMObservation.objects.create(submitter=cls.internal_user,
+            superevent=cls.internal_superevent, group=cls.emgroup)
+        emo3 = EMObservation.objects.create(submitter=cls.internal_user,
+            superevent=cls.lvem_superevent, group=cls.emgroup)
+        emo4 = EMObservation.objects.create(submitter=cls.internal_user,
+            superevent=cls.lvem_superevent, group=cls.emgroup)
+        emo5 = EMObservation.objects.create(submitter=cls.internal_user,
+            superevent=cls.public_superevent, group=cls.emgroup)
+        emo6 = EMObservation.objects.create(submitter=cls.internal_user,
+            superevent=cls.public_superevent, group=cls.emgroup)
 
     def test_internal_user_get_list(self):
         """Internal user can get all EMObservations for all superevents"""
@@ -3024,6 +3008,20 @@ class TestSupereventFileList(SupereventSetup, GraceDbApiTestBase):
                 cls.public_superevent, filename=cls.file2['filename'],
                 data_file=SimpleUploadedFile.from_dict(cls.file2))
 
+    # I don't quite get what's going on here. setUpTestData is supposed to run
+    # once for a test class when a transactional db is being used. I found through
+    # testing that that it was being run, along with tearDown for the first half
+    # of the test methods in this class, but not for the others. This was causing
+    # errors for the subsequent half of the tests because teardown removes 
+    # /tmp/test_data, and so files weren't present. With this line I attempt to 
+    # override tearDown so that the files that get created don't get deleted. The 
+    # byproduct of this change is that files will keep piling up test after test, but
+    # I think the way the tests are structured will allow it to work anyway. 
+
+    @classmethod
+    def tearDown(cls):
+        pass
+
     def test_internal_user_get_list_for_superevent(self):
         """Internal user can see all files for all superevents"""
         for s in Superevent.objects.all():
@@ -3166,6 +3164,18 @@ class TestSupereventFileDetail(SupereventSetup, GraceDbApiTestBase):
             log6 = create_log(cls.internal_user, 'upload file2',
                 cls.public_superevent, filename=cls.file2['filename'],
                 data_file=SimpleUploadedFile.from_dict(cls.file2))
+
+    # Ran into 404 errors when trying to recall files from the superevents 
+    # created in SupereventSetup. I noticed through print statements that
+    # setUpTestData was being called, along with tearDown. I got a "file not
+    # found" error from os.listdir(self.lvem_superevent.datadir) so that makes
+    # me think that maybe the folder is being deleted but for some reason the 
+    # datadir isn't being updated in the db in between tests. So what if i just 
+    # prevented the datadir from being deleted? 
+
+    @classmethod
+    def tearDown(cls):
+        pass
 
     def test_internal_user_get_file_for_superevent(self):
         """Internal user can see all files for all superevents"""

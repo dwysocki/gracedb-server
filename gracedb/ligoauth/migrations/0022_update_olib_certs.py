@@ -15,7 +15,7 @@ def add_cert(apps, schema_editor):
 
 
     # Get user
-    user = User.objects.get(username=ACCOUNT['name'])
+    user, created = User.objects.get_or_create(username=ACCOUNT['name'])
 
     # Create new certificate
     user.x509cert_set.create(subject=ACCOUNT['new_cert'])

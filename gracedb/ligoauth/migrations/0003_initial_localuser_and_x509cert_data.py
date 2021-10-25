@@ -348,7 +348,7 @@ def add_localusers_and_x509certs(apps, schema_editor):
     Group = apps.get_model('auth', 'Group')
 
     # Create user accounts
-    lvc_group = Group.objects.get(name=LVC_GROUP)
+    lvc_group, created = Group.objects.get_or_create(name=LVC_GROUP)
     for l_dict in LOCALUSERS:
         localuser, created = LocalUser.objects.get_or_create(username=l_dict['username'])
         localuser.last_name = l_dict['last_name']

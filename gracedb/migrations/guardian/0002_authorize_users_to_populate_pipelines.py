@@ -141,7 +141,7 @@ def add_permissions(apps, schema_editor):
     perm = Permission.objects.get(codename='populate_pipeline')
     ctype = ContentType.objects.get_for_model(Pipeline)
     for pp_dict in PP_LIST:
-        pipeline = Pipeline.objects.get(name=pp_dict['pipeline'])
+        pipeline, created = Pipeline.objects.get_or_create(name=pp_dict['pipeline'])
 
         # Loop over users
         for username in pp_dict['usernames']:

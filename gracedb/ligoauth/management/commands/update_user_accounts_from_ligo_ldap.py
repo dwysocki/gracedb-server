@@ -1,6 +1,7 @@
 from builtins import str
 import datetime
 import ldap
+import pytz
 import re
 
 from django.conf import settings
@@ -167,6 +168,18 @@ class LdapPersonResultProcessor(object):
 
         if self.user_changed and self.verbose:
             self.write("User {0} updated".format(self.ligoldapuser.user.username))
+
+        # Add tzinfo to native datetimes for last_login:
+        if self.ligoldapuser.user.last_login:
+            if not self.ligoldapuser.user.last_login.tzinfo:
+                self.ligoldapuser.user.last_login = pytz.utc.localize(
+                        self.ligoldapuser.user.last_login)
+
+        # Add tzinfo to native datetimes for date_joined:
+        if self.ligoldapuser.user.date_joined:
+            if not self.ligoldapuser.user.date_joined.tzinfo:
+                self.ligoldapuser.user.date_joined = pytz.utc.localize(
+                        self.ligoldapuser.user.date_joined)
 
         self.ligoldapuser.user.save()
 

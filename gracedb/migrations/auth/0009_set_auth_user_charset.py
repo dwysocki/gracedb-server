@@ -26,10 +26,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            ["ALTER TABLE {table_name} DEFAULT CHARACTER SET UTF8".format(
-                table_name=TABLE_NAME)],
-            ["ALTER TABLE {table_name} CONVERT TO CHARACTER SET UTF8".format(
-                table_name=TABLE_NAME)],
-        )
+        #migrations.RunSQL(
+        #    ["ALTER TABLE {table_name} DEFAULT CHARACTER SET UTF8".format(
+        #        table_name=TABLE_NAME)],
+        #    ["ALTER TABLE {table_name} CONVERT TO CHARACTER SET UTF8".format(
+        #        table_name=TABLE_NAME)],
+        #)
     ]

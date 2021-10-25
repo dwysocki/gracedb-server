@@ -3,6 +3,7 @@ import logging
 
 from django.db import models, connection, IntegrityError
 from django.db.models import Q, Max
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db.models import QuerySet
@@ -14,6 +15,8 @@ from core.vfile import VersionedFile
 # Testing waiting:
 from time import sleep
 from random import random
+
+DB_SLEEP_FACTOR = settings.DB_SLEEP_FACTOR
 
 # Set up user model
 UserModel = get_user_model()
@@ -70,7 +73,6 @@ class AutoIncrementModel(models.Model):
 
         Requires AUTO_FIELD and AUTO_CONSTRAINTS to be defined.
         """
-
 
         # Check for the existence of the required fields:
         if not self.AUTO_CONSTRAINTS or not self.AUTO_FIELD:
@@ -131,7 +133,7 @@ class AutoIncrementModel(models.Model):
                 super(AutoIncrementModel, self).save(*args, **kwargs)
             except (IntegrityError, ValidationError):
                 logger.warning("Sleeping to stabilize database. try= {}, object={}".format(number_of_tries, self))
-                sleep(random())
+                sleep(DB_SLEEP_FACTOR * random())
                 number_of_tries += 1
                 if number_of_tries > 6:
                     raise

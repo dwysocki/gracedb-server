@@ -316,9 +316,11 @@ class TSVRenderer(BaseRenderer):
 
         header = "#" + "\t".join(columns)
         outTable = [header]
-        for e in data['events']:
-            row = [ accessFun.get(column, lambda e: defaultAccess(e,column))(e) for column in columns ]
-            outTable.append("\t".join(row))
+        #raise ValueError(data)
+        if 'events' in data:
+            for e in data['events']:
+                row = [ accessFun.get(column, lambda e: defaultAccess(e,column))(e) for column in columns ]
+                outTable.append("\t".join(row))
         outTable = "\n".join(outTable)
        
         return outTable

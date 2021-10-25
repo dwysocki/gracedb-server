@@ -124,6 +124,7 @@ class TestControlRoomMiddleware(GraceDbTestBase):
 
     @classmethod
     def setUpClass(cls):
+        super(TestControlRoomMiddleware, cls).setUpClass()
         # Make sure middleware is installed
         if not any(['ControlRoomMiddleware' in m for m in
            settings.MIDDLEWARE]):
@@ -236,8 +237,9 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
     """Test authentication using Shibboleth credentials in a web browser"""
 
     @classmethod
-    def setUpClass(cls):
-        super(TestShibbolethWebAuthMiddleware, cls).setUpClass()
+    def setUpTestData(cls):
+        super(TestShibbolethWebAuthMiddleware, cls).setUpTestData()
+
         # Make sure middleware is installed
         if not any(['ShibbolethWebAuthMiddleware' in m for m in
            settings.MIDDLEWARE]):
@@ -253,13 +255,17 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         # Attach middleware to class
         cls.mw_instance = ShibbolethWebAuthMiddleware()
 
-    @classmethod
-    def setUpTestData(cls):
-        super(TestShibbolethWebAuthMiddleware, cls).setUpTestData()
+        # Create robot group, or get an existing one. Removed the 
+        # extra ldap_name constraint because it was causing integrity errors
+        # with what was already in the db. This probably doesn't even matter
+        # because robot accounts aren't different than internal accounts anymore
 
-        # Create robot group
-        cls.robot_group = AuthGroup.objects.create(name='robot_accounts',
-            ldap_name='robot_accounts_ldap_name')
+        cls.robot_group,  created  = AuthGroup.objects.get_or_create(name='robot_accounts')
+
+    @classmethod
+    def tearDown(cls):
+        #super(TestShibbolethWebAuthMiddleware, cls).tearDown()
+        pass
 
     def test_internal_user_authentication_post_login(self):
         """
@@ -271,6 +277,7 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
             settings.SHIB_USER_HEADER: self.internal_user.username,
             settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
         })
+
         # Necessary pre-processing middleware
         SessionMiddleware().process_request(request)
         AuthenticationMiddleware().process_request(request)
@@ -662,7 +669,11 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         email1 = 'email1@email.com'
         email2 = 'email2@email.com'
         self.internal_user.email = email1
-        self.internal_user.save()
+        # I think there's some other attribute hanging around from 
+        # a previous test that was causing auth.authenticate to fail 
+        # in middleware.py. So *only* save the email field to the db 
+        # and move on. 
+        self.internal_user.save(update_fields=['email'])
 
         request = self.factory.get(self.url)
         request.META.update(**{

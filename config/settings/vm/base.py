@@ -7,18 +7,53 @@ from ..secret import *
 import socket
 
 # Nested dict of settings for all databases
+# Original mysql database
+#DATABASES = {
+#    'default' : {
+#        'NAME': 'gracedb',
+#        'ENGINE': 'django.db.backends.mysql',
+#        'USER': 'gracedb',
+#        'PASSWORD': DB_PASSWORD,
+#        'OPTIONS': {
+#            'init_command': 'SET storage_engine=MyISAM',
+#        },
+#    }
+#}
+
+# New postgresql database
 DATABASES = {
     'default' : {
         'NAME': 'gracedb',
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        #ENGINE': 'django.db.backends.postgresql',
         'USER': 'gracedb',
         'PASSWORD': DB_PASSWORD,
-        'OPTIONS': {
-            'init_command': 'SET storage_engine=MyISAM',
-        },
-    }
+        'HOST':'127.0.0.1',
+        'PORT':'5432',
+        'CONN_MAX_AGE': 3600,
+    },
 }
 
+# option to have both databases connected at the same time. Use with care.
+#DATABASES = {
+#    'default' : {
+#        'NAME': 'gracedb',
+#        'ENGINE': 'django.db.backends.mysql',
+#        'USER': 'gracedb',
+#        'PASSWORD': DB_PASSWORD,
+#        'OPTIONS': {
+#            'init_command': 'SET storage_engine=MyISAM',
+#        },
+#    },
+#    'pgsql' : {
+#        'NAME': 'gracedb',
+#        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#        'USER': 'gracedb',
+#        'PASSWORD': 'ligo150914',
+#        'HOST':'127.0.0.1',
+#        'PORT':'5432',
+#    }
+#}
 
 
 # Set up allowed hosts
@@ -78,3 +113,34 @@ CACHES = {
 }
  
 CACHE_MIDDLEWARE_SECONDS = 5
+
+# DB "cool-down" factor for when a db conflict is detected. This
+# factor scales a random number of seconds between zero and one.
+DB_SLEEP_FACTOR = get_from_env(
+        'DJANGO_DB_SLEEP_FACTOR',
+        default_value=1.0,
+        fail_if_not_found=False
+)
+# Fix the factor (str to float)
+try:
+    DB_SLEEP_FACTOR = float(DB_SLEEP_FACTOR)
+except:
+    DB_SLEEP_FACTOR = 1.0
+
+# REST_FRAMEWORK for djangorestframework-camel-case
+#REST_FRAMEWORK = {
+#
+#    'DEFAULT_RENDERER_CLASSES': (
+#        'djangorestframework_camel_case.render.CamelCaseJSONRenderer',
+#        'djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer',
+#    ),
+#
+#    'DEFAULT_PARSER_CLASSES': (
+#        'djangorestframework_camel_case.parser.CamelCaseFormParser',
+#        'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
+#        'djangorestframework_camel_case.parser.CamelCaseJSONParser',
+#    ),
+#    'JSON_UNDERSCOREIZE': {
+#        'no_underscore_before_number': True,
+#    },
+#}

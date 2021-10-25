@@ -11,20 +11,21 @@ ACCOUNT = {
 
 
 def add_cert(apps, schema_editor):
-    RobotUser = apps.get_model('ligoauth', 'RobotUser')
+    User = apps.get_model('auth', 'User')
 
     # Get user
-    user = RobotUser.objects.get(username=ACCOUNT['name'])
+    user = User.objects.get(username=ACCOUNT['name'])
+    #user, created = RobotUser.objects.get_or_create(username=ACCOUNT['name'])
 
     # Create new certificate
     user.x509cert_set.create(subject=ACCOUNT['new_cert'])
 
 
 def delete_cert(apps, schema_editor):
-    RobotUser = apps.get_model('ligoauth', 'RobotUser')
+    User = apps.get_model('auth', 'User')
 
     # Get user
-    user = RobotUser.objects.get(username=ACCOUNT['name'])
+    user = User.objects.get(username=ACCOUNT['name'])
 
     # Delete new certificate
     cert = user.x509cert_set.get(subject=ACCOUNT['new_cert'])

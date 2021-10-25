@@ -47,7 +47,7 @@ class TestSupereventDetailView(SignoffGroupsAndUsersSetup,
         """
 
         # Apply H1OPS label so we can do a full test
-        h1ops = Label.objects.create(name='H1OPS')
+        h1ops, created = Label.objects.get_or_create(name='H1OPS')
         self.internal_superevent.labelling_set.create(label=h1ops,
             creator=self.internal_user)
 
@@ -85,7 +85,7 @@ class TestSupereventDetailView(SignoffGroupsAndUsersSetup,
         """EM advocate user can see advocate signoff form on superevent page"""
 
         # Apply ADVREQ label so we can do a full test
-        advreq = Label.objects.create(name='ADVREQ')
+        advreq, created = Label.objects.get_or_create(name='ADVREQ')
         self.internal_superevent.labelling_set.create(label=advreq,
             creator=self.internal_user)
 
@@ -222,6 +222,10 @@ class TestSupereventFileListView(SupereventSetup, GraceDbTestBase):
             log6 = create_log(cls.internal_user, 'upload file2',
                 cls.public_superevent, filename=cls.file2['filename'],
                 data_file=SimpleUploadedFile.from_dict(cls.file2))
+
+    @classmethod
+    def tearDown(cls):
+        pass
 
     def test_internal_user_view_superevent_files(self):
         """Basic internal user can see all files"""
