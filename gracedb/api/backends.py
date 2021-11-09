@@ -9,7 +9,7 @@ from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.utils.http import unquote, unquote_plus
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.urls import resolve
 
 from rest_framework import authentication, exceptions
@@ -36,7 +36,8 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
 
         # Don't allow this auth type for AJAX requests, since we don't want it
         # to work for API requests made by the web views.
-        if request.is_ajax() and not self.allow_ajax:
+        #if request.is_ajax() and not self.allow_ajax:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' and not self.allow_ajax:
             return None
 
         # Call base class authenticate() method
@@ -86,7 +87,8 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
         # users with certificates in their browser can still authenticate via
         # this mechanism in the web view (since it makes API queries), even
         # when they are not logged in.
-        if request.is_ajax() and not self.allow_ajax:
+        #if request.is_ajax() and not self.allow_ajax:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' and not self.allow_ajax:
             return None
 
         # Try to get credentials from request headers.
@@ -229,7 +231,8 @@ class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
         # users with certificates in their browser can still authenticate via
         # this mechanism in the web view (since it makes API queries), even
         # when they are not logged in.
-        if request.is_ajax() and not self.allow_ajax:
+        #if request.is_ajax() and not self.allow_ajax:
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' and not self.allow_ajax:
             return None
 
         # Try to get certificate from request headers

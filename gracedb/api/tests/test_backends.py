@@ -93,7 +93,7 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
         request.META['HTTP_AUTHORIZATION'] = 'Basic {0}'.format(user_and_pass)
 
         # Authentication attempt should fail
-        with self.assertRaisesRegexp(exceptions.AuthenticationFailed,
+        with self.assertRaisesRegex(exceptions.AuthenticationFailed,
             'Your password has expired'):
             user, other = self.backend_instance.authenticate(request)
 

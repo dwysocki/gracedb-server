@@ -10,7 +10,7 @@ from django.shortcuts import resolve_url, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
-from django.utils.http import urlencode, is_safe_url
+from django.utils.http import urlencode, url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic.base import RedirectView
@@ -89,7 +89,7 @@ class ShibPostLoginView(SuccessURLAllowedHostsMixin, RedirectView):
 
     def get_redirect_url(self):
         redirect_to = self.request.GET.get(self.redirect_field_name, '')
-        url_is_safe = is_safe_url(
+        url_is_safe = url_has_allowed_host_and_scheme(
             url=redirect_to,
             allowed_hosts=self.get_success_url_allowed_hosts(),
             require_https=self.request.is_secure(),

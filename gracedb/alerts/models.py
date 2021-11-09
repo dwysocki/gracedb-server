@@ -2,14 +2,14 @@ from collections import defaultdict
 import logging
 import random
 import textwrap
+import six
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
 from django.core.mail import EmailMessage
 from django.db import models
-from django.utils import six, timezone
-from django.utils.encoding import python_2_unicode_compatible
+from django.utils import timezone
 from django.utils.http import urlencode
 
 from django_twilio.client import twilio_client
@@ -168,7 +168,6 @@ class Contact(CleanSaveModel):
 ###############################################################################
 # Notifications ###############################################################
 ###############################################################################
-@python_2_unicode_compatible
 class Notification(models.Model):
     # Notification categories
     NOTIFICATION_CATEGORY_EVENT = 'E'

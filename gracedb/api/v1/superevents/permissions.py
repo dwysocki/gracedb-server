@@ -222,7 +222,8 @@ class SupereventLogModelPermissions(FunctionalModelPermissions):
 
         required_permissions = []
         if ((tag_names == 'analyst_comments' or
-            tag_names == ['analyst_comments']) and request.is_ajax()):
+            tag_names == ['analyst_comments']) and request.headers.get('x-requested-with') == 'XMLHttpRequest'):
+            #tag_names == ['analyst_comments']) and request.is_ajax()):
             # Special case for log messages posted from the web interface
             # using AJAX.  I.e., if a message is posted from the web view
             # and only the default 'analyst_comments' tag is attached,

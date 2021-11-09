@@ -303,7 +303,8 @@ def logentry(request, event, num=None):
     else:
         return HttpResponseBadRequest
 
-    if not request.is_ajax():
+    #if not request.is_ajax():
+    if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return HttpResponseRedirect(reverse('view', args=[event.graceid]))
 
     rv = {}
@@ -573,7 +574,8 @@ def taglogentry(request, event, num, tagname):
         return HttpResponseBadRequest
 
     # Hopefully, this will only ever be called from inside a script.  Just in case...
-    if not request.is_ajax():
+    #if not request.is_ajax():
+    if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return HttpResponseRedirect(reverse('view', args=[event.graceid]))
 
     # no need for a JSON response. 

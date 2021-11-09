@@ -2,8 +2,7 @@ from __future__ import absolute_import
 import decimal
 from decimal import InvalidOperation
 import logging
-
-from django.utils import six
+import six
 
 from rest_framework import exceptions, fields
 
