@@ -353,10 +353,12 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
     rv['superevent'] = getattr(event.superevent, 'superevent_id', None)
 
     # list all neighbouring s events within time window
-    nearby_superevents = Superevent.objects.filter(t_0__gte=event.gpstime-settings.EVENT_SUPEREVENT_WINDOW_BEFORE, 
+    if not event.gpstime:
+        rv['superevent_neighbours'] = None
+    else:
+        nearby_superevents = Superevent.objects.filter(t_0__gte=event.gpstime-settings.EVENT_SUPEREVENT_WINDOW_BEFORE, 
                              t_0__lte=event.gpstime+settings.EVENT_SUPEREVENT_WINDOW_AFTER)
-
-    rv['superevent_neighbours'] = [getattr(s_event, 'superevent_id', None) for s_event in nearby_superevents]
+        rv['superevent_neighbours'] = [getattr(s_event, 'superevent_id', None) for s_event in nearby_superevents]
 
     # Links
     rv['links'] = {
