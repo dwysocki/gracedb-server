@@ -645,3 +645,7 @@ INSTANCE_STUB = """
 # Upgrading to django 3.2 produces warning: "Auto-created primary key used 
 # when not defining a primary key type, by default 'django.db.models.AutoField'.
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+# Define window for neighbouring s events of a given g event.
+EVENT_SUPEREVENT_WINDOW_BEFORE = 60
+EVENT_SUPEREVENT_WINDOW_AFTER = 60

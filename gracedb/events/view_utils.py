@@ -7,6 +7,7 @@ from django.utils.html import escape, urlize
 from django.utils.safestring import mark_safe
 
 from .models import SingleInspiral, Event, Search, Group
+from superevents.models import Superevent
 
 from core.urls import build_absolute_uri
 from .permission_utils import is_external
@@ -350,6 +351,12 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
 
     # Add superevent information
     rv['superevent'] = getattr(event.superevent, 'superevent_id', None)
+
+    # list all neighbouring s events within time window
+    nearby_superevents = Superevent.objects.filter(t_0__gte=event.gpstime-settings.EVENT_SUPEREVENT_WINDOW_BEFORE, 
+                             t_0__lte=event.gpstime+settings.EVENT_SUPEREVENT_WINDOW_AFTER)
+
+    rv['superevent_neighbours'] = [getattr(s_event, 'superevent_id', None) for s_event in nearby_superevents]
 
     # Links
     rv['links'] = {
