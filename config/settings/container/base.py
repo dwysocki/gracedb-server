@@ -52,6 +52,27 @@ lvalert_password = os.environ.get('LVALERT_PASSWORD', None)
 if lvalert_password is None:
     raise ImproperlyConfigured('Could not get LVAlert password from envvars.')
 
+# Get igwn-alert server
+igwn_alert_server = os.environ.get('IGWN_ALERT_SERVER', None)
+if lvalert_server is None:
+    raise ImproperlyConfigured('Could not get igwn-alert server from envvars.')
+
+# Get igwn-alert Overseer listen port
+igwn_alert_overseer_port = os.environ.get('IGWN_ALERT_OVERSEER_PORT', None)
+if lvalert_overseer_port is None:
+    raise ImproperlyConfigured('Could not get igwn-alert overseer port '
+        'from envvars.')
+
+# Get igwn-alert username
+igwn_alert_user = os.environ.get('IGWN_ALERT_USER', None)
+if lvalert_user is None:
+    raise ImproperlyConfigured('Could not get igwn-alert username from envvars.')
+
+# Get igwn-alert password
+igwn_alert_password = os.environ.get('IGWN_ALERT_PASSWORD', None)
+if lvalert_password is None:
+    raise ImproperlyConfigured('Could not get igwn-alert password from envvars.')
+
 # Get Twilio account information from environment
 TWILIO_ACCOUNT_SID = os.environ.get('DJANGO_TWILIO_ACCOUNT_SID', None)
 if TWILIO_ACCOUNT_SID is None:
@@ -261,6 +282,12 @@ LVALERT_OVERSEER_INSTANCES = [
         "listen_port": int(lvalert_overseer_port),
         "username": lvalert_user,
         "password": lvalert_password,
+    },
+    {
+        "lvalert_server": igwn_alert_server,
+        "listen_port": int(igwn_alert_overseer_port),
+        "username": igwn_alert_user,
+        "password": igwn_alert_password,
     },
 ]
 
