@@ -132,6 +132,10 @@ LVALERT_OVERSEER_INSTANCES = [
         "lvalert_server": "lvalert-test.cgca.uwm.edu",
         "listen_port": 8001,
     },
+    {
+        "lvalert_server": "kafka://kafka.scimma.org/",
+        "listen_port": 8002,
+    },
 ]
 
 # Access and authorization ----------------------------------------------------
