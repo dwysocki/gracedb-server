@@ -593,7 +593,7 @@ def create_emobservation_for_superevent(superevent, submitter, ra_list,
 def create_voevent_for_superevent(superevent, issuer, voevent_type,
     skymap_type=None, skymap_filename=None, internal=True, open_alert=False,
     hardware_inj=False, CoincComment=False, ProbHasNS=None,
-    ProbHasRemnant=None, BNS=None, NSBH=None, BBH=None, Terrestrial=None,
+    ProbHasRemnant=None, ProbHasMassGap=None, BNS=None, NSBH=None, BBH=None, Terrestrial=None,
     MassGap=None, add_log_message=True, issue_alert=True,
     combined_skymap_filename=None, raven_coinc=False):
 
@@ -603,7 +603,8 @@ def create_voevent_for_superevent(superevent, issuer, voevent_type,
         skymap_filename=skymap_filename, internal=internal,
         open_alert=open_alert, hardware_inj=hardware_inj,
         coinc_comment=CoincComment, prob_has_ns=ProbHasNS,
-        prob_has_remnant=ProbHasRemnant, prob_bns=BNS, prob_nsbh=NSBH,
+        prob_has_remnant=ProbHasRemnant, prob_has_massgap=ProbHasMassGap,
+        prob_bns=BNS, prob_nsbh=NSBH,
         prob_bbh=BBH, prob_terrestrial=Terrestrial, prob_mass_gap=MassGap,
         combined_skymap_filename=combined_skymap_filename, 
         raven_coinc=raven_coinc)

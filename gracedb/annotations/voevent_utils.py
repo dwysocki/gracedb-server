@@ -473,7 +473,19 @@ def construct_voevent_file(obj, voevent, request=None):
                      "merger (both objects lighter than 3 solar masses)")
                 em_bright_params.append(p_pbns)
 
-            if voevent.prob_nsbh is not None:
+            if (voevent.prob_nsbh is not None) and (voevent.prob_mass_gap is None):
+                p_pnsbh = vp.Param(
+                    "NSBH",
+                    value=voevent.prob_nsbh,
+                    ucd="stat.probability",
+                    ac=True
+                )
+                p_pnsbh.Description = \
+                    ("Probability that the source is a neutron star-black "
+                     "hole merger (secondary lighter than 3 solar masses)")
+                em_bright_params.append(p_pnsbh)
+
+            if (voevent.prob_nsbh is not None) and (voevent.prob_mass_gap is not None):
                 p_pnsbh = vp.Param(
                     "NSBH",
                     value=voevent.prob_nsbh,
@@ -486,7 +498,19 @@ def construct_voevent_file(obj, voevent, request=None):
                      "secondary lighter than 3 solar masses)")
                 em_bright_params.append(p_pnsbh)
 
-            if voevent.prob_bbh is not None:
+            if (voevent.prob_bbh is not None) and (voevent.prob_mass_gap is None):
+                p_pbbh = vp.Param(
+                    "BBH",
+                    value=voevent.prob_bbh,
+                    ucd="stat.probability",
+                    ac=True
+                )
+                p_pbbh.Description = ("Probability that the source is a "
+                                      "binary black hole merger (both objects "
+                                      "heavier than 3 solar masses)")
+                em_bright_params.append(p_pbbh)
+
+            if (voevent.prob_bbh is not None) and (voevent.prob_mass_gap is not None):
                 p_pbbh = vp.Param(
                     "BBH",
                     value=voevent.prob_bbh,
@@ -546,6 +570,18 @@ def construct_voevent_file(obj, voevent, request=None):
                                              "was ejected outside the central "
                                              "remnant object")
                 source_properties_params.append(p_phasremnant)
+
+            if voevent.prob_has_massgap is not None:
+                p_phasmassgap = vp.Param(
+                    "HasMassGap",
+                    value=voevent.prob_has_massgap,
+                    ucd="stat.probability",
+                    ac=True
+                )
+                p_phasmassgap.Description = ("Probability that at least one "
+                                             "object in the binary has a mass "
+                                             "between 3 and 5 solar masses")
+                source_properties_params.append(p_phasmassgap)
 
         elif isinstance(event, MultiBurstEvent):
             ### Central frequency
