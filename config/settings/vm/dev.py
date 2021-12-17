@@ -4,10 +4,11 @@
 import socket
 from .base import *
 
-CONFIG_NAME = "TEST"
+CONFIG_NAME = "DEV"
 
 # Debug settings
 DEBUG = True
+SEND_XMPP_ALERTS=True
 
 # Override EMBB email address
 # TP (8 Aug 2017): not sure why?
@@ -52,7 +53,19 @@ INSTANCE_TITLE = 'GraceDB Development VM'
 INSTANCE_LIST = INSTANCE_STUB.format(ENABLED[SEND_PHONE_ALERTS],
                                 ENABLED[SEND_EMAIL_ALERTS],
                                 LVALERT_OVERSEER_INSTANCES[0]['lvalert_server'],
+                                ENABLED[SEND_XMPP_ALERTS],
+                                LVALERT_OVERSEER_INSTANCES[1]['lvalert_server'],
                                 ENABLED[SEND_XMPP_ALERTS])
+
+# Add sub-bullet with igwn-alert group:
+if (len(LVALERT_OVERSEER_INSTANCES) == 2):
+    igwn_alert_group = os.environ.get('IGWN_ALERT_GROUP', 'lvalert-dev')
+    group_sub_bullet = """<ul>
+    <li> Messages are sent to group: <span class="text-monospace"> {0}  </span></li>
+    </ul>""".format(igwn_alert_group)
+
+INSTANCE_LIST = INSTANCE_LIST + group_sub_bullet
+
 INSTANCE_INFO = """
 <h5>Development Instance</h5>
 <hr>

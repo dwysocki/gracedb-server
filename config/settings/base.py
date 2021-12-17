@@ -30,7 +30,7 @@ INFO_BANNER_ENABLED = False
 INFO_BANNER_MESSAGE = "TEST MESSAGE"
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.12.0'
+PROJECT_VERSION = '2.12.1'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -131,6 +131,10 @@ LVALERT_OVERSEER_INSTANCES = [
     {
         "lvalert_server": "lvalert-test.cgca.uwm.edu",
         "listen_port": 8001,
+    },
+    {
+        "lvalert_server": "kafka://kafka.scimma.org/",
+        "listen_port": 8002,
     },
 ]
 
@@ -639,8 +643,12 @@ ENABLED = {True: "enabled", False: "disabled"}
 INSTANCE_STUB = """
 <li>Phone alerts (calls/SMS) are {0}</li>
 <li>Email alerts are {1}</li>
-<li>LVAlert messages to <span class="text-monospace">{2}</span> are {3}</li>
+<li><span class="text-monospace">LVAlert</span> messages to <span class="text-monospace">{2}</span> are {3}</li>
 """
+
+if (len(LVALERT_OVERSEER_INSTANCES) == 2):
+    INSTANCE_STUB = INSTANCE_STUB + \
+                    '<li><span class="text-monospace">igwn-alert</span> messages to <span class="text-monospace">{4}</span> are {5}</li>'
 
 # Upgrading to django 3.2 produces warning: "Auto-created primary key used 
 # when not defining a primary key type, by default 'django.db.models.AutoField'.
