@@ -271,8 +271,18 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
     if not event.gpstime:
         rv['superevent_neighbours'] = None
     else:
+        # Filter based on event type (prod, mdc, test):
+        if event.is_production():
+            s_category = 'P'
+        elif event.is_test():
+            s_category = 'T'
+        elif event.is_mdc():
+            s_category = 'M'
+
+        # Get nearby superevents, of the same type:
         nearby_superevents = Superevent.objects.filter(t_0__gte=event.gpstime-settings.EVENT_SUPEREVENT_WINDOW_BEFORE, 
-                             t_0__lte=event.gpstime+settings.EVENT_SUPEREVENT_WINDOW_AFTER)
+                             t_0__lte=event.gpstime+settings.EVENT_SUPEREVENT_WINDOW_AFTER,
+                             category=s_category)
         se_neighbour_dict = {}
         for s_event in nearby_superevents:
             # First assemble preferred event dict:
