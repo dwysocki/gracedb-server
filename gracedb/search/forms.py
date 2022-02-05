@@ -4,7 +4,7 @@ import logging
 from pyparsing import ParseException
 
 from django import forms
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 

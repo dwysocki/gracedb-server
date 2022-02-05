@@ -316,7 +316,6 @@ class TSVRenderer(BaseRenderer):
 
         header = "#" + "\t".join(columns)
         outTable = [header]
-        #raise ValueError(data)
         if 'events' in data:
             for e in data['events']:
                 row = [ accessFun.get(column, lambda e: defaultAccess(e,column))(e) for column in columns ]
@@ -783,7 +782,7 @@ class EventLabel(InheritPermissionsAPIView):
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
 
     @event_and_auth_required
-    def get(self, request, event, label):
+    def get(self, request, event, label=None):
         if label is not None:
             theLabel = event.labelling_set.filter(label__name=label).all()
             if len(theLabel) < 1:

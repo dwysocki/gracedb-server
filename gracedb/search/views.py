@@ -44,7 +44,8 @@ def search(request):
 
             # Get call from template for populating datatable
             if _format == 'F':
-                if not request.is_ajax():
+                #if not request.is_ajax():
+                if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     err_msg = ("You have tried to access an internal view "
                         "which is used for generating JavaScript search "
                         "results. Set 'results_format' to 'S' in your "

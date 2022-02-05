@@ -9,6 +9,7 @@ import os
 import pytz
 import re
 import shutil
+import six
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -17,9 +18,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, IntegrityError
 from django.urls import reverse
-from django.utils import six
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 
@@ -40,7 +39,6 @@ SUPEREVENT_DATE_START = datetime.datetime(1980, 1, 1, 0, 0, 0, 0, pytz.utc)
 SUPEREVENT_DATE_END = datetime.datetime(2080, 1, 1, 0, 0, 0, 0, pytz.utc)
 
 
-@python_2_unicode_compatible
 class Superevent(CleanSaveModel, AutoIncrementModel):
     """
     Superevent date-based IDs:
@@ -525,7 +523,6 @@ class LogUserObjectPermission(UserObjectPermissionBase):
     content_object = models.ForeignKey(Log, on_delete=models.CASCADE)
 
 
-@python_2_unicode_compatible
 class Labelling(m2mThroughBase):
     """
     Model which provides the 'through' relationship between Superevents and
@@ -557,7 +554,6 @@ class Labelling(m2mThroughBase):
         )
 
 
-@python_2_unicode_compatible
 class Signoff(CleanSaveModel, SignoffBase):
     """Class for superevent signoffs"""
     superevent = models.ForeignKey(Superevent, null=False,
@@ -599,7 +595,6 @@ class VOEvent(VOEventBase, AutoIncrementModel):
         super(Log, self).fileurl()
 
 
-@python_2_unicode_compatible
 class EMObservation(CleanSaveModel, EMObservationBase, AutoIncrementModel):
     """EMObservation class for superevents"""
     AUTO_FIELD = 'N'

@@ -6,7 +6,7 @@ import os
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from rest_framework import fields, serializers, validators
 from rest_framework.exceptions import ValidationError
@@ -424,7 +424,8 @@ class SupereventLogSerializer(serializers.ModelSerializer):
         # username.
         request = self.context.get('request', None)
         user = obj.issuer
-        if (request and request.is_ajax()):
+        #if (request and request.is_ajax()):
+        if (request and request.headers.get('x-requested-with') == 'XMLHttpRequest'):
             return (user.get_full_name() or user.get_username())
         return user.get_username()
 
@@ -835,7 +836,8 @@ class SupereventEMObservationSerializer(serializers.ModelSerializer):
         # username.
         request = self.context.get('request', None)
         user = obj.submitter
-        if (request and request.is_ajax()):
+        #if (request and request.is_ajax()):
+        if (request and request.headers.get('x-requested-with') == 'XMLHttpRequest'):
             return (user.get_full_name() or user.get_username())
         return user.get_username()
 

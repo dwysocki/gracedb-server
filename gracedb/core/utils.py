@@ -1,7 +1,7 @@
 import logging
 import string
 
-from django.utils.six import string_types
+from six import string_types
 
 # Set up logger
 logger = logging.getLogger(__name__)

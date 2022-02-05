@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.utils.deprecation import MiddlewareMixin
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from packaging import specifiers
 import logging

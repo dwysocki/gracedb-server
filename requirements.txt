@@ -1,13 +1,20 @@
 ConcurrentLogHandler==0.9.1
 cryptography==3.3.2
-Django==2.2.19
-django-debug-toolbar==1.9.1
+### Django==2.2.19
+Django==3.2.9
+### django-debug-toolbar==1.9.1
+django-debug-toolbar==3.2.2
 django-extensions==2.2.9
-django-guardian==2.2.0
-django-model-utils==4.0.0
-django-ses==1.0.3
-django-silk==4.1.0
-django-twilio==0.13.0
+### django-guardian==2.2.0
+django-guardian==2.4.0
+### django-model-utils==4.0.0
+django-model-utils==4.2.0
+### django-ses==1.0.3
+django-ses==2.3.0
+### django-silk==4.1.0
+django-silk==4.2.0
+### django-twilio==0.13.0
+django-twilio==0.13.2
 django-user-sessions==1.7.1
 djangorestframework==3.12.2
 djangorestframework-guardian==0.3.0
@@ -38,6 +45,7 @@ scipy==1.6.1
 sentry-sdk==0.7.10
 service_identity==17.0.0
 simplejson==3.15.0
+six==1.16.0
 Sphinx==1.7.0
 sphinx-rtd-theme
 twilio==6.10.3

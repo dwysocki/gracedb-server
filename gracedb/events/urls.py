@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path
 
 # Import views
 from . import views
@@ -7,56 +7,56 @@ from . import views
 urlpatterns = [
     # Actual web views --------------------------------------------------------
     # Main site home page
-    url(r'^$', views.index, name="home-events"),
+    re_path(r'^$', views.index, name="home-events"),
 
     # Event creation page
-    url(r'^create/$', views.create, name="create"),
+    re_path(r'^create/$', views.create, name="create"),
 
     # Event detail page
-    url(r'^(?P<graceid>[GEHMT]\d+)/view/$', views.view, name="view"),
+    re_path(r'^(?P<graceid>[GEHMT]\d+)/view/$', views.view, name="view"),
 
     # Event file list and file download
-    url(r'^(?P<graceid>[GEHMT]\d+)/files/$', views.file_list,
+    re_path(r'^(?P<graceid>[GEHMT]\d+)/files/$', views.file_list,
         name="file_list"),
-    url(r'^(?P<graceid>[GEHMT]\d+)/files/(?P<filename>.*)$',
+    re_path(r'^(?P<graceid>[GEHMT]\d+)/files/(?P<filename>.*)$',
         views.file_download, name="file-download"),
 
     # Neighbors
-    url((r'^(?P<graceid>[GEHMT]\d+)/neighbors/\(?(?P<delta1>[-+]?\d+)'
+    re_path((r'^(?P<graceid>[GEHMT]\d+)/neighbors/\(?(?P<delta1>[-+]?\d+)'
          '(,(?P<delta2>[-+]?\d+)\)?)?/$'), views.neighbors, name="neighbors"),
 
     # Form processing ---------------------------------------------------------
     # Modify permissions
-    url(r'^(?P<graceid>[GEHMT]\d+)/perms/$', views.modify_permissions,
+    re_path(r'^(?P<graceid>[GEHMT]\d+)/perms/$', views.modify_permissions,
         name="modify_permissions"),
     # Modify signoffs
-    url(r'^(?P<graceid>[GEHMT]\d+)/signoff/$', views.modify_signoff,
+    re_path(r'^(?P<graceid>[GEHMT]\d+)/signoff/$', views.modify_signoff,
         name="modify_signoff"),
     # Create log entry
-    url(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>([\d]*|preview))$',
+    re_path(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>([\d]*|preview))$',
         views.logentry, name="logentry"),
     # Add tag to log
-    url(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>\d+)/tag/(?P<tagname>.*)$',
+    re_path(r'^(?P<graceid>[GEHMT]\d+)/log/(?P<num>\d+)/tag/(?P<tagname>.*)$',
         views.taglogentry, name="taglogentry"),
     # Process EMObservation
-    url(r'^(?P<graceid>[GEHMT]\d+)/emobservation/(?P<num>([\d]*|preview))$',
+    re_path(r'^(?P<graceid>[GEHMT]\d+)/emobservation/(?P<num>([\d]*|preview))$',
         views.emobservation_entry, name="emobservation_entry"),
 
     # Manage pipelines
-    url(r'^pipelines/manage/$', views.PipelineManageView.as_view(),
+    re_path(r'^pipelines/manage/$', views.PipelineManageView.as_view(),
         name='manage-pipelines'),
-    url(r'^pipelines/(?P<pk>\d+)/enable/$', views.PipelineEnableView.as_view(),
+    re_path(r'^pipelines/(?P<pk>\d+)/enable/$', views.PipelineEnableView.as_view(),
         name='enable-pipeline'),
-    url(r'^pipelines/(?P<pk>\d+)/disable/$',
+    re_path(r'^pipelines/(?P<pk>\d+)/disable/$',
         views.PipelineDisableView.as_view(), name='disable-pipeline'),
 
     # Legacy URLs -------------------------------------------------------------
     # Event detail
-    url(r'^view/(?P<graceid>[GEHMT]\d+)', views.view, name="legacyview"),
-    url(r'^(?P<graceid>[GEHMT]\d+)$', views.view, name="legacyview2"),
+    re_path(r'^view/(?P<graceid>[GEHMT]\d+)', views.view, name="legacyview"),
+    re_path(r'^(?P<graceid>[GEHMT]\d+)$', views.view, name="legacyview2"),
 
     # Neighbors
-    url((r'^neighbors/(?P<graceid>[GEHMT]\d+)/\(?(?P<delta1>[-+]?\d+)'
+    re_path((r'^neighbors/(?P<graceid>[GEHMT]\d+)/\(?(?P<delta1>[-+]?\d+)'
          '(,(?P<delta2>[-+]?\d+)\)?)?'), views.neighbors,
         name="legacyneighbors"),
 ]

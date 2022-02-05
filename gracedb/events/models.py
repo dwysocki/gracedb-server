@@ -1,13 +1,12 @@
 from math import isnan
 import numbers
+import six
 
 from django.db import models, IntegrityError
 from django.db.models import NOT_PROVIDED
 from django.urls import reverse
 from django.core.exceptions import ValidationError
-from django.utils import six
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from model_utils.managers import InheritanceManager
 
@@ -61,7 +60,6 @@ SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 schema_version = "1.1"
 
 
-@python_2_unicode_compatible
 class Group(models.Model):
     name = models.CharField(max_length=20)
 
@@ -69,7 +67,6 @@ class Group(models.Model):
         return six.text_type(self.name)
 
 
-@python_2_unicode_compatible
 class Pipeline(models.Model):
     PIPELINE_TYPE_EXTERNAL = 'E'
     PIPELINE_TYPE_OTHER = 'O'
@@ -117,7 +114,6 @@ class PipelineLog(models.Model):
         choices=PIPELINE_LOG_ACTION_CHOICES)
 
 
-@python_2_unicode_compatible
 class Search(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -130,7 +126,6 @@ class Search(models.Model):
 # Label color will be used in CSS, see
 # https://www.w3schools.com/colors/colors_names.asp for
 # allowed color choices
-@python_2_unicode_compatible
 class Label(models.Model):
     name = models.CharField(max_length=20, unique=True)
     # XXX really, does this belong here? probably not.
@@ -159,7 +154,6 @@ class Label(models.Model):
         pass
 
 
-@python_2_unicode_compatible
 class Event(models.Model):
 
     objects = InheritanceManager() # Queries can return subclasses, if available.
@@ -490,7 +484,6 @@ class EventLog(CleanSaveModel, LogBase, AutoIncrementModel):
             return None
 
 
-@python_2_unicode_compatible
 class EMGroup(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
@@ -570,7 +563,6 @@ class EMObservationBase(models.Model):
         self.decWidth = decmax-decmin
 
 
-@python_2_unicode_compatible
 class EMObservation(EMObservationBase, AutoIncrementModel):
     """EMObservation class for events"""
     AUTO_FIELD = 'N'
@@ -635,7 +627,6 @@ class EMFootprint(EMFootprintBase, AutoIncrementModel):
         unique_together = (('observation', 'N'),)
 
 
-@python_2_unicode_compatible
 class Labelling(m2mThroughBase):
     """
     Model which provides the "through" relationship between Events and Labels.
@@ -925,7 +916,6 @@ class SimInspiralEvent(Event):
         return cls._field_names
 
 # Tags (user-defined log message attributes)
-@python_2_unicode_compatible
 class Tag(CleanSaveModel):
     """
     Model for tags attached to EventLogs.
@@ -1153,7 +1143,6 @@ class SignoffBase(models.Model):
             return 'ADV' + self.opposite_status
 
 
-@python_2_unicode_compatible
 class Signoff(SignoffBase):
     """Class for Event signoffs"""
 
@@ -1228,7 +1217,6 @@ EMSPECTRUM = (
 
 # TP (2 Apr 2018): pretty sure this class is deprecated - most recent
 # production use is T137114 = April 2015.
-@python_2_unicode_compatible
 class EMBBEventLog(AutoIncrementModel):
     """EMBB EventLog:  A multi-purpose annotation for EM followup.
 

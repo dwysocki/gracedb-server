@@ -393,7 +393,8 @@ def eventLogToDict(log, request=None):
     # Show full name for web interface views (fetched via AJAX), unless it's
     # blank, then show username.  Show username outside of web view.
     user_display = log.issuer.get_username()
-    if (request and request.is_ajax()):
+    #if (request and request.is_ajax()):
+    if (request and request.headers.get('x-requested-with') == 'XMLHttpRequest'):
         user_display = log.issuer.get_full_name() or log.issuer.get_username()
 
     return {
@@ -469,7 +470,8 @@ def emObservationToDict(emo, request=None):
     # Show full name for web interface views (fetched via AJAX), unless it's
     # blank, then show username.  Show username outside of web view.
     user_display = emo.submitter.get_username()
-    if (request and request.is_ajax()):
+    #if (request and request.is_ajax()):
+    if (request and request.headers.get('x-requested-with') == 'XMLHttpRequest'):
         user_display = emo.submitter.get_full_name() or \
             emo.submitter.get_username()
 
