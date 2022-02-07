@@ -7,25 +7,10 @@ from ..secret import *
 import socket
 
 # Nested dict of settings for all databases
-# Original mysql database
-#DATABASES = {
-#    'default' : {
-#        'NAME': 'gracedb',
-#        'ENGINE': 'django.db.backends.mysql',
-#        'USER': 'gracedb',
-#        'PASSWORD': DB_PASSWORD,
-#        'OPTIONS': {
-#            'init_command': 'SET storage_engine=MyISAM',
-#        },
-#    }
-#}
-
-# New postgresql database
 DATABASES = {
     'default' : {
         'NAME': 'gracedb',
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        #ENGINE': 'django.db.backends.postgresql',
         'USER': 'gracedb',
         'PASSWORD': DB_PASSWORD,
         'HOST':'127.0.0.1',
@@ -33,28 +18,6 @@ DATABASES = {
         'CONN_MAX_AGE': 3600,
     },
 }
-
-# option to have both databases connected at the same time. Use with care.
-#DATABASES = {
-#    'default' : {
-#        'NAME': 'gracedb',
-#        'ENGINE': 'django.db.backends.mysql',
-#        'USER': 'gracedb',
-#        'PASSWORD': DB_PASSWORD,
-#        'OPTIONS': {
-#            'init_command': 'SET storage_engine=MyISAM',
-#        },
-#    },
-#    'pgsql' : {
-#        'NAME': 'gracedb',
-#        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#        'USER': 'gracedb',
-#        'PASSWORD': 'ligo150914',
-#        'HOST':'127.0.0.1',
-#        'PORT':'5432',
-#    }
-#}
-
 
 # Set up allowed hosts
 SERVER_FQDN = socket.getfqdn()

@@ -30,7 +30,7 @@ INFO_BANNER_ENABLED = False
 INFO_BANNER_MESSAGE = "TEST MESSAGE"
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.12.1'
+PROJECT_VERSION = '2.13.0'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -646,10 +646,13 @@ INSTANCE_STUB = """
 <li><span class="text-monospace">LVAlert</span> messages to <span class="text-monospace">{2}</span> are {3}</li>
 """
 
+<<<<<<< HEAD
 if (len(LVALERT_OVERSEER_INSTANCES) == 2):
     INSTANCE_STUB = INSTANCE_STUB + \
                     '<li><span class="text-monospace">igwn-alert</span> messages to <span class="text-monospace">{4}</span> are {5}</li>'
 
+=======
+>>>>>>> master
 # Upgrading to django 3.2 produces warning: "Auto-created primary key used 
 # when not defining a primary key type, by default 'django.db.models.AutoField'.
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
