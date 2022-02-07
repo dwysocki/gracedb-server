@@ -57,7 +57,19 @@ body {
     <p >
     The <b>Gra</b>vitational-Wave <b>C</b>andidate <b>E</b>vent <b>D</b>ata<b>b</b>ase (<b>GraceDB</b>) is a service operated by the <a href="https://www.ligo.org/">LIGO Scientific Collaboration</a>. It provides a centralized location for aggregating and retrieving information about candidate gravitational-wave events. GraceDB provides an <a href="{% url "legacy_apiweb:default:root" %}">API</a> for programmatic access, and a <a href="https://ligo-gracedb.readthedocs.io/">client package</a> is available for interacting with the API.
     </p>
-   <br>
+    <div style="border:3px; border-style:solid; border-color:#FF0000; padding:
+        1.25em; border-radius: 10px;">
+    <b> Attention LVK Users: </b> LVAlert will be decommissioned in August 2022.
+    Please transition your follow-up workflows to <a
+                                                      href="https://git.ligo.org/lscsoft/igwn-alert"><span
+                                                      class="text-monospace">igwn-alert</span></a>.
+    For more information, please consult:
+    <li> <a href="https://lscsoft.docs.ligo.org/igwn-alert/lvalert_to_igwnalert.html">
+            The LVAlert to igwn-alert transition guide </a></li>
+    <li><a href="https://lscsoft.docs.ligo.org/igwn-alert/guide.html">The
+            igwn-alert User Guide </a></li>
+    </div>
+    <br>
    <h5>Useful information</h5>
     <hr>
     <li >Information about GW alerts and real-time data products is available in the <a href="https://emfollow.docs.ligo.org/userguide/">LIGO/Virgo Public Alert Guide</a>.</li>
