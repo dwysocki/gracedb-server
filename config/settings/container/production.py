@@ -57,6 +57,25 @@ if sentry_dsn is not None:
     # Turn off default admin error emails
     LOGGING['loggers']['django.request']['handlers'] = []
 
+# Home page stuff
+INSTANCE_TITLE = 'GraceDB Playground'
+INSTANCE_LIST = INSTANCE_STUB.format(ENABLED[SEND_PHONE_ALERTS],
+                                ENABLED[SEND_EMAIL_ALERTS],
+                                LVALERT_OVERSEER_INSTANCES[0]['lvalert_server'],
+                                ENABLED[SEND_XMPP_ALERTS])
+INSTANCE_INFO = """
+<h5>GraceDB Notifications</h5>
+<hr>
+<p>
+GraceDB notifies registered users of Gravitational-Wave candidate detections 
+in real-time during LIGO/Virgo/KAGRA observation periods. Current notifications 
+mechanisms are:
+</p>
+<ul>
+{}
+</ul>
+""".format(INSTANCE_LIST)
+
 # Safety check on debug mode for production
 if (DEBUG == True):
     raise RuntimeError("Turn off debug mode for production")

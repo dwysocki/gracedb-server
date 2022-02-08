@@ -30,7 +30,7 @@ INFO_BANNER_ENABLED = False
 INFO_BANNER_MESSAGE = "TEST MESSAGE"
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.12.1'
+PROJECT_VERSION = '2.13.0'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is

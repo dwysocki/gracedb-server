@@ -35,8 +35,6 @@ timeout = 300
 #max_requests = 0
 #max_requests_jitter = 0
 
-# Enable connection keepalive:
-#keepalive = 60
 
 # Logging ---------------------------------------------------------------------
 # Access log
