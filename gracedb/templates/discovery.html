@@ -9,13 +9,28 @@
 {% endblock %}
 
 {% block content %}
-
+<div class="d-flex p-2 flex-column justify-content-center">
 <div id="idpSelect"> 
 </div> 
 
 <div>
     <script src="/shibboleth-ds/idpselect_config.js" type="text/javascript" language="javascript"></script>
     <script src="/shibboleth-ds/idpselect.js" type="text/javascript" language="javascript"></script>
+</div>
+
+<br>
+
+<div id="consent" style="width:389px; padding:15px">
+    <p>This site uses cookies to manage sessions, but not track activity across
+    other sites or services.</p>
+
+    <p>Identifying information is obtained from the Identity Provider and your
+    IP address. These data are used to record annotations to GraceDB and its
+    associated data products. Log files are stored and used in security audits and problem
+    resolution.</p>
+
+    <p>By proceeding, you are consenting to the use of cookies for this session.</p>
+</div>
 </div>
 
 {% endblock %}
