@@ -12,13 +12,15 @@ The different types of events in GraceDB are distinguished by the following para
 - ``Group``: the working group responsible for finding the candidate
     - values: ``CBC``, ``Burst``, ``External``, ``Test`` 
 - ``Pipeline``: the data analysis software tool used make the detection 
-    - values: ``MBTAOnline``, ``CWB``, ``CWB2G``, ``gstlal``, ``spiir``, ``HardwareInjection``, ``Fermi``, ``Swift``, ``INTEGRAL``, ``AGILE``, ``SNEWS``, ``oLIB``
+    - values: ``MBTA``, ``MBTAOnline``, ``CWB``, ``CWB2G``, ``gstlal``, ``pycbc``, ``spiir``, ``HardwareInjection``, ``Fermi``, ``Swift``, ``INTEGRAL``, ``AGILE``, ``SNEWS``, ``oLIB``
 - ``Search``: the search activity which led to the detection 
-    - values: ``AllSky``, ``AllSkyLong``, ``LowMass``, ``HighMass``, ``GRB``, ``Supernova``, ``MDC``, ``BBH``
+    - values: ``AllSky``, ``AllSkyLong``, ``LowMass``, ``HighMass``, ``GRB``, ``Supernova``, ``MDC``, ``BBH``, ``EarlyWarning``, ``IMBH``, ``SubGRB``, ``SubGRBTargeted``
 
 An individual "event stream" is specified by setting the values of these three parameters.
 For example, choosing ``Group=CBC``, ``Pipeline=gstlal``, and ``Search=LowMass`` selects the event stream consisting of low-mass inspiral events detected by the gstlal pipeline from the CBC group.
 This framework was chosen in order avoid situations where events from different sources would overlap in searches and alerts. 
+
+.. _base_event_model:
 
 Base event model
 ----------------
@@ -31,6 +33,12 @@ These are:
 - ``instruments``: the interferometers involved in the detection
 - ``far``: the false alarm rate in Hz
 - ``gpstime``: the time at which the event occurred (a.k.a. "Event time")
+- ``superevent``: the ``superevent_id`` of the event' parent superevent, if
+  applicable
+- ``superevent_neighbours``: superevents currently in GraceDB whose ``t_0`` is
+  within a set time window of the event's ``gpstime`` (currently ± 100s). Value
+  is a dictionary, whose key is the ``superevent_id`` and value is the
+  :ref:`superevent dictionary<superevent_data_model>`
 
 The base event class was created with GW events in mind, so not all of the fields will be applicable for any given event.
 For example, ``instruments`` and ``far`` do not apply to a Swift GRB event.
@@ -53,6 +61,7 @@ CBC pipelines (gstlal, spiir, PyCBC, MBTAOnline)
 
 .. literalinclude:: dicts/event_cbc.json
   :language: JSON
+  :force:
 
 CWB
 ~~~
@@ -84,6 +93,8 @@ In order to collect the information about a single physical event in one place, 
 
 A downstream process which is separate from GraceDB listens for event creations, analyzes their attributes, and determines how to aggregate events into superevents.
 
+.. _superevent_data_model:
+
 Data model
 ----------
 The main attributes of the superevent data model are:
@@ -92,6 +103,9 @@ The main attributes of the superevent data model are:
 - ``gw_id``: a unique date-based ID only assigned to superevents which are confirmed GWs (Example: ``GW180915BC``; more information below in :ref:`superevent_date_ids`)
 - ``category``: superevent category (``Production``, ``Test``, or ``MDC``); more information below in :ref:`superevent_categories` 
 - ``gw_events``: list of graceids corresponding to Event objects which are part of this superevent and were submitted by GW analysis pipelines
+- ``preferred_event``: the ``graceid`` of the superevent's preferred event
+- ``preferred_event_data``: the :ref:`event dictionary<base_event_model>` of the
+  superevent preferred event
 - ``em_events``: list of graceids corresponding to Event objects which are part of this superevent and are in the "External" group (i.e., were observed by electromagnetic or neutrino telescopes)
 - ``created``:  time at which the superevent was created
 - ``submitter``: user who created the superevent
