@@ -2,6 +2,7 @@ import logging
 import os
 
 from django.conf import settings
+from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import Group as DjangoGroup
@@ -528,6 +529,26 @@ def get_superevent_by_date_id_or_404(superevent_id, queryset=None):
         queryset = Superevent.objects.all()
 
     return get_object_or_404(queryset, **filter_kwargs)
+
+
+def get_superevent_by_sid_or_gwid_or_404(superevent_id, queryset=None):
+
+    if queryset is None:
+        queryset = Superevent.objects.all()
+
+    # Filter superevent_id, which is equal to the gw_id if is_gw is True,
+    # and equal to the default_superevent_id otherwise.
+
+    sid_filt = Q (superevent_id = superevent_id)
+
+    # Also filter by the default_superevent_id, in the case that there's a
+    # mixed query between gw's and non-gw's. This is an attempt to reproduce
+    # the previous behavior.
+
+    dsid_filt = Q(default_superevent_id = superevent_id)
+
+    return get_object_or_404(queryset, sid_filt | dsid_filt)
+
 
 
 def confirm_superevent_as_gw(superevent, user, add_log_message=True,

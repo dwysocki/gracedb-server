@@ -4,7 +4,6 @@ from .base import *
 DEBUG = False
 
 # Turn on alerts
-SEND_XMPP_ALERTS = True
 SEND_PHONE_ALERTS = True
 SEND_EMAIL_ALERTS = True
 
@@ -59,10 +58,7 @@ if sentry_dsn is not None:
 
 # Home page stuff
 INSTANCE_TITLE = 'GraceDB Playground'
-INSTANCE_LIST = INSTANCE_STUB.format(ENABLED[SEND_PHONE_ALERTS],
-                                ENABLED[SEND_EMAIL_ALERTS],
-                                LVALERT_OVERSEER_INSTANCES[0]['lvalert_server'],
-                                ENABLED[SEND_XMPP_ALERTS])
+
 INSTANCE_INFO = """
 <h5>GraceDB Notifications</h5>
 <hr>

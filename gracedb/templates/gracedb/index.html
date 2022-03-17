@@ -74,14 +74,18 @@ body {
     <hr>
     <li >Information about GW alerts and real-time data products is available in the <a href="https://emfollow.docs.ligo.org/userguide/">LIGO/Virgo Public Alert Guide</a>.</li>
     <li ><a href="https://monitor.ligo.org/ldg">Real-time status of the LIGO Data Grid</a>.</li>
-    <li >Need help? Send an email to <a href="mailto:computing-help@igwn.org">computing-help@igwn.org</a>, or LIGO/Virgo users can report issues on the GraceDB <a href="https://git.ligo.org/lscsoft/gracedb/issues">Gitlab page</a>.</li>
+    <li >Need help? Send an email to <a
+            href="mailto:computing-help@igwn.org">computing-help@igwn.org</a>,
+        or LIGO/Virgo users can report issues on the GraceDB <a
+                                                                 href="https://git.ligo.org/computing/gracedb/server/issues">Gitlab page</a>.</li>
     </ul>
     <br>
 {% if information %}
     {{ information|safe }}
 {% endif %}
      <br>
-    <p ><small><b>Server code version: </b> <a href="https://git.ligo.org/lscsoft/gracedb/tree/gracedb-{{server_version}}" class="text-monospace" >{{server_version}}</a></p></small>
+    <p ><small><b>Server code version: </b> <a
+            href="https://git.ligo.org/computing/gracedb/server/-/tree/gracedb-{{server_version}}" class="text-monospace" >{{server_version}}</a></p></small>
 </div>
 
 <!--XXX Infrastructure for human signoffs. Hopefully this will not be permanent. -->

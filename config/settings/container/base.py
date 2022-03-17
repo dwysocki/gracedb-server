@@ -31,6 +31,48 @@ if SERVER_FQDN is None:
     raise ImproperlyConfigured('Could not get FQDN from envvars.')
 LIGO_FQDN = SERVER_FQDN
 
+# Turn LVAlert on/off from the environment. Adding this
+# to turn lvalerts on/off from docker compose/update instead
+# of having to rebuild containers. If the environment variable
+# isn't set, then revert to the hardwired behavior:
+xmpp_env_var = get_from_env('SEND_LVALERT_XMPP_ALERTS',
+                   default_value=SEND_XMPP_ALERTS,
+                   fail_if_not_found=False)
+# Fix for other boolean values:
+if (isinstance(xmpp_env_var, str) and
+    xmpp_env_var.lower() in ['true','t','1']):
+    SEND_XMPP_ALERTS=True
+elif (isinstance(xmpp_env_var, str) and
+    xmpp_env_var.lower() in ['false','f','0']):
+    SEND_XMPP_ALERTS=False
+else:
+    SEND_XMPP_ALERTS = True
+
+
+# Get lvalert_overseer status:
+lvalert_on  = get_from_env(
+    'ENABLE_LVALERT_OVERSEER',
+    default_value=False,
+    fail_if_not_found=False
+)
+if (isinstance(lvalert_on, str) and
+    lvalert_on.lower() in ['true', 't', '1']):
+        lvalert_overseer_on  = True
+else:
+    lvalert_overseer_on  = False
+
+# Get igwn_alert_overseer status:
+igwn_alert_on  = get_from_env(
+    'ENABLE_IGWN_OVERSEER',
+    default_value=False,
+    fail_if_not_found=False
+)
+if (isinstance(igwn_alert_on, str) and
+    igwn_alert_on.lower() in ['true', 't', '1']):
+        igwn_alert_overseer_on  = True
+else:
+    igwn_alert_overseer_on  = False
+
 # Get LVAlert server
 lvalert_server = os.environ.get('LVALERT_SERVER', None)
 if lvalert_server is None:
@@ -51,6 +93,27 @@ if lvalert_user is None:
 lvalert_password = os.environ.get('LVALERT_PASSWORD', None)
 if lvalert_password is None:
     raise ImproperlyConfigured('Could not get LVAlert password from envvars.')
+
+# Get igwn-alert server
+igwn_alert_server = os.environ.get('IGWN_ALERT_SERVER', None)
+if lvalert_server is None:
+    raise ImproperlyConfigured('Could not get igwn-alert server from envvars.')
+
+# Get igwn-alert Overseer listen port
+igwn_alert_overseer_port = os.environ.get('IGWN_ALERT_OVERSEER_PORT', None)
+if lvalert_overseer_port is None:
+    raise ImproperlyConfigured('Could not get igwn-alert overseer port '
+        'from envvars.')
+
+# Get igwn-alert username
+igwn_alert_user = os.environ.get('IGWN_ALERT_USER', None)
+if lvalert_user is None:
+    raise ImproperlyConfigured('Could not get igwn-alert username from envvars.')
+
+# Get igwn-alert password
+igwn_alert_password = os.environ.get('IGWN_ALERT_PASSWORD', None)
+if lvalert_password is None:
+    raise ImproperlyConfigured('Could not get igwn-alert password from envvars.')
 
 # Get Twilio account information from environment
 TWILIO_ACCOUNT_SID = os.environ.get('DJANGO_TWILIO_ACCOUNT_SID', None)
@@ -255,14 +318,41 @@ except:
 SERVER_HOSTNAME = SERVER_FQDN.split('.')[0]
 
 # LVAlert Overseer settings - get from environment
+LVALERT_OVERSEER_INSTANCES = []
 LVALERT_OVERSEER_INSTANCES = [
     {
         "lvalert_server": lvalert_server,
         "listen_port": int(lvalert_overseer_port),
         "username": lvalert_user,
         "password": lvalert_password,
-    },
-]
+    }]
+
+if igwn_alert_overseer_on:
+    LVALERT_OVERSEER_INSTANCES.append(
+    {
+        "lvalert_server": igwn_alert_server,
+        "listen_port": int(igwn_alert_overseer_port),
+        "username": igwn_alert_user,
+        "password": igwn_alert_password,
+    }
+    )
+
+INSTANCE_STUB = """
+<li>Phone alerts (calls/SMS) are {0}</li>
+<li>Email alerts are {1}</li>
+<li><span class="text-monospace">LVAlert</span> messages to <span class="text-monospace">{2}</span> are {3}</li>
+"""
+
+INSTANCE_LIST = INSTANCE_STUB.format(ENABLED[SEND_PHONE_ALERTS],
+                                ENABLED[SEND_EMAIL_ALERTS],
+                                LVALERT_OVERSEER_INSTANCES[0]['lvalert_server'],
+                                ENABLED[SEND_XMPP_ALERTS])
+
+if (len(LVALERT_OVERSEER_INSTANCES) == 2):
+    IGWN_STUB = '<li><span class="text-monospace">igwn-alert</span> messages to <span class="text-monospace">{0}</span> are {1}</li>'
+    IGWN_LIST = IGWN_STUB.format(LVALERT_OVERSEER_INSTANCES[1]['lvalert_server'],
+                                ENABLED[SEND_XMPP_ALERTS])
+    INSTANCE_LIST = INSTANCE_LIST + IGWN_LIST
 
 # Use full client certificate to authenticate
 REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = (

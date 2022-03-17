@@ -116,9 +116,9 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
 
             # Log message
             logger.info(("issue_xmpp_alerts: sending alert type {alert_type} "
-                "with message {msg_id} for {uid} to {node}").format(
+                "with message {msg_id} for {uid} to {node} on {server}").format(
                 alert_type=alert_type, msg_id=message_id, uid=uid,
-                node=node_name))
+                node=node_name, server=server))
 
             # Try to send with LVAlert Overseer (if enabled)
             success = False

@@ -12,23 +12,6 @@ DEBUG = False
 # TP (8 Aug 2017): not sure why?
 EMBB_MAIL_ADDRESS = 'gracedb@{fqdn}'.format(fqdn=SERVER_FQDN)
 
-# Turn LVAlert on/off from the environment. Adding this
-# to turn lvalerts on/off from docker compose/update instead
-# of having to rebuild containers. If the environment variable
-# isn't set, then revert to the hardwired behavior:
-xmpp_env_var = get_from_env('SEND_LVALERT_XMPP_ALERTS',
-                   default_value=SEND_XMPP_ALERTS,
-                   fail_if_not_found=False)
-# Fix for other boolean values:
-if (isinstance(xmpp_env_var, str) and
-    xmpp_env_var.lower() in ['true','t','1']):
-    SEND_XMPP_ALERTS=True
-elif (isinstance(xmpp_env_var, str) and
-    xmpp_env_var.lower() in ['false','f','0']):
-    SEND_XMPP_ALERTS=False
-else:
-    SEND_XMPP_ALERTS = True
-
 # Enforce that phone and email alerts are off
 SEND_PHONE_ALERTS = False
 SEND_EMAIL_ALERTS = False
@@ -38,10 +21,15 @@ ALLOWED_HOSTS += ['testserver']
 
 # Home page stuff
 INSTANCE_TITLE = 'GraceDB Playground'
-INSTANCE_LIST = INSTANCE_STUB.format(ENABLED[SEND_PHONE_ALERTS],
-                                ENABLED[SEND_EMAIL_ALERTS],
-                                LVALERT_OVERSEER_INSTANCES[0]['lvalert_server'],
-                                ENABLED[SEND_XMPP_ALERTS])
+
+# Add sub-bullet with igwn-alert group:
+if (len(LVALERT_OVERSEER_INSTANCES) == 2):
+    igwn_alert_group = os.environ.get('IGWN_ALERT_GROUP', 'lvalert-dev')
+    group_sub_bullet = """<ul>
+    <li> Messages are sent to group: <span class="text-monospace"> {0}  </span></li>
+    </ul>""".format(igwn_alert_group)
+    INSTANCE_LIST = INSTANCE_LIST + group_sub_bullet
+
 INSTANCE_INFO = """
 <h5>Playground instance</h5>
 <hr>

@@ -44,6 +44,9 @@ class EventCreateMixin(object):
         # Create event and return
         event = Event.objects.create(**event_dict)
 
+        # Save event to trigger field computation:
+        event.save()
+
         # Make data directory (should get removed at the end by
         # GraceDbTestBase tearDown function)
         os.makedirs(event.datadir)

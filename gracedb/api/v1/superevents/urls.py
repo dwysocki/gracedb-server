@@ -1,4 +1,5 @@
 from django.urls import re_path, include
+from django.urls import path
 from django.views.decorators.cache import never_cache
 
 from .views import *
@@ -6,9 +7,8 @@ from .settings import SUPEREVENT_LOOKUP_REGEX
 
 
 # URL kwarg for superevent detail and nested pages
-SUPEREVENT_DETAIL_ROOT = '(?P<{lookup_url_kwarg}>{regex})'.format(
-    lookup_url_kwarg=SupereventViewSet.lookup_url_kwarg,
-    regex=SUPEREVENT_LOOKUP_REGEX)
+SUPEREVENT_DETAIL_ROOT = '<{lookup_url_kwarg}>'.format(
+    lookup_url_kwarg=SupereventViewSet.lookup_url_kwarg)
 
 # URLs which are nested below a single superevent detail
 # These are included under a superevent's id URL prefix (see below)
@@ -113,6 +113,6 @@ urlpatterns = [
         name='superevent-list'),
 
     # All sub-URLs for a single superevent
-    re_path(r'^{superevent_id}/'.format(superevent_id=SUPEREVENT_DETAIL_ROOT),
+    path('{superevent_id}/'.format(superevent_id=SUPEREVENT_DETAIL_ROOT),
         include(suburlpatterns)),
 ]

@@ -90,20 +90,20 @@ try:
 except:
     DB_SLEEP_FACTOR = 1.0
 
-# REST_FRAMEWORK for djangorestframework-camel-case
-#REST_FRAMEWORK = {
-#
-#    'DEFAULT_RENDERER_CLASSES': (
-#        'djangorestframework_camel_case.render.CamelCaseJSONRenderer',
-#        'djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer',
-#    ),
-#
-#    'DEFAULT_PARSER_CLASSES': (
-#        'djangorestframework_camel_case.parser.CamelCaseFormParser',
-#        'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
-#        'djangorestframework_camel_case.parser.CamelCaseJSONParser',
-#    ),
-#    'JSON_UNDERSCOREIZE': {
-#        'no_underscore_before_number': True,
-#    },
-#}
+INSTANCE_STUB = """
+<li>Phone alerts (calls/SMS) are {0}</li>
+<li>Email alerts are {1}</li>
+<li><span class="text-monospace">LVAlert</span> messages to <span class="text-monospace">{2}</span> are {3}</li>
+"""
+
+INSTANCE_LIST = INSTANCE_STUB.format(ENABLED[SEND_PHONE_ALERTS],
+                                ENABLED[SEND_EMAIL_ALERTS],
+                                LVALERT_OVERSEER_INSTANCES[0]['lvalert_server'],
+                                ENABLED[SEND_XMPP_ALERTS])
+
+if (len(LVALERT_OVERSEER_INSTANCES) == 2):
+    IGWN_STUB = '<li><span class="text-monospace">igwn-alert</span> messages to <span class="text-monospace">{0}</span> are {1}</li>'
+    IGWN_LIST = IGWN_STUB.format(LVALERT_OVERSEER_INSTANCES[1]['lvalert_server'],
+                                ENABLED[SEND_XMPP_ALERTS])
+    INSTANCE_LIST = INSTANCE_LIST + IGWN_LIST
+

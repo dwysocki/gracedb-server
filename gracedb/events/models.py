@@ -7,6 +7,7 @@ from django.db.models import NOT_PROVIDED
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from computedfields.models import ComputedFieldsModel, computed, compute
 
 from model_utils.managers import InheritanceManager
 
@@ -154,7 +155,7 @@ class Label(models.Model):
         pass
 
 
-class Event(models.Model):
+class Event(ComputedFieldsModel):
 
     objects = InheritanceManager() # Queries can return subclasses, if available.
 
@@ -224,15 +225,19 @@ class Event(models.Model):
     class Meta:
         ordering = ["-id"]
 
-    @property
+    @computed(models.CharField(max_length=32, null=True), 
+              depends=[['self', ['id']], 
+                       ['search', ['name']],
+                       ['pipeline',['name']],
+                       ['group',['name']]])
     def graceid(self):
-        if self.group.name == "Test":
+        if getattr(self.group, 'name', 'null')  == "Test":
             return "T%04d" % self.id
-        elif str(self.search) == str("MDC"):
+        elif getattr(self.search, 'name', 'null')  == "MDC":
             return "M%04d" % self.id
-        elif self.pipeline.name == "HardwareInjection":
+        elif getattr(self.pipeline, 'name', 'null')  == "HardwareInjection":
             return "H%04d" % self.id
-        elif self.group.name == "External":
+        elif getattr(self.group, 'name', 'null')  == "External":
             return "E%04d" % self.id
         return "G%04d" % self.id
 
@@ -321,22 +326,11 @@ class Event(models.Model):
         raise KeyError("Unknown analysis type code: %s" % code)
 
     @classmethod
-    def getByGraceid(cls, id):
+    def getByGraceid(cls, graceid):
         try:
-            e = cls.objects.filter(id=int(id[1:])).select_subclasses()[0]
-        except IndexError:
+            return cls.objects.filter(graceid=graceid).select_subclasses()[0]
+        except:
             raise cls.DoesNotExist("Event matching query does not exist")
-        if (id[0] == "T") and (e.group.name == "Test"):
-            return e
-        if (id[0] == "H") and (e.pipeline.name == "HardwareInjection"):
-            return e
-        if (id[0] == "E") and (e.group.name == "External"):
-            return e
-        if (id[0] == "M") and (e.search and e.search.name == "MDC"):
-            return e
-        if (id[0] == "G"):
-            return e
-        raise cls.DoesNotExist("Event matching query does not exist")
 
     def __str__(self):
         return six.text_type(self.graceid)
@@ -459,6 +453,17 @@ class Event(models.Model):
                 gops = GroupObjectPermission.objects.filter(object_pk=pk,
                     content_type=ctype)
                 gops.delete()
+
+    def save(self, *args, **kwargs):
+        """
+        A custom save function to that gets around the issue of having 
+        the event's gid depend explicitly on the pk.
+        """
+        if not self.id:
+            super(Event, self).save(skip_computedfields=True, *args, **kwargs)
+            compute(self, "graceid")
+        else:
+            super(Event, self).save()
 
 
 class EventLog(CleanSaveModel, LogBase, AutoIncrementModel):

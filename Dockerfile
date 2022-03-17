@@ -58,6 +58,7 @@ COPY docker/cleanup /usr/local/bin/cleanup
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker/supervisord-apache2.conf /etc/supervisor/conf.d/apache2.conf
 COPY docker/supervisord-lvalert-overseer.conf /etc/supervisor/conf.d/overseer.conf
+COPY docker/supervisord-igwn-alert-overseer.conf /etc/supervisor/conf.d/igwn-overseer.conf
 COPY docker/supervisord-shibd.conf /etc/supervisor/conf.d/shibd.conf
 COPY docker/shibboleth-ds /etc/shibboleth-ds
 COPY docker/apache-config /etc/apache2/sites-available/gracedb.conf
@@ -111,6 +112,11 @@ RUN DJANGO_SETTINGS_MODULE=${SETTINGS_MODULE} \
     LVALERT_PASSWORD=fake_password \
     LVALERT_SERVER=fake_server \
     LVALERT_OVERSEER_PORT=2 \
+    IGWN_ALERT_USER=fake_user \
+    IGWN_ALERT_PASSWORD=fake_password \
+    IGWN_ALERT_SERVER=fake_server \
+    IGWN_ALERT_OVERSEER_PORT=2 \
+    IGWN_ALERT_GROUP=fake_group \
     DJANGO_TWILIO_ACCOUNT_SID=fake_sid \
     DJANGO_TWILIO_AUTH_TOKEN=fake_token \
     DJANGO_AWS_ELASTICACHE_ADDR=fake_address:11211 \

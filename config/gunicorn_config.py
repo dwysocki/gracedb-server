@@ -19,7 +19,8 @@ workers = multiprocessing.cpu_count()*2 + 1
 
 # Worker class.
 # 
-worker_class = 'sync'
+worker_class = 'gthread'
+threads = 4
 
 # Adding options for timeout. Not specified, the timeout default 
 # is 30 seconds. Source:

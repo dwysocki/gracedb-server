@@ -23,6 +23,7 @@ from superevents.models import Superevent, Log, Signoff, VOEvent
 from superevents.utils import remove_tag_from_log, \
     remove_event_from_superevent, remove_label_from_superevent, \
     confirm_superevent_as_gw, get_superevent_by_date_id_or_404, \
+    get_superevent_by_sid_or_gwid_or_404, \
     expose_superevent, hide_superevent, delete_signoff
 from .filters import SupereventSearchFilter, SupereventOrderingFilter
 from .paginators import CustomSupereventPagination

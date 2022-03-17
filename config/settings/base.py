@@ -132,6 +132,10 @@ LVALERT_OVERSEER_INSTANCES = [
         "lvalert_server": "lvalert-test.cgca.uwm.edu",
         "listen_port": 8001,
     },
+    {
+        "lvalert_server": "kafka://kafka.scimma.org/",
+        "listen_port": 8002,
+    },
 ]
 
 # Access and authorization ----------------------------------------------------
@@ -367,6 +371,7 @@ INSTALLED_APPS = [
     'django_twilio',
     'django_extensions',
     'django.contrib.sessions',
+    'computedfields',
 ]
 
 # Aliases for django-extensions shell_plus
@@ -635,12 +640,6 @@ LOGGING['loggers']['django.request']['handlers'].remove('mail_admins')
 
 # Define some words for the instance stub:
 ENABLED = {True: "enabled", False: "disabled"}
-
-INSTANCE_STUB = """
-<li>Phone alerts (calls/SMS) are {0}</li>
-<li>Email alerts are {1}</li>
-<li>LVAlert messages to <span class="text-monospace">{2}</span> are {3}</li>
-"""
 
 # Upgrading to django 3.2 produces warning: "Auto-created primary key used 
 # when not defining a primary key type, by default 'django.db.models.AutoField'.

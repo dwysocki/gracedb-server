@@ -38,6 +38,7 @@ def create_grbevent(internal_group):
         pipeline=Pipeline.objects.create(name=settings.GRB_PIPELINES[0]),
         search=grb_search
     )
+    grbevent.save()
     p, _ = Permission.objects.get_or_create(
         content_type=ContentType.objects.get_for_model(GrbEvent),
         codename='change_grbevent'
@@ -187,6 +188,7 @@ def test_update_non_grbevent(grb_user, internal_group):
         group=Group.objects.create(name='External'),
         pipeline=Pipeline.objects.create(name='other_pipeline'),
     )
+    event.save()
     p, _ = Permission.objects.get_or_create(
         content_type=ContentType.objects.get_for_model(Event),
         codename='change_event'
