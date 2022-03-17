@@ -30,7 +30,7 @@ INFO_BANNER_ENABLED = False
 INFO_BANNER_MESSAGE = "TEST MESSAGE"
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.13.0'
+PROJECT_VERSION = '2.14.0'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -644,3 +644,7 @@ ENABLED = {True: "enabled", False: "disabled"}
 # Upgrading to django 3.2 produces warning: "Auto-created primary key used 
 # when not defining a primary key type, by default 'django.db.models.AutoField'.
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+# Define window for neighbouring s events of a given g event.
+EVENT_SUPEREVENT_WINDOW_BEFORE = 100
+EVENT_SUPEREVENT_WINDOW_AFTER = 100

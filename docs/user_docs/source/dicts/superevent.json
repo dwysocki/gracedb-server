@@ -1,29 +1,98 @@
 {
-    "category": "Test",
-    "created": "2018-09-19 18:28:54 UTC",
-    "em_events": [
-        "E0155"
-    ],
-    "far": 0.0000342353,
-    "gw_events": [
-        "T0133",
-        "T0142"
-    ],
-    "gw_id": null,
-    "labels": [],
-    "links": {
-        "emobservations": "https://gracedb.ligo.org/api/superevents/TS170101z/emobservations/",
-        "events": "https://gracedb.ligo.org/api/superevents/TS170101z/events/",
-        "files": "https://gracedb.ligo.org/api/superevents/TS170101z/files/",
-        "labels": "https://gracedb.ligo.org/api/superevents/TS170101z/labels/",
-        "logs": "https://gracedb.ligo.org/api/superevents/TS170101z/logs/",
-        "self": "https://gracedb.ligo.org/api/superevents/TS170101z/",
-        "voevents": "https://gracedb.ligo.org/api/superevents/TS170101z/voevents/"
-    }, 
-    "preferred_event": "T0133",
+  "superevent_id": "S220316r",
+  "gw_id": null,
+  "category": "Production",
+  "created": "2022-03-16 18:30:10 UTC",
+  "submitter": "albert.einstein@LIGO.ORG",
+  "preferred_event": "G194542",
+  "em_type": null,
+  "t_start": 1331490616.298529,
+  "t_0": 1331490617.298529,
+  "t_end": 1331490618.89512,
+  "gw_events": [
+    "G194543",
+    "G194542",
+    "G194541",
+    "G194540"
+  ],
+  "em_events": [],
+  "far": 9.652186314922026e-07,
+  "time_coinc_far": null,
+  "space_coinc_far": null,
+  "labels": [],
+  "links": {
+    "events": "https://gracedb-test.ligo.org/api/superevents/S220316r/events/",
+    "labels": "https://gracedb-test.ligo.org/api/superevents/S220316r/labels/",
+    "logs": "https://gracedb-test.ligo.org/api/superevents/S220316r/logs/",
+    "files": "https://gracedb-test.ligo.org/api/superevents/S220316r/files/",
+    "self": "https://gracedb-test.ligo.org/api/superevents/S220316r/",
+    "voevents": "https://gracedb-test.ligo.org/api/superevents/S220316r/voevents/",
+    "emobservations": "https://gracedb-test.ligo.org/api/superevents/S220316r/emobservations/"
+  },
+  "preferred_event_data": {
     "submitter": "albert.einstein@LIGO.ORG",
-    "superevent_id": "TS170101z",
-    "t_0": 1167264018.0,
-    "t_end": 1167264025.0,
-    "t_start": 1167264014.0
+    "created": "2022-03-16 18:30:00 UTC",
+    "group": "CBC",
+    "graceid": "G194542",
+    "pipeline": "gstlal",
+    "gpstime": 1331490617.298529,
+    "instruments": "H1,L1",
+    "nevents": 2,
+    "offline": true,
+    "search": "AllSky",
+    "far": 9.652186314922026e-07,
+    "far_is_upper_limit": false,
+    "likelihood": 7.102756279364618,
+    "labels": [
+      "SKYMAP_READY",
+      "PASTRO_READY"
+    ],
+    "extra_attributes": {},
+    "superevent": "S220316r",
+    "superevent_neighbours": {
+      "S220316r": {
+        "superevent_id": "S220316r",
+        "gw_events": [
+          "G194543",
+          "G194542",
+          "G194541",
+          "G194540"
+        ],
+        "preferred_event": "G194542",
+        "preferred_event_data": {
+          "submitter": "albert.einstein@LIGO.ORG",
+          "created": "2022-03-16 18:30:00 UTC",
+          "group": "CBC",
+          "graceid": "G194542",
+          "pipeline": "gstlal",
+          "gpstime": 1331490617.298529,
+          "instruments": "H1,L1",
+          "nevents": 2,
+          "offline": true,
+          "search": "AllSky",
+          "far": 9.652186314922026e-07,
+          "far_is_upper_limit": false,
+          "likelihood": 7.102756279364618,
+          "labels": [
+            "SKYMAP_READY",
+            "PASTRO_READY"
+          ],
+          "extra_attributes": {}
+        },
+        "far": 9.652186314922026e-07,
+        "t_start": 1331490616.298529,
+        "t_0": 1331490617.298529,
+        "t_end": 1331490618.89512
+      }
+    },
+    "links": {
+      "neighbors": "https://gracedb-test.ligo.org/api/events/G194542/neighbors/",
+      "log": "https://gracedb-test.ligo.org/api/events/G194542/log/",
+      "emobservations": "https://gracedb-test.ligo.org/api/events/G194542/emobservation/",
+      "files": "https://gracedb-test.ligo.org/api/events/G194542/files/",
+      "labels": "https://gracedb-test.ligo.org/api/events/G194542/labels/",
+      "self": "https://gracedb-test.ligo.org/api/events/G194542",
+      "tags": "https://gracedb-test.ligo.org/api/events/G194542/tag/"
+    }
+  }
 }

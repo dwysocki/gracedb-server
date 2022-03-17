@@ -7,6 +7,7 @@ from django.utils.html import escape, urlize
 from django.utils.safestring import mark_safe
 
 from .models import SingleInspiral, Event, Search, Group
+from superevents.models import Superevent
 
 from core.urls import build_absolute_uri
 from .permission_utils import is_external
@@ -125,9 +126,12 @@ def reverse(name, *args, **kw):
 #---------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------
 
-def eventToDict(event, columns=None, request=None, is_alert=False):
-    """Convert an Event to a dictionary."""
-    rv = {}
+def event_basic_info_to_dict(event, request):
+    # Return the basic information for an event in a dictionary.
+    # This was created to avoid copying/pasting code and to avoid recursive 
+    # loops when serializing event dicts in event dicts:
+
+    rv ={}
     graceid = event.graceid
     try:
       rv['submitter'] = event.submitter.username
@@ -160,196 +164,157 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
     rv['far'] = display_far
     rv['far_is_upper_limit'] = far_is_upper_limit
     rv['likelihood'] = event.likelihood
-    # TODO: changed by TP 17 Apr 2018.
-    # Can delete the following comment block in the near future
-    rv['labels'] = [l.name for l in event.labels.all()]
-    #rv['labels'] = dict([
-    #      (labelling.label.name,
-    #          reverse("labels",
-    #              args=[graceid, labelling.label.name],
-    #              request=request))
-    #      for labelling in event.labelling_set.all()])
-    # XXX Try to produce a dictionary of analysis specific attributes.  Duck typing.
+
+    return rv
+
+def event_labels_to_list(event):
+    # Again to avoid code duplication
+    return {'labels': [l.name for l in event.labels.all()]}
+
+def assemble_event_extra_attributes(event, request, is_alert):
+    # Produce a dictionary with extra attributes. If an individual 'try'
+    # fails, then the attributes for that block don't exist and the block
+    # is never stored in the dictionary.
+
     # XXX These extra attributes should only be seen by internal users.
     # So we only do this part if the user account is internal *OR* if this is
     # for an LVAlert
+
+    extra_attributes_dict = {}
+
     if ((request and request.user and not is_external(request.user)) or
         is_alert):
-        rv['extra_attributes'] = {}
+
         try:
             # GrbEvent
-            rv['extra_attributes']['GRB'] = {
-                  "ivorn" : event.ivorn,
-                  "author_ivorn" : event.author_ivorn,
-                  "author_shortname" : event.author_shortname,
-                  "observatory_location_id" : event.observatory_location_id,
-                  "coord_system" : event.coord_system,
-                  "ra" : event.ra,
-                  "dec" : event.dec,
-                  "error_radius" : event.error_radius,
-                  "how_description" : event.how_description,
-                  "how_reference_url" : event.how_reference_url,
-                  "T90" : event.t90,
-                  "trigger_duration": event.trigger_duration,
-                  "designation": event.designation,
-                  "redshift": event.redshift,
-                  "trigger_id": event.trigger_id,
-                  }
+            extra_attributes_dict['GRB'] = grb_to_dict(event.grbevent)
         except:
             pass
+            
         try:
             # CoincInspiralEvent
-            rv['extra_attributes']['CoincInspiral'] = {
-                  "ifos" : event.ifos,
-                  "end_time" : event.end_time,
-                  "end_time_ns" : event.end_time_ns,
-                  "mass" : event.mass,
-                  "mchirp" : event.mchirp,
-                  "minimum_duration" : event.minimum_duration,
-                  "snr" : event.snr,
-                  "false_alarm_rate" : event.false_alarm_rate,
-                  "combined_far" : event.combined_far,
-                  }
+            extra_attributes_dict['CoincInspiral'] = coincinspiral_to_dict(
+                    event.coincinspiralevent)
         except:
             pass
         try:
             # SimInspiralEvent
-            rv['extra_attributes']['SimInspiral'] = {
-                    "source_channel": event.source_channel,
-                    "destination_channel": event.destination_channel,
-                    "mass1": event.mass1,
-                    "mass2": event.mass2,
-                    "eta": event.eta,
-                    "mchirp": event.mchirp,
-                    "amp_order": event.amp_order,
-                    "coa_phase": event.coa_phase,
-                    "spin1y": event.spin1y,
-                    "spin1x": event.spin1x,
-                    "spin1z": event.spin1z,
-                    "spin2x": event.spin2x,
-                    "spin2y": event.spin2y,
-                    "spin2z": event.spin2z,
-                    "geocent_end_time": event.geocent_end_time,
-                    "geocent_end_time_ns": event.geocent_end_time_ns,
-                    "end_time_gmst": event.end_time_gmst,
-                    "f_lower": event.f_lower,
-                    "f_final": event.f_final,
-                    "distance": event.distance,
-                    "latitude": event.latitude,
-                    "longitude": event.longitude,
-                    "polarization": event.polarization,
-                    "inclination": event.inclination,
-                    "theta0": event.theta0,
-                    "phi0": event.phi0,
-                    "waveform": event.waveform,
-                    "numrel_mode_min": event.numrel_mode_min,
-                    "numrel_mode_max": event.numrel_mode_max,
-                    "numrel_data": event.numrel_data,
-                    "source": event.source,
-                    "taper": event.taper,
-                    "bandpass": event.bandpass,
-                    "alpha": event.alpha,
-                    "beta": event.beta,
-                    "psi0": event.psi0,
-                    "psi3": event.psi3,
-                    "alpha1": event.alpha1,
-                    "alpha2": event.alpha2,
-                    "alpha3": event.alpha3,
-                    "alpha4": event.alpha4,
-                    "alpha5": event.alpha5,
-                    "alpha6": event.alpha6,
-                    "g_end_time": event.g_end_time,
-                    "g_end_time_ns": event.g_end_time_ns,
-                    "h_end_time": event.h_end_time,
-                    "h_end_time_ns": event.h_end_time_ns,
-                    "l_end_time": event.l_end_time,
-                    "l_end_time_ns": event.l_end_time_ns,
-                    "t_end_time": event.t_end_time,
-                    "t_end_time_ns": event.t_end_time_ns,
-                    "v_end_time": event.v_end_time,
-                    "v_end_time_ns": event.v_end_time_ns,
-                    "eff_dist_g": event.eff_dist_g,
-                    "eff_dist_h": event.eff_dist_h,
-                    "eff_dist_l": event.eff_dist_l,
-                    "eff_dist_t": event.eff_dist_t,
-                    "eff_dist_v": event.eff_dist_v,
-                }
+            extra_attributes_dict['SimInspiral'] = siminspiral_to_dict(
+                    event.siminspiralevent)
         except:
             pass
         try:
             # MultiBurstEvent
-            rv['extra_attributes']['MultiBurst'] = {
-                  "ifos" : event.ifos,
-                  "single_ifo_times": event.single_ifo_times,
-                  "start_time" : event.start_time,
-                  "start_time_ns" : event.start_time_ns,
-                  "duration" : event.duration,
-                  "peak_time" : event.peak_time,
-                  "peak_time_ns" : event.peak_time_ns,
-                  "central_freq" : event.central_freq,
-                  "bandwidth" : event.bandwidth,
-                  "amplitude" : event.amplitude,
-                  "snr" : event.snr,
-                  "confidence" : event.confidence,
-                  "false_alarm_rate" : event.false_alarm_rate,
-                  "ligo_axis_ra" : event.ligo_axis_ra,
-                  "ligo_axis_dec" : event.ligo_axis_dec,
-                  "ligo_angle" : event.ligo_angle,
-                  "ligo_angle_sig" : event.ligo_angle_sig,
-                  }
+            extra_attributes_dict['MultiBurst'] = multiburst_to_dict(
+                    event.multiburstevent)
         except:
             pass
         try:
             # LalInferenceBurstEvent
-            rv['extra_attributes']['LalInferenceBurst'] = {
-                  "bci" : event.bci,
-                  "bsn" : event.bsn,
-                  "quality_mean" : event.quality_mean,
-                  "quality_median": event.quality_median,
-                  "omicron_snr_network" : event.omicron_snr_network,
-                  "omicron_snr_H1" : event.omicron_snr_H1,
-                  "omicron_snr_L1" : event.omicron_snr_L1,
-                  "omicron_snr_V1" : event.omicron_snr_V1,
-                  "hrss_mean" : event.hrss_mean,
-                  "hrss_median" : event.hrss_median,
-                  "frequency_mean": event.frequency_mean,
-                  "frequency_median": event.frequency_median,
-                  }
+            extra_attributes_dict['LalInferenceBurst'] = lalinferenceburst_to_dict(
+                    event.lalinferenceburstevent)
         except:
             pass
 
 
-        # Finally add extra attributes for any SingleInspiral objects associated with this event
-        # This will be a list of dictionaries.
+    # Finally add extra attributes for any SingleInspiral objects associated with this event
+    # This will be a list of dictionaries.
         si_set = event.singleinspiral_set.all()
         if si_set.count():
-            rv['extra_attributes']['SingleInspiral'] = [ singleInspiralToDict(si) for si in si_set ]
+            extra_attributes_dict['SingleInspiral'] = [ singleInspiralToDict(si) for si in si_set ]
     elif (request and request.user) and (is_external(request.user)):
         # adding extra attributes for external users.
         # CBC events
         try:
-            rv['extra_attributes'] = {}
+            extra_attributes_dict = {}
             # Only expose SingleInspiral times and ifos for external users.
             ext_keys = ['ifo','end_time','end_time_ns']
             si_set = event.singleinspiral_set.all()
             if si_set.count():
                 SingleInspiral_list = [ singleInspiralToDict(si) for si in si_set ]
-                rv['extra_attributes']['SingleInspiral'] = []
+                extra_attributes_dict['SingleInspiral'] = []
                 for i, si in enumerate(SingleInspiral_list):
-                    rv['extra_attributes']['SingleInspiral'].append({ k: si[k] for k in ext_keys })
+                    extra_attributes_dict['SingleInspiral'].append({ k: si[k] for k in ext_keys })
         except:
             pass
         # MultiBurst events
         try:
-            rv['extra_attributes']['MultiBurst'] = {
+            extra_attributes_dict['MultiBurst'] = {
                   "ifos" : event.ifos,
                   "single_ifo_times": event.single_ifo_times,
             }
         except:
             pass
 
+    return extra_attributes_dict
+
+
+def eventToDict(event, columns=None, request=None, is_alert=False):
+    """Convert an Event to a dictionary."""
+    rv = {}
+    graceid = event.graceid
+
+    # Update response with basic info.
+    rv.update(event_basic_info_to_dict(event, request))
+
+    # Update response with labels.
+    rv.update(event_labels_to_list(event))
+
+    # Add event extra_attributes
+    rv['extra_attributes'] = assemble_event_extra_attributes(event, request,
+            is_alert)
+
     # Add superevent information
     rv['superevent'] = getattr(event.superevent, 'superevent_id', None)
+
+    # list all neighbouring s events within time window
+    if not event.gpstime:
+        rv['superevent_neighbours'] = None
+    else:
+        # Filter based on event type (prod, mdc, test):
+        if event.is_production():
+            s_category = 'P'
+        elif event.is_test():
+            s_category = 'T'
+        elif event.is_mdc():
+            s_category = 'M'
+
+        # Get nearby superevents, of the same type:
+        nearby_superevents = Superevent.objects.filter(t_0__gte=event.gpstime-settings.EVENT_SUPEREVENT_WINDOW_BEFORE, 
+                             t_0__lte=event.gpstime+settings.EVENT_SUPEREVENT_WINDOW_AFTER,
+                             category=s_category)
+        se_neighbour_dict = {}
+        for s_event in nearby_superevents:
+            # First assemble preferred event dict:
+            pevd ={}
+
+            # Preferred event basic info:
+            pevd.update(event_basic_info_to_dict(s_event.preferred_event,
+                request))
+
+            # Preferred event labels:
+            pevd.update(event_labels_to_list(s_event.preferred_event))
+
+            # Preferred event extra_attributes:
+            pevd['extra_attributes'] = assemble_event_extra_attributes(
+                    s_event.preferred_event, request, is_alert)
+
+            # Provide the superevent dictionary:
+            se_neighbour_dict[getattr(s_event, 'superevent_id', None)] = {
+               'superevent_id': getattr(s_event, 'superevent_id', None),
+               'gw_events': [getattr(ev, 'graceid', None) for ev in
+                   s_event.events.all()],
+               'preferred_event': getattr(s_event.preferred_event, 'graceid',
+                   None),
+               'preferred_event_data': pevd,
+               'far': getattr(s_event, 'far', None),
+               't_start': getattr(s_event, 't_start', None),
+               't_0': getattr(s_event, 't_0', None),
+               't_end': getattr(s_event, 't_end', None),
+               }
+
+
+        rv['superevent_neighbours'] = se_neighbour_dict
 
     # Links
     rv['links'] = {
@@ -633,6 +598,167 @@ def singleInspiralToDict(single_inspiral):
         if value is not None:
             rv.update({ field_name: value })
     return rv
+
+def grb_to_dict(event):
+    # A safe routine for returning a grbevent dict
+    return_dict = {}
+    try:
+        return_dict.update({
+            "ivorn" : event.ivorn,
+            "author_ivorn" : event.author_ivorn,
+            "author_shortname" : event.author_shortname,
+            "observatory_location_id" : event.observatory_location_id,
+            "coord_system" : event.coord_system,
+            "ra" : event.ra,
+            "dec" : event.dec,
+            "error_radius" : event.error_radius,
+            "how_description" : event.how_description,
+            "how_reference_url" : event.how_reference_url,
+            "T90" : event.t90,
+            "trigger_duration": event.trigger_duration,
+            "designation": event.designation,
+            "redshift": event.redshift,
+            "trigger_id": event.trigger_id,
+            })
+    except:
+        pass
+    return return_dict
+
+def coincinspiral_to_dict(event):
+    # A safe routine for returning a coincinspiral event dict
+    return_dict = {}
+    try:
+        return_dict.update({
+            "ifos" : event.ifos,
+            "end_time" : event.end_time,
+            "end_time_ns" : event.end_time_ns,
+            "mass" : event.mass,
+            "mchirp" : event.mchirp,
+            "minimum_duration" : event.minimum_duration,
+            "snr" : event.snr,
+            "false_alarm_rate" : event.false_alarm_rate,
+            "combined_far" : event.combined_far,
+            })
+    except:
+        pass
+    return return_dict
+
+def siminspiral_to_dict(event):
+    # A safe routine for returning a siminspiral event dict
+    return_dict = {}
+    try:
+        return_dict.update({
+            "source_channel": event.source_channel,
+            "destination_channel": event.destination_channel,
+            "mass1": event.mass1,
+            "mass2": event.mass2,
+            "eta": event.eta,
+            "mchirp": event.mchirp,
+            "amp_order": event.amp_order,
+            "coa_phase": event.coa_phase,
+            "spin1y": event.spin1y,
+            "spin1x": event.spin1x,
+            "spin1z": event.spin1z,
+            "spin2x": event.spin2x,
+            "spin2y": event.spin2y,
+            "spin2z": event.spin2z,
+            "geocent_end_time": event.geocent_end_time,
+            "geocent_end_time_ns": event.geocent_end_time_ns,
+            "end_time_gmst": event.end_time_gmst,
+            "f_lower": event.f_lower,
+            "f_final": event.f_final,
+            "distance": event.distance,
+            "latitude": event.latitude,
+            "longitude": event.longitude,
+            "polarization": event.polarization,
+            "inclination": event.inclination,
+            "theta0": event.theta0,
+            "phi0": event.phi0,
+            "waveform": event.waveform,
+            "numrel_mode_min": event.numrel_mode_min,
+            "numrel_mode_max": event.numrel_mode_max,
+            "numrel_data": event.numrel_data,
+            "source": event.source,
+            "taper": event.taper,
+            "bandpass": event.bandpass,
+            "alpha": event.alpha,
+            "beta": event.beta,
+            "psi0": event.psi0,
+            "psi3": event.psi3,
+            "alpha1": event.alpha1,
+            "alpha2": event.alpha2,
+            "alpha3": event.alpha3,
+            "alpha4": event.alpha4,
+            "alpha5": event.alpha5,
+            "alpha6": event.alpha6,
+            "g_end_time": event.g_end_time,
+            "g_end_time_ns": event.g_end_time_ns,
+            "h_end_time": event.h_end_time,
+            "h_end_time_ns": event.h_end_time_ns,
+            "l_end_time": event.l_end_time,
+            "l_end_time_ns": event.l_end_time_ns,
+            "t_end_time": event.t_end_time,
+            "t_end_time_ns": event.t_end_time_ns,
+            "v_end_time": event.v_end_time,
+            "v_end_time_ns": event.v_end_time_ns,
+            "eff_dist_g": event.eff_dist_g,
+            "eff_dist_h": event.eff_dist_h,
+            "eff_dist_l": event.eff_dist_l,
+            "eff_dist_t": event.eff_dist_t,
+            "eff_dist_v": event.eff_dist_v,
+            })
+    except:
+        pass
+    return return_dict
+
+def multiburst_to_dict(event):
+    # A safe routine for returning a multiburst event dict
+    return_dict = {}
+    try:
+        return_dict.update({
+            "ifos" : event.ifos,
+            "single_ifo_times": event.single_ifo_times,
+            "start_time" : event.start_time,
+            "start_time_ns" : event.start_time_ns,
+            "duration" : event.duration,
+            "peak_time" : event.peak_time,
+            "peak_time_ns" : event.peak_time_ns,
+            "central_freq" : event.central_freq,
+            "bandwidth" : event.bandwidth,
+            "amplitude" : event.amplitude,
+            "snr" : event.snr,
+            "confidence" : event.confidence,
+            "false_alarm_rate" : event.false_alarm_rate,
+            "ligo_axis_ra" : event.ligo_axis_ra,
+            "ligo_axis_dec" : event.ligo_axis_dec,
+            "ligo_angle" : event.ligo_angle,
+            "ligo_angle_sig" : event.ligo_angle_sig,
+            })
+    except:
+        pass
+    return return_dict
+
+def lalinferenceburst_to_dict(event):
+    # A safe routine for returning a lalinferenceburst event dict
+    return_dict = {}
+    try:
+        return_dict.update({
+            "bci" : event.bci,
+            "bsn" : event.bsn,
+            "quality_mean" : event.quality_mean,
+            "quality_median": event.quality_median,
+            "omicron_snr_network" : event.omicron_snr_network,
+            "omicron_snr_H1" : event.omicron_snr_H1,
+            "omicron_snr_L1" : event.omicron_snr_L1,
+            "omicron_snr_V1" : event.omicron_snr_V1,
+            "hrss_mean" : event.hrss_mean,
+            "hrss_median" : event.hrss_median,
+            "frequency_mean": event.frequency_mean,
+            "frequency_median": event.frequency_median,
+            })
+    except:
+        pass
+    return return_dict
 
 def signoffToDict(signoff):
     return {
