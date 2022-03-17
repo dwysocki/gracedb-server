@@ -353,10 +353,6 @@ if (len(LVALERT_OVERSEER_INSTANCES) == 2):
     IGWN_LIST = IGWN_STUB.format(LVALERT_OVERSEER_INSTANCES[1]['lvalert_server'],
                                 ENABLED[SEND_XMPP_ALERTS])
     INSTANCE_LIST = INSTANCE_LIST + IGWN_LIST
-=======
-    },
-]
->>>>>>> S_event_neighbours
 
 # Use full client certificate to authenticate
 REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = (
