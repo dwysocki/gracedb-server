@@ -102,12 +102,16 @@ image_card_div = """
   <div class="card-header log-comment-card-header">
     <h7>Log Image</h7>
   </div>
-  <a href="{}" data-toggle="lightbox" data-type="image" data-gallery="{}">
-  <center><img class="card-img-top img-fluid" src="{}" style="width:auto;"/></center>
+  <a href="{0}" 
+     data-toggle="lightbox" 
+     data-type="image" 
+     data-gallery="{1}" 
+     data-footer='<small> {3} &nbsp &nbsp &nbsp &nbsp <a href="{0}" class="btn btn-primary btn-sm" download=""><i class="fa fa-download"></i> <span style="font-size:smaller;">Download </span></a></small>'>
+  <center><img class="card-img-top img-fluid" src="{0}" style="width:auto;"/></center>
   </a>
       <div class="card-body">
         <hr width="50%"/>
-        {}
+        {2}
       </div>
     </div>
 """
@@ -172,6 +176,7 @@ def img_div(logline, tag_name):
     comment = image_card_caption.format(logline.comment,
                                   logline.issuer.get_full_name(),
                                   logline.created.strftime("%B %-d, %Y %H:%M:%S %Z"))
+    lb_caption = logline.comment
 
 
     # Construct absolute uri:
@@ -180,8 +185,8 @@ def img_div(logline, tag_name):
     # Format div:
     rv = image_card_div.format(img_uri, 
                          tag_name,
-                         img_uri, 
-                         comment)
+                         comment,
+                         lb_caption)
     return rv
 
 @register.filter

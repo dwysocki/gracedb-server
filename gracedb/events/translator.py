@@ -86,7 +86,7 @@ def handle_uploaded_data(event, datafilename,
         try:
             coinc_table = CoincInspiralTable.get_table(xmldoc)[0]
         except Exception as e:
-            warnings += "Could not extract coinc inspiral table."
+            warnings.append("Could not extract coinc inspiral table.")
             return temp_data_loc, warnings
 
         # Create Log Data
@@ -159,7 +159,7 @@ def handle_uploaded_data(event, datafilename,
         try:
             coinc_event_table = CoincTable.get_table(xmldoc)[0]
         except Exception as e:
-            warnings += "Could not extract coinc event table."
+            warnings.append("Could not extract coinc event table.")
             return temp_data_loc, warnings
         event.nevents = coinc_event_table.nevents
         event.likelihood = cleanData(coinc_event_table.likelihood,'likelihood')
