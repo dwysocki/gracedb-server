@@ -282,7 +282,7 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
         # Get nearby superevents, of the same type:
         nearby_superevents = Superevent.objects.filter(t_0__gte=event.gpstime-settings.EVENT_SUPEREVENT_WINDOW_BEFORE, 
                              t_0__lte=event.gpstime+settings.EVENT_SUPEREVENT_WINDOW_AFTER,
-                             category=s_category)
+                             category=s_category).prefetch_related('preferred_event', 'events')
         se_neighbour_dict = {}
         for s_event in nearby_superevents:
             # First assemble preferred event dict:
@@ -903,7 +903,7 @@ def get_recent_events_string(request):
     t_low = t_high - dt
     # XXX Warning: If you open this up to non-internal users, you need
     # to filter these events.
-    events = Event.objects.filter(created__range=(t_low, t_high))
+    events = Event.objects.filter(created__range=(t_low, t_high)).prefetch_related('pipeline')
 
     # Explicitly filter out MDC and Test events
     try:
