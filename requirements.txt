@@ -19,6 +19,7 @@ gunicorn==20.0.4
 html5lib==1.1.0
 ipdb==0.13.6
 ipython==7.21.0
+Jinja2==3.0.1
 lalsuite==6.82 # undocumented requirement for lscsoft-glue
 python-ligo-lw==1.7.1 # adding support ligo un-ilwdchar'ed events
 ligo-lvalert==1.5.6
