@@ -677,6 +677,15 @@ class CoincInspiralEvent(Event):
     false_alarm_rate = models.FloatField(null=True)
     combined_far     = models.FloatField(null=True)
 
+class MLyBurstEvent(Event):
+    ifos             = models.CharField(max_length=20, default="")
+    score_coinc      = models.FloatField(null=True)
+    score_coher      = models.FloatField(null=True)
+    score_comb       = models.FloatField(null=True)
+    central_freq     = models.FloatField(null=True)
+    bandwidth        = models.FloatField(null=True)
+    duration         = models.FloatField(null=True)
+    central_time     = models.FloatField(null=True)
 
 class MultiBurstEvent(Event):
     ifos             = models.CharField(max_length=20, default="")

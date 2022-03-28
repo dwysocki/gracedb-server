@@ -5,6 +5,7 @@ from .models import Event, Group, EventLog, Labelling, Label
 from .models import Pipeline, Search
 from .models import CoincInspiralEvent
 from .models import MultiBurstEvent
+from .models import MLyBurstEvent
 from .models import GrbEvent
 from .models import SimInspiralEvent
 from .models import LalInferenceBurstEvent
@@ -63,6 +64,8 @@ def _createEventFromForm(request, form):
             event = SimInspiralEvent()
         elif pipeline.name in ['oLIB',]:
             event = LalInferenceBurstEvent()
+        elif pipeline.name in ['MLy']:
+            event = MLyBurstEvent()
         else:
             event = Event()
 

@@ -371,6 +371,46 @@ def handle_uploaded_data(event, datafilename,
         event.frequency_median = n_float(event_dict.get('frequency_posterior_median', None))
         event.save()
 
+    elif pipeline == 'MLy':
+        # copying this bit for MLy json files.
+        # lambda function for converting to a type if not None
+        typecast = lambda t, v: t(v) if v is not None else v
+        n_int = lambda v: typecast(int, v)
+        n_float = lambda v: typecast(float, v)
+
+        # Open event file and get data
+        event_file = open(datafilename, 'r')
+        event_file_contents = event_file.read()
+        event_file.close()
+        event_dict = json.loads(event_file_contents)
+
+        # Extract attributes:
+        event.gpstime   = n_float(event_dict.get('gpstime'))
+        event.far       = n_float(event_dict.get('far'))
+
+        # Extract other attributes:
+        event.central_freq  = n_float(event_dict.get('central_freq', None))
+        event.central_time  = n_float(event_dict.get('central_time', None))
+        event.bandwidth     = n_float(event_dict.get('bandwidth', None))
+        event.duration      = n_float(event_dict.get('duration', None))
+
+        # event.instruments is attached to the base Event and event.ifos is
+        # part of the MLyBurstEvent
+        ifos                = event_dict.get('ifos', None)
+        event.ifos          = ifos
+        event.instruments   = ifos
+
+
+
+        # Safely check for 'scores' dictionary:
+        scores = event_dict.get('scores', None)
+        if isinstance(scores, dict):
+            event.score_coinc   = n_float(scores.get('coincidence'))
+            event.score_coher   = n_float(scores.get('coherency'))
+            event.score_comb    = n_float(scores.get('combined'))
+
+        event.save()
+
     else:
         # XXX should we do something here?
         pass

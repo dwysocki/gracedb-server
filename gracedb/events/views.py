@@ -467,6 +467,8 @@ def view(request, event):
         templates.insert(0, 'gracedb/event_detail_injection.html')
     elif event.pipeline.name in ['oLIB',]:
         templates.insert(0, 'gracedb/event_detail_oLIB.html')
+    elif event.pipeline.name in ['MLy',]:
+        templates.insert(0, 'gracedb/event_detail_mly.html')
 
     return render(request, templates, context=context)
 

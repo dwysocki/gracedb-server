@@ -215,6 +215,11 @@ def assemble_event_extra_attributes(event, request, is_alert):
                     event.lalinferenceburstevent)
         except:
             pass
+        try:
+            extra_attributes_dict['MLyBurst'] = mlyburst_to_dict(
+                    event.mlyburstevent)
+        except:
+            pass
 
 
     # Finally add extra attributes for any SingleInspiral objects associated with this event
@@ -282,7 +287,8 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
         # Get nearby superevents, of the same type:
         nearby_superevents = Superevent.objects.filter(t_0__gte=event.gpstime-settings.EVENT_SUPEREVENT_WINDOW_BEFORE, 
                              t_0__lte=event.gpstime+settings.EVENT_SUPEREVENT_WINDOW_AFTER,
-                             category=s_category).prefetch_related('preferred_event', 'events')
+                             category=s_category).select_related('preferred_event').prefetch_related('events')
+
         se_neighbour_dict = {}
         for s_event in nearby_superevents:
             # First assemble preferred event dict:
@@ -734,6 +740,33 @@ def multiburst_to_dict(event):
             "ligo_angle" : event.ligo_angle,
             "ligo_angle_sig" : event.ligo_angle_sig,
             })
+    except:
+        pass
+    return return_dict
+
+def mlyburst_to_dict(event):
+    # A safe routine for returning a mlyburst event dict
+    return_dict = {}
+    scores_dict = {'scores': {}}
+    try:
+        scores_dict['scores'].update({
+            "coherency": event.score_coher,
+            "coincidence": event.score_coinc,
+            "combined": event.score_comb,
+            })
+    except:
+        pass
+    try:
+        return_dict.update({
+            "bandwidth": event.bandwidth,
+            "central_freq": event.central_freq,
+            "central_time": event.central_time,
+            "duration": event.duration,
+            })
+    except:
+        pass
+    try:
+        return_dict.update(scores_dict)
     except:
         pass
     return return_dict

@@ -1,0 +1,44 @@
+{% extends "gracedb/event_detail.html" %}
+
+{%load scientific %}
+
+{# Analysis-specific attributes for a cWB event#}
+{% block analysis_specific %}
+
+<div class="row my-3 justify-content-md-center">
+    <div class="col-md-10">
+        <div id="table-coinc-event">
+            <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
+                <thead>
+                    <tr>
+                        <th colspan="2"><h3>MLy Info</h3></th>
+                    </tr>
+                </thead>
+                <tr> <td> Bandwidth (Hz)  </th> <td> {{object.bandwidth|floatformat:"-4"}} </td> </tr>
+                <tr> <td> Central Time (s)  </th> <td> {{object.central_time|floatformat:"-4"}} </td> </tr>
+                <tr> <td> Central Frequency (s)  </th> <td> {{object.central_freq|floatformat:"-4"}} </td> </tr>
+                <tr> <td> Duration (s)  </th> <td> {{object.duration|floatformat:"-4"}} </td> </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<div class="row my-3 justify-content-md-center">
+    <div class="col-md-10">
+        <div id="table-coinc-event">
+            <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
+                <thead>
+                    <tr>
+                        <th colspan="2"><h3>MLy Score</h3></th>
+                    </tr>
+                </thead>
+                <tr> <td> Coincidence </th> <td> {{object.score_coinc|floatformat:"-4"}} </td> </tr>
+                <tr> <td> Coherency </th> <td> {{object.score_coher|floatformat:"-4"}} </td> </tr>
+                <tr> <td> Combined </th> <td> {{object.score_comb|floatformat:"-4"}} </td> </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
