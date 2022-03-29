@@ -2,6 +2,7 @@ import logging
 
 from django import forms
 from django.conf import settings
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
 from django.views.decorators.http import require_GET
@@ -15,6 +16,9 @@ from .response import get_search_results_as_ligolw, event_datatables_response, \
 # Set up logger
 logger = logging.getLogger(__name__)
 
+# Fix query for transiently null id's:
+null_events =  Q(graceid__isnull=True)
+null_sevents = Q(superevent_id__isnull=True)
 
 @require_GET
 def search(request):
@@ -105,9 +109,11 @@ def latest(request):
         # Also determine which permission is used for filtering
         # the full queryset for viewing
         if query_type == 'E':
+            objects = objects.exclude(null_events)
             objects_key = 'events'
             view_perm = 'events.view_event'
         elif query_type == 'S':
+            objects = objects.exclude(null_sevents)
             objects_key = 'superevents'
             view_perm = 'superevents.view_superevent'
         else:

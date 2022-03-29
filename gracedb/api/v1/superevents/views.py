@@ -65,7 +65,7 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
     View for listing all Superevents, retrieving individual superevents,
     creating new superevents, and updating existing superevents.
     """
-    queryset = Superevent.objects.all()
+    queryset = Superevent.objects.filter(superevent_id__isnull=False)
     serializer_class = SupereventSerializer
     pagination_class = CustomSupereventPagination
     permission_classes = (SupereventModelPermissions,
@@ -77,6 +77,7 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
     ordering_fields = ('created', 't_0', 't_start', 't_end',
         'preferred_event__id', 't_0_date', 'is_gw', 'base_date_number',
         'gw_date_number', 'category',
+        'default_superevent_id',
         'time_coinc_far','space_coinc_far','em_type')
 
     def get_serializer_class(self):
@@ -91,7 +92,7 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
         superevent_id = self.kwargs.get(self.lookup_url_kwarg)
 
         # Get superevent by id
-        obj = get_superevent_by_date_id_or_404(superevent_id, queryset)
+        obj = get_superevent_by_sid_or_gwid_or_404(superevent_id, queryset)
 
         # Check permissions
         self.check_object_permissions(self.request, obj)

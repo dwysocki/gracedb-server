@@ -371,7 +371,7 @@ class EventList(InheritPermissionsAPIView):
         sort = request.query_params.get("sort", "-created")
         columns = request.query_params.get("columns", "")
 
-        events = Event.objects
+        events = Event.objects.filter(graceid__isnull=False)
         if query:
             # If the user is external, we must check to make sure that any query on FAR
             # value is within the safe range.

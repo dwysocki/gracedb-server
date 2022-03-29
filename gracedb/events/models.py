@@ -313,6 +313,7 @@ class Event(ComputedFieldsModel):
         delta1, delta2 = neighborhood or self.DEFAULT_EVENT_NEIGHBORHOOD
 
         nearby = nearby.filter(gpstime__range=(self.gpstime+delta1, self.gpstime+delta2))
+        nearby = nearby.exclude(graceid__isnull=True)
         nearby = nearby.exclude(id=self.id)
         nearby = nearby.distinct()
         nearby = nearby.order_by('gpstime')
