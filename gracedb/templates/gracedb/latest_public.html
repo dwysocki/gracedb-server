@@ -119,7 +119,7 @@
                 {{ object.gpstime|multiTime:"gps" }}
             {% endif %}</td>
         <td>{{ object.far|scientific }}</td>
-        <td style="text-align:center">{{ object.reportingLatency }}</td>
+        <td style="text-align:center">{{ object.reporting_latency }}</td>
         <td>{{ object.created|multiTime:"created" }}</td>
         <td>
             {% for log in object.eventlog_set.iterator %}

@@ -28,6 +28,8 @@ from ligo.lw import lsctables
 # compatibility:
 from core.ligolw import FlexibleLIGOLWContentHandler
 from lal import LIGOTimeGPS
+from gpstime import gpstime
+from decimal import Decimal
 
 import json, re
 
@@ -36,7 +38,6 @@ from core.models import LogBase, m2mThroughBase
 from core.time_utils import posixToGpsTime
 
 from django.conf import settings
-import pytz
 import calendar
 
 try:
@@ -51,8 +52,6 @@ from .managers import ProductionPipelineManager, ExternalPipelineManager
 
 
 UserModel = get_user_model()
-
-SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 
 # Let's say we start here on schema versions
 #
@@ -292,15 +291,18 @@ class Event(ComputedFieldsModel):
         else:
             return 'Production'
 
-    def reportingLatency(self):
+    @computed(models.DecimalField(max_digits=16, decimal_places=6,null=True),
+              depends=[['self', ['gpstime', 'created']]])
+    def reporting_latency(self):
         if self.gpstime:
-            dt = self.created
-            if not dt.tzinfo:
-                dt = SERVER_TZ.localize(dt)
-            dt = dt.astimezone(pytz.utc)
-            posix_time = calendar.timegm(dt.timetuple())
-            gps_time = int(posixToGpsTime(posix_time))
-            return gps_time - self.gpstime
+            # The double conversion seems excessive. But on event ingestion, before 
+            # self.gpstime gets committed to the database, it is still a float. But for 
+            # subsequent re-calculations it gets returned as a Decimal. This should only have
+            # to be done a handful of times over the lifetime of an event, so I think it 
+            # shouldn't be a performance hit. 
+            return Decimal(gpstime.fromdatetime(self.created).gps()) - Decimal(self.gpstime)
+        else:
+            return None
 
     def neighbors(self, neighborhood=None):
         if not self.gpstime:
@@ -463,6 +465,7 @@ class Event(ComputedFieldsModel):
         if not self.id:
             super(Event, self).save(skip_computedfields=True, *args, **kwargs)
             compute(self, "graceid")
+            compute(self, "reporting_latency")
         else:
             super(Event, self).save()
 

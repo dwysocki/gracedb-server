@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Reports{% endblock %}
+{% block heading %}Reports{% endblock %}
+{% block pageid %}reports{% endblock %}
+
+{% block content %}
+
+This page is currently in <b>beta</b>. Use for cross-checking and validation
+purposes only.
+
+{% autoescape off %}
+{{ latency_plot_div }}
+{% endautoescape %}
+
+{% endblock %}

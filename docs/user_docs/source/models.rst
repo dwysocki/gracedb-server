@@ -33,6 +33,8 @@ These are:
 - ``instruments``: the interferometers involved in the detection
 - ``far``: the false alarm rate in Hz
 - ``gpstime``: the time at which the event occurred (a.k.a. "Event time")
+- ``reporting_latency``: defined as the time difference between when an event lands
+  on GraceDB (``created``) and the reported ``gpstime`` (in seconds)
 - ``superevent``: the ``superevent_id`` of the event' parent superevent, if
   applicable
 - ``superevent_neighbours``: superevents currently in GraceDB whose ``t_0`` is

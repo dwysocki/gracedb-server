@@ -143,6 +143,7 @@ def event_basic_info_to_dict(event, request):
     rv['graceid'] = graceid
     rv['pipeline'] = event.pipeline.name
     rv['gpstime'] = event.gpstime
+    rv['reporting_latency'] = event.reporting_latency
     rv['instruments'] = event.instruments
     rv['nevents'] = event.nevents
     rv['offline'] = event.offline

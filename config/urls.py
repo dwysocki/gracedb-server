@@ -44,8 +44,6 @@ urlpatterns = [
         name='other'),
     re_path(r'^performance/$', events.views.performance, name="performance"),
     re_path(r'^reports/$', events.reports.histo, name="reports"),
-    re_path(r'^reports/cbc_report/(?P<format>(json|flex))?$',
-        events.reports.cbc_report, name="cbc_report"),
     re_path(r'^latest/$', search.views.latest, name="latest"),
     #(r'^reports/(?P<path>.+)$', 'django.views.static.serve',
     #        {'document_root': settings.LATENCY_REPORT_DEST_DIR}),
