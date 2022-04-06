@@ -52,7 +52,12 @@ def histo(request):
                                   reporting_latency__isnull=False, 
                                   pipeline=pipeline).values_list('reporting_latency', flat=True))
         fig.add_trace(go.Histogram(x=pipeline_trace,
-                                   name=pipeline.name))
+                                   name=pipeline.name,
+                                   xbins=dict(
+                                    start=-10.0,
+                                    end=120,
+                                    size=1.0
+    ),))
     
     # The two histograms are drawn on top of another
     #fig.update_layout(barmode='stack',
