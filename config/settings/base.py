@@ -414,6 +414,7 @@ REST_FRAMEWORK = {
     },
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'api.backends.GraceDbAuthenticatedAuthentication',
+        'api.backends.GraceDbSciTokenAuthentication',
         'api.backends.GraceDbX509Authentication',
         'api.backends.GraceDbBasicAuthentication',
     ),
