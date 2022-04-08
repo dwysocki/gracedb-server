@@ -6,6 +6,7 @@ import re
 
 from django.contrib.auth import get_user_model, authenticate
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.utils.http import unquote, unquote_plus
@@ -16,6 +17,10 @@ from rest_framework import authentication, exceptions
 
 from ligoauth.models import X509Cert
 from .utils import is_api_request
+
+import scitokens
+from jwt import InvalidTokenError
+from scitokens.utils.errors import SciTokensException
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -62,6 +67,53 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
             raise exceptions.AuthenticationFailed(_(msg))
 
         return user_auth_tuple
+
+
+class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
+
+    issuer = "https://cilogon.org/ligo"
+    audience = ["ANY"]
+    scope = "read:/frames"
+
+    def authenticate(self, request):
+        # Get token from header
+        bearer = request.headers.get("Authorization")
+        auth_type, serialized_token = bearer.split()
+        try:
+            assert auth_type == "Bearer"
+        except AssertionError:
+            raise RuntimeError("Invalid header format")
+
+        # Deserialize token
+        try:
+            token = scitokens.SciToken.deserialize(
+                serialized_token,
+                # deserialize all tokens, enforce audience later
+                audience={"ANY"} | set(self.audience)
+            )
+        except (InvalidTokenFormat, SciTokensException) as exc:
+            raise RuntimeError(f"Unable to deserialize token: {exc}")
+
+        # Enforce scitoken logic
+        enforcer = scitokens.Enforcer(
+            self.issuer,
+            audience = self.audience,
+        )
+
+        authz, path = self.scope.split(":", 1)
+        if not enforcer.test(token, authz, path):
+            raise RuntimeError("token enforcement failed")
+
+        # FIXME: Find better way of matching subject to username
+        name, domain = token['sub'].split("@", 1)
+        username = name + "@" + domain.upper()
+
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise RuntimeError("User not found")
+
+        return (user, None)
 
 
 class GraceDbX509Authentication(authentication.BaseAuthentication):
