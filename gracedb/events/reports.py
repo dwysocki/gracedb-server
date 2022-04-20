@@ -16,7 +16,8 @@ from search.forms import SimpleSearchForm
 from search.query.events import parseQuery
 
 
-from django.db.models import Max, Min
+from django.db.models import Max, Min, Avg 
+from django.db.models.aggregates import StdDev
 import numpy as np
 import base64
 import sys
@@ -43,21 +44,50 @@ def histo(request):
     date_cutoff = t_now - timedelta(days=days_back)
 
 
-    all_events_latency = list(Event.objects.filter(created__gt=date_cutoff, reporting_latency__isnull=False).values_list('reporting_latency', flat=True))
+    #all_events_latency = list(Event.objects.filter(created__gt=date_cutoff, reporting_latency__isnull=False).values_list('reporting_latency', flat=True))
 
+    # Zero out the list of pipeline statistics:
+    aggregated_stats =[]
+
+    # Loop over pipelines that are determined to be "Production" search pipelines and 
+    # retrieve data, and populate histograms:
     for pipeline in Pipeline.objects.filter(pipeline_type=Pipeline.PIPELINE_TYPE_SEARCH_PRODUCTION):
-        pipeline_trace = list(Event.objects.filter(graceid__contains='G', 
+
+        # Generate the queryset for production (G) events, uploaded online, that have a 
+        # valid value of reporting_latency. There has to be a way to combine these so you
+        # hit the db once, but for now its just once for a list of values, and once for
+        # aggregated values. 
+        pipeline_query = Event.objects.filter(graceid__contains='G',
                                   offline=False,
-                                  created__gt=date_cutoff, 
-                                  reporting_latency__isnull=False, 
-                                  pipeline=pipeline).values_list('reporting_latency', flat=True))
+                                  created__gt=date_cutoff,                                                                               reporting_latency__isnull=False,
+                                  pipeline=pipeline).order_by('reporting_latency')
+
+        # Get the list of values to generate the histogram:
+        pipeline_trace = list(pipeline_query.values_list('reporting_latency', flat=True))
+
         fig.add_trace(go.Histogram(x=pipeline_trace,
                                    name=pipeline.name,
                                    xbins=dict(
-                                    start=-10.0,
-                                    end=120,
-                                    size=1.0
-    ),))
+                                       start=-10.0,
+                                       end=120,
+                                       size=0.25),
+                                   ))
+
+        # Update the statistics list with aggregated values. 
+        aggregated_stats.append(pipeline_query.aggregate(avg=Avg('reporting_latency'),
+                                           std=StdDev('reporting_latency')))
+        aggregated_stats[-1].update({'name': pipeline.name})
+        if pipeline_query:
+            aggregated_stats[-1].update({'min': pipeline_query.first().reporting_latency,
+                                         'max': pipeline_query.last().reporting_latency,
+                                         'min_gid': pipeline_query.first().graceid,
+                                         'max_gid': pipeline_query.last().graceid,})
+        else:
+            aggregated_stats[-1].update({'min': None,
+                                         'max':None,
+                                         'min_gid': None,
+                                         'max_gid': None,})
+
     
     # The two histograms are drawn on top of another
     #fig.update_layout(barmode='stack',
@@ -78,6 +108,7 @@ def histo(request):
     return render(request, 'gracedb/reports.html',
         context=
             {'latency_plot_div': latency_plot_div,
-             'date_cutoff': date_cutoff}
+             'date_cutoff': date_cutoff,
+             'pipeline_stats': aggregated_stats,}
         )
 
