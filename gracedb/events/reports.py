@@ -5,26 +5,19 @@ from django.shortcuts import render
 from django.conf import settings
 
 from .models import Event, Group, Search, Pipeline
-from .permission_utils import filter_events_for_user
-from .permission_utils import internal_user_required
+from ligoauth.decorators import internal_user_required
 from django.db.models import Q
 
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 
-from .models import CoincInspiralEvent
 from search.forms import SimpleSearchForm
 from search.query.events import parseQuery
 
-
 from django.db.models import Max, Min, Avg 
 from django.db.models.aggregates import StdDev
-import numpy as np
-import base64
-import sys
 from datetime import timedelta, datetime
 from django.utils import timezone
-import pytz
-import json
 from plotly.offline import plot
 import plotly.graph_objects as go
 
@@ -36,6 +29,8 @@ plt_title = plot_title + plot_sub_title
 days_back = 7
 
 @internal_user_required
+#@method_decorator(internal_user_required(raise_exception=True),
+#    name='dispatch')
 def histo(request):
     fig = go.Figure()
 
@@ -81,12 +76,16 @@ def histo(request):
             aggregated_stats[-1].update({'min': pipeline_query.first().reporting_latency,
                                          'max': pipeline_query.last().reporting_latency,
                                          'min_gid': pipeline_query.first().graceid,
-                                         'max_gid': pipeline_query.last().graceid,})
+                                         'max_gid': pipeline_query.last().graceid,
+                                         'count': pipeline_query.count(),
+                                         })
         else:
             aggregated_stats[-1].update({'min': None,
                                          'max':None,
                                          'min_gid': None,
-                                         'max_gid': None,})
+                                         'max_gid': None,
+                                         'count': 0,
+                                         })
 
     
     # The two histograms are drawn on top of another

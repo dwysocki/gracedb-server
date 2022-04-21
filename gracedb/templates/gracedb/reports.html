@@ -15,10 +15,11 @@ Use for cross-checking and validation purposes only.
 {% endautoescape %}
 
 <div class="row my-3 justify-content-md-center">
-    <div class="col-md-6">
+    <div class="col-md-8">
         <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" style="text-align:center">
             <thead>
                 <td> Pipeline </td>
+                <td> Uploads </td>
                 <td> Min. Latency (s) </td>
                 <td> Max Latency (s) </td>
                 <td> Avg. Latency (s) </td> 
@@ -26,7 +27,9 @@ Use for cross-checking and validation purposes only.
             </thead>
             {% for data in pipeline_stats %}
               <tr>
-                  <td style="font-family: monospace;"> {{data.name}} </td>
+                  <!--<td style="font-family: monospace;"> {{data.name}} </td> -->
+                  <td style="font-family: 'Courier New', Courier, monospace; font-size: 12px; white-space: pre;"> {{data.name}} </td>
+                  <td> {{data.count}} </td>
                   <td> {% if data.min %} {{data.min|floatformat:3}} 
                            (<a href="{% url "view" data.min_gid %}">{{ data.min_gid }}</a>)
                        {% endif %}

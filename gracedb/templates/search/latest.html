@@ -18,23 +18,33 @@
 
 {% block content %}
 
-<h5>Latest as of {% now "j F Y H:i:s T" %} </h5> <hr>
+<h3 style="font-weight:lighter; text-align:center;">Latest as of {% now "j F Y H:i:s T" %} </h3> 
+<hr style="width:50%;text-align:center;margin:auto;">
+
+<p><h4 style="font-weight:lighter; text-align:center;"><span style="color:red;font-weight:bold;">New:</span> view the beta reports page located <a href="{% url "reports" %}">here</a></h4></p> 
+<br>
+<div class="row justify-content-md-center">
+<div class="col-md-6 justify-content-center">
 <p>Test and MDC events and superevents are not included in the search results by default; see the <a href="/documentation/queries.html" target="_blank">query help</a> for information on how to search for events and superevents in those categories.</p>
 <!-- Search form -->
+<center>
 <form method="GET" name="search_form">
     <table>
         {{ form.as_table }}
     <td><center><input type="Submit" value="Search" class="btn btn-sm btn-primary"></center></td>
     </table>
 </form>
+</center>
+</div>
+</div>
 <br>
 
         <div class="row my-3 justify-content-md-center">
                     <div class="col-md">
 
+<h5 style="font-weight:lighter; text-align:center;"> Tap on entry for detailed information </h5>
 {% if events %}
 
-<h5> Tap on entry for detailed information </h5>
 <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
   <thead>
     <tr>
@@ -124,7 +134,6 @@
 {% elif superevents %}
 
 <!-- Superevent listing -->
-<h5> Tap on entry for detailed information </h5>
 <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
   <thead> 
     <tr>
