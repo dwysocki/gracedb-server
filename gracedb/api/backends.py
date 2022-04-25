@@ -78,11 +78,11 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
     def authenticate(self, request):
         # Get token from header
         bearer = request.headers.get("Authorization")
+        if bearer == None:
+            return None
         auth_type, serialized_token = bearer.split()
-        try:
-            assert auth_type == "Bearer"
-        except AssertionError:
-            raise RuntimeError("Invalid header format")
+        if  auth_type != "Bearer":
+            return None
 
         # Deserialize token
         try:
