@@ -76,6 +76,8 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
             return None
         # Get token from header
         bearer = request.headers.get("Authorization")
+        if bearer == None:
+            return None
         auth_type, serialized_token = bearer.split()
         if  auth_type != "Bearer":
             return None
