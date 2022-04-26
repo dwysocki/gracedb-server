@@ -20,7 +20,7 @@ gunicorn==20.0.4
 html5lib==1.1.0
 ipdb==0.13.6
 ipython==7.21.0
-jwt==1.3.1
+#jwt==1.3.1
 Jinja2==3.0.1
 lalsuite==6.82 # undocumented requirement for lscsoft-glue
 python-ligo-lw==1.7.1 # adding support ligo un-ilwdchar'ed events
@@ -38,6 +38,7 @@ packaging==17.1
 phonenumbers==8.10.22
 plotly==4.14.3
 psycopg2==2.8.6
+PyJWT==2.3.0
 python-ldap==3.3.1
 python3-memcached==1.51
 scipy==1.6.1
