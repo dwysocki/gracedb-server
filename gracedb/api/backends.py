@@ -71,15 +71,11 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
 
 class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
 
-    issuer = "https://cilogon.org/ligo"
-    audience = ["ANY"]
-    scope = "read:/frames"
-
     def authenticate(self, request):
+        if 'Authorization' not in request.headers:
+            return None
         # Get token from header
         bearer = request.headers.get("Authorization")
-        if bearer == None:
-            return None
         auth_type, serialized_token = bearer.split()
         if  auth_type != "Bearer":
             return None
@@ -89,29 +85,33 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
             token = scitokens.SciToken.deserialize(
                 serialized_token,
                 # deserialize all tokens, enforce audience later
-                audience={"ANY"} | set(self.audience)
+                audience={"ANY"} | set(settings.SCITOKEN_AUDIENCE)
             )
         except (InvalidTokenFormat, SciTokensException) as exc:
-            raise RuntimeError(f"Unable to deserialize token: {exc}")
+            return None
+            #raise RuntimeError(f"Unable to deserialize token: {exc}")
 
         # Enforce scitoken logic
         enforcer = scitokens.Enforcer(
-            self.issuer,
-            audience = self.audience,
+            settings.SCITOKEN_ISSUER,
+            audience = settings.SCITOKEN_AUDIENCE,
         )
 
-        authz, path = self.scope.split(":", 1)
+        authz, path = settings.SCITOKEN_SCOPE.split(":", 1)
         if not enforcer.test(token, authz, path):
-            raise RuntimeError("token enforcement failed")
+            return None
+            #raise RuntimeError("token enforcement failed")
 
         # FIXME: Find better way of matching subject to username
+        # TODO:  Set up case insensitive searches
         name, domain = token['sub'].split("@", 1)
         username = name + "@" + domain.upper()
 
         try:
             user = User.objects.get(username=username)
         except User.DoesNotExist:
-            raise RuntimeError("User not found")
+            return None
+            #raise RuntimeError("User not found")
 
         return (user, None)
 
