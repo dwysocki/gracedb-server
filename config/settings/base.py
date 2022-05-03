@@ -29,8 +29,11 @@ MAINTENANCE_MODE_MESSAGE = None
 INFO_BANNER_ENABLED = False
 INFO_BANNER_MESSAGE = "TEST MESSAGE"
 
+# Beta reports page:
+BETA_REPORTS_LINK = False
+
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.14.1'
+PROJECT_VERSION = '2.14.2'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is

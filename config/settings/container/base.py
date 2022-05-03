@@ -155,13 +155,24 @@ info_banner_enabled = get_from_env(
     'DJANGO_INFO_BANNER_ENABLED',
     default_value=False,
     fail_if_not_found=False
-)
+    )
 # fix for other booleans:
 if (isinstance(info_banner_enabled, str) and
     info_banner_enabled.lower() in ['true','t','1']):
     INFO_BANNER_ENABLED = True
 INFO_BANNER_MESSAGE = \
     get_from_env('DJANGO_INFO_BANNER_MESSAGE', fail_if_not_found=False)
+
+# Get reports page boolean:
+beta_reports_link = get_from_env(
+    'DJANGO_BETA_REPORTS_LINK',
+    default_value=False,
+    fail_if_not_found=False
+    )
+# fix for other booleans:
+if (isinstance(beta_reports_link, str) and
+    beta_reports_link.lower() in ['true','t','1']):
+    BETA_REPORTS_LINK = True
 
 # Get email settings from environment
 EMAIL_BACKEND = 'django_ses.SESBackend'
