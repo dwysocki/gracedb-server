@@ -89,7 +89,6 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
             )
         except (InvalidTokenFormat, SciTokensException) as exc:
             return None
-            #raise RuntimeError(f"Unable to deserialize token: {exc}")
 
         # Enforce scitoken logic
         enforcer = scitokens.Enforcer(
@@ -100,18 +99,12 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
         authz, path = settings.SCITOKEN_SCOPE.split(":", 1)
         if not enforcer.test(token, authz, path):
             return None
-            #raise RuntimeError("token enforcement failed")
 
-        # FIXME: Find better way of matching subject to username
-        # TODO:  Set up case insensitive searches
-        name, domain = token['sub'].split("@", 1)
-        username = name + "@" + domain.upper()
-
+        # Get username from token 'Subject' claim.
         try:
-            user = User.objects.get(username=username)
+            user = User.objects.get(username=token['sub'])
         except User.DoesNotExist:
             return None
-            #raise RuntimeError("User not found")
 
         return (user, None)
 
