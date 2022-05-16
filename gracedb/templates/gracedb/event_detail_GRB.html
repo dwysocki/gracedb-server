@@ -5,7 +5,7 @@
 <div class="row my-3 justify-content-center">
     <div class="col-md-10">
         <div id="gdb-table-basic-grb">
-            <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" id="full_event_log">
+            <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
                 <thead>
                     <tr>
                         <th colspan="8"><h3>Basic Event Information</h3></th>
@@ -57,6 +57,10 @@
                             {{ object.gpstime|multiTime:"gps" }}
                             {% endif %}</td>
                     </tr>
+					<tr>
+						<td>Latency (s)</td>
+						<td>{{ object.reporting_latency|floatformat:"-3" }} </td>
+					</tr>
                     <tr>
                         <td>Links</td>
                         <td data-title="Links"><a href="{{ object.weburl }}">Data</a></td>
@@ -67,6 +71,14 @@
                         </td>
                         <td data-title="Submitted">{{ object.created|multiTime:"submitted" }}</td>
                     </tr>
+
+    				{% if object.superevent %}
+					<tr>
+						<td>Superevent</td>
+						<td><a href="{{ object.superevent.get_web_url }}">{{ object.superevent.superevent_id }}</a></td>
+					</tr>
+                    {% endif %}
+
                 </tbody>
 
             </table>
@@ -80,7 +92,7 @@
 <div class="row my-3 justify-content-center">
     <div class="col-md-10">
         <div id="grb-info">
-            <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" id="full_event_log">
+            <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
                 <thead>
                     <tr>
                         <th colspan="2"><h3>GRB Info</h3></th>
@@ -123,7 +135,7 @@
 <div class="row my-3 justify-content-center">
     <div class="col-md-10">
         <div id="grb-info">
-            <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" id="full_event_log">
+            <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
                 <thead>
                     <tr>
                         <th colspan="2"><h3>GRB Location</h3></th>
