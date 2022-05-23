@@ -90,6 +90,8 @@ try:
 except:
     DB_SLEEP_FACTOR = 1.0
 
+BETA_REPORTS_LINK = True
+
 INSTANCE_STUB = """
 <li>Phone alerts (calls/SMS) are {0}</li>
 <li>Email alerts are {1}</li>

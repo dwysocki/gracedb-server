@@ -46,8 +46,13 @@ def serve_file(file_path, ResponseClass=HttpResponse):
         response['Content-Encoding'] = encoding
 
     # For binary files, add the file as an attachment (direct download instead
-    # of opening in browser window)
-    if content_type == "application/octet-stream":
+    # of opening in browser window). Also do this for gzipped files on the server
+    # (like *.xml.gz) because their content_type shows up as the oirginal file, and
+    # so the browser will fail when it tries to visualize the gzipped version. This
+    # is kind of a quirk for sending gzip files, because all modern browers will 
+    # Accept-Encoding: gzip from the server, regardless of the content_type. 
+    # tl;dr force a download of explicit gzip files.
+    if (content_type == "application/octet-stream" or encoding == "gzip"):
         response['Content-Disposition'] = 'attachment; filename="{0}"'.format(
             os.path.basename(file_path))
 

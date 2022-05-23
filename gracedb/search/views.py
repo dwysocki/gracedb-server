@@ -128,5 +128,8 @@ def latest(request):
 
     # Update form to have query and errors (if they exist)
     context['form'] = form
+    
+    # put in conditional for reports page:
+    context['beta_reports_link'] = getattr(settings,'BETA_REPORTS_LINK', False)
 
     return render(request, 'search/latest.html', context=context)
