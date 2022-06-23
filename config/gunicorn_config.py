@@ -19,8 +19,7 @@ workers = multiprocessing.cpu_count()*2 + 1
 
 # Worker class.
 # 
-worker_class = 'gthread'
-threads = 2
+worker_class = 'gevent'
 
 # Adding options for timeout. Not specified, the timeout default 
 # is 30 seconds. Source:
@@ -46,6 +45,7 @@ access_log_format = ('GUNICORN | %(h)s %(l)s %(u)s %(t)s '
 # Error log
 errorlog = join(LOG_DIR, "gunicorn_error.log")
 loglevel = 'debug'
+print_config = True
 capture_output = True
 
 # Override logger class to modify error format

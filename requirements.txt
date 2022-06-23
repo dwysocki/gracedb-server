@@ -14,9 +14,11 @@ djangorestframework==3.12.2
 djangorestframework-guardian==0.3.0
 dnspython==1.15.0
 flake8==3.8.0
+gevent==21.12.0
 gpstime==0.5.5
+greenlet==1.1.2
 gssapi==1.6.14
-gunicorn==20.0.4
+gunicorn==20.1.0
 html5lib==1.1.0
 ipdb==0.13.6
 ipython==7.21.0
@@ -25,9 +27,9 @@ lalsuite==6.82 # undocumented requirement for lscsoft-glue
 python-ligo-lw==1.7.1 # adding support ligo un-ilwdchar'ed events
 ligo-lvalert==1.5.6
 # Temporary pin of lvalert-overseer for Python 3 update
-git+https://git.ligo.org/lscsoft/lvalert-overseer.git@e905ed8c888fcc8f31eb881cbfed7c5d7d1612a3#egg=ligo-lvalert-overseer
+git+https://git.ligo.org/lscsoft/lvalert-overseer.git@bee9fc4dc9342cb7b3210a35ec3719b7dd07ed02
 # Temporary pin of igwn_alert_overseer (kafka update)
-git+https://git.ligo.org/lscsoft/lvalert-overseer.git@27d29599d2c079d8df3a8049e159bb03ba974a4a
+git+https://git.ligo.org/computing/igwn-alert/overseer.git@ba93e417a3021ce331e638da2fb8482afa8a5f54
 lscsoft-glue==2.0.0
 lxml==4.6.0
 matplotlib==3.3.4
