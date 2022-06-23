@@ -27,7 +27,7 @@ lalsuite==6.82 # undocumented requirement for lscsoft-glue
 python-ligo-lw==1.7.1 # adding support ligo un-ilwdchar'ed events
 ligo-lvalert==1.5.6
 # Temporary pin of lvalert-overseer for Python 3 update
-git+https://git.ligo.org/lscsoft/lvalert-overseer.git@bee9fc4dc9342cb7b3210a35ec3719b7dd07ed02
+git+https://git.ligo.org/lscsoft/lvalert-overseer.git@acdd1c44bc7339ec63dc1ac7c6500a5708616748
 # Temporary pin of igwn_alert_overseer (kafka update)
 git+https://git.ligo.org/computing/igwn-alert/overseer.git@ba93e417a3021ce331e638da2fb8482afa8a5f54
 lscsoft-glue==2.0.0
