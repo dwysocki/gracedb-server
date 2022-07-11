@@ -159,6 +159,52 @@ class SupereventEventViewSet(ValidateDestroyMixin,
             add_event_log=True, issue_alert=True)
 
 
+class SupereventPipelinePreferredEventViewSet(ValidateDestroyMixin,
+    InheritDefaultPermissionsMixin, SupereventNestedViewSet):
+    """View for pipeline preferred events attributed to a superevent"""
+    serializer_class = SupereventEventSerializer
+    pagination_class = BasePaginationFactory(results_name='pipeline_preferred_events')
+    permission_classes = (EventParentSupereventPermissions,
+        permissions.IsAuthenticated,)
+    lookup_url_kwarg = 'graceid'
+    list_view_order_by = ('pk',)
+
+    def get_queryset(self):
+        superevent_id = self.kwargs['superevent_id']
+        superevent_obj = get_superevent_by_sid_or_gwid_or_404(superevent_id)
+        return superevent_obj.pipeline_preferred_events.all()
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        graceid = self.kwargs.get(self.lookup_url_kwarg)
+        filter_kwargs = {'id': int(graceid[1:])}
+        event = get_object_or_404(queryset, **filter_kwargs)
+
+        # Check event object permissions (?)
+        self.check_object_permissions(self.request, event)
+
+        return event
+
+    def validate_destroy(self, request, instance):
+        # Don't allow removal of preferred events
+
+        # NOTE: instance should be an event attached to the superevent
+        # in question.  All other events are filtered out when we get
+        # and filter the queryset.  So if instance has the
+        # superevent_preferred_for attribute, it must be the preferred event.
+        if hasattr(instance, 'superevent_preferred_for'):
+            err_msg = ("Event {gid} can't be removed from superevent {sid} "
+                "because it is the preferred event").format(
+                gid=instance.graceid, sid=instance.superevent.graceid)
+            return False, err_msg
+        else:
+            return True, None
+
+    def perform_destroy(self, instance):
+        remove_event_from_superevent(instance.superevent, instance,
+            self.request.user, add_superevent_log=True,
+            add_event_log=True, issue_alert=True)
+
 class SupereventLabelViewSet(ValidateDestroyMixin,
     InheritDefaultPermissionsMixin, SupereventNestedViewSet):
     """Superevent labels"""
