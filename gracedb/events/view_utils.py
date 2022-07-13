@@ -318,6 +318,7 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
                't_start': getattr(s_event, 't_start', None),
                't_0': getattr(s_event, 't_0', None),
                't_end': getattr(s_event, 't_end', None),
+               **event_labels_to_list(s_event),
                }
 
 
