@@ -41,7 +41,8 @@ from .serializers import (
     SupereventLogSerializer, SupereventLogTagSerializer,
     SupereventVOEventSerializer, SupereventVOEventSerializerExternal,
     SupereventEMObservationSerializer, SupereventSignoffSerializer,
-    SupereventGroupObjectPermissionSerializer
+    SupereventGroupObjectPermissionSerializer,
+    SupereventPipelinePreferredEventSerializer
 )
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
 from .viewsets import SupereventNestedViewSet
@@ -162,7 +163,7 @@ class SupereventEventViewSet(ValidateDestroyMixin,
 class SupereventPipelinePreferredEventViewSet(ValidateDestroyMixin,
     InheritDefaultPermissionsMixin, SupereventNestedViewSet):
     """View for pipeline preferred events attributed to a superevent"""
-    serializer_class = SupereventEventSerializer
+    serializer_class = SupereventPipelinePreferredEventSerializer
     pagination_class = BasePaginationFactory(results_name='pipeline_preferred_events')
     permission_classes = (EventParentSupereventPermissions,
         permissions.IsAuthenticated,)

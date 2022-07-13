@@ -305,6 +305,75 @@ class SupereventEventSerializer(serializers.ModelSerializer):
         return event
 
 
+class SupereventPipelinePreferredEventSerializer(serializers.ModelSerializer):
+    default_error_messages = {
+        'already_included': _('Event {graceid} is already the {pipeline} '
+                              'pipeline-preferred event for {superevent_id}'),
+        'different_superevent': _('Event {graceid} is part of a different superevent'),
+        'remove_preferred_event': _('Adding {graceid} as a pipeline-preferred event '
+                                    'would remove {pe_graceid} as the preferred event'),
+        'category_mismatch': _('Event {graceid} is of type \'{e_category}\', '
+                               'and cannot be assigned to a superevent of '
+                               'type \'{s_category}\''),
+    }
+    self = serializers.SerializerMethodField(read_only=True)
+    event = EventGraceidField(write_only=True,
+        style={'base_template': 'input.html'})
+    superevent = serializers.HiddenField(write_only=True,
+        default=ParentObjectDefault(context_key='superevent'))
+    # Get user from request automatically
+    user = serializers.HiddenField(write_only=True,
+        default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Event
+        fields = ('self', 'graceid', 'event', 'superevent', 'user')
+
+    def get_self(self, obj):
+        return api_reverse('events:event-detail', args=[obj.graceid],
+            request=self.context.get('request', None))
+
+    def validate(self, data):
+        data = super(SupereventPipelinePreferredEventSerializer, self).validate(data)
+        event = data.get('event')
+        superevent = data.get('superevent')
+
+        # Check to see if the event is already in the preferred event list
+        if superevent.pipeline_preferred_events.filter(id=event.id).exists():
+            self.fail('already_included', graceid=event.graceid,
+                    pipeline=event.pipeline.name,
+                    superevent_id=superevent.superevent_id)
+
+        # Check to see if event would replace preferred event:
+        if (event.pipeline == superevent.preferred_event.pipeline):
+            self.fail('remove_preferred_event', graceid=event.graceid,
+                    pe_graceid=superevent.preferred_event.graceid)
+
+        # Check if event is part of a different superevent:
+        if (event.superevent and event.superevent != superevent):
+            self.fail('different_superevent', graceid=event.graceid)
+
+        # Check that event has the correct type for the superevent it's being
+        # assigned to
+        if not superevent.event_compatible(event):
+            self.fail('category_mismatch', graceid=event.graceid,
+                e_category=event.get_event_category(),
+                s_category=superevent.get_category_display())
+
+        return data
+
+    def create(self, validated_data):
+        # Function-level import to prevent circular import in alerts
+        from superevents.utils import add_event_as_pipeline_preferred
+
+        superevent = validated_data.pop('superevent')
+        event = validated_data.pop('event')
+        submitter = validated_data.pop('user')
+        add_event_as_pipeline_preferred(superevent, event, submitter,
+            add_superevent_log=True, add_event_log=True,
+            issue_alert=True)
+        return event
+
 class SupereventLabelSerializer(serializers.ModelSerializer):
     default_error_messages = {
         'protected_label': _('The label \'{label}\' is managed by an automated'
