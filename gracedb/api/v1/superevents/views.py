@@ -24,7 +24,8 @@ from superevents.utils import remove_tag_from_log, \
     remove_event_from_superevent, remove_label_from_superevent, \
     confirm_superevent_as_gw, get_superevent_by_date_id_or_404, \
     get_superevent_by_sid_or_gwid_or_404, \
-    expose_superevent, hide_superevent, delete_signoff
+    expose_superevent, hide_superevent, delete_signoff, \
+    remove_pipeline_preferred_event_from_superevent
 from .filters import SupereventSearchFilter, SupereventOrderingFilter
 from .paginators import CustomSupereventPagination
 from .permissions import SupereventModelPermissions, \
@@ -187,23 +188,20 @@ class SupereventPipelinePreferredEventViewSet(ValidateDestroyMixin,
         return event
 
     def validate_destroy(self, request, instance):
-        # Don't allow removal of preferred events
+        # Don't allow removal of preferred events, same as in the events
+        # list. 
 
-        # NOTE: instance should be an event attached to the superevent
-        # in question.  All other events are filtered out when we get
-        # and filter the queryset.  So if instance has the
-        # superevent_preferred_for attribute, it must be the preferred event.
         if hasattr(instance, 'superevent_preferred_for'):
-            err_msg = ("Event {gid} can't be removed from superevent {sid} "
-                "because it is the preferred event").format(
+            err_msg = ("Event {gid} can't be removed from superevent {sid}'s "
+                "pipeline preferred list because it is the preferred event").format(
                 gid=instance.graceid, sid=instance.superevent.graceid)
             return False, err_msg
         else:
             return True, None
 
     def perform_destroy(self, instance):
-        remove_event_from_superevent(instance.superevent, instance,
-            self.request.user, add_superevent_log=True,
+        remove_pipeline_preferred_event_from_superevent(instance.superevent,
+            instance, self.request.user, add_superevent_log=True,
             add_event_log=True, issue_alert=True)
 
 class SupereventLabelViewSet(ValidateDestroyMixin,
