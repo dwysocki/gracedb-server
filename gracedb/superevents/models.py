@@ -168,6 +168,14 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
             raise ValidationError({'preferred_event':
                 _('External event cannot be set as preferred')})
 
+        # Events must be part of a superevent to be added to the pipeline
+        # preferred list
+        for e in self.pipeline_preferred_events.difference(self.events.all()):
+            self.pipeline_preferred_events.remove(e)
+            raise ValidationError({'pipeline_preferred_events':
+                _('{} must be part of a superevent to be added as a pipeline'
+                    ' preferred event'.format(e.graceid))})
+
         # FIXME: someone will have to deal with this in 2080
         # Make sure t_0 is in the appropriate range [1980 - 2079)
         # We do this in UTC since the GPS time of the end of ths range could
@@ -205,10 +213,17 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
 
         # Add preferred event to events list. Have to do this after base save
         # because the superevent needs a pk to be used as a foreign key in the
-        # event table
+        # event table.
         if (self.preferred_event and
             self.preferred_event not in self.events.all()):
             self.events.add(self.preferred_event)
+
+        # Add preferred event to the pipeline preferred events list, if it's 
+        # not already in there
+        if (self.preferred_event and 
+            self.preferred_event not in self.pipeline_preferred_events.all()):
+            self.pipeline_preferred_events.add(self.preferred_event)
+
 
     def delete(self, purge=True, *args, **kwargs):
         # Store datadir before deletion from database

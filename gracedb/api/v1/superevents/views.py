@@ -24,7 +24,8 @@ from superevents.utils import remove_tag_from_log, \
     remove_event_from_superevent, remove_label_from_superevent, \
     confirm_superevent_as_gw, get_superevent_by_date_id_or_404, \
     get_superevent_by_sid_or_gwid_or_404, \
-    expose_superevent, hide_superevent, delete_signoff
+    expose_superevent, hide_superevent, delete_signoff, \
+    remove_pipeline_preferred_event_from_superevent
 from .filters import SupereventSearchFilter, SupereventOrderingFilter
 from .paginators import CustomSupereventPagination
 from .permissions import SupereventModelPermissions, \
@@ -41,7 +42,8 @@ from .serializers import (
     SupereventLogSerializer, SupereventLogTagSerializer,
     SupereventVOEventSerializer, SupereventVOEventSerializerExternal,
     SupereventEMObservationSerializer, SupereventSignoffSerializer,
-    SupereventGroupObjectPermissionSerializer
+    SupereventGroupObjectPermissionSerializer,
+    SupereventPipelinePreferredEventSerializer
 )
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
 from .viewsets import SupereventNestedViewSet
@@ -158,6 +160,49 @@ class SupereventEventViewSet(ValidateDestroyMixin,
             self.request.user, add_superevent_log=True,
             add_event_log=True, issue_alert=True)
 
+
+class SupereventPipelinePreferredEventViewSet(ValidateDestroyMixin,
+    InheritDefaultPermissionsMixin, SupereventNestedViewSet):
+    """View for pipeline preferred events attributed to a superevent"""
+    serializer_class = SupereventPipelinePreferredEventSerializer
+    pagination_class = BasePaginationFactory(results_name='pipeline_preferred_events')
+    permission_classes = (EventParentSupereventPermissions,
+        permissions.IsAuthenticated,)
+    lookup_url_kwarg = 'graceid'
+    list_view_order_by = ('pk',)
+
+    def get_queryset(self):
+        superevent_id = self.kwargs['superevent_id']
+        superevent_obj = get_superevent_by_sid_or_gwid_or_404(superevent_id)
+        return superevent_obj.pipeline_preferred_events.all()
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        graceid = self.kwargs.get(self.lookup_url_kwarg)
+        filter_kwargs = {'id': int(graceid[1:])}
+        event = get_object_or_404(queryset, **filter_kwargs)
+
+        # Check event object permissions (?)
+        self.check_object_permissions(self.request, event)
+
+        return event
+
+    def validate_destroy(self, request, instance):
+        # Don't allow removal of preferred events, same as in the events
+        # list. 
+
+        if hasattr(instance, 'superevent_preferred_for'):
+            err_msg = ("Event {gid} can't be removed from superevent {sid}'s "
+                "pipeline preferred list because it is the preferred event").format(
+                gid=instance.graceid, sid=instance.superevent.graceid)
+            return False, err_msg
+        else:
+            return True, None
+
+    def perform_destroy(self, instance):
+        remove_pipeline_preferred_event_from_superevent(instance.superevent,
+            instance, self.request.user, add_superevent_log=True,
+            add_event_log=True, issue_alert=True)
 
 class SupereventLabelViewSet(ValidateDestroyMixin,
     InheritDefaultPermissionsMixin, SupereventNestedViewSet):

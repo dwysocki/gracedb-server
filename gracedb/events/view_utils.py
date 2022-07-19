@@ -304,7 +304,11 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
 
             # Preferred event extra_attributes:
             pevd['extra_attributes'] = assemble_event_extra_attributes(
-                    s_event.preferred_event, request, is_alert)
+                s_event.preferred_event, request, is_alert)
+
+            # Pipeline preferred event data:
+            pipeline_preferred_event_data = {e.pipeline.name:event_basic_info_to_dict(e, request)
+                        for e in s_event.pipeline_preferred_events.all()}
 
             # Provide the superevent dictionary:
             se_neighbour_dict[getattr(s_event, 'superevent_id', None)] = {
@@ -314,6 +318,7 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
                'preferred_event': getattr(s_event.preferred_event, 'graceid',
                    None),
                'preferred_event_data': pevd,
+               'pipeline_preferred_events': pipeline_preferred_event_data,
                'far': getattr(s_event, 'far', None),
                't_start': getattr(s_event, 't_start', None),
                't_0': getattr(s_event, 't_0', None),
