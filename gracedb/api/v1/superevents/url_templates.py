@@ -33,8 +33,9 @@ def construct_url_templates(request=None):
     views = {
         'superevent-detail': [],
         'superevent-event-list': [],
-        'superevent-pipeline-preferred-event-list': [],
         'superevent-event-detail': [PH[SupereventEventViewSet.lookup_url_kwarg]],
+        'superevent-pipeline-preferred-event-list': [],
+        'superevent-pipeline-preferred-event-detail': [PH[SupereventPipelinePreferredEventViewSet.lookup_url_kwarg]],
         'superevent-label-list': [],
         'superevent-label-detail': [PH[SupereventLabelViewSet.lookup_url_kwarg]],
         'superevent-log-list': [],
