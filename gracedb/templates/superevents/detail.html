@@ -214,6 +214,9 @@
                 {% block basic_info %}
                 {% if user.is_authenticated %}
                 {% include "superevents/preferred_event_info_table.html" %}
+                <br />
+                <br />
+                {% include "superevents/pipeline_preferred_event_info_table.html" %}
                 {% else %}
                 {% include "superevents/preferred_event_info_table_public.html" %}
                 {% endif %}
