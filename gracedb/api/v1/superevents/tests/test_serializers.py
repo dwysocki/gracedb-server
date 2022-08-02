@@ -50,6 +50,7 @@ class TestSupereventSerializerViaWeb(SupereventSetup, GraceDbApiTestBase):
         self.assertIn('preferred_event', response_keys)
         self.assertIn('gw_events', response_keys)
         self.assertIn('em_events', response_keys)
+        self.assertIn('pipeline_preferred_events', response_keys)
         self.assertIn('events', response_links)
 
     def test_lvem_user_get_superevent_detail(self):
@@ -82,4 +83,5 @@ class TestSupereventSerializerViaWeb(SupereventSetup, GraceDbApiTestBase):
         self.assertNotIn('preferred_event', response_keys)
         self.assertNotIn('gw_events', response_keys)
         self.assertNotIn('em_events', response_keys)
+        self.assertNotIn('pipeline_preferred_events', response_keys)
         self.assertNotIn('events', response_links)

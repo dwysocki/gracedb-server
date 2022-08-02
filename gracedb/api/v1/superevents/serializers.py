@@ -12,6 +12,7 @@ from rest_framework import fields, serializers, validators
 from rest_framework.exceptions import ValidationError
 
 from events.models import Event, Label, Tag, EMGroup
+from events.view_utils import event_basic_info_to_dict
 from superevents.models import Superevent, Labelling, Log, VOEvent, \
     EMObservation, EMFootprint, Signoff, SupereventGroupObjectPermission
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG
@@ -59,6 +60,7 @@ class SupereventSerializer(serializers.ModelSerializer):
     # Add custom fields
     superevent_id = serializers.SerializerMethodField(read_only=True)
     gw_events = serializers.SerializerMethodField(read_only=True)
+    pipeline_preferred_events = serializers.SerializerMethodField(read_only=True)
     em_events = serializers.SerializerMethodField(read_only=True)
     links = serializers.SerializerMethodField(read_only=True)
     labels = serializers.SlugRelatedField(slug_field='name', many=True,
@@ -89,7 +91,7 @@ class SupereventSerializer(serializers.ModelSerializer):
             'preferred_event', 'events', 'em_type', 't_start', 't_0', 't_end',
             'gw_events', 'em_events', 'far', 'time_coinc_far', 
             'space_coinc_far', 'labels', 'links', 
-            'user', 'preferred_event_data')
+            'user', 'preferred_event_data', 'pipeline_preferred_events')
 
     def validate(self, data):
         data = super(SupereventSerializer, self).validate(data)
@@ -147,6 +149,11 @@ class SupereventSerializer(serializers.ModelSerializer):
     def get_gw_events(self, obj):
         return [ev.graceid for ev in obj.get_internal_events()]
 
+    def get_pipeline_preferred_events(self, obj):
+        request=self.context.get('request', None)
+        return {ev.pipeline.name:event_basic_info_to_dict(ev, request) \
+                for ev in obj.pipeline_preferred_events.all()}
+
     def get_em_events(self, obj):
         return [ev.graceid for ev in obj.get_external_events()]
 
@@ -179,6 +186,7 @@ class SupereventSerializer(serializers.ModelSerializer):
         if request and request.user.is_anonymous:
             ret.pop('gw_events')
             ret.pop('em_events')
+            ret.pop('pipeline_preferred_events')
             ret.pop('preferred_event')
         return ret
 
