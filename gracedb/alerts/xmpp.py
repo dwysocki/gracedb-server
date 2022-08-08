@@ -106,7 +106,7 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
         manager = Manager()
 
     # Loop over LVAlert servers and nodes, issuing the alert to each
-    for overseer_instance in settings.LVALERT_OVERSEER_INSTANCES:
+    for overseer_instance in settings.LVALERT_OVERSEER_INSTANCES[::-1]:
         server = overseer_instance.get('lvalert_server')
         port = overseer_instance.get('listen_port')
         for node_name in node_names:
