@@ -317,7 +317,7 @@ class SupereventPipelinePreferredEventSerializer(serializers.ModelSerializer):
     default_error_messages = {
         'already_included': _('Event {graceid} is already the {pipeline} '
                               'pipeline-preferred event for {superevent_id}'),
-        'different_superevent': _('Event {graceid} is part of a different superevent'),
+        'not_in_superevent': _('Event {graceid} is not part of superevent {superevent_id}'),
         'remove_preferred_event': _('Adding {graceid} as a pipeline-preferred event '
                                     'would remove {pe_graceid} as the preferred event'),
         'category_mismatch': _('Event {graceid} is of type \'{e_category}\', '
@@ -358,8 +358,9 @@ class SupereventPipelinePreferredEventSerializer(serializers.ModelSerializer):
                     pe_graceid=superevent.preferred_event.graceid)
 
         # Check if event is part of a different superevent:
-        if (event.superevent and event.superevent != superevent):
-            self.fail('different_superevent', graceid=event.graceid)
+        if (not event.superevent or  event.superevent != superevent):
+            self.fail('not_in_superevent', graceid=event.graceid,
+                                           superevent_id=superevent.superevent_id)
 
         # Check that event has the correct type for the superevent it's being
         # assigned to

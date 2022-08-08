@@ -401,6 +401,10 @@ def remove_event_from_superevent(superevent, event, user, add_event_log=True,
     # Remove event from superevent
     superevent.events.remove(event)
 
+    # Remove from pipeline_preferred_events list, if present
+    if event in superevent.pipeline_preferred_events.all():
+        superevent.pipeline_preferred_events.remove(event)
+
     # Create superevent log message to record event removal?
     superevent_log_for_event_removal = None
     if add_superevent_log:
