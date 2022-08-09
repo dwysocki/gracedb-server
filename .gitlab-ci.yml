@@ -88,7 +88,8 @@ before_script:
     - mkdir -pv ../logs/
     # list packages
     - ${PYTHON} -m pip list installed
-    # add CITextExtension to database
+    # add CITextExtension to the test database
+    - psql -h $DJANGO_DB_HOST -p 5432 -U $DJANGO_DB_USER -c "CREATE DATABASE gracedb_test_db"
     - psql -h $DJANGO_DB_HOST -p 5432 -U $DJANGO_DB_USER -d gracedb_test_db -c "CREATE EXTENSION citext;"
   script:
     - PYTHONPATH=${PYTHONPATH}:${PWD}/gracedb ${PYTHON} -m pytest --cov-report term-missing --cov ./gracedb --junitxml=${CI_PROJECT_DIR}/junit.xml
