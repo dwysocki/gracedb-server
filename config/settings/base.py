@@ -322,7 +322,7 @@ CAPATH = '/etc/grid-security/certificates'
 # SciTokens claims settings
 SCITOKEN_ISSUER = "https://cilogon.org/ligo"
 SCITOKEN_AUDIENCE = ["ANY"]
-SCITOKEN_SCOPE = "read:/frames"
+SCITOKEN_SCOPE = "read:/GraceDB"
 
 # List of authentication backends to use when attempting to authenticate
 # a user.  Will be used in this order.  Authentication for the API is
