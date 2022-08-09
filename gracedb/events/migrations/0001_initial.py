@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
+from django.contrib.postgres.operations import CITextExtension
+
 
 
 class Migration(migrations.Migration):
@@ -16,6 +18,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        CITextExtension(),
         migrations.CreateModel(
             name='Approval',
             fields=[
