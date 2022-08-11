@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import django.core.validators
 from django.db import migrations, models
 from django.contrib.postgres import fields
+from django.contrib.postgres.operations import CITextExtension
 
 
 class Migration(migrations.Migration):
@@ -14,6 +15,7 @@ class Migration(migrations.Migration):
 
     # No database changes; modifies validators and error_messages (#13147).
     operations = [
+        CITextExtension(),
         migrations.AlterField(
             model_name='user',
             name='username',
