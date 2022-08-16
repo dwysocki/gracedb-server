@@ -34,7 +34,7 @@ def handle_binary_ops(toks, op="or"):
 
     # Find the indices of the relevant operators.
     if op == "or":
-        indices = [i for i, x in enumerate(toks) if x is '|']
+        indices = [i for i, x in enumerate(toks) if x == '|']
     elif op == "and":
         indices = [i for i, x in enumerate(toks) if x == '&' or x==',']
     else:
