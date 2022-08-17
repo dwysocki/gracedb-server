@@ -12,12 +12,19 @@ from user_sessions.middleware import SessionMiddleware
 
 from api.backends import (
     GraceDbBasicAuthentication, GraceDbX509Authentication,
-    GraceDbAuthenticatedAuthentication,
+    GraceDbSciTokenAuthentication, GraceDbAuthenticatedAuthentication,
 )
 from api.tests.utils import GraceDbApiTestBase
 from api.utils import api_reverse
 from ligoauth.middleware import ShibbolethWebAuthMiddleware
 from ligoauth.models import X509Cert
+
+import scitokens
+import time
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
+from core.tests.utils import GraceDbTestBase
 
 
 # Make sure to test password expiration
@@ -133,6 +140,77 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
         with self.assertRaises(exceptions.AuthenticationFailed):
             user, other = self.backend_instance.authenticate(request)
 
+
+class TestGraceDbSciTokenAuthentication(GraceDbTestBase):
+    """Test SciToken auth backend for API"""
+
+    TEST_ISSUER = "test"
+    TEST_AUDIENCE = "TEST"
+    TEST_SCOPE = "read:/GraceDB"
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestGraceDbSciTokenAuthentication, cls).setUpClass()
+
+        # Attach request factory to class
+        cls.backend_instance = GraceDbSciTokenAuthentication()
+        cls.factory = APIRequestFactory()
+
+    @classmethod
+    def setUpTestData(cls):
+        super(TestGraceDbSciTokenAuthentication, cls).setUpTestData()
+
+    def setUp(self):
+        self._private_key = generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend()
+        )
+        self._public_key = self._private_key.public_key()
+        self._public_pem = self._public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        keycache = scitokens.utils.keycache.KeyCache.getinstance()
+        keycache.addkeyinfo("local", "sample_key", self._private_key.public_key())
+        now = int(time.time())
+        self._token = scitokens.SciToken(key = self._private_key, key_id="sample_key")
+        self._token.update_claims({
+        "iat": now,
+        "nbf": now,
+        "exp": now + 86400,
+        "iss": self.TEST_ISSUER,
+        "aud": self.TEST_AUDIENCE,
+        "scope": self.TEST_SCOPE,
+        "sub": str(self.internal_user),
+        })
+        self._serialized_token = self._token.serialize(issuer = "local")
+        self._no_kid_token = scitokens.SciToken(key = self._private_key)
+
+    # test test_function
+    def test_create(self):
+        """
+        Test the creation of a simple SciToken.
+        """
+
+        token = scitokens.SciToken(key = self._private_key)
+        token.update_claims({"test": "true"})
+        serialized_token = token.serialize(issuer = "local")
+
+        self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
+        print(serialized_token)
+
+    def test_user_authenticate_to_api_with_scitoken(self):
+        """User can authenticate to API with valid Scitoken"""
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+        request.headers = {'Authorization': 'BEARER {}'.format(self._serialized_token)}
+
+        # Authentication attempt
+        user, other = self.backend_instance.authenticate(request)
+
+        # Check authenticated user
+        self.assertEqual(user, self.internal_user)
 
 class TestGraceDbX509Authentication(GraceDbApiTestBase):
     """Test X509 certificate auth backend for API"""
