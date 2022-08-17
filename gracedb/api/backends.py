@@ -71,7 +71,7 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
 
 class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
 
-    def authenticate(self, request):
+    def authenticate(self, request, public_key=None):
         if 'Authorization' not in request.headers:
             return None
         # Get token from header
@@ -85,9 +85,10 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
             token = scitokens.SciToken.deserialize(
                 serialized_token,
                 # deserialize all tokens, enforce audience later
-                audience={"ANY"} | set(settings.SCITOKEN_AUDIENCE)
+                audience={"ANY"} | set(settings.SCITOKEN_AUDIENCE),
+                public_key=public_key,
             )
-        except (InvalidTokenFormat, SciTokensException) as exc:
+        except (InvalidTokenError, SciTokensException) as exc:
             return None
 
         # Enforce scitoken logic

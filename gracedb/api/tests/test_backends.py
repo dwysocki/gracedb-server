@@ -25,6 +25,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
 from core.tests.utils import GraceDbTestBase
+from django.test import override_settings
 
 
 # Make sure to test password expiration
@@ -144,8 +145,8 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
 class TestGraceDbSciTokenAuthentication(GraceDbTestBase):
     """Test SciToken auth backend for API"""
 
-    TEST_ISSUER = "test"
-    TEST_AUDIENCE = "TEST"
+    TEST_ISSUER = "local"
+    TEST_AUDIENCE = ["TEST"]
     TEST_SCOPE = "read:/GraceDB"
 
     @classmethod
@@ -200,14 +201,20 @@ class TestGraceDbSciTokenAuthentication(GraceDbTestBase):
         self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
         print(serialized_token)
 
+    @override_settings(
+        SCITOKEN_ISSUER="local",
+        SCITOKEN_AUDIENCE=["TEST"],
+    )
     def test_user_authenticate_to_api_with_scitoken(self):
         """User can authenticate to API with valid Scitoken"""
         # Set up request
         request = self.factory.get(api_reverse('api:root'))
-        request.headers = {'Authorization': 'BEARER {}'.format(self._serialized_token)}
+
+        token_str = 'Bearer ' + self._serialized_token.decode()
+        request.headers = {'Authorization': token_str}
 
         # Authentication attempt
-        user, other = self.backend_instance.authenticate(request)
+        user, other = self.backend_instance.authenticate(request, public_key=self._public_pem)
 
         # Check authenticated user
         self.assertEqual(user, self.internal_user)
