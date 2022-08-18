@@ -177,9 +177,6 @@ class TestGraceDbSciTokenAuthentication(GraceDbTestBase):
         now = int(time.time())
         self._token = scitokens.SciToken(key = self._private_key, key_id="sample_key")
         self._token.update_claims({
-        "iat": now,
-        "nbf": now,
-        "exp": now + 86400,
         "iss": self.TEST_ISSUER,
         "aud": self.TEST_AUDIENCE,
         "scope": self.TEST_SCOPE,
@@ -187,19 +184,6 @@ class TestGraceDbSciTokenAuthentication(GraceDbTestBase):
         })
         self._serialized_token = self._token.serialize(issuer = "local")
         self._no_kid_token = scitokens.SciToken(key = self._private_key)
-
-    # test test_function
-    def test_create(self):
-        """
-        Test the creation of a simple SciToken.
-        """
-
-        token = scitokens.SciToken(key = self._private_key)
-        token.update_claims({"test": "true"})
-        serialized_token = token.serialize(issuer = "local")
-
-        self.assertEqual(len(serialized_token.decode('utf8').split(".")), 3)
-        print(serialized_token)
 
     @override_settings(
         SCITOKEN_ISSUER="local",
@@ -209,7 +193,6 @@ class TestGraceDbSciTokenAuthentication(GraceDbTestBase):
         """User can authenticate to API with valid Scitoken"""
         # Set up request
         request = self.factory.get(api_reverse('api:root'))
-
         token_str = 'Bearer ' + self._serialized_token.decode()
         request.headers = {'Authorization': token_str}
 
@@ -218,6 +201,77 @@ class TestGraceDbSciTokenAuthentication(GraceDbTestBase):
 
         # Check authenticated user
         self.assertEqual(user, self.internal_user)
+
+    @override_settings(
+        SCITOKEN_ISSUER="local",
+        SCITOKEN_AUDIENCE=["TEST"],
+    )
+    def test_user_authenticate_to_api_without_scitoken(self):
+        """User can authenticate to API without valid Scitoken"""
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+
+        # Authentication attempt
+        resp = self.backend_instance.authenticate(request, public_key=self._public_pem)
+
+        # Check authentication response
+        assert resp == None
+
+    @override_settings(
+        SCITOKEN_ISSUER="local",
+        SCITOKEN_AUDIENCE=["TEST"],
+    )
+    def test_user_authenticate_to_api_with_wrong_audience(self):
+        """User can authenticate to API with invalid Scitoken audience"""
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+        self._token["aud"] = "https://somethingelse.example.com"
+        serialized_token = self._token.serialize(issuer = "local")
+        token_str = 'Bearer ' + serialized_token.decode()
+        request.headers = {'Authorization': token_str}
+
+        # Authentication attempt
+        resp = self.backend_instance.authenticate(request, public_key=self._public_pem)
+
+        # Check authentication response
+        assert resp == None
+
+    @override_settings(
+        SCITOKEN_ISSUER="local",
+        SCITOKEN_AUDIENCE=["TEST"],
+    )
+    def test_user_authenticate_to_api_with_expired_scitoken(self):
+        """User can authenticate to API with valid Scitoken"""
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+        serialized_token = self._token.serialize(issuer = "local", lifetime=-1)
+        token_str = 'Bearer ' + serialized_token.decode()
+        request.headers = {'Authorization': token_str}
+
+        # Authentication attempt
+        resp = self.backend_instance.authenticate(request, public_key=self._public_pem)
+
+        # Check authentication response
+        assert resp == None
+
+    @override_settings(
+        SCITOKEN_ISSUER="local",
+        SCITOKEN_AUDIENCE=["TEST"],
+    )
+    def test_inactive_user_authenticate_to_api_with_scitoken(self):
+        """Inactive user can't authenticate with valid Scitoken"""
+        # Set internal user to inactive
+        self.internal_user.is_active = False
+        self.internal_user.save(update_fields=['is_active'])
+
+        # Set up request
+        request = self.factory.get(api_reverse('api:root'))
+        token_str = 'Bearer ' + self._serialized_token.decode()
+        request.headers = {'Authorization': token_str}
+
+        # Authentication attempt should fail
+        with self.assertRaises(exceptions.AuthenticationFailed):
+            user, other = self.backend_instance.authenticate(request, public_key=self._public_pem)
 
 class TestGraceDbX509Authentication(GraceDbApiTestBase):
     """Test X509 certificate auth backend for API"""
