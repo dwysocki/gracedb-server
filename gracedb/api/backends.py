@@ -107,6 +107,10 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
         except User.DoesNotExist:
             return None
 
+        if not user.is_active:
+            raise exceptions.AuthenticationFailed(
+                _('User inactive or deleted'))
+
         return (user, None)
 
 
