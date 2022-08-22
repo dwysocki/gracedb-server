@@ -299,16 +299,15 @@ SERVER_HOSTNAME = SERVER_FQDN.split('.')[0]
 
 # igwn_alert  Overseer settings - get from environment
 LVALERT_OVERSEER_INSTANCES = []
-if igwn_alert_overseer_on:
-    LVALERT_OVERSEER_INSTANCES.append(
-    {
-        "lvalert_server": igwn_alert_server,
-        "listen_port": int(igwn_alert_overseer_port),
-        "igwn_alert_group": igwn_alert_group,
-        "username": igwn_alert_user,
-        "password": igwn_alert_password,
-    }
-    )
+LVALERT_OVERSEER_INSTANCES.append(
+{
+    "lvalert_server": igwn_alert_server,
+    "listen_port": int(igwn_alert_overseer_port),
+    "igwn_alert_group": igwn_alert_group,
+    "username": igwn_alert_user,
+    "password": igwn_alert_password,
+}
+)
 
 INSTANCE_STUB = """
 <li>Phone alerts (calls/SMS) are {0}</li>
