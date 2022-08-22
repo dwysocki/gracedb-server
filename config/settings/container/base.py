@@ -48,19 +48,6 @@ elif (isinstance(xmpp_env_var, str) and
 else:
     SEND_XMPP_ALERTS = True
 
-
-# Get lvalert_overseer status:
-lvalert_on  = get_from_env(
-    'ENABLE_LVALERT_OVERSEER',
-    default_value=False,
-    fail_if_not_found=False
-)
-if (isinstance(lvalert_on, str) and
-    lvalert_on.lower() in ['true', 't', '1']):
-        lvalert_overseer_on  = True
-else:
-    lvalert_overseer_on  = False
-
 # Get igwn_alert_overseer status:
 igwn_alert_on  = get_from_env(
     'ENABLE_IGWN_OVERSEER',
@@ -75,7 +62,7 @@ else:
 
 # Get igwn-alert server
 igwn_alert_server = os.environ.get('IGWN_ALERT_SERVER', None)
-if lvalert_server is None:
+if igwn_alert_server is None:
     raise ImproperlyConfigured('Could not get igwn-alert server from envvars.')
 
 # Get igwn-alert Overseer listen port
