@@ -57,7 +57,13 @@ if sentry_dsn is not None:
     LOGGING['loggers']['django.request']['handlers'] = []
 
 # Home page stuff
-INSTANCE_TITLE = 'GraceDB Playground'
+INSTANCE_TITLE = 'GraceDB'
+
+# Add sub-bullet with igwn-alert group:
+group_sub_bullet = """<ul>
+<li> Messages are sent to group: <span class="text-monospace"> {0}  </span></li>
+</ul>""".format(LVALERT_OVERSEER_INSTANCES[0]['igwn_alert_group'])
+INSTANCE_LIST = INSTANCE_LIST + group_sub_bullet
 
 INSTANCE_INFO = """
 <h5>GraceDB Notifications</h5>

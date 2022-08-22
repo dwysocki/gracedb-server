@@ -72,12 +72,10 @@ if sentry_dsn is not None:
 INSTANCE_TITLE = 'GraceDB Development VM'
 
 # Add sub-bullet with igwn-alert group:
-if (len(LVALERT_OVERSEER_INSTANCES) == 2):
-    igwn_alert_group = os.environ.get('IGWN_ALERT_GROUP', 'lvalert-dev')
-    group_sub_bullet = """<ul>
-    <li> Messages are sent to group: <span class="text-monospace"> {0}  </span></li>
-    </ul>""".format(igwn_alert_group)
-    INSTANCE_LIST = INSTANCE_LIST + group_sub_bullet
+group_sub_bullet = """<ul>
+<li> Messages are sent to group: <span class="text-monospace"> {0}  </span></li>
+</ul>""".format(LVALERT_OVERSEER_INSTANCES[0]['igwn_alert_group'])
+INSTANCE_LIST = INSTANCE_LIST + group_sub_bullet
 
 INSTANCE_TITLE = 'GraceDB Development Server'
 INSTANCE_INFO = """
