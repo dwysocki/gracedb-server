@@ -124,9 +124,6 @@ latest_image:
   stage: latest
   dependencies:
     - branch_image
-  only:
-    refs:
-      - master
   script:
     - docker pull $DOCKER_BRANCH
     - docker tag $DOCKER_BRANCH $DOCKER_LATEST
