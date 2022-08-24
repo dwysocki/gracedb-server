@@ -383,6 +383,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'django.contrib.sessions',
     'computedfields',
+    'django_postgres_vacuum',
 ]
 
 # Aliases for django-extensions shell_plus
