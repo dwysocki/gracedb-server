@@ -6,6 +6,7 @@ import re
 
 from django.contrib.auth import get_user_model, authenticate
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.utils.http import unquote, unquote_plus
@@ -16,6 +17,10 @@ from rest_framework import authentication, exceptions
 
 from ligoauth.models import X509Cert
 from .utils import is_api_request
+
+import scitokens
+from jwt import InvalidTokenError
+from scitokens.utils.errors import SciTokensException
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -62,6 +67,51 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
             raise exceptions.AuthenticationFailed(_(msg))
 
         return user_auth_tuple
+
+
+class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
+
+    def authenticate(self, request, public_key=None):
+        if 'Authorization' not in request.headers:
+            return None
+        # Get token from header
+        bearer = request.headers.get("Authorization")
+        auth_type, serialized_token = bearer.split()
+        if  auth_type != "Bearer":
+            return None
+
+        # Deserialize token
+        try:
+            token = scitokens.SciToken.deserialize(
+                serialized_token,
+                # deserialize all tokens, enforce audience later
+                audience={"ANY"} | set(settings.SCITOKEN_AUDIENCE),
+                public_key=public_key,
+            )
+        except (InvalidTokenError, SciTokensException) as exc:
+            return None
+
+        # Enforce scitoken logic
+        enforcer = scitokens.Enforcer(
+            settings.SCITOKEN_ISSUER,
+            audience = settings.SCITOKEN_AUDIENCE,
+        )
+
+        authz, path = settings.SCITOKEN_SCOPE.split(":", 1)
+        if not enforcer.test(token, authz, path):
+            return None
+
+        # Get username from token 'Subject' claim.
+        try:
+            user = User.objects.get(username=token['sub'])
+        except User.DoesNotExist:
+            return None
+
+        if not user.is_active:
+            raise exceptions.AuthenticationFailed(
+                _('User inactive or deleted'))
+
+        return (user, None)
 
 
 class GraceDbX509Authentication(authentication.BaseAuthentication):

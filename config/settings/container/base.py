@@ -226,6 +226,9 @@ DATABASES = {
         'HOST': os.environ.get('DJANGO_DB_HOST', ''),
         'PORT': os.environ.get('DJANGO_DB_PORT', ''),
         'CONN_MAX_AGE': 3600,
+        'TEST' : {
+            'NAME': 'gracedb_test_db',
+        },
     },
 }
 
@@ -323,6 +326,7 @@ INSTANCE_LIST = INSTANCE_STUB.format(ENABLED[SEND_PHONE_ALERTS],
 # Use full client certificate to authenticate
 REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = (
     'api.backends.GraceDbAuthenticatedAuthentication',
+    'api.backends.GraceDbSciTokenAuthentication',
     'api.backends.GraceDbX509FullCertAuthentication',
     'api.backends.GraceDbBasicAuthentication',
 )
