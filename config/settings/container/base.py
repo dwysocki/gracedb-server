@@ -371,6 +371,7 @@ if (len(LVALERT_OVERSEER_INSTANCES) == 2):
 # Use full client certificate to authenticate
 REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = (
     'api.backends.GraceDbAuthenticatedAuthentication',
+    'api.backends.GraceDbSciTokenAuthentication',
     'api.backends.GraceDbX509FullCertAuthentication',
     'api.backends.GraceDbBasicAuthentication',
 )
