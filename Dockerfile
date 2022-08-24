@@ -138,8 +138,8 @@ RUN chmod 0755 /usr/local/bin/entrypoint && \
     find /app/gracedb_project -type f -exec chmod 0644 {} +
 
 # create and set scitoken key cache directory
-RUN mkdir /app/scitokens_cache \
-    chown gracedb:www-data /app/scitokens_cache \
+RUN mkdir /app/scitokens_cache && \
+    chown gracedb:www-data /app/scitokens_cache && \
     chmod 0750 /app/scitokens_cache
 ENV XDG_CACHE_HOME /app/scitokens_cache
 
