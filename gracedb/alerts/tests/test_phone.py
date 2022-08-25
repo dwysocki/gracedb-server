@@ -2,8 +2,10 @@ try:
     from unittest import mock
 except ImportError:  # python < 3
     import mock
+import pytest
 
 from django.conf import settings
+from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
 from django.test import override_settings
 from django.urls import reverse
 from django.utils.http import urlencode
@@ -566,3 +568,52 @@ class TestPhoneCallAndText(GraceDbTestBase, SupereventCreateMixin):
         # Check URL
         for call_args in mock_call.call_args_list:
             self.assertEqual(call_args[1]['url'], expected_url)
+
+
+class TestContactCleanErrors(GraceDbTestBase):
+    def helper_test_contact_produces_error(self, err_field, err_message,
+                                           **contact_kwargs):
+        error_raised = False
+        try:
+            # Create a Contact that should trigger a ValidationError
+            Contact.objects.create(user=self.internal_user,
+                description='malformed contact', verified=True,
+                **contact_kwargs)
+        except ValidationError as err:
+            error_raised = True
+            # Check that the error messages have the correct entry.
+            error_messages = err.message_dict
+            self.assertIn(err_field, error_messages)
+            self.assertIn(err_message, error_messages[err_field])
+
+        # Should fail if no error raised
+        self.assertTrue(error_raised)
+
+    def helper_test_missing_phone_raises_error(self, phone_method):
+        """Test checking that phone number required if phone method set"""
+        self.helper_test_contact_produces_error(
+            'phone', '"Call" and "text" should be False for non-phone alerts.',
+            phone_method=phone_method,
+        )
+
+    def test_missing_phone_raises_error_method_call(self):
+        self.helper_test_missing_phone_raises_error(Contact.CONTACT_PHONE_CALL)
+
+    def test_missing_phone_raises_error_method_text(self):
+        self.helper_test_missing_phone_raises_error(Contact.CONTACT_PHONE_TEXT)
+
+    def test_missing_phone_raises_error_method_both(self):
+        self.helper_test_missing_phone_raises_error(Contact.CONTACT_PHONE_BOTH)
+
+    def test_phone_without_method_raises_error(self):
+        """Test checking that phone_method is required if phone set"""
+        self.helper_test_contact_produces_error(
+            'phone_method', 'Choose a phone contact method.',
+            phone='12345678901')
+
+    def test_phone_email_mutually_exclusive(self):
+        """Test checking phone and email mutually exclusive"""
+        self.helper_test_contact_produces_error(
+            NON_FIELD_ERRORS,
+            'Only one contact method (email or phone) can be selected.',
+            phone='12345678901', email='albert.einstein@ligo.org')

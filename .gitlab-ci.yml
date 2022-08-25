@@ -89,7 +89,7 @@ before_script:
     # list packages
     - ${PYTHON} -m pip list installed
   script:
-    - PYTHONPATH=${PYTHONPATH}:${PWD}/gracedb ${PYTHON} -m pytest --cov ./gracedb --junitxml=${CI_PROJECT_DIR}/junit.xml
+    - PYTHONPATH=${PYTHONPATH}:${PWD}/gracedb ${PYTHON} -m pytest --cov-report term-missing --cov ./gracedb --junitxml=${CI_PROJECT_DIR}/junit.xml
   after_script:
     - rm -fvr ${PIP_CACHE_DIR}/log
   retry:
@@ -128,6 +128,7 @@ latest_image:
     refs:
       - master
   script:
+    - docker pull $DOCKER_BRANCH
     - docker tag $DOCKER_BRANCH $DOCKER_LATEST
     - docker push $DOCKER_LATEST
   retry:
