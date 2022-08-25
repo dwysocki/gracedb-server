@@ -17,7 +17,6 @@ flake8==3.8.0
 gpstime==0.5.5
 gssapi==1.6.14
 gunicorn==20.0.4
-hop-client==0.5.1
 html5lib==1.1.0
 igwn-alert-overseer==0.5.1
 ipdb==0.13.6
