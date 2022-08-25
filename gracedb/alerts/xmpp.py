@@ -14,7 +14,7 @@ from core.time_utils import gpsToUtc
 from events.permission_utils import is_external
 from events.shortcuts import is_event
 from superevents.shortcuts import is_superevent
-from .lvalert import send_with_lvalert_overseer, send_with_lvalert_client
+from .lvalert import send_with_lvalert_overseer, send_with_kafka_client
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -115,7 +115,7 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
             message_id = sha1((node_name + msg).encode()).hexdigest()
 
             # Log message
-            logger.info(("issue_xmpp_alerts: sending alert type {alert_type} "
+            logger.info(("issue_kafka_alerts: sending alert type {alert_type} "
                 "with message {msg_id} for {uid} to {node} on {server}").format(
                 alert_type=alert_type, msg_id=message_id, uid=uid,
                 node=node_name, server=server))
@@ -130,18 +130,21 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
 
                 # If not success, we need to do this the old way.
                 if not success:
-                    logger.critical(("issue_xmpp_alerts: sending message with "
-                        "LVAlert Overseer failed, trying lvalert_send"))
+                    logger.critical(("issue_kafka_alerts: sending message with "
+                        "Overseer failed, trying igwn-alert client code"))
 
-            # If not using LVAlert Overseer or if sending with overseer failed,
-            # use basic lvalert-client send
+            # If not using Overseer or if sending with overseer failed,
+            # use basic igwn-alert client send
             if (not settings.USE_LVALERT_OVERSEER) or (not success):
                 try:
+                    # Make a settings dictionary and then change some names:
                     lvalert_settings_dict = copy.deepcopy(overseer_instance)
-                    server = lvalert_settings_dict.pop('lvalert_server')
-                    send_with_lvalert_client(node_name, msg, server,
+                    port = lvalert_settings_dict.pop('listen_port')
+                    server  = lvalert_settings_dict.pop('lvalert_server')
+                    lvalert_settings_dict['group'] = lvalert_settings_dict.pop('igwn_alert_group')
+                    send_with_kafka_client(node_name, msg, server,
                         **lvalert_settings_dict)
                 except Exception as e:
-                    logger.critical(("issue_xmpp_alerts: error sending "
-                        "message with lvalert client: {e}").format(e=e))
+                    logger.critical(("issue_kafka_alerts: error sending "
+                        "message with igwn-alert client: {e}").format(e=e))
 

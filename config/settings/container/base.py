@@ -48,19 +48,6 @@ elif (isinstance(xmpp_env_var, str) and
 else:
     SEND_XMPP_ALERTS = True
 
-
-# Get lvalert_overseer status:
-lvalert_on  = get_from_env(
-    'ENABLE_LVALERT_OVERSEER',
-    default_value=False,
-    fail_if_not_found=False
-)
-if (isinstance(lvalert_on, str) and
-    lvalert_on.lower() in ['true', 't', '1']):
-        lvalert_overseer_on  = True
-else:
-    lvalert_overseer_on  = False
-
 # Get igwn_alert_overseer status:
 igwn_alert_on  = get_from_env(
     'ENABLE_IGWN_OVERSEER',
@@ -73,46 +60,28 @@ if (isinstance(igwn_alert_on, str) and
 else:
     igwn_alert_overseer_on  = False
 
-# Get LVAlert server
-lvalert_server = os.environ.get('LVALERT_SERVER', None)
-if lvalert_server is None:
-    raise ImproperlyConfigured('Could not get LVAlert server from envvars.')
-
-# Get LVAlert Overseer listen port
-lvalert_overseer_port = os.environ.get('LVALERT_OVERSEER_PORT', None)
-if lvalert_overseer_port is None:
-    raise ImproperlyConfigured('Could not get LVAlert overseer port '
-        'from envvars.')
-
-# Get LVAlert username
-lvalert_user = os.environ.get('LVALERT_USER', None)
-if lvalert_user is None:
-    raise ImproperlyConfigured('Could not get LVAlert username from envvars.')
-
-# Get LVAlert password
-lvalert_password = os.environ.get('LVALERT_PASSWORD', None)
-if lvalert_password is None:
-    raise ImproperlyConfigured('Could not get LVAlert password from envvars.')
-
 # Get igwn-alert server
 igwn_alert_server = os.environ.get('IGWN_ALERT_SERVER', None)
-if lvalert_server is None:
+if igwn_alert_server is None:
     raise ImproperlyConfigured('Could not get igwn-alert server from envvars.')
 
 # Get igwn-alert Overseer listen port
 igwn_alert_overseer_port = os.environ.get('IGWN_ALERT_OVERSEER_PORT', None)
-if lvalert_overseer_port is None:
+if igwn_alert_overseer_port is None:
     raise ImproperlyConfigured('Could not get igwn-alert overseer port '
         'from envvars.')
 
+# Get igwn-alert group from envirnment:
+igwn_alert_group = os.environ.get('IGWN_ALERT_GROUP', DEFAULT_IGWN_ALERT_GROUP)
+
 # Get igwn-alert username
 igwn_alert_user = os.environ.get('IGWN_ALERT_USER', None)
-if lvalert_user is None:
+if igwn_alert_user is None:
     raise ImproperlyConfigured('Could not get igwn-alert username from envvars.')
 
 # Get igwn-alert password
 igwn_alert_password = os.environ.get('IGWN_ALERT_PASSWORD', None)
-if lvalert_password is None:
+if igwn_alert_password is None:
     raise ImproperlyConfigured('Could not get igwn-alert password from envvars.')
 
 # Get Twilio account information from environment
@@ -328,42 +297,28 @@ except:
 # Main server "hostname" - a little hacky but OK
 SERVER_HOSTNAME = SERVER_FQDN.split('.')[0]
 
-# LVAlert Overseer settings - get from environment
+# igwn_alert  Overseer settings - get from environment
 LVALERT_OVERSEER_INSTANCES = []
-LVALERT_OVERSEER_INSTANCES = [
-    {
-        "lvalert_server": lvalert_server,
-        "listen_port": int(lvalert_overseer_port),
-        "username": lvalert_user,
-        "password": lvalert_password,
-    }]
-
-if igwn_alert_overseer_on:
-    LVALERT_OVERSEER_INSTANCES.append(
-    {
-        "lvalert_server": igwn_alert_server,
-        "listen_port": int(igwn_alert_overseer_port),
-        "username": igwn_alert_user,
-        "password": igwn_alert_password,
-    }
-    )
+LVALERT_OVERSEER_INSTANCES.append(
+{
+    "lvalert_server": igwn_alert_server,
+    "listen_port": int(igwn_alert_overseer_port),
+    "igwn_alert_group": igwn_alert_group,
+    "username": igwn_alert_user,
+    "password": igwn_alert_password,
+}
+)
 
 INSTANCE_STUB = """
 <li>Phone alerts (calls/SMS) are {0}</li>
 <li>Email alerts are {1}</li>
-<li><span class="text-monospace">LVAlert</span> messages to <span class="text-monospace">{2}</span> are {3}</li>
+<li><span class="text-monospace">igwn-alert</span> messages to <span class="text-monospace">{2}</span> are {3}</li>
 """
 
 INSTANCE_LIST = INSTANCE_STUB.format(ENABLED[SEND_PHONE_ALERTS],
                                 ENABLED[SEND_EMAIL_ALERTS],
                                 LVALERT_OVERSEER_INSTANCES[0]['lvalert_server'],
                                 ENABLED[SEND_XMPP_ALERTS])
-
-if (len(LVALERT_OVERSEER_INSTANCES) == 2):
-    IGWN_STUB = '<li><span class="text-monospace">igwn-alert</span> messages to <span class="text-monospace">{0}</span> are {1}</li>'
-    IGWN_LIST = IGWN_STUB.format(LVALERT_OVERSEER_INSTANCES[1]['lvalert_server'],
-                                ENABLED[SEND_XMPP_ALERTS])
-    INSTANCE_LIST = INSTANCE_LIST + IGWN_LIST
 
 # Use full client certificate to authenticate
 REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = (
