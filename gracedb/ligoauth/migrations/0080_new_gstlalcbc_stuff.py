@@ -81,7 +81,7 @@ def add_permissions(apps, schema_editor):
  
         # Robot users should have been already created by ligoauth 0003,
         # but we have to create human user accounts here
-        user = User.objects.get(username=username)
+        user, _ = User.objects.get_or_create(username=username)
  
         # Create UserObjectPermission
         uop, uop_created = UserObjectPermission.objects.get_or_create(
@@ -96,6 +96,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('ligoauth', '0079_add_rapidpe'),
+        ('guardian', '0016_emfollow_upload_mly'),
     ]
 
     operations = [
