@@ -109,3 +109,5 @@ if (len(LVALERT_OVERSEER_INSTANCES) == 2):
                                 ENABLED[SEND_XMPP_ALERTS])
     INSTANCE_LIST = INSTANCE_LIST + IGWN_LIST
 
+# Set SciToken accepted audience to server FQDN
+SCITOKEN_AUDIENCE = ["https://" + SERVER_FQDN, "https://" + LIGO_FQDN]
