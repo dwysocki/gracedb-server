@@ -72,10 +72,11 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
 class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
 
     def authenticate(self, request, public_key=None):
-        if 'Authorization' not in request.headers:
-            return None
         # Get token from header
-        bearer = request.headers.get("Authorization")
+        try:
+            bearer = request.headers["Authorization"]
+        except KeyError:
+            return None
         auth_type, serialized_token = bearer.split()
         if  auth_type != "Bearer":
             return None

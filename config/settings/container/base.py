@@ -357,3 +357,6 @@ LOGGING['loggers']['django.request']['handlers'].append('mail_admins')
 # Turn off debug/error emails when in maintenance mode.
 if MAINTENANCE_MODE:
     LOGGING['loggers']['django.request']['handlers'].remove('mail_admins')
+
+# Set SciToken accepted audience to server FQDN
+SCITOKEN_AUDIENCE = ["https://" + SERVER_FQDN, "https://" + LIGO_FQDN]
