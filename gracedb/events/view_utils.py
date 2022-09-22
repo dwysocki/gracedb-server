@@ -314,7 +314,7 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
             se_neighbour_dict[getattr(s_event, 'superevent_id', None)] = {
                'superevent_id': getattr(s_event, 'superevent_id', None),
                'gw_events': [getattr(ev, 'graceid', None) for ev in
-                   s_event.events.all()],
+                   s_event.get_internal_events()],
                'preferred_event': getattr(s_event.preferred_event, 'graceid',
                    None),
                'preferred_event_data': pevd,
