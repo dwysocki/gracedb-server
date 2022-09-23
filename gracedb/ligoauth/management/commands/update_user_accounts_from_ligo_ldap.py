@@ -132,23 +132,20 @@ class LdapPersonResultProcessor(object):
                 # the GenericLdapUser object
                 user = UserModel.objects.get(username=
                     self.user_data['username'])
-                l_user = GenericLdapUser(ldap_dn=self.ldap_dn, 
+                l_user, created = GenericLdapUser.objects.get_or_create(ldap_dn=self.ldap_dn,
                                          ldap_member=self.ldap_authmember,
                                          user=user)
-                l_user.__dict__.update(user.__dict__)
-                l_user.save()
-                if self.verbose:
+                if (created and self.verbose):
                     self.write("Created genericldapuser for {0}".format(
                         user.username))
             else:
                 # No User object either, so we do a simple creation
                 user = UserModel(**self.user_data)
                 user.save()
-                l_user = GenericLdapUser(ldap_dn=self.ldap_dn,
+                l_user, created = GenericLdapUser.objects.get_or_create(ldap_dn=self.ldap_dn,
                                          ldap_member=self.ldap_authmember,
                                          user=user)
-                l_user.save()
-                if self.verbose:
+                if (created and self.verbose):
                     self.write("Created user and ligoldapuser for {0}".format(
                     user.username))
                 self.user_created = True
