@@ -199,10 +199,11 @@ class SupereventPipelinePreferredEventViewSet(ValidateDestroyMixin,
         else:
             return True, None
 
+    # FIXME: turn on igwn-alerts once we settle on alert contents
     def perform_destroy(self, instance):
         remove_pipeline_preferred_event_from_superevent(instance.superevent,
             instance, self.request.user, add_superevent_log=True,
-            add_event_log=True, issue_alert=True)
+            add_event_log=True, issue_alert=False)
 
 class SupereventLabelViewSet(ValidateDestroyMixin,
     InheritDefaultPermissionsMixin, SupereventNestedViewSet):

@@ -378,9 +378,10 @@ class SupereventPipelinePreferredEventSerializer(serializers.ModelSerializer):
         superevent = validated_data.pop('superevent')
         event = validated_data.pop('event')
         submitter = validated_data.pop('user')
+        #FIXME: turn on alerts when we settle on alert contents
         add_event_as_pipeline_preferred(superevent, event, submitter,
             add_superevent_log=True, add_event_log=True,
-            issue_alert=True)
+            issue_alert=False)
         return event
 
 class SupereventLabelSerializer(serializers.ModelSerializer):
