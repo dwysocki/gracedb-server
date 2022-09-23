@@ -59,7 +59,7 @@ class LdapPersonResultProcessor(object):
             'first_name': self.ldap_result['givenName'][0].decode('utf-8'),
             'last_name': self.ldap_result['sn'][0].decode('utf-8'),
             'email': self.ldap_result['mail'][0].decode('utf-8'),
-            'is_active': bool(self.ldap_connection.lvc_group.authorizedldapmember_set.all() & 
+            'is_active': bool(self.ldap_connection.lvc_group.authorizedldapmember_set.all() &
                               self.ldap_memberships),
             'username': self.ldap_result['krbPrincipalName'][0].decode('utf-8'),
         }
@@ -83,76 +83,31 @@ class LdapPersonResultProcessor(object):
 
         # This loop is only for kagra folks, as it's set up:
         if 'eduPersonPrincipalName' in self.ldap_result.keys():
-            # Check for an existing user whose username is their eppn:
+            # Check for an existing user whose username is their email:
             kagra_user = UserModel.objects.filter(username=
                     self.user_data['email'])
+            # If there are results, pick the first and only one (since it has to be
+            # unique by definition)
             if kagra_user.exists():
                 kagra_user = kagra_user.first()
-                print("Kagra user {} exists. Implementing logic to merge with {}".format(
-                    kagra_user.username, self.user_data['username']))
+                # Now, is that person a member of kagra? and are we sure we're dealing with
+                # KAGRA? 
 
-                # Kagra shibbi users don't typically have annotations since they're
-                # just logging in through the web. but they DO have notifications 
-                # set up. So. check if API (kagra_user) has any logs, eventlogs, or events
-                # to their name. If so, change the logs to the shibboleth account. Again, 
-                # this unlikely and should only matter the first time this script gets run. 
+                # Three conditions: 
+                #  1) Is the user a kagra genericldapuser?
+                #  2) Is that they only a kagra genericldapuser?
+                #  3) Are we in fact dealing with the KAGRA ldap (sanity check)
 
-                # Get this shibboleth user:
-                shibbi_user = UserModel.objects.filter(username=
-                    self.user_data['username'])
-                if shibbi_user.exists():
-                    shibbi_user = shibbi_user.first()
-                    print("Shibboleth user {} exists. Checking for API user annotations.")
+                if (kagra_user.genericldapuser_set.filter(ldap_member=self.ldap_authmember) and
+                   not kagra_user.genericldapuser_set.exclude(ldap_member=self.ldap_authmember) and
+                   self.ldap_authmember.name=='KAGRA'):
 
-                    # Check for uploaded events:
-                    kagra_events = Event.objects.filter(submitter=kagra_user)
-                    if kagra_events.exists():
-                        for e in kagra_events:
-                            print("changing submitter for event {} to {}".format(
-                                e, shibbi_user))
-                            e.submitter = shibbi_user
-                            e.save()
-                    else:
-                        print("No events uploaded by user {}".format(kagra_user))
-
-                    # Check for event log annotations:
-                    kagra_eventlogs = EventLog.objects.filter(issuer=kagra_user)
-                    if kagra_eventlogs.exists():
-                        for e in kagra_eventlogs:
-                            print("changing issuer for eventlog {} to {}".format(
-                                e, shibbi_user))
-                            e.issuer = shibbi_user
-                            e.save()
-                    else:
-                        print("No eventlogs annotated by user {}".format(kagra_user))
-
-                    # Check for superevent log annotations:
-                    kagra_seventlogs = Log.objects.filter(issuer=kagra_user)
-                    if kagra_seventlogs.exists():
-                        for s in kagra_seventlogs:
-                            print("changing issuer for supereventlog {} to {}".format(
-                                s, shibbi_user))
-                            s.issuer = shibbi_user
-                            s.save()
-                    else:
-                        print("No supereventlogs annotated by user {}".format(kagra_user))
-
-                    # So the old account's annotations have been transferred. Print 
-                    # stats for the shibbi account and then delete the old one:
-
-                    print("Shibboleth-created account {shib} remains with {e} events, {el} event logs, {se} superevent logs, and {n} alert notifications". format(
-                        shib=shibbi_user.username,
-                        e=Event.objects.filter(submitter=shibbi_user).count(),
-                        el=EventLog.objects.filter(issuer=shibbi_user).count(),
-                        se=Log.objects.filter(issuer=shibbi_user).count(),
-                        n=Notification.objects.filter(user=shibbi_user).count()))
-                    print("Deleting user {}".format(kagra_user))
-                    kagra_user.delete()
-                else:
-                    print("No shibboleth user {} exists. Changing username.".format(
-                        self.user_data['username']))
-                    kagra_user.username = self.user_data['username']
-                    kagra_user.save()
+                    # Now, check if the name should be changed, and if so, change it
+                    if kagra_user.username != self.user_data['username']:
+                        print("changing username of {} to {}".format(
+                            kagra_user.username, self.user_data['username']))
+                        kagra_user.username = self.user_data['username']
+                        kagra_user.save()
 
         # Determine if users exist
         user_exists = UserModel.objects.filter(username=
@@ -498,9 +453,18 @@ class LdapKagraResultProcessor(LdapPersonResultProcessor):
                               self.ldap_memberships),
             'username': self.ldap_result['eduPersonPrincipalName'][0].decode('utf-8'),
         }
-    def update_user_certificates(self):
 
+    def update_user(self):
         re_prefix = 'voPersonCertificateDN;.'
+        if not hasattr(self, 'user'):
+            raise RuntimeError('User object missing')
+        self.update_user_attributes()
+        self.update_user_groups()
+        if  any(re.match(re_prefix, key) for key in self.ldap_result.keys()):
+            self.update_user_certificates(re_prefix)
+
+    def update_user_certificates(self, re_prefix):
+
         # Get two lists of subjects as sets. Then convert to lowercase. 
         db_x509_subjects = set(list(self.ligoldapuser.user.x509cert_set.values_list(
             'subject', flat=True)))
@@ -674,7 +638,8 @@ class KagraPeopleLdap(LigoPeopleLdap):
 
         # Return result data that has been filtered with DNs:
 
-        return self.get_kagra_users_with_dns(result_data)
+        #return self.get_kagra_users_with_dns(result_data)
+        return result_data
     
 
 # Dict of LDAP classes with names as keys
