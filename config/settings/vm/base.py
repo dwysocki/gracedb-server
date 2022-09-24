@@ -102,3 +102,12 @@ INSTANCE_LIST = INSTANCE_STUB.format(ENABLED[SEND_PHONE_ALERTS],
                                 ENABLED[SEND_EMAIL_ALERTS],
                                 LVALERT_OVERSEER_INSTANCES[0]['lvalert_server'],
                                 ENABLED[SEND_XMPP_ALERTS])
+
+if (len(LVALERT_OVERSEER_INSTANCES) == 2):
+    IGWN_STUB = '<li><span class="text-monospace">igwn-alert</span> messages to <span class="text-monospace">{0}</span> are {1}</li>'
+    IGWN_LIST = IGWN_STUB.format(LVALERT_OVERSEER_INSTANCES[1]['lvalert_server'],
+                                ENABLED[SEND_XMPP_ALERTS])
+    INSTANCE_LIST = INSTANCE_LIST + IGWN_LIST
+
+# Set SciToken accepted audience to server FQDN
+SCITOKEN_AUDIENCE = ["https://" + SERVER_FQDN, "https://" + LIGO_FQDN]

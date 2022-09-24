@@ -12,6 +12,7 @@ from rest_framework import fields, serializers, validators
 from rest_framework.exceptions import ValidationError
 
 from events.models import Event, Label, Tag, EMGroup
+from events.view_utils import event_basic_info_to_dict
 from superevents.models import Superevent, Labelling, Log, VOEvent, \
     EMObservation, EMFootprint, Signoff, SupereventGroupObjectPermission
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG
@@ -59,6 +60,7 @@ class SupereventSerializer(serializers.ModelSerializer):
     # Add custom fields
     superevent_id = serializers.SerializerMethodField(read_only=True)
     gw_events = serializers.SerializerMethodField(read_only=True)
+    pipeline_preferred_events = serializers.SerializerMethodField(read_only=True)
     em_events = serializers.SerializerMethodField(read_only=True)
     links = serializers.SerializerMethodField(read_only=True)
     labels = serializers.SlugRelatedField(slug_field='name', many=True,
@@ -89,7 +91,7 @@ class SupereventSerializer(serializers.ModelSerializer):
             'preferred_event', 'events', 'em_type', 't_start', 't_0', 't_end',
             'gw_events', 'em_events', 'far', 'time_coinc_far', 
             'space_coinc_far', 'labels', 'links', 
-            'user', 'preferred_event_data')
+            'user', 'preferred_event_data', 'pipeline_preferred_events')
 
     def validate(self, data):
         data = super(SupereventSerializer, self).validate(data)
@@ -147,6 +149,11 @@ class SupereventSerializer(serializers.ModelSerializer):
     def get_gw_events(self, obj):
         return [ev.graceid for ev in obj.get_internal_events()]
 
+    def get_pipeline_preferred_events(self, obj):
+        request=self.context.get('request', None)
+        return {ev.pipeline.name:event_basic_info_to_dict(ev, request) \
+                for ev in obj.pipeline_preferred_events.all()}
+
     def get_em_events(self, obj):
         return [ev.graceid for ev in obj.get_external_events()]
 
@@ -179,6 +186,7 @@ class SupereventSerializer(serializers.ModelSerializer):
         if request and request.user.is_anonymous:
             ret.pop('gw_events')
             ret.pop('em_events')
+            ret.pop('pipeline_preferred_events')
             ret.pop('preferred_event')
         return ret
 
@@ -304,6 +312,77 @@ class SupereventEventSerializer(serializers.ModelSerializer):
             issue_alert=True)
         return event
 
+
+class SupereventPipelinePreferredEventSerializer(serializers.ModelSerializer):
+    default_error_messages = {
+        'already_included': _('Event {graceid} is already the {pipeline} '
+                              'pipeline-preferred event for {superevent_id}'),
+        'not_in_superevent': _('Event {graceid} is not part of superevent {superevent_id}'),
+        'remove_preferred_event': _('Adding {graceid} as a pipeline-preferred event '
+                                    'would remove {pe_graceid} as the preferred event'),
+        'category_mismatch': _('Event {graceid} is of type \'{e_category}\', '
+                               'and cannot be assigned to a superevent of '
+                               'type \'{s_category}\''),
+    }
+    self = serializers.SerializerMethodField(read_only=True)
+    event = EventGraceidField(write_only=True,
+        style={'base_template': 'input.html'})
+    superevent = serializers.HiddenField(write_only=True,
+        default=ParentObjectDefault(context_key='superevent'))
+    # Get user from request automatically
+    user = serializers.HiddenField(write_only=True,
+        default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Event
+        fields = ('self', 'graceid', 'event', 'superevent', 'user')
+
+    def get_self(self, obj):
+        return api_reverse('events:event-detail', args=[obj.graceid],
+            request=self.context.get('request', None))
+
+    def validate(self, data):
+        data = super(SupereventPipelinePreferredEventSerializer, self).validate(data)
+        event = data.get('event')
+        superevent = data.get('superevent')
+
+        # Check to see if the event is already in the preferred event list
+        if superevent.pipeline_preferred_events.filter(id=event.id).exists():
+            self.fail('already_included', graceid=event.graceid,
+                    pipeline=event.pipeline.name,
+                    superevent_id=superevent.superevent_id)
+
+        # Check to see if event would replace preferred event:
+        if (event.pipeline == superevent.preferred_event.pipeline):
+            self.fail('remove_preferred_event', graceid=event.graceid,
+                    pe_graceid=superevent.preferred_event.graceid)
+
+        # Check if event is part of a different superevent:
+        if (not event.superevent or  event.superevent != superevent):
+            self.fail('not_in_superevent', graceid=event.graceid,
+                                           superevent_id=superevent.superevent_id)
+
+        # Check that event has the correct type for the superevent it's being
+        # assigned to
+        if not superevent.event_compatible(event):
+            self.fail('category_mismatch', graceid=event.graceid,
+                e_category=event.get_event_category(),
+                s_category=superevent.get_category_display())
+
+        return data
+
+    def create(self, validated_data):
+        # Function-level import to prevent circular import in alerts
+        from superevents.utils import add_event_as_pipeline_preferred
+
+        superevent = validated_data.pop('superevent')
+        event = validated_data.pop('event')
+        submitter = validated_data.pop('user')
+        #FIXME: turn on alerts when we settle on alert contents
+        add_event_as_pipeline_preferred(superevent, event, submitter,
+            add_superevent_log=True, add_event_log=True,
+            issue_alert=False)
+        return event
 
 class SupereventLabelSerializer(serializers.ModelSerializer):
     default_error_messages = {

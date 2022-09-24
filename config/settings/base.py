@@ -322,6 +322,11 @@ X509_INFOS_HEADER = 'HTTP_X_FORWARDED_TLS_CLIENT_CERT_INFOS'
 # Path to CA store for X509 certificate verification
 CAPATH = '/etc/grid-security/certificates'
 
+# SciTokens claims settings
+SCITOKEN_ISSUER = "https://cilogon.org/ligo"
+SCITOKEN_AUDIENCE = ["ANY"]
+SCITOKEN_SCOPE = "read:/GraceDB"
+
 # List of authentication backends to use when attempting to authenticate
 # a user.  Will be used in this order.  Authentication for the API is
 # handled by the REST_FRAMEWORK dictionary.
@@ -418,6 +423,7 @@ REST_FRAMEWORK = {
     },
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'api.backends.GraceDbAuthenticatedAuthentication',
+        'api.backends.GraceDbSciTokenAuthentication',
         'api.backends.GraceDbX509Authentication',
         'api.backends.GraceDbBasicAuthentication',
     ),

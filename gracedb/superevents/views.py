@@ -77,6 +77,12 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
             )
         )
 
+        # TODO: determine what info from pipeline-preferred events gets shown 
+        # to the public on the superevent page. For now, just show everything to
+        # internal users.
+
+        context['pipeline_preferred_events'] = superevent.pipeline_preferred_events.all()
+
         # Is the user an external user? (I.e., not part of the LVC?) The
         # template needs to know that in order to decide what pieces of
         # information to show.

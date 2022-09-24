@@ -11,6 +11,10 @@ from django.core.management.base import BaseCommand, CommandError
 from ligoauth.models import X509Cert, AuthGroup, \
                             AuthorizedLdapMember, GenericLdapUser
 
+from events.models import Event, EventLog
+from superevents.models import Log
+from alerts.models import Notification
+
 UserModel = get_user_model()
 
 
@@ -55,7 +59,7 @@ class LdapPersonResultProcessor(object):
             'first_name': self.ldap_result['givenName'][0].decode('utf-8'),
             'last_name': self.ldap_result['sn'][0].decode('utf-8'),
             'email': self.ldap_result['mail'][0].decode('utf-8'),
-            'is_active': bool(self.ldap_connection.lvc_group.authorizedldapmember_set.all() & 
+            'is_active': bool(self.ldap_connection.lvc_group.authorizedldapmember_set.all() &
                               self.ldap_memberships),
             'username': self.ldap_result['krbPrincipalName'][0].decode('utf-8'),
         }
@@ -64,8 +68,46 @@ class LdapPersonResultProcessor(object):
         pass
 
     def get_or_create_user(self):
+
         if not hasattr(self, 'user_data'):
             self.extract_user_attributes()
+
+        # Kagra members used to use the the 'mail' ldap attribute as a username, 
+        # to be consistent with LIGO members. However, for scitokens, a kagra user's
+        # eppn is used in the same field as a ligo member's @ligo.org email. So, 
+        # if the eppn attribute exists from the ldap data (which is only polled for
+        # kagra, not ligo), check for a user with the email, if it exists, then change
+        # the user's username. If not, then do nothing to the user, but change the 'username'
+        # user_data attribute either way. This is kind of hacky, but in theory this should 
+        # only actually run once. 
+
+        # This loop is only for kagra folks, as it's set up:
+        if 'eduPersonPrincipalName' in self.ldap_result.keys():
+            # Check for an existing user whose username is their email:
+            kagra_user = UserModel.objects.filter(username=
+                    self.user_data['email'])
+            # If there are results, pick the first and only one (since it has to be
+            # unique by definition)
+            if kagra_user.exists():
+                kagra_user = kagra_user.first()
+                # Now, is that person a member of kagra? and are we sure we're dealing with
+                # KAGRA? 
+
+                # Three conditions: 
+                #  1) Is the user a kagra genericldapuser?
+                #  2) Is that they only a kagra genericldapuser?
+                #  3) Are we in fact dealing with the KAGRA ldap (sanity check)
+
+                if (kagra_user.genericldapuser_set.filter(ldap_member=self.ldap_authmember) and
+                   not kagra_user.genericldapuser_set.exclude(ldap_member=self.ldap_authmember) and
+                   self.ldap_authmember.name=='KAGRA'):
+
+                    # Now, check if the name should be changed, and if so, change it
+                    if kagra_user.username != self.user_data['username']:
+                        print("changing username of {} to {}".format(
+                            kagra_user.username, self.user_data['username']))
+                        kagra_user.username = self.user_data['username']
+                        kagra_user.save()
 
         # Determine if users exist
         user_exists = UserModel.objects.filter(username=
@@ -90,23 +132,20 @@ class LdapPersonResultProcessor(object):
                 # the GenericLdapUser object
                 user = UserModel.objects.get(username=
                     self.user_data['username'])
-                l_user = GenericLdapUser(ldap_dn=self.ldap_dn, 
+                l_user, created = GenericLdapUser.objects.get_or_create(ldap_dn=self.ldap_dn,
                                          ldap_member=self.ldap_authmember,
                                          user=user)
-                l_user.__dict__.update(user.__dict__)
-                l_user.save()
-                if self.verbose:
+                if (created and self.verbose):
                     self.write("Created genericldapuser for {0}".format(
                         user.username))
             else:
                 # No User object either, so we do a simple creation
                 user = UserModel(**self.user_data)
                 user.save()
-                l_user = GenericLdapUser(ldap_dn=self.ldap_dn,
+                l_user, created = GenericLdapUser.objects.get_or_create(ldap_dn=self.ldap_dn,
                                          ldap_member=self.ldap_authmember,
                                          user=user)
-                l_user.save()
-                if self.verbose:
+                if (created and self.verbose):
                     self.write("Created user and ligoldapuser for {0}".format(
                     user.username))
                 self.user_created = True
@@ -376,8 +415,6 @@ class LdapRobotResultProcessor(LdapPersonResultProcessor):
 
 class LdapKagraResultProcessor(LdapPersonResultProcessor):
 
-    #def __init__(self, ldap_member_name='Communities:LSCVirgoLIGOGroupMembers', 
-    #    *args, **kwargs):
     def __init__(self, ldap_dn, ldap_result, ldap_connection=None,
         verbose=True, stdout=None, 
         ldap_member_name='gw-astronomy:KAGRA-LIGO:members', 
@@ -411,11 +448,20 @@ class LdapKagraResultProcessor(LdapPersonResultProcessor):
             'email': self.ldap_result['mail'][0].decode('utf-8'),
             'is_active': bool(self.ldap_connection.lvc_group.authorizedldapmember_set.all() & 
                               self.ldap_memberships),
-            'username': self.ldap_result['mail'][0].decode('utf-8'),
+            'username': self.ldap_result['eduPersonPrincipalName'][0].decode('utf-8'),
         }
-    def update_user_certificates(self):
 
+    def update_user(self):
         re_prefix = 'voPersonCertificateDN;.'
+        if not hasattr(self, 'user'):
+            raise RuntimeError('User object missing')
+        self.update_user_attributes()
+        self.update_user_groups()
+        if  any(re.match(re_prefix, key) for key in self.ldap_result.keys()):
+            self.update_user_certificates(re_prefix)
+
+    def update_user_certificates(self, re_prefix):
+
         # Get two lists of subjects as sets. Then convert to lowercase. 
         db_x509_subjects = set(list(self.ligoldapuser.user.x509cert_set.values_list(
             'subject', flat=True)))
@@ -545,6 +591,7 @@ class KagraPeopleLdap(LigoPeopleLdap):
         'voPersonCertificateDN',
         'mail',
         'isMemberOf',
+        'eduPersonPrincipalName',
     ]
     group_names = ['internal_users']
     user_processor_class = LdapKagraResultProcessor
@@ -588,7 +635,8 @@ class KagraPeopleLdap(LigoPeopleLdap):
 
         # Return result data that has been filtered with DNs:
 
-        return self.get_kagra_users_with_dns(result_data)
+        #return self.get_kagra_users_with_dns(result_data)
+        return result_data
     
 
 # Dict of LDAP classes with names as keys
