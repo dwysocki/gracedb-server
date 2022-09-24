@@ -105,6 +105,7 @@ before_script:
     paths:
       - .cache/pip
       - .cache/apt
+  coverage: '/^TOTAL\s+.*\s+(\d+\.?\d*)%/'
 
 test:3.7:
   <<: *test
