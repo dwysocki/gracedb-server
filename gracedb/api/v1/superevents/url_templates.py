@@ -4,13 +4,14 @@ from .views import SupereventViewSet, SupereventEventViewSet, \
     SupereventLabelViewSet, SupereventLogViewSet, SupereventLogTagViewSet, \
     SupereventFileViewSet, SupereventVOEventViewSet, \
     SupereventEMObservationViewSet, SupereventGroupObjectPermissionViewSet, \
-    SupereventSignoffViewSet
+    SupereventSignoffViewSet, SupereventPipelinePreferredEventViewSet
 from ...utils import api_reverse
 
 # Placeholder parameters for getting URLs with reverse
 PH = {
     SupereventViewSet.lookup_url_kwarg: 'S800106a', # superevent_id
     SupereventEventViewSet.lookup_url_kwarg: 'G1234', # graceid
+    SupereventPipelinePreferredEventViewSet.lookup_url_kwarg: 'G1234', # graceid
     SupereventLabelViewSet.lookup_url_kwarg: 'LABEL_NAME', # label name
     SupereventLogViewSet.lookup_url_kwarg: '3333', # log number (N)
     SupereventLogTagViewSet.lookup_url_kwarg: 'TAG_NAME', # tag name
@@ -33,6 +34,8 @@ def construct_url_templates(request=None):
         'superevent-detail': [],
         'superevent-event-list': [],
         'superevent-event-detail': [PH[SupereventEventViewSet.lookup_url_kwarg]],
+        'superevent-pipeline-preferred-event-list': [],
+        'superevent-pipeline-preferred-event-detail': [PH[SupereventPipelinePreferredEventViewSet.lookup_url_kwarg]],
         'superevent-label-list': [],
         'superevent-label-detail': [PH[SupereventLabelViewSet.lookup_url_kwarg]],
         'superevent-log-list': [],

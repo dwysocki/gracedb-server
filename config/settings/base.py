@@ -33,7 +33,7 @@ INFO_BANNER_MESSAGE = "TEST MESSAGE"
 BETA_REPORTS_LINK = False
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.14.3'
+PROJECT_VERSION = '2.15.0'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -124,6 +124,12 @@ LOGOUT_REDIRECT_URL = 'home'
 SEND_XMPP_ALERTS = False
 SEND_PHONE_ALERTS = False
 SEND_EMAIL_ALERTS = False
+
+# igwn-alert group settings. the default development group is 'lvalert-dev'
+# for the container deployments, the variable will be overwriten by the 
+# IGWN_ALERT_GROUP environment variable. 
+DEFAULT_IGWN_ALERT_GROUP = 'lvalert-dev'
+
 # Use LVAlert Overseer?
 USE_LVALERT_OVERSEER = True
 # For each LVAlert server, a separate instance of LVAlert Overseer
@@ -132,12 +138,9 @@ USE_LVALERT_OVERSEER = True
 #   listen_port: port which that instance of overseer is listening on
 LVALERT_OVERSEER_INSTANCES = [
     {
-        "lvalert_server": "lvalert-test.cgca.uwm.edu",
-        "listen_port": 8001,
-    },
-    {
         "lvalert_server": "kafka://kafka.scimma.org/",
         "listen_port": 8002,
+        "igwn_alert_group": DEFAULT_IGWN_ALERT_GROUP,
     },
 ]
 
@@ -380,6 +383,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'django.contrib.sessions',
     'computedfields',
+    'django_postgres_vacuum',
 ]
 
 # Aliases for django-extensions shell_plus

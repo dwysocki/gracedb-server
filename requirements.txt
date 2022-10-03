@@ -6,6 +6,7 @@ django-debug-toolbar==3.2.2
 django-extensions==2.2.9
 django-guardian==2.4.0
 django-model-utils==4.2.0
+django-postgres-vacuum==2020.12.24
 django-ses==2.3.0
 django-silk==4.2.0
 django-twilio==0.13.2
@@ -18,16 +19,13 @@ gpstime==0.5.5
 gssapi==1.6.14
 gunicorn==20.0.4
 html5lib==1.1.0
+igwn-alert-overseer==0.5.2
 ipdb==0.13.6
 ipython==7.21.0
+#jwt==1.3.1
 Jinja2==3.0.1
 lalsuite==6.82 # undocumented requirement for lscsoft-glue
 python-ligo-lw==1.7.1 # adding support ligo un-ilwdchar'ed events
-ligo-lvalert==1.5.6
-# Temporary pin of lvalert-overseer for Python 3 update
-git+https://git.ligo.org/lscsoft/lvalert-overseer.git@e905ed8c888fcc8f31eb881cbfed7c5d7d1612a3#egg=ligo-lvalert-overseer
-# Temporary pin of igwn_alert_overseer (kafka update)
-git+https://git.ligo.org/lscsoft/lvalert-overseer.git@27d29599d2c079d8df3a8049e159bb03ba974a4a
 lscsoft-glue==2.0.0
 lxml==4.6.0
 matplotlib==3.3.4

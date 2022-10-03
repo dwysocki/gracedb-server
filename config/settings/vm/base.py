@@ -95,7 +95,7 @@ BETA_REPORTS_LINK = True
 INSTANCE_STUB = """
 <li>Phone alerts (calls/SMS) are {0}</li>
 <li>Email alerts are {1}</li>
-<li><span class="text-monospace">LVAlert</span> messages to <span class="text-monospace">{2}</span> are {3}</li>
+<li><span class="text-monospace">igwn-alert</span> messages to <span class="text-monospace">{2}</span> are {3}</li>
 """
 
 INSTANCE_LIST = INSTANCE_STUB.format(ENABLED[SEND_PHONE_ALERTS],
