@@ -42,6 +42,11 @@ ServerName ${DJANGO_PRIMARY_FQDN}
   ProxyPass "/admin_docs" "!"
   ProxyPass "/" "http://localhost:8080/"
 
+  # KeepAlive stuff:
+  KeepAlive On
+  MaxKeepAliveRequests 1000
+  KeepAliveTimeout 300
+
   # Unset certain headers to help prevent spoofing
   RequestHeader unset REMOTE_USER
   RequestHeader unset ISMEMBEROF
