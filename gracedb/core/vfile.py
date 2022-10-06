@@ -187,8 +187,20 @@ class VersionedFile(object):
             # Do not care if file does not exist, otherwise raise exception.
             if e.errno != errno.ENOENT:
                 raise
-        name = os.path.basename(self._name_for_version(last_version))
-        os.symlink(name, self.fullname)
+
+        # Try and safely create the symlink. This try/except blcok is to avoid
+        # race conditions that RAVEN encountered when another process has created 
+        # a symlink for its version of the file. RAVEN was uploading like 10 files 
+        # called "coincidence_far.json" at the same time. 
+        try:
+            name = os.path.basename(self._name_for_version(last_version))
+            os.symlink(name, self.fullname)
+        except OSError:
+            # We do not care that it could not create the symlink, just move on. 
+            # The original file is still accessible, and the link to the exact file
+            # is still reflected in the logs.
+            logger.warning("Symlink for {} exists for file {}".format(name, self.fullname))
+
         return
 
 # XXX   This fails when renaming/mv-ing across devices.
