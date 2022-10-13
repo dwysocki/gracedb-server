@@ -175,7 +175,54 @@ DEFAULT_EVENT_Q = ~Q(group__name='Test') & ~Q(search__name='MDC')
 # NOTE: the event query stuff is just too nasty.  Attempts at testing
 # are not going well.  It needs a full rework.
 EVENT_QUERY_TEST_DATA = [
+    # Default query
     ("", DEFAULT_EVENT_Q),
+    # By instrument
+    ("instruments: \"H1,L1,V1\"", Q(instruments="H1,L1,V1") & DEFAULT_EVENT_Q),
+    # By FAR
+    ("far <= 1e-7", Q(far__lte=1e-7) & DEFAULT_EVENT_Q),
+    ("far < 1e-7", Q(far__lt=1e-7) & DEFAULT_EVENT_Q),
+    ("far > 1e-7", Q(far__gt=1e-7) & DEFAULT_EVENT_Q),
+    ("far >= 1e-7", Q(far__gte=1e-7) & DEFAULT_EVENT_Q),
+    ("far: 0.001", Q(far=0.001) & DEFAULT_EVENT_Q),
+    # By event attributes
+    ("singleinspiral.mchirp >= 0.5 & singleinspiral.eff_distance in 0.0,55",
+        Q(singleinspiral__mchirp__gte=0.5) &
+        Q(singleinspiral__eff_distance__range=[0.0, 55]) &
+        DEFAULT_EVENT_Q),
+    ("(si.channel = \"DMT-STRAIN\" | si.channel = \"DMT-PAIN\") & si.snr < 5",
+        (Q(singleinspiral__channel="DMT-STRAIN") |
+         Q(singleinspiral__channel="DMT-PAIN")) &
+        Q(singleinspiral__snr__lt=5) & DEFAULT_EVENT_Q),
+    ("mb.snr in 1,3 & mb.central_freq > 1000",
+        Q(multiburstevent__snr__range=[1, 3]) &
+        Q(multiburstevent__central_freq__gt=1000) &
+        DEFAULT_EVENT_Q),
+    # By GPS time
+    ("gpstime: 899999000 .. 999999999",
+        Q(gpstime__range=["899999000", "999999999"]) & DEFAULT_EVENT_Q),
+    ("899999000 .. 999999999",
+        Q(gpstime__range=["899999000", "999999999"]) & DEFAULT_EVENT_Q),
+    # By creation time
+    ## TODO
+#    ("created: 2009-10-08 .. 2009-12-04 16:00:00",
+#        Q(created__range=...))
+    # By graceid
+    ("G1234", Q(id="1234") & DEFAULT_EVENT_Q),
+    ("gid: G1234", Q(id="1234") & DEFAULT_EVENT_Q),
+    ("G1234 .. G1240", Q(id__range=["1234", "1240"]) & DEFAULT_EVENT_Q),
+    ("gid: G1234 .. G1240", Q(id__range=["1234", "1240"]) & DEFAULT_EVENT_Q),
+    ("G1234 G1235 G1236", (Q(id="1234") | Q(id="1235") | Q(id="1236")) &
+        DEFAULT_EVENT_Q),
+    ("gid: G1234 G1235 G1236", (Q(id="1234") | Q(id="1235") | Q(id="1236")) &
+        DEFAULT_EVENT_Q),
+    # By group, pipeline, and search
+    ## TODO
+#    ("GROUP1 SEARCH1", Q(group__name__in=["GROUP1"]) &
+#        Q(search__name__in=["SEARCH1"]) & DEFAULT_EVENT_Q),
+    # By label
+    ## TODO: fix
+#    ("label: LABEL1", Q(label="LABEL1") & DEFAULT_EVENT_Q),
 ]
 @pytest.mark.parametrize("query,expected_Q_result", EVENT_QUERY_TEST_DATA)
 def test_event_queries(query, expected_Q_result):
