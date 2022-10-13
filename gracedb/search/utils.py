@@ -9,6 +9,15 @@ logger = logging.getLogger(__name__)
 
 
 def maybeRange(name, dbname=None):
+    """
+    Creates a parser action which takes one or two tokens.  If there are two
+    tokens, the action is to query the range between them.  If there is one
+    token, the action is to query that value alone.
+
+    Query takes place over ``dbname`` if set, otherwise ``name``
+
+    Query will be tagged according to ``name``.
+    """
     dbname = dbname or name
     def f(toks):
         if len(toks) == 1:
