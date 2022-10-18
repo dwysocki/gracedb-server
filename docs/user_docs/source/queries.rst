@@ -64,12 +64,17 @@ Creation time may be indicated by an exact time or a range.
 Date/times are in the format ``2009-10-20 13:00:00`` (must be UTC).
 If the time is omitted, it is assumed to be ``00:00:00``.
 Dates may also consist of certain variants of English-like phrases.
-The ``created`` keyword is (generally) optional.
+The ``created`` keyword is optional.
 Examples:
 
 - ``created: 2009-10-08 .. 2009-12-04 16:00:00``
 - ``yesterday..now``
 - ``created: 1 week ago .. now``
+
+.. warning::
+    Due to a bug in GraceDB, it is recommended that you always include the
+    ``created`` keyword, as some queries fail without it.
+
 
 By graceid
 ----------
