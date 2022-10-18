@@ -18,18 +18,6 @@ from search.query.superevents import parseSupereventQuery
 # Get server timezone
 SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 
-# Helper function for comparing Q objects
-# Shouldn't be necessary in Django 2.0+
-def compare_Qs(Q1, Q2):
-    if hasattr(Q1, 'children') and hasattr(Q2, 'children'):
-        if (Q1.__class__ == Q2.__class__) and ((Q1.connector, Q1.negated)
-            == (Q2.connector, Q2.negated)) and (len(Q1.children) ==
-            len(Q2.children)):
-            # Get children
-            result = [compare_Qs(Q1.children[i], Q2.children[i]) for i in
-                range(len(Q1.children))]
-            return all(result)
-    return (Q1 == Q2)
 
 # Label names to use in Label list mock
 MOCK_LABEL_LIST = ['LABEL1', 'LABEL2', 'LABEL3']
@@ -163,7 +151,8 @@ def test_superevent_queries(query, expected_Q_result):
 
         # Run query
         Q_result = parseSupereventQuery(query)
-    assert compare_Qs(Q_result, expected_Q_result)
+
+    assert Q_result == expected_Q_result
 
 
 # Group, pipeline, search names to use in mocks
@@ -171,7 +160,9 @@ MOCK_GROUP_LIST = ['Test', 'External', 'GROUP1', 'GROUP2']
 MOCK_PIPELINE_LIST = ['HardwareInjection', 'PIPELINE1', 'PIPELINE2']
 MOCK_SEARCH_LIST = ['MDC', 'SEARCH1', 'SEARCH2']
 
-DEFAULT_EVENT_Q = ~Q(group__name='Test') & ~Q(search__name='MDC')
+DEFAULT_EVENT_Q__GROUP_NAME = ~Q(group__name='Test')
+DEFAULT_EVENT_Q__SEARCH_NAME = ~Q(search__name='MDC')
+DEFAULT_EVENT_Q = DEFAULT_EVENT_Q__GROUP_NAME & DEFAULT_EVENT_Q__SEARCH_NAME
 # NOTE: the event query stuff is just too nasty.  Attempts at testing
 # are not going well.  It needs a full rework.
 EVENT_QUERY_TEST_DATA = [
@@ -204,9 +195,26 @@ EVENT_QUERY_TEST_DATA = [
     ("899999000 .. 999999999",
         Q(gpstime__range=["899999000", "999999999"]) & DEFAULT_EVENT_Q),
     # By creation time
-    ## TODO
-#    ("created: 2009-10-08 .. 2009-12-04 16:00:00",
-#        Q(created__range=...))
+    ('created: 2019-05-04', Q(created=SERVER_TZ.localize(datetime.datetime(
+        2019, 5, 4, 0, 0, 0))) & DEFAULT_EVENT_Q),
+    ('created: 2019-05-04 01:23:45 .. 2019-05-05 12:34:56',
+        Q(created__range=[
+        SERVER_TZ.localize(datetime.datetime(2019, 5, 4, 1, 23, 45)),
+        SERVER_TZ.localize(datetime.datetime(2019, 5, 5, 12, 34, 56))]) &
+        DEFAULT_EVENT_Q),
+    ('yesterday .. now', Q(created__range=[
+        MOCK_NOW_DT.replace(day=MOCK_NOW_DT.day-1, hour=0, minute=0,
+            second=0, microsecond=0), MOCK_NOW_DT]) & DEFAULT_EVENT_Q),
+    ('a couple of days ago', Q(created=MOCK_NOW_DT.replace(
+        day=MOCK_NOW_DT.day-2)) & DEFAULT_EVENT_Q),
+    ('created: 1 week ago .. now', Q(created__range=[
+        MOCK_NOW_DT - datetime.timedelta(days=7), MOCK_NOW_DT]) &
+        DEFAULT_EVENT_Q),
+    ('created: 3 days ago .. 2 days ago', Q(created__range=[
+        MOCK_NOW_DT - datetime.timedelta(days=3),
+        MOCK_NOW_DT - datetime.timedelta(days=2)]) & DEFAULT_EVENT_Q),
+    ('noon', Q(created=MOCK_NOW_DT.replace(hour=12, minute=0, second=0,
+        microsecond=0)) & DEFAULT_EVENT_Q),
     # By graceid
     ("G1234", Q(id="1234") & DEFAULT_EVENT_Q),
     ("gid: G1234", Q(id="1234") & DEFAULT_EVENT_Q),
@@ -217,12 +225,23 @@ EVENT_QUERY_TEST_DATA = [
     ("gid: G1234 G1235 G1236", (Q(id="1234") | Q(id="1235") | Q(id="1236")) &
         DEFAULT_EVENT_Q),
     # By group, pipeline, and search
-    ## TODO
-#    ("GROUP1 SEARCH1", Q(group__name__in=["GROUP1"]) &
-#        Q(search__name__in=["SEARCH1"]) & DEFAULT_EVENT_Q),
+    ("GROUP1 SEARCH1", Q(group__name__in=["GROUP1"]) &
+        DEFAULT_EVENT_Q__GROUP_NAME & Q(search__name__in=["SEARCH1"]) &
+        DEFAULT_EVENT_Q__SEARCH_NAME),
+    ("group: GROUP1 search: SEARCH1", Q(group__name__in=["GROUP1"]) &
+        DEFAULT_EVENT_Q__GROUP_NAME & Q(search__name__in=["SEARCH1"]) &
+        DEFAULT_EVENT_Q__SEARCH_NAME),
+    ("PIPELINE1", Q(pipeline__name__in=["PIPELINE1"]) & DEFAULT_EVENT_Q),
+    ("PIPELINE1 group: GROUP1 SEARCH1 pipeline: PIPELINE2",
+        ( Q(pipeline__name__in=["PIPELINE1"])
+        | Q(pipeline__name__in=["PIPELINE2"]) ) &
+        Q(group__name__in=["GROUP1"]) & DEFAULT_EVENT_Q__GROUP_NAME &
+        Q(search__name__in=["SEARCH1"]) & DEFAULT_EVENT_Q__SEARCH_NAME),
+    ("Test MDC", Q(group__name__in=["Test"]) & Q(search__name__in=["MDC"])),
     # By label
-    ## TODO: fix
+    ## These don't work because of the separate label parser
 #    ("label: LABEL1", Q(label="LABEL1") & DEFAULT_EVENT_Q),
+#    ("LABEL1", Q(label="LABEL1") & DEFAULT_EVENT_Q),
 ]
 @pytest.mark.parametrize("query,expected_Q_result", EVENT_QUERY_TEST_DATA)
 def test_event_queries(query, expected_Q_result):
@@ -241,4 +260,5 @@ def test_event_queries(query, expected_Q_result):
 
         # Run query
         Q_result = parseQuery(query)
-    assert compare_Qs(Q_result, expected_Q_result)
+
+    assert Q_result == expected_Q_result
