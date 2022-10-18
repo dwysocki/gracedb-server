@@ -15,6 +15,10 @@ from search.query.events import parseQuery
 from search.query.superevents import parseSupereventQuery
 
 
+def prefix_keys(prefix, dict):
+    return {f"{prefix}{k}": v for k, v in dict.items()}
+
+
 # Get server timezone
 SERVER_TZ = pytz.timezone(settings.TIME_ZONE)
 
@@ -169,6 +173,7 @@ EVENT_QUERY_TEST_DATA = [
     # Default query
     ("", DEFAULT_EVENT_Q),
     # By instrument
+    ("instruments: \"L1\"", Q(instruments="L1") & DEFAULT_EVENT_Q),
     ("instruments: \"H1,L1,V1\"", Q(instruments="H1,L1,V1") & DEFAULT_EVENT_Q),
     # By FAR
     ("far <= 1e-7", Q(far__lte=1e-7) & DEFAULT_EVENT_Q),
@@ -224,6 +229,25 @@ EVENT_QUERY_TEST_DATA = [
         DEFAULT_EVENT_Q),
     ("gid: G1234 G1235 G1236", (Q(id="1234") | Q(id="1235") | Q(id="1236")) &
         DEFAULT_EVENT_Q),
+    # By hardware injection id
+    ## NOTE: without 'hid:' this gets confused with the 'H1' instrument
+    ("hid: H1234", Q(id="1234") & Q(pipeline__name="HardwareInjection") &
+        DEFAULT_EVENT_Q),
+    ("H3456", Q(id="3456") & Q(pipeline__name="HardwareInjection") &
+        DEFAULT_EVENT_Q),
+    # By test event id
+    ("tid: T1234", Q(id="1234") & Q(group__name="Test") &
+        DEFAULT_EVENT_Q__SEARCH_NAME),
+    ("T1234", Q(id="1234") & Q(group__name="Test") &
+        DEFAULT_EVENT_Q__SEARCH_NAME),
+    # By external trigger event id
+    ("eid: E1234", Q(id="1234") & Q(group__name="External") & DEFAULT_EVENT_Q),
+    ("E1234", Q(id="1234") & Q(group__name="External") & DEFAULT_EVENT_Q),
+    # By MDC event id
+    ("mid: M1234", Q(id="1234") & Q(search__name="MDC") &
+        DEFAULT_EVENT_Q__GROUP_NAME),
+    ("M1234", Q(id="1234") & Q(search__name="MDC") &
+        DEFAULT_EVENT_Q__GROUP_NAME),
     # By group, pipeline, and search
     ("GROUP1 SEARCH1", Q(group__name__in=["GROUP1"]) &
         DEFAULT_EVENT_Q__GROUP_NAME & Q(search__name__in=["SEARCH1"]) &
@@ -242,6 +266,26 @@ EVENT_QUERY_TEST_DATA = [
     ## These don't work because of the separate label parser
 #    ("label: LABEL1", Q(label="LABEL1") & DEFAULT_EVENT_Q),
 #    ("LABEL1", Q(label="LABEL1") & DEFAULT_EVENT_Q),
+    # By submitter
+    ("\"waveburst\"",
+        ( Q(submitter__username__icontains="waveburst")
+        | Q(submitter__last_name__icontains="waveburst") ) &
+        DEFAULT_EVENT_Q),
+    ("submitter: \"albert.einstein@ligo.org\"",
+        ( Q(submitter__username__icontains="albert.einstein@ligo.org")
+        | Q(submitter__last_name__icontains="albert.einstein@ligo.org") ) &
+        DEFAULT_EVENT_Q),
+    # By superevent status
+    ("in_superevent: True", Q(superevent__isnull=False) & DEFAULT_EVENT_Q),
+    ("in_superevent: False", Q(superevent__isnull=True) & DEFAULT_EVENT_Q),
+    ("superevent: S180525c",
+        Q(**prefix_keys("superevent__",
+                        Superevent.get_filter_kwargs_for_date_id_lookup("S180525c"))) &
+        DEFAULT_EVENT_Q),
+    ("is_preferred_event: True", Q(superevent_preferred_for__isnull=False) &
+        DEFAULT_EVENT_Q),
+    ("is_preferred_event: False", Q(superevent_preferred_for__isnull=True) &
+        DEFAULT_EVENT_Q),
 ]
 @pytest.mark.parametrize("query,expected_Q_result", EVENT_QUERY_TEST_DATA)
 def test_event_queries(query, expected_Q_result):
