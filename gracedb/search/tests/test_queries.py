@@ -173,15 +173,20 @@ EVENT_QUERY_TEST_DATA = [
     # Default query
     ("", DEFAULT_EVENT_Q),
     # By instrument
-    ("instruments: \"L1\"", Q(instruments="L1") & DEFAULT_EVENT_Q),
-    ("instruments: \"H1,L1,V1\"", Q(instruments="H1,L1,V1") & DEFAULT_EVENT_Q),
+    ("ifos: L1", Q(instruments__contains="L1") & DEFAULT_EVENT_Q),
+    ("L1", Q(instruments__contains="L1") & DEFAULT_EVENT_Q),
+    ("ifos: H1,L1,V1", Q(instruments__contains="H1,L1,V1") & DEFAULT_EVENT_Q),
+    ("H1,L1,V1", Q(instruments__contains="H1,L1,V1") & DEFAULT_EVENT_Q),
     # By FAR
     ("far <= 1e-7", Q(far__lte=1e-7) & DEFAULT_EVENT_Q),
     ("far < 1e-7", Q(far__lt=1e-7) & DEFAULT_EVENT_Q),
     ("far > 1e-7", Q(far__gt=1e-7) & DEFAULT_EVENT_Q),
     ("far >= 1e-7", Q(far__gte=1e-7) & DEFAULT_EVENT_Q),
     ("far: 0.001", Q(far=0.001) & DEFAULT_EVENT_Q),
+    ("hasfar", Q(far__isnull=False) & DEFAULT_EVENT_Q),
     # By event attributes
+    ("instruments: \"L1\"", Q(instruments="L1") & DEFAULT_EVENT_Q),
+    ("instruments: \"H1,L1,V1\"", Q(instruments="H1,L1,V1") & DEFAULT_EVENT_Q),
     ("singleinspiral.mchirp >= 0.5 & singleinspiral.eff_distance in 0.0,55",
         Q(singleinspiral__mchirp__gte=0.5) &
         Q(singleinspiral__eff_distance__range=[0.0, 55]) &
@@ -286,6 +291,14 @@ EVENT_QUERY_TEST_DATA = [
         DEFAULT_EVENT_Q),
     ("is_preferred_event: False", Q(superevent_preferred_for__isnull=True) &
         DEFAULT_EVENT_Q),
+    # By run name
+    ("runid: O1", Q(gpstime__range=RUN_MAP["O1"]) & DEFAULT_EVENT_Q),
+    ("O1", Q(gpstime__range=RUN_MAP["O1"]) & DEFAULT_EVENT_Q),
+    ("O1 O2",
+        ( Q(gpstime__range=RUN_MAP["O1"])
+        | Q(gpstime__range=RUN_MAP["O2"])) & DEFAULT_EVENT_Q),
+    # 'nevents'
+    ("nevents: 5", Q(nevents="5") & DEFAULT_EVENT_Q),
 ]
 @pytest.mark.parametrize("query,expected_Q_result", EVENT_QUERY_TEST_DATA)
 def test_event_queries(query, expected_Q_result):
