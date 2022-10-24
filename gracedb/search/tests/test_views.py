@@ -19,16 +19,22 @@ UserModel = get_user_model()
 
 
 class SearchViewTestMixin(metaclass=ABCMeta):
-    query: str
-    query_type: str
-
     @classmethod
     @abstractmethod
-    def setUpTestDataAndReturnQueryResult(cls):
+    def setUpTestDataAndReturnExampleQueries(cls):
         """
-        Sets up the test database and returns the subset of created objects that
-        should be returned by the query.  This is the only method that
-        inheriting classes must implement.
+        Sets up the test database and returns a list of example queries and
+        the subset of created objects that they should produce.
+
+        Each example query should be a dict with the following entries:
+        keys 'name', 'query',
+        'query_type', and 'expected_result'.
+
+        - name: used to refer to that specific test in any failed assertions
+        - query: the query as one would enter in the search box
+        - query_type: 'E' for events and 'S' for superevents
+        - expected_result: a list containing a subset of the created DB objects
+                           that should be produced by the query
         """
         ...
 
@@ -41,27 +47,33 @@ class SearchViewTestMixin(metaclass=ABCMeta):
         p, _ = Permission.objects.get_or_create(codename='view_event',
             name='Can view event', content_type=ct)
 
-        cls.expected_query_result = set(cls.setUpTestDataAndReturnQueryResult())
+        cls.example_queries = cls.setUpTestDataAndReturnExampleQueries()
 
     def test_query(self):
-        data = {
-            'query': self.query,
-            'query_type': self.query_type,
-        }
-        url = reverse('mainsearch')
-        response = self.request_as_user(url, 'GET', self.internal_user,
-            data=data)
+        for example in self.example_queries:
+            name = example['name']
+            query = example['query']
+            query_type = example['query_type']
+            expected_results = example['expected_results']
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(set(response.context['objs']),
-                         self.expected_query_result)
+            data = {
+                'query': query,
+                'query_type': query_type,
+            }
+            url = reverse('mainsearch')
+            response = self.request_as_user(url, 'GET', self.internal_user,
+                data=data)
+
+            msg = f"Failed on test '{name}'"
+
+            self.assertEqual(response.status_code, 200, msg=msg)
+            self.assertEqual(set(response.context['objs']),
+                             set(expected_results),
+                             msg=msg)
 
     @staticmethod
     def create_event(group_name, pipeline_name, gpstime, search_name=None,
         user=None):
-        """
-        """
-
         # Create group, pipeline, and optionally, user
         group, _ = Group.objects.get_or_create(name=group_name)
         pipeline, _ = Pipeline.objects.get_or_create(name=pipeline_name)
@@ -90,19 +102,12 @@ class SearchViewTestMixin(metaclass=ABCMeta):
         # Save event to trigger field computation:
         event.save()
 
-        # Make data directory (should get removed at the end by
-        # GraceDbTestBase tearDown function)
-        os.makedirs(event.datadir)
-
         return event
 
 
-class TestEmptyEventQuery(SearchViewTestMixin, GraceDbTestBase):
-    query = ''
-    query_type = 'E'
-
+class TestMinimalEventQueries(SearchViewTestMixin, GraceDbTestBase):
     @classmethod
-    def setUpTestDataAndReturnQueryResult(cls):
+    def setUpTestDataAndReturnExampleQueries(cls):
         real_event1 = cls.create_event(
             group_name='GROUP', pipeline_name='PIPELINE',
             gpstime=100, search_name='SEARCH')
@@ -122,88 +127,21 @@ class TestEmptyEventQuery(SearchViewTestMixin, GraceDbTestBase):
             group_name='Test', pipeline_name='PIPELINE',
             gpstime=100, search_name='MDC')
 
-        return [real_event1, real_event2]
-
-
-class TestTestEventQuery(SearchViewTestMixin, GraceDbTestBase):
-    query = 'Test'
-    query_type = 'E'
-
-    @classmethod
-    def setUpTestDataAndReturnQueryResult(cls):
-        real_event1 = cls.create_event(
-            group_name='GROUP', pipeline_name='PIPELINE',
-            gpstime=100, search_name='SEARCH')
-        real_event2 = cls.create_event(
-            group_name='GROUP', pipeline_name='PIPELINE',
-            gpstime=101, search_name='SEARCH')
-
-        test_event = cls.create_event(
-            group_name='Test', pipeline_name='PIPELINE',
-            gpstime=100, search_name='SEARCH')
-
-        mdc_event = cls.create_event(
-            group_name='GROUP', pipeline_name='PIPELINE',
-            gpstime=100, search_name='MDC')
-
-        test_mdc_event = cls.create_event(
-            group_name='Test', pipeline_name='PIPELINE',
-            gpstime=100, search_name='MDC')
-
-        return [test_event]
-
-
-class TestMDCEventQuery(SearchViewTestMixin, GraceDbTestBase):
-    query = 'MDC'
-    query_type = 'E'
-
-    @classmethod
-    def setUpTestDataAndReturnQueryResult(cls):
-        real_event1 = cls.create_event(
-            group_name='GROUP', pipeline_name='PIPELINE',
-            gpstime=100, search_name='SEARCH')
-        real_event2 = cls.create_event(
-            group_name='GROUP', pipeline_name='PIPELINE',
-            gpstime=101, search_name='SEARCH')
-
-        test_event = cls.create_event(
-            group_name='Test', pipeline_name='PIPELINE',
-            gpstime=100, search_name='SEARCH')
-
-        mdc_event = cls.create_event(
-            group_name='GROUP', pipeline_name='PIPELINE',
-            gpstime=100, search_name='MDC')
-
-        test_mdc_event = cls.create_event(
-            group_name='Test', pipeline_name='PIPELINE',
-            gpstime=100, search_name='MDC')
-
-        return [mdc_event]
-
-
-class TestTestMDCEventQuery(SearchViewTestMixin, GraceDbTestBase):
-    query = 'Test MDC'
-    query_type = 'E'
-
-    @classmethod
-    def setUpTestDataAndReturnQueryResult(cls):
-        real_event1 = cls.create_event(
-            group_name='GROUP', pipeline_name='PIPELINE',
-            gpstime=100, search_name='SEARCH')
-        real_event2 = cls.create_event(
-            group_name='GROUP', pipeline_name='PIPELINE',
-            gpstime=101, search_name='SEARCH')
-
-        test_event = cls.create_event(
-            group_name='Test', pipeline_name='PIPELINE',
-            gpstime=100, search_name='SEARCH')
-
-        mdc_event = cls.create_event(
-            group_name='GROUP', pipeline_name='PIPELINE',
-            gpstime=100, search_name='MDC')
-
-        test_mdc_event = cls.create_event(
-            group_name='Test', pipeline_name='PIPELINE',
-            gpstime=100, search_name='MDC')
-
-        return [test_mdc_event]
+        return [
+            {'name': 'Empty event query',
+             'query': '',
+             'query_type': 'E',
+             'expected_results': [real_event1, real_event2]},
+            {'name': 'Test event query',
+             'query': 'Test',
+             'query_type': 'E',
+             'expected_results': [test_event]},
+            {'name': 'MDC event query',
+             'query': 'MDC',
+             'query_type': 'E',
+             'expected_results': [mdc_event]},
+            {'name': 'Test MDC event query',
+             'query': 'Test MDC',
+             'query_type': 'E',
+             'expected_results': [test_mdc_event]},
+        ]
