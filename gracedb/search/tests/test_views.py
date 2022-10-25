@@ -10,7 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
 from core.tests.utils import GraceDbTestBase
-from events.models import Event, Group, Label, Pipeline, Search
+from events.models import Event, Group, Label, Labelling, Pipeline, Search
 from events.permission_utils import assign_default_event_perms
 from superevents.models import Superevent
 
@@ -65,7 +65,6 @@ class SearchViewTestMixin(metaclass=ABCMeta):
                 data=data)
 
             msg = f"Failed on test '{name}'"
-
             self.assertEqual(response.status_code, 200, msg=msg)
             self.assertEqual(set(response.context['objs']),
                              set(expected_results),
@@ -103,6 +102,17 @@ class SearchViewTestMixin(metaclass=ABCMeta):
         event.save()
 
         return event
+
+    @staticmethod
+    def create_label(name, description):
+        return Label.objects.create(name=name, description=description)
+
+    @staticmethod
+    def apply_label(event, label, user=None):
+        if user is None:
+            user, _ = UserModel.objects.get_or_create(username='event.user')
+
+        return event.labelling_set.create(label=label, creator=user)
 
 
 class TestMinimalEventQueries(SearchViewTestMixin, GraceDbTestBase):
@@ -145,3 +155,87 @@ class TestMinimalEventQueries(SearchViewTestMixin, GraceDbTestBase):
              'query_type': 'E',
              'expected_results': [test_mdc_event]},
         ]
+
+
+class TestLabeledEventQueries(SearchViewTestMixin, GraceDbTestBase):
+    @classmethod
+    def setUpTestDataAndReturnExampleQueries(cls):
+        def make_event():
+            return cls.create_event(
+                group_name='GROUP', pipeline_name='PIPELINE',
+                gpstime=100, search_name='SEARCH')
+
+        def make_label(name):
+            return cls.create_label(name=name, description=name)
+
+        # Create events
+        eventA = make_event()
+        eventB = make_event()
+        eventAB = make_event()
+        eventUnlabeled = make_event()
+
+        # Create labels
+        labelA = make_label('A')
+        labelB = make_label('B')
+
+        # Apply labels to appropriate events
+        cls.apply_label(eventA, labelA)
+        cls.apply_label(eventB, labelB)
+        cls.apply_label(eventAB, labelA)
+        cls.apply_label(eventAB, labelB)
+
+        # Create list of examples without 'label:' prefix
+        examples_noprefix = [
+            {'name': 'Label A present',
+             'query': 'A',
+             'query_type': 'E',
+             'expected_results': [eventA, eventAB]},
+            {'name': 'Label B present',
+             'query': 'B',
+             'query_type': 'E',
+             'expected_results': [eventB, eventAB]},
+            {'name': 'Label A and B present',
+             'query': 'A & B',
+             'query_type': 'E',
+             'expected_results': [eventAB]},
+            {'name': 'Label A or B present',
+             'query': 'A | B',
+             'query_type': 'E',
+             'expected_results': [eventA, eventB, eventAB]},
+            {'name': 'Only label A present',
+             'query': 'A & ~B',
+             'query_type': 'E',
+             'expected_results': [eventA]},
+            {'name': 'Only label B present',
+             'query': '~A & B',
+             'query_type': 'E',
+             'expected_results': [eventB]},
+            {'name': 'Neither labels A or B present',
+             'query': '~A & ~B',
+             'query_type': 'E',
+             'expected_results': [eventUnlabeled]},
+            {'name': 'At least one of labels A or B is absent',
+             'query': '~A | ~B',
+             'query_type': 'E',
+             'expected_results': [eventA, eventB, eventUnlabeled]},
+        ]
+        # Add 'label:' prefix to prior examples
+        examples_prefix = [
+            {**example, 'query': f"label: {example['query']}"}
+            for example in examples_noprefix
+        ]
+
+        # Combine examples
+        base_examples = examples_noprefix + examples_prefix
+
+        # Create additional examples using alternative AND and NOT characters
+        alt_and_examples = [
+            {**example, 'query': example['query'].replace('&', ',')}
+            for example in base_examples
+        ]
+        alt_not_examples = [
+            {**example, 'query': example['query'].replace('~', '-')}
+            for example in base_examples
+        ]
+
+        return base_examples + alt_and_examples + alt_not_examples
