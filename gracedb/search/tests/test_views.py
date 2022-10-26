@@ -13,6 +13,7 @@ from core.tests.utils import GraceDbTestBase
 from events.models import Event, Group, Label, Labelling, Pipeline, Search
 from events.permission_utils import assign_default_event_perms
 from superevents.models import Superevent
+from superevents.utils import create_superevent
 
 
 UserModel = get_user_model()
@@ -102,6 +103,20 @@ class SearchViewTestMixin(metaclass=ABCMeta):
         event.save()
 
         return event
+
+    @staticmethod
+    def create_superevent(*, preferred_event, submitter, category,
+                          events=None, labels=None,
+                          t_start=0, t_0=1, t_end=2):
+        if events is None:
+            events = []
+        if labels is None:
+            labels = []
+
+        return create_superevent(
+            submitter=submitter, t_start=t_start, t_0=t_0, t_end=t_end,
+            preferred_event=preferred_event, events=events, labels=labels,
+            category=category, add_log_message=False, issue_alert=False)
 
     @staticmethod
     def create_label(name, description):
@@ -239,3 +254,58 @@ class TestLabeledEventQueries(SearchViewTestMixin, GraceDbTestBase):
         ]
 
         return base_examples + alt_and_examples + alt_not_examples
+
+
+class TestEventSupereventPairing(SearchViewTestMixin, GraceDbTestBase):
+    @classmethod
+    def setUpTestDataAndReturnExampleQueries(cls):
+        user, _ = UserModel.objects.get_or_create(username='event.user')
+
+        def make_event():
+            return cls.create_event(
+                group_name='GROUP', pipeline_name='PIPELINE',
+                gpstime=100, search_name='SEARCH')
+
+        def make_superevent(*, preferred_event, category,
+                            events=None, labels=None):
+            return cls.create_superevent(
+                preferred_event=preferred_event, events=events, labels=labels,
+                submitter=user, category=category)
+
+        def pair(superevent, event):
+            return add_event_to_superevent(superevent, event, user,
+                add_event_log=False, add_superevent_log=False,
+                issue_alert=False)
+
+        # Create two events under a superevent
+        event1 = make_event()
+        event2 = make_event()
+        superevent = make_superevent(
+            preferred_event=event1, events=[event1, event2],
+            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION)
+
+        # Create an extra event and superevent which should not appear in any
+        # results.
+        event3 = make_event()
+        superevent_other = make_superevent(
+            preferred_event=event3,
+            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION)
+
+        return [
+            {'name': 'Event 1 presence',
+             'query': f'event: {event1.graceid}',
+             'query_type': 'S',
+             'expected_results': [superevent]},
+            {'name': 'Event 1 or 2 presence',
+             'query': f'event: {event1.graceid} .. {event2.graceid}',
+             'query_type': 'S',
+             'expected_results': [superevent]},
+            {'name': 'Preferred event presence',
+             'query': f'preferred_event: {event1.graceid}',
+             'query_type': 'S',
+             'expected_results': [superevent]},
+            {'name': 'Preferred event presence with extra event',
+             'query': f'preferred_event: {event1.graceid} .. {event2.graceid}',
+             'query_type': 'S',
+             'expected_results': [superevent]},
+        ]
