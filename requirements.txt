@@ -1,3 +1,4 @@
+adc-streaming==2.2.0
 ConcurrentLogHandler==0.9.1
 cryptography==3.3.2
 Django==3.2.9
@@ -18,6 +19,7 @@ flake8==3.8.0
 gpstime==0.5.5
 gssapi==1.6.14
 gunicorn==20.0.4
+hop-client==0.6.0
 html5lib==1.1.0
 igwn-alert-overseer==0.5.2
 ipdb==0.13.6
