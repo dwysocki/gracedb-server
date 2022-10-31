@@ -12,7 +12,7 @@ The different types of events in GraceDB are distinguished by the following para
 - ``Group``: the working group responsible for finding the candidate
     - values: ``CBC``, ``Burst``, ``External``, ``Test`` 
 - ``Pipeline``: the data analysis software tool used make the detection 
-    - values: ``MBTA``, ``MBTAOnline``, ``CWB``, ``CWB2G``, ``gstlal``, ``pycbc``, ``spiir``, ``HardwareInjection``, ``Fermi``, ``Swift``, ``INTEGRAL``, ``AGILE``, ``SNEWS``, ``oLIB``
+    - values: ``MBTA``, ``MBTAOnline``, ``CWB``, ``CWB2G``, ``gstlal``, ``pycbc``, ``spiir``, ``HardwareInjection``, ``Fermi``, ``Swift``, ``INTEGRAL``, ``AGILE``, ``SNEWS``, ``oLIB``, ``MLy``
 - ``Search``: the search activity which led to the detection 
     - values: ``AllSky``, ``AllSkyLong``, ``LowMass``, ``HighMass``, ``GRB``, ``Supernova``, ``MDC``, ``BBH``, ``EarlyWarning``, ``IMBH``, ``SubGRB``, ``SubGRBTargeted``
 
@@ -55,7 +55,7 @@ For example, the ``gstlal`` pipeline produces an estimate for the chirp mass, wh
 
 Serialized events
 -----------------------------
-Event objects are serialized into JSON format in responses from the API and in LVAlert messages.
+Event objects are serialized into JSON format in responses from the API and in igwn-alert messages.
 Here, we show some examples for the different event subclasses.
 
 CBC pipelines (gstlal, spiir, PyCBC, MBTAOnline)

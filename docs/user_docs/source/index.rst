@@ -15,6 +15,6 @@ Contents:
    ref_manual
    Documentation for the ligo-gracedb client package <https://ligo-gracedb.readthedocs.io/>
    LIGO/Virgo Public Alert Guide <https://emfollow.docs.ligo.org/userguide/>
-   Report a bug (LIGO/Virgo users) <https://git.ligo.org/computing/gracedb/server/-/issues>
+   Report a bug (LVK users) <https://git.ligo.org/computing/gracedb/server/-/issues>
 
 

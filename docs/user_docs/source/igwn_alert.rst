@@ -1,71 +1,87 @@
-======================================
-LVAlert notifications (LVC users only)
-======================================
+=========================================
+igwn-alert notifications (LVK users only)
+=========================================
 
 Introduction
 ============
-LVAlert (LIGO-Virgo Alert system) is an XMPP-based messaging platform used within the LVC.
-This document will describe how GraceDB uses LVAlert, which nodes it manages and publishes to, and the content of LVAlert messages sent by GraceDB.
-.. GraceDB uses `LVAlert <https://wiki.ligo.org/Computing/DASWG/LVAlert>`__ to send alerts to listeners within the LVC when.
+igwn-alert is a Kafka-based messaging platform used within the LVK.
+This document will describe how GraceDB uses igwn-alert, which topics it manages and publishes to, and the content of igwn-alert messages sent by GraceDB. GraceDB uses `igwn-alert <https://igwn-alert.readthedocs.io/>`__ to send alerts to listeners within the LVK when.
 
-Some helpful resources for installing and configuring LVAlert are:
+Some helpful resources for installing and configuring igwn-alert are:
 
-- Main ligo-lvalert `documentation <https://lscsoft.docs.ligo.org/lvalert/index.html>`__
-- ligo-lvalert `user guide <https://lscsoft.docs.ligo.org/lvalert/guide.html>`__
-- :ref:`Tutorial<responding_to_lvalert>` on setting up LVAlert and configuring your listener.
+- Main `igwn-alert client <https://igwn-alert.readthedocs.io/>`__
+- igwn-alert `user guide <https://igwn-alert.readthedocs.io/en/latest/guide.html>`__
+- `Tutorial <https://igwn-alert.readthedocs.io/en/latest/guide.html#responding-to-igwn-alert-messages>`__ on setting up igwn-alert and configuring your listener.
 
 
-LVAlert and GraceDB
-===================
-Generally speaking, GraceDB uses LVAlert to send "push" notifications about different actions that may be taken on the service.
-Users can subscribe to different nodes (more below) to receive these notifications, filter their content, and optionally trigger follow-up processes, like data quality checks, parameter estimation, and more.
-The content of an LVAlert message is designed to convey actionable information about a state change in GraceDB, including event creation, annotation, and other actions.
+igwn-alert and GraceDB
+======================
+Generally speaking, GraceDB uses igwn-alert to send "push" notifications about different actions that may be taken on the service.
+Users can subscribe to different topics (more below) to receive these notifications, filter their content, and optionally trigger follow-up processes, like data quality checks, parameter estimation, and more.
+The content of an igwn-alert message is designed to convey actionable information about a state change in GraceDB, including event creation, annotation, and other actions.
 
 .. NOTE::
-    An LVAlert message is sent out for *any* new event or annotation that arrives in the GraceDB database.
+    An igwn-alert message is sent out for *any* new event or annotation that arrives in the GraceDB database.
     This means that message volumes may be very high under certain circumstances, and listeners should be constructed to appropriately filter the messages.
 
 
-LVAlert nodes managed by GraceDB
-================================
-By running ``lvalert_listen``, you will receive messages over all **nodes** to which you are subscribed.
-There are two types of nodes to which GraceDB broadcasts alerts: event nodes and superevent nodes.
+igwn-alert topics managed by GraceDB
+====================================
+By running the ``igwn-alert`` command-line tool, you will receive messages over all **topics** to which you have a listen permission, analogous to a subscription.
+There are two types of topics to which GraceDB broadcasts alerts: event topics and superevent topics.
+
+Instance Groups
+---------------
+
+The following topic names are universal across each instance of GraceDB
+(production, playground, test). However, each instance's topics names are
+prepended by the instance name (gracedb, gracedb-playground, gracedb-test) and a
+".". For example, the ``cbc_gstlal`` topic for GraceDB Playground is listed in
+the subscription interface as:
+
+    ``gracedb-playground.cbc_gstlal``
+
+And can be evoked in the command line tool by specifying the instance with the
+optional ``group`` flag as in the following command:
+
+    ``igwn-alert -g gracedb-playground listen cbc_gstlal``
 
 
-Event nodes
------------
-Event node names consist of at least two elements::
+
+Event topics
+------------
+Event topic names consist of at least two elements::
 
     <group_name>_<pipeline_name>
 
 In other words, the (lower-cased) names of the Group and Pipeline separated by an underscore.
-For example, the node ``burst_cwb`` would catch all messages relating to events in the Burst group from the cWB pipeline.
+For example, the topic ``cbc_gstlal`` would catch all messages relating to events in the CBC group from the gstlal pipeline.
 One can also specify the search name::
 
     <group_name>_<pipeline_name>_<search_name>
 
 which has the effect of narrowing down the messages to only those related to a specific search.
-For example, the node ``burst_cwb_allsky`` will contain messages relating to the AllSky search, but not the MDC search.
+For example, the topic ``cbc_gstlal_allsky`` will contain messages relating to the AllSky search, but not the MDC search.
 
-It is important to note that GraceDB will send an LVAlert to all nodes which match the parameters of the event in question.
-For example, the creation of a Burst-cWB-AllSky event will result in messages being sent to the ``burst_cwb_allsky`` node, as well as the more generic ``burst_cwb`` node.
-This feature allows the user to filter according to search by specifying different LVAlert processing scripts for different nodes.
+It is important to note that GraceDB will send an igwn-alert to all topics which match the parameters of the event in question.
+For example, the creation of a Burst-cWB-AllSky event will result in messages being sent to the ``burst_cwb_allsky`` topic, as well as the more generic ``burst_cwb`` topic.
+This feature allows the user to filter according to search by specifying different igwn-alert processing scripts for different topics.
 
 
-Superevent nodes
-----------------
-There are only three superevent nodes; one for each category of superevent:
+Superevent topics
+-----------------
+There are only three superevent topics; one for each category of superevent:
 
 - ``superevent``
 - ``test_superevent``
 - ``mdc_superevent``
 
-Most users will be interested in the ``superevent`` node in order to receive LVAlerts about real GW candidates.
+Most users will be interested in the ``superevent`` topic in order to receive igwn-alerts about real GW candidates.
 
 
-Contents of LVAlerts sent by GraceDB
-====================================
-GraceDB sends LVAlert messages as a JSON-encoded dictionary.
+Contents of igwn-alerts sent by GraceDB
+=======================================
+GraceDB sends igwn-alert messages as a JSON-encoded dictionary.
 This dictionary contains the following keys:
 
 - ``alert_type``: short string representing the action which triggered the alert.  Examples: ``new``, ``update``, ``label_added``, etc.  All alert types are shown in the tables below.
