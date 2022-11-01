@@ -172,6 +172,46 @@ class TestMinimalEventQueries(SearchViewTestMixin, GraceDbTestBase):
         ]
 
 
+def label_prefix_examples(examples):
+    """
+    Add 'label:' prefix to example label queries
+    """
+    return [
+        {**example, 'query': f"label: {example['query']}"}
+        for example in examples
+    ]
+
+def label_alt_AND_examples(examples):
+    """
+    Create additional example label queries using alternative AND characters
+    """
+    return [
+        {**example, 'query': example['query'].replace('&', ',')}
+        for example in examples
+    ]
+
+def label_alt_NOT_examples(examples):
+    """
+    Create additional example label queries using alternative NOT characters
+    """
+    return [
+        {**example, 'query': example['query'].replace('~', '-')}
+        for example in examples
+    ]
+
+def label_alt_examples(examples):
+    """
+    Create a comprehensive set of example label queries using equivalent
+    alternative forms.
+    """
+    examples += label_prefix_examples(examples)
+
+    return (
+        examples +
+        label_alt_AND_examples(examples) + label_alt_NOT_examples(examples)
+    )
+
+
 class TestLabeledEventQueries(SearchViewTestMixin, GraceDbTestBase):
     @classmethod
     def setUpTestDataAndReturnExampleQueries(cls):
@@ -199,8 +239,8 @@ class TestLabeledEventQueries(SearchViewTestMixin, GraceDbTestBase):
         cls.apply_label(eventAB, labelA)
         cls.apply_label(eventAB, labelB)
 
-        # Create list of examples without 'label:' prefix
-        examples_noprefix = [
+        # Create list of base examples
+        examples = [
             {'name': 'Label A present',
              'query': 'A',
              'query_type': 'E',
@@ -234,26 +274,78 @@ class TestLabeledEventQueries(SearchViewTestMixin, GraceDbTestBase):
              'query_type': 'E',
              'expected_results': [eventA, eventB, eventUnlabeled]},
         ]
-        # Add 'label:' prefix to prior examples
-        examples_prefix = [
-            {**example, 'query': f"label: {example['query']}"}
-            for example in examples_noprefix
-        ]
+        # Return base examples along with equivalent alternate forms
+        return label_alt_examples(examples)
 
-        # Combine examples
-        base_examples = examples_noprefix + examples_prefix
 
-        # Create additional examples using alternative AND and NOT characters
-        alt_and_examples = [
-            {**example, 'query': example['query'].replace('&', ',')}
-            for example in base_examples
-        ]
-        alt_not_examples = [
-            {**example, 'query': example['query'].replace('~', '-')}
-            for example in base_examples
-        ]
+class TestLabeledSupereventQueries(SearchViewTestMixin, GraceDbTestBase):
+    @classmethod
+    def setUpTestDataAndReturnExampleQueries(cls):
+        user, _ = UserModel.objects.get_or_create(username='event.user')
 
-        return base_examples + alt_and_examples + alt_not_examples
+        def make_event():
+            return cls.create_event(
+                group_name='GROUP', pipeline_name='PIPELINE',
+                gpstime=100, search_name='SEARCH')
+
+        def make_superevent(*,
+                            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION,
+                            labels=None):
+            return cls.create_superevent(preferred_event=make_event(),
+                                         labels=labels, category=category,
+                                         submitter=user)
+
+        def make_label(name):
+            return cls.create_label(name=name, description=name)
+
+        # Create labels
+        labelA = make_label('A')
+        labelB = make_label('B')
+
+        # Create superevents
+        supereventA = make_superevent(labels=[labelA])
+        supereventB = make_superevent(labels=[labelB])
+        supereventAB = make_superevent(labels=[labelA, labelB])
+        supereventUnlabeled = make_superevent()
+
+        # Create list of base examples
+        examples = [
+            {'name': 'Label A present',
+             'query': 'A',
+             'query_type': 'S',
+             'expected_results': [supereventA, supereventAB]},
+            {'name': 'Label B present',
+             'query': 'B',
+             'query_type': 'S',
+             'expected_results': [supereventB, supereventAB]},
+            {'name': 'Label A and B present',
+             'query': 'A & B',
+             'query_type': 'S',
+             'expected_results': [supereventAB]},
+            {'name': 'Label A or B present',
+             'query': 'A | B',
+             'query_type': 'S',
+             'expected_results': [supereventA, supereventB, supereventAB]},
+            {'name': 'Only label A present',
+             'query': 'A & ~B',
+             'query_type': 'S',
+             'expected_results': [supereventA]},
+            {'name': 'Only label B present',
+             'query': '~A & B',
+             'query_type': 'S',
+             'expected_results': [supereventB]},
+            {'name': 'Neither labels A or B present',
+             'query': '~A & ~B',
+             'query_type': 'S',
+             'expected_results': [supereventUnlabeled]},
+            {'name': 'At least one of labels A or B is absent',
+             'query': '~A | ~B',
+             'query_type': 'S',
+             'expected_results': [supereventA, supereventB,
+                                  supereventUnlabeled]},
+        ]
+        # Return base examples along with equivalent alternate forms
+        return label_alt_examples(examples)
 
 
 class TestEventSupereventPairing(SearchViewTestMixin, GraceDbTestBase):
@@ -266,30 +358,23 @@ class TestEventSupereventPairing(SearchViewTestMixin, GraceDbTestBase):
                 group_name='GROUP', pipeline_name='PIPELINE',
                 gpstime=100, search_name='SEARCH')
 
-        def make_superevent(*, preferred_event, category,
+        def make_superevent(*, preferred_event,
+                            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION,
                             events=None, labels=None):
             return cls.create_superevent(
                 preferred_event=preferred_event, events=events, labels=labels,
                 submitter=user, category=category)
 
-        def pair(superevent, event):
-            return add_event_to_superevent(superevent, event, user,
-                add_event_log=False, add_superevent_log=False,
-                issue_alert=False)
-
         # Create two events under a superevent
         event1 = make_event()
         event2 = make_event()
-        superevent = make_superevent(
-            preferred_event=event1, events=[event1, event2],
-            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION)
+        superevent = make_superevent(preferred_event=event1,
+                                     events=[event1, event2])
 
         # Create an extra event and superevent which should not appear in any
         # results.
         event3 = make_event()
-        superevent_other = make_superevent(
-            preferred_event=event3,
-            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION)
+        superevent_other = make_superevent(preferred_event=event3)
 
         return [
             {'name': 'Event 1 presence',
