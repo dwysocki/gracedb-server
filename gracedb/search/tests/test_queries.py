@@ -101,6 +101,8 @@ SUPEREVENT_QUERY_TEST_DATA = [
         Q(category=Superevent.SUPEREVENT_CATEGORY_MDC)),
     ('created: 2019-05-04', Q(created=SERVER_TZ.localize(datetime.datetime(
         2019, 5, 4, 0, 0, 0))) & DEFAULT_Q),
+    ('created: 2019-05-04 01:23:45', Q(created=SERVER_TZ.localize(datetime.datetime(
+        2019, 5, 4, 1, 23, 45))) & DEFAULT_Q),
     ('created: 2019-05-04 01:23:45 .. 2019-05-05 12:34:56',
         Q(created__range=[
         SERVER_TZ.localize(datetime.datetime(2019, 5, 4, 1, 23, 45)),
@@ -212,6 +214,8 @@ EVENT_QUERY_TEST_DATA = [
         SERVER_TZ.localize(datetime.datetime(2019, 5, 4, 1, 23, 45)),
         SERVER_TZ.localize(datetime.datetime(2019, 5, 5, 12, 34, 56))]) &
         DEFAULT_EVENT_Q),
+    ('created: 2019-05-04 01:23:45', Q(created=SERVER_TZ.localize(datetime.datetime(
+        2019, 5, 4, 1, 23, 45))) & DEFAULT_EVENT_Q),
     ('yesterday .. now', Q(created__range=[
         MOCK_NOW_DT.replace(day=MOCK_NOW_DT.day-1, hour=0, minute=0,
             second=0, microsecond=0), MOCK_NOW_DT]) & DEFAULT_EVENT_Q),

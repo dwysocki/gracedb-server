@@ -50,11 +50,7 @@ Sphinx==2.1.0
 sphinx-rtd-theme
 twilio==6.10.3
 voevent-parse==1.0.3
-# Do NOT upgrade pyparsing beyond 2.3.0 (even to 2.3.1) without carefully
-# testing and modifying the search query code. There were a number of
-# problematic API changes in 2.3.1 and beyond that will need to be handled
-# appropriately.
-pyparsing==2.3.0
+pyparsing==3.0.9
 pytest==6.2.2
 pytest-cov==2.11.1
 pytest-django==4.1.0

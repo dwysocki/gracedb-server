@@ -11,9 +11,10 @@ from __future__ import absolute_import
 import datetime
 from pyparsing import Word, nums, Literal, CaselessLiteral, delimitedList, \
     Suppress, QuotedString, Keyword, Combine, Or, Optional, OneOrMore, \
-    ZeroOrMore, alphas, alphanums, Regex, opAssoc, operatorPrecedence, \
+    ZeroOrMore, alphas, alphanums, Regex, opAssoc, infixNotation, \
     oneOf, stringStart,  stringEnd, FollowedBy, ParseResults, ParseException, \
     CaselessKeyword
+
 import pytz
 try:
     from functools import reduce
@@ -195,7 +196,7 @@ andop   = oneOf(", &").suppress()
 orop    = Literal("|").suppress()
 minusop = oneOf("- ~").suppress()
 
-attrExpressions = operatorPrecedence(term,
+attrExpressions = infixNotation(term,
     [(minusop, 1, opAssoc.RIGHT, lambda a,b,toks: ~toks[0][0]),
      (orop,    2, opAssoc.LEFT,
         lambda a,b,toks: reduce(Q.__or__, toks[0].asList(), Q())),

@@ -21,7 +21,7 @@ from ..utils import maybeRange
 
 from pyparsing import Word, nums, Literal, CaselessLiteral, delimitedList, \
     Suppress, QuotedString, Keyword, Combine, Or, Optional, OneOrMore, \
-    ZeroOrMore, alphas, alphanums, Regex, opAssoc, operatorPrecedence, \
+    ZeroOrMore, alphas, alphanums, Regex, opAssoc, \
     oneOf, stringStart,  stringEnd, FollowedBy, ParseResults, ParseException, \
     CaselessKeyword, pyparsing_common, tokenMap
 
@@ -37,15 +37,15 @@ def parse_superevent_id(name, toks, filter_prefix=None):
     # This allows queries like GW150914 to match the first superevent
     # on that date
     if not toks.suffix:
-        toks.suffix = int_to_letters(1)
+        toks['suffix'] = int_to_letters(1)
         if (toks.prefix == Superevent.GW_ID_PREFIX):
-            toks.suffix = toks.suffix.upper()
+            toks['suffix'] = toks.suffix.upper()
 
     # Allow flexible suffix capitalization
     if (toks.prefix == Superevent.GW_ID_PREFIX):
-        toks.suffix = toks.suffix.upper()
+        toks['suffix'] = toks.suffix.upper()
     else:
-        toks.suffix = toks.suffix.lower()
+        toks['suffix'] = toks.suffix.lower()
 
     # Combine into full ID and get lookup kwargs
     s_id = toks.preprefix + toks.prefix + toks.date + toks.suffix

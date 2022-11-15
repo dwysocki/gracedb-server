@@ -1,10 +1,11 @@
 #!/usr/bin/python
 
 # Taken from
-# http://pyparsing.wikispaces.com/UnderDevelopment
+# https://web.archive.org/web/20091228182232/http://pyparsing.wikispaces.com/UnderDevelopment
 
 from datetime import datetime, timedelta
 from pyparsing import *
+from pyparsing import __version__ as pyparsing_version
 import calendar
 from django.utils import timezone
 import pytz
@@ -24,10 +25,19 @@ def convertToTimedelta(toks):
         'minute' : timedelta(0,0,0,0,1),
         'second' : timedelta(0,1),
         }[unit]
-    if toks.qty:
-        td *= int(toks.qty)
-    if toks.dir:
-        td *= toks.dir
+
+    # Backwards compatibility with pyparsing <=2.3.0,
+    # feel free to delete once upgrade to 3.0 is complete
+    if pyparsing_version <= '2.3.0':
+        if toks.qty:
+            td *= int(toks.qty)
+        if toks.dir:
+            td *= toks.dir
+    else:
+        if toks.qty:
+            td *= int(toks.qty[0])
+        if toks.dir:
+            td *= toks.dir[0]
     toks["timeOffset"] = td
  
 def convertToDay(toks):
@@ -58,24 +68,18 @@ def convertToAbsTime(toks):
     else:
         day = pytz.utc.localize(datetime(now.year, now.month, now.day))
     if "timeOfDay" in toks:
-        if isinstance(toks.timeOfDay, str):
-            timeOfDay = {
-                "now"      : timedelta(0, (now.hour*60+now.minute)*60+now.second, now.microsecond),
-                "noon"     : timedelta(0,0,0,0,0,12),
-                "midnight" : timedelta(),
-                }[toks.timeOfDay]
+        # Backwards compatibility with pyparsing <=2.3.0,
+        # feel free to delete once upgrade to 3.0 is complete
+        if pyparsing_version <= '2.3.0':
+            timeOfDayStr = toks.timeOfDay
         else:
-            hhmmss = toks.timeparts
-            if hhmmss.miltime:
-                hh,mm = hhmmss.miltime
-                ss = 0
-            else:            
-                hh,mm,ss = (hhmmss.HH % 12), hhmmss.MM, hhmmss.SS
-                if not mm: mm = 0
-                if not ss: ss = 0
-                if toks.timeOfDay.ampm == 'pm':
-                    hh += 12
-            timeOfDay = timedelta(0, (hh*60+mm)*60+ss, 0)
+            timeOfDayStr = toks.timeOfDay[0]
+
+        timeOfDay = {
+            "now"      : timedelta(0, (now.hour*60+now.minute)*60+now.second, now.microsecond),
+            "noon"     : timedelta(0,0,0,0,0,12),
+            "midnight" : timedelta(),
+        }[timeOfDayStr]
     else:
         timeOfDay = timedelta(0, (now.hour*60+now.minute)*60+now.second, now.microsecond)
     toks["absTime"] = day + timeOfDay
