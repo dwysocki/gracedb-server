@@ -15,7 +15,7 @@ Contents:
    auth
    queries
    labels
-   lvalert
+   igwn_alert
    notifications
    lvem
 

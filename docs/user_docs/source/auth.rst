@@ -13,8 +13,8 @@ GraceDB supports three different types of authentication methods depending on th
   federated identities.
 - **REST API**: The API has a single entry point which can handle the following types of authentication:
     - **Shibboleth**
+    - **Scitokens**
     - **X509**
-    - **Basic (password-based)**
 
 Unauthenticated, read-only access is also available for both the web interface and the API.
 Only a limited set of information is available to unauthenticated users.
@@ -26,7 +26,7 @@ After a user has successfully authenticated, GraceDB examines the user's
 group memberships to determine whether the user is authorized to access
 or modify a particular resource. These permissions apply at the level of
 individual events. The relevant permissions are: ``view`` (which allows 
-viewing) and ``change`` (which allows annotation). In most cases, LVC
+viewing) and ``change`` (which allows annotation). In most cases, LVK
 users have both permissions on all events. By contrast, LV-EM members 
 (and, in the future, 
 other external users) have permissions only on events that have 
@@ -48,7 +48,7 @@ Robot certificates
 =====================
 
 Access to the REST API through the X509 entry point requires a valid robot 
-certificate.  (Note: This is only necessary for LVC users. LV-EM users can see
+certificate.  (Note: This is only necessary for LVK users. LV-EM users can see
 :ref:`basic_auth_for_lvem` .) Instructions for obtaining a certificate are 
 available 
 `here <https://wiki.ligo.org/AuthProject/LIGOCARobotCertificate>`__. When you 

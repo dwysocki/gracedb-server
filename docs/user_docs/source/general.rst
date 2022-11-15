@@ -8,7 +8,7 @@ GraceDB in context
 GraceDB serves as a communications hub and as a database for storing and displaying
 information about candidate gravitational-wave events and related electromagnetic events:
 
-.. image:: images/annotations_flow_white.png
+.. image:: images/data_flow_blue.png
 
 The primary responsibilities of GraceDB are to:
 
@@ -22,9 +22,9 @@ data analysis
 and electromagnetic followup, but need not be used exclusively for those
 purposes. The diagram above depicts a typical sequence of events:
 
-#. An LVC data analysis pipeline detects an interesting candidate
+#. An LVK data analysis pipeline detects an interesting candidate
    gravitational wave (GW) event and submits it to GraceDB.
-#. GraceDB sends an LVAlert message which notifies LVC followup 
+#. GraceDB sends an igwn-alert message which notifies LVK followup 
    robots of the new event.
 #. The followup robots perform analyses and report results back to
    GraceDB. These results accumulate on the candidate event's page.
@@ -55,7 +55,7 @@ Where can I go for help?
 ==================================
 This documentation is not as great as it could be, but we are working on it.
 
-LIGO/Virgo users can join the GraceDB channel in the collaboration's Mattermost instance or email the DASWG mailing list for help.
+LIGO/Virgo/KAGRA users can join the `GraceDB channel <https://chat.ligo.org/ligo/channels/gracedb>`__  in the collaboration's Mattermost instance or email the DASWG mailing list for help.
 
 To report a problem, either `post an issue <https://git.ligo.org/lscsoft/gracedb/issues>`__ or email the 
 `IGWN Computing Helpdesk <mailto:computing-help@igwn.org>`__.

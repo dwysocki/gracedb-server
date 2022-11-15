@@ -1,16 +1,16 @@
 .. _notifications:
 
 ==============================================
-Phone and email notifications (LVC users only)
+Phone and email notifications (LVK users only)
 ==============================================
 
-Phone and email alerts are issued under various circumstances to LVC users who have registered for them.
+Phone and email alerts are issued under various circumstances to LVK users who have registered for them.
 This page will provide some details on the alert sign-up process and the logic involved in issuing these alerts.
 
 
 Alert signup
 ============
-LVC users can find the main alerts page by clicking on the "Alerts" tab in the navigation bar.
+LVK users can find the main alerts page by clicking on the "Alerts" tab in the navigation bar.
 Here, you will find two headings: contacts and notifications.
 
 
