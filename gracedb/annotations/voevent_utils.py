@@ -114,6 +114,7 @@ def construct_voevent_file(obj, voevent, request=None):
         v,
         date=datetime.datetime.utcnow()
     )
+    v.Who.Date += 'Z'
 
     ## Set Who.Author
     vp.set_author(
@@ -694,6 +695,7 @@ def construct_voevent_file(obj, voevent, request=None):
         gpsToUtc(event.gpstime),
         observatory_id
     )
+    v.WhereWhen.ObsDataLocation.ObservationLocation.AstroCoords.Time.TimeInstant.ISOTime += 'Z'
     # NOTE: now remove position 2D so the fake ra, dec, err, and units
     # don't show up.
     ol = v.WhereWhen.ObsDataLocation.ObservationLocation
