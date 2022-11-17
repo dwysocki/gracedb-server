@@ -49,6 +49,7 @@ INSTRUMENT_DESCRIPTIONS = {
     "H1": "H1: LIGO Hanford 4 km gravitational wave detector",
     "L1": "L1: LIGO Livingston 4 km gravitational wave detector",
     "V1": "V1: Virgo 3 km gravitational wave detector",
+    "K1": "K1: KAGRA 3 km gravitational wave detector"
 }
 
 
@@ -117,7 +118,7 @@ def construct_voevent_file(obj, voevent, request=None):
     ## Set Who.Author
     vp.set_author(
         v,
-        contactName="LIGO Scientific Collaboration and Virgo Collaboration"
+        contactName="LIGO Scientific Collaboration, Virgo Collaboration, and KAGRA Collaboration"
     )
 
     # How #####################################################################
@@ -172,7 +173,7 @@ def construct_voevent_file(obj, voevent, request=None):
         ac=True
     )
     p_internal.Description = ("Indicates whether this event should be "
-        "distributed to LSC/Virgo members only")
+        "distributed to LSC/Virgo/KAGRA members only")
     v.What.append(p_internal)
     
     ## Packet serial number
@@ -482,8 +483,7 @@ def construct_voevent_file(obj, voevent, request=None):
                 )
                 p_pnsbh.Description = \
                     ("Probability that the source is a neutron star-black "
-                     "hole merger (primary heavier than 5 solar masses, "
-                     "secondary lighter than 3 solar masses)")
+                     "merger (secondary lighter than 3 solar masses)")
                 em_bright_params.append(p_pnsbh)
 
             if voevent.prob_bbh is not None:
@@ -495,20 +495,20 @@ def construct_voevent_file(obj, voevent, request=None):
                 )
                 p_pbbh.Description = ("Probability that the source is a "
                                       "binary black hole merger (both objects "
-                                      "heavier than 5 solar masses)")
+                                      "heavier than 3 solar masses)")
                 em_bright_params.append(p_pbbh)
 
-            if voevent.prob_mass_gap is not None:
-                p_pmassgap = vp.Param(
-                    "MassGap",
-                    value=voevent.prob_mass_gap,
-                    ucd="stat.probability",
-                    ac=True
-                )
-                p_pmassgap.Description = ("Probability that the source has at "
-                                          "least one object between 3 and 5 "
-                                          "solar masses")
-                em_bright_params.append(p_pmassgap)
+            #if voevent.prob_mass_gap is not None:
+            #    p_pmassgap = vp.Param(
+            #        "MassGap",
+            #        value=voevent.prob_mass_gap,
+            #        ucd="stat.probability",
+            #        ac=True
+            #    )
+            #    p_pmassgap.Description = ("Probability that the source has at "
+            #                              "least one object between 3 and 5 "
+            #                              "solar masses")
+            #    em_bright_params.append(p_pmassgap)
 
             if voevent.prob_terrestrial is not None:
                 p_pterr = vp.Param(
@@ -546,6 +546,17 @@ def construct_voevent_file(obj, voevent, request=None):
                                              "was ejected outside the central "
                                              "remnant object")
                 source_properties_params.append(p_phasremnant)
+            if voevent.prob_has_mass_gap is not None:
+                p_pmassgap = vp.Param(
+                    "HasMassGap",
+                    value=voevent.prob_has_mass_gap,
+                    ucd="stat.probability",
+                    ac=True
+                )
+                p_pmassgap.Description = ("Probability that the source has at "
+                                          "least one object between 3 and 5 "
+                                          "solar masses")
+                source_properties_params.append(p_pmassgap)
 
         elif isinstance(event, MultiBurstEvent):
             ### Central frequency
@@ -650,7 +661,7 @@ def construct_voevent_file(obj, voevent, request=None):
         )
         classification_group.Description = \
             ("Source classification: binary neutron star (BNS), neutron star-"
-             "black hole (NSBH), binary black hole (BBH), MassGap, or "
+             "black hole (NSBH), binary black hole (BBH), or "
              "terrestrial (noise)")
         v.What.append(classification_group)
 
@@ -734,3 +745,4 @@ def construct_voevent_file(obj, voevent, request=None):
     # Return the document as a string, along with the IVORN ###################
     xml = vp.dumps(v, pretty_print=True)
     return xml, v.get('ivorn')
+

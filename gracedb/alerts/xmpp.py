@@ -10,6 +10,7 @@ from django.core.mail import EmailMessage
 from django.conf import settings
 from xml.sax.saxutils import escape
 from datetime import datetime, timezone
+from hashlib import sha1
 
 from core.time_utils import gpsToUtc
 from events.permission_utils import is_external
@@ -19,11 +20,6 @@ from .lvalert import send_with_lvalert_overseer, send_with_kafka_client
 
 # Set up logger
 logger = logging.getLogger(__name__)
-
-if settings.USE_LVALERT_OVERSEER:
-    from hashlib import sha1
-    from multiprocessing import Manager
-
 
 def get_xmpp_node_names(event_or_superevent):
     """
@@ -103,10 +99,6 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
     logger.info("issue_xmpp_alerts: sending message {msg} for {uid}" \
         .format(msg=msg, uid=uid))
 
-    # Get manager ready for LVAlert Overseer (?)
-    if settings.USE_LVALERT_OVERSEER:
-        manager = Manager()
-
     # Loop over LVAlert servers and nodes, issuing the alert to each
     for overseer_instance in settings.LVALERT_OVERSEER_INSTANCES[::-1]:
         server = overseer_instance.get('lvalert_server')
@@ -127,8 +119,7 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
             if settings.USE_LVALERT_OVERSEER:
 
                 # Send with LVAlert Overseer
-                success = send_with_lvalert_overseer(node_name, msg, manager,
-                    port)
+                success = send_with_lvalert_overseer(node_name, msg, port)
 
                 # If not success, we need to do this the old way.
                 if not success:

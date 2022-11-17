@@ -3,6 +3,7 @@ from collections import OrderedDict
 import logging
 import os
 
+from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
@@ -24,8 +25,7 @@ from superevents.utils import remove_tag_from_log, \
     remove_event_from_superevent, remove_label_from_superevent, \
     confirm_superevent_as_gw, get_superevent_by_date_id_or_404, \
     get_superevent_by_sid_or_gwid_or_404, \
-    expose_superevent, hide_superevent, delete_signoff, \
-    remove_pipeline_preferred_event_from_superevent
+    expose_superevent, hide_superevent, delete_signoff
 from .filters import SupereventSearchFilter, SupereventOrderingFilter
 from .paginators import CustomSupereventPagination
 from .permissions import SupereventModelPermissions, \
@@ -49,16 +49,21 @@ from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
 from .viewsets import SupereventNestedViewSet
 from ..filters import DjangoObjectAndGlobalPermissionsFilter
 from ..mixins import SafeCreateMixin, SafeDestroyMixin, ValidateDestroyMixin, \
-    InheritDefaultPermissionsMixin
+    InheritDefaultPermissionsMixin, ResponseThenRunMixin
 from ..paginators import BasePaginationFactory, CustomLabelPagination, \
     CustomLogTagPagination
 from ...utils import api_reverse
 
-# Import rety decorator
+# Retry imports:
+from time import sleep
 from retry import retry
 
 # Set up logger
 logger = logging.getLogger(__name__)
+
+# Retrying parameters: 
+EFS_RETRY_MAX = 5
+EFS_RETRY_WAIT = 0.01
 
 
 class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
@@ -67,7 +72,7 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
     View for listing all Superevents, retrieving individual superevents,
     creating new superevents, and updating existing superevents.
     """
-    queryset = Superevent.objects.filter(superevent_id__isnull=False)
+    queryset = Superevent.objects.all()
     serializer_class = SupereventSerializer
     pagination_class = CustomSupereventPagination
     permission_classes = (SupereventModelPermissions,
@@ -107,9 +112,16 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
         # Get superevent
         superevent = self.get_object()
 
+        # Get gw_id from request, if it exists:
+        gw_id = request.data.get('gw_id')
+
         # If already a GW, return an error
         if not superevent.is_gw:
-            confirm_superevent_as_gw(superevent, self.request.user)
+            try:
+                confirm_superevent_as_gw(superevent, self.request.user, gw_id)
+            except ValidationError as e:
+                return Response(e.__str__(),
+                        status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response('Superevent is already confirmed as a GW',
                 status=status.HTTP_400_BAD_REQUEST)
@@ -119,7 +131,7 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
         return Response(serializer.data)
 
 
-class SupereventEventViewSet(ValidateDestroyMixin,
+class SupereventEventViewSet(ValidateDestroyMixin, ResponseThenRunMixin,
     InheritDefaultPermissionsMixin, SupereventNestedViewSet):
     """View for events attached to a superevent"""
     serializer_class = SupereventEventSerializer
@@ -189,7 +201,7 @@ class SupereventPipelinePreferredEventViewSet(ValidateDestroyMixin,
 
     def validate_destroy(self, request, instance):
         # Don't allow removal of preferred events, same as in the events
-        # list. 
+        # list.
 
         if hasattr(instance, 'superevent_preferred_for'):
             err_msg = ("Event {gid} can't be removed from superevent {sid}'s "
@@ -311,21 +323,35 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
     # move it into production before the root cause
     # can be determined.
     
-    @retry(exceptions=OSError, tries=5, delay=1.0, logger=logger)
     def list(self, request, *args, **kwargs):
+        efs_access_attempt = 1
+        efs_access_success = False
+
         # Get logs which are viewable by the current user and
         # have files attached
         parent_superevent = self.get_parent_object()
         viewable_logs = self.filter_log_queryset(self.get_log_queryset())
 
-        # Get list of filenames
-        file_list = get_file_list(viewable_logs, parent_superevent.datadir)
+        while not efs_access_success:
+            try: 
+                # Get list of filenames
+                file_list = get_file_list(viewable_logs, parent_superevent.datadir)
 
-        # Compile sorted dict of filenames and links
-        file_dict = OrderedDict((f,
-            api_reverse('superevents:superevent-file-detail',
-            args=[parent_superevent.superevent_id, f], request=request))
-            for f in sorted(file_list))
+                # Compile sorted dict of filenames and links
+                file_dict = OrderedDict((f,
+                    api_reverse('superevents:superevent-file-detail',
+                    args=[parent_superevent.superevent_id, f], request=request))
+                    for f in sorted(file_list))
+            except OSError:
+                logger.warning("Retrying EFS access. Attempt number "
+                        "{}".format(efs_access_attempt))
+                sleep(EFS_RETRY_WAIT)
+                efs_access_attempt += 1
+                if efs_access_attempt > EFS_RETRY_MAX:
+                    return Response("File system hiccup, please retry",
+                            status=status.HTTP_409_CONFLICT)
+            else:
+                efs_access_success = True
 
         return Response(file_dict)
 
@@ -335,8 +361,8 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
     # and if it doesn't fail castastropically, I'll
     # move it into production before the root cause
     # can be determined.
-    
-    @retry(exceptions=OSError, tries=5, delay=1.0, logger=logger)
+
+    @retry(exceptions=OSError, tries=EFS_RETRY_MAX, delay=EFS_RETRY_WAIT, logger=logger)
     def retrieve(self, request, *args, **kwargs):
         # Get parent superevent
         parent_superevent = self.get_parent_object()

@@ -11,13 +11,15 @@ from guardian.shortcuts import get_objects_for_user
 
 from core.file_utils import get_file_list
 from events.models import EMGroup
+from events.models import Label
 from events.mixins import DisplayFarMixin
 from events.permission_utils import is_external
 from ligoauth.decorators import public_if_public_access_allowed
 from .mixins import ExposeHideMixin, OperatorSignoffMixin, \
     AdvocateSignoffMixin, PermissionsFilterMixin, ConfirmGwFormMixin
 from .models import Superevent, VOEvent
-from .utils import get_superevent_by_date_id_or_404
+from .utils import get_superevent_by_date_id_or_404, \
+    get_superevent_by_sid_or_gwid_or_404
 
 
 # Set up logger
@@ -49,7 +51,7 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
         if queryset is None:
             queryset = self.get_queryset()
         superevent_id = self.kwargs.get('superevent_id')
-        obj = get_superevent_by_date_id_or_404(superevent_id, queryset)
+        obj = get_superevent_by_sid_or_gwid_or_404(superevent_id, queryset)
         return obj
 
     def get_context_data(self, **kwargs):
@@ -238,7 +240,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
                     ("NSBH", voe.prob_nsbh),
                     ("BBH", voe.prob_bbh),
                     ("Terrestrial", voe.prob_terrestrial),
-                    ("MassGap", voe.prob_mass_gap)]
+                    ("HasMassGap", voe.prob_has_mass_gap)]
                 pastro_values.sort(reverse=True, key=lambda p_a: 0.0 if p_a[1] is None else p_a[1])
                 sourcelist = []
                 for key, value in pastro_values:
@@ -253,5 +255,105 @@ class SupereventPublic(DisplayFarMixin, ListView):
 
         # Number of non-retracted candidate events
         context['candidates'] = candidates
+
+        return context
+
+
+@method_decorator(public_if_public_access_allowed, name='dispatch')
+class SupereventCurated(DisplayFarMixin, ListView):
+    model = Superevent
+    template_name = 'superevents/curated_events.html'
+    filter_permissions = ['superevents.view_superevent']
+    log_view_permission = 'superevents.view_log'
+
+    # Curated event categories, differentiated by label:
+    catalog_label_names = ['O3A_CBC_CATALOG',
+                           'O3B_CBC_CATALOG',
+                           'O3A_CBC_SUBTHRESHOLD',
+                           'O3B_CBC_SUBTHRESHOLD',]
+
+    def get_queryset(self, **kwargs):
+        # Query only for public events
+        # NOTE: may want to fix this to only O3 events at some point
+        qs = Superevent.objects.filter(is_gw=True,
+            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION) \
+            .prefetch_related('voevent_set', 'log_set')
+        return qs
+
+    def get_context_data(self, **kwargs):
+        # Get base context
+        context = super(SupereventCurated, self).get_context_data(**kwargs)
+
+        candidates = self.object_list
+
+        for section_label in self.catalog_label_names:
+            context[section_label] = candidates.filter(labels__name=section_label)
+
+        context['curated_gws'] = candidates
+
+        return context
+
+
+class SupereventDetailCuratedView(OperatorSignoffMixin, AdvocateSignoffMixin,
+    ExposeHideMixin, ConfirmGwFormMixin, DisplayFarMixin,
+    PermissionsFilterMixin, DetailView):
+    """
+    Detail view for curated superevents.
+    """
+    model = Superevent
+    template_name = 'superevents/curated_detail.html'
+    filter_permissions = ['superevents.view_superevent']
+
+    def get_queryset(self):
+        """Get queryset and preload some related objects"""
+        qs = super(SupereventDetailCuratedView, self).get_queryset()
+
+        # Do some optimization
+        qs = qs.select_related('preferred_event__group',
+            'preferred_event__pipeline', 'preferred_event__search')
+        qs = qs.prefetch_related('labelling_set', 'events')
+
+        return qs
+
+    def get_object(self, queryset=None):
+        if queryset is None:
+            queryset = self.get_queryset()
+        superevent_id = self.kwargs.get('superevent_id')
+        obj = get_superevent_by_sid_or_gwid_or_404(superevent_id, queryset)
+        return obj
+
+    def get_context_data(self, **kwargs):
+        # Get base context
+        context = super(SupereventDetailCuratedView, self).get_context_data(**kwargs)
+
+        # Add a bunch of extra stuff
+        superevent = self.object
+        context['preferred_event'] = superevent.preferred_event
+        context['preferred_event_labelling'] = superevent.preferred_event \
+            .labelling_set.prefetch_related('label', 'creator').all()
+
+        # TODO: filter events for user? Not clear what information we want
+        # to show to different groups
+        # Pass event graceids
+        context['internal_events'] = superevent.get_internal_events() \
+            .order_by('id')
+        context['external_events'] = superevent.get_external_events() \
+            .order_by('id')
+
+        # Get display FARs for preferred_event
+        context.update(zip(
+            ['display_far', 'display_far_hr', 'far_is_upper_limit'],
+            self.get_display_far(obj=superevent.preferred_event)
+            )
+        )
+
+        # Is the user an external user? (I.e., not part of the LVC?) The
+        # template needs to know that in order to decide what pieces of
+        # information to show.
+        context['user_is_external'] = is_external(self.request.user)
+
+        # Get list of EMGroup names for emo creation form
+        context['emgroups'] = EMGroup.objects.all().order_by('name') \
+            .values_list('name', flat=True)
 
         return context

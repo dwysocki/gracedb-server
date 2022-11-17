@@ -136,6 +136,7 @@ class SupereventSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # Function-level import to prevent circular import in alerts
+        from superevents.utils import add_event_to_superevent
         from superevents.utils import create_superevent
         submitter = validated_data.pop('user')
 
@@ -201,7 +202,8 @@ class SupereventUpdateSerializer(SupereventSerializer):
     for object creation.
     """
     allowed_fields = ('t_start', 't_0', 't_end', 'preferred_event', 
-                       'em_type', 'time_coinc_far', 'space_coinc_far')
+                      'em_type', 'time_coinc_far', 'space_coinc_far',
+                      'gw_id')
 
     def __init__(self, *args, **kwargs):
         super(SupereventUpdateSerializer, self).__init__(*args, **kwargs)
@@ -303,6 +305,7 @@ class SupereventEventSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Function-level import to prevent circular import in alerts
         from superevents.utils import add_event_to_superevent
+        from superevents.utils import add_event_to_superevent_followup
 
         superevent = validated_data.pop('superevent')
         event = validated_data.pop('event')
@@ -310,6 +313,17 @@ class SupereventEventSerializer(serializers.ModelSerializer):
         add_event_to_superevent(superevent, event, submitter,
             add_superevent_log=True, add_event_log=True,
             issue_alert=True)
+
+        # Compile keyword options for log and alert followup to the
+        # ResponseThenRun object
+        self.resp_callback = add_event_to_superevent_followup
+        self.resp_callback_kwargs = {'superevent': superevent,
+                                     'event': event,
+                                     'user': submitter,
+                                     'add_event_log': True,
+                                     'add_superevent_log': True,
+                                     'issue_alert': True}
+
         return event
 
 
@@ -646,6 +660,7 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         'em_type_not_found': _('event for em_type={em_type} not found'),
         'comb_skymap_not_found': _('Combined skymap file {filename} not found '
                               'for this superevent.'),
+        'no_mass_gap': _('MassGap has been replaced with HasMassGap'),
     }
     # Read only fields
     issuer = serializers.SlugRelatedField(slug_field='username',
@@ -682,6 +697,8 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         max_value=1, required=False)
     MassGap = serializers.FloatField(write_only=True, min_value=0,
         max_value=1, required=False)
+    HasMassGap = serializers.FloatField(write_only=True, min_value=0,
+        max_value=1, required=False)
 
     # Additional RAVEN fields
     raven_coinc = serializers.BooleanField(default=False)
@@ -703,9 +720,9 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
             'issuer', 'filename', 'N', 'links', 'skymap_type',
             'skymap_filename', 'internal', 'open_alert', 'hardware_inj',
             'CoincComment', 'ProbHasNS', 'ProbHasRemnant', 'BNS', 'NSBH',
-            'BBH', 'Terrestrial', 'MassGap', 'coinc_comment', 'prob_has_ns',
+            'BBH', 'Terrestrial', 'MassGap', 'HasMassGap', 'coinc_comment', 'prob_has_ns',
             'prob_has_remnant', 'prob_bns', 'prob_nsbh', 'prob_bbh',
-            'prob_terrestrial', 'prob_mass_gap', 'superevent', 'user')
+            'prob_terrestrial', 'prob_has_mass_gap', 'superevent', 'user')
 
         raven_fields = ('raven_coinc','ext_gcn', 'ext_pipeline', 'ext_search',
             'time_coinc_far', 'space_coinc_far', 'combined_skymap_filename',
@@ -718,7 +735,7 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         super(SupereventVOEventSerializer, self).__init__(*args, **kwargs)
         read_only_fields = ['file_version', 'filename', 'ivorn',
             'coinc_comment', 'prob_has_ns', 'prob_has_remnant', 'prob_bns',
-            'prob_nsbh', 'prob_bbh', 'prob_terrestrial', 'prob_mass_gap', ]
+            'prob_nsbh', 'prob_bbh', 'prob_terrestrial', 'prob_has_mass_gap', ]
         for f in read_only_fields:
             self.fields.get(f).read_only = True
 
@@ -748,6 +765,7 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         skymap_type = data.get('skymap_type', None)
         raven_coinc = data.get('raven_coinc')
         combined_smfn = data.get('combined_skymap_filename',None)
+        mass_gap = data.get('MassGap', None)
         
 
         # Checks to do:
@@ -789,7 +807,10 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
                     combined_smfn)
                 if not os.path.exists(comb_skymap_path):
                     self.fail('comb_skymap_not_found', filename=combined_smfn)
-              
+
+        # cannot contain "MassGap"
+        if mass_gap:
+            self.fail('no_mass_gap')
 
         return data
 

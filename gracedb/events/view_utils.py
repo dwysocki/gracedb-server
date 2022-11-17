@@ -601,7 +601,7 @@ def voeventToDict(voevent, request=None):
         "prob_nsbh": voevent.prob_nsbh,
         "prob_bbh": voevent.prob_bbh,
         "prob_terrestrial": voevent.prob_terrestrial,
-        "prob_mass_gap": voevent.prob_mass_gap,
+        "prob_has_mass_gap": voevent.prob_has_mass_gap,
     }
 
 def singleInspiralToDict(single_inspiral):

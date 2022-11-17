@@ -1,20 +1,21 @@
 import logging
 from multiprocessing import Process
 import os
-from subprocess import Popen, PIPE
+
 
 from django.conf import settings
 from igwn_alert import client
-from igwn_alert_overseer.overseer.overseer_client import send_to_overseer
+from igwn_alert_overseer.overseer.overseer_client import overseer_client
+from tornado.ioloop import IOLoop
+import asyncio
+import json
+
 
 # Set up logger
 logger = logging.getLogger(__name__)
 
 
-def send_with_lvalert_overseer(node_name, message, manager, port):
-
-    # Get rdict from manager (?)
-    rdict = manager.dict()
+def send_with_lvalert_overseer(node_name, message, port):
 
     # Compile message dictionary
     msg_dict = {
@@ -23,11 +24,17 @@ def send_with_lvalert_overseer(node_name, message, manager, port):
         'action': 'push',
     }
 
-    # Send to overseer (?)
-    p = Process(target=send_to_overseer, args=(msg_dict, rdict,
-        logger, True, port))
-    p.start()
-    p.join()
+    # Set up client:
+    client = overseer_client(host='localhost', port=port)
+
+    # Format message. FIXME maybe move this step into the overseer client?
+    msg_dict = json.dumps(msg_dict)
+
+    # Start IOLoop:
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    resp = client.send_to_overseer(msg_dict, logger)
+    IOLoop.instance().start()
+    rdict = json.loads(resp.result())
 
     # Return a boolean indicating whether the message was sent
     # successfully or not

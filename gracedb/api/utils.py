@@ -2,6 +2,7 @@ import logging
 
 from django.urls import resolve, reverse as django_reverse
 from rest_framework.settings import api_settings
+from rest_framework.response import Response
 
 from core.urls import build_absolute_uri
 
@@ -75,3 +76,16 @@ def is_api_request(request_path):
         resolver_match.app_names[0] == api_app_name):
         return True
     return False
+
+class ResponseThenRun(Response):
+    """
+    A response class that will do something after the response is sent
+    """
+    def __init__(self, data, callback, callback_kwargs, **kwargs):
+       super(ResponseThenRun, self).__init__(data, **kwargs)
+       self.callback = callback
+       self.callback_kwargs = callback_kwargs
+
+    def close(self):
+        super().close()
+        self.callback(**self.callback_kwargs)

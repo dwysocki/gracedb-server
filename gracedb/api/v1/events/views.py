@@ -1704,6 +1704,8 @@ class VOEventList(InheritPermissionsAPIView):
         NSBH = request.data.get('NSBH', None)
         BBH = request.data.get('BBH', None)
         Terrestrial = request.data.get('Terrestrial', None)
+        HasMassGap = request.data.get('HasMassGap', None)
+        # old parameter included to warn users:
         MassGap = request.data.get('MassGap', None)
 
         # Get RAVEN data
@@ -1761,6 +1763,9 @@ class VOEventList(InheritPermissionsAPIView):
             elif not ext_search:
                 error = True
                 msg = "External Search not provided"
+        elif MassGap:
+            error = True
+            msg = "MassGap has been replaced by HasMassGap"
             
         # If there's an error, return a 400 response
         if error:
@@ -1773,7 +1778,7 @@ class VOEventList(InheritPermissionsAPIView):
             hardware_inj=hardware_inj, coinc_comment=CoincComment,
             prob_has_ns=ProbHasNS, prob_has_remnant=ProbHasRemnant,
             prob_bns=BNS, prob_nsbh=NSBH, prob_bbh=BBH,
-            prob_terrestrial=Terrestrial, prob_mass_gap=MassGap)
+            prob_terrestrial=Terrestrial, prob_has_mass_gap=HasMassGap)
 
         try:
             voevent.save()

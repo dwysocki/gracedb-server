@@ -10,6 +10,8 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
+from api.utils import ResponseThenRun
+
 # Set up logger
 logger = logging.getLogger(__name__)
 
@@ -88,6 +90,20 @@ class SafeCreateMixin(mixins.CreateModelMixin):
         return Response(serializer.data, status=status.HTTP_201_CREATED,
             headers=headers)
 
+class ResponseThenRunMixin(mixins.CreateModelMixin):
+    """
+    Copy of the CreateModelMixin which hijacks the response object
+    run a function afterward.
+    """
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return ResponseThenRun(serializer.data, status=status.HTTP_201_CREATED,
+            headers=headers, callback=serializer.resp_callback,
+            callback_kwargs=serializer.resp_callback_kwargs)
 
 class OrderedListModelMixin(object):
     """

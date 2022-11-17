@@ -21,7 +21,9 @@ gssapi==1.6.14
 gunicorn==20.0.4
 hop-client==0.6.0
 html5lib==1.1.0
-igwn-alert-overseer==0.5.2
+# FIXME: unpin overseer to use debug branch:
+#igwn-alert-overseer==0.5.2
+git+https://git.ligo.org/computing/igwn-alert/overseer.git
 ipdb==0.13.6
 ipython==7.21.0
 #jwt==1.3.1

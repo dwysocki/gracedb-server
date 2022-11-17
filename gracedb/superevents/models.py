@@ -275,7 +275,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
     def is_mdc(self):
         return self.category == self.SUPEREVENT_CATEGORY_MDC
 
-    def confirm_as_gw(self):
+    def confirm_as_gw(self, gw_id=None):
         """
         Sets is_gw to True, calculates the gw_date_number in the database, and
         the gw_letter_suffix afterward.
@@ -284,27 +284,26 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
         self.is_gw = True
 
         # Prep for custom autoincrement update
+        # Go through all the same steps for constructing a GW number. This will
+        # be the default, and will serve as a placeholder GW id, if nothing 
+        # else is specified.
+
         meta = self._meta
         constraint_fields = ['t_0_date', 'is_gw', 'category']
 
         # Do the update
-        self.auto_increment_update('gw_date_number', constraint_fields)
+        if gw_id is None:
+            self.auto_increment_update('gw_date_number', constraint_fields)
 
-        # Update gw_letter_suffix from gw_date_number
-        self.gw_letter_suffix = int_to_letters(self.gw_date_number).upper()
-
-        # update the gw_id to the default_gw_id. This is temporary until the
-        # user-defined gw_id is implemented. The code block afterwards is
-        # intentionally commented-out. 
-
-        self.gw_id = self.default_gw_id
+            # Update gw_letter_suffix from gw_date_number
+            self.gw_letter_suffix = int_to_letters(self.gw_date_number).upper()
 
         # Update gw_id. If the user supplied one, use that. If not, then just
         # put in the "default" (old) gw_id format.
-        #if gw_id:
-        #    self.gw_id = gw_id
-        #else:
-        #    self.gw_id = self.default_gw_id
+        if gw_id:
+            self.gw_id = gw_id
+        else:
+            self.gw_id = self.default_gw_id
 
         # Save the fields which have changed
         self.save(update_fields=['is_gw', 'gw_letter_suffix', 'gw_id',

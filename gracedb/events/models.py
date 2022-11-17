@@ -1025,6 +1025,9 @@ class VOEventBase(CleanSaveModel):
     prob_mass_gap = models.FloatField(null=True, default=None, blank=True,
         validators=[models.fields.validators.MinValueValidator(0.0),
         models.fields.validators.MaxValueValidator(1.0)])
+    prob_has_mass_gap = models.FloatField(null=True, default=None, blank=True,
+        validators=[models.fields.validators.MinValueValidator(0.0),
+        models.fields.validators.MaxValueValidator(1.0)])
 
     # Additional RAVEN Fields
     raven_coinc = models.BooleanField(null=False, default=False, blank=True)

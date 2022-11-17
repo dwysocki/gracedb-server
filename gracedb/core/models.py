@@ -177,8 +177,13 @@ class AutoIncrementModel(models.Model):
         # entries in the set. This caused some db integrity errors in testing.
 
         if qs:
-            setattr(self, update_field_name,
-                    qs.aggregate(max_val=Max(update_field_name))['max_val'] + 1)
+            try:
+                setattr(self, update_field_name,
+                        qs.aggregate(max_val=Max(update_field_name))['max_val'] + 1)
+            # Add exception for cases where the update field wasn't
+            # initially...updated:
+            except TypeError:
+                setattr(self, update_field_name, 1)
         else:
             setattr(self, update_field_name, 1)
 

@@ -96,6 +96,9 @@ def create_superevent(submitter, t_start, t_0, t_end, preferred_event,
         add_event_to_superevent(s, event, submitter,
             add_superevent_log=False, add_event_log=True,
             issue_alert=False)
+        add_event_to_superevent_followup(s, event, submitter,
+            add_superevent_log=False, add_event_log=True,
+            issue_alert=False)
 
     # Create superevent data directory
     os.makedirs(s.datadir)
@@ -132,7 +135,8 @@ def update_superevent(superevent, updater, add_log_message=True,
 
     # Extract "updatable" superevent params from kwargs
     param_names = ['t_start', 't_0', 't_end', 'preferred_event',
-                   'em_type','time_coinc_far','space_coinc_far']
+                   'em_type','time_coinc_far','space_coinc_far',
+                   'gw_id']
     new_params = {k: v for k,v in kwargs.items() if k in param_names}
 
     # Get old parameters
@@ -367,6 +371,10 @@ def add_event_to_superevent(superevent, event, user, add_event_log=True,
     # Add event to superevent
     superevent.events.add(event)
 
+
+def add_event_to_superevent_followup(superevent, event, user, add_event_log=True,
+    add_superevent_log=True, issue_alert=True):
+
     # Create superevent log message to record event addtion?
     if add_superevent_log:
         # Record event addition in superevent logs
@@ -555,14 +563,14 @@ def get_superevent_by_sid_or_gwid_or_404(superevent_id, queryset=None):
 
 
 
-def confirm_superevent_as_gw(superevent, user, add_log_message=True,
+def confirm_superevent_as_gw(superevent, user, gw_id, add_log_message=True,
     issue_alert=True):
 
     # Save old ID temporarily
     old_id = superevent.superevent_id
 
     # Update superevent (mark as a GW, construct new ID, etc.)
-    superevent.confirm_as_gw()
+    superevent.confirm_as_gw(gw_id)
 
     # Create log message
     gw_log = None
@@ -619,7 +627,7 @@ def create_voevent_for_superevent(superevent, issuer, voevent_type,
     skymap_type=None, skymap_filename=None, internal=True, open_alert=False,
     hardware_inj=False, CoincComment=False, ProbHasNS=None,
     ProbHasRemnant=None, BNS=None, NSBH=None, BBH=None, Terrestrial=None,
-    MassGap=None, add_log_message=True, issue_alert=True,
+    MassGap=None, HasMassGap=None, add_log_message=True, issue_alert=True,
     combined_skymap_filename=None, raven_coinc=False):
 
     # Instantiate VOEvent object
@@ -629,7 +637,7 @@ def create_voevent_for_superevent(superevent, issuer, voevent_type,
         open_alert=open_alert, hardware_inj=hardware_inj,
         coinc_comment=CoincComment, prob_has_ns=ProbHasNS,
         prob_has_remnant=ProbHasRemnant, prob_bns=BNS, prob_nsbh=NSBH,
-        prob_bbh=BBH, prob_terrestrial=Terrestrial, prob_mass_gap=MassGap,
+        prob_bbh=BBH, prob_terrestrial=Terrestrial, prob_has_mass_gap=HasMassGap,
         combined_skymap_filename=combined_skymap_filename, 
         raven_coinc=raven_coinc)
 
