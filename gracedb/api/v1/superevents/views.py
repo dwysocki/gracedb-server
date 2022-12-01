@@ -25,7 +25,8 @@ from superevents.utils import remove_tag_from_log, \
     remove_event_from_superevent, remove_label_from_superevent, \
     confirm_superevent_as_gw, get_superevent_by_date_id_or_404, \
     get_superevent_by_sid_or_gwid_or_404, \
-    expose_superevent, hide_superevent, delete_signoff
+    expose_superevent, hide_superevent, delete_signoff, \
+    remove_pipeline_preferred_event_from_superevent
 from .filters import SupereventSearchFilter, SupereventOrderingFilter
 from .paginators import CustomSupereventPagination
 from .permissions import SupereventModelPermissions, \
