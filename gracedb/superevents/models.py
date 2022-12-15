@@ -218,14 +218,6 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
             self.preferred_event not in self.events.all()):
             self.events.add(self.preferred_event)
 
-        # Add preferred event to the pipeline preferred events list, if it's 
-        # not in there. First remove the other event from the pipeline.
-        if (self.preferred_event and 
-              self.preferred_event not in self.pipeline_preferred_events.all()):
-            for e in self.pipeline_preferred_events.filter(pipeline=self.preferred_event.pipeline):
-                self.pipeline_preferred_events.remove(e)
-            self.pipeline_preferred_events.add(self.preferred_event)
-
     def delete(self, purge=True, *args, **kwargs):
         # Store datadir before deletion from database
         datadir = self.datadir

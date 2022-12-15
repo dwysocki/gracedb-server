@@ -34,15 +34,28 @@
     {% include "superevents/superevent_detail_script.js" %}
 </script>
 
+
+<!-- block of javascript for the confirmation popup -->
 <script>
     function clickConfirm() {
         return confirm(" {{confirmation_dialog_text}} ");
     }
 </script>
+<script type="text/javascript" class="init">
+    $(document).ready(function () {
+        $('#pipeline-preferred').DataTable({
+            paging:false,
+            searching:false,
+            info:false,
+            order: [[4, 'desc']],
+        });
+});
+</script>
 
 {% endblock %}
 
 {% block content %}
+
 <div class='row'>
     <div class='col-md-2'>
         <div class="sticky-top" style="top: 75px;">

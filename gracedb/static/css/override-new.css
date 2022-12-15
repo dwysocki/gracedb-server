@@ -266,3 +266,25 @@ div.dataTables_processing {
   z-index: 1;
 }
 /* end spinner stuff */
+
+/* dataTable table override css */
+
+table.dataTable {
+    border-collapse: collapse;
+}
+
+table.dataTable thead th {
+    border-bottom: 0px;
+    padding: .6rem .8rem;
+    font-weight: 100;
+}
+
+table.dataTable tbody tr {
+    background-color: #f2f4f8;
+}
+
+table.dataTable.no-footer {
+    border-bottom: 0px;
+}
+
+/* end dataTable table css */

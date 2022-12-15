@@ -1,10 +1,12 @@
 {% load timeutil %}
 {% load scientific %}
-    <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
+
+    <table id="pipeline-preferred" class="table-hover table-condensed
+        table-resp-gracedb shadow p-3 mb-5 rounded ">
       <!-- Table Header -->
       <thead>
       <tr>
-        <th colspan="5"><h3>Per-Pipeline Preferred Event Information</h3></th>
+        <th colspan="5"><h3>Per-Pipeline Event Information</h3></th>
       </tr>
 
       <tr>
@@ -16,7 +18,7 @@
       </tr>
       </thead>
 
-      <tbody>
+      <tbody style="">
       {% for e in pipeline_preferred_events %}
         <tr>
          <td><a href="{% url "view" e.graceid %}">{{ e.graceid }}</a></td>
@@ -44,3 +46,4 @@
       {% endfor %}
       </tbody>
     </table>
+

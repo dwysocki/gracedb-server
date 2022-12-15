@@ -12,7 +12,8 @@ from rest_framework import fields, serializers, validators
 from rest_framework.exceptions import ValidationError
 
 from events.models import Event, Label, Tag, EMGroup
-from events.view_utils import event_basic_info_to_dict
+from events.view_utils import event_basic_info_to_dict, \
+        assemble_event_extra_attributes
 from superevents.models import Superevent, Labelling, Log, VOEvent, \
     EMObservation, EMFootprint, Signoff, SupereventGroupObjectPermission
 from .settings import SUPEREVENT_LOOKUP_URL_KWARG
@@ -152,8 +153,15 @@ class SupereventSerializer(serializers.ModelSerializer):
 
     def get_pipeline_preferred_events(self, obj):
         request=self.context.get('request', None)
-        return {ev.pipeline.name:event_basic_info_to_dict(ev, request) \
-                for ev in obj.pipeline_preferred_events.all()}
+        ppe_data = {}
+        for ev in obj.pipeline_preferred_events.all():
+            rv = {}
+            rv.update(event_basic_info_to_dict(ev, request))
+            rv.update({'labels': [l.name for l in ev.labels.all()]})
+            rv.update({'extra_attributes': assemble_event_extra_attributes(ev, request,
+                self.is_alert)})
+            ppe_data.update({ev.pipeline.name: rv})
+        return ppe_data
 
     def get_em_events(self, obj):
         return [ev.graceid for ev in obj.get_external_events()]
@@ -332,8 +340,6 @@ class SupereventPipelinePreferredEventSerializer(serializers.ModelSerializer):
         'already_included': _('Event {graceid} is already the {pipeline} '
                               'pipeline-preferred event for {superevent_id}'),
         'not_in_superevent': _('Event {graceid} is not part of superevent {superevent_id}'),
-        'remove_preferred_event': _('Adding {graceid} as a pipeline-preferred event '
-                                    'would remove {pe_graceid} as the preferred event'),
         'category_mismatch': _('Event {graceid} is of type \'{e_category}\', '
                                'and cannot be assigned to a superevent of '
                                'type \'{s_category}\''),
@@ -365,11 +371,6 @@ class SupereventPipelinePreferredEventSerializer(serializers.ModelSerializer):
             self.fail('already_included', graceid=event.graceid,
                     pipeline=event.pipeline.name,
                     superevent_id=superevent.superevent_id)
-
-        # Check to see if event would replace preferred event:
-        if (event.pipeline == superevent.preferred_event.pipeline):
-            self.fail('remove_preferred_event', graceid=event.graceid,
-                    pe_graceid=superevent.preferred_event.graceid)
 
         # Check if event is part of a different superevent:
         if (not event.superevent or  event.superevent != superevent):
