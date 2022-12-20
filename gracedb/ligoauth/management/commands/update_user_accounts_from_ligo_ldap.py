@@ -533,6 +533,7 @@ class LigoPeopleLdap(object):
         ldap_address = '{host}:{port}'.format(host=self.ldap_host,
             port=self.ldap_port)
         self.ldap_object = ldap.initialize(ldap_address)
+        self.ldap_object.set_option(ldap.OPT_X_SASL_NOCANON, ldap.OPT_ON)
         self.ldap_object.protocol_version = self.ldap_protocol_version
 
         # Start SASL secure connection:

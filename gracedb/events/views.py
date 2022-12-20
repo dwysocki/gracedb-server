@@ -449,7 +449,11 @@ def view(request, event):
             break
     context['advocate_signoff_authorized'] = advocate_signoff_authorized
 
-    
+    # FIXME: define the hard cutoff for log messages:
+    if event.eventlog_set.count() > settings.TOO_MANY_LOG_ENTRIES:
+        context['log_too_big'] = True
+        context['log_length'] = event.eventlog_set.count()
+        context['max_log'] = settings.TOO_MANY_LOG_ENTRIES
 
     # Choose your template according to the event's pipeline.
     templates = ['gracedb/event_detail.html',]

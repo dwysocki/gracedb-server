@@ -60,6 +60,8 @@
               {{ preferred_event.coincinspiralevent.snr|floatformat:"3" }}
             {% elif preferred_event.multiburstevent %}
               {{ preferred_event.multiburstevent.snr|floatformat:"3" }}
+            {% elif preferred_event.lalinferenceburstevent %}
+              {{ preferred_event.lalinferenceburstevent.omicron_snr_network|floatformat:"3" }}
             {% endif %}">{{ preferred_event.graceid }}</a>
         </td>
       </tr>
@@ -80,6 +82,8 @@
               {{ ev.coincinspiralevent.snr|floatformat:"3" }}
             {% elif ev.multiburstevent %}
               {{ ev.multiburstevent.snr|floatformat:"3" }}
+            {% elif ev.lalinferenceburstevent %}
+              {{ ev.lalinferenceburstevent.omicron_snr_network|floatformat:"3" }}
             {% endif %}">{{ ev.graceid }}</a>
             {% endfor %}
             </div>

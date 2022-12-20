@@ -33,7 +33,7 @@ INFO_BANNER_MESSAGE = "TEST MESSAGE"
 BETA_REPORTS_LINK = False
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.16.2'
+PROJECT_VERSION = '2.16.3'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -47,6 +47,13 @@ DEBUG = False
 
 # Number of results to show on latest page
 LATEST_RESULTS_NUMBER = 25
+
+# Maximum number of log messages to display before throwing
+# a warning. NOTE: There should be a better way of doing this,
+# but just put in the hard cutoff for right now
+# Set to cover this:
+# https://gracedb.ligo.org/events/G184098
+TOO_MANY_LOG_ENTRIES = 500
 
 # Path to root URLconf
 ROOT_URLCONF = '{module}.urls'.format(module=os.path.basename(CONFIG_ROOT))

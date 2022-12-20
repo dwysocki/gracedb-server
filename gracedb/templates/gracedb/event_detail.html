@@ -279,8 +279,18 @@ require(["dojo/dom", "dojo/html", "dojo/request", "dojo/domReady!"],
 require(["dijit/InlineEditBox", "dijit/form/NumberSpinner", "dijit/form/TextBox"]);
 		</script>
 		{% include "gracedb/neighbors_frag.html" %}
+        {% if log_too_big %}
+           <center>
+            <div class="alert alert-danger" role="alert" style="max-width:750px;">
+                Event {{ object.graceid }}'s log length ({{ log_length }} entries) exceeds the 
+                maximum of {{ max_log }}, and has been quarantined. Please contact an
+                administrator for assistance in viewing this event.
+            </div>
+            </center>
 
-		{% include "gracedb/log_entry_details.html" %}
+        {% else %}
+		   {% include "gracedb/log_entry_details.html" %}
+        {% endif %}
 	</div>
 </div>
 
