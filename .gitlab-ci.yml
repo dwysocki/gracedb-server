@@ -20,6 +20,7 @@ before_script:
   image: igwn/base:buster
   services:
     - postgres:12.5
+    - memcached
   variables:
     AWS_SES_ACCESS_KEY_ID: "fake_aws_id"
     AWS_SES_SECRET_ACCESS_KEY: "fake_aws_key"
@@ -34,7 +35,7 @@ before_script:
     DJANGO_SETTINGS_MODULE: "config.settings.container.dev"
     DJANGO_TWILIO_ACCOUNT_SID: "fake_sid"
     DJANGO_TWILIO_AUTH_TOKEN: "fake_token"
-    DJANGO_AWS_ELASTICACHE_ADDR: "fake_server:80"
+    DJANGO_DOCKER_MEMCACHED_ADDR: "memcached:11211"
     ENABLE_LVALERT_OVERSEER: "false"
     ENABLE_IGWN_OVERSEER: "false"
     LVALERT_OVERSEER_PORT: "2"

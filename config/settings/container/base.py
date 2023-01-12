@@ -154,20 +154,27 @@ AWS_SES_REGION_ENDPOINT = get_from_env('AWS_SES_REGION_ENDPOINT',
 AWS_SES_AUTO_THROTTLE = 0.25
 ALERT_EMAIL_FROM = get_from_env('DJANGO_ALERT_EMAIL_FROM')
 
-# AWS Elasticache settings:
-AWS_ELASTICACHE_ADDR = get_from_env('DJANGO_AWS_ELASTICACHE_ADDR')
-#CACHES['default'] = {
-#        'BACKEND': 'django_elasticache.memcached.ElastiCache',
-#        'LOCATION': AWS_ELASTICACHE_ADDR,
-#        'OPTIONS': {
-#            'IGNORE_CLUSTER_ERRORS': True,
-#        },
-#    }
+# memcached settings. this variable should be set in the deployment to the 
+# same name as the service name in the docker deployment.
+
+DOCKER_MEMCACHED_ADDR = get_from_env('DJANGO_DOCKER_MEMCACHED_ADDR',
+                          default_value="memcached:11211",
+                          fail_if_not_found=False)
+DOCKER_MEMCACHED_SECONDS = get_from_env('DJANGO_DOCKER_MEMCACHED_SECONDS',
+                          default_value="15",
+                          fail_if_not_found=False)
+try:
+    CACHE_MIDDLEWARE_SECONDS = int(DOCKER_MEMCACHED_SECONDS)
+except:
+    CACHE_MIDDLEWARE_SECONDS = 15
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': AWS_ELASTICACHE_ADDR,
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
+        'LOCATION': DOCKER_MEMCACHED_ADDR,
+        'OPTIONS': {
+            'ignore_exc': True,
+            }
     },
     # For API throttles
     'throttles': {
@@ -177,24 +184,22 @@ CACHES = {
 }
 
 MIDDLEWARE = [
+    'django.middleware.cache.UpdateCacheMiddleware',
     'core.middleware.maintenance.MaintenanceModeMiddleware',
     'events.middleware.PerformanceMiddleware',
     'core.middleware.accept.AcceptMiddleware',
     'core.middleware.api.ClientVersionMiddleware',
     'core.middleware.api.CliExceptionMiddleware',
-    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
     'core.middleware.proxy.XForwardedForMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'user_sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'ligoauth.middleware.ShibbolethWebAuthMiddleware',
     'ligoauth.middleware.ControlRoomMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
 ]
-
-
-
 
 # Priority server settings ----------------------------------------------------
 PRIORITY_SERVER = False
@@ -231,71 +236,6 @@ DATABASES = {
         },
     },
 }
-
-
-# Adding a fun conditional to control Amazon AWS Elasticache settings.
-# Here's the logic: 
-#  1) check for the existence of the DJANGO_AWS_ELASTICACHE_ADDR address
-#     variable. If it's present, then load the CACHE settings and MIDDLEWARE
-#     settings required for AWS elasticache'ing
-#
-#  2) Check for the existence of DJANGO_AWS_ELASTICACHE_TIMEOUT variable. This
-#     will control the cache timeout. If it's not set, default to 30s.
-#
-#  3) If not, default to old cache settings, which is effectively no-caches. 
-
-try:
-    AWS_ELASTICACHE_ADDR = get_from_env('DJANGO_AWS_ELASTICACHE_ADDR')
-
-    # I *think* if the variable isn't set, then that should raise an exception 
-    # and then it should skip the rest:
-
-    try:
-        # This has to be an int, but it gets it from then env as a string.
-        AWS_ELASTICACHE_TIMEOUT = int(get_from_env('DJANGO_AWS_ELASTICACHE_TIMEOUT'))
-    except:
-        AWS_ELASTICACHE_TIMEOUT = 30
-
-    # Set the middleware timeout equal to the cache timeout:
-    CACHE_MIDDLEWARE_SECONDS = AWS_ELASTICACHE_TIMEOUT
-
-    # Load modified caching middleware:
-    # https://docs.djangoproject.com/en/2.2/ref/middleware/#middleware-ordering
-    MIDDLEWARE = [
-        'django.middleware.cache.UpdateCacheMiddleware',
-        'django.middleware.gzip.GZipMiddleware',
-        'events.middleware.PerformanceMiddleware',
-        'core.middleware.accept.AcceptMiddleware',
-        'core.middleware.api.ClientVersionMiddleware',
-        'core.middleware.api.CliExceptionMiddleware',
-        'core.middleware.proxy.XForwardedForMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'user_sessions.middleware.SessionMiddleware',
-        'django.middleware.common.CommonMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'core.middleware.maintenance.MaintenanceModeMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-        'django.middleware.cache.FetchFromCacheMiddleware',
-        'ligoauth.middleware.ShibbolethWebAuthMiddleware',
-        'ligoauth.middleware.ControlRoomMiddleware',
-    ]
-
-    # Set caches:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-            'LOCATION': AWS_ELASTICACHE_ADDR,
-            'TIMEOUT': AWS_ELASTICACHE_TIMEOUT,
-            'KEY_PREFIX': 'NULL',
-        },
-        # For API throttles
-        'throttles': {
-            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-            'LOCATION': 'api_throttle_cache', # Table name
-        },    
-    }
-except:
-    pass
 
 # Main server "hostname" - a little hacky but OK
 SERVER_HOSTNAME = SERVER_FQDN.split('.')[0]

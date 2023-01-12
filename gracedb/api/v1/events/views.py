@@ -869,11 +869,13 @@ class EventLogList(InheritPermissionsAPIView):
     @event_and_auth_required
     def post(self, request, event):
         message = request.data.get('comment')
+        label = request.data.get('label', None)
         # Handle requests encoded as multipart/form or regular JSONs
         if isinstance(request.data, QueryDict):
             # request.data is a MultiValueDict
             tagnames = request.data.getlist('tagname', [])
             displayNames = request.data.getlist('displayName', [])
+            #label = request.data.getlist('label', None)
         else:
             # request.data is a normal dict
             tagnames = request.data.get('tagname', [])
@@ -959,6 +961,14 @@ class EventLogList(InheritPermissionsAPIView):
 
         # Issue alert.
         EventLogAlertIssuer(logentry, alert_type='log').issue_alerts()
+
+        # Now apply labels
+        if label:
+            try:
+                rv, label_created = create_label(event, request, label)
+            except (ValueError, Label.ProtectedLabelError) as e:
+                return Response(str(e),
+                            status=status.HTTP_400_BAD_REQUEST)
 
         return response
 

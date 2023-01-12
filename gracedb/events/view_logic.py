@@ -81,7 +81,7 @@ def _createEventFromForm(request, form):
             event.source_channel = request.POST.get('source_channel', None)
             event.destination_channel = request.POST.get('destination_channel', None)
             event.instruments = request.POST.get('instrument',
-                request.POST.get('instruments', None))
+                request.POST.get('instruments', 'none_provided'))
 
         #  ARGH.  We don't get a graceid until we save,
         #  but we don't know in advance if we can actually

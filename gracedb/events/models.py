@@ -865,22 +865,28 @@ class SingleInspiral(models.Model):
         cls._field_names = model_field_names.intersection(ligolw_field_names)
         return cls._field_names
 
-# Event subclass for injections
+# Event subclass for injections. Updated Dec. 2022.
 class SimInspiralEvent(Event):
+    INJ_FLOAT_FIELDS = ['mass1', 'mass2' , 'eta', 'coa_phase', 'mchirp',
+            'spin1x', 'spin1y', 'spin1z', 'spin2x', 'spin2y', 'spin2z',
+            'end_time_gmst', 'f_lower', 'f_final', 'distance',
+            'latitude', 'longitude', 'polarization', 'inclination',
+            'theta0', 'phi0', 'alpha', 'beta', 'psi0', 'psi3',
+            'alpha1', 'alpha2', 'alpha3', 'alpha4', 'alpha5', 'alpha6',
+            'eff_dist_g', 'eff_dist_h', 'eff_dist_l', 'eff_dist_t',
+            'eff_dist_v', 'amplitude', 'tau', 'phi', 'freq']
+
     mass1                = models.FloatField(null=True)
     mass2                = models.FloatField(null=True)
     eta                  = models.FloatField(null=True)
-    amp_order            = models.IntegerField(null=True)
     coa_phase            = models.FloatField(null=True)
     mchirp               = models.FloatField(null=True)
-    spin1y               = models.FloatField(null=True)
     spin1x               = models.FloatField(null=True)
+    spin1y               = models.FloatField(null=True)
     spin1z               = models.FloatField(null=True)
     spin2x               = models.FloatField(null=True)
     spin2y               = models.FloatField(null=True)
     spin2z               = models.FloatField(null=True)
-    geocent_end_time     = models.IntegerField(null=True)
-    geocent_end_time_ns  = models.IntegerField(null=True)
     end_time_gmst        = models.FloatField(null=True)
     f_lower              = models.FloatField(null=True)
     f_final              = models.FloatField(null=True)
@@ -891,13 +897,6 @@ class SimInspiralEvent(Event):
     inclination          = models.FloatField(null=True)
     theta0               = models.FloatField(null=True)
     phi0                 = models.FloatField(null=True)
-    waveform             = models.CharField(max_length=50, blank=True, default="")
-    numrel_mode_min      = models.IntegerField(null=True)
-    numrel_mode_max      = models.IntegerField(null=True)
-    numrel_data          = models.CharField(max_length=50, blank=True, default="")
-    source               = models.CharField(max_length=50, blank=True, default="")
-    taper                = models.CharField(max_length=50, blank=True, default="")
-    bandpass             = models.IntegerField(null=True)
     alpha                = models.FloatField(null=True)
     beta                 = models.FloatField(null=True)
     psi0                 = models.FloatField(null=True)
@@ -908,6 +907,29 @@ class SimInspiralEvent(Event):
     alpha4               = models.FloatField(null=True)
     alpha5               = models.FloatField(null=True)
     alpha6               = models.FloatField(null=True)
+    eff_dist_g           = models.FloatField(null=True)
+    eff_dist_h           = models.FloatField(null=True)
+    eff_dist_l           = models.FloatField(null=True)
+    eff_dist_t           = models.FloatField(null=True)
+    eff_dist_v           = models.FloatField(null=True)
+    # Additional fields added in Dec. 2022:
+    amplitude            = models.FloatField(null=True)
+    tau                  = models.FloatField(null=True)
+    phi                  = models.FloatField(null=True)
+    freq                 = models.FloatField(null=True)
+
+    INJ_INTEGER_FIELDS = ['amp_order', 'geocent_end_time',
+            'geocent_end_time_ns', 'numrel_mode_min', 'numrel_mode_max',
+            'bandpass', 'g_end_time', 'g_end_time_ns', 'h_end_time',
+            'h_end_time_ns', 'l_end_time', 'l_end_time_ns', 't_end_time',
+            't_end_time_ns', 'v_end_time', 'v_end_time_ns']
+
+    amp_order            = models.IntegerField(null=True)
+    geocent_end_time     = models.IntegerField(null=True)
+    geocent_end_time_ns  = models.IntegerField(null=True)
+    numrel_mode_min      = models.IntegerField(null=True)
+    numrel_mode_max      = models.IntegerField(null=True)
+    bandpass             = models.IntegerField(null=True)
     g_end_time           = models.IntegerField(null=True)
     g_end_time_ns        = models.IntegerField(null=True)
     h_end_time           = models.IntegerField(null=True)
@@ -918,14 +940,18 @@ class SimInspiralEvent(Event):
     t_end_time_ns        = models.IntegerField(null=True)
     v_end_time           = models.IntegerField(null=True)
     v_end_time_ns        = models.IntegerField(null=True)
-    eff_dist_g           = models.FloatField(null=True)
-    eff_dist_h           = models.FloatField(null=True)
-    eff_dist_l           = models.FloatField(null=True)
-    eff_dist_t           = models.FloatField(null=True)
-    eff_dist_v           = models.FloatField(null=True)
+
+    INJ_CHAR_FIELDS = ['waveform', 'numrel_data', 'source', 'taper',
+    'source_channel', 'destination_channel']
+
+    waveform             = models.CharField(max_length=50, blank=True, default="", null=True)
+    numrel_data          = models.CharField(max_length=50, blank=True, default="", null=True)
+    source               = models.CharField(max_length=50, blank=True, default="", null=True)
+    taper                = models.CharField(max_length=50, blank=True, default="", null=True)
     # Additional desired attributes that are not in the SimInspiral table
     source_channel       = models.CharField(max_length=50, blank=True, default="", null=True)
     destination_channel  = models.CharField(max_length=50, blank=True, default="", null=True)
+
 
     @classmethod
     def field_names(cls):

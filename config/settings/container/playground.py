@@ -46,8 +46,3 @@ A nightly cron job removes events older than 21 days.</li>
 # Safety check on debug mode for playground
 if (DEBUG == True):
     raise RuntimeError("Turn off debug mode for playground")
-
-# Set elasticache prefix if the correct variables are set.
-if AWS_ELASTICACHE_ADDR:
-    CACHES['default']['KEY_PREFIX'] = '3'
-    CACHE_MIDDLEWARE_KEY_PREFIX = '3'

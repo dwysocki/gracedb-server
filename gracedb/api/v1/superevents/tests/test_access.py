@@ -1480,6 +1480,9 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
         cls.log_dict['public_public'] = cls.public_superevent.log_set.get(
             N=cls.public_log_index)
 
+        # Make a label:
+        l1 = Label.objects.create(name='TEST1', description='test1')
+
         # Expose one log on each superevent to LV-EM only
         # Expose one log on each superevent to both LV-EM and public
         for k, v in cls.log_dict.items():
@@ -1632,6 +1635,36 @@ class TestSupereventLogList(AccessManagersGroupAndUserSetup,
             'not allowed to expose superevent log messages to the public',
             status_code=403
         )
+
+    def test_internal_user_create_log_with_existing_label(self):
+        """An internal user should be able to write a label when making a log"""
+        log_data = {
+            'comment': 'test comment',
+            'label': 'TEST1',
+            }
+
+        # Make request:
+        url = v_reverse('superevents:superevent-log-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.internal_user,
+            data=log_data)
+        # Check response:
+        self.assertEqual(response.status_code, 201)
+
+    def test_internal_user_create_log_with_bad_label(self):
+        """Requesting to add a non-existing label should 400"""
+        log_data = {
+            'comment': 'test comment',
+            'label': 'TEST_BAD',
+            }
+
+        # Make request:
+        url = v_reverse('superevents:superevent-log-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.internal_user,
+            data=log_data)
+        # Check response:
+        self.assertEqual(response.status_code, 400)
 
     def test_access_manager_create_log_with_lvem_tag(self):
         """Access manager user can create logs with external access tag"""

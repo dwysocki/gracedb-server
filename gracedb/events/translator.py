@@ -4,6 +4,7 @@ from math import isnan, sqrt
 import numbers
 import os
 
+from json import JSONDecodeError
 from ligo.lw.utils import load_filename, load_fileobj
 from ligo.lw.lsctables import CoincInspiralTable, SnglInspiralTable, use_in
 from ligo.lw.lsctables import SimInspiralTable, CoincTable
@@ -187,107 +188,70 @@ def handle_uploaded_data(event, datafilename,
 
     elif pipeline == 'HardwareInjection':
         log_comment = "Log File Created"
-        if datafilename:
-            xmldoc = load_filename(datafilename, contenthandler=FlexibleLIGOLWContentHandler)
-        elif file_contents:
-            f = StringIO(file_contents)
-            xmldoc, digest = load_fileobj(f, contenthandler=FlexibleLIGOLWContentHandler)
-        else:
-            msg = "If you wanna make an injection event, I'm gonna need a filepath or filecontents."
-            raise ValueError(msg)
 
-        origdata = SimInspiralTable.get_table(xmldoc)
-        origdata = origdata[0]
-        end_time = (origdata.geocent_end_time, origdata.geocent_end_time_ns)
-        event.gpstime = end_time[0] + float(end_time[1])/1e9
+        # First try loading the event file as json, in the event of a decoding
+        # error, then fall back to LIGOLW xml:
 
-#        # Create Log Data
-#        try:
-#            log_data = ["Pipeline: %s" % pipeline]
-#            mchirp   = origdata.mchirp
-#            mass     = (origdata.mass1, origdata.mass2)
-#            spin1    = (origdata.spin1x, origdata.spin1y, origdata.spin1z)
-#            spin2    = (origdata.spin2x, origdata.spin2y, origdata.spin2z)
-#            #waveform = origdata.waveform
-#
-#            if mchirp is not None:
-#                log_data.append("MChirp: %0.3f" % mchirp)
-#            else:
-#                log_data.append("MChirp: ---")
-#            log_data.append("Component Masses: %f %f" % mass)
-#            log_data.append("Component 1 Spin: (%f, %f, %f)" % spin1)
-#            log_data.append("Component 2 Spin: (%f, %f, %f)" % spin2)
-#            log_data.append("Geocentric End Time: %d.%09d" % end_time)
-#        except Exception as e:
-#            log_comment = "Problem Creating Log File"
-#            log_data = ["Cannot create log file", "error was:", str(e)]
-#        log_data = "\n".join(log_data)
+        try: 
+            typecast = lambda t, v: t(v) if v is not None else v
+            n_int = lambda v: typecast(int, v)
+            n_float = lambda v: typecast(float, v)
 
-        # Assign attributes from the SimInspiralTable
-        field_names = SimInspiralEvent.field_names()
-        for column in field_names:
-            try:
-                value = getattr(origdata, column)
-                setattr(event, column, value)
-            except:
-                pass
-        event.save()
+            # Open event file and get data
+            event_file = open(datafilename, 'r')
+            event_file_contents = event_file.read()
+            event_file.close()
+            event_dict = json.loads(event_file_contents)
 
-        # XXX Let's not write output files for the injections. There are 
-        # simply too many of them.
-        #
-        #output_dir = os.path.dirname(datafilename)
-        #write_output_files(output_dir, xmldoc, log_data,
-        #                   xml_fname=coinc_table_filename,
-        #                   log_fname=log_filename)
-        #log = EventLog(event=event,
-        #               filename=log_filename,
-        #               issuer=event.submitter,
-        #               comment=log_comment)
-        #log.save()
+            # Get gpstime and instruments and far:
+            event.far = event_dict.get('far', None)
+            event.gpstime = event_dict.get('gpstime', None)
+            event.instruments = event_dict.get('instruments', None)
 
-#   elif pipeline == 'Omega':
-#       #here's how it works for bursts
-#       #xmldoc, log_data, temp_data_loc = populate_burst_tables("initial.data")
-#       #write_output_files('.', final_xmldoc, log_data)
+            # Set event attributes. Start with float fields: 
+            for attr in SimInspiralEvent.INJ_FLOAT_FIELDS:
+                setattr(event, attr, n_float(event_dict.get(attr, None)))
 
-#       xmldoc, log_data, temp_data_loc = populate_omega_tables(datafilename)
-#       output_dir = os.path.dirname(datafilename)
-#       write_output_files(output_dir, xmldoc, log_data)
+            # Now integer fields: 
+            for attr in SimInspiralEvent.INJ_INTEGER_FIELDS:
+                setattr(event, attr, n_int(event_dict.get(attr, None)))
 
-#       # Create EventLog entries about these files.
-#       log = EventLog(event=event,
-#                      filename=log_filename,
-#                      file_version=0,
-#                      issuer=event.submitter,
-#                      comment="Log File Created" )
-#       log.save()
+            # Now character fields:
+            for attr in SimInspiralEvent.INJ_CHAR_FIELDS:
+                setattr(event, attr, event_dict.get(attr, None))
 
-#       log = EventLog(event=event,
-#                      filename=coinc_table_filename,
-#                      file_version=0,
-#                      issuer=event.submitter,
-#                      comment="Coinc Table Created")
-#       log.save()
+            # Save the event:
+            event.save()
 
-#       # Extract relevant data from xmldoc.
-#       mb_table = MultiBurstTable.get_table(xmldoc)
-#       mb_table = mb_table[0]
-#       event.gpstime = mb_table.start_time
+        except JSONDecodeError:
+            # If that didn't work, revert to the old ligolw method. If that
+            # fails, then it will return the same errors as before:
 
-#       # Try reading the CoincInspiralTable to get the ifos
-#       warnings = []
-#       try:
-#           coinc_table = CoincInspiralTable.get_table(xmldoc)[0]
-#       except Exception as e:
-#           warnings += "Could not extract coinc inspiral table."
-#           return temp_data_loc, warnings
+            if datafilename:
+                xmldoc = load_filename(datafilename, contenthandler=FlexibleLIGOLWContentHandler)
+            elif file_contents:
+                f = StringIO(file_contents)
+                xmldoc, digest = load_fileobj(f, contenthandler=FlexibleLIGOLWContentHandler)
+            else:
+                msg = "If you wanna make an injection event, "\
+                      "I'm gonna need a filepath or filecontents."
+                raise ValueError(msg)
+    
+            origdata = SimInspiralTable.get_table(xmldoc)
+            origdata = origdata[0]
+            end_time = (origdata.geocent_end_time, origdata.geocent_end_time_ns)
+            event.gpstime = end_time[0] + float(end_time[1])/1e9
+    
+            # Assign attributes from the SimInspiralTable
+            field_names = SimInspiralEvent.field_names()
+            for column in field_names:
+                try:
+                    value = getattr(origdata, column)
+                    setattr(event, column, value)
+                except:
+                    pass
+            event.save()
 
-#       coinc_event_table = CoincTable.get_table(xmldoc)[0]
-#       event.instruments = coinc_table.ifos
-#       event.nevents = coinc_event_table.nevents
-#       event.likelihood = cleanData(coinc_event_table.likelihood, 'likelihood')
-#       event.save()
     elif pipeline in ['CWB', 'CWB2G']:
 
         data = CwbData(datafilename)

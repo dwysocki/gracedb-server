@@ -719,6 +719,10 @@ def siminspiral_to_dict(event):
             "eff_dist_l": event.eff_dist_l,
             "eff_dist_t": event.eff_dist_t,
             "eff_dist_v": event.eff_dist_v,
+            "amplitude": event.amplitude,
+            "tau": event.tau,
+            "phi": event.phi,
+            "freq": event.freq,
             })
     except:
         pass

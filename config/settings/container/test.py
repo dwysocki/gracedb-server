@@ -91,7 +91,3 @@ to Playground or Production. Note, on this GraceDB instance:
 <li>Only LIGO logins are provided (no login via InCommon or Google).</li>
 </ul>
 """.format(INSTANCE_LIST)
-
-if AWS_ELASTICACHE_ADDR:
-    CACHES['default']['KEY_PREFIX'] = '2'
-    CACHE_MIDDLEWARE_KEY_PREFIX  = '2'

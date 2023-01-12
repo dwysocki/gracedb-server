@@ -55,18 +55,21 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'core.middleware.maintenance.MaintenanceModeMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
     'ligoauth.middleware.ShibbolethWebAuthMiddleware',
     'ligoauth.middleware.ControlRoomMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 # Set caches:
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
         'LOCATION': 'localhost:11211',
         'TIMEOUT': 60,
         'KEY_PREFIX': 'NULL',
+        'OPTIONS': {
+            'ignore_exc': True,
+            }
     },
     # For API throttles
     'throttles': {

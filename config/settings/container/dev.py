@@ -92,7 +92,3 @@ Events and associated data may change or be removed at any time.
 <li>Only LIGO logins are provided (no login via InCommon or Google).</li>
 </ul>
 """.format(INSTANCE_LIST)
-
-if AWS_ELASTICACHE_ADDR:
-    CACHES['default']['KEY_PREFIX'] = '1'
-    CACHE_MIDDLEWARE_KEY_PREFIX = '1'
