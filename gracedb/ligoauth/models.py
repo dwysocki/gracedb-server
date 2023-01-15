@@ -71,3 +71,6 @@ class X509Cert(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     ldap_user = models.ForeignKey(GenericLdapUser, null=True, on_delete=models.CASCADE)
 
+    class Meta:
+        indexes = [models.Index(fields=['subject', ]), ]
+

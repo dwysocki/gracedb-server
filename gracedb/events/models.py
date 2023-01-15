@@ -91,6 +91,7 @@ class Pipeline(models.Model):
     external_objects = ExternalPipelineManager()
 
     class Meta:
+        indexes = [models.Index(fields=['name', ]), ]
         default_permissions = ('add', 'change', 'delete')
         permissions = (
             ('manage_pipeline', 'Can enable or disable pipeline'),
@@ -119,6 +120,9 @@ class Search(models.Model):
     description = models.TextField(blank=True)
     # XXX Need any additional fields? Like a PI email? Or perhaps even fk?
 
+    class Meta:
+        indexes = [models.Index(fields=['name', ]), ]
+
     def __str__(self):
         return six.text_type(self.name)
 
@@ -137,6 +141,9 @@ class Label(models.Model):
     # for labels that are added and removed as part of a process, like
     # signoffs, for examples.
     protected = models.BooleanField(default=False)
+
+    class Meta:
+        indexes = [models.Index(fields=['name', ]), ]
 
     def __str__(self):
         return six.text_type(self.name)
@@ -226,6 +233,7 @@ class Event(ComputedFieldsModel):
 
     class Meta:
         ordering = ["-id"]
+        indexes = [models.Index(fields=['graceid', ]), ]
 
     @computed(models.CharField(max_length=32, null=True), 
               depends=[['self', ['id']], 
@@ -332,11 +340,22 @@ class Event(ComputedFieldsModel):
         raise KeyError("Unknown analysis type code: %s" % code)
 
     @classmethod
-    def getByGraceid(cls, graceid):
+    def getByGraceid(cls, id):
         try:
-            return cls.objects.filter(graceid=graceid).select_subclasses()[0]
-        except:
+            e = cls.objects.filter(id=int(id[1:])).select_subclasses()[0]
+        except IndexError:
             raise cls.DoesNotExist("Event matching query does not exist")
+        if (id[0] == "T") and (e.group.name == "Test"):
+            return e
+        if (id[0] == "H") and (e.pipeline.name == "HardwareInjection"):
+            return e
+        if (id[0] == "E") and (e.group.name == "External"):
+            return e
+        if (id[0] == "M") and (e.search and e.search.name == "MDC"):
+            return e
+        if (id[0] == "G"):
+            return e
+        raise cls.DoesNotExist("Event matching query does not exist")
 
     def __str__(self):
         return six.text_type(self.graceid)
@@ -983,6 +1002,9 @@ class Tag(CleanSaveModel):
             )
         ])
     displayName = models.CharField(max_length=200, null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=['name', ]), ]
 
     def __str__(self):
         return six.text_type(

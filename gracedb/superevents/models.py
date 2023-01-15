@@ -159,6 +159,8 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
             ('view_superevent', 'Can view superevent'),
         )
 
+        indexes = [models.Index(fields=['superevent_id', ])]
+
     # Class method overrides --------------------------------------------------
     def clean(self, *args, **kwargs):
 

@@ -205,6 +205,7 @@ class LogBase(models.Model):
     class Meta:
         abstract = True
         ordering = ['-created', '-N']
+        indexes = [models.Index(fields=['filename', ])]
 
     @property
     def versioned_filename(self):
