@@ -98,7 +98,11 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
             audience = settings.SCITOKEN_AUDIENCE,
         )
 
-        authz, path = settings.SCITOKEN_SCOPE.split(":", 1)
+        try:
+            authz, path = settings.SCITOKEN_SCOPE.split(":", 1)
+        except ValueError:
+            authz = scope
+            path = None
         if not enforcer.test(token, authz, path):
             return None
 
