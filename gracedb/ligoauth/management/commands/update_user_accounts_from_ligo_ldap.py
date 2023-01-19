@@ -61,7 +61,7 @@ class LdapPersonResultProcessor(object):
             'email': self.ldap_result['mail'][0].decode('utf-8'),
             'is_active': bool(self.ldap_connection.lvc_group.authorizedldapmember_set.all() &
                               self.ldap_memberships),
-            'username': self.ldap_result['krbPrincipalName'][0].decode('utf-8'),
+            'username': self.ldap_result['krbPrincipalName'][0].decode('utf-8').lower(),
         }
 
     def check_situation(self, user_exists, l_user_exists):
@@ -111,7 +111,7 @@ class LdapPersonResultProcessor(object):
 
         # Determine if users exist
         user_exists = UserModel.objects.filter(username=
-            self.user_data['username']).exists()
+            self.user_data['username'].lower()).exists()
         l_user_exists = GenericLdapUser.objects.filter(
             ldap_dn=self.ldap_dn).exists()
 
@@ -131,7 +131,7 @@ class LdapPersonResultProcessor(object):
                 # User object exists, though, so we have to carefully create
                 # the GenericLdapUser object
                 user = UserModel.objects.get(username=
-                    self.user_data['username'])
+                    self.user_data['username'].lower())
                 l_user, created = GenericLdapUser.objects.get_or_create(ldap_dn=self.ldap_dn,
                                          ldap_member=self.ldap_authmember,
                                          user=user)
@@ -392,7 +392,7 @@ class LdapRobotResultProcessor(LdapPersonResultProcessor):
             'email': self.ldap_result['mail'][0].decode('utf-8'),
             'is_active': (self.ldap_connection.groups.get(
                 name='robot_accounts').name in memberships),
-            'username': self.ldap_result['cn'][0].decode('utf-8'),
+            'username': self.ldap_result['cn'][0].decode('utf-8').lower(),
         }
 
     def check_situation(self, user_exists, l_user_exists):
@@ -448,7 +448,7 @@ class LdapKagraResultProcessor(LdapPersonResultProcessor):
             'email': self.ldap_result['mail'][0].decode('utf-8'),
             'is_active': bool(self.ldap_connection.lvc_group.authorizedldapmember_set.all() & 
                               self.ldap_memberships),
-            'username': self.ldap_result['eduPersonPrincipalName'][0].decode('utf-8'),
+            'username': self.ldap_result['eduPersonPrincipalName'][0].decode('utf-8').lower(),
         }
 
     def update_user(self):

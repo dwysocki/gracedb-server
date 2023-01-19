@@ -104,7 +104,7 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
 
         # Get username from token 'Subject' claim.
         try:
-            user = User.objects.get(username=token['sub'])
+            user = User.objects.get(username=token['sub'].lower())
         except User.DoesNotExist:
             return None
 
