@@ -24,7 +24,7 @@ from ligo.lw import ligolw
 # lsctables MUST be loaded before utils.
 from ligo.lw import utils
 from ligo.lw.utils import ligolw_add
-from core.ligolw import FlexibleLIGOLWContentHandler
+from core.ligolw import ThoroughFlexibleContentHandler
 from ligo.lw.lsctables import use_in
 
 from guardian.models import GroupObjectPermission
@@ -67,7 +67,7 @@ from ...utils import api_reverse
 logger = logging.getLogger(__name__)
 
 # Set up content handler
-use_in(FlexibleLIGOLWContentHandler)
+use_in(ThoroughFlexibleContentHandler)
 
 # For checking queries in the event that the user is external
 REST_FRAMEWORK_SETTINGS = getattr(settings, 'REST_FRAMEWORK', {})
@@ -258,7 +258,7 @@ def assembleLigoLw(data):
             raise MissingCoinc
         elif not os.access(fname, os.R_OK):
             raise CoincAccess
-        utils.load_filename(fname, xmldoc=xmldoc, contenthandler=FlexibleLIGOLWContentHandler)
+        utils.load_filename(fname, xmldoc=xmldoc, contenthandler=ThoroughFlexibleContentHandler)
     ligolw_add.reassign_ids(xmldoc)
     ligolw_add.merge_ligolws(xmldoc)
     ligolw_add.merge_compatible_tables(xmldoc)

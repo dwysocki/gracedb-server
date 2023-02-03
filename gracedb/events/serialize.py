@@ -1,4 +1,5 @@
 from math import log
+import logging
 import os
 from time import gmtime, strftime
 
@@ -8,6 +9,9 @@ from ligo.lw import table
 from ligo.lw import lsctables
 
 from core.vfile import VersionedFile, create_versioned_file
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 ##############################################################################
 #
@@ -91,9 +95,10 @@ def write_output_files(root_dir, xmldoc, log_content, \
     # We do it this way instead of using create_versioned_file since the
     # xmldoc is designed to write to a file object.
 
+
     file_path = os.path.join(root_dir, xml_fname)
-    f = VersionedFile(file_path, 'w')
-    xmldoc.write(f.file)
+    f = VersionedFile(file_path, 'wb')
+    f.write(xmldoc)
     f.close()
 
     # Write log file

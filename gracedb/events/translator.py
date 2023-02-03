@@ -1,3 +1,4 @@
+import gzip
 import json
 import logging
 from math import isnan, sqrt
@@ -8,7 +9,7 @@ from json import JSONDecodeError
 from ligo.lw.utils import load_filename, load_fileobj
 from ligo.lw.lsctables import CoincInspiralTable, SnglInspiralTable, use_in
 from ligo.lw.lsctables import SimInspiralTable, CoincTable
-from core.ligolw import FlexibleLIGOLWContentHandler
+from core.ligolw import GraceDBFlexibleContentHandler
 import voeventparse as vp
 
 from core.time_utils import utc_datetime_to_gps_float
@@ -27,7 +28,29 @@ except ImportError:  # python >= 3
 # Set up logger
 logger = logging.getLogger(__name__)
 
-use_in(FlexibleLIGOLWContentHandler)
+# okay?
+use_in(GraceDBFlexibleContentHandler)
+
+# A small helper function to unzip gzipped files. normally ligolw would
+# handle all this, but since we're selectively parsing certain tables,
+# we just unzip the initial upload and then write it as xml. NOTE: this 
+# should get uploaded if pipelines adopt any other compression.
+
+def unzip_or_open(filename):
+    if filename.endswith('.gz'):
+        try:
+            # open the file first and read only one byte to test if it's
+            # actually zipped. If it fails, then just fall back to a normal
+            # open. The user shouldn't be throwing '.gz' files that aren't 
+            # zipped, but this is what gracedb would do before, sooo...
+
+            unzipped_file =  gzip.open(filename, 'rb')
+            test_bye = unzipped_file.read(1)
+            unzipped_file.close()
+            return gzip.open(filename, 'rb')
+        except OSError as e:
+            pass
+    return open(filename, 'rb')
 
 # This function checks for 'inf' in a float field, asks the database
 # what's the maximum value it can accept for that field, and returns
@@ -56,9 +79,13 @@ def handle_uploaded_data(event, datafilename,
                          coinc_table_filename='coinc.xml',
                          file_contents=None):
 
+    # This is the base file name of the event creation upload:
+    base_file_name = ''
     if datafilename:
+        # Extract the base filename from the upload:
+        base_file_name = os.path.basename(datafilename)
         log = EventLog(event=event,
-                       filename=os.path.basename(datafilename),
+                       filename=base_file_name,
                        file_version=0,
                        issuer=event.submitter,
                        comment="Original Data")
@@ -77,7 +104,8 @@ def handle_uploaded_data(event, datafilename,
         # Wildly speculative wrt HM
 
         try:
-            xmldoc = load_filename(datafilename, contenthandler = FlexibleLIGOLWContentHandler)
+            xmldoc = load_filename(datafilename, contenthandler =
+                    GraceDBFlexibleContentHandler)
         except Exception as e:
             message = "Could not read data (%s)" % str(e)
             EventLog(event=event, issuer=event.submitter, comment=message).save()
@@ -89,6 +117,7 @@ def handle_uploaded_data(event, datafilename,
         except Exception as e:
             warnings.append("Could not extract coinc inspiral table.")
             return temp_data_loc, warnings
+
 
         # Create Log Data
         try:
@@ -133,7 +162,17 @@ def handle_uploaded_data(event, datafilename,
         log_data = "\n".join(log_data)
 
         output_dir = os.path.dirname(datafilename)
-        write_output_files(output_dir, xmldoc, log_data,
+
+        # For some reason, xmldoc.write(..) is failing with  
+        # "ElementError: invalid child Table for Document" when trying to
+        # write the document read in with the PartialLIGOLWContentHandler.
+        # we're trying to rewrite the entire file anyway (for now) and then
+        # pass that into write_output_files
+
+        with unzip_or_open(datafilename) as f:
+            fullxmldoc = f.read()
+
+        write_output_files(output_dir, fullxmldoc, log_data,
                            xml_fname=coinc_table_filename,
                            log_fname=log_filename)
 
@@ -148,7 +187,7 @@ def handle_uploaded_data(event, datafilename,
 
         log = EventLog(event=event,
                        filename=coinc_table_filename,
-                       file_version=0,
+                       file_version=int(coinc_table_filename == base_file_name),
                        issuer=event.submitter,
                        comment="Coinc Table Created")
         log.save()

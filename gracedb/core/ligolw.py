@@ -1,14 +1,32 @@
-from ligo.lw.ligolw import LIGOLWContentHandler
-from ligo.lw.lsctables import TableByName
+# Tools to read and manipulate ligolw xml files
+
+from ligo.lw.ligolw import Table, LIGOLWContentHandler
+from ligo.lw.lsctables import TableByName, CoincInspiralTable
+from ligo.lw.lsctables import SnglInspiralTable, CoincTable
 from ligo.lw import table as ligolw_table
+from xml.sax.xmlreader import AttributesImpl
 
 import logging
 
 # Set up logger
 logger = logging.getLogger(__name__)
 
-class FlexibleLIGOLWContentHandler(LIGOLWContentHandler, object):
+# Selectively read in only the coinc_inspiral, coinc_event, and sngl_inspiral tables:
+gracedb_ligolw_tables = [CoincInspiralTable.tableName, 
+                         CoincTable.tableName,
+                         SnglInspiralTable.tableName]
+
+lsctables_to_parse = list(TableByName.keys())
+
+class FlexibleLIGOLWContentHandler(LIGOLWContentHandler):
     """
+
+    Update: this was modified to "partially" read in a subset of tables, and
+    the code and functionality was modifed from kipp cannon's
+    PartialLIGOLWContentHander:
+
+    https://git.ligo.org/kipp.cannon/python-ligo-lw/-/blob/master/ligo/lw/ligolw.py#L2571
+
     LIGO LW content handler that can parse either the "old" (meaning
     pre ilwd:char--> int_8s conversion), or the "new" format. On detecting
     a depreciated format, the old definitions are added to the validcolumns
@@ -65,11 +83,12 @@ class FlexibleLIGOLWContentHandler(LIGOLWContentHandler, object):
     """
 
 
-    def __init__(self, document, start_handlers = {}):
+    def __init__(self, document, element_filter):
         super(FlexibleLIGOLWContentHandler, self).__init__(document)
 
         # Initiate some variables:
         self.current_table = None
+        self.element_filter = element_filter
         self.depth = 0
 
         # Restricting conversion between ilwd:char <--> int_8s
@@ -239,35 +258,53 @@ class FlexibleLIGOLWContentHandler(LIGOLWContentHandler, object):
 
     def startElementNS(self, uri_localname, qname, attrs):
         (uri, localname) = uri_localname
+        filter_attrs = AttributesImpl(dict((attrs.getQNameByName(name), value) for name, value in attrs.items()))
 
-        # As the contenthandler is iterating through the file, get
-        # the name of the current table. Return it as an object.
+        # If the element is not filtered, then start the process:
+        if self.depth > 0 or self.element_filter(localname, filter_attrs):
+            # As the contenthandler is iterating through the file, get
+            # the name of the current table. Return it as an object.
 
-        if localname == 'Table':
-            self.getCurrentTableName(attrs)
+            if localname == 'Table':
+                self.getCurrentTableName(attrs)
 
-        # If the local table has been set, and the current item is a
-        # Column definition, then verify the that the column name is
-        # part of the "old" definition, and if so, then add it and the
-        # other old data types for that table to the valid columns. Don't
-        # fully convert it, just add support so the file can get read in without
-        # the contenthandler barfing.
+            # If the local table has been set, and the current item is a
+            # Column definition, then verify the that the column name is
+            # part of the "old" definition, and if so, then add it and the
+            # other old data types for that table to the valid columns. Don't
+            # fully convert it, just add support so the file can get read in without
+            # the contenthandler barfing.
 
-        if self.current_table and localname == 'Column':
-            self.checkAndFilterAttrs(attrs)
+            if self.current_table and localname == 'Column':
+                self.checkAndFilterAttrs(attrs)
 
-        if self.depth == 0:
             super(FlexibleLIGOLWContentHandler, self).startElementNS((uri, localname), qname, attrs)
-        else:
             self.depth += 1
 
     def endElementNS(self, *args):
-        if self.depth == 0:
-            super(FlexibleLIGOLWContentHandler, self).endElementNS(*args)
-        else:
+        if self.depth > 0:
             self.depth -= 1
+            super(FlexibleLIGOLWContentHandler, self).endElementNS(*args)
+
 
     def characters(self, content):
-        if self.depth == 0:
+        if self.depth > 0:
             super(FlexibleLIGOLWContentHandler, self).characters(content)
 
+# A content handler to rapidly read in only the relevant tables from 
+# coinc uploads, and also allows for ilwd:char<-->int8
+class GraceDBFlexibleContentHandler(FlexibleLIGOLWContentHandler):
+    def __init__(self, xmldoc):
+        super(GraceDBFlexibleContentHandler, self).__init__(xmldoc, lambda name,
+                attrs: (name in Table.tagName) and
+                (ligolw_table.Table.TableName(attrs["Name"]) in
+                    gracedb_ligolw_tables))
+
+# A content handler that falls back to the old behavior of the flexibleligolw 
+# content handler and just reads every table:
+class ThoroughFlexibleContentHandler(FlexibleLIGOLWContentHandler):
+    def __init__(self, xmldoc):
+        super(GraceDBFlexibleContentHandler, self).__init__(xmldoc, lambda name,
+                attrs: (name in Table.tagName) and
+                (ligolw_table.Table.TableName(attrs["Name"]) in
+                    lsctables_to_parse))

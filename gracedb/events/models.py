@@ -26,7 +26,7 @@ from ligo.lw import lsctables
 
 # AEP: import FlexibleLIGOLWContentHandler for 
 # compatibility:
-from core.ligolw import FlexibleLIGOLWContentHandler
+from core.ligolw import GraceDBFlexibleContentHandler
 from lal import LIGOTimeGPS
 from gpstime import gpstime
 from decimal import Decimal
@@ -859,7 +859,8 @@ class SingleInspiral(models.Model):
             datafile = os.path.join(event.datadir, 'coinc.xml')
 
         try:
-            xmldoc = ligolw_utils.load_filename(datafile, contenthandler=FlexibleLIGOLWContentHandler)
+            xmldoc = ligolw_utils.load_filename(datafile,
+                    contenthandler=GraceDBFlexibleContentHandler)
         except IOError:
             return None
 
