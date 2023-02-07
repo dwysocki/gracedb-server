@@ -252,7 +252,7 @@ REPORT_INFO_URL_PREFIX = "/report_info/"
 REPORT_IFAR_IMAGE_DIR = PROJECT_DATA_DIR
 
 # Stuff for the new rates plot
-BINNED_COUNT_PIPELINES = ['gstlal', 'MBTAOnline', 'CWB', 'oLIB', 'spiir']
+BINNED_COUNT_PIPELINES = ['gstlal', 'MBTAOnline', 'MBTA', 'CWB', 'oLIB', 'spiir']
 BINNED_COUNT_FILE = join(PROJECT_DATA_DIR, "binned_counts.json")
 
 # Defaults for RSS feed

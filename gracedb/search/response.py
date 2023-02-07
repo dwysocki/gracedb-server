@@ -345,6 +345,10 @@ def event_datatables_response(request, objects):
     data =[]
     objects = objects.select_related('group', 'pipeline', 'search', 'submitter')
 
+    # Determine if this is an external request: 
+
+    ext_req = is_external(request.user)
+
     for e in objects:
         row = []
         # UID:
@@ -377,7 +381,7 @@ def event_datatables_response(request, objects):
         # FAR: Note, the switch is in here to hide the "true" FAR from 
         # external searches. 
         display_far = scientific(e.far)
-        if e.far and is_external(request.user):
+        if e.far and ext_req:
             if e.far < settings.VOEVENT_FAR_FLOOR:
                 display_far = "< %s" % scientific(settings.VOEVENT_FAR_FLOOR)
         row.append(display_far)
@@ -390,6 +394,7 @@ def event_datatables_response(request, objects):
 
         # Add the row to the data output:
         data.append(row)
+
 
     msg = json.dumps({"data": data})
     response['Content-length'] = len(msg)

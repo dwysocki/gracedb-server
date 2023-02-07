@@ -63,6 +63,9 @@ schema_version = "1.1"
 class Group(models.Model):
     name = models.CharField(max_length=20)
 
+    class Meta:
+        indexes = [models.Index(fields=['name', ]), ]
+
     def __str__(self):
         return six.text_type(self.name)
 
@@ -233,7 +236,12 @@ class Event(ComputedFieldsModel):
 
     class Meta:
         ordering = ["-id"]
-        indexes = [models.Index(fields=['graceid', ]), ]
+        indexes = [models.Index(fields=['graceid', ]), 
+                   models.Index(fields=['gpstime', ]), 
+                   models.Index(fields=['created', ]), 
+                   models.Index(fields=['instruments', ]), 
+                   models.Index(fields=['far', ]), 
+                   models.Index(fields=['likelihood', ]),]
 
     @computed(models.CharField(max_length=32, null=True), 
               depends=[['self', ['id']], 
@@ -692,6 +700,32 @@ class GrbEvent(Event):
     redshift = models.FloatField(null=True)
     trigger_id = models.CharField(max_length=25, null=True)
 
+# Adding too many index tables can adversely affect write performance.
+# So I'm going to minimize how many of these are actually implemented. 
+# For GRB events I reached out to brandon p to see if raven actually queries 
+# on any of these. 
+
+# "We do also look at the grbevent.trigger_id to check whether a previous event
+# already exists: "
+
+    class Meta:
+        indexes = [models.Index(fields=['trigger_id', ])]
+#                  models.Index(fields=['author_ivorn', ]),
+#                  models.Index(fields=['author_shortname', ]),
+#                  models.Index(fields=['observatory_location_id', ]),
+#                  models.Index(fields=['coord_system', ]),
+#                  models.Index(fields=['ra', ]),
+#                  models.Index(fields=['dec', ]),
+#                  models.Index(fields=['error_radius', ]),
+#                  models.Index(fields=['how_description', ]),
+#                  models.Index(fields=['how_reference_url', ]),
+#                  models.Index(fields=['trigger_duration', ]),
+#                  models.Index(fields=['t90', ]),
+#                  models.Index(fields=['designation', ]),
+#                  models.Index(fields=['redshift', ]),
+#                  models.Index(fields=['ivorn', ])]
+
+
 class CoincInspiralEvent(Event):
     ifos             = models.CharField(max_length=20, default="")
     end_time         = models.PositiveIntegerField(null=True)
@@ -703,6 +737,21 @@ class CoincInspiralEvent(Event):
     false_alarm_rate = models.FloatField(null=True)
     combined_far     = models.FloatField(null=True)
 
+# Adding too many index tables can adversely affect write performance.
+# So I'm going to minimize how many of these are actually implemented. 
+# Most people query based on gpstime, which is already indexed so i think 
+# we can safely comment these ones out:
+    class Meta:
+        indexes = [models.Index(fields=['ifos', ]),
+#                   models.Index(fields=['end_time', ]),
+#                   models.Index(fields=['end_time_ns', ]),
+                   models.Index(fields=['mass', ]),
+                   models.Index(fields=['mchirp', ]),
+                   models.Index(fields=['minimum_duration', ]),
+                   models.Index(fields=['snr', ]),
+                   models.Index(fields=['false_alarm_rate', ]),
+                   models.Index(fields=['combined_far', ])]
+
 class MLyBurstEvent(Event):
     ifos             = models.CharField(max_length=20, default="")
     score_coinc      = models.FloatField(null=True)
@@ -712,6 +761,20 @@ class MLyBurstEvent(Event):
     bandwidth        = models.FloatField(null=True)
     duration         = models.FloatField(null=True)
     central_time     = models.FloatField(null=True)
+
+# Adding too many index tables can adversely affect write performance.
+# So I'm going to minimize how many of these are actually implemented. 
+# There's only eight of these? I'm that seems fine to throw into testing
+# at the moment.
+    class Meta:
+        indexes = [models.Index(fields=['ifos', ]),
+                   models.Index(fields=['score_coinc', ]),
+                   models.Index(fields=['score_coher', ]),
+                   models.Index(fields=['score_comb', ]),
+                   models.Index(fields=['central_freq', ]),
+                   models.Index(fields=['bandwidth', ]),
+                   models.Index(fields=['duration', ]),
+                   models.Index(fields=['central_time', ])]
 
 class MultiBurstEvent(Event):
     ifos             = models.CharField(max_length=20, default="")
@@ -732,6 +795,31 @@ class MultiBurstEvent(Event):
     ligo_angle_sig   = models.FloatField(null=True)
     single_ifo_times = models.CharField(max_length=255, default="")
 
+# Adding too many index tables can adversely affect write performance.
+# So I'm going to minimize how many of these are actually implemented. 
+# Is anyone even looking for MultiBurstEvents? 
+# Some of these are blank
+# (https://gracedb-playground.ligo.org/events/G840878/view/)
+# for CWB uploads anyway.
+    class Meta:
+        indexes = [models.Index(fields=['ifos', ]),
+#                  models.Index(fields=['start_time', ]),
+#                  models.Index(fields=['start_time_ns', ]),
+                   models.Index(fields=['duration', ]),
+#                  models.Index(fields=['peak_time', ]),
+#                  models.Index(fields=['peak_time_ns', ]),
+                   models.Index(fields=['central_freq', ]),
+#                  models.Index(fields=['bandwidth', ]),
+#                  models.Index(fields=['amplitude', ]),
+                   models.Index(fields=['snr', ]),
+#                   models.Index(fields=['confidence', ]),
+#                   models.Index(fields=['false_alarm_rate', ]),
+#                  models.Index(fields=['ligo_axis_ra', ]),
+#                  models.Index(fields=['ligo_axis_dec', ]),
+#                  models.Index(fields=['ligo_angle', ]),
+#                  models.Index(fields=['ligo_angle_sig', ]),
+                   models.Index(fields=['single_ifo_times', ])]
+
 class LalInferenceBurstEvent(Event):
     bci                 = models.FloatField(null=True)
     quality_mean        = models.FloatField(null=True)
@@ -745,6 +833,24 @@ class LalInferenceBurstEvent(Event):
     hrss_median         = models.FloatField(null=True)
     frequency_mean      = models.FloatField(null=True)
     frequency_median    = models.FloatField(null=True)
+
+# Adding too many index tables can adversely affect write performance.
+# So I'm going to minimize how many of these are actually implemented. 
+# I'm not sure these even matter since i don't think any pipelines have 
+# used this event class ever.
+#   class Meta:
+#       indexes = [models.Index(fields=['bci', ]),
+#                  models.Index(fields=['quality_mean', ]),
+#                  models.Index(fields=['quality_median', ]),
+#                  models.Index(fields=['bsn', ]),
+#                  models.Index(fields=['omicron_snr_network', ]),
+#                  models.Index(fields=['omicron_snr_H1', ]),
+#                  models.Index(fields=['omicron_snr_L1', ]),
+#                  models.Index(fields=['omicron_snr_V1', ]),
+#                  models.Index(fields=['hrss_mean', ]),
+#                  models.Index(fields=['hrss_median', ]),
+#                  models.Index(fields=['frequency_mean', ]),
+#                  models.Index(fields=['frequency_median', ])]
 
 class SingleInspiral(models.Model):
     event             = models.ForeignKey(Event, null=False, on_delete=models.CASCADE)
@@ -810,6 +916,74 @@ class SingleInspiral(models.Model):
     spin2x            = models.FloatField(null=True)
     spin2y            = models.FloatField(null=True)
     spin2z            = models.FloatField(null=True)
+
+
+# Adding too many index tables can adversely affect write performance.
+# So I'm going to minimize how many of these are actually implemented. 
+
+    class Meta:
+        indexes = [models.Index(fields=['ifo', ]),
+                   models.Index(fields=['search', ]),
+                   models.Index(fields=['channel', ]),
+#                  models.Index(fields=['end_time', ]),
+#                  models.Index(fields=['end_time_ns', ]),
+#                  models.Index(fields=['end_time_gmst', ]),
+#                  models.Index(fields=['impulse_time', ]),
+#                  models.Index(fields=['impulse_time_ns', ]),
+#                  models.Index(fields=['template_duration', ]),
+#                  models.Index(fields=['event_duration', ]),
+#                  models.Index(fields=['amplitude', ]),
+#                  models.Index(fields=['eff_distance', ]),
+#                  models.Index(fields=['coa_phase', ]),
+                   models.Index(fields=['mass1', ]),
+                   models.Index(fields=['mass2', ]),
+                   models.Index(fields=['mchirp', ]),
+                   models.Index(fields=['mtotal', ]),
+#                  models.Index(fields=['eta', ]),
+#                  models.Index(fields=['kappa', ]),
+#                  models.Index(fields=['chi', ]),
+#                  models.Index(fields=['tau0', ]),
+#                  models.Index(fields=['tau2', ]),
+#                  models.Index(fields=['tau3', ]),
+#                  models.Index(fields=['tau4', ]),
+#                  models.Index(fields=['tau5', ]),
+#                  models.Index(fields=['ttotal', ]),
+#                  models.Index(fields=['psi0', ]),
+#                  models.Index(fields=['psi3', ]),
+#                  models.Index(fields=['alpha', ]),
+#                  models.Index(fields=['alpha1', ]),
+#                  models.Index(fields=['alpha2', ]),
+#                  models.Index(fields=['alpha3', ]),
+#                  models.Index(fields=['alpha4', ]),
+#                  models.Index(fields=['alpha5', ]),
+#                  models.Index(fields=['alpha6', ]),
+#                  models.Index(fields=['beta', ]),
+#                  models.Index(fields=['f_final', ]),
+                   models.Index(fields=['snr', ]),
+                   models.Index(fields=['chisq', ])]
+#                  models.Index(fields=['chisq_dof', ]),
+#                  models.Index(fields=['bank_chisq', ]),
+#                  models.Index(fields=['bank_chisq_dof', ]),
+#                  models.Index(fields=['cont_chisq', ]),
+#                  models.Index(fields=['cont_chisq_dof', ]),
+#                  models.Index(fields=['sigmasq', ]),
+#                  models.Index(fields=['rsqveto_duration', ]),
+#                  models.Index(fields=['Gamma0', ]),
+#                  models.Index(fields=['Gamma1', ]),
+#                  models.Index(fields=['Gamma2', ]),
+#                  models.Index(fields=['Gamma3', ]),
+#                  models.Index(fields=['Gamma4', ]),
+#                  models.Index(fields=['Gamma5', ]),
+#                  models.Index(fields=['Gamma6', ]),
+#                  models.Index(fields=['Gamma7', ]),
+#                  models.Index(fields=['Gamma8', ]),
+#                  models.Index(fields=['Gamma9', ]),
+#                  models.Index(fields=['spin1x', ]),
+#                  models.Index(fields=['spin1y', ]),
+#                  models.Index(fields=['spin1z', ]),
+#                  models.Index(fields=['spin2x', ]),
+#                  models.Index(fields=['spin2y', ]),
+#                  models.Index(fields=['spin2z', ])]
 
     def end_time_full(self):
         return LIGOTimeGPS(self.end_time, self.end_time_ns)
@@ -971,6 +1145,13 @@ class SimInspiralEvent(Event):
     # Additional desired attributes that are not in the SimInspiral table
     source_channel       = models.CharField(max_length=50, blank=True, default="", null=True)
     destination_channel  = models.CharField(max_length=50, blank=True, default="", null=True)
+
+
+    #class Meta:
+    #    indexes = [models.Index(fields=['', ]),
+    #               models.Index(fields=['', ]),
+    #FIXME: follow up with HardwareInjection folks before finalizing indexes on
+    # these
 
 
     @classmethod
