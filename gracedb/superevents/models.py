@@ -160,6 +160,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
         )
 
         indexes = [models.Index(fields=['superevent_id', ]),
+                   models.Index(fields=['default_superevent_id', ]),
                    models.Index(fields=['gw_id', ]),
                    models.Index(fields=['t_0', ]),
                    models.Index(fields=['t_start', ]),

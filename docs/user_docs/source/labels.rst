@@ -41,7 +41,9 @@ Here is a table showing the currently available labels and their meanings.
 +----------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | EM_SENT              | Has been sent to MOU partners.                                                                                                         |
 +----------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| EM_Selected          | raceID automatically chosen as the most promising candidate out of a set of entries thought to correspond to the same physical event.  |
+| EM_Selected          | GraceID automatically chosen as the most promising candidate out of a set of entries thought to correspond to the same physical event. |
++----------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| EM_SelectedConfident | The event has all annotations necessary for an alert and passes the significant alert threshold.                                       |
 +----------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | EM_Superseded        | GraceID automatically passed over because another entry was thought to be more promising and to correspond to the same physical event. |
 +----------------------+----------------------------------------------------------------------------------------------------------------------------------------+
