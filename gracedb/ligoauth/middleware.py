@@ -56,6 +56,8 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
         # in the header (for some reason)
         if (username is None or username == '(null)'):
             return
+        else:
+            username = username.lower()
 
         # If shib headers are available and the user is already authenticated,
         # double-check that the request user and the shib user are the same.
