@@ -9,6 +9,7 @@ from django.urls import reverse
 from core.time_utils import gpsToUtc
 from core.urls import build_absolute_uri
 from events.shortcuts import is_event
+from . import egad
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -159,3 +160,45 @@ def issue_email_alerts(event_or_superevent, alert_type, recipients,
         # email alerts aren't mission critical. But we log the information
         # since we want to understand what is happening.
         logger.error('Error sending email alerts: {e}'.format(e=e))
+
+
+def issue_email_alerts(event_or_superevent, alert_type, recipients,
+    label=None):
+
+    # Get subject template
+    if is_event(event_or_superevent):
+        event_type = 'event'
+    else:
+        event_type = 'superevent'
+    subject_template = EMAIL_SUBJECT[event_type][alert_type]
+
+    # Construct subject
+    subj_kwargs = {}
+    if label is not None and 'label' in alert_type:
+        subj_kwargs['label'] = label.name
+    if is_event(event_or_superevent):
+        subj_kwargs['graceid'] = event_or_superevent.graceid
+        subj_kwargs['pipeline'] = event_or_superevent.pipeline.name
+    else:
+        subj_kwargs['sid'] = event_or_superevent.superevent_id
+    subject = subject_template.format(**subj_kwargs)
+
+    # Get email body
+    email_body = prepare_email_body(event_or_superevent, alert_type, label)
+
+    # Log email recipients
+    logger.debug("Sending email to {recips}".format(
+        recips=", ".join([r.email for r in recipients])))
+
+    recipients_info = [r.email for r in recipients]
+
+    payload = {
+        "alert_type": "email",
+        "alert_contents": {
+            "recipients": recipients_info,
+            "subject": subject,
+            "body": email_body,
+        },
+    }
+
+    egad.send_alert(payload)

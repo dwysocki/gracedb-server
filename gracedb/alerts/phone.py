@@ -10,6 +10,7 @@ from django_twilio.client import twilio_client
 from core.urls import build_absolute_uri
 from events.permission_utils import is_external
 from events.shortcuts import is_event
+from . import egad
 from .utils import convert_superevent_id_to_speech
 
 
@@ -108,6 +109,7 @@ def compile_twiml_url(event_or_superevent, alert_type, **kwargs):
     return twiml_url
 
 
+## OLD VERSION ##
 def issue_phone_alerts(event_or_superevent, alert_type, contacts, label=None):
     """
     Note: contacts is a QuerySet of Contact objects.
@@ -159,3 +161,43 @@ def issue_phone_alerts(event_or_superevent, alert_type, contacts, label=None):
         except Exception as e:
             logger.exception("Failed to text {0} at {1}.".format(
                 contact.user.username, contact.phone))
+
+
+def issue_phone_alerts(event_or_superevent, alert_type, contacts, label=None):
+    # Get message content
+    msg_kwargs = {}
+    if alert_type in ['label_added', 'label_removed'] and label:
+        msg_kwargs['label'] = label.name
+    message = get_message_content(event_or_superevent, alert_type,
+        **msg_kwargs)
+
+    # Compile Twilio voice URL
+    twiml_url = compile_twiml_url(event_or_superevent, alert_type,
+        **msg_kwargs)
+
+    # Loop over recipients to get information needed by EGAD
+    contacts_info = []
+    for contact in contacts:
+        if is_external(contact.user):
+            # Only make calls to LVC members (non-LVC members
+            # shouldn't even be able to sign up for phone alerts,
+            # but this is another safety measure.
+            logger.warning("External user {0} is somehow signed up for"
+                " phone alerts".format(contact.user.username))
+            continue
+
+        contacts_info.append({
+            "phone_method": contact.phone_method,
+            "phone_number": contact.phone,
+        })
+
+    payload = {
+        "alert_type": "phone",
+        "alert_contents": {
+            "contacts": contacts_info,
+            "message": message,
+            "twiml_url": twiml_url,
+        },
+    }
+
+    egad.send_alert(payload)

@@ -17,6 +17,7 @@ from events.permission_utils import is_external
 from events.shortcuts import is_event
 from superevents.shortcuts import is_superevent
 from .lvalert import send_with_lvalert_overseer, send_with_kafka_client
+from . import egad
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -141,3 +142,51 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
                     logger.critical(("issue_kafka_alerts: error sending "
                         "message with igwn-alert client: {e}").format(e=e))
 
+
+def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
+    serialized_parent=None):
+    """
+    serialized_object should be a dict
+    """
+
+    # Check settings switch for turning off XMPP alerts
+    if not settings.SEND_XMPP_ALERTS:
+        return
+
+    # Determine LVAlert node names
+    node_names = get_xmpp_node_names(event_or_superevent)
+
+    # Get uid
+    uid = event_or_superevent.graceid
+
+    # Create the output dictionary and serialize as JSON.
+    lva_data = {
+        'uid': uid,
+        'alert_type': alert_type,
+        'dispatched': f'{datetime.now(timezone.utc):%Y-%m-%d %H:%M:%S %Z}',
+        'data': serialized_object,
+    }
+    # Add serialized "parent" object
+    if serialized_parent is not None:
+        lva_data['object'] = serialized_parent
+
+    # Dump to JSON format:
+    # simplejson.dumps is needed to properly handle Decimal fields
+    msg = simplejson.dumps(lva_data)
+  
+    # Try 'escaping' the message:
+    msg = escape(msg)
+
+    # Log message for debugging
+    logger.info("issue_xmpp_alerts: sending message {msg} for {uid}" \
+        .format(msg=msg, uid=uid))
+
+    payload = {
+        "alert_type": "kafka",
+        "alert_contents": {
+            "topics": node_names,
+            "message": msg,
+        },
+    }
+
+    egad.send_alert(payload)
