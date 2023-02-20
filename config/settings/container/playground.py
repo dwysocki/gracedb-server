@@ -3,6 +3,7 @@
 # and overrides or adds to them.
 from .base import *
 
+TIER = "playground"
 CONFIG_NAME = "USER TESTING"
 
 # Debug settings

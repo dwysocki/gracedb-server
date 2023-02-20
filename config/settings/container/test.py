@@ -1,6 +1,7 @@
 # Settings for a test/dev GraceDB instance running in a container
 from .base import *
 
+TIER = "test"
 CONFIG_NAME = "TEST"
 
 # Debug settings

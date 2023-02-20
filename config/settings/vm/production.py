@@ -3,6 +3,7 @@
 # settings) and overrides or adds to them.
 from .base import *
 
+TIER = "production"
 DEBUG = False
 
 # LVAlert Overseer settings

@@ -4,6 +4,7 @@
 import socket
 from .base import *
 
+TIER = "dev"
 CONFIG_NAME = "DEV"
 
 # Debug settings

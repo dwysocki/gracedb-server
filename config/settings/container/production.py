@@ -1,6 +1,8 @@
 # Settings for a production GraceDB instance running in a container
 from .base import *
 
+TIER = "production"
+
 DEBUG = False
 
 # Turn on alerts
