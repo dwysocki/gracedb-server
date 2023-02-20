@@ -4,6 +4,7 @@
 from .base import *
 
 TIER = "production"
+
 DEBUG = False
 
 # LVAlert Overseer settings
