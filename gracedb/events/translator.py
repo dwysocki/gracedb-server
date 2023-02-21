@@ -396,14 +396,13 @@ def handle_uploaded_data(event, datafilename,
         event.central_time  = n_float(event_dict.get('central_time', None))
         event.bandwidth     = n_float(event_dict.get('bandwidth', None))
         event.duration      = n_float(event_dict.get('duration', None))
+        event.snr           = n_float(event_dict.get('SNR', None))
 
         # event.instruments is attached to the base Event and event.ifos is
         # part of the MLyBurstEvent
         ifos                = event_dict.get('ifos', None)
         event.ifos          = ifos
         event.instruments   = ifos
-
-
 
         # Safely check for 'scores' dictionary:
         scores = event_dict.get('scores', None)
