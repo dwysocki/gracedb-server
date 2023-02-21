@@ -182,11 +182,8 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
         .format(msg=msg, uid=uid))
 
     payload = {
-        "alert_type": "kafka",
-        "alert_contents": {
-            "topics": node_names,
-            "message": msg,
-        },
+        "topics": node_names,
+        "message": msg,
     }
 
-    egad.send_alert(payload)
+    egad.send_alert("kafka", payload)

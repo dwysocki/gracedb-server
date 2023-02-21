@@ -192,12 +192,9 @@ def issue_phone_alerts(event_or_superevent, alert_type, contacts, label=None):
         })
 
     payload = {
-        "alert_type": "phone",
-        "alert_contents": {
-            "contacts": contacts_info,
-            "message": message,
-            "twiml_url": twiml_url,
-        },
+        "contacts": contacts_info,
+        "message": message,
+        "twiml_url": twiml_url,
     }
 
-    egad.send_alert(payload)
+    egad.send_alert("phone", payload)

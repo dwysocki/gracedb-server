@@ -193,12 +193,9 @@ def issue_email_alerts(event_or_superevent, alert_type, recipients,
     recipients_info = [r.email for r in recipients]
 
     payload = {
-        "alert_type": "email",
-        "alert_contents": {
-            "recipients": recipients_info,
-            "subject": subject,
-            "body": email_body,
-        },
+        "recipients": recipients_info,
+        "subject": subject,
+        "body": email_body,
     }
 
-    egad.send_alert(payload)
+    egad.send_alert("email", payload)
