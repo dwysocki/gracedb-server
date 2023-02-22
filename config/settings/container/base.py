@@ -31,6 +31,15 @@ if SERVER_FQDN is None:
     raise ImproperlyConfigured('Could not get FQDN from envvars.')
 LIGO_FQDN = SERVER_FQDN
 
+# FIXME: strip out the overseer stuff once we verify that that
+# EGAD is working. 
+
+EGAD_URL = get_from_env('EGAD_URL',
+                   fail_if_not_found=True)
+
+EGAD_API_KEY = get_from_env('EGAD_API_KEY',
+                   fail_if_not_found=True)
+
 # Turn LVAlert on/off from the environment. Adding this
 # to turn lvalerts on/off from docker compose/update instead
 # of having to rebuild containers. If the environment variable
