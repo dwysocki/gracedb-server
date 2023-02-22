@@ -10,6 +10,7 @@ CONFIG_NAME = "DEV"
 # Debug settings
 DEBUG = True
 SEND_XMPP_ALERTS=True
+SEND_MATTERMOST_ALERTS=True
 
 # Override EMBB email address
 # TP (8 Aug 2017): not sure why?

@@ -16,6 +16,9 @@ EMBB_MAIL_ADDRESS = 'gracedb@{fqdn}'.format(fqdn=SERVER_FQDN)
 # Turn on XMPP alerts
 SEND_XMPP_ALERTS = True
 
+# Turn on Mattermost alerts
+SEND_MATTERMOST_ALERTS = True
+
 # Enforce that phone and email alerts are off
 SEND_PHONE_ALERTS = False
 SEND_EMAIL_ALERTS = False

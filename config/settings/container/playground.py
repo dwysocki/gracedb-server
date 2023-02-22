@@ -17,6 +17,9 @@ EMBB_MAIL_ADDRESS = 'gracedb@{fqdn}'.format(fqdn=SERVER_FQDN)
 #SEND_PHONE_ALERTS = False
 #SEND_EMAIL_ALERTS = False
 
+# Enable Mattermost alerts
+SEND_MATTERMOST_ALERTS = True
+
 # Add testserver to ALLOWED_HOSTS
 ALLOWED_HOSTS += ['testserver']
 
