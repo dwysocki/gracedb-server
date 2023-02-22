@@ -5,6 +5,7 @@ from django.conf import settings
 
 from events.shortcuts import is_event
 from .email import issue_email_alerts
+from .mattermost import issue_mattermost_alerts
 from .phone import issue_phone_alerts
 from .recipients import ALERT_TYPE_RECIPIENT_GETTERS
 from .xmpp import issue_xmpp_alerts
@@ -22,8 +23,15 @@ def issue_alerts(event_or_superevent, alert_type, serialized_object,
         issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
             serialized_parent=serialized_parent)
 
-    # Below here, we only do processing for email and phone alerts ------------
+    # Process phone and email alerts
+    issue_phone_and_email_alerts(event_or_superevent, alert_type, **kwargs)
 
+    # Process Mattermost alerts
+    if settings.SEND_MATTERMOST_ALERTS:
+        issue_mattermost_alerts(event_or_superevent, alert_type)
+
+
+def issue_phone_and_email_alerts(event_or_superevent, alert_type, **kwargs):
     # A few checks on whether we should issue a phone and/or email alert ------
     if not (settings.SEND_EMAIL_ALERTS or settings.SEND_PHONE_ALERTS):
         return
@@ -76,3 +84,4 @@ def issue_alerts(event_or_superevent, alert_type, serialized_object,
     if settings.SEND_EMAIL_ALERTS and email_recipients.exists():
         issue_email_alerts(event_or_superevent, alert_type, email_recipients,
             label=label)
+    
