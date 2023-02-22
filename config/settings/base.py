@@ -135,6 +135,7 @@ LOGOUT_REDIRECT_URL = 'home'
 SEND_XMPP_ALERTS = False
 SEND_PHONE_ALERTS = False
 SEND_EMAIL_ALERTS = False
+SEND_MATTERMOST_ALERTS = True
 
 # igwn-alert group settings. the default development group is 'lvalert-dev'
 # for the container deployments, the variable will be overwriten by the 
