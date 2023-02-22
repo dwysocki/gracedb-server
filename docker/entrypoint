@@ -27,7 +27,9 @@ LIST="aws_ses_access_key_id
   django_twilio_auth_token
   lvalert_password
   igwn_alert_password
-  gracedb_ldap_keytab"
+  gracedb_ldap_keytab
+  egad_url
+  egad_api_key"
 
 for SECRET in $LIST
 do
