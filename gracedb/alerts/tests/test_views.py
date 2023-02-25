@@ -149,9 +149,11 @@ def test_create_notification_no_contact(internal_user, client):
     assert form.errors.as_data()['contacts'][0].code == 'required'
 
 
-@mock.patch('alerts.egad.send_alert')
+
+@mock.patch('alerts.models.twilio_client')
+@mock.patch('alerts.models.get_twilio_from', lambda: '12345678901')
 class TestRequestVerificationCode(GraceDbTestBase):
-    def helper_test_verification_process(self, mock_egad_fn,
+    def helper_test_verification_process(self, mock_twilio_client,
                                          **contact_kwargs):
         """Creates a Contact, requests and submits a verification code"""
         self.client.force_login(self.internal_user)
@@ -190,23 +192,23 @@ class TestRequestVerificationCode(GraceDbTestBase):
         contact.refresh_from_db()
         assert contact.verified
 
-    def test_verification_process_phone_call(self, mock_egad_fn):
-        self.helper_test_verification_process(mock_egad_fn,
+    def test_verification_process_phone_call(self, mock_twilio_client):
+        self.helper_test_verification_process(mock_twilio_client,
             phone_method=Contact.CONTACT_PHONE_CALL, phone='12345678901')
 
-    def test_verification_process_phone_text(self, mock_egad_fn):
-        self.helper_test_verification_process(mock_egad_fn,
+    def test_verification_process_phone_text(self, mock_twilio_client):
+        self.helper_test_verification_process(mock_twilio_client,
             phone_method=Contact.CONTACT_PHONE_TEXT, phone='12345678901')
 
-    def test_verification_process_phone_text(self, mock_egad_fn):
-        self.helper_test_verification_process(mock_egad_fn,
+    def test_verification_process_phone_text(self, mock_twilio_client):
+        self.helper_test_verification_process(mock_twilio_client,
             phone_method=Contact.CONTACT_PHONE_BOTH, phone='12345678901')
 
-    def test_verification_process_email(self, mock_egad_fn):
-        self.helper_test_verification_process(mock_egad_fn,
+    def test_verification_process_email(self, mock_twilio_client):
+        self.helper_test_verification_process(mock_twilio_client,
             email='albert.einstein@ligo.org')
 
-    def helper_test_contact_already_verified(self, mock_egad_fn,
+    def helper_test_contact_already_verified(self, mock_twilio_client,
                                              **contact_kwargs):
         """Tests that verification code not sent for verified Contact"""
         self.client.force_login(self.internal_user)
@@ -224,20 +226,20 @@ class TestRequestVerificationCode(GraceDbTestBase):
         assert response.url == reverse('alerts:index')
 
         # No message should have been sent
-        mock_egad_fn.assert_not_called()
+        mock_twilio_client.assert_not_called()
 
-    def test_contact_already_verified_phone_call(self, mock_egad_fn):
-        self.helper_test_contact_already_verified(mock_egad_fn,
+    def test_contact_already_verified_phone_call(self, mock_twilio_client):
+        self.helper_test_contact_already_verified(mock_twilio_client,
             phone_method=Contact.CONTACT_PHONE_CALL, phone='12345678901')
 
-    def test_contact_already_verified_phone_text(self, mock_egad_fn):
-        self.helper_test_contact_already_verified(mock_egad_fn,
+    def test_contact_already_verified_phone_text(self, mock_twilio_client):
+        self.helper_test_contact_already_verified(mock_twilio_client,
             phone_method=Contact.CONTACT_PHONE_TEXT, phone='12345678901')
 
-    def test_contact_already_verified_phone_both(self, mock_egad_fn):
-        self.helper_test_contact_already_verified(mock_egad_fn,
+    def test_contact_already_verified_phone_both(self, mock_twilio_client):
+        self.helper_test_contact_already_verified(mock_twilio_client,
             phone_method=Contact.CONTACT_PHONE_BOTH, phone='12345678901')
 
-    def test_contact_already_verified_email(self, mock_egad_fn):
-        self.helper_test_contact_already_verified(mock_egad_fn,
+    def test_contact_already_verified_email(self, mock_twilio_client):
+        self.helper_test_contact_already_verified(mock_twilio_client,
             email='albert.einstein@ligo.org')
