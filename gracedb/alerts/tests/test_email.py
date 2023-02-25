@@ -2,6 +2,7 @@ try:
     from unittest import mock
 except ImportError:  # python < 3
     import mock
+import pytest
 
 from django.test import override_settings
 
@@ -252,7 +253,7 @@ class TestEmailBody(GraceDbTestBase, SupereventCreateMixin):
             lines[7])
 
 
-@unittest.skip('This needs to be updated for EGAD')
+@pytest.mark.skip(reason='This needs to be updated for EGAD')
 @mock.patch('alerts.email.EmailMessage')
 class TestEmailSend(GraceDbTestBase, SupereventCreateMixin):
 
