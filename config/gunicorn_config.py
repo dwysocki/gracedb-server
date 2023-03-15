@@ -56,11 +56,11 @@ timeout = get_from_env('GUNICORN_TIMEOUT',
 # randint(0, max_requests_jitter)
 
 max_requests = get_from_env('GUNICORN_MAX_REQUESTS',
-                   default_value=100,
+                   default_value=2500,
                    fail_if_not_found=False)
 
 max_requests_jitter = get_from_env('GUNICORN_MAX_REQUESTS_JITTER',
-                   default_value=10,
+                   default_value=100,
                    fail_if_not_found=False)
 
 # keepalive -------------------------------------------------------------------
@@ -71,9 +71,24 @@ max_requests_jitter = get_from_env('GUNICORN_MAX_REQUESTS_JITTER',
 # this to a higher value.
 
 keepalive = get_from_env('GUNICORN_KEEPALIVE',
-                   default_value=10,
+                   default_value=25,
                    fail_if_not_found=False)
 
+# preload_app -----------------------------------------------------------------
+# Load application code before the worker processes are forked.
+
+# By preloading an application you can save some RAM resources as well as speed
+# up server boot times. Although, if you defer application loading to each 
+# worker process, you can reload your application code easily by restarting 
+# workers.
+
+# If you aren't going to make use of on-the-fly reloading, consider preloading 
+# your application code to reduce its memory footprint. So, turn this on in
+# production.
+
+preload_app = get_from_env('GUNICORN_PRELOAD_APP',
+                   default_value=False,
+                   fail_if_not_found=False)
 
 # Logging ---------------------------------------------------------------------
 # Access log

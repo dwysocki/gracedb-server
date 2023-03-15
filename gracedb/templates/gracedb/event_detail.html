@@ -17,6 +17,18 @@
 	{% include "gracedb/event_detail_script.js" %}
 </script> 
 
+<script type="text/javascript" class="init">
+    $(document).ready(function () {
+        $('#event-neighbors').DataTable({
+            paging:false,
+            searching:false,
+            info:false,
+            order: [[4, 'desc']],
+        });
+});
+</script>
+
+
 {% endblock %}
 
 {% block content %}
