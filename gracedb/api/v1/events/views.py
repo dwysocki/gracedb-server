@@ -1717,6 +1717,7 @@ class VOEventList(InheritPermissionsAPIView):
         BBH = request.data.get('BBH', None)
         Terrestrial = request.data.get('Terrestrial', None)
         HasMassGap = request.data.get('HasMassGap', None)
+        Significant = request.data.get('Significant', 0)
         # old parameter included to warn users:
         MassGap = request.data.get('MassGap', None)
 
@@ -1790,7 +1791,8 @@ class VOEventList(InheritPermissionsAPIView):
             hardware_inj=hardware_inj, coinc_comment=CoincComment,
             prob_has_ns=ProbHasNS, prob_has_remnant=ProbHasRemnant,
             prob_bns=BNS, prob_nsbh=NSBH, prob_bbh=BBH,
-            prob_terrestrial=Terrestrial, prob_has_mass_gap=HasMassGap)
+            prob_terrestrial=Terrestrial, prob_has_mass_gap=HasMassGap,
+            significant=Significant)
 
         try:
             voevent.save()

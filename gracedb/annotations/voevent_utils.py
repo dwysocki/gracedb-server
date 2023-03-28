@@ -274,6 +274,17 @@ def construct_voevent_file(obj, voevent, request=None):
                                  "this strength or greater")
             v.What.append(p_far)
 
+        ## Whether this is a significant candidate or not
+        p_significant = vp.Param(
+            "Significant",
+            value=int(voevent.significant),
+            ucd="meta.number",
+            ac=True
+        )
+        p_significant.Description = ("Indicates that this event is significant if "
+                                     "1, no if 0")
+        v.What.append(p_significant)
+
         ## Analysis group
         p_group = vp.Param(
             "Group",

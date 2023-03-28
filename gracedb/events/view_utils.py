@@ -602,6 +602,7 @@ def voeventToDict(voevent, request=None):
         "prob_bbh": voevent.prob_bbh,
         "prob_terrestrial": voevent.prob_terrestrial,
         "prob_has_mass_gap": voevent.prob_has_mass_gap,
+        "significant": voevent.significant,
     }
 
 def singleInspiralToDict(single_inspiral):
