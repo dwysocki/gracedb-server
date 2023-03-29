@@ -101,7 +101,7 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
         try:
             authz, path = settings.SCITOKEN_SCOPE.split(":", 1)
         except ValueError:
-            authz = scope
+            authz = settings.SCITOKEN_SCOPE
             path = None
         if not enforcer.test(token, authz, path):
             return None

@@ -330,9 +330,9 @@ X509_INFOS_HEADER = 'HTTP_X_FORWARDED_TLS_CLIENT_CERT_INFOS'
 CAPATH = '/etc/grid-security/certificates'
 
 # SciTokens claims settings
-SCITOKEN_ISSUER = "https://cilogon.org/ligo"
+SCITOKEN_ISSUER = "https://cilogon.org/igwn"
 SCITOKEN_AUDIENCE = ["ANY"]
-SCITOKEN_SCOPE = "read:/GraceDB"
+SCITOKEN_SCOPE = "gracedb.read"
 
 # List of authentication backends to use when attempting to authenticate
 # a user.  Will be used in this order.  Authentication for the API is

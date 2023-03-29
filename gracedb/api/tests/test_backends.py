@@ -147,7 +147,7 @@ class TestGraceDbSciTokenAuthentication(GraceDbTestBase):
 
     TEST_ISSUER = "local"
     TEST_AUDIENCE = ["TEST"]
-    TEST_SCOPE = "read:/GraceDB"
+    TEST_SCOPE = "gracedb.read"
 
     @classmethod
     def setUpClass(cls):
