@@ -213,6 +213,13 @@
         <div class="row my-3 justify-content-center">
             <div class="col-md-10">
 
+
+                {% if user.is_authenticated %}
+                {% block rrt_info %}
+                {% include "superevents/rrt_info_table.html" %}
+		{% endblock %}
+                {% endif %}
+
                 {% block superevent_info %}
                 {% if user.is_authenticated %}
                 {% include "superevents/superevent_info_table.html" %}

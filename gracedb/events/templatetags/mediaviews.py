@@ -11,6 +11,7 @@ from functools import reduce
 
 from events.models import Event, Tag
 from gracedb.core.urls import build_absolute_uri
+import io
 import os
 
 register = template.Library()
@@ -267,3 +268,60 @@ def tag_selecter(name, autoescape=None):
     rv += """</select>"""
 
     return mark_safe(rv)
+
+
+def is_in_rrt_subcategory(event, rrt_subcategory):
+    if rrt_subcategory == "CBC":
+        return (
+            event.group.name == "CBC"
+            and not event.search.name == "EarlyWarning"
+        )
+
+    elif rrt_subcategory == "Burst":
+        return event.group.name == "Burst"
+
+    elif rrt_subcategory == "EarlyWarning":
+        return event.search.name == "EarlyWarning"
+
+    return False
+
+
+
+rrt_event_fmt = """\
+<a href="{event_url}"
+   data-toggle="tooltip"
+   data-placement="top"
+   data-html="true"
+   title=""
+   data-original-title="<b>{event.graceid}</b><br>
+   <b>Pipeline:</b> {event.pipeline.name}<br>
+   <b>FAR:</b> {event.far:.3e}<br>
+   <b>SNR:</b> {event_snr:.3f}">
+   {event.graceid}
+</a>"""
+
+
+
+@register.filter(is_safe=True)
+def rrt_event_filter(event_list, rrt_subcategory):
+    ret_strio = io.StringIO()
+
+    for event in event_list:
+        if is_in_rrt_subcategory(event, rrt_subcategory):
+            event_url = build_absolute_uri(f"/view/{event.graceid}")
+
+            if event.coincinspiralevent:
+                event_snr = event.coincinspiralevent.snr
+            elif event.multiburstevent:
+                event_snr = event.multiburstevent.snr
+            elif event.lalinferenceburstevent:
+                event_snr = event.lalinferenceburstevent.omicron_snr_network
+            else:
+                # TODO: fail with more grace
+                raise RuntimeError("Could not determine event's SNR")
+
+            ret_strio.write(rrt_event_fmt.format(
+                event=event, event_url=event_url, event_snr=event_snr,
+            ))
+
+    return mark_safe(ret_strio.getvalue())
