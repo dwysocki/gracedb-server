@@ -94,6 +94,12 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
         context['emgroups'] = EMGroup.objects.all().order_by('name') \
             .values_list('name', flat=True)
 
+        # Get list of Log objects associated with this superevent
+        log_set_query_kwargs = {}
+        if context['user_is_external']:
+            log_set_query_kwargs['tag__name'] = 'public'
+        context['log_list'] = superevent.log_set.filter(**log_set_query_kwargs)
+
         return context
 
 

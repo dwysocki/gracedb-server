@@ -4,8 +4,8 @@
 {% load static %}
 
 <!-- Header for Log Messages -->
-{% with log_filter=user_is_external|yesno:"public," %}
-{% with log_list=object.log_set.all|filter_logs:log_filter %}
+{# {% with log_filter=user_is_external|yesno:"public," %} #}
+{# {% with log_list=object.log_set.all|filter_logs:log_filter %} #}
 
 <h2>Log Messages</h2>
 <hr style="width:250px; text-align:left; margin-left:0;">
@@ -165,8 +165,8 @@
         </div>
     </div>
 
-    {% endwith %}
-    {% endwith %}
+{#    {% endwith %} #}
+{#    {% endwith %} #}
 
     <!-- Custom Text Box -->
 
