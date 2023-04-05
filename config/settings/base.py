@@ -232,7 +232,7 @@ DEPRECIATED_PIPELINES = [
                         ]
 
 # VOEvent stream --------------------------------------------------------------
-VOEVENT_STREAM = 'gwnet/LVC'
+VOEVENT_STREAM = 'gwnet/IGWN'
 
 
 # Stuff related to report/plot generation -------------------------------------
