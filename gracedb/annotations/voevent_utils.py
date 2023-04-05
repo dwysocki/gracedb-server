@@ -594,45 +594,6 @@ def construct_voevent_file(obj, voevent, request=None):
             p_duration.Description = "Measured duration of GW burst signal"
             v.What.append(p_duration)
 
-            # XXX Calculate the fluence. Unfortunately, this requires parsing the trigger.txt
-            # file for hrss values.  These should probably be pulled into the database.
-            # But there is no consensus on whether hrss or fluence is meaningful. So I will
-            # put off changing the schema for now.
-            try:
-                # Go find the data file.
-                log = event.eventlog_set.filter(comment__startswith="Original Data").all()[0]
-                filename = log.filename
-                filepath = os.path.join(event.datadir,filename)
-                if os.path.isfile(filepath):
-                    datafile = open(filepath,"r")
-                else:
-                    raise VOEventBase.VOEventBuilderException(
-                        "No file found.")
-                # Now parse the datafile.
-                # The line we want looks like:
-                # hrss: 1.752741e-23 2.101590e-23 6.418900e-23
-                for line in datafile:
-                    if line.startswith('hrss:'):
-                        hrss_values = [float(hrss) for hrss in line.split()[1:]]
-                max_hrss = max(hrss_values)
-                # From Min-A Cho: fluence = pi*(c**3)*(freq**2)*(hrss_max**2)*(10**3)/(4*G)
-                # Note that hrss here actually has units of s^(-1/2)
-                fluence = pi * pow(c,3) * pow(event.central_freq,2) 
-                fluence = fluence * pow(max_hrss,2)
-                fluence = fluence / (4.0*G)
-
-                p_fluence = vp.Param(
-                    "Fluence",
-                    value=fluence,
-                    ucd="gw.fluence",
-                    unit="erg/cm^2",
-                    ac=True,
-                )
-                p_fluence.Description = "Estimated fluence of GW burst signal"
-                v.What.append(p_fluence)
-            except Exception as e:
-                logger.exception(e)
-
         elif isinstance(event, LalInferenceBurstEvent):
             p_freq = vp.Param(
                 "frequency",
