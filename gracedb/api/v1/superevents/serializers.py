@@ -335,14 +335,14 @@ class SupereventEventSerializer(serializers.ModelSerializer):
             issue_alert=True)
 
         # Compile keyword options for log and alert followup to the
-        # ResponseThenRun object
-        self.resp_callback = add_event_to_superevent_followup
-        self.resp_callback_kwargs = {'superevent': superevent,
-                                     'event': event,
-                                     'user': submitter,
-                                     'add_event_log': True,
-                                     'add_superevent_log': True,
-                                     'issue_alert': True}
+        # ResponseThenRun object. FIXME: turned off for xray testing
+        #self.resp_callback = add_event_to_superevent_followup
+        #self.resp_callback_kwargs = {'superevent': superevent,
+        #                             'event': event,
+        #                             'user': submitter,
+        #                             'add_event_log': True,
+        #                             'add_superevent_log': True,
+        #                             'issue_alert': True}
 
         return event
 

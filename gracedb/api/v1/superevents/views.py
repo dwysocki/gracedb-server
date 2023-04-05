@@ -131,8 +131,9 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
         serializer = self.get_serializer(superevent)
         return Response(serializer.data)
 
-
-class SupereventEventViewSet(ValidateDestroyMixin, ResponseThenRunMixin,
+#FIXME: turning off responsethenrun for xray testing
+#class SupereventEventViewSet(ValidateDestroyMixin, ResponseThenRunMixin,
+class SupereventEventViewSet(ValidateDestroyMixin,
     InheritDefaultPermissionsMixin, SupereventNestedViewSet):
     """View for events attached to a superevent"""
     serializer_class = SupereventEventSerializer

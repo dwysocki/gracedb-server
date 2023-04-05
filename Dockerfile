@@ -53,12 +53,18 @@ RUN apt-get update && \
     apt-get update && apt-get install --assume-yes yarn && \
     npm install -g bower
 
+# Install AWS X-ray daemon
+RUN wget https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.deb
+RUN dpkg -i aws-xray-daemon-3.x.deb
+RUN rm aws-xray-daemon-3.x.deb
+
 COPY docker/entrypoint /usr/local/bin/entrypoint
 COPY docker/cleanup /usr/local/bin/cleanup
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker/supervisord-apache2.conf /etc/supervisor/conf.d/apache2.conf
 COPY docker/supervisord-igwn-alert-overseer.conf /etc/supervisor/conf.d/igwn-overseer.conf
 COPY docker/supervisord-shibd.conf /etc/supervisor/conf.d/shibd.conf
+COPY docker/supervisord-aws-xray.conf /etc/supervisor/conf.d/aws-xray.conf
 COPY docker/shibboleth-ds /etc/shibboleth-ds
 COPY docker/apache-config /etc/apache2/sites-available/gracedb.conf
 COPY docker/login.ligo.org.cert.LIGOCA.pem /etc/shibboleth/login.ligo.org.cert.LIGOCA.pem
@@ -126,6 +132,9 @@ RUN DJANGO_SETTINGS_MODULE=${SETTINGS_MODULE} \
 RUN rm -rf /app/logs/* /app/project_data/*
 
 RUN useradd -M -u 50001 -g www-data -s /bin/false gracedb
+
+#RUN groupadd -r xray
+#RUN useradd -M -u 50002 -g xray -s /bin/false xray
 
 # set secure file/directory permissions. In particular, ADD command at
 # beginning of recipe inherits umask of user running the build

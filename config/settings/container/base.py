@@ -201,6 +201,33 @@ MIDDLEWARE = [
     'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
+# Set up AWS X-ray patching if enabled
+ENABLE_AWS_XRAY = (
+    get_from_env("ENABLE_AWS_XRAY",
+                 default_value="false", fail_if_not_found=False).lower()
+    in ['true', 't', '1']
+)
+
+if ENABLE_AWS_XRAY:
+    # AWS X-ray middleware must be first in the list to measure timing
+    # accurately
+    MIDDLEWARE.insert(0, 'aws_xray_sdk.ext.django.middleware.XRayMiddleware')
+    # Include X-ray as an installed app in order to allow configuration beyond
+    # the default
+    INSTALLED_APPS.append('aws_xray_sdk.ext.django')
+    # Settings for AWS X-ray
+    XRAY_RECORDER = {
+        'AWS_XRAY_DAEMON_ADDRESS': '127.0.0.1:2000',
+        'AUTO_INSTRUMENT': True,
+        'AWS_XRAY_CONTEXT_MISSING': 'RUNTIME_ERROR',
+        'PLUGINS': (),
+        'SAMPLING': True,
+        'SAMPLING_RULES': None,
+        'AWS_XRAY_TRACING_NAME': 'GraceDB',
+        'DYNAMIC_NAMING': None,
+        'STREAMING_THRESHOLD': None,
+    }
+
 # Priority server settings ----------------------------------------------------
 PRIORITY_SERVER = False
 is_priority_server = get_from_env('DJANGO_PRIORITY_SERVER', None,
