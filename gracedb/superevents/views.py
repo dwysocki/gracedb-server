@@ -98,7 +98,7 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
         # Get list of Log objects associated with this superevent
         log_set_query_kwargs = {}
         if context['user_is_external']:
-            log_set_query_kwargs['tag__name'] = 'public'
+            log_set_query_kwargs['tags__name'] = 'public'
         context['log_list'] = superevent.log_set.filter(**log_set_query_kwargs)
 
         return context
