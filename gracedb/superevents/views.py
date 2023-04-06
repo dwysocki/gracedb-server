@@ -16,7 +16,8 @@ from events.mixins import DisplayFarMixin
 from events.permission_utils import is_external
 from ligoauth.decorators import public_if_public_access_allowed
 from .mixins import ExposeHideMixin, OperatorSignoffMixin, \
-    AdvocateSignoffMixin, PermissionsFilterMixin, ConfirmGwFormMixin
+    AdvocateSignoffMixin, PermissionsFilterMixin, ConfirmGwFormMixin, \
+    RRTViewMixin
 from .models import Superevent, VOEvent
 from .utils import get_superevent_by_date_id_or_404, \
     get_superevent_by_sid_or_gwid_or_404
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
-    ExposeHideMixin, ConfirmGwFormMixin, DisplayFarMixin,
+    RRTViewMixin, ExposeHideMixin, ConfirmGwFormMixin, DisplayFarMixin,
     PermissionsFilterMixin, DetailView):
     """
     Detail view for superevents.

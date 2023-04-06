@@ -214,7 +214,7 @@
             <div class="col-md-10">
 
 
-                {% if user.is_authenticated %}
+                {% if user.is_authenticated and rrt_group_authorized %}
                 {% block rrt_info %}
                 {% include "superevents/rrt_info_table.html" %}
 		{% endblock %}

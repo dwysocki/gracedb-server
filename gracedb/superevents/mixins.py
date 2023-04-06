@@ -161,6 +161,25 @@ class AdvocateSignoffMixin(ContextMixin):
         return context
 
 
+# Enable/disable the RRT View. Right now it just checks for group membership,
+# but any other desired view logic should be put in here as well. 
+class RRTViewMixin(ContextMixin):
+
+    def get_context_data(self, **kwargs):
+        context = super(RRTViewMixin, self).get_context_data(**kwargs)
+
+        # Check if user is in rrt_group
+        rrt_group = self.request.user.groups.filter(
+            name=settings.RRT_MEMBERS_GROUP).first()
+
+        context['rrt_group_authorized'] = rrt_group is not None
+
+        # TODO? Add logic for checking for HIGH_PRIORITY label?
+        # TODO? Anything else that might be superevent or user specific? 
+
+        return context
+
+
 class ExposeHideMixin(ContextMixin):
     expose_perm_name = 'superevents.expose_superevent'
     hide_perm_name = 'superevents.hide_superevent'

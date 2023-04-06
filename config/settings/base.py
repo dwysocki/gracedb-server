@@ -169,6 +169,8 @@ ACCESS_MANAGERS_GROUP = 'access_managers'
 EM_ADVOCATE_GROUP = 'em_advocates'
 # Superevent managers
 SUPEREVENT_MANAGERS_GROUP = 'superevent_managers'
+# RRT group name:
+RRT_MEMBERS_GROUP = 'rrt_members'
 
 # Analysis groups
 # Analysis group name for non-GW events
