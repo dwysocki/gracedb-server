@@ -2,6 +2,7 @@
 {% load timeutil %}
 {% load scientific %}
 {% load rrt_info %}
+{% load pastro_text %}
 
 {% url 'api:default:superevents:superevent-file-list' superevent.superevent_id as superevent_files_url %}
 
@@ -125,11 +126,9 @@
       </tr>
 
       <tr>
-        <td> pastro </td>
+          <td> <span style="font-family: monospace">p_astro</span></td>
         <td>
-	  <object data="{{ superevent_files_url|add:preferred_event.pipeline.name|add:'.p_astro.png' }}" type="image/png">
-	    N/A
-	  </object>
+            {{ preferred_event.graceid | pastro_text }}
         </td>
       </tr>
 
