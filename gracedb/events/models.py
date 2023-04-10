@@ -134,7 +134,7 @@ class Search(models.Model):
 # https://www.w3schools.com/colors/colors_names.asp for
 # allowed color choices
 class Label(models.Model):
-    name = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=32, unique=True)
     # XXX really, does this belong here? probably not.
     defaultColor = models.CharField(max_length=20, unique=False,
         default="black")
