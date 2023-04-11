@@ -165,6 +165,9 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
                    models.Index(fields=['t_0', ]),
                    models.Index(fields=['t_start', ]),
                    models.Index(fields=['t_end', ]),
+                   models.Index(fields=['category', ]),
+                   models.Index(fields=['base_date_number', ]),
+                   models.Index(fields=['base_letter_suffix', ]),
                    models.Index(fields=['created', ])]
 
     # Class method overrides --------------------------------------------------
