@@ -938,8 +938,11 @@ class EventLogList(InheritPermissionsAPIView):
 
         tw_dict = {}
         if tagnames and len(tagnames):
-            mutable = request.data._mutable # save state
-            request.data._mutable = True    # make mutable
+            try:
+                mutable = request.data._mutable # save state
+                request.data._mutable = True    # make mutable
+            except AttributeError:
+                pass
 
             for i,tagname in enumerate(tagnames):
                 n = logentry.N
@@ -956,8 +959,6 @@ class EventLogList(InheritPermissionsAPIView):
                         'tag: {0}').format(retval.data),
                         status=retval.status_code)
                     #tw_dict = {'tagWarning': 'Error creating tag %s.' % tagname }
-
-            request.data._mutable = mutable # return to original state
                     
         # Serialize the event log object *after* adding tags!
         rv = eventLogToDict(logentry, request=request)
