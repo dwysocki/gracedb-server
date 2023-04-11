@@ -308,7 +308,7 @@ def rrt_event_filter(event_list, rrt_subcategory):
 
     for event in event_list:
         if is_in_rrt_subcategory(event, rrt_subcategory):
-            event_url = build_absolute_uri(f"/view/{event.graceid}")
+            event_url = build_absolute_uri(f"/events/{event.graceid}/view/")
 
             if event.coincinspiralevent:
                 event_snr = event.coincinspiralevent.snr
