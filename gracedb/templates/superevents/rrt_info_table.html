@@ -24,13 +24,6 @@
         <td> {{ superevent.default_superevent_id }} </td>
       </tr>
 
-      {% if superevent.is_gw %}
-      <tr>
-        <td> GW ID </td>
-        <td> {{ superevent.gw_id }} </td>
-      </tr>
-      {% endif %}
-
       <tr>
         <td> Labels </td>
         <td>
@@ -46,6 +39,13 @@
        {% endfor %}
         </td>
       </tr>
+
+      {% if superevent.is_gw %}
+      <tr>
+        <td> GW ID </td>
+        <td> {{ superevent.gw_id }} </td>
+      </tr>
+      {% endif %}
 
       <tr>
         <td> t<sub>end</sub> </td>
@@ -104,12 +104,19 @@
       <tr>
         <td> GCN </td>
         <td>
-	  <a href="">[Notice]</a>
-	  <a href="{{ superevent_files_url }}initial-circular.txt">
-            [Circular]
-          </a>
+	        <a href="https://gcn.gsfc.nasa.gov/notices_l/{{superevent.default_superevent_id }}.lvc">[Notice]</a>
+          <a href='https://gcn.gsfc.nasa.gov/other/GW{{ superevent.created | date:"ymd" }}.gcn3'>[Circular]</a>
         </td>
       </tr>
+
+      <tr>
+        <td> Templates </td>
+        <td>
+	        <a href="">[Notice]</a>
+          <a href=''>[Circular]</a>
+        </td>
+      </tr>
+
 
       <tr>
         <td>DQR</td>
