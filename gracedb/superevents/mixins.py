@@ -117,7 +117,7 @@ class AdvocateSignoffMixin(ContextMixin):
         rrt_group_filter = Q(name=settings.RRT_MEMBERS_GROUP)
 
         signoff_group = self.request.user.groups.filter(em_group_filter |
-                rrt_group_filter)
+                rrt_group_filter).first()
 
         # Update context with signoff_authorized bool
         context['advocate_signoff_authorized'] = signoff_group is not None
