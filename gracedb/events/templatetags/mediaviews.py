@@ -316,9 +316,11 @@ def rrt_event_filter(event_list, rrt_subcategory):
                 event_snr = event.multiburstevent.snr
             elif hasattr(event, 'lalinferenceburstevent'):
                 event_snr = event.lalinferenceburstevent.omicron_snr_network
+            elif hasattr(event, 'mlyburstevent'):
+                event_snr = event.mlyburstevent.snr
             else:
-                # TODO: fail with more grace
-                raise RuntimeError("Could not determine event's SNR")
+                # Return a blank string
+                event_snr = ""
 
             ret_strio.write(rrt_event_fmt.format(
                 event=event, event_url=event_url, event_snr=event_snr,
