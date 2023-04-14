@@ -310,11 +310,11 @@ def rrt_event_filter(event_list, rrt_subcategory):
         if is_in_rrt_subcategory(event, rrt_subcategory):
             event_url = build_absolute_uri(f"/events/{event.graceid}/view/")
 
-            if event.coincinspiralevent:
+            if hasattr(event, 'coincinspiralevent'):
                 event_snr = event.coincinspiralevent.snr
-            elif event.multiburstevent:
+            elif hasattr(event, 'multiburstevent'):
                 event_snr = event.multiburstevent.snr
-            elif event.lalinferenceburstevent:
+            elif hasattr(event, 'lalinferenceburstevent'):
                 event_snr = event.lalinferenceburstevent.omicron_snr_network
             else:
                 # TODO: fail with more grace
