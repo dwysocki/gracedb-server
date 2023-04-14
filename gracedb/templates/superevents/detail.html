@@ -86,33 +86,17 @@
 
         <div class="row my-3 justify-content-md-center">
             <div class="col-md-10">
+
                 {% if show_gw_status_form %}
-                <center><h3> Advocate Actions </h3></center>
-                <center>
-                    <b>Note:</b> this action is irreversible without manual intervention by an admin.
-                    <br>
-                    <br>
-                    <form action="{% url "legacy_apiweb:default:superevents:superevent-confirm-as-gw" superevent.superevent_id %}" method="POST" id="confirm_as_gw_form">
-                        <input type="submit" value="Confirm this superevent as a GW" class="btn btn-danger permButtonClass" disabled>
-                    </form>
-                </center>
+                   {% block executives %}
+                     {% include "superevents/executive_signoff_frag.html" %}
+                   {% endblock %}
                 {% endif %}
 
                 {# not sure why we need this if statement, maybe can delete in the future #}
                 {% if 'lvem_view' not in request.path %}
 
                 {#-- XXX This next bit is super hacky. #}
-                {% if can_modify_permissions %}
-                <center>
-                    <br>
-                    <form action="{% url "legacy_apiweb:default:superevents:superevent-permission-modify" superevent.superevent_id %}" 
-                          method="POST" 
-                          id="permissions_form">
-                        <input type="hidden" name="action" value="{{ permissions_action }}">
-                        <input type="submit" value="{{ permissions_form_button_text }}" class="btn btn-danger permButtonClass" id="permissions_submit_link"  onclick="return clickConfirm()">
-                    </form>
-                </center>
-                {% endif %}
 
                 {% if operator_signoff_authorized and operator_signoff_active %}
                 <div class="row my-3 justify-content-center">
@@ -159,50 +143,9 @@
 
                 {# Here is a section for the EM advocate signoffs. #}
                 {% if advocate_signoff_authorized and advocate_signoff_active %}
-                <div class="signoff-area" style="padding-top: 2em; padding-bottom: 2em;">
-                    <div  style="font-size:x-large;text-align:center;font-weight:lighter;">Advocate Signoff</div>
-                    <hr style="width:250px; margin:auto;">
-                    <br>
-                    <p>You are seeing this section because you're a designated EM followup advocate.
-                    {% if advocate_signoff_exists %}
-                    This event has already been signed off on. Use the form below if you wish to edit or delete the record.
-                    {% else %}
-                    This event still requires EM Followup advocate signoff.
-                    {% endif %}
-                    </p>
-
-                    <form class="signoff_form">
-                        <table>
-                            {{ advocate_signoff_form.as_table }}
-                            <tr>
-                                <td></td>
-                                <td>
-                                    {# inputs are disabled here, enabled by jquery code on page load. Otherwise users who click quickly can activate the form before the jquery is fully loaded #}
-                                    {% if advocate_signoff_exists %}
-                                    {% with advocate_signoff_type|add:advocate_signoff_instrument as typeinst %}
-                                    <input type="submit" 
-                                           formaction="{% url "legacy_apiweb:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}"
-                                           value="Update signoff" 
-                                           class="btn btn-warning" 
-                                           id="update" disabled>
-                                    <input type="submit" 
-                                           formaction="{% url "legacy_apiweb:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}" 
-                                           value="Delete signoff" 
-                                           class="btn btn-danger" 
-                                           id="delete" disabled>
-                                    {% endwith %}
-                                    {% else %}
-                                    <input type="submit" 
-                                           value="Create signoff"
-                                           class="btn btn-success" 
-                                           formaction={% url "legacy_apiweb:default:superevents:superevent-signoff-list" superevent.superevent_id %} 
-                                           disabled>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        </table>
-                    </form>
-                </div>
+                {% block advocate_signoff %}
+                  {% include "superevents/advocate_signoff_frag.html" %}
+                {% endblock %}
                 {% endif %}
 
                 {% endif %} {# lvem_view not in request.path #}

@@ -5,6 +5,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 from django.views.generic.base import ContextMixin
 from django.views.generic.detail import SingleObjectMixin
 
@@ -112,9 +113,11 @@ class AdvocateSignoffMixin(ContextMixin):
     def get_context_data(self, **kwargs):
         context = super(AdvocateSignoffMixin, self).get_context_data(**kwargs)
 
-        # Check if user is in auth group for which signoff is authorized
-        signoff_group = self.request.user.groups.filter(
-            name=settings.EM_ADVOCATE_GROUP).first()
+        em_group_filter = Q(name=settings.EM_ADVOCATE_GROUP)
+        rrt_group_filter = Q(name=settings.RRT_MEMBERS_GROUP)
+
+        signoff_group = self.request.user.groups.filter(em_group_filter |
+                rrt_group_filter)
 
         # Update context with signoff_authorized bool
         context['advocate_signoff_authorized'] = signoff_group is not None
