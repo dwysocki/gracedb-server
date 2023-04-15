@@ -116,7 +116,7 @@ def prepare_email_body(event_or_superevent, alert_type, label=None):
     return email_body
 
 
-def issue_email_alerts(event_or_superevent, alert_type, recipients,
+def issue_email_alerts_local(event_or_superevent, alert_type, recipients,
     label=None):
 
     # Get subject template
@@ -162,7 +162,7 @@ def issue_email_alerts(event_or_superevent, alert_type, recipients,
         logger.error('Error sending email alerts: {e}'.format(e=e))
 
 
-def issue_email_alerts(event_or_superevent, alert_type, recipients,
+def issue_email_alerts_egad(event_or_superevent, alert_type, recipients,
     label=None):
 
     # Get subject template
@@ -199,3 +199,9 @@ def issue_email_alerts(event_or_superevent, alert_type, recipients,
     }
 
     egad.send_alert("email", payload)
+
+
+if settings.ENABLE_EGAD_EMAIL:
+    issue_email_alerts = issue_email_alerts_egad
+else:
+    issue_email_alerts = issue_email_alerts_local

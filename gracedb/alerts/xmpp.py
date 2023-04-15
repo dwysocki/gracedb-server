@@ -62,7 +62,7 @@ def get_xmpp_node_names(event_or_superevent):
     return node_names
 
 
-def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
+def issue_xmpp_alerts_local(event_or_superevent, alert_type, serialized_object,
     serialized_parent=None):
     """
     serialized_object should be a dict
@@ -143,7 +143,7 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
                         "message with igwn-alert client: {e}").format(e=e))
 
 
-def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
+def issue_xmpp_alerts_egad(event_or_superevent, alert_type, serialized_object,
     serialized_parent=None):
     """
     serialized_object should be a dict
@@ -187,3 +187,9 @@ def issue_xmpp_alerts(event_or_superevent, alert_type, serialized_object,
     }
 
     egad.send_alert("kafka", payload)
+
+
+if settings.ENABLE_EGAD_KAFKA:
+    issue_xmpp_alerts = issue_xmpp_alerts_egad
+else:
+    issue_xmpp_alerts = issue_xmpp_alerts_local

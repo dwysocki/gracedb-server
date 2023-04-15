@@ -31,14 +31,34 @@ if SERVER_FQDN is None:
     raise ImproperlyConfigured('Could not get FQDN from envvars.')
 LIGO_FQDN = SERVER_FQDN
 
-# FIXME: strip out the overseer stuff once we verify that that
-# EGAD is working. 
+
+## EGAD (External GraceDB Alert Dispatcher) configuration
+ENABLE_EGAD_EMAIL = parse_envvar_bool(
+    get_from_env('ENABLE_EGAD_EMAIL',
+                 fail_if_not_found=False, default_value="false")
+)
+ENABLE_EGAD_KAFKA = parse_envvar_bool(
+    get_from_env('ENABLE_EGAD_KAFKA',
+                 fail_if_not_found=False, default_value="false")
+)
+ENABLE_EGAD_MATTERMOST = parse_envvar_bool(
+    get_from_env('ENABLE_EGAD_MATTERMOST',
+                 fail_if_not_found=False, default_value="false")
+)
+ENABLE_EGAD_PHONE = parse_envvar_bool(
+    get_from_env('ENABLE_EGAD_PHONE',
+                 fail_if_not_found=False, default_value="false")
+)
+
+ENABLE_EGAD = (
+    ENABLE_EGAD_EMAIL or ENABLE_EGAD_KAFKA
+    or ENABLE_EGAD_MATTERMOST or ENABLE_EGAD_PHONE
+)
 
 EGAD_URL = get_from_env('EGAD_URL',
-                   fail_if_not_found=True)
-
+                        fail_if_not_found=ENABLE_EGAD, default_value=None)
 EGAD_API_KEY = get_from_env('EGAD_API_KEY',
-                   fail_if_not_found=True)
+                   fail_if_not_found=ENABLE_EGAD, default_value=None)
 
 # Turn LVAlert on/off from the environment. Adding this
 # to turn lvalerts on/off from docker compose/update instead

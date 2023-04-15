@@ -109,8 +109,8 @@ def compile_twiml_url(event_or_superevent, alert_type, **kwargs):
     return twiml_url
 
 
-## OLD VERSION ##
-def issue_phone_alerts(event_or_superevent, alert_type, contacts, label=None):
+def issue_phone_alerts_local(event_or_superevent, alert_type, contacts,
+                             label=None):
     """
     Note: contacts is a QuerySet of Contact objects.
     """
@@ -163,7 +163,8 @@ def issue_phone_alerts(event_or_superevent, alert_type, contacts, label=None):
                 contact.user.username, contact.phone))
 
 
-def issue_phone_alerts(event_or_superevent, alert_type, contacts, label=None):
+def issue_phone_alerts_egad(event_or_superevent, alert_type, contacts,
+                            label=None):
     # Get message content
     msg_kwargs = {}
     if alert_type in ['label_added', 'label_removed'] and label:
@@ -198,3 +199,9 @@ def issue_phone_alerts(event_or_superevent, alert_type, contacts, label=None):
     }
 
     egad.send_alert("phone", payload)
+
+
+if settings.ENABLE_EGAD_PHONE:
+    issue_phone_alerts = issue_phone_alerts_egad
+else:
+    issue_phone_alerts = issue_phone_alerts_local

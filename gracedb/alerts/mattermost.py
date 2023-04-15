@@ -16,7 +16,12 @@ logger = logging.getLogger(__name__)
 message_template = 'A superevent with GraceDB ID {sid} was created. [View]({url})'
 
 
-def issue_mattermost_alerts(event_or_superevent, alert_type):
+def issue_mattermost_alerts_local(event_or_superevent, alert_type):
+    # Not implemented
+    pass
+
+
+def issue_mattermost_alerts_egad(event_or_superevent, alert_type):
     # For now we're hard-coded to only issue new superevent alerts
     if is_event(event_or_superevent):
         return
@@ -39,3 +44,9 @@ def issue_mattermost_alerts(event_or_superevent, alert_type):
     }
 
     egad.send_alert("mattermost", payload)
+
+
+if settings.ENABLE_EGAD_MATTERMOST:
+    issue_mattermost_alerts = issue_mattermost_alerts_egad
+else:
+    issue_mattermost_alerts = issue_mattermost_alerts_local
