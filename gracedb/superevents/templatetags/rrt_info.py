@@ -25,15 +25,24 @@ def latest_state_log(log_list):
 
 @register.filter(is_safe=True)
 def get_template_from_label(sevent):
-    files_url = build_absolute_uri(reverse('superevents:file-list', args=[sevent.superevent_id]))
+
+    # Get filename based on label, or return the advreq message:
     if sevent.labels.filter(name='ADVOK'):
-        notice_url = files_url + '{}-initial.json'.format(sevent.superevent_id)
-        circular_url = files_url + 'initial-circular.txt'
+        notice_filename = '{}-initial.json'.format(sevent.superevent_id)
+        circular_filename = 'initial-circular.txt'
+
     elif sevent.labels.filter(name='ADVNO'):
-        notice_url = files_url + '{}-retraction.json'.format(sevent.superevent_id)
-        circular_url = files_url + 'retraction-circular.txt'
+        notice_filename = '{}-retraction.json'.format(sevent.superevent_id)
+        circular_filename = 'retraction-circular.txt'
+
     else:
         return "Advocate action (ADVOK/ADVNO) required"
+
+    # Build the files URL:
+    notice_url = build_absolute_uri(reverse('api:default:superevents:superevent-file-detail',
+        args=[sevent.superevent_id, notice_filename]))
+    circular_url = build_absolute_uri(reverse('api:default:superevents:superevent-file-detail',
+        args=[sevent.superevent_id, circular_filename]))
 
     return mark_safe(template_link_format.format(notice_url=notice_url,
                                        circular_url=circular_url))
