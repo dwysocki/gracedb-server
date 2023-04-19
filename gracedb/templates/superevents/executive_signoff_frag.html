@@ -11,17 +11,5 @@
                         <input type="submit" value="Confirm this superevent as a GW" class="btn btn-danger permButtonClass" disabled>
                     </form>
                 </center>
-
-                {% if can_modify_permissions %}
-                <center>
-                    <br>
-                    <form action="{% url "legacy_apiweb:default:superevents:superevent-permission-modify" superevent.superevent_id %}"
-                          method="POST"
-                          id="permissions_form">
-                        <input type="hidden" name="action" value="{{ permissions_action }}">
-                        <input type="submit" value="{{ permissions_form_button_text }}" class="btn btn-danger permButtonClass" id="permissions_submit_link"  onclick="return clickConfirm()">
-                    </form>
-                </center>
-                {% endif %}
                         </td></tr>
 </table>

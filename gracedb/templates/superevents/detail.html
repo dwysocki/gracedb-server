@@ -93,6 +93,13 @@
                    {% endblock %}
                 {% endif %}
 
+                {% if can_modify_permissions %}
+                   {% block expose %}
+                     {% include "superevents/expose_hide_frag.html" %}
+                   {% endblock %}
+
+                {% endif %}
+
                 {# not sure why we need this if statement, maybe can delete in the future #}
                 {% if 'lvem_view' not in request.path %}
 
