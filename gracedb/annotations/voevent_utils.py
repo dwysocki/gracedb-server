@@ -15,7 +15,7 @@ from core.time_utils import gpsToUtc
 from core.urls import build_absolute_uri
 from events.models import VOEventBase, Event
 from events.models import CoincInspiralEvent, MultiBurstEvent, \
-    LalInferenceBurstEvent
+    LalInferenceBurstEvent, MLyBurstEvent
 from superevents.shortcuts import is_superevent
 
 # Set up logger
@@ -605,26 +605,38 @@ def construct_voevent_file(obj, voevent, request=None):
             p_freq.Description = "Mean frequency of GW burst signal"
             v.What.append(p_freq)
 
-            # Calculate the fluence. 
-            # From Min-A Cho: fluence = pi*(c**3)*(freq**2)*(hrss_max**2)*(10**3)/(4*G)
-            # Note that hrss here actually has units of s^(-1/2)
-            # XXX obviously need to refactor here.
-            try:
-                fluence = pi * pow(c,3) * pow(event.frequency,2) 
-                fluence = fluence * pow(event.hrss,2)
-                fluence = fluence / (4.0*G)
+            duration = event.quality_mean / (2 * pi * event.frequency_mean)
+            p_duration = vp.Param(
+                "Duration",
+                value=float(duration),
+                unit="s",
+                ucd="time.duration",
+                ac=True,
+            )
+            p_duration.Description = "Measured duration of GW burst signal"
+            v.What.append(p_duration)
 
-                p_fluence = vp.Param(
-                    "Fluence",
-                    value=fluence,
-                    ucd="gw.fluence",
-                    unit="erg/cm^2",
-                    ac=True
-                )
-                p_fluence.Description = "Estimated fluence of GW burst signal"
-                v.What.append(p_fluence)
-            except Exception as e:
-                logger.exception(e)
+        elif isinstance(event, MLyBurstEvent):
+            p_central_freq = vp.Param(
+                "CentralFreq",
+                value=float(event.central_freq),
+                ucd="gw.frequency",
+                unit="Hz",
+                ac=True,
+            )
+            p_central_freq.Description = \
+                "Central frequency of GW burst signal"
+            v.What.append(p_central_freq)
+
+            p_duration = vp.Param(
+                "Duration",
+                value=float(event.duration),
+                unit="s",
+                ucd="time.duration",
+                ac=True,
+            )
+            p_duration.Description = "Measured duration of GW burst signal"
+            v.What.append(p_duration)
 
         ## Create classification group
         classification_group = vp.Group(
