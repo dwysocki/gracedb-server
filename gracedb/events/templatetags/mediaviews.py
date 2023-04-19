@@ -306,6 +306,24 @@ rrt_event_fmt = """\
 </a>"""
 
 
+def event_tooltip_link(event):
+    event_url = build_absolute_uri(f"/events/{event.graceid}/view/")
+    
+    if hasattr(event, 'coincinspiralevent'):
+        event_snr = event.coincinspiralevent.snr
+    elif hasattr(event, 'multiburstevent'):
+        event_snr = event.multiburstevent.snr
+    elif hasattr(event, 'lalinferenceburstevent'):
+        event_snr = event.lalinferenceburstevent.omicron_snr_network
+    elif hasattr(event, 'mlyburstevent'):
+        event_snr = event.mlyburstevent.snr
+    else:
+        # Return a blank string
+        event_snr = ""
+
+    return rrt_event_fmt.format(
+                event=event, event_url=event_url, event_snr=event_snr)
+
 
 @register.filter(is_safe=True)
 def rrt_event_filter(event_list, rrt_subcategory):
@@ -327,8 +345,10 @@ def rrt_event_filter(event_list, rrt_subcategory):
                 # Return a blank string
                 event_snr = ""
 
-            ret_strio.write(rrt_event_fmt.format(
-                event=event, event_url=event_url, event_snr=event_snr,
-            ))
+            ret_strio.write(event_tooltip_link(event))
 
     return mark_safe(ret_strio.getvalue())
+
+@register.filter(is_safe=True)
+def event_link_filter(event):
+    return mark_safe(event_tooltip_link(event))

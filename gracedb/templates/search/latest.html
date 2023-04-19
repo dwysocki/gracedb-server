@@ -2,6 +2,7 @@
 
 {% load timeutil %}
 {% load scientific %}
+{% load mediaviews %}
 
 
 {% block title %}Latest{% endblock %}
@@ -204,33 +205,7 @@
                <td><b>GW Events:</b></td>
                <td>
                 {% for ev in sv.get_internal_events %}
-                    {% if forloop.last %}
-                        <a class="no-collapse-link" href="{% url "view" ev.graceid %}"
-                           data-toggle="tooltip"
-                           data-placement="top"
-                           data-html="true"
-                           title="<b>{{ ev.graceid }}</b><br>
-                                  <b>Pipeline:</b> {{ ev.pipeline.name }}<br>
-                                  <b>FAR (Hz):</b> {{ ev.far|scientific }}<br>
-                                  <b>SNR:</b> {% if ev.coincinspiralevent %}
-                                    {{ ev.coincinspiralevent.snr|floatformat:"3" }}
-                                  {% elif ev.multiburstevent %}
-                                    {{ ev.multiburstevent.snr|floatformat:"3" }}
-                                  {% endif %}">{{ ev.graceid }}</a>
-                    {% else %}
-                        <a class="no-collapse-link" href="{% url "view" ev.graceid %}"
-                           data-toggle="tooltip"
-                           data-placement="top"
-                           data-html="true"
-                           title="<b>{{ ev.graceid }}</b><br>
-                                  <b>Pipeline:</b> {{ ev.pipeline.name }}<br>
-                                  <b>FAR (Hz):</b> {{ ev.far|scientific }}<br>
-                                  <b>SNR:</b> {% if ev.coincinspiralevent %}
-                                 {{ ev.coincinspiralevent.snr|floatformat:"3" }}
-                               {% elif ev.multiburstevent %}
-                                 {{ ev.multiburstevent.snr|floatformat:"3" }}
-                               {% endif %}">{{ ev.graceid }}</a>
-                    {% endif %}
+                      {{ ev | event_link_filter }}
                 {% endfor %}
                </td>
               </tr>
