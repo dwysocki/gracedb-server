@@ -1,5 +1,7 @@
 {% load timeutil %}
 {% load scientific %}
+{% load mediaviews %}
+
 <br>
 <br>
 
@@ -49,20 +51,7 @@
       <tr>
         <td> Event </td>
         <td>
-            <a href="{% url "view" preferred_event.graceid %}"
-                                            data-toggle="tooltip"
-                                            data-placement="top"
-                                            data-html="true"
-                                            title="<b>{{ preferred_event.graceid }}</b><br>
-                                           <b>Pipeline:</b> {{ preferred_event.pipeline.name }}<br>
-                                           <b>FAR:</b> {{ preferred_event.far|scientific }} <br>
-                                           <b>SNR:</b> {% if preferred_event.coincinspiralevent %}
-              {{ preferred_event.coincinspiralevent.snr|floatformat:"3" }}
-            {% elif preferred_event.multiburstevent %}
-              {{ preferred_event.multiburstevent.snr|floatformat:"3" }}
-            {% elif preferred_event.lalinferenceburstevent %}
-              {{ preferred_event.lalinferenceburstevent.omicron_snr_network|floatformat:"3" }}
-            {% endif %}">{{ preferred_event.graceid }}</a>
+            {{ preferred_event | event_link_filter }}
         </td>
       </tr>
 
@@ -71,20 +60,7 @@
         <td>
             <div>
             {% for ev in internal_events %}
-            <a href="{% url "view" ev.graceid %}"
-               data-toggle="tooltip"
-               data-placement="top"
-               data-html="true"
-               title="<b>{{ ev.graceid }}</b><br>
-               <b>Pipeline:</b> {{ ev.pipeline.name }}<br>
-               <b>FAR:</b> {{ ev.far|scientific }}<br>
-               <b>SNR:</b> {% if ev.coincinspiralevent %}
-              {{ ev.coincinspiralevent.snr|floatformat:"3" }}
-            {% elif ev.multiburstevent %}
-              {{ ev.multiburstevent.snr|floatformat:"3" }}
-            {% elif ev.lalinferenceburstevent %}
-              {{ ev.lalinferenceburstevent.omicron_snr_network|floatformat:"3" }}
-            {% endif %}">{{ ev.graceid }}</a>
+              {{ ev | event_link_filter }}
             {% endfor %}
             </div>
         </td>
