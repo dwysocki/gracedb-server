@@ -58,6 +58,11 @@
       </tr>
 
       <tr>
+          <td> Preferred Event </td>
+          <td> {{ superevent.preferred_event | event_link_filter }} </td>
+      </tr>
+
+      <tr>
         <td> CBC events and Burst BBH</td>
         <td>
 	  {{ internal_events | rrt_event_filter:"CBC" }}
@@ -104,13 +109,14 @@
       <tr>
         <td> GCN </td>
         <td>
-	        <a href="https://gcn.gsfc.nasa.gov/notices_l/{{superevent.default_superevent_id }}.lvc">[Notice]</a>
-          <a href='https://gcn.gsfc.nasa.gov/other/GW{{ superevent.created | date:"ymd" }}.gcn3'>[Circular]</a>
+	        <a href="https://gcn.gsfc.nasa.gov/notices_l/{{superevent.default_superevent_id }}.lvc" target="_blank">[Notice]</a>
+          <a href='https://gcn.gsfc.nasa.gov/other/{{superevent.default_superevent_id }}.gcn3' target="_blank">[Circular]</a>
+          <a href='https://gcn.nasa.gov/circulars?query={{superevent.default_superevent_id}}' target="_blank">[Circular Query]</a>
         </td>
       </tr>
 
       <tr>
-        <td> Templates </td>
+        <td> Circular Text Template </td>
         <td> {{ superevent | get_template_from_label }} </td>
       </tr>
 
@@ -118,7 +124,7 @@
       <tr>
         <td>DQR</td>
         <td>
-          <a href='https://ldas-jobs.ligo.caltech.edu/~dqr/o4dqr-results/production/events/{{ superevent.created | date:"Ym" }}/{{ superevent.superevent_id}}'>[Data Quality Report]</a>
+          <a href='https://ldas-jobs.ligo.caltech.edu/~dqr/o4dqr-results/production/events/{{ superevent.created | date:"Ym" }}/{{ superevent.superevent_id}}' target="_blank">[Data Quality Report]</a>
         </td>
       </tr>
 
