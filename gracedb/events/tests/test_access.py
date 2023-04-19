@@ -190,11 +190,15 @@ class TestEventFileListView(ExposeLogMixin, EventSetup, GraceDbTestBase):
         # We have to account for symlinks, too
         file_logs = self.internal_event.eventlog_set.exclude(filename='')
         file_list = [l.versioned_filename for l in file_logs]
+        resp_file_list = [l.versioned_filename for l in
+                response.context['file_list']]
         symlinks = list(set([fl.filename for fl in file_logs]))
+        resp_symlinks = list(set([fl.filename for fl in response.context['file_list']]))
         file_list.extend(symlinks)
-        self.assertEqual(len(response.context['file_list']), len(file_list))
+        resp_file_list.extend(resp_symlinks)
+        self.assertEqual(len(resp_file_list), len(file_list))
         for f in file_list:
-            self.assertIn(f, response.context['file_list'])
+            self.assertIn(f, resp_file_list)
 
     def test_lvem_user_view_files_for_hidden_event(self):
         """LV-EM user can't view files for hidden event"""
@@ -220,8 +224,12 @@ class TestEventFileListView(ExposeLogMixin, EventSetup, GraceDbTestBase):
         url = reverse('file_list', args=[self.lvem_event.graceid])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
+        resp_filenames = [l.filename for l in
+                response.context['file_list']]
+        resp_file_list = [l.versioned_filename for l in
+                response.context['file_list']]
         self.assertEqual(len(response.context['file_list']), 1)
-        self.assertIn(log.versioned_filename, response.context['file_list'])
+        self.assertIn(log.versioned_filename, resp_file_list)
 
     def test_lvem_user_view_symlinked_files_for_exposed_event(self):
         """LV-EM user can view symlinked files for exposed event"""
@@ -236,9 +244,15 @@ class TestEventFileListView(ExposeLogMixin, EventSetup, GraceDbTestBase):
         url = reverse('file_list', args=[self.lvem_event.graceid])
         response = self.request_as_user(url, "GET", self.lvem_user)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context['file_list']), 2)
-        self.assertIn(log.versioned_filename, response.context['file_list'])
-        self.assertIn(log.filename, response.context['file_list'])
+        resp_filenames = [l.filename for l in
+                response.context['file_list']]
+        resp_file_list = [l.versioned_filename for l in
+                response.context['file_list']]
+        # Only one file was exposed, and the new templatetag takes care of the
+        # symlink logic. API views are unaffected.
+        self.assertEqual(len(response.context['file_list']), 1)
+        self.assertIn(log.versioned_filename, resp_file_list)
+        self.assertIn(log.filename, resp_filenames)
 
     def test_public_user_view_files_for_event(self):
         """Public user can't view file list for any events"""

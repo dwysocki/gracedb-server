@@ -116,13 +116,18 @@ class SupereventFileList(SupereventDetailView):
         viewable_logs = get_objects_for_user(self.request.user, 
             self.log_view_permission, self.object.log_set.all())
 
+        file_list = viewable_logs.exclude(filename='').order_by('filename')
+
         # Here we get the list of files
-        file_list = get_file_list(viewable_logs, self.object.datadir)
-        if self.sort_files:
-            file_list = sorted(file_list)
+        #file_list = get_file_list(viewable_logs, self.object.datadir)
+        #if self.sort_files:
+        #    file_list = sorted(file_list)
 
         # Compile the new context data
         context['file_list'] = file_list
+
+        # And the superevent datadir
+        context['datadir'] = self.object.datadir
 
         return context
 

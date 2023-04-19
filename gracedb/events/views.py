@@ -605,22 +605,21 @@ def performance(request):
 #
 @event_and_auth_required
 def file_list(request, event):
-    f = []
 
-    # Filter file list for external users
-    if is_external(request.user):
-        viewable_logs = event.eventlog_set.filter(
-            tags__name=settings.EXTERNAL_ACCESS_TAGNAME)
-        f.extend(get_file_list(viewable_logs, event.datadir))
-    else:
-        for dirname, dirnames, filenames in os.walk(event.datadir):
-            f.extend(filenames)
-            break
+    # Get log messages with files:
+    logs_with_files = event.eventlog_set.exclude(filename='').order_by('filename')
 
+    #construct context:
     context = {}
-    context['file_list'] = f
     context['title'] = 'Files for %s' % event.graceid 
+    context['datadir'] = event.datadir
     context['graceid'] = event.graceid 
+
+    if is_external(request.user):
+        context['file_list'] = logs_with_files.filter(
+                tags__name=settings.EXTERNAL_ACCESS_TAGNAME)
+    else:
+        context['file_list'] = logs_with_files
         
     return render(request, 'gracedb/event_filelist.html', context=context)
 

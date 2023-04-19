@@ -1,15 +1,51 @@
 {% extends "base.html" %}
+{% load fileutil %}
 {% block title %}Files for {{ object.superevent_id }}{% endblock %}
 {% block heading %}Files for {{ object.superevent_id }}{% endblock %}
 {% block pageid %}Superevent files{% endblock %}
 
 {% block content %}
-<p>{{ message }}</p>
 
-<ul>
-{% for filename in file_list %}
-<li><a href="{% url "legacy_apiweb:default:superevents:superevent-file-detail" object.superevent_id filename %}">{{ filename }}</a></li>
-{% endfor %}
-</ul>
+<script type="text/javascript" class="init">
+    $(document).ready(function () {
+        $('#file-list').DataTable({
+            paging:false,
+            searching:false,
+            info:false,
+            order: [[0, 'asc']],
+        });
+});
+</script>
+
+<div class="row my-3 justify-content-center">
+  <div class="col-md-10">
+
+    <p>
+      Filenames in <b>bold</b> are symbolic links that point to the specified
+      file.
+    </p>
+
+    <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded"
+        id="file-list">
+      <thead>
+        <tr>
+          <th colspan="4"><h3> {{ object.superevent_id }} File List </h3></th>
+        </tr>
+
+        <tr>
+        <th scope="col"> File Name </th>
+        <th scope="col"> Created (UTC) </th>
+        <th scope="col"> Submitter </th>
+        <th scope="col"> File Size (KB) </th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% file_table_detail file_list datadir object.superevent_id %}
+      </tbody>
+
+    </table>
+  </div>
+</div>
 
 {% endblock %}
