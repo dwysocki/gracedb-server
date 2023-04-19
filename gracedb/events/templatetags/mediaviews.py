@@ -306,9 +306,21 @@ rrt_event_fmt = """\
 </a>"""
 
 
-def event_tooltip_link(event):
-    event_url = build_absolute_uri(f"/events/{event.graceid}/view/")
-    
+tooltip_fmt = """\
+<a href="{event_url}"
+   data-toggle="tooltip"
+   data-placement="top"
+   data-html="true"
+   title=""
+   data-original-title="<b>{graceid}</b><br>
+   <b>Pipeline:</b> {pipeline}<br>
+   <b>FAR:</b> {far}<br>
+   <b>SNR:</b> {snr}">
+   {graceid}
+</a>"""
+
+
+def get_event_snr(event):
     if hasattr(event, 'coincinspiralevent'):
         event_snr = event.coincinspiralevent.snr
     elif hasattr(event, 'multiburstevent'):
@@ -320,9 +332,7 @@ def event_tooltip_link(event):
     else:
         # Return a blank string
         event_snr = ""
-
-    return rrt_event_fmt.format(
-                event=event, event_url=event_url, event_snr=event_snr)
+    return event_snr
 
 
 @register.filter(is_safe=True)
@@ -332,23 +342,31 @@ def rrt_event_filter(event_list, rrt_subcategory):
     for event in event_list:
         if is_in_rrt_subcategory(event, rrt_subcategory):
             event_url = build_absolute_uri(f"/events/{event.graceid}/view/")
+            event_snr = get_event_snr(event)
 
-            if hasattr(event, 'coincinspiralevent'):
-                event_snr = event.coincinspiralevent.snr
-            elif hasattr(event, 'multiburstevent'):
-                event_snr = event.multiburstevent.snr
-            elif hasattr(event, 'lalinferenceburstevent'):
-                event_snr = event.lalinferenceburstevent.omicron_snr_network
-            elif hasattr(event, 'mlyburstevent'):
-                event_snr = event.mlyburstevent.snr
-            else:
-                # Return a blank string
-                event_snr = ""
-
-            ret_strio.write(event_tooltip_link(event))
+            ret_strio.write(rrt_event_fmt.format(
+                event=event, event_url=event_url, event_snr=event_snr,
+            ))
 
     return mark_safe(ret_strio.getvalue())
 
 @register.filter(is_safe=True)
 def event_link_filter(event):
-    return mark_safe(event_tooltip_link(event))
+    event_url = build_absolute_uri(f"/events/{event.graceid}/view/")
+    if not event.far:
+        safe_far=""
+    else:
+        safe_far="{:.3e}".format(event.far)
+
+    snr = get_event_snr(event)
+    if snr:
+        snr = "{:.3f}".format(snr)
+
+    rv = tooltip_fmt.format(event_url=event_url,
+            graceid=event.graceid,
+            pipeline=event.pipeline.name,
+            far=safe_far,
+            snr=snr)
+
+    return mark_safe(rv)
+
