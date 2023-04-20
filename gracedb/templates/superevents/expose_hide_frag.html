@@ -1,0 +1,20 @@
+<div class="signoff-area">
+     <table class="table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
+       <thead>
+         <tr><th><h3>Expose/Hide Superevent</h3></th></tr>
+       </thead>
+        <tr>
+          <td>
+                <center>
+                    <br>
+                    <form action="{% url "legacy_apiweb:default:superevents:superevent-permission-modify" superevent.superevent_id %}"
+                          method="POST"
+                          id="permissions_form">
+                        <input type="hidden" name="action" value="{{ permissions_action }}">
+                        <input type="submit" value="{{ permissions_form_button_text }}" class="btn btn-danger permButtonClass" id="permissions_submit_link"  onclick="return clickConfirm()">
+                    </form>
+                </center>
+          </td>
+       </tr>
+     </table>
+</div>
