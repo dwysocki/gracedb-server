@@ -33,7 +33,7 @@ INFO_BANNER_MESSAGE = "TEST MESSAGE"
 BETA_REPORTS_LINK = False
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.19.0'
+PROJECT_VERSION = '2.20.0'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -67,6 +67,7 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 ADMINS = [
     ("Alexander Pace", "alexander.pace@ligo.org"),
     ("Duncan Meacher", "duncan.meacher@ligo.org"),
+    ("Daniel Wysocki", "daniel.wysocki@ligo.org"),
 ]
 MANAGERS = ADMINS
 
