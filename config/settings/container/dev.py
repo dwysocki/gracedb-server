@@ -32,7 +32,7 @@ ALLOWED_HOSTS += ['testserver']
 # Enforce that phone and email alerts are off XXX: Set by deployment variables!
 #SEND_PHONE_ALERTS = False
 #SEND_EMAIL_ALERTS = False
-
+#SEND_MATTERMOST_ALERTS = True
 
 # Settings for django-silk profiler
 SILKY_AUTHENTICATION = True

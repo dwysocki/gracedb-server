@@ -50,10 +50,7 @@ INTERNAL_IPS = [
 # Enforce that phone and email alerts are off XXX: Set by deployment variables!
 #SEND_PHONE_ALERTS = False
 #SEND_EMAIL_ALERTS = False
-
-# Enable Mattermost alerts
-SEND_MATTERMOST_ALERTS = True
-
+#SEND_MATTERMOST_ALERTS = True
 
 # Set up Sentry for error logging
 sentry_dsn = get_from_env('DJANGO_SENTRY_DSN', fail_if_not_found=False)
