@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import logging
+import time
 
 from django.conf import settings
 from django.urls import reverse
@@ -114,6 +115,8 @@ def issue_phone_alerts_local(event_or_superevent, alert_type, contacts,
     """
     Note: contacts is a QuerySet of Contact objects.
     """
+    time_start = time.perf_counter()
+
     # Get "from" phone number.
     from_ = get_twilio_from()
 
@@ -162,9 +165,14 @@ def issue_phone_alerts_local(event_or_superevent, alert_type, contacts,
             logger.exception("Failed to text {0} at {1}.".format(
                 contact.user.username, contact.phone))
 
+    time_elapsed = time.perf_counter() - time_start
+    logger.debug(f"Sent {len(contacts)} phone alerts in {time_elapsed} sec")
+
 
 def issue_phone_alerts_egad(event_or_superevent, alert_type, contacts,
                             label=None):
+    time_start = time.perf_counter()
+
     # Get message content
     msg_kwargs = {}
     if alert_type in ['label_added', 'label_removed'] and label:
@@ -199,6 +207,11 @@ def issue_phone_alerts_egad(event_or_superevent, alert_type, contacts,
     }
 
     egad.send_alert("phone", payload)
+
+    time_elapsed = time.perf_counter() - time_start
+    logger.debug(
+        f"Dispatched {len(contacts)} phone alerts in {time_elapsed} sec"
+    )
 
 
 if settings.ENABLE_EGAD_PHONE:
