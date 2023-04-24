@@ -20,7 +20,7 @@ headers = {
 
 
 def send_alert(alert_type, payload):
-    logger.debug(f"Sending alert through EGAD at {url}")
+    logger.debug(f"Sending {alert_type} alert through EGAD at {url}")
     time_start = time.perf_counter()
     r = requests.post(f"{url}/{alert_type}", json=payload, headers=headers)
     time_elapsed = time.perf_counter() - time_start
