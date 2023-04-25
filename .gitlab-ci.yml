@@ -20,9 +20,6 @@ container_scanning:
   variables:
     CS_DISABLE_LANGUAGE_VULNERABILITY_SCAN: "false"
 
-before_script:
-  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-
 .test: &test
   image: igwn/base:buster
   services:
@@ -122,6 +119,7 @@ test:3.7:
 branch_image:
   stage: branch
   script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker build --pull -t $DOCKER_BRANCH .
     - docker push $DOCKER_BRANCH
   retry:
@@ -135,6 +133,7 @@ latest_image:
   dependencies:
     - branch_image
   script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker pull $DOCKER_BRANCH
     - docker tag $DOCKER_BRANCH $DOCKER_LATEST
     - docker push $DOCKER_LATEST
