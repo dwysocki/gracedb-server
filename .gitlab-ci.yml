@@ -11,14 +11,11 @@ variables:
 stages:
   - test
   - branch
+  - container-test
   - latest
 
 include:
   - template: Security/Container-Scanning.gitlab-ci.yml
-
-container_scanning:
-  variables:
-    CS_DISABLE_LANGUAGE_VULNERABILITY_SCAN: "false"
 
 .test: &test
   image: igwn/base:buster
@@ -127,6 +124,11 @@ branch_image:
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
+
+container_scanning:
+  stage: container-test
+  variables:
+    CS_DISABLE_LANGUAGE_VULNERABILITY_SCAN: "false"
 
 latest_image:
   stage: latest
