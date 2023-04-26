@@ -5,9 +5,9 @@ TIER = "production"
 
 DEBUG = False
 
-# Turn on alerts
-SEND_PHONE_ALERTS = True
-SEND_EMAIL_ALERTS = True
+# Turn on alerts: XXX: Set by deployment variables!
+#SEND_PHONE_ALERTS = True
+#SEND_EMAIL_ALERTS = True
 
 # TP, March 2019: for now, it looks infeasible to use multiple databases
 # since there are many operations which normal LVC users can do that

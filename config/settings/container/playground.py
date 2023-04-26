@@ -13,9 +13,9 @@ DEBUG = False
 # TP (8 Aug 2017): not sure why?
 EMBB_MAIL_ADDRESS = 'gracedb@{fqdn}'.format(fqdn=SERVER_FQDN)
 
-# Enforce that phone and email alerts are off
-SEND_PHONE_ALERTS = False
-SEND_EMAIL_ALERTS = False
+# Enforce that phone and email alerts are off XXX: Set by deployment variables!
+#SEND_PHONE_ALERTS = False
+#SEND_EMAIL_ALERTS = False
 
 # Add testserver to ALLOWED_HOSTS
 ALLOWED_HOSTS += ['testserver']

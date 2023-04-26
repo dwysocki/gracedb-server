@@ -279,6 +279,20 @@ LVALERT_OVERSEER_INSTANCES.append(
 }
 )
 
+# Pull in remaining (phone/email) alert variables from 
+# the environment. Default to false.
+SEND_PHONE_ALERTS = parse_envvar_bool(get_from_env(
+    'SEND_PHONE_ALERTS',
+    default_value='False',
+    fail_if_not_found=False
+    ))
+
+SEND_EMAIL_ALERTS = parse_envvar_bool(get_from_env(
+    'SEND_EMAIL_ALERTS',
+    default_value='False',
+    fail_if_not_found=False
+    ))
+
 INSTANCE_STUB = """
 <li>Phone alerts (calls/SMS) are {0}</li>
 <li>Email alerts are {1}</li>

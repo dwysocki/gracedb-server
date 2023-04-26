@@ -47,9 +47,9 @@ INTERNAL_IPS = [
     INTERNAL_IP_ADDRESS,
 ]
 
-# Enforce that phone and email alerts are off
-SEND_PHONE_ALERTS = False
-SEND_EMAIL_ALERTS = False
+# Enforce that phone and email alerts are off XXX: Set by deployment variables!
+#SEND_PHONE_ALERTS = False
+#SEND_EMAIL_ALERTS = False
 
 
 # Set up Sentry for error logging

@@ -21,6 +21,9 @@ def get_from_env(envvar, default_value=None, fail_if_not_found=True):
             'Could not get environment variable {0}'.format(envvar))
     return value
 
+def parse_envvar_bool(x):
+    return x.lower() in ['t', 'true', '1']
+
 # Maintenance mode
 MAINTENANCE_MODE = False
 MAINTENANCE_MODE_MESSAGE = None
@@ -33,7 +36,7 @@ INFO_BANNER_MESSAGE = "TEST MESSAGE"
 BETA_REPORTS_LINK = False
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.20.0'
+PROJECT_VERSION = '2.20.1'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is

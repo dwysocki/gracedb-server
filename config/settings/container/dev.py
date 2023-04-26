@@ -29,9 +29,9 @@ INSTALLED_APPS += [
 # Add testserver to ALLOWED_HOSTS
 ALLOWED_HOSTS += ['testserver']
 
-# Enforce that phone and email alerts are off
-SEND_PHONE_ALERTS = False
-SEND_EMAIL_ALERTS = False
+# Enforce that phone and email alerts are off XXX: Set by deployment variables!
+#SEND_PHONE_ALERTS = False
+#SEND_EMAIL_ALERTS = False
 
 
 # Settings for django-silk profiler
