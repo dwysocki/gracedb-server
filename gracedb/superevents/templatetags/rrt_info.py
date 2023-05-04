@@ -29,7 +29,10 @@ def get_template_from_label(sevent):
     # Get filename based on label, or return the advreq message:
     if sevent.labels.filter(name='ADVOK'):
         notice_filename = '{}-initial.json'.format(sevent.superevent_id)
-        circular_filename = 'initial-circular.txt'
+        if sevent.labels.filter(name='RAVEN_ALERT'):
+            circular_filename = 'initial-emcoinc-circular.txt'
+        else:
+            circular_filename = 'initial-circular.txt'
 
     elif sevent.labels.filter(name='ADVNO'):
         notice_filename = '{}-retraction.json'.format(sevent.superevent_id)

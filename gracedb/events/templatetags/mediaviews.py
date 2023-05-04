@@ -273,9 +273,14 @@ def tag_selecter(name, autoescape=None):
 def is_in_rrt_subcategory(event, rrt_subcategory):
     if rrt_subcategory == "CBC":
         if event.search:
+
             return (
                 event.group.name == "CBC"
                 and not event.search.name == "EarlyWarning"
+            ) | (
+                    event.group.name == "Burst"
+                    and event.pipeline.name =="CWB"
+                    and event.search.name == "BBH"
             )
         else:
             return (
@@ -283,7 +288,11 @@ def is_in_rrt_subcategory(event, rrt_subcategory):
             )
 
     elif rrt_subcategory == "Burst":
-        return event.group.name == "Burst"
+        return (
+            event.group.name == "Burst"
+            and not( event.pipeline.name == "CWB" and
+                 event.search.name == "BBH")
+            )
 
     elif rrt_subcategory == "EarlyWarning" and event.search:
         return event.search.name == "EarlyWarning"
