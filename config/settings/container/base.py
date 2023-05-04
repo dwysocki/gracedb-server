@@ -322,6 +322,12 @@ SEND_EMAIL_ALERTS = parse_envvar_bool(get_from_env(
     fail_if_not_found=False
     ))
 
+SEND_MATTERMOST_ALERTS = parse_envvar_bool(get_from_env(
+    'SEND_MATTERMOST_ALERTS',
+    default_value='False',
+    fail_if_not_found=False
+    ))
+
 INSTANCE_STUB = """
 <li>Phone alerts (calls/SMS) are {0}</li>
 <li>Email alerts are {1}</li>
