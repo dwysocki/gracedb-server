@@ -95,6 +95,30 @@ except:
 
 BETA_REPORTS_LINK = True
 
+## EGAD (External GraceDB Alert Dispatcher) configuration
+ENABLE_EGAD_EMAIL = parse_envvar_bool(
+    get_from_env('ENABLE_EGAD_EMAIL',
+                 fail_if_not_found=False, default_value="false")
+)
+ENABLE_EGAD_KAFKA = parse_envvar_bool(
+    get_from_env('ENABLE_EGAD_KAFKA',
+                 fail_if_not_found=False, default_value="false")
+)
+ENABLE_EGAD_MATTERMOST = parse_envvar_bool(
+    get_from_env('ENABLE_EGAD_MATTERMOST',
+                 fail_if_not_found=False, default_value="false")
+)
+ENABLE_EGAD_PHONE = parse_envvar_bool(
+    get_from_env('ENABLE_EGAD_PHONE',
+                 fail_if_not_found=False, default_value="false")
+)
+
+ENABLE_EGAD = (
+    ENABLE_EGAD_EMAIL or ENABLE_EGAD_KAFKA
+    or ENABLE_EGAD_MATTERMOST or ENABLE_EGAD_PHONE
+)
+
+
 # Pull in remaining (phone/email) alert variables from
 # the environment. Default to false.
 SEND_PHONE_ALERTS = parse_envvar_bool(get_from_env(

@@ -56,11 +56,11 @@ timeout = get_from_env('GUNICORN_TIMEOUT',
 # randint(0, max_requests_jitter)
 
 max_requests = get_from_env('GUNICORN_MAX_REQUESTS',
-                   default_value=2500,
+                   default_value=5000,
                    fail_if_not_found=False)
 
 max_requests_jitter = get_from_env('GUNICORN_MAX_REQUESTS_JITTER',
-                   default_value=100,
+                   default_value=250,
                    fail_if_not_found=False)
 
 # keepalive -------------------------------------------------------------------
@@ -71,7 +71,7 @@ max_requests_jitter = get_from_env('GUNICORN_MAX_REQUESTS_JITTER',
 # this to a higher value.
 
 keepalive = get_from_env('GUNICORN_KEEPALIVE',
-                   default_value=25,
+                   default_value=60,
                    fail_if_not_found=False)
 
 # preload_app -----------------------------------------------------------------
@@ -84,7 +84,8 @@ keepalive = get_from_env('GUNICORN_KEEPALIVE',
 
 # If you aren't going to make use of on-the-fly reloading, consider preloading 
 # your application code to reduce its memory footprint. So, turn this on in
-# production.
+# production. This is default set to False for development, but
+# **TURN THIS TO TRUE FOR AWS DEPLOYMENT **
 
 preload_app = get_from_env('GUNICORN_PRELOAD_APP',
                    default_value=False,

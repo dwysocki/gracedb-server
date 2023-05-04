@@ -121,7 +121,7 @@ class SupereventFileList(SupereventDetailView):
 
         # Get list of logs which are viewable by the user
         viewable_logs = get_objects_for_user(self.request.user, 
-            self.log_view_permission, self.object.log_set.all())
+            self.log_view_permission, klass=self.object.log_set.all())
 
         file_list = viewable_logs.exclude(filename='').order_by('filename')
 

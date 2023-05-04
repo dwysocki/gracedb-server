@@ -91,7 +91,7 @@ class NestedViewSet(viewsets.GenericViewSet):
                 self._parent_queryset = self.parent_queryset
             else:
                 self._parent_queryset = get_objects_for_user(self.request.user,
-                    self.parent_access_permission, self.parent_queryset)
+                    self.parent_access_permission, klass=self.parent_queryset)
 
         return self._parent_queryset
 

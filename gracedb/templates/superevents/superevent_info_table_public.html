@@ -31,22 +31,6 @@
       </tr>
 
       <tr>
-        <td> Labels </td>
-        <td>
-        {% for labelling in superevent.labelling_set.all %}
-                    <span style="color: {{labelling.label.defaultColor}};" class="label"
-                       data-toggle="tooltip"
-                       data-placement="top"
-                       data-html="true"
-                       title="<em>{{labelling.label.description}}</em><br>
-                      <b>Added by:</b> {{labelling.creator.get_full_name}}<br>
-                      <b>Added:</b> {{labelling.created}}">
-               {{ labelling.label.name }}</span>
-       {% endfor %}
-        </td>
-      </tr>
-
-      <tr>
         <td> t<sub>start</sub> </td>
         <td> {{ superevent.t_start|floatformat:2 }} </td>
       </tr>

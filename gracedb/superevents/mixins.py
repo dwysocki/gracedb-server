@@ -37,7 +37,7 @@ class PermissionsFilterMixin(SingleObjectMixin):
         the required permissions.
         """
         qs = get_objects_for_user(self.request.user, self.filter_permissions,
-            queryset, **{'accept_global_perms': self.accept_global_perms})
+            klass=queryset, **{'accept_global_perms': self.accept_global_perms})
 
         return qs
 

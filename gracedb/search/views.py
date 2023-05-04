@@ -44,7 +44,7 @@ def search(request):
             else:
                 return HttpResponseBadRequest(
                     "query_type should be 'S' or 'E'")
-            objects = get_objects_for_user(request.user, view_perm, objects)
+            objects = get_objects_for_user(request.user, view_perm, klass=objects)
 
             # Get call from template for populating datatable
             if _format == 'F':
@@ -122,7 +122,7 @@ def latest(request):
 
         # Filter objects for user and add to context, sorted in reverse
         # chronological order of submission
-        objects = get_objects_for_user(request.user, view_perm, objects)
+        objects = get_objects_for_user(request.user, view_perm, klass=objects)
         context[objects_key] = \
             objects.order_by('-id')[:settings.LATEST_RESULTS_NUMBER]
 

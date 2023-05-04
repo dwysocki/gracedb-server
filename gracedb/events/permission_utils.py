@@ -24,7 +24,7 @@ def user_has_perm(user, shortname, obj):
 
 def filter_events_for_user(events, user, shortname):
     perm_codename = 'events.{verb}_event'.format(verb=shortname)
-    return get_objects_for_user(user, perm_codename, events)
+    return get_objects_for_user(user, perm_codename, klass=events)
 
 #-------------------------------------------------------------------------------
 # Filter a queryset of Event objects according to user permissions.

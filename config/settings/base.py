@@ -432,8 +432,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_THROTTLE_RATES': {
         'anon_burst': '300/minute',
-        'event_creation': '25/second',
-        'annotation'    : '25/second',
+        'event_creation': '50/second',
+        'annotation'    : '50/second',
     },
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'api.backends.GraceDbAuthenticatedAuthentication',
