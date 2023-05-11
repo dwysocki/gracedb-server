@@ -628,7 +628,7 @@ class EventDetail(InheritPermissionsAPIView):
 
         # Extract Info from uploaded data
         uploadDestination = os.path.join(event.datadir, f.name)
-        handle_uploaded_data(event, uploadDestination)
+        handle_uploaded_data(event, uploadDestination, file_version=version)
         event.submitter = request.user
 
         # Save event

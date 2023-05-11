@@ -75,20 +75,30 @@ def cleanData(val, field_name, table_name='events_event'):
         raise ValueError("Unrecognized value in column %s" % field_name)
 
 def handle_uploaded_data(event, datafilename,
+                         file_version=0,
                          log_filename='event.log',
                          coinc_table_filename='coinc.xml',
                          file_contents=None):
 
     # This is the base file name of the event creation upload:
     base_file_name = ''
+
+    # The log message should be "Original Data" if it's the initial upload
+    # (file_version=0), but should reflect that it's an update/replacement 
+    # otherwise. 
+    if not bool(file_version):
+        comment = "Original Data"
+    else:
+        comment = "Event data replaced by new upload"
+
     if datafilename:
         # Extract the base filename from the upload:
         base_file_name = os.path.basename(datafilename)
         log = EventLog(event=event,
                        filename=base_file_name,
-                       file_version=0,
+                       file_version=file_version,
                        issuer=event.submitter,
-                       comment="Original Data")
+                       comment=comment)
         log.save()
 
     # XXX If you can manage to get rid of the MBTA .gwf parsing and
