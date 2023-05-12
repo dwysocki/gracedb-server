@@ -16,7 +16,6 @@
         <th> Pipeline </th>
         <th> gpstime </th>
         <th> FAR (Hz) </th>
-        <th> SNR </th>
         <th><span style="font-family: monospace">p_astro</span></th>
         <th><span style="font-family: monospace">em_bright</span></th>
       </tr>
@@ -25,7 +24,7 @@
       <tbody style="">
       {% for e in pipeline_preferred_events %}
         <tr>
-         <td><a href="{% url "view" e.graceid %}">{{ e.graceid }}</a></td>
+          <td> {{ e.graceid }} </td>
          <td> {{ e.group.name }} </td>
          <td> {{ e.pipeline.name }} </td>
          <td> {{ e.gpstime | floatformat:"3" }} </td>
@@ -35,16 +34,6 @@
              {% else %}
              &nbsp; &nbsp; &nbsp; &nbsp;
              {% endif %}
-         </td>
-         <td data-title="SNR">
-             {% if e.coincinspiralevent %}
-             {{ e.coincinspiralevent.snr|floatformat:"3" }}
-             {% elif e.multiburstevent %}
-             {{ e.multiburstevent.snr|floatformat:"3" }}
-             {% else %}
-             &nbsp; &nbsp; &nbsp; &nbsp;
-             {% endif %}
-         </td>
          <td> {{ preferred_event.graceid | json_text:"p_astro,newline" }} </td>
          <td> {{ preferred_event.graceid | json_text:"em_bright,newline" }} </td>
 
