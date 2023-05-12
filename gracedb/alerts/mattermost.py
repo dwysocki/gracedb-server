@@ -28,7 +28,7 @@ def issue_mattermost_alerts_egad(event_or_superevent, alert_type):
     if alert_type != "new":
         return
     if (settings.TIER not in {"dev"}
-        and not event_or_superevent.is_production):
+        and not event_or_superevent.is_production()):
         return
 
     superevent = event_or_superevent
