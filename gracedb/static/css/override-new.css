@@ -1,5 +1,35 @@
 /* CSS file for overriding other styles */
 
+.btn-navbar
+{
+background-color: #29527A;
+color:#FAFAFA;
+border-color: #29527A;
+padding-left: 0px;
+padding-right: 0px;
+padding-top: 7px;
+}
+
+.btn-navbar:hover, .btn-default:focus, .btn-default:active, .btn-default.active, .open .dropdown-toggle.btn-default {
+background-color: #29527A;
+color:#d4d4d4;
+border-color: #29527A;
+}
+
+.btn-split
+{
+background-color: #29527A;
+color:#FAFAFA;
+border-color: #29527A;
+padding-top: 7px;
+}
+
+.btn-split:hover, .btn-default:focus, .btn-default:active, .btn-default.active, .open .dropdown-toggle.btn-default {
+background-color: #29527A;
+color:#d4d4d4;
+border-color: #29527A;
+
+}
 /* Lightbox image background */
 .nano-image {
     background-color: white;

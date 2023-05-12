@@ -19,7 +19,25 @@ suburlpatterns = [
 
 # Legacy URL patterns - don't really need them, but we use them for the
 # convenience of users who may be accustomed to the legacy event URL patterns
-legacy_urlpatterns = [
+
+# public page url patterns. This needs to go first so django matches 
+# the 'public' string before parsing it interprets it as a superevent_id.
+# Note to future generations: don't name a GW 'public' or the link breaks.
+
+public_urlpatterns = [
+    # View of all public candidates
+    path('public/', views.SupereventPublic.as_view(),
+        name="public-alerts"),
+
+    # redirect to the main public page. TODO: do something with the
+    # integer? like jump to a specific table on the page? maybe have
+    # a pull-down menu from the "Public Alerts" link that jumps to a
+    # specific observation run?
+     path('public/O<int:obsrun>/', views.public_alerts_redirect,
+         name="public-alerts-redirect"),
+
+]
+legacy_urlpatterns = public_urlpatterns + [
     # Legacy URLs for superevent detail view
     path('<str:superevent_id>/',
         views.SupereventDetailView.as_view(),
@@ -34,9 +52,5 @@ legacy_urlpatterns = [
 urlpatterns = legacy_urlpatterns + [
     path('<str:superevent_id>/',
         include(suburlpatterns)),
-
-    # View of all candidates
-    path('public/O3/', views.SupereventPublic.as_view(),
-        name="public-alerts-O3"),
 
 ]

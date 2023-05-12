@@ -17,6 +17,9 @@ ExpressionOperator.setParseAction(lambda toks: EXPR_OPERATORS[toks[0]])
 
 # Dict of LIGO run names (keys) and GPS time range tuples (values)
 RUN_MAP = {
+    # O4 Start May 24, 2023...1500UTC? 18 months later...Nov. 24, 2024.
+    # FIXME: change the end date in a future release:
+    "O4": (1368975618, 1416495618),
     # O3 suspended early due to COVID-19:
     # https://www.ligo.caltech.edu/news/ligo20200326
     # 01 Apr 2019 15:00:00 UTC - 27 Mar 2020 16:00:00 UTC

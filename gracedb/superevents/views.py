@@ -2,6 +2,8 @@ import logging
 import os
 from lal import gpstime
 
+from django.conf import settings
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic.detail import DetailView
@@ -19,6 +21,7 @@ from .mixins import ExposeHideMixin, OperatorSignoffMixin, \
     AdvocateSignoffMixin, PermissionsFilterMixin, ConfirmGwFormMixin, \
     RRTViewMixin
 from .models import Superevent, VOEvent
+from search.constants import RUN_MAP
 from .utils import get_superevent_by_date_id_or_404, \
     get_superevent_by_sid_or_gwid_or_404
 
@@ -142,6 +145,14 @@ class SupereventFileList(SupereventDetailView):
 # handled through the API. Links on the file list page point to the
 # API file download page.
 
+# Direct /public/O<int>/ to just /public, for now. Putting in a specific 
+# O{run}. Change the int to a slug if you want to put in ER** or something
+# instead.
+def public_alerts_redirect(request, obsrun=None):
+    response =  redirect('/superevents/public/#O{run}'.format(run=obsrun))
+    return response
+
+# The public alerts page:
 @method_decorator(public_if_public_access_allowed, name='dispatch')
 class SupereventPublic(DisplayFarMixin, ListView):
     model = Superevent
@@ -152,6 +163,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
     gcnurl_template = 'https://gcn.gsfc.nasa.gov/other/GW{sd_id}.gcn3'
     default_skymap_filename = 'bayestar.png'
     pe_results_tagname = 'pe_results'
+
 
     def get_queryset(self, **kwargs):
         # Query only for public events
@@ -193,179 +205,199 @@ class SupereventPublic(DisplayFarMixin, ListView):
         return skymap_image
 
     def get_context_data(self, **kwargs):
-        # Get base context
         context = super(SupereventPublic, self).get_context_data(**kwargs)
 
         # For each superevent, get list of log messages and construct pastro
         # string
-        candidates = 0
-        for se in self.object_list:
+        table_data = {}
+        for run in settings.PUBLIC_PAGE_RUNS:
+            candidates = 0
+            retractions = 0
+            table_data[run] = {}
 
-            # External links to GCN notice and circular
-            se.noticeurl = self.noticeurl_template.format(s_id=
-                se.default_superevent_id)
-            se.gcnurl = self.gcnurl_template.format(sd_id=
-                se.default_superevent_id[1:])
+            # Define an empty queryset that we're going to export:
+            sevents = Superevent.objects.none()
 
-            se.t0_iso = gpstime.gps_to_utc(se.t_0).isoformat(' ').split('.')[0]
-            se.t0_utc = se.t0_iso.split()[1]
+            # Filter and loop over exposed superevents for the given run:
+            run_events = self.object_list.filter(t_0__range=RUN_MAP[run])
+            for se in run_events:
 
-            # Get display FARs for preferred_event
-            se.far_hz, se.far_hr, se.far_limit = self.get_display_far(
-                obj=se.preferred_event)
+                # External links to GCN notice and circular
+                se.noticeurl = self.noticeurl_template.format(s_id=
+                    se.default_superevent_id)
+                se.gcnurl = self.gcnurl_template.format(sd_id=
+                    se.default_superevent_id[1:])
+    
+                se.t0_iso = gpstime.gps_to_utc(se.t_0).isoformat(' ').split('.')[0]
+                se.t0_utc = se.t0_iso.split()[1]
+    
+                # Get display FARs for preferred_event
+                se.far_hz, se.far_hr, se.far_limit = self.get_display_far(
+                    obj=se.preferred_event)
+    
+                # Get list of voevents, filtering out retractions
+                voe = se.voevent_set.exclude(voevent_type=
+                    VOEvent.VOEVENT_TYPE_RETRACTION).order_by('-N').first()
+    
+                # Get skymap image (if a public one exists)
+                se.skymap_image = self.get_skymap_image(se, voe)
+    
+                # Was the candidate retracted?
+                se.retract = se.voevent_set.filter(voevent_type=
+                    VOEvent.VOEVENT_TYPE_RETRACTION).exists()
+                candidates += int(not se.retract)
+                retractions += int(se.retract)
+    
+                # Get list of viewable logs for user which are tagged with
+                # 'analyst_comments'
+                viewable_logs = se.log_set.filter(tags__name='public').filter(
+                    tags__name='analyst_comments')
+                # Compile comments from these logs
+                se.comments = ' ** '.join(list(viewable_logs.values_list(
+                    'comment', flat=True)))
+                if se.retract:
+                    if se.comments:
+                        se.comments = " ** " + se.comments
+                    se.comments = "RETRACTED" + se.comments
+    
+                # Get list of PE results
+                pe_results = get_objects_for_user(self.request.user,
+                    self.log_view_permission,
+                    klass=se.log_set.filter(tags__name=self.pe_results_tagname))
+                # Compile comments from these logs
+                se.pe = ' ** '.join(list(pe_results.values_list(
+                    'comment', flat=True)))
+    
+                # Get p_astro probabilities
+                if voe is not None:
+                    pastro_values = [("BNS", voe.prob_bns),
+                        ("NSBH", voe.prob_nsbh),
+                        ("BBH", voe.prob_bbh),
+                        ("Terrestrial", voe.prob_terrestrial),
+                        ("MassGap", voe.prob_mass_gap),
+                        ("HasMassGap", voe.prob_has_mass_gap)]
+                    pastro_values.sort(reverse=True, key=lambda p_a: 0.0 if p_a[1] is None else p_a[1])
+                    sourcelist = []
+                    for key, value in pastro_values:
+                        if value is None:
+                            value = 0.0
+                        if value > 0.01:
+                            prob = int(round(100*value))
+                            if prob == 100: prob = '>99'
+                            sourcestr = "{0} ({1}%)".format(key, prob)
+                            sourcelist.append(sourcestr)
+                    se.sourcetypes = ', '.join(sourcelist)
 
-            # Get list of voevents, filtering out retractions
-            voe = se.voevent_set.exclude(voevent_type=
-                VOEvent.VOEVENT_TYPE_RETRACTION).order_by('-N').first()
 
-            # Get skymap image (if a public one exists)
-            se.skymap_image = self.get_skymap_image(se, voe)
+            # Now add it to the output dict, with the key being the run value:
+            table_data[run]['events'] =  run_events
+            table_data[run]['candidates'] = candidates
+            table_data[run]['retractions'] = retractions
 
-            # Was the candidate retracted?
-            se.retract = se.voevent_set.filter(voevent_type=
-                VOEvent.VOEVENT_TYPE_RETRACTION).exists()
-            candidates += int(not se.retract)
-
-            # Get list of viewable logs for user which are tagged with
-            # 'analyst_comments'
-            viewable_logs = se.log_set.filter(tags__name='public').filter(
-                tags__name='analyst_comments')
-            # Compile comments from these logs
-            se.comments = ' ** '.join(list(viewable_logs.values_list(
-                'comment', flat=True)))
-            if se.retract:
-                if se.comments:
-                    se.comments = " ** " + se.comments
-                se.comments = "RETRACTED" + se.comments
-
-            # Get list of PE results
-            pe_results = get_objects_for_user(self.request.user,
-                self.log_view_permission,
-                klass=se.log_set.filter(tags__name=self.pe_results_tagname))
-            # Compile comments from these logs
-            se.pe = ' ** '.join(list(pe_results.values_list(
-                'comment', flat=True)))
-
-            # Get p_astro probabilities
-            if voe is not None:
-                pastro_values = [("BNS", voe.prob_bns),
-                    ("NSBH", voe.prob_nsbh),
-                    ("BBH", voe.prob_bbh),
-                    ("Terrestrial", voe.prob_terrestrial),
-                    ("HasMassGap", voe.prob_has_mass_gap)]
-                pastro_values.sort(reverse=True, key=lambda p_a: 0.0 if p_a[1] is None else p_a[1])
-                sourcelist = []
-                for key, value in pastro_values:
-                    if value is None:
-                        value = 0.0
-                    if value > 0.01:
-                        prob = int(round(100*value))
-                        if prob == 100: prob = '>99'
-                        sourcestr = "{0} ({1}%)".format(key, prob)
-                        sourcelist.append(sourcestr)
-                se.sourcetypes = ', '.join(sourcelist)
-
-        # Number of non-retracted candidate events
-        context['candidates'] = candidates
-
-        return context
-
-
-@method_decorator(public_if_public_access_allowed, name='dispatch')
-class SupereventCurated(DisplayFarMixin, ListView):
-    model = Superevent
-    template_name = 'superevents/curated_events.html'
-    filter_permissions = ['superevents.view_superevent']
-    log_view_permission = 'superevents.view_log'
-
-    # Curated event categories, differentiated by label:
-    catalog_label_names = ['O3A_CBC_CATALOG',
-                           'O3B_CBC_CATALOG',
-                           'O3A_CBC_SUBTHRESHOLD',
-                           'O3B_CBC_SUBTHRESHOLD',]
-
-    def get_queryset(self, **kwargs):
-        # Query only for public events
-        # NOTE: may want to fix this to only O3 events at some point
-        qs = Superevent.objects.filter(is_gw=True,
-            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION) \
-            .prefetch_related('voevent_set', 'log_set')
-        return qs
-
-    def get_context_data(self, **kwargs):
-        # Get base context
-        context = super(SupereventCurated, self).get_context_data(**kwargs)
-
-        candidates = self.object_list
-
-        for section_label in self.catalog_label_names:
-            context[section_label] = candidates.filter(labels__name=section_label)
-
-        context['curated_gws'] = candidates
+        # export the dictionary for rendering:
+        context['data'] = table_data
+        context['runs'] = settings.PUBLIC_PAGE_RUNS
 
         return context
 
+# FIXME: this is vestigial code from a planned curated view. I'm going 
+# to comment it out, but leave it.
 
-class SupereventDetailCuratedView(OperatorSignoffMixin, AdvocateSignoffMixin,
-    ExposeHideMixin, ConfirmGwFormMixin, DisplayFarMixin,
-    PermissionsFilterMixin, DetailView):
-    """
-    Detail view for curated superevents.
-    """
-    model = Superevent
-    template_name = 'superevents/curated_detail.html'
-    filter_permissions = ['superevents.view_superevent']
-
-    def get_queryset(self):
-        """Get queryset and preload some related objects"""
-        qs = super(SupereventDetailCuratedView, self).get_queryset()
-
-        # Do some optimization
-        qs = qs.select_related('preferred_event__group',
-            'preferred_event__pipeline', 'preferred_event__search')
-        qs = qs.prefetch_related('labelling_set', 'events')
-
-        return qs
-
-    def get_object(self, queryset=None):
-        if queryset is None:
-            queryset = self.get_queryset()
-        superevent_id = self.kwargs.get('superevent_id')
-        obj = get_superevent_by_sid_or_gwid_or_404(superevent_id, queryset)
-        return obj
-
-    def get_context_data(self, **kwargs):
-        # Get base context
-        context = super(SupereventDetailCuratedView, self).get_context_data(**kwargs)
-
-        # Add a bunch of extra stuff
-        superevent = self.object
-        context['preferred_event'] = superevent.preferred_event
-        context['preferred_event_labelling'] = superevent.preferred_event \
-            .labelling_set.prefetch_related('label', 'creator').all()
-
-        # TODO: filter events for user? Not clear what information we want
-        # to show to different groups
-        # Pass event graceids
-        context['internal_events'] = superevent.get_internal_events() \
-            .order_by('id')
-        context['external_events'] = superevent.get_external_events() \
-            .order_by('id')
-
-        # Get display FARs for preferred_event
-        context.update(zip(
-            ['display_far', 'display_far_hr', 'far_is_upper_limit'],
-            self.get_display_far(obj=superevent.preferred_event)
-            )
-        )
-
-        # Is the user an external user? (I.e., not part of the LVC?) The
-        # template needs to know that in order to decide what pieces of
-        # information to show.
-        context['user_is_external'] = is_external(self.request.user)
-
-        # Get list of EMGroup names for emo creation form
-        context['emgroups'] = EMGroup.objects.all().order_by('name') \
-            .values_list('name', flat=True)
-
-        return context
+#@method_decorator(public_if_public_access_allowed, name='dispatch')
+#class SupereventCurated(DisplayFarMixin, ListView):
+#    model = Superevent
+#    template_name = 'superevents/curated_events.html'
+#    filter_permissions = ['superevents.view_superevent']
+#    log_view_permission = 'superevents.view_log'
+#
+#    # Curated event categories, differentiated by label:
+#    catalog_label_names = ['O3A_CBC_CATALOG',
+#                           'O3B_CBC_CATALOG',
+#                           'O3A_CBC_SUBTHRESHOLD',
+#                           'O3B_CBC_SUBTHRESHOLD',]
+#
+#    def get_queryset(self, **kwargs):
+#        # Query only for public events
+#        # NOTE: may want to fix this to only O3 events at some point
+#        qs = Superevent.objects.filter(is_gw=True,
+#            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION) \
+#            .prefetch_related('voevent_set', 'log_set')
+#        return qs
+#
+#    def get_context_data(self, **kwargs):
+#        # Get base context
+#        context = super(SupereventCurated, self).get_context_data(**kwargs)
+#
+#        candidates = self.object_list
+#
+#        for section_label in self.catalog_label_names:
+#            context[section_label] = candidates.filter(labels__name=section_label)
+#
+#        context['curated_gws'] = candidates
+#
+#        return context
+#
+#
+#class SupereventDetailCuratedView(OperatorSignoffMixin, AdvocateSignoffMixin,
+#    ExposeHideMixin, ConfirmGwFormMixin, DisplayFarMixin,
+#    PermissionsFilterMixin, DetailView):
+#    """
+#    Detail view for curated superevents.
+#    """
+#    model = Superevent
+#    template_name = 'superevents/curated_detail.html'
+#    filter_permissions = ['superevents.view_superevent']
+#
+#    def get_queryset(self):
+#        """Get queryset and preload some related objects"""
+#        qs = super(SupereventDetailCuratedView, self).get_queryset()
+#
+#        # Do some optimization
+#        qs = qs.select_related('preferred_event__group',
+#            'preferred_event__pipeline', 'preferred_event__search')
+#        qs = qs.prefetch_related('labelling_set', 'events')
+#
+#        return qs
+#
+#    def get_object(self, queryset=None):
+#        if queryset is None:
+#            queryset = self.get_queryset()
+#        superevent_id = self.kwargs.get('superevent_id')
+#        obj = get_superevent_by_sid_or_gwid_or_404(superevent_id, queryset)
+#        return obj
+#
+#    def get_context_data(self, **kwargs):
+#        # Get base context
+#        context = super(SupereventDetailCuratedView, self).get_context_data(**kwargs)
+#
+#        # Add a bunch of extra stuff
+#        superevent = self.object
+#        context['preferred_event'] = superevent.preferred_event
+#        context['preferred_event_labelling'] = superevent.preferred_event \
+#            .labelling_set.prefetch_related('label', 'creator').all()
+#
+#        # TODO: filter events for user? Not clear what information we want
+#        # to show to different groups
+#        # Pass event graceids
+#        context['internal_events'] = superevent.get_internal_events() \
+#            .order_by('id')
+#        context['external_events'] = superevent.get_external_events() \
+#            .order_by('id')
+#
+#        # Get display FARs for preferred_event
+#        context.update(zip(
+#            ['display_far', 'display_far_hr', 'far_is_upper_limit'],
+#            self.get_display_far(obj=superevent.preferred_event)
+#            )
+#        )
+#
+#        # Is the user an external user? (I.e., not part of the LVC?) The
+#        # template needs to know that in order to decide what pieces of
+#        # information to show.
+#        context['user_is_external'] = is_external(self.request.user)
+#
+#        # Get list of EMGroup names for emo creation form
+#        context['emgroups'] = EMGroup.objects.all().order_by('name') \
+#            .values_list('name', flat=True)
+#
+#        return context

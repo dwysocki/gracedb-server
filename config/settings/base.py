@@ -675,3 +675,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # Define window for neighbouring s events of a given g event.
 EVENT_SUPEREVENT_WINDOW_BEFORE = 100
 EVENT_SUPEREVENT_WINDOW_AFTER = 100
+
+# Define which observation periods to show on the public events page:
+PUBLIC_PAGE_RUNS = ['O4', 'O3']
