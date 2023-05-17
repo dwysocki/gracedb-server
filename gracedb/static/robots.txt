@@ -13,7 +13,6 @@ User-agent: *
 Crawl-delay: 1024
 Disallow: /api/
 Disallow: /apiweb/
-Disallow: /superevents/
 Disallow: /events/
 Disallow: /search/
 Disallow: /alerts/
