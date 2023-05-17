@@ -110,6 +110,9 @@ before_script:
       - .cache/pip
       - .cache/apt
   coverage: '/^TOTAL\s+.*\s+(\d+\.?\d*)%/'
+  tags:
+      - cit
+      - uwm
 
 test:3.7:
   <<: *test
@@ -124,6 +127,9 @@ branch_image:
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
+  tags:
+      - cit
+      - uwm
 
 latest_image:
   stage: latest
@@ -138,3 +144,6 @@ latest_image:
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
+  tags:
+      - cit
+      - uwm
