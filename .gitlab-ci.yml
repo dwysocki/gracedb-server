@@ -112,7 +112,6 @@ before_script:
   coverage: '/^TOTAL\s+.*\s+(\d+\.?\d*)%/'
   tags:
       - cit
-      - uwm
 
 test:3.7:
   <<: *test
@@ -129,7 +128,6 @@ branch_image:
       - stuck_or_timeout_failure
   tags:
       - cit
-      - uwm
 
 latest_image:
   stage: latest
@@ -146,4 +144,3 @@ latest_image:
       - stuck_or_timeout_failure
   tags:
       - cit
-      - uwm
