@@ -8,6 +8,7 @@ import pytest
 from django.conf import settings
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.cache import cache
 
 from guardian.shortcuts import assign_perm, remove_perm
 
@@ -3109,6 +3110,7 @@ class TestSupereventFileList(SupereventSetup, GraceDbApiTestBase):
 
     @classmethod
     def tearDown(cls):
+        cache.clear()
         pass
 
     def test_internal_user_get_list_for_superevent(self):
