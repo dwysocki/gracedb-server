@@ -67,12 +67,12 @@ suburlpatterns = [
         'delete': 'destroy'})), name='superevent-log-tag-detail'),
 
     # File list
-    re_path(r'^files/$', never_cache(SupereventFileViewSet.as_view({'get': 'list',})),
+    re_path(r'^files/$', SupereventFileViewSet.as_view({'get': 'list',}),
         name='superevent-file-list'),
     # File detail (download)
     re_path(r'^files/(?P<{lookup_url_kwarg}>.+)$'.format(lookup_url_kwarg=
-        SupereventFileViewSet.lookup_url_kwarg), never_cache(SupereventFileViewSet.as_view(
-        {'get': 'retrieve'})), name='superevent-file-detail'),
+        SupereventFileViewSet.lookup_url_kwarg), SupereventFileViewSet.as_view(
+        {'get': 'retrieve'}), name='superevent-file-detail'),
     # Note: no option for POST since file uploads should be handled
     # by writing a log message
 
