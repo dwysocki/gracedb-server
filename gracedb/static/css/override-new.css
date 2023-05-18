@@ -3,31 +3,37 @@
 .btn-navbar
 {
 background-color: #29527A;
-color:#FAFAFA;
-border-color: #29527A;
-padding-left: 0px;
-padding-right: 0px;
-padding-top: 7px;
+color:#FAFAFA !important;
+border-color: #29527A !important;
+padding-left: 0px !important;
+padding-right: 0px !important;
+padding-top: 7px !important;
+font-size: 1rem !important;
 }
 
 .btn-navbar:hover, .btn-default:focus, .btn-default:active, .btn-default.active, .open .dropdown-toggle.btn-default {
 background-color: #29527A;
-color:#d4d4d4;
-border-color: #29527A;
+color:#d4d4d4 !important;
+border-color: #29527A !important;
+font-size: 1rem !important;
 }
 
 .btn-split
 {
 background-color: #29527A;
-color:#FAFAFA;
-border-color: #29527A;
-padding-top: 7px;
+color:#FAFAFA !important;
+border-color: #29527A !important;
+padding-top: 7px !important;
+font-size: 1rem !important;
+padding-right: 0.5625rem !important;
+padding-left: 0.5625rem !important;
 }
 
 .btn-split:hover, .btn-default:focus, .btn-default:active, .btn-default.active, .open .dropdown-toggle.btn-default {
 background-color: #29527A;
-color:#d4d4d4;
-border-color: #29527A;
+color:#d4d4d4 !important;
+border-color: #29527A !important;
+font-size: 1rem !important;
 
 }
 /* Lightbox image background */
