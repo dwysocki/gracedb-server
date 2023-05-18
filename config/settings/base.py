@@ -36,13 +36,18 @@ INFO_BANNER_MESSAGE = "TEST MESSAGE"
 BETA_REPORTS_LINK = False
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.21.1'
+PROJECT_VERSION = '2.21.2'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
 # allowed *ANYWHERE* on this service, except the home page, which is always
 # public. For now, it just controls the API and the public alerts page.
-UNAUTHENTICATED_ACCESS = True
+# Update: make this updatable from the environment:
+UNAUTHENTICATED_ACCESS = parse_envvar_bool(
+    get_from_env('ENABLE_UNAUTHENTICATED_ACCESS',
+                 fail_if_not_found=False, default_value="true")
+)
+
 
 # Miscellaneous settings ------------------------------------------------------
 # Debug mode is off by default
