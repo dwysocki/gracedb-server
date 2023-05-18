@@ -45,7 +45,7 @@ ServerName ${DJANGO_PRIMARY_FQDN}
   # KeepAlive stuff:
   KeepAlive On
   MaxKeepAliveRequests 100
-  KeepAliveTimeout 30
+  KeepAliveTimeout 3
 
   # Unset certain headers to help prevent spoofing
   RequestHeader unset REMOTE_USER
