@@ -281,7 +281,7 @@ class SupereventLogTagViewSet(SafeCreateMixin, SafeDestroyMixin,
         # Pass full set of logs for parent superevent to get_objects_for_user,
         # which will filter based on view permissions
         parent_log_queryset = get_objects_for_user(self.request.user,
-            'superevents.view_log', parent_superevent.log_set.all())
+            'superevents.view_log', klass=parent_superevent.log_set.all())
 
         # Get parent_log and cache it; return 404 if not found
         self._parent_log = get_object_or_404(parent_log_queryset,
@@ -316,7 +316,7 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
     def filter_log_queryset(self, log_queryset):
         # Filter queryset based on the user's view permissions
         return get_objects_for_user(self.request.user,
-            'superevents.view_log', log_queryset)
+            'superevents.view_log', klass=log_queryset)
 
     # This is a bandaid to overcome some very very
     # intermittent errors we've been seeing on AWS.
