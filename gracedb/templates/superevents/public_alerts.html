@@ -44,7 +44,7 @@
     {% firstof "s" as plural %}
   {% endif %}
   <hr />
-  <a id="{{ run }}"><h6>{{ run }} Detection Candidates: <b>{{ tabledata.candidates }}</b>   ({{ tabledata.retractions }} Retraction{{ plural }})</h6></a>
+  <a id="{{ run }}"><h4 style='font-weight: lighter;'>{{ run }} Detection Candidates: <b>{{ tabledata.candidates }}</b>   ({{ tabledata.retractions }} Retraction{{ plural }})</h4></a>
   
   {% if tabledata.candidates > 0 %}
   <div class="tablesaw-overflow">
@@ -113,7 +113,7 @@
   
   {% else %}
     <br />
-    <h4 style='margin-left: 40px; font-weight: lighter;'>No {{ run }} candidates at present.</h4>
+    <h5 style='margin-left: 40px; font-weight: lighter;'>No {{ run }} candidates at present.</h5>
   {% endif %}
   <br/>
 

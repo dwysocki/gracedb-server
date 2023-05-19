@@ -19,9 +19,9 @@ ExpressionOperator.setParseAction(lambda toks: EXPR_OPERATORS[toks[0]])
 RUN_MAP = {
     # O4 Start May 24, 2023...1500UTC? 18 months later...Nov. 24, 2024.
     # FIXME: change the end date in a future release:
-    # FIXME: start date of o4 changed to may 18 capture S230518h
-    #"O4": (1368975618, 1416495618),
     "O4": (1368403218, 1416495618),
+    # ER15 start Apr 26, 2023 1600 UTC
+    "ER15": (1366560018, 1368979218), 
     # O3 suspended early due to COVID-19:
     # https://www.ligo.caltech.edu/news/ligo20200326
     # 01 Apr 2019 15:00:00 UTC - 27 Mar 2020 16:00:00 UTC

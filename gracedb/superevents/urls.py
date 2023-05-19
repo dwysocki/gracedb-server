@@ -33,7 +33,7 @@ public_urlpatterns = [
     # integer? like jump to a specific table on the page? maybe have
     # a pull-down menu from the "Public Alerts" link that jumps to a
     # specific observation run?
-     path('public/O<int:obsrun>/', views.public_alerts_redirect,
+     path('public/<slug:obsrun>/', views.public_alerts_redirect,
          name="public-alerts-redirect"),
 
 ]

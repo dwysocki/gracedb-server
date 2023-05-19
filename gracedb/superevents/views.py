@@ -145,11 +145,13 @@ class SupereventFileList(SupereventDetailView):
 # handled through the API. Links on the file list page point to the
 # API file download page.
 
-# Direct /public/O<int>/ to just /public, for now. Putting in a specific 
-# O{run}. Change the int to a slug if you want to put in ER** or something
-# instead.
+# Redirect /superevents/public/<slug>/ to a anchor link on 
+# /superevents/public/#<slug> that's nominally tied to a given 
+# observation run. If for some reason a user puts in a random 
+# slug, then it just goes to the top of the public page, so it's
+# pretty fail-safe. 
 def public_alerts_redirect(request, obsrun=None):
-    response =  redirect('/superevents/public/#O{run}'.format(run=obsrun))
+    response =  redirect('/superevents/public/#{run}'.format(run=obsrun))
     return response
 
 # The public alerts page:
