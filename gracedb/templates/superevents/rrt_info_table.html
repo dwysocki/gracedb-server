@@ -48,8 +48,8 @@
       {% endif %}
 
       <tr>
-        <td> t<sub>end</sub> </td>
-        <td> {{ superevent.t_end|floatformat:2 }} </td>
+        <td> t<sub>0</sub> </td>
+        <td> {{ superevent.t_0|floatformat:2 }} </td>
       </tr>
 
       <tr>
@@ -138,7 +138,7 @@
       <tr>
           <td> <span style="font-family: monospace">p_astro</span></td>
         <td>
-            {{ preferred_event.graceid | json_text:"p_astro" }}
+            {{ preferred_event.graceid | json_text:"p_astro,showprob" }}
         </td>
       </tr>
 

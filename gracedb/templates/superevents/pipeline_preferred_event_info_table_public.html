@@ -34,8 +34,8 @@
              {% else %}
              &nbsp; &nbsp; &nbsp; &nbsp;
              {% endif %}
-         <td> {{ preferred_event.graceid | json_text:"p_astro,newline" }} </td>
-         <td> {{ preferred_event.graceid | json_text:"em_bright,newline" }} </td>
+         <td> {{ preferred_event.graceid | json_text:"p_astro,newline,showprob" }} </td>
+         <td> {{ preferred_event.graceid | json_text:"em_bright,newline,showprob" }} </td>
 
 
         </tr>

@@ -9,13 +9,14 @@ register = template.Library()
 
 # Some formatting options:
 pastro_file_template = "{pipeline}.p_astro.json"
-html_format = '<span style="font-weight: bold">p_{source}</span>= {value}'
+html_format = '<span style="font-weight: bold">{prob}{source}</span>= {value}'
 
 
 # Display the contents of a json file associated with a g-event. 
 # data_file is either: 'p_astro' or 'em_bright'.
 # optionally, append ',newline' to show each value on its own line
 # optionally, append ',clean' to remove zero values from the file
+# optionally, append ',showprob' to put a 'p_' in front of the quantity
 @register.filter(is_safe=True)
 def json_text(graceid, data_format):
 
@@ -39,12 +40,13 @@ def json_text(graceid, data_format):
         return "Unrecognized input file."
 
     # See if we're doing newlines or clean or whatever.
-    newline=clean=False
+    newline=clean=showprob=False
     if len(args) > 1:
         extra_args = [i.strip() for i in args[1:]]
 
         if 'newline' in extra_args: newline=True
         if 'clean' in extra_args: clean=True
+        if 'showprob' in extra_args: showprob=True
 
     # define input file path and open it: 
     json_file = pathlib.Path(ev.datadir, json_file_name)
@@ -67,5 +69,10 @@ def json_text(graceid, data_format):
     if clean:
         data = {x:y for x,y in data.items() if y != 0}
 
-    return mark_safe(join_char.join([html_format.format(source=i,
+    if showprob:
+        prob = 'p_'
+    else:
+        prob = ''
+
+    return mark_safe(join_char.join([html_format.format(prob=prob, source=i,
         value=round(data[i], 6)) for i in data]))
