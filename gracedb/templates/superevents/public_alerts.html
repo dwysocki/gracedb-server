@@ -80,7 +80,12 @@
       {{ event.t0_utc }} UTC
     </td>
     <td style="min-width: 110px;">
-      <a href={{ event.gcnurl }}>GCN Circulars</a><br/>
+      {% if run == "O3" %}
+        <a href={{ event.gcnurl }}>GCN Circulars</a><br/>
+      {% else %}
+        <a href={{ event.gcnurl }}>GCN Circular Query</a><br/>
+      {% endif %}
+
       <a href={{ event.noticeurl }}>Notices</a> | <a href="{% url "legacy_apiweb:default:superevents:superevent-voevent-list" event.default_superevent_id %}">VOE</a>
     </td>
     <td>

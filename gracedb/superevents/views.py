@@ -162,7 +162,8 @@ class SupereventPublic(DisplayFarMixin, ListView):
     filter_permissions = ['superevents.view_superevent']
     log_view_permission = 'superevents.view_log'
     noticeurl_template = 'https://gcn.gsfc.nasa.gov/notices_l/{s_id}.lvc'
-    gcnurl_template = 'https://gcn.gsfc.nasa.gov/other/GW{sd_id}.gcn3'
+    gcnurl_template_o3 = 'https://gcn.gsfc.nasa.gov/other/GW{sd_id}.gcn3'
+    gcnurl_template = 'https://gcn.nasa.gov/circulars?query={sd_id}'
     default_skymap_filename = 'bayestar.png'
     pe_results_tagname = 'pe_results'
 
@@ -227,8 +228,12 @@ class SupereventPublic(DisplayFarMixin, ListView):
                 # External links to GCN notice and circular
                 se.noticeurl = self.noticeurl_template.format(s_id=
                     se.default_superevent_id)
-                se.gcnurl = self.gcnurl_template.format(sd_id=
-                    se.default_superevent_id[1:])
+                if run == "O3":
+                    se.gcnurl = self.gcnurl_template_o3.format(sd_id=
+                        se.default_superevent_id[1:])
+                else:
+                    se.gcnurl = self.gcnurl_template.format(sd_id=
+                        se.default_superevent_id)
     
                 se.t0_iso = gpstime.gps_to_utc(se.t_0).isoformat(' ').split('.')[0]
                 se.t0_utc = se.t0_iso.split()[1]

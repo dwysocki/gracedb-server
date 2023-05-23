@@ -31,8 +31,13 @@
       </tr>
 
       <tr>
-        <td> t<sub>start</sub> </td>
-        <td> {{ superevent.t_start|floatformat:2 }} </td>
+        <td> FAR (Hz) </td>
+        <td> {% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }} </td>
+      </tr>
+
+      <tr>
+        <td> FAR (yr<sup>-1</sup>)  </td>
+        <td> {% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_hr }} </td>
       </tr>
 
       <tr>
