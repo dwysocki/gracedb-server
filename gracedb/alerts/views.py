@@ -270,33 +270,57 @@ class TestContactView(DetailView):
         # Send test notifications
         msg = 'This is a test of contact "{desc}" from {host}.'.format(
             desc=self.object.description, host=settings.LIGO_FQDN)
+
         if self.object.email:
             subject = 'Test of contact "{desc}" from {host}'.format(
                 desc=self.object.description, host=settings.LIGO_FQDN)
-            email = EmailMessage(subject, msg,
-                from_email=settings.ALERT_EMAIL_FROM, to=[self.object.email])
-            email.send()
+
+            if settings.ENABLE_EGAD_EMAIL:
+                payload = {
+                    "recipients": [self.object.email],
+                    "subject": subject,
+                    "body": msg,
+                }
+                egad.send_alert("email", payload)
+            else:
+                email = EmailMessage(subject, msg,
+                    from_email=settings.ALERT_EMAIL_FROM, to=[self.object.email])
+                email.send()
+
         if self.object.phone:
-            # Get "from" phone number.
-            from_ = get_twilio_from()
-            # Send test call
-            if (self.object.phone_method == Contact.CONTACT_PHONE_CALL or
-                self.object.phone_method == Contact.CONTACT_PHONE_BOTH):
+            # Construct URL of TwiML bin
+            twiml_url = '{base}{twiml_bin}'.format(
+                base=settings.TWIML_BASE_URL,
+                twiml_bin=settings.TWIML_BIN['test'])
 
-                # Construct URL of TwiML bin
-                twiml_url = '{base}{twiml_bin}'.format(
-                    base=settings.TWIML_BASE_URL,
-                    twiml_bin=settings.TWIML_BIN['test'])
+            if settings.ENABLE_EGAD_PHONE:
+                payload = {
+                    "contacts": [{
+                        "phone_method": self.object.phone_method,
+                        "phone_number": self.object.phone,
+                    }],
+                    "message": msg,
+                    "twiml_url": twiml_url,
+                }
+                egad.send_alert("phone", payload)
 
-                # Make call
-                twilio_client.calls.create(to=self.object.phone, from_=from_,
-                    url=twiml_url, method='GET')
+            else:
+                # Get "from" phone number.
+                from_ = get_twilio_from()
+                # Send test call
+                if (self.object.phone_method == Contact.CONTACT_PHONE_CALL or
+                    self.object.phone_method == Contact.CONTACT_PHONE_BOTH):
 
-            if (self.object.phone_method == Contact.CONTACT_PHONE_TEXT or
-                self.object.phone_method == Contact.CONTACT_PHONE_BOTH):
-        
-                twilio_client.messages.create(to=self.object.phone,
-                    from_=from_, body=msg)
+
+                    # Make call
+                    twilio_client.calls.create(to=self.object.phone, from_=from_,
+                        url=twiml_url, method='GET')
+
+                if (self.object.phone_method == Contact.CONTACT_PHONE_TEXT or
+                    self.object.phone_method == Contact.CONTACT_PHONE_BOTH):
+
+                    twilio_client.messages.create(to=self.object.phone,
+                        from_=from_, body=msg)
 
         # Message for web view
         messages.info(request, 'Testing contact "{desc}".'.format(
