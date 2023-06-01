@@ -1,0 +1,77 @@
+# Generated on 2023-05-24
+
+from django.db import migrations, models
+from django.conf import settings
+
+ROBOTS = [
+        {
+            'username' : 'cbcflow',
+            'first_name' : '',
+            'last_name' : 'CBCFlow',  # Note that the last_name acts as a display
+            'email' : 'rhiannon.udall@ligo.org',
+            'dns' : [
+                "/DC=org/DC=cilogon/C=US/O=LIGO/OU=Robots/CN=grid.cluster.ldas.cit/CN=cbcflow-gracedb-monitor/CN=Rhiannon Udall/CN=UID:rhiannon.udall.robot",
+            ]
+        },
+        {
+            'username' : 'codybot5000',
+            'first_name' : '',
+            'last_name' : 'Cody Messick (Robot)',  # Note that the last_name acts as a display
+            'email' : 'cody.messick@ligo.org',
+            'dns' : [
+                "/DC=org/DC=cilogon/C=US/O=LIGO/OU=Robots/CN=emfollow.ligo.caltech.edu/CN=emfollow-home/CN=Cody Messick/CN=UID:cody.messick.robot"
+            ]
+        },
+]
+
+def create_robots(apps, schema_editor):
+    User = apps.get_model('auth', 'User')
+    X509Cert = apps.get_model('ligoauth', 'X509Cert')
+    AuthGroup = apps.get_model('ligoauth', 'AuthGroup')
+    lvc_group = AuthGroup.objects.get(name=settings.LVC_GROUP)
+    robot_group = AuthGroup.objects.get(name='robot_accounts')
+
+    for entry in ROBOTS:
+        user, created = User.objects.get_or_create(username=entry['username'])
+        if created:
+            user.first_name = entry['first_name']
+            user.last_name = entry['last_name']
+            user.email = entry['email']
+            user.is_active = True
+            user.is_staff = False
+            user.is_superuser = False
+            user.save()
+
+        # Create the cert objects and link them to our user.
+        for dn in entry['dns']:
+            cert, created = X509Cert.objects.get_or_create(subject=dn,
+                user=user)
+
+        # Add our user to the LVC group. This permission is required to
+        # do most things, but may *NOT* always be appropriate. It may
+        # also be necessary to give the robotic user permission to populate
+        # a particular pipeline.
+        lvc_group.user_set.add(user)
+
+        # Add user to robot accounts
+        robot_group.user_set.add(user)
+
+def delete_robots(apps, schema_editor):
+    User = apps.get_model('auth', 'User')
+    X509Cert = apps.get_model('ligoauth', 'X509Cert')
+
+    for entry in ROBOTS:
+        for dn in entry['dns']:
+            X509Cert.objects.get(subject=dn).delete()
+        User.objects.get(username=entry['username']).delete()
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('ligoauth', '0092_emfollow_so_many_certs'),
+    ]
+
+    operations = [
+        migrations.RunPython(create_robots, delete_robots),
+    ]
