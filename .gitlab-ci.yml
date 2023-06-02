@@ -111,7 +111,7 @@ before_script:
       - .cache/apt
   coverage: '/^TOTAL\s+.*\s+(\d+\.?\d*)%/'
   tags:
-      - cit
+      - executor-docker
 
 test:3.7:
   <<: *test
@@ -127,7 +127,7 @@ branch_image:
       - runner_system_failure
       - stuck_or_timeout_failure
   tags:
-      - cit
+      - executor-docker
 
 latest_image:
   stage: latest
@@ -143,4 +143,4 @@ latest_image:
       - runner_system_failure
       - stuck_or_timeout_failure
   tags:
-      - cit
+      - executor-docker

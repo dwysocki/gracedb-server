@@ -78,7 +78,7 @@ CACHES = {
     },    
 }
  
-CACHE_MIDDLEWARE_SECONDS = 30
+CACHE_MIDDLEWARE_SECONDS = 5
 
 # DB "cool-down" factor for when a db conflict is detected. This
 # factor scales a random number of seconds between zero and one.

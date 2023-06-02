@@ -25,16 +25,16 @@ suburlpatterns = [
 # Note to future generations: don't name a GW 'public' or the link breaks.
 
 public_urlpatterns = [
-    # View of all public candidates
-    path('public/', views.SupereventPublic.as_view(),
-        name="public-alerts"),
+    # The /superevents/public/ url route gets redirected to the 
+    # latest observation run.
+    path('public/', views.public_alerts_redirect,
+        name="public-alerts-redirect"),
 
-    # redirect to the main public page. TODO: do something with the
-    # integer? like jump to a specific table on the page? maybe have
-    # a pull-down menu from the "Public Alerts" link that jumps to a
-    # specific observation run?
-     path('public/<slug:obsrun>/', views.public_alerts_redirect,
-         name="public-alerts-redirect"),
+    # each run has its own page, but must be in the list of runs that's 
+    # in settings/base.py. Otherwise, 404 (this gets defined in the view). 
+    # the "obsrun" variable controls which events are shown.
+     path('public/<slug:obsrun>/', views.SupereventPublic.as_view(),
+         name="public-alerts"),
 
 ]
 legacy_urlpatterns = public_urlpatterns + [

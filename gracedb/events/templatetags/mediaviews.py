@@ -279,6 +279,7 @@ def is_in_rrt_subcategory(event, rrt_subcategory):
                 and not event.search.name == "EarlyWarning"
             ) | (
                     event.group.name == "Burst"
+                    and event.search
                     and event.pipeline.name =="CWB"
                     and event.search.name == "BBH"
             )
@@ -290,7 +291,7 @@ def is_in_rrt_subcategory(event, rrt_subcategory):
     elif rrt_subcategory == "Burst":
         return (
             event.group.name == "Burst"
-            and not( event.pipeline.name == "CWB" and
+            and not( event.search and event.pipeline.name == "CWB" and
                  event.search.name == "BBH")
             )
 

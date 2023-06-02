@@ -3,6 +3,8 @@ import os
 from lal import gpstime
 
 from django.conf import settings
+from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -150,9 +152,9 @@ class SupereventFileList(SupereventDetailView):
 # observation run. If for some reason a user puts in a random 
 # slug, then it just goes to the top of the public page, so it's
 # pretty fail-safe. 
-def public_alerts_redirect(request, obsrun=None):
-    response =  redirect('/superevents/public/#{run}'.format(run=obsrun))
-    return response
+def public_alerts_redirect(request):
+    return redirect('/superevents/public/{run}'.format(
+        run=settings.PUBLIC_PAGE_RUNS[0]))
 
 # The public alerts page:
 @method_decorator(public_if_public_access_allowed, name='dispatch')
@@ -165,16 +167,45 @@ class SupereventPublic(DisplayFarMixin, ListView):
     gcnurl_template_o3 = 'https://gcn.gsfc.nasa.gov/other/GW{sd_id}.gcn3'
     gcnurl_template = 'https://gcn.nasa.gov/circulars?query={sd_id}'
     default_skymap_filename = 'bayestar.png'
+    burst_skymap_filename = '{pipeline}.png'
     pe_results_tagname = 'pe_results'
 
-
     def get_queryset(self, **kwargs):
-        # Query only for public events
-        # NOTE: may want to fix this to only O3 events at some point
+        # Query only for public events for the given observation run.
+        # if it's not in the run list, return a 404.
+        self.obsrun = self.kwargs.get('obsrun')
+        if self.obsrun not in settings.PUBLIC_PAGE_RUNS:
+            raise Http404
+
         qs = Superevent.objects.filter(is_exposed=True,
-            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION) \
+            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION,
+            t_0__range=RUN_MAP[self.obsrun]) \
             .prefetch_related('voevent_set', 'log_set')
         return qs
+
+    # Define insignificance per run:
+    def significant_events(self, sevents):
+        # We're checking for ADVREQ|ADVOK|ADVNO
+        # https://git.ligo.org/computing/gracedb/server/-/issues/303#note_725082
+        # So use Q filters for these:
+        significant_filter = Q()
+        if self.obsrun in ['ER15', 'O4']:
+           significant_filter = Q(labels__name='ADVREQ') | \
+                                Q(labels__name='ADVOK') | \
+                                Q(labels__name='ADVNO')
+
+        return sevents.filter(significant_filter)
+
+
+    # and some documentation for the definition of significance.
+    # Note: this value is also used as a trigger to show the significance
+    # button and bullet.
+    def insignificant_docs(self, run):
+        if run in ['ER15', 'O4']:
+            return 'https://emfollow.docs.ligo.org/userguide/content.html#significance'
+        else:
+            return None
+
 
     def get_skymap_image(self, superevent, voevent=None):
         skymap_image = None
@@ -190,10 +221,22 @@ class SupereventPublic(DisplayFarMixin, ListView):
                 skymap_image = voevent_skymap_image
 
         # If skymap_image is None, we didn't find an image based on the
-        # skymap file in the VOEvent, so try the default.
-        if (skymap_image is None and
-            public_logs.filter(filename=self.default_skymap_filename).exists()):
-            skymap_image = self.default_skymap_filename
+        # skymap file in the VOEvent, so try the default. The name of a default
+        # skymap will change if it's a burst event or not. 
+        if skymap_image is None:
+            # Burst events:
+            if superevent.preferred_event.group.name == 'Burst':
+                # Set up a filter for mixed (pipeline) case. 
+                # In O4, the convention was all lower case, but O3 was mixed case. argghhhh
+                skymap_log_list = public_logs.filter(filename__iexact=self.burst_skymap_filename.format(
+                    pipeline=superevent.preferred_event.pipeline.name))
+
+                if skymap_log_list.exists():
+                    skymap_image = skymap_log_list.first().filename
+
+            # Other events:
+            elif public_logs.filter(filename=self.default_skymap_filename).exists():
+                skymap_image = self.default_skymap_filename
 
         if skymap_image:
             # Add version to image name to be safe
@@ -213,97 +256,103 @@ class SupereventPublic(DisplayFarMixin, ListView):
         # For each superevent, get list of log messages and construct pastro
         # string
         table_data = {}
-        for run in settings.PUBLIC_PAGE_RUNS:
-            candidates = 0
-            retractions = 0
-            table_data[run] = {}
+        candidates = 0
+        retractions = 0
 
-            # Define an empty queryset that we're going to export:
-            sevents = Superevent.objects.none()
+        # get insignificant events
+        sig_events = self.significant_events(self.object_list)
 
-            # Filter and loop over exposed superevents for the given run:
-            run_events = self.object_list.filter(t_0__range=RUN_MAP[run])
-            for se in run_events:
+        # Filter and loop over exposed superevents for the given run:
+        for se in self.object_list:
 
-                # External links to GCN notice and circular
-                se.noticeurl = self.noticeurl_template.format(s_id=
+            # External links to GCN notice and circular
+            se.noticeurl = self.noticeurl_template.format(s_id=
+                se.default_superevent_id)
+            if self.obsrun == "O3":
+                se.gcnurl = self.gcnurl_template_o3.format(sd_id=
+                    se.default_superevent_id[1:])
+            else:
+                se.gcnurl = self.gcnurl_template.format(sd_id=
                     se.default_superevent_id)
-                if run == "O3":
-                    se.gcnurl = self.gcnurl_template_o3.format(sd_id=
-                        se.default_superevent_id[1:])
-                else:
-                    se.gcnurl = self.gcnurl_template.format(sd_id=
-                        se.default_superevent_id)
-    
-                se.t0_iso = gpstime.gps_to_utc(se.t_0).isoformat(' ').split('.')[0]
-                se.t0_utc = se.t0_iso.split()[1]
-    
-                # Get display FARs for preferred_event
-                se.far_hz, se.far_hr, se.far_limit = self.get_display_far(
-                    obj=se.preferred_event)
-    
-                # Get list of voevents, filtering out retractions
-                voe = se.voevent_set.exclude(voevent_type=
-                    VOEvent.VOEVENT_TYPE_RETRACTION).order_by('-N').first()
-    
-                # Get skymap image (if a public one exists)
-                se.skymap_image = self.get_skymap_image(se, voe)
-    
-                # Was the candidate retracted?
-                se.retract = se.voevent_set.filter(voevent_type=
-                    VOEvent.VOEVENT_TYPE_RETRACTION).exists()
-                candidates += int(not se.retract)
-                retractions += int(se.retract)
-    
-                # Get list of viewable logs for user which are tagged with
-                # 'analyst_comments'
-                viewable_logs = se.log_set.filter(tags__name='public').filter(
-                    tags__name='analyst_comments')
-                # Compile comments from these logs
-                se.comments = ' ** '.join(list(viewable_logs.values_list(
-                    'comment', flat=True)))
-                if se.retract:
-                    if se.comments:
-                        se.comments = " ** " + se.comments
-                    se.comments = "RETRACTED" + se.comments
-    
-                # Get list of PE results
-                pe_results = get_objects_for_user(self.request.user,
-                    self.log_view_permission,
-                    klass=se.log_set.filter(tags__name=self.pe_results_tagname))
-                # Compile comments from these logs
-                se.pe = ' ** '.join(list(pe_results.values_list(
-                    'comment', flat=True)))
-    
-                # Get p_astro probabilities
-                if voe is not None:
-                    pastro_values = [("BNS", voe.prob_bns),
-                        ("NSBH", voe.prob_nsbh),
-                        ("BBH", voe.prob_bbh),
-                        ("Terrestrial", voe.prob_terrestrial),
-                        ("MassGap", voe.prob_mass_gap),
-                        ("HasMassGap", voe.prob_has_mass_gap)]
-                    pastro_values.sort(reverse=True, key=lambda p_a: 0.0 if p_a[1] is None else p_a[1])
-                    sourcelist = []
-                    for key, value in pastro_values:
-                        if value is None:
-                            value = 0.0
-                        if value > 0.01:
-                            prob = int(round(100*value))
-                            if prob == 100: prob = '>99'
-                            sourcestr = "{0} ({1}%)".format(key, prob)
-                            sourcelist.append(sourcestr)
-                    se.sourcetypes = ', '.join(sourcelist)
+
+            se.t0_iso = gpstime.gps_to_utc(se.t_0).isoformat(' ').split('.')[0]
+            se.t0_utc = se.t0_iso.split()[1]
+
+            # Get display FARs for preferred_event
+            se.far_hz, se.far_hr, se.far_limit = self.get_display_far(
+                obj=se.preferred_event)
+
+            # Get list of voevents, filtering out retractions
+            voe = se.voevent_set.exclude(voevent_type=
+                VOEvent.VOEVENT_TYPE_RETRACTION).order_by('-N').first()
+
+            # Get skymap image (if a public one exists)
+            se.skymap_image = self.get_skymap_image(se, voe)
+
+            # Was the candidate retracted?
+            se.retract = se.voevent_set.filter(voevent_type=
+                VOEvent.VOEVENT_TYPE_RETRACTION).exists()
+            candidates += int(not se.retract)
+            retractions += int(se.retract)
+
+            # is the candidate significant?
+            se.signif = se in sig_events
+
+            # Get list of viewable logs for user which are tagged with
+            # 'analyst_comments'
+            viewable_logs = se.log_set.filter(tags__name='public').filter(
+                tags__name='analyst_comments')
+            # Compile comments from these logs
+            se.comments = ' ** '.join(list(viewable_logs.values_list(
+                'comment', flat=True)))
+            if se.retract:
+                if se.comments:
+                    se.comments = " ** " + se.comments
+                se.comments = "RETRACTED" + se.comments
+
+            # Get list of PE results
+            pe_results = get_objects_for_user(self.request.user,
+                self.log_view_permission,
+                klass=se.log_set.filter(tags__name=self.pe_results_tagname))
+            # Compile comments from these logs
+            se.pe = ' ** '.join(list(pe_results.values_list(
+                'comment', flat=True)))
+
+            # Get p_astro probabilities
+            if voe is not None:
+                pastro_values = [("BNS", voe.prob_bns),
+                    ("NSBH", voe.prob_nsbh),
+                    ("BBH", voe.prob_bbh),
+                    ("Terrestrial", voe.prob_terrestrial),
+                    ("MassGap", voe.prob_mass_gap),]
+                pastro_values.sort(reverse=True, key=lambda p_a: 0.0 if p_a[1] is None else p_a[1])
+                sourcelist = []
+                for key, value in pastro_values:
+                    if value is None:
+                        value = 0.0
+                    if value > 0.01:
+                        prob = int(round(100*value))
+                        if prob == 100: prob = '>99'
+                        sourcestr = "{0} ({1}%)".format(key, prob)
+                        sourcelist.append(sourcestr)
+                se.sourcetypes = ', '.join(sourcelist)
 
 
-            # Now add it to the output dict, with the key being the run value:
-            table_data[run]['events'] =  run_events
-            table_data[run]['candidates'] = candidates
-            table_data[run]['retractions'] = retractions
+        # Now add it to the output dict, with the key being the run value:
+        table_data['events'] =  self.object_list
+
+        total_events = self.object_list.count()
 
         # export the dictionary for rendering:
+        context['signif_docs'] = self.insignificant_docs(self.obsrun)
         context['data'] = table_data
-        context['runs'] = settings.PUBLIC_PAGE_RUNS
+        context['run'] = self.obsrun
+        context['total_events'] = self.object_list.count()
+        context['total_sig'] = sig_events.count()
+        context['total_insig'] = context['total_events'] - context['total_sig']
+        context['candidates'] = candidates
+        context['retractions'] = retractions
+        context['sig_cands'] = context['total_sig'] - retractions
 
         return context
 

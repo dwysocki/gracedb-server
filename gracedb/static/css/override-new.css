@@ -1,5 +1,14 @@
 /* CSS file for overriding other styles */
 
+/* CSS for bottom row image sizes */
+
+.banner-img
+{
+  display: inline-block !important;
+  max-width: 12% !important;
+  max-height: 45px;
+}
+
 .btn-navbar
 {
 background-color: #29527A;
