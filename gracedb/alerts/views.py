@@ -19,6 +19,7 @@ from .forms import (
     PhoneContactForm, EmailContactForm, VerifyContactForm,
     EventNotificationForm, SupereventNotificationForm,
 )
+from . import egad
 from .models import Contact, Notification
 from .phone import get_twilio_from
 
