@@ -36,7 +36,7 @@ INFO_BANNER_MESSAGE = "TEST MESSAGE"
 BETA_REPORTS_LINK = False
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.21.3'
+PROJECT_VERSION = '2.21.4'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
