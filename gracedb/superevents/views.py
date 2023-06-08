@@ -14,6 +14,7 @@ from django.views.generic import ListView
 from guardian.shortcuts import get_objects_for_user
 
 from core.file_utils import get_file_list
+from core.time_utils import utc_datetime_decimal_seconds
 from events.models import EMGroup
 from events.models import Label
 from events.mixins import DisplayFarMixin
@@ -41,6 +42,7 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
     model = Superevent
     template_name = 'superevents/detail.html'
     filter_permissions = ['superevents.view_superevent']
+    time_fmt = '%Y-%m-%d %H:%M:%S.%f'
 
     def get_queryset(self):
         """Get queryset and preload some related objects"""
@@ -60,6 +62,31 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
         obj = get_superevent_by_sid_or_gwid_or_404(superevent_id, queryset)
         return obj
 
+    def get_gw_event_details(self, superevent=None):
+
+        # Start with the list of gw_events:
+        gw_events = superevent.get_internal_events().order_by('id')
+
+        # Loop over events and get info: 
+        for gw in gw_events:
+
+            # Get when the event was added to the superevent:
+            added = gw.eventlog_set.filter(comment__contains='Added to superevent')
+            # Get when (and if) the event was set as preferred:
+            set_as_preferred = gw.eventlog_set.filter(comment__contains='Set as preferred')
+            if added:
+                gw.added_to_superevent = utc_datetime_decimal_seconds(added.last().created)
+            elif set_as_preferred:
+                gw.added_to_superevent = utc_datetime_decimal_seconds(set_as_preferred.first().created)
+
+            if set_as_preferred:
+                gw.set_as_preferred = utc_datetime_decimal_seconds(set_as_preferred.first().created)
+
+            gw.created_pretty = utc_datetime_decimal_seconds(gw.created)
+
+        return gw_events
+
+
     def get_context_data(self, **kwargs):
         # Get base context
         context = super(SupereventDetailView, self).get_context_data(**kwargs)
@@ -73,8 +100,7 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
         # TODO: filter events for user? Not clear what information we want
         # to show to different groups
         # Pass event graceids
-        context['internal_events'] = superevent.get_internal_events() \
-            .order_by('id')
+        context['internal_events'] = self.get_gw_event_details(superevent)
         context['external_events'] = superevent.get_external_events() \
             .order_by('id')
 
@@ -105,6 +131,8 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
         if context['user_is_external']:
             log_set_query_kwargs['tags__name'] = 'public'
         context['log_list'] = superevent.log_set.filter(**log_set_query_kwargs)
+
+        # Get the associated event and timing info. 
 
         return context
 

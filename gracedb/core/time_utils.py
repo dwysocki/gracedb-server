@@ -96,3 +96,7 @@ def isoToGps(t):
 def utc_datetime_to_gps_float(dt):
     posix_time = calendar.timegm(dt.timetuple()) + (dt.microsecond * 1e-6)
     return posixToGpsTime(posix_time)
+
+
+def utc_datetime_decimal_seconds(dt):
+    return dt.strftime('%Y-%m-%d %H:%M:%S') + '.{:02d}'.format(round(dt.microsecond, -4))[:3]

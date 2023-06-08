@@ -1,0 +1,66 @@
+{% load timeutil %}
+{% load scientific %}
+<script type="text/javascript" class="init">
+    $(document).ready(function () {
+        $('#event-timeline').DataTable({
+            paging:false,
+            searching:false,
+            info:false,
+            order: [[6, 'asc']],
+        });
+});
+</script>
+
+    <table id="event-timeline" class="table-hover table-condensed
+        table-resp-gracedb shadow p-3 mb-5 rounded ">
+      <!-- Table Header -->
+      <thead>
+      <tr>
+        <th colspan="9"><h3>GW Event Upload Information</h3></th>
+      </tr>
+
+      <tr>
+        <th> UID </th>
+        <th> Group </th>
+        <th> Pipeline </th>
+        <th> gpstime </th>
+        <th> FAR (Hz) </th>
+        <th> SNR </th>
+        <th> Upload Time (UTC) </th>
+        <th> Added to Superevent (UTC) </th>
+        <th> Set as Preferred (UTC) </th>
+      </tr>
+      </thead>
+      <tbody style="">
+      {% for e in internal_events %}
+        <tr>
+         <td><a href="{% url "view" e.graceid %}">{{ e.graceid }}</a></td>
+         <td> {{ e.group.name }} </td>
+         <td> {{ e.pipeline.name }} </td>
+         <td> {{ e.gpstime | floatformat:"3" }} </td>
+         <td>
+             {% if e.far|scientific %}
+             {{ e.far|scientific }} 
+             {% else %}
+             &nbsp; &nbsp; &nbsp; &nbsp;
+             {% endif %}
+         </td>
+         <td data-title="SNR">
+             {% if e.coincinspiralevent %}
+             {{ e.coincinspiralevent.snr|floatformat:"3" }}
+             {% elif e.multiburstevent %}
+             {{ e.multiburstevent.snr|floatformat:"3" }}
+             {% else %}
+             &nbsp; &nbsp; &nbsp; &nbsp;
+             {% endif %}
+         </td>
+         <td> {{ e.created_pretty }} </td>
+         <td> {{ e.added_to_superevent }} </td>
+         <td> {{ e.set_as_preferred }} </td>
+
+
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
