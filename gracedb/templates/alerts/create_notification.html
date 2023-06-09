@@ -27,17 +27,17 @@ $(document).ready(function() {
 <div style="padding: 10px;">
 <h3>Instructions</h3>
 <ul>
-    <li>Select an alert type (superevent or event).</li>
+    <li>Select a notification type (superevent or event).</li>
     <li>A description is required.</li>
     <li>One or more values can be selected for certain fields (contacts, labels, groups, pipelines, and searches). Use CTRL + click to select multiples in a field.</li>
-    <li>See the <a href="{% url "home" %}documentation/notifications.html">documentation</a> for detailed information about creating notifications and how the notification fields are translated into logic for deciding when alerts should be sent.</li>
+    <li>See the <a href="{% url "home" %}documentation/notifications.html">documentation</a> for detailed information about creating notifications and how the notification fields are translated into logic for deciding when notifications should be sent.</li>
 </ul>
 </div>
 
 <div id="tabs" style="min-width: 300px; max-width: 700px; display: none;">
   <ul>
     {% for form in forms %}
-    <li><a href="#tab-{{ forloop.counter }}">{{ form.key|title }} alert</a></li>
+    <li><a href="#tab-{{ forloop.counter }}">{{ form.key|title }} Notification</a></li>
     {% endfor %}
   </ul>
   {% for form in forms %}

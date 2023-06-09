@@ -29,17 +29,17 @@ $(document).ready(function() {
 <div style="padding: 10px;">
 <h3>Instructions</h3>
 <ul>
-    <li>Choose an alert type (email or phone).</li>
+    <li>Choose a notification type (email or phone).</li>
     <li>A description is required.</li>
-    <li>For phone alerts, choose call, text, or both.</li>
-    <li><b>IMPORTANT: after your contact is created, it must be verified before you can receive alerts.</b> You can verify contacts on the previous page where a list of your available contacts is shown.</li>
+    <li>For phone notifications, choose call, text, or both.</li>
+    <li><b>IMPORTANT: after your contact is created, it must be verified before you can receive notifications.</b> You can verify contacts on the previous page where a list of your available contacts is shown.</li>
 </ul>
 </div>
 
 <div id="tabs" style="min-width: 300px; max-width: 400px; display: none;">
   <ul>
     {% for form in forms %}
-    <li><a href="#tab-{{ forloop.counter }}">{{ form.key|title }} alert</a></li>
+    <li><a href="#tab-{{ forloop.counter }}">{{ form.key|title }} Notification</a></li>
     {% endfor %}
   </ul>
   {% for form in forms %}
