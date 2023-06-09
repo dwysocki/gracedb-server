@@ -41,6 +41,8 @@
              {{ e.coincinspiralevent.snr|floatformat:"3" }}
              {% elif e.multiburstevent %}
              {{ e.multiburstevent.snr|floatformat:"3" }}
+             {% elif e.lalinferenceburstevent %}
+             {{ e.lalinferenceburstevent.omicron_snr_network|floatformat:"3" }}
              {% else %}
              &nbsp; &nbsp; &nbsp; &nbsp;
              {% endif %}
