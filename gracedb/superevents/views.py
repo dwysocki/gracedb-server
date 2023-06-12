@@ -126,13 +126,18 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
         context['emgroups'] = EMGroup.objects.all().order_by('name') \
             .values_list('name', flat=True)
 
-        # Get list of Log objects associated with this superevent
-        log_set_query_kwargs = {}
+        # Get and return the list of media_log objects:
+        media_logs = superevent.log_set.filter(tags__name__in=settings.BLESSED_TAGS)
         if context['user_is_external']:
-            log_set_query_kwargs['tags__name'] = 'public'
-        context['log_list'] = superevent.log_set.filter(**log_set_query_kwargs)
+            media_logs = media_logs.filter(tags__name='public')
+        context['media_logs'] = media_logs
 
-        # Get the associated event and timing info. 
+        # Return the most recent log objects to show as a preview:
+        if context['user_is_external']:
+            context['recent_logs'] = superevent.log_set.filter(
+                    tags__name='public')[:settings.MOST_RECENT_LOG_NUMBER]
+        else:
+            context['recent_logs'] = superevent.log_set.all()[:settings.MOST_RECENT_LOG_NUMBER]
 
         return context
 
