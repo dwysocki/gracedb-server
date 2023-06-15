@@ -27,6 +27,7 @@ bind = "127.0.0.1:{port}".format(port=GUNICORN_PORT)
 
 workers  = get_from_env('GUNICORN_WORKERS',
                    default_value=multiprocessing.cpu_count()*2 + 1,
+                   #default_value=2,
                    fail_if_not_found=False)
 
 threads = get_from_env('GUNICORN_THREADS',
@@ -46,8 +47,9 @@ worker_class = get_from_env('GUNICORN_WORKER_CLASS',
 # https://gunicorn-docs.readthedocs.io/en/stable/settings.html#worker-processes
 
 timeout = get_from_env('GUNICORN_TIMEOUT',
-                   default_value=300,
+                   default_value=60,
                    fail_if_not_found=False)
+#graceful_timeout = 30
 
 # max_requests settings -------------------------------------------------------
 # The maximum number of requests a worker will process before restarting.
@@ -71,7 +73,7 @@ max_requests_jitter = get_from_env('GUNICORN_MAX_REQUESTS_JITTER',
 # this to a higher value.
 
 keepalive = get_from_env('GUNICORN_KEEPALIVE',
-                   default_value=60,
+                   default_value=1,
                    fail_if_not_found=False)
 
 # preload_app -----------------------------------------------------------------
@@ -88,7 +90,7 @@ keepalive = get_from_env('GUNICORN_KEEPALIVE',
 # **TURN THIS TO TRUE FOR AWS DEPLOYMENT **
 
 preload_app = get_from_env('GUNICORN_PRELOAD_APP',
-                   default_value=False,
+                   default_value=True,
                    fail_if_not_found=False)
 
 # Logging ---------------------------------------------------------------------
@@ -107,3 +109,21 @@ from gunicorn.glogging import Logger
 class CustomLogger(Logger):
     error_fmt = 'GUNICORN | ' + Logger.error_fmt
 logger_class = CustomLogger
+
+def post_fork(server, worker):
+    server.log.info("Worker spawned (pid: %s)", worker.pid)
+
+def pre_fork(server, worker):
+    pass
+
+def pre_exec(server):
+    server.log.info("Forked child, re-executing.")
+
+def when_ready(server):
+    server.log.info("Server is ready. Spawning workers")
+
+def worker_int(worker):
+    worker.log.info("worker received INT or QUIT signal")
+
+def worker_abort(worker):
+    worker.log.info("worker received SIGABRT signal")

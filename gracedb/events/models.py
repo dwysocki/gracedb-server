@@ -331,6 +331,11 @@ class Event(ComputedFieldsModel):
         else:
             nearby = Event.objects.exclude(group__name='Test')
 
+        if self.is_mdc():
+            nearby = nearby.filter(search__name='MDC')
+        else:
+            nearby = nearby.exclude(search__name='MDC')
+
         delta1, delta2 = neighborhood or self.DEFAULT_EVENT_NEIGHBORHOOD
 
         nearby = nearby.filter(gpstime__range=(self.gpstime+delta1, self.gpstime+delta2))

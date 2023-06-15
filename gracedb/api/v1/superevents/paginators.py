@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class CustomSupereventPagination(pagination.LimitOffsetPagination):
-    default_limit = 1024
+    default_limit = 10
     limit_query_param = 'count'
     offset_query_param = 'start'
 
