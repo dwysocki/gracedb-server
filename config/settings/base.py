@@ -56,9 +56,6 @@ DEBUG = False
 # Number of results to show on latest page
 LATEST_RESULTS_NUMBER = 25
 
-# Number of recent logs to show on event and superevent page:
-MOST_RECENT_LOG_NUMBER = 10
-
 # Maximum number of log messages to display before throwing
 # a warning. NOTE: There should be a better way of doing this,
 # but just put in the hard cutoff for right now

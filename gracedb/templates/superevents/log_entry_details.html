@@ -3,6 +3,10 @@
 {% load scientific %}
 {% load static %}
 
+<!-- Header for Log Messages -->
+{# {% with log_filter=user_is_external|yesno:"public," %} #}
+{# {% with log_list=object.log_set.all|filter_logs:log_filter %} #}
+
 <h2>Log Messages</h2>
 <hr style="width:250px; text-align:left; margin-left:0;">
 
@@ -13,7 +17,7 @@
         <p><center>
             Use buttons to expand/collapse log sections.</p>
         <p>
-        {{ media_logs |logboxes }}
+        {{ log_list|logboxes }}
         </center></p>
 
     </div>
@@ -83,7 +87,7 @@
                         <th scope="col"> Comment </th>
                     </tr>
                 </thead>
-                {% for log in recent_logs %}
+                {% for log in log_list %}
                 <tr>
                     <td> {{ log.N }} </td>
                     <td> {{ log.created|multiTime:"lcreated" }} </td>
