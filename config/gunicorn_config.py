@@ -27,11 +27,10 @@ bind = "127.0.0.1:{port}".format(port=GUNICORN_PORT)
 
 workers  = get_from_env('GUNICORN_WORKERS',
                    default_value=multiprocessing.cpu_count()*2 + 1,
-                   #default_value=2,
                    fail_if_not_found=False)
 
 threads = get_from_env('GUNICORN_THREADS',
-                   default_value=2,
+                   default_value=16,
                    fail_if_not_found=False)
 
 # Worker class ----------------------------------------------------------------
@@ -47,7 +46,7 @@ worker_class = get_from_env('GUNICORN_WORKER_CLASS',
 # https://gunicorn-docs.readthedocs.io/en/stable/settings.html#worker-processes
 
 timeout = get_from_env('GUNICORN_TIMEOUT',
-                   default_value=60,
+                   default_value=30,
                    fail_if_not_found=False)
 #graceful_timeout = 30
 
@@ -73,7 +72,7 @@ max_requests_jitter = get_from_env('GUNICORN_MAX_REQUESTS_JITTER',
 # this to a higher value.
 
 keepalive = get_from_env('GUNICORN_KEEPALIVE',
-                   default_value=1,
+                   default_value=5,
                    fail_if_not_found=False)
 
 # preload_app -----------------------------------------------------------------
@@ -103,6 +102,10 @@ access_log_format = ('GUNICORN | %(h)s %(l)s %(u)s %(t)s '
 errorlog = join(LOG_DIR, "gunicorn_error.log")
 loglevel = 'debug'
 capture_output = True
+
+#Debug:
+worker_tmp_dir='/dev/shm'
+
 
 # Override logger class to modify error format
 from gunicorn.glogging import Logger
