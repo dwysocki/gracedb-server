@@ -23,7 +23,7 @@
         <th> UID </th>
         <th> Group </th>
         <th> Pipeline </th>
-        <th> gpstime </th>
+        <th> Early Warning </th>
         <th> FAR (Hz) </th>
         <th> SNR </th>
         <th> Upload Time (UTC) </th>
@@ -37,7 +37,7 @@
          <td><a href="{% url "view" e.graceid %}">{{ e.graceid }}</a></td>
          <td> {{ e.group.name }} </td>
          <td> {{ e.pipeline.name }} </td>
-         <td> {{ e.gpstime | floatformat:"3" }} </td>
+         <td> {% if e.is_early_warning %} &#9989; {% endif %} </td>
          <td>
              {% if e.far|scientific %}
              {{ e.far|scientific }} 
@@ -56,7 +56,7 @@
              &nbsp; &nbsp; &nbsp; &nbsp;
              {% endif %}
          </td>
-         <td> {{ e.created_pretty }} </td>
+         <td> {{ e.created_pretty }}  </td>
          <td> {{ e.added_to_superevent }} </td>
          <td> {{ e.set_as_preferred }} </td>
 

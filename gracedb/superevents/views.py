@@ -84,6 +84,8 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
 
             gw.created_pretty = utc_datetime_decimal_seconds(gw.created)
 
+            gw.is_early_warning=bool(gw.labels.filter(name='EARLY_WARNING'))
+
         return gw_events
 
 
