@@ -274,60 +274,61 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
     rv['superevent'] = getattr(event.superevent, 'superevent_id', None)
 
     # list all neighbouring s events within time window
-    if not event.gpstime:
-        rv['superevent_neighbours'] = None
-    else:
-        # Filter based on event type (prod, mdc, test):
-        if event.is_production():
-            s_category = 'P'
-        elif event.is_test():
-            s_category = 'T'
-        elif event.is_mdc():
-            s_category = 'M'
-
-        # Get nearby superevents, of the same type:
-        nearby_superevents = Superevent.objects.filter(t_0__gte=event.gpstime-settings.EVENT_SUPEREVENT_WINDOW_BEFORE, 
-                             t_0__lte=event.gpstime+settings.EVENT_SUPEREVENT_WINDOW_AFTER,
-                             category=s_category).select_related('preferred_event').prefetch_related('events')
-
-        se_neighbour_dict = {}
-        for s_event in nearby_superevents:
-            # First assemble preferred event dict:
-            pevd ={}
-
-            # Preferred event basic info:
-            pevd.update(event_basic_info_to_dict(s_event.preferred_event,
-                request))
-
-            # Preferred event labels:
-            pevd.update(event_labels_to_list(s_event.preferred_event))
-
-            # Preferred event extra_attributes:
-            pevd['extra_attributes'] = assemble_event_extra_attributes(
-                s_event.preferred_event, request, is_alert)
-
-            # Pipeline preferred event data:
-            pipeline_preferred_event_data = {e.pipeline.name:event_basic_info_to_dict(e, request)
-                        for e in s_event.pipeline_preferred_events.all()}
-
-            # Provide the superevent dictionary:
-            se_neighbour_dict[getattr(s_event, 'superevent_id', None)] = {
-               'superevent_id': getattr(s_event, 'superevent_id', None),
-               'gw_events': [getattr(ev, 'graceid', None) for ev in
-                   s_event.get_internal_events()],
-               'preferred_event': getattr(s_event.preferred_event, 'graceid',
-                   None),
-               'preferred_event_data': pevd,
-               'pipeline_preferred_events': pipeline_preferred_event_data,
-               'far': getattr(s_event, 'far', None),
-               't_start': getattr(s_event, 't_start', None),
-               't_0': getattr(s_event, 't_0', None),
-               't_end': getattr(s_event, 't_end', None),
-               **event_labels_to_list(s_event),
-               }
-
-
-        rv['superevent_neighbours'] = se_neighbour_dict
+    if (request.user and not is_external(request.user)):
+        if not event.gpstime:
+            rv['superevent_neighbours'] = None
+        else:
+            # Filter based on event type (prod, mdc, test):
+            if event.is_production():
+                s_category = 'P'
+            elif event.is_test():
+                s_category = 'T'
+            elif event.is_mdc():
+                s_category = 'M'
+    
+            # Get nearby superevents, of the same type:
+            nearby_superevents = Superevent.objects.filter(t_0__gte=event.gpstime-settings.EVENT_SUPEREVENT_WINDOW_BEFORE, 
+                                 t_0__lte=event.gpstime+settings.EVENT_SUPEREVENT_WINDOW_AFTER,
+                                 category=s_category).select_related('preferred_event').prefetch_related('events')
+    
+            se_neighbour_dict = {}
+            for s_event in nearby_superevents:
+                # First assemble preferred event dict:
+                pevd ={}
+    
+                # Preferred event basic info:
+                pevd.update(event_basic_info_to_dict(s_event.preferred_event,
+                    request))
+    
+                # Preferred event labels:
+                pevd.update(event_labels_to_list(s_event.preferred_event))
+    
+                # Preferred event extra_attributes:
+                pevd['extra_attributes'] = assemble_event_extra_attributes(
+                    s_event.preferred_event, request, is_alert)
+    
+                # Pipeline preferred event data:
+                pipeline_preferred_event_data = {e.pipeline.name:event_basic_info_to_dict(e, request)
+                            for e in s_event.pipeline_preferred_events.all()}
+    
+                # Provide the superevent dictionary:
+                se_neighbour_dict[getattr(s_event, 'superevent_id', None)] = {
+                   'superevent_id': getattr(s_event, 'superevent_id', None),
+                   'gw_events': [getattr(ev, 'graceid', None) for ev in
+                       s_event.get_internal_events()],
+                   'preferred_event': getattr(s_event.preferred_event, 'graceid',
+                       None),
+                   'preferred_event_data': pevd,
+                   'pipeline_preferred_events': pipeline_preferred_event_data,
+                   'far': getattr(s_event, 'far', None),
+                   't_start': getattr(s_event, 't_start', None),
+                   't_0': getattr(s_event, 't_0', None),
+                   't_end': getattr(s_event, 't_end', None),
+                   **event_labels_to_list(s_event),
+                   }
+    
+    
+            rv['superevent_neighbours'] = se_neighbour_dict
 
     # Links
     rv['links'] = {
