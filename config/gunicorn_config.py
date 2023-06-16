@@ -72,7 +72,7 @@ max_requests_jitter = get_from_env('GUNICORN_MAX_REQUESTS_JITTER',
 # this to a higher value.
 
 keepalive = get_from_env('GUNICORN_KEEPALIVE',
-                   default_value=5,
+                   default_value=30,
                    fail_if_not_found=False)
 
 # preload_app -----------------------------------------------------------------

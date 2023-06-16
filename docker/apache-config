@@ -40,12 +40,32 @@ ServerName ${DJANGO_PRIMARY_FQDN}
   ProxyPass "/static" "!"
   ProxyPass "/documentation" "!"
   ProxyPass "/admin_docs" "!"
-  ProxyPass "/" "http://localhost:8080/"
+  ProxyPass "/" "http://localhost:8080/"  Keepalive=On timeout=120 connectiontimeout=120
 
-  # KeepAlive stuff:
+  # This section is for apache2 timeout and keepalive tuning parameters. 
+  # https://ioflood.com/blog/2020/02/21/what-is-apache-keepalive-timeout-how-to-optimize-this-critical-setting/
+  
+  # KeepAlive will... keep a connection alive for subsequent requests. 
+  # Turn this on.
   KeepAlive On
-  MaxKeepAliveRequests 100
-  KeepAliveTimeout 3
+
+  # The maximum number of requests served to a client before terminating the connection.
+  # This can be large, possibly safely unlimited. (0 = unlimited)
+  MaxKeepAliveRequests 0
+
+  # The number of seconds Apache will wait for a subsequent request before closing the 
+  # connection. Once a request has been received, the timeout value specified by the 
+  # Timeout directive applies. Setting KeepAliveTimeout to a high value may cause 
+  # performance problems in heavily loaded servers. The higher the timeout, the more 
+  # server processes will be kept occupied waiting on connections with idle clients
+  KeepAliveTimeout 5
+
+  # Amount of time the server will wait for certain events before failing a 
+  # request. The TimeOut directive defines the length of time Apache will wait for
+  # I/O (e.g., when reading data from the client, when writing data to the client, etc.) 
+  # Default: 300s. Try setting this lower, then do a test like a long query with the API
+  # and in the browser and see what happens. 
+  Timeout 60
 
   # Unset certain headers to help prevent spoofing
   RequestHeader unset REMOTE_USER
