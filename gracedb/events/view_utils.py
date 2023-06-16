@@ -274,7 +274,7 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
     rv['superevent'] = getattr(event.superevent, 'superevent_id', None)
 
     # list all neighbouring s events within time window
-    if (request.user and not is_external(request.user)):
+    if (request and request.user and not is_external(request.user)):
         if not event.gpstime:
             rv['superevent_neighbours'] = None
         else:
