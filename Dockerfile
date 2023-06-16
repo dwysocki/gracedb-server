@@ -58,15 +58,23 @@ RUN wget https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemo
 RUN dpkg -i aws-xray-daemon-3.x.deb
 RUN rm aws-xray-daemon-3.x.deb
 
+# Docker scripts:
 COPY docker/entrypoint /usr/local/bin/entrypoint
 COPY docker/cleanup /usr/local/bin/cleanup
+
+# Supervisord configs:
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker/supervisord-apache2.conf /etc/supervisor/conf.d/apache2.conf
 COPY docker/supervisord-igwn-alert-overseer.conf /etc/supervisor/conf.d/igwn-overseer.conf
 COPY docker/supervisord-shibd.conf /etc/supervisor/conf.d/shibd.conf
 COPY docker/supervisord-aws-xray.conf /etc/supervisor/conf.d/aws-xray.conf
-COPY docker/shibboleth-ds /etc/shibboleth-ds
+
+# Apache configs:
 COPY docker/apache-config /etc/apache2/sites-available/gracedb.conf
+COPY docker/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf
+
+# Shibboleth configs and certs:
+COPY docker/shibboleth-ds /etc/shibboleth-ds
 COPY docker/login.ligo.org.cert.LIGOCA.pem /etc/shibboleth/login.ligo.org.cert.LIGOCA.pem
 COPY docker/inc-md-cert.pem /etc/shibboleth/inc-md-cert.pem
 COPY docker/check_shibboleth_status /usr/local/bin/check_shibboleth_status
