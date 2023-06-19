@@ -30,7 +30,7 @@ workers  = get_from_env('GUNICORN_WORKERS',
                    fail_if_not_found=False)
 
 threads = get_from_env('GUNICORN_THREADS',
-                   default_value=16,
+                   default_value=8,
                    fail_if_not_found=False)
 
 # Worker class ----------------------------------------------------------------
