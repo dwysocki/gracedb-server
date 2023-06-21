@@ -274,7 +274,11 @@ def eventToDict(event, columns=None, request=None, is_alert=False):
     rv['superevent'] = getattr(event.superevent, 'superevent_id', None)
 
     # list all neighbouring s events within time window
-    if (request and request.user and not is_external(request.user)):
+    # This should be included for:
+    #  * internal /requests/: page views, and http responses by logged in users
+    #  * igwn-alerts: which technically aren't requests, but are still for
+    #                 internal use.
+    if (not request or (request and not is_external(request.user))):
         if not event.gpstime:
             rv['superevent_neighbours'] = None
         else:
