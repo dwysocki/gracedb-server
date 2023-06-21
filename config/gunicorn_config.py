@@ -89,7 +89,7 @@ keepalive = get_from_env('GUNICORN_KEEPALIVE',
 # **TURN THIS TO TRUE FOR AWS DEPLOYMENT **
 
 preload_app = get_from_env('GUNICORN_PRELOAD_APP',
-                   default_value=True,
+                   default_value=False,
                    fail_if_not_found=False)
 
 # Logging ---------------------------------------------------------------------
