@@ -30,7 +30,7 @@ workers  = get_from_env('GUNICORN_WORKERS',
                    fail_if_not_found=False)
 
 threads = get_from_env('GUNICORN_THREADS',
-                   default_value=8,
+                   default_value=4,
                    fail_if_not_found=False)
 
 # Worker connections: 
@@ -77,7 +77,7 @@ max_requests_jitter = get_from_env('GUNICORN_MAX_REQUESTS_JITTER',
 # this to a higher value.
 
 keepalive = get_from_env('GUNICORN_KEEPALIVE',
-                   default_value=10,
+                   default_value=60,
                    fail_if_not_found=False)
 
 # preload_app -----------------------------------------------------------------
@@ -112,7 +112,7 @@ capture_output = True
 # https://pythonspeed.com/articles/gunicorn-in-docker/
 # “in AWS an EBS root instance volume may sometimes hang for half a minute 
 # and during this time Gunicorn workers may completely block.”
-#worker_tmp_dir='/dev/shm'
+worker_tmp_dir='/dev/shm'
 
 
 # Override logger class to modify error format
