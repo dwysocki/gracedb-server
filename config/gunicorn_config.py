@@ -26,12 +26,16 @@ bind = "127.0.0.1:{port}".format(port=GUNICORN_PORT)
 # 2*CPU + 1 (recommendation from Gunicorn documentation)
 
 workers  = get_from_env('GUNICORN_WORKERS',
-                   default_value=multiprocessing.cpu_count()*2 + 1,
+                   default_value=multiprocessing.cpu_count()*4 + 1,
                    fail_if_not_found=False)
 
 threads = get_from_env('GUNICORN_THREADS',
                    default_value=8,
                    fail_if_not_found=False)
+
+# Worker connections: 
+
+worker_connections = workers * threads
 
 # Worker class ----------------------------------------------------------------
 # sync by default, generally safe and low-resource:
@@ -46,9 +50,10 @@ worker_class = get_from_env('GUNICORN_WORKER_CLASS',
 # https://gunicorn-docs.readthedocs.io/en/stable/settings.html#worker-processes
 
 timeout = get_from_env('GUNICORN_TIMEOUT',
-                   default_value=30,
+                   default_value=15,
                    fail_if_not_found=False)
-#graceful_timeout = 30
+
+graceful_timeout = timeout
 
 # max_requests settings -------------------------------------------------------
 # The maximum number of requests a worker will process before restarting.
@@ -72,7 +77,7 @@ max_requests_jitter = get_from_env('GUNICORN_MAX_REQUESTS_JITTER',
 # this to a higher value.
 
 keepalive = get_from_env('GUNICORN_KEEPALIVE',
-                   default_value=5,
+                   default_value=10,
                    fail_if_not_found=False)
 
 # preload_app -----------------------------------------------------------------
@@ -89,7 +94,7 @@ keepalive = get_from_env('GUNICORN_KEEPALIVE',
 # **TURN THIS TO TRUE FOR AWS DEPLOYMENT **
 
 preload_app = get_from_env('GUNICORN_PRELOAD_APP',
-                   default_value=False,
+                   default_value=True,
                    fail_if_not_found=False)
 
 # Logging ---------------------------------------------------------------------
@@ -103,8 +108,11 @@ errorlog = join(LOG_DIR, "gunicorn_error.log")
 loglevel = 'debug'
 capture_output = True
 
-#Debug:
-worker_tmp_dir='/dev/shm'
+# using /dev/shm/ instead of /tmp for the temporary worker directory. See:
+# https://pythonspeed.com/articles/gunicorn-in-docker/
+# “in AWS an EBS root instance volume may sometimes hang for half a minute 
+# and during this time Gunicorn workers may completely block.”
+#worker_tmp_dir='/dev/shm'
 
 
 # Override logger class to modify error format
