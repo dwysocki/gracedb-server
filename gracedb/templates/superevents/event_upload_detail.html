@@ -11,21 +11,24 @@
 });
 </script>
 
+          <p><b> New: </b> This table is intended to help assist LVK Users follow the logic of
+          <a href="https://emfollow.docs.ligo.org/userguide/analysis/superevents.html#selection-of-the-preferred-event"> superevent creation </a>. Below are all the G-events in this superevent, sorted by time of submission to GraceDB. Please hover over the label name to determine when the label was applied.</p>
     <table id="event-timeline" class="table-hover table-condensed
         table-resp-gracedb shadow p-3 mb-5 rounded ">
       <!-- Table Header -->
       <thead>
       <tr>
-        <th colspan="9"><h3>GW Event Upload Information</h3></th>
+        <th colspan="9"><h3>GW Event Upload Information</h3>
+        </th>
       </tr>
 
       <tr>
         <th> UID </th>
         <th> Group </th>
         <th> Pipeline </th>
-        <th> Early Warning </th>
         <th> FAR (Hz) </th>
         <th> SNR </th>
+        <th> Labels </th>
         <th> Upload Time (UTC) </th>
         <th> Added to Superevent (UTC) </th>
         <th> Set as Preferred (UTC) </th>
@@ -37,7 +40,6 @@
          <td><a href="{% url "view" e.graceid %}">{{ e.graceid }}</a></td>
          <td> {{ e.group.name }} </td>
          <td> {{ e.pipeline.name }} </td>
-         <td> {% if e.is_early_warning %} &#9989; {% endif %} </td>
          <td>
              {% if e.far|scientific %}
              {{ e.far|scientific }} 
@@ -54,6 +56,22 @@
              {{ e.lalinferenceburstevent.omicron_snr_network|floatformat:"3" }}
              {% else %}
              &nbsp; &nbsp; &nbsp; &nbsp;
+             {% endif %}
+         </td>
+         <td> 
+             {% if e.labelling_set.all %}
+             {% for labelling in e.labelling_set.all %}
+             <span style="color: {{labelling.label.defaultColor}};" class="label"
+                                                                    data-toggle="tooltip"
+                                                                    data-placement="top"
+                                                                    data-html="true"
+                                                                    title="<em>{{labelling.label.description}}</em><br>
+                                                                    <b>Added by:</b> {{labelling.creator.get_full_name}}<br>
+                                                                    <b>Added:</b> {{labelling.created}}">
+                                                                    {{ labelling.label.name }}</span>
+             {% endfor %}
+             {% else %}
+             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
              {% endif %}
          </td>
          <td> {{ e.created_pretty }}  </td>
