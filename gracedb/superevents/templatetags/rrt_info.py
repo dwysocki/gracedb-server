@@ -8,6 +8,7 @@ from superevents.models import Log
 register = template.Library()
 
 template_link_format = "<a href='{notice_url}'>[Notice]</a> <a href='{circular_url}'>[Circular]</a>"
+dqr_link_format = "<a href='https://ldas-jobs.ligo.caltech.edu/~dqr/o4dqr/online/events/{yearmonth}/{sid}' target='_blank'>[Data Quality Report]</a>"
 
 
 @register.filter(is_safe=True)
@@ -39,7 +40,7 @@ def get_template_from_label(sevent):
         circular_filename = 'retraction-circular.txt'
 
     else:
-        return "Advocate action (ADVOK/ADVNO) required"
+        return mark_safe("Advocate action (<span style='font-family: monospace;'>ADVOK/ADVNO</span>) required")
 
     # Build the files URL:
     notice_url = build_absolute_uri(reverse('api:default:superevents:superevent-file-detail',
@@ -50,3 +51,12 @@ def get_template_from_label(sevent):
     return mark_safe(template_link_format.format(notice_url=notice_url,
                                        circular_url=circular_url))
 
+@register.filter(is_safe=True)
+def get_dqr_status(sevent):
+
+    # Is the DQR reqest label present?
+    if sevent.labels.filter(name='DQR_REQUEST'):
+       return mark_safe(dqr_link_format.format(yearmonth=sevent.created.strftime("%Y%m"),
+           sid=sevent.superevent_id))
+    else:
+        return mark_safe("<span style='font-family: monospace;'>DQR_REQUEST</span> label not applied")
