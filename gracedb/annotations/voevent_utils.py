@@ -596,13 +596,13 @@ def construct_voevent_file(obj, voevent, request=None):
 
         elif isinstance(event, LalInferenceBurstEvent):
             p_freq = vp.Param(
-                "frequency",
+                "CentralFreq",
                 value=float(event.frequency_mean),
                 ucd="gw.frequency",
                 unit="Hz",
                 ac=True,
             )
-            p_freq.Description = "Mean frequency of GW burst signal"
+            p_freq.Description = "Central frequency of GW burst signal"
             v.What.append(p_freq)
 
             duration = event.quality_mean / (2 * pi * event.frequency_mean)
