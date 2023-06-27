@@ -59,9 +59,4 @@ class PerformanceMiddleware(object):
         elif annotate:
             self.logger.info("annotate: %d: %s" % (response.status_code, username))
         
-        if response.status_code == 429:
-            request_logger = logging.getLogger('django.request')
-            msg = '%s to %s limited for user: %s' % (request.method, url_name, username)
-            request_logger.error(msg)
-
         return response
