@@ -25,13 +25,13 @@ bind = "127.0.0.1:{port}".format(port=GUNICORN_PORT)
 # Number of workers -----------------------------------------------------------
 # 2*CPU + 1 (recommendation from Gunicorn documentation)
 
-workers  = get_from_env('GUNICORN_WORKERS',
+workers  = int(get_from_env('GUNICORN_WORKERS',
                    default_value=multiprocessing.cpu_count()*4 + 1,
-                   fail_if_not_found=False)
+                   fail_if_not_found=False))
 
-threads = get_from_env('GUNICORN_THREADS',
+threads = int(get_from_env('GUNICORN_THREADS',
                    default_value=4,
-                   fail_if_not_found=False)
+                   fail_if_not_found=False))
 
 # Worker connections: 
 
