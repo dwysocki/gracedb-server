@@ -24,18 +24,34 @@ bind = "127.0.0.1:{port}".format(port=GUNICORN_PORT)
 
 # Number of workers -----------------------------------------------------------
 # 2*CPU + 1 (recommendation from Gunicorn documentation)
+# bumped to 4*CPU + 1 after testing. Maybe increase this number in the cloud
+# deployment? 
 
 workers  = int(get_from_env('GUNICORN_WORKERS',
                    default_value=multiprocessing.cpu_count()*4 + 1,
                    fail_if_not_found=False))
 
+# NOTE: it was found in extensive testing that threads > 1 are prone
+# to connection lockups. Leave this at 1 for safety until there are 
+# fixes in gunicorn.
+
+# Why not sync? The sync worker is prone to timeout for long requests,
+# like big queries. But gthread sends a heartbeat back to the main worker
+# to keep it alive. We could just set the timeout to a really large number
+# which would keep the long requests stable, but if there is a stuck worker, 
+# then they would be subject to that really long timeout. It's a tradeoff. 
+
+# All this goes away with async workers, but as of 3.2, django's ORM does support
+# async, and testing failed pretty catastrophically and unreliably. 
+
 threads = int(get_from_env('GUNICORN_THREADS',
-                   default_value=4,
+                   default_value=1,
                    fail_if_not_found=False))
 
-# Worker connections: 
+# Worker connections. Limit the number of connections between apache<-->gunicorn
+# This avoids the situation 
 
-worker_connections = workers * threads
+worker_connections = workers
 
 # Worker class ----------------------------------------------------------------
 # sync by default, generally safe and low-resource:
@@ -50,7 +66,7 @@ worker_class = get_from_env('GUNICORN_WORKER_CLASS',
 # https://gunicorn-docs.readthedocs.io/en/stable/settings.html#worker-processes
 
 timeout = get_from_env('GUNICORN_TIMEOUT',
-                   default_value=15,
+                   default_value=30,
                    fail_if_not_found=False)
 
 graceful_timeout = timeout
@@ -76,8 +92,13 @@ max_requests_jitter = get_from_env('GUNICORN_MAX_REQUESTS_JITTER',
 # When Gunicorn is deployed behind a load balancer, it often makes sense to set
 # this to a higher value.
 
+# NOTE: force gunicorn to close its connection to apache after each request. 
+# This has been the source of so many 502's. Basically in periods of high activity,
+# gunicorn would hold on to open sockets with apache, and just deadlock itself:
+# https://github.com/benoitc/gunicorn/issues/2917
+
 keepalive = get_from_env('GUNICORN_KEEPALIVE',
-                   default_value=60,
+                   default_value=0,
                    fail_if_not_found=False)
 
 # preload_app -----------------------------------------------------------------
@@ -105,7 +126,11 @@ access_log_format = ('GUNICORN | %(h)s %(l)s %(u)s %(t)s '
 
 # Error log
 errorlog = join(LOG_DIR, "gunicorn_error.log")
-loglevel = 'debug'
+
+# debug logging doesn't provide actual information. And this will 
+# eliminate the "Connection closed." messages while still giving info 
+# about worker restarts. 
+loglevel = 'info'
 capture_output = True
 
 # using /dev/shm/ instead of /tmp for the temporary worker directory. See:
