@@ -683,3 +683,7 @@ EVENT_SUPEREVENT_WINDOW_AFTER = 100
 
 # Define which observation periods to show on the public events page:
 PUBLIC_PAGE_RUNS = ['O4', 'ER15', 'O3']
+
+# Define how long to cache the public page:
+PUBLIC_PAGE_CACHING = int(get_from_env('DJANGO_PUBLIC_PAGE_CACHING',
+    fail_if_not_found=False, default_value=300))

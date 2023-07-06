@@ -8,6 +8,7 @@ from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django.views.generic.detail import DetailView
 from django.views.generic import ListView
 
@@ -186,6 +187,7 @@ def public_alerts_redirect(request):
         run=settings.PUBLIC_PAGE_RUNS[0]))
 
 # The public alerts page:
+@method_decorator(cache_page(settings.PUBLIC_PAGE_CACHING), name='dispatch')
 @method_decorator(public_if_public_access_allowed, name='dispatch')
 class SupereventPublic(DisplayFarMixin, ListView):
     model = Superevent
