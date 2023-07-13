@@ -1,8 +1,4 @@
-require([
-    'dojo/parser',
-], function(parser) {
-
-    parser.parse();
+$(document).ready(function() {
 
     // We don't enable the input buttons until right now otherwise fast users
     // can trigger the form before the javascript is ready... not ideal
@@ -135,4 +131,3 @@ require([
 
 
 });
-

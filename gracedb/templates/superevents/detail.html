@@ -9,9 +9,12 @@
 {% load static %}
 <link rel="stylesheet" href="{% static "css/labeltips.css" %}" />
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dojo/1.10.4/dojo.js" integrity="sha512-WycJzB2nldja5RSTIdAacWBZlR8vpmfMqmmj+i6bQ7JncC5u3deuJBlEUPq5uGYkO8MzP28xkLHiZlkeYVtKlw==" crossorigin="anonymous" referrerpolicy="no-referrer" data-dojo-config="async: true"></script>
-
 <!-- the main JavaScript block is pulled in with an include -->
+<!-- this script sets up the ajax requests for the executive and
+     advocate forms. it re-enables the buttons once the script is 
+     loaded to prevent users from clicking before the ajax is in 
+     place -->
+
 <script>
     {% include "superevents/superevent_detail_script.js" %}
 </script>
