@@ -1,0 +1,98 @@
+{% load public_alerts %}
+
+<div class="pagination">
+  <span class="step-links" style="font-weight: lighter;">
+    {% if page_obj.has_previous %}
+    <a href="?page=1&showall={{ showall }}">&laquo; first</a>
+    <a href="?page={{ page_obj.previous_page_number }}&showall={{ showall }}">previous</a>
+    {% endif %}
+
+    <span class="current">
+      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+    </span>
+
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}&showall={{ showall }}">next</a>
+    <a href="?page={{ page_obj.paginator.num_pages }}&showall={{ showall }}">last &raquo;</a>
+    {% endif %}
+  </span>
+</div>
+<div class="tablesaw-overflow">
+  <table class="tablesaw table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" data-tablesaw-sortable data-tablesaw-sortable-switch data-tablesaw-mode="columntoggle" data-tablesaw-minimap id="publicTable">
+    <thead class="table-detail-th"><tr>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="persist">Event ID</th>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="1">Possible Source (Probability)</th>
+        {% if signif_docs %}
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="1">Significant</th>
+        {% endif %}
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-sortable-string data-tablesaw-priority="2">UTC</th>
+        <th scope="col" data-tablesaw-col data-tablesaw-priority="3">GCN</th>
+        <th scope="col" data-tablesaw-col data-tablesaw-priority="4">Location</th>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="5">FAR</th>
+        <th scope="col" data-tablesaw-col data-tablesaw-priority="6">Comments</th>
+        <th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="0">GPS</th>
+
+        {% if user_is_internal %}
+        <th scope="col" data-tablesaw-col data-tablesaw-priority="6">&Omega; Scan</th>
+        {% endif %}
+
+      </tr>
+    </thead>
+    <tbody>
+
+      {% for event in page_obj %}
+
+      {% if event.retract %}
+      <tr style="background-color: #EDD;" {% if not event.signif %} class="collapse show" id="insignificant" {% endif %}>
+        {% elif not event.signif %}
+        <tr style="background-color: #E5E4E2" class="collapse show" id="insignificant">
+          {% endif %}
+
+          <td style="min-width: 100px;">
+            <a href="{% url "superevents:view" event.superevent_id %}">{{ event.default_superevent_id }}</a>
+          </td>
+          <td style="min-width: 100px;">{{ event.sourcetypes }}</td>
+          {% if signif_docs %}
+          <td style="min-width: 100px;">{% if event.signif %} Yes {% else %} No {% endif %}</td>
+          {% endif %}
+          <td style="min-width: 140px;">
+            <span style="font-size: 0px;">{{ event.t_0|floatformat:2 }}</span>{{ event.t_0_date }}<br/>
+            {{ event.t0_utc }} UTC
+          </td>
+          <td style="min-width: 110px;">
+            {% if run == "O3" %}
+            <a href={{ event.gcnurl }}>GCN Circulars</a><br/>
+            {% else %}
+            <a href={{ event.gcnurl }}>GCN Circular Query</a><br/>
+            {% endif %}
+
+            <a href={{ event.noticeurl }}>Notices</a> | <a href="{% url "legacy_apiweb:default:superevents:superevent-voevent-list" event.default_superevent_id %}">VOE</a>
+          </td>
+          <td>
+            {% if event.skymap_image %}
+            <a href="{{ event.skymap_image }}">
+              <img src="{{ event.skymap_image }}" width="120px" />
+            </a>
+            {% else %}
+            No public skymap image found.
+            {% endif %}
+          </td>
+          <td style="min-width: 120px;">
+            <!-- Hidden float FAR value for table sorting -->
+            <span style="font-size: 0px;">{{ event.far_hz|floatformat:20 }}</span>{{ event.far_hr }}
+          </td>
+          <td style="min-width: 80px;">{{ event.comments|safe }} </td>
+          <td>{{ event.t_0|floatformat:2 }} </td>
+
+          {% if user_is_internal %}
+          <!-- Add Omega scans and PE results for LVC users -->
+          <td style="min-width: 70px;">
+            {{ event | omegascan_links:run }}
+          </td>
+          {% endif %}
+
+        </tr>
+        {% endfor %}
+    </tbody></table>
+</div>
+

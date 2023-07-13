@@ -24,7 +24,7 @@ def omegascan_links(superevent, run):
         return mark_safe(o3_deepomegascan_fmt.format(sid=superevent.superevent_id))
     else:
         link_list = []
-        for filename in superevent.log_set.filter(filename__contains='omegascan').order_by('filename').values_list('filename', flat=True):
+        for filename in sorted(set(superevent.log_set.filter(filename__contains='omegascan').order_by('filename').values_list('filename', flat=True))):
             # get the absolute uri for the file:
             file_url = build_absolute_uri(reverse('api:default:superevents:superevent-file-detail',
                            args=[superevent.superevent_id, filename]))

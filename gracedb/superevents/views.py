@@ -4,11 +4,13 @@ from lal import gpstime
 
 from django.conf import settings
 from django.db.models import Q
-from django.http import Http404
-from django.shortcuts import redirect
+from django.http import Http404, JsonResponse
+from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers
 from django.views.generic.detail import DetailView
 from django.views.generic import ListView
 
@@ -187,10 +189,13 @@ def public_alerts_redirect(request):
         run=settings.PUBLIC_PAGE_RUNS[0]))
 
 # The public alerts page:
+#@method_decorator(cache_page(0), name='dispatch')
 @method_decorator(cache_page(settings.PUBLIC_PAGE_CACHING), name='dispatch')
+@method_decorator(vary_on_headers('X-Requested-With'), name='dispatch')
 @method_decorator(public_if_public_access_allowed, name='dispatch')
 class SupereventPublic(DisplayFarMixin, ListView):
     model = Superevent
+    paginate_by = settings.PUBLIC_PAGE_RESULTS
     template_name = 'superevents/public_alerts.html'
     filter_permissions = ['superevents.view_superevent']
     log_view_permission = 'superevents.view_log'
@@ -200,8 +205,72 @@ class SupereventPublic(DisplayFarMixin, ListView):
     default_skymap_filename = 'bayestar.png'
     burst_skymap_filename = '{pipeline}.png'
     pe_results_tagname = 'pe_results'
+    show_button_text = 'Show All Public Events'
+    hide_button_text = 'Show Significant Events Only'
 
-    def get_queryset(self, **kwargs):
+    button_text_dict = {'show_button_text': show_button_text,
+            'hide_button_text': hide_button_text
+            }
+
+    # Override the standard get() method to allow for browser vs ajax requests.
+    def get(self, request, **args):
+        # For ajax requests, optionally get the "showall" value to to reveal
+        # insignificant events. Otherwise, for browser requests (the default when
+        # a user first lands on the public page), then only show significant.
+        allow_empty = self.get_allow_empty()
+
+        if not allow_empty:
+            # When pagination is enabled and object_list is a queryset,
+            # it's better to do a cheap query than to load the unpaginated
+            # queryset in memory.
+            if self.get_paginate_by(self.object_list) is not None and hasattr(
+                self.object_list, "exists"
+            ):
+                is_empty = not self.object_list.exists()
+            else:
+                is_empty = not self.object_list
+            if is_empty:
+                raise Http404(
+                    _("Empty list and “%(class_name)s.allow_empty” is False.")
+                    % {
+                        "class_name": self.__class__.__name__,
+                    }
+                )
+
+        showall = request.GET.get('showall', None)
+        if showall and showall.lower() in ['true', 't', '1', 'y']:
+            showall=True
+            button_text = self.hide_button_text
+        else:
+            showall=False
+            button_text = self.show_button_text
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            self.object_list = self.get_queryset(showall)
+            context = self.get_context_data()
+            context['showall'] = int(showall)
+            context['button_text'] = button_text
+            rendered_table = render_to_string('superevents/public_alerts_table.html',
+                    context=context, request=request)
+            data = {'rendered_table': rendered_table}
+            return JsonResponse(data)
+        else:
+            self.object_list = self.get_queryset(showall)
+            context = self.get_context_data()
+            context['showall'] = int(showall)
+            context['button_text'] = button_text
+            return render(request, self.template_name, context=context)
+
+
+    # Modify get_queryset() to filter for significant vs insignificant:
+    def get_queryset(self, showall=False, **kwargs):
+        if showall:
+            return self.get_public_superevents()
+        else:
+            return self.significant_events(self.get_public_superevents())
+
+    # Get all publicly exposed production superevents:
+    def get_public_superevents(self, **kwargs):
         # Query only for public events for the given observation run.
         # if it's not in the run list, return a 404.
         self.obsrun = self.kwargs.get('obsrun')
@@ -214,7 +283,8 @@ class SupereventPublic(DisplayFarMixin, ListView):
             .prefetch_related('voevent_set', 'log_set')
         return qs
 
-    # Define insignificance per run:
+
+    # Define significance per run:
     def significant_events(self, sevents):
         # We're checking for ADVREQ|ADVOK|ADVNO
         # https://git.ligo.org/computing/gracedb/server/-/issues/303#note_725082
@@ -284,14 +354,16 @@ class SupereventPublic(DisplayFarMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(SupereventPublic, self).get_context_data(**kwargs)
 
+        # Get the total number of public events:
+        context['total_events'] = self.get_public_superevents().count()
+
         # For each superevent, get list of log messages and construct pastro
         # string
-        table_data = {}
         candidates = 0
         retractions = 0
 
         # get insignificant events
-        sig_events = self.significant_events(self.object_list)
+        sig_events = self.significant_events(self.get_public_superevents())
 
         # Filter and loop over exposed superevents for the given run:
         for se in self.object_list:
@@ -369,21 +441,39 @@ class SupereventPublic(DisplayFarMixin, ListView):
                 se.sourcetypes = ', '.join(sourcelist)
 
 
-        # Now add it to the output dict, with the key being the run value:
-        table_data['events'] =  self.object_list
-
-        total_events = self.object_list.count()
-
         # export the dictionary for rendering:
         context['signif_docs'] = self.insignificant_docs(self.obsrun)
-        context['data'] = table_data
+        context['events'] = self.object_list
         context['run'] = self.obsrun
-        context['total_events'] = self.object_list.count()
         context['total_sig'] = sig_events.count()
         context['total_insig'] = context['total_events'] - context['total_sig']
         context['candidates'] = candidates
         context['retractions'] = retractions
         context['sig_cands'] = context['total_sig'] - retractions
+
+        # export the button text:
+        context.update(self.button_text_dict)
+
+        # update pagination context:
+        page_size = self.get_paginate_by(self.object_list)
+        context_object_name = self.get_context_object_name(self.object_list)
+        if page_size:
+            paginator, page, self.object_list, is_paginated = self.paginate_queryset(
+                self.object_list, page_size
+            )
+            context.update({
+                "paginator": paginator,
+                "page_obj": page,
+                "is_paginated": is_paginated,
+                "object_list": self.object_list,
+            })
+        else:
+            context.update({
+                "paginator": None,
+                "page_obj": None,
+                "is_paginated": False,
+                "object_list": queryset,
+            })
 
         return context
 
