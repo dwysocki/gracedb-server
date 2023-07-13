@@ -16,20 +16,25 @@
                 </thead>
                 <tr><td>  ifos <td> {{object.ifos}} </td> </tr>
                 <tr> <td> start_time </td><td> {{object.start_time}} </td> </tr>
-                    <tr> <td> start_time_ns </td><td> {{object.start_time_ns}} </td> </tr>
-                    <tr> <td> duration </td><td> {{object.duration|scientific}} </td> </tr>
-                    <tr> <td> peak_time </td><td> {{object.peak_time}} </td> </tr>
-                    <tr> <td> peak_time_ns </td><td> {{object.peak_time_ns}} </td> </tr>
-                    <tr> <td> central_freq </td><td> {{object.central_freq|floatformat:"-4"}} </td> </tr>
-                    <tr> <td> bandwidth </td><td> {{object.bandwidth|floatformat:"-4"}} </td> </tr>
-                    <tr> <td> amplitude </td> <td> {{object.amplitude|scientific}} </td> </tr>
-                    <tr> <td> snr </td> <td> {{object.snr|floatformat:"-4"}} </td> </tr>
-                    <tr> <td> confidence </td> <td> {{object.confidence|scientific}} </td> </tr>
-                    <tr> <td> false_alarm_rate </td> <td> {{object.false_alarm_rate|scientific}} </td> </tr>
-                    <tr> <td> ligo_axis_ra </td> <td> {{object.ligo_axis_ra|floatformat:"-4"}} </td> </tr>
-                    <tr> <td> ligo_axis_dec </td> <td> {{object.ligo_axis_dec|floatformat:"-4"}} </td> </tr>
-                    <tr> <td> ligo_angle </td> <td> {{object.ligo_angle}} </td> </tr>
-                    <tr> <td> ligo_angle_sig </td> <td> {{object.ligo_angle_sig}} </td></tr>
+                <tr> <td> start_time_ns </td><td> {{object.start_time_ns}} </td> </tr>
+                <tr> <td> duration </td><td> {{object.duration|scientific}} </td> </tr>
+                <tr> <td> strain </td><td> {{object.strain|scientific}} </td> </tr>
+                <tr> <td> peak_time </td><td> {{object.peak_time}} </td> </tr>
+                <tr> <td> peak_time_ns </td><td> {{object.peak_time_ns}} </td> </tr>
+                <tr> <td> central_freq </td><td> {{object.central_freq|floatformat:"-4"}} </td> </tr>
+                <tr> <td> bandwidth </td><td> {{object.bandwidth|floatformat:"-4"}} </td> </tr>
+                <tr> <td> amplitude </td> <td> {{object.amplitude|scientific}} </td> </tr>
+                <tr> <td> chirp mass </td> <td> {{object.mchirp|floatformat:"-4"}} </td> </tr>
+                <tr> <td> snr </td> <td> {{object.snr|floatformat:"-4"}} </td> </tr>
+                <tr> <td> confidence </td> <td> {{object.confidence|scientific}} </td> </tr>
+                <tr> <td> false_alarm_rate </td> <td> {{object.false_alarm_rate|scientific}} </td> </tr>
+                <tr> <td> ligo_axis_ra </td> <td> {{object.ligo_axis_ra|floatformat:"-4"}} </td> </tr>
+                <tr> <td> ligo_axis_dec </td> <td> {{object.ligo_axis_dec|floatformat:"-4"}} </td> </tr>
+                <tr> <td> ligo_angle </td> <td> {{object.ligo_angle}} </td> </tr>
+                <tr> <td> ligo_angle_sig </td> <td> {{object.ligo_angle_sig}} </td></tr>
+                <tr> <td> single ifo times</td> <td> {{object.single_ifo_times}} </td></tr>
+                <tr> <td> hoft </td> <td> {{object.hoft}} </td></tr>
+                <tr> <td> code </td> <td> {{object.code}} </td></tr>
             </table>
         </div>
     </div>

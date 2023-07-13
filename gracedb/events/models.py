@@ -788,11 +788,13 @@ class MultiBurstEvent(Event):
     start_time       = models.PositiveIntegerField(null=True)
     start_time_ns    = models.PositiveIntegerField(null=True)
     duration         = models.FloatField(null=True)
+    strain           = models.FloatField(null=True)
     peak_time        = models.PositiveIntegerField(null=True)
     peak_time_ns     = models.PositiveIntegerField(null=True)
     central_freq     = models.FloatField(null=True)
     bandwidth        = models.FloatField(null=True)
     amplitude        = models.FloatField(null=True)
+    mchirp           = models.FloatField(null=True)
     snr              = models.FloatField(null=True)
     confidence       = models.FloatField(null=True)
     false_alarm_rate = models.FloatField(null=True)
@@ -801,6 +803,8 @@ class MultiBurstEvent(Event):
     ligo_angle       = models.FloatField(null=True)
     ligo_angle_sig   = models.FloatField(null=True)
     single_ifo_times = models.CharField(max_length=255, default="")
+    hoft             = models.CharField(max_length=255, default="")
+    code             = models.CharField(max_length=31,  default="")
 
 # Adding too many index tables can adversely affect write performance.
 # So I'm going to minimize how many of these are actually implemented. 
@@ -810,14 +814,15 @@ class MultiBurstEvent(Event):
 # for CWB uploads anyway.
     class Meta:
         indexes = [models.Index(fields=['ifos', ]),
-#                  models.Index(fields=['start_time', ]),
+                   models.Index(fields=['start_time', ]),
 #                  models.Index(fields=['start_time_ns', ]),
                    models.Index(fields=['duration', ]),
-#                  models.Index(fields=['peak_time', ]),
+                   models.Index(fields=['peak_time', ]),
 #                  models.Index(fields=['peak_time_ns', ]),
                    models.Index(fields=['central_freq', ]),
 #                  models.Index(fields=['bandwidth', ]),
 #                  models.Index(fields=['amplitude', ]),
+                   models.Index(fields=['mchirp', ]),
                    models.Index(fields=['snr', ]),
 #                   models.Index(fields=['confidence', ]),
 #                   models.Index(fields=['false_alarm_rate', ]),
@@ -825,6 +830,7 @@ class MultiBurstEvent(Event):
 #                  models.Index(fields=['ligo_axis_dec', ]),
 #                  models.Index(fields=['ligo_angle', ]),
 #                  models.Index(fields=['ligo_angle_sig', ]),
+                   models.Index(fields=['code', ]),
                    models.Index(fields=['single_ifo_times', ])]
 
 class LalInferenceBurstEvent(Event):

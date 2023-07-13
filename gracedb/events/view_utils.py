@@ -734,21 +734,23 @@ def siminspiral_to_dict(event):
         pass
     return return_dict
 
+
 def multiburst_to_dict(event):
     # A safe routine for returning a multiburst event dict
     return_dict = {}
     try:
         return_dict.update({
             "ifos" : event.ifos,
-            "single_ifo_times": event.single_ifo_times,
             "start_time" : event.start_time,
             "start_time_ns" : event.start_time_ns,
             "duration" : event.duration,
+            "strain" : event.strain,
             "peak_time" : event.peak_time,
             "peak_time_ns" : event.peak_time_ns,
             "central_freq" : event.central_freq,
             "bandwidth" : event.bandwidth,
             "amplitude" : event.amplitude,
+            "mchirp": event.mchirp,
             "snr" : event.snr,
             "confidence" : event.confidence,
             "false_alarm_rate" : event.false_alarm_rate,
@@ -756,6 +758,9 @@ def multiburst_to_dict(event):
             "ligo_axis_dec" : event.ligo_axis_dec,
             "ligo_angle" : event.ligo_angle,
             "ligo_angle_sig" : event.ligo_angle_sig,
+            "single_ifo_times": event.single_ifo_times,
+            "hoft" : event.hoft,
+            "code" : event.code
             })
     except:
         pass

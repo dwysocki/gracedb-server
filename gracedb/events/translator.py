@@ -486,7 +486,6 @@ class Translator(object):
         return True
 
 
-
 class CwbData(Translator):
     event_type = "cWB"
 
@@ -505,36 +504,62 @@ class CwbData(Translator):
 
         # MultiBurst table attributes
         data = self.getData()
-        event.ifos          = data.get('ifo')
-        event.start_time    = data.get('start_time')
-        event.start_time_ns = data.get('start_time_ns')
-        event.duration      = data.get('duration')
-        event.central_freq  = data.get('central_freq')
-        event.bandwidth     = data.get('bandwidth')
+        event.ifos              = data.get('ifo')
+        event.start_time        = data.get('start_time')
+        event.start_time_ns     = data.get('start_time_ns')
+        event.peak_time         = data.get('peak_time')
+        event.peak_time_ns      = data.get('peak_time_ns')
+        event.duration          = data.get('duration')
+        event.strain            = data.get('strain')
+        event.central_freq      = data.get('central_freq')
+        event.bandwidth         = data.get('bandwidth')
+        event.amplitude         = data.get('snr')
+        # ---------------------------------------------------------
+        # Note that 'snr' here corresponds to 'rho' in the datafile
+        # ---------------------------------------------------------
+        event.mchirp            = data.get('mchirp')
+        # ---------------------------------------------------------
+        # The SNR to use is provided by the likelihood
+        # https://dcc.ligo.org/LIGO-G2301201 (slide 5)
+        #   cWB SNR = sqrt(sSNR[0]+sSNR[1])= sqrt(likelihood)
+        #   Coherent SNR = sqrt(ecor)
+        #   Reduced Coherent SNR - cWB detection statistic rho[0]
+        # ----------------------------------------------------------
+        try:
+            event.snr           = sqrt(data.get('likelihood'))
+        except:
+            event.snr           = 0.0
+        event.confidence        = data.get('confidence')
+        event.false_alarm_rate  = data.get('false_alarm_rate')
+        event.ligo_axis_ra      = data.get('ligo_axis_ra')
+        event.ligo_axis_dec     = data.get('ligo_axis_dec')
+        event.ligo_angle        = data.get('ligo_angle')
+        event.ligo_angle_sig    = data.get('ligo_angle_sig')
         # Single IFO times are cast as a comma-separated string,
         # in same order as the 'ifos' field.
         event.single_ifo_times = data.get('single_ifo_times')
-
-        try:
-            event.snr       = sqrt(data.get('likelihood'))
-        except:
-            event.snr       = 0.0
-        # Note that 'snr' here corresponds to 'rho' in the datafile
-        event.amplitude     = data.get('snr')
-        event.ligo_axis_ra  = data.get('ligo_axis_ra')
-        event.ligo_axis_dec = data.get('ligo_axis_dec')
+        event.hoft             = data.get('hoft',"")
+        event.code             = data.get('code',"")
 
     def readData(self, datafile):
         needToClose = False
         if isinstance(datafile, str) or isinstance(datafile, unicode):
             datafile = open(datafile, "r")
-            needToClose = True
+            filelines = datafile.readlines()
+            datafile.close()
+        else:
+            datafile.seek(0)
+            filelines = datafile.readlines()
+            datafile.seek(0)
 
         # cWB data look like
         #
         # key0: value value*
         # ...
         # keyN: value value*
+        #
+        # ---- They also include "event_time", "far" and "hoft"
+        #
         # piles of other data not containing ':'
         # ...
         #  more data we don't care about here
@@ -543,48 +568,70 @@ class CwbData(Translator):
         # 318 1.98515e-05 1026099328 1026503796 53644
         # ...
         #
-        #   The 2nd number following the "24*6" line is FAR.
-        #
-        # https://... (link to CED)
-        # https://... (link to fits skymap)
 
         rawdata = {}
 
         # Get Key/Value info
-        for line in datafile:
+        for line in filelines:
             line = line.split(':',1)
             if len(line) == 1:
-                break
+                continue
             key, val = line
+            key = key.split()[0]
             rawdata[key] = val.split()
 
-        datafile.seek(0)
-        # scan down for FAR
-        next_line_is_far = False
-        for line in datafile:
-            # Change for Marco Drago, 11/20/14
-            #if line.startswith("#significance based on the last 24*6"):
-            if line.startswith("#significance based on the last day"):
-                next_line_is_far = True
-                break
-        if next_line_is_far:
-            # Can't just do datafile.readline() -- Python objects.
-            for line in datafile:
-                try:
-                    rawdata['far'] = [float(line.split()[1])]
-                except Exception:
-                    # whatever.
-                    pass
-                break
+        # On May 20th 2023 not all the data to be ingested are in the
+        # data section.
+        # Here is the failover fields that alow teh injestion of
+        # old events that do include the "event_time", "far"
+        # fields that are in the keys : values section
+
+        if (rawdata.get('event_time',None) == None or
+            rawdata.get('far',None) == None ):
+
+            rawdata['mchirp']     = [rawdata.get('chirp',[0.0,0.0])[1]]
+            rawdata['event_time'] = [rawdata.get('time',[0.0])[0]]
+            rawdata['fits_skymap_link'] = [None]
+            rawdata['ced_link'] = [None]
+
+            for line in filelines:
+                if line.startswith("http"):
+                    if line.find(".fits") > 0:
+                        rawdata['fits_skymap_link'] = [line]
+                    else:
+                        rawdata['ced_link'] = [line]
+
+            # scan down for FAR
+            rawdata['far'] = [0.0]
+            rawdata['far_day'] = [0.0]
+            for idx,line in enumerate(filelines):
+                # Change for Marco Drago, 11/20/14 and Roberto 17/05/23
+                if line.startswith("#significance based on the last week"):
+                    try:
+                        nextline=filelines[idx+1]
+                        rawdata['far'] = [float(nextline.split()[1])]
+                    except:
+                        rawdata['far'] = [1.0]
+                if line.startswith("#significance based on the last day"):
+                    try:
+                        nextline=filelines[idx+1]
+                        rawdata['far_day'] = [float(nextline.split()[1])]
+                    except:
+                        rawdata['far_day'] = [1.0]
+            # very old event have just 'far_day'
+            if rawdata['far'][0] == 0 and rawdata['far_day'][0] > 0:
+                rawdata['far'] = rawdata['far_day']
+
+        # End of failover code
 
         # lambda function for converting to a type if not None
         typecast = lambda t, v: t(v) if v is not None else v
         n_int = lambda v: typecast(int, v)
         n_float = lambda v: typecast(float, v)
 
+        # Fix import data as derived from rawdata 
         data = {}
-        data['rawdata'] = rawdata
-        data['gpstime']    = n_float(rawdata.get('time',[None])[0])
+        data['rawdata']    = rawdata
         data['likelihood'] = n_float(rawdata.get('likelihood',[None])[0])
         data['far']        = n_float(rawdata.get('far',[None])[0])
 
@@ -598,43 +645,46 @@ class CwbData(Translator):
         ifos.sort()
         data['instruments'] = ','.join(ifos)
         data['single_ifo_times'] = ','.join(single_ifo_times)
-
         # MultiBurst table attributes
-        start =  rawdata.get('start',[None])[0]
-        if start is not None:
-            integer, frac = start.split('.')
+        start_time =  rawdata.get('start',[None])[0]
+        peak_time  =  rawdata.get('time',[None])[0]
+        if start_time is not None:
+            integer, frac = start_time.split('.')
             data['start_time']    = int(integer)
             data['start_time_ns'] = int(frac+(9-len(frac))*'0')
         else:
             data['start_time']    = None
             data['start_time_ns'] = None
+        if peak_time is not None:
+            integer, frac = peak_time.split('.')
+            data['peak_time']    = int(integer)
+            data['peak_time_ns'] = int(frac+(9-len(frac))*'0')
+        else:
+            data['peak_time']    = None
+            data['peak_time_ns'] = None
 
         data['ifo'] = ','.join(ifos)
         data['duration']      = n_float(rawdata.get('duration',[None])[0])
+        data['strain']        = n_float(rawdata.get('strain',[None])[0])
         data['central_freq']  = n_float(rawdata.get('frequency',[None])[0])
         data['bandwidth']     = n_float(rawdata.get('bandwidth',[None])[0])
+        data['mchirp']        = n_float(rawdata.get('mchirp',[None])[0])
         #data['snr']           = rawdata.get('snr',[None])[0]
         # rho is what log file says is "effective snr"
-        data['snr']           = n_float(data['rawdata'].get('rho',[None])[0])
-        data['ligo_axis_ra']     = n_float(data['rawdata'].get('phi',[None,None,None])[2])
-        data['ligo_axis_dec']    = n_float(data['rawdata'].get('theta',[None,None,None])[2])
+        data['confidence']       = None
+        data['snr']              = n_float(data['rawdata'].get('rho',[None])[0])
+        data['false_alarm_rate'] = n_float(rawdata.get('far',[None])[0])
+        data['ligo_axis_ra']   = n_float(data['rawdata'].get('phi',[None,None,None])[2])
+        data['ligo_axis_dec']  = n_float(data['rawdata'].get('theta',[None,None,None])[2])
+        data['ligo_angle']     = None
+        data['ligo_angle_sig'] = None
+        data['hoft'] = data['rawdata'].get('hoft',[""])[0]
+        data['code'] = data['rawdata'].get('code',[""])[0]
 
-        # Check for the links at the end.
-        ced_link = None
-        fits_skymap_link = None
-        datafile.seek(0)
-        for line in datafile:
-            if line.startswith("http"):
-                if line.find(".fits") > 0:
-                    fits_skymap_link = line
-                else:
-                    ced_link = line
+        data['gpstime']    = n_float(rawdata.get('event_time',[None])[0])
 
-        data['ced_link'] = ced_link
-        data['fits_skymap_link'] = fits_skymap_link
-
-        if needToClose:
-            datafile.close()
+        data['ced_link']         = rawdata.get('ced_link',[None])[0]
+        data['fits_skymap_link'] = rawdata.get('fits_skymap_link',[None])[0]
 
         self.data = data
         return data
