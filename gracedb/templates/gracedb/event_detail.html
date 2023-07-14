@@ -14,18 +14,18 @@
 <script src="{% static "dojo/dojo.js" %}" data-dojo-config="async: true"></script>
 
 <script>
-	{% include "gracedb/event_detail_script.js" %}
+  {% include "gracedb/event_detail_script.js" %}
 </script> 
 
 <script type="text/javascript" class="init">
-    $(document).ready(function () {
-        $('#event-neighbors').DataTable({
-            paging:false,
-            searching:false,
-            info:false,
-            order: [[4, 'desc']],
-        });
-});
+  $(document).ready(function () {
+    $('#event-neighbors').DataTable({
+      paging:false,
+      searching:false,
+      info:false,
+      order: [[4, 'desc']],
+    });
+  });
 </script>
 
 
@@ -33,277 +33,290 @@
 
 {% block content %}
 <div class='row'>
-	<div class='col-md-2'>
-		<div class="sticky-top" style="top: 75px;">
-			<nav id="toc" data-toggle="toc"></nav>
-		</div>
-	</div>
-	<div class='col-md overflow-auto'>
+  <div class='col-md-2'>
+    <div class="sticky-top" style="top: 75px;">
+      <nav id="toc" data-toggle="toc"></nav>
+    </div>
+  </div>
+  <div class='col-md overflow-auto'>
 
-		{% if object.offline %}
-		<div style="text-align: center;">
-			<div style="font-weight: 300; color: red; font-size:xx-large">OFFLINE EVENT</div>
-		</div>
-		<br>
-		{% endif %}
+    {% if object.offline %}
+    <div style="text-align: center;">
+      <div style="font-weight: 300; color: red; font-size:xx-large">OFFLINE EVENT</div>
+    </div>
+    <br>
+    {% endif %}
 
-		<h2> {{ object.graceid }} </h2>
-		<hr style="width:250px; text-align:left; margin-left:0;">
-
-
-		<p>{{ message }}</p>
-
-		{% if 'lvem_view' not in request.path %}
-
-		<!-- Here is a section for the control room operator signoff -->
-		{% if operator_signoff_authorized and operator_signoff_active %}
-		<div class="signoff-area">
-			<h3> {{signoff_instrument}} Operator Signoff </h3>
-			<p> You are seeing this section because you've connected from a machine that, 
-			according to our records, is in the {{signoff_instrument}} control room. 
-			{% if operator_signoff_object %}
-			This event has already been signed off on.
-			Use the form below if you wish to edit or delete the record. </p>
-			<form action="{% url "modify_signoff" object.graceid %}" method="post">
-				<table>
-					<tr><th><label for="id_status">Status:</label></th><td><select id="id_status" name="status">
-								<option value="">---------</option>
-								{% if operator_signoff_object.status == "OK" %}
-								<option value="OK" selected="selected">OKAY</option>
-								<option value="NO">NOT OKAY</option>
-								{% else %}
-								<option value="OK">OKAY</option>
-								<option value="NO" selected="selected">NOT OKAY</option>
-								{% endif %}
-							</select></td></tr>
-							<tr><th><label for="id_comment">Comment:</label></th><td>
-									<textarea cols="40" id="id_comment" name="comment" rows="10">{{operator_signoff_object.comment}}</textarea></td></tr>
-							<input type="hidden" name="signoff_type" value="operator">
-							<input type="hidden" name="action" value="edit">
-							<tr> <th> Delete </th> <td> <input type="checkbox" name="delete" value="true"> </td> </tr>
-							<tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
-				</table>
-			</form>
-
-			{% else %}
-			This event still requires operator signoff. </p> 
-			<p> Please answer the following (and optionally enter a comment): At the time of the 
-			{% if signoff_instrument == 'H1' %}
-			event ({{ object.gpstime|gpsdate_tz:"lho" }}),
-			{% elif signoff_instrument == 'L1' %}
-			event ({{ object.gpstime|gpsdate_tz:"llo" }}),
-			{% elif signoff_instrument == 'V1' %}
-			event ({{ object.gpstime|gpsdate_tz:"virgo" }}),
-			{% else %}
-			event,
-			{% endif %}
-			was the operating status of the detector basically okay, or not? </p>
-			<form action="{% url "modify_signoff" object.graceid %}" method="post">
-				<table>
-					{{ signoff_form.as_table }}
-					<input type="hidden" name="signoff_type" value="operator">
-					<input type="hidden" name="action" value="create">
-					<tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
-				</table>
-			</form>
-			{% endif %}
-		</div>
-		{% endif %}
-
-		<!-- Here is a section for the EM advocate signoffs. -->
-		<!-- XXX So much ugliness here. Is there a way to do this with the JS? -->
-		{% if advocate_signoff_authorized and advocate_signoff_active %}
-		<div class="signoff-area">
-			<h3> Advocate Signoff </h3>
-			<p> You are seeing this section because you're a designated EM followup 
-			advocate.
-			{% if advocate_signoff_object %}
-			This event has already been signed off on.
-			Use the form below if you wish to edit or delete the record. </p>
-			<form action="{% url "modify_signoff" object.graceid %}" method="post">
-				<table>
-					<tr><th><label for="id_status">Status:</label></th><td><select id="id_status" name="status">
-								<option value="">---------</option>
-								{% if advocate_signoff_object.status == "OK" %}
-								<option value="OK" selected="selected">OKAY</option>
-								<option value="NO">NOT OKAY</option>
-								{% else %}
-								<option value="OK">OKAY</option>
-								<option value="NO" selected="selected">NOT OKAY</option>
-								{% endif %}
-							</select></td></tr>
-							<tr><th><label for="id_comment">Comment:</label></th><td>
-									<textarea cols="40" id="id_comment" name="comment" rows="10">{{advocate_signoff_object.comment}}</textarea></td></tr>
-							<input type="hidden" name="signoff_type" value="advocate">
-							<input type="hidden" name="action" value="edit">
-							<tr> <th> Delete </th> <td> <input type="checkbox" name="delete" value="true"> </td> </tr>
-							<tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
-				</table>
-			</form>
-
-			{% else %}
-			This event still requires EM Followup advocate signoff. </p> 
-			<form action="{% url "modify_signoff" object.graceid %}" method="post">
-				<table>
-					{{ signoff_form.as_table }}
-					<input type="hidden" name="signoff_type" value="advocate">
-					<input type="hidden" name="action" value="create">
-					<tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
-				</table>
-			</form>
-			{% endif %}
-		</div>
-		{% endif %}
-
-		{% endif %} {# lvem_view not in request.path #}
+    <h2> {{ object.graceid }} </h2>
+    <hr style="width:250px; text-align:left; margin-left:0;">
 
 
-		{% block basic_info %}
-		<div class="row my-3 justify-content-center">
-			<div class="col-md-10">
+    <p>{{ message }}</p>
 
-				<table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
-					<thead>
-						<tr>
-							<th colspan="2"><h3>Basic Event Information</h3></th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>UID</td>
-							<td>{{ object.graceid }}</td>
-						</tr>
-						<tr>
-							<td>Labels</td>
-							<td>
-								{% if object.labelling_set.all %}
-								{% for labelling in object.labelling_set.all %}
-								<span style="color: {{labelling.label.defaultColor}};" class="label"
-																					   data-toggle="tooltip"
-																					   data-placement="top"
-																					   data-html="true"
-																					   title="<em>{{labelling.label.description}}</em><br>
-																					   <b>Added by:</b> {{labelling.creator.get_full_name}}<br>
-																					   <b>Added:</b> {{labelling.created}}">
-																					   {{ labelling.label.name }}</span>
-								{% endfor %}
-								{% else %}
-								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
-								{% endif %}
-							</td>
-						</tr>
-						<tr>
-							<td>Group</td>
-							<td>{{ object.group.name }} </td>
-						</tr>
-						<tr>
-							<td>Pipeline</td>
-							<td>{{ object.pipeline.name }} </td>
-						</tr>
-						<tr>
-							<td>Search</td>
-							<td>{{ object.search.name }} </td>
-						</tr>
-						<tr>
-							<td>Instruments</td>
-							<td>{{ object.instruments }}</td>
-						</tr>
-						<tr>
-							<td>
-								{{ "gps"|timeselect:"gps" }}
-							</td>
-							<td>{% if object.gpstime %}
-								{{ object.gpstime|multiTime:"gps" }}
-								{% endif %}</td>
-						</tr>
-						<tr>
-							<td>FAR (Hz)</td>
-							{# NOTE: XXX Using event_far so it can be floored for external users. #}
-							<td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
-						</tr>
-						<tr>
-							<td>FAR (yr<sup>-1</sup>)</td>
-							<td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_yr }}</td>
-						</tr>
-						<tr>
-							<td>Latency (s)</td>
-							<td>{{ object.reporting_latency|floatformat:"-3" }} </td>
-						</tr>
-						<tr>
-							<td>Links</td>
-							<td><a href="{{ object.weburl }}">Data</a></td>
-						</tr>
-						<tr>
-							<td>
-								{{ "submitted"|timeselect:"utc" }}
-							</td>
-							<td>{{ object.created|multiTime:"submitted" }}</td>
-						</tr>
-						{% if object.superevent %}
-						<tr>
-							<td>Superevent</td>
-							<td><a href="{{ object.superevent.get_web_url }}">{{ object.superevent.superevent_id }}</a></td>
-						</tr>
-						{% endif %}
-					</tbody>
-				</table>
-			</div>
-		</div>
-		{% endblock %}
+    {% if 'lvem_view' not in request.path %}
 
-		{% if user_is_external %}
-		{# Analysis-specific attributes which can be exposed to external partners #}
-		{% block external_analysis_specific %}
-		{# Empty by default #}
-		{% endblock %}
-		{% else %}
-		{# Analysis-specific attributes #}
-		{% block analysis_specific %}
-		{# This block is empty in the base event_detail template #}
-		{% endblock %}
-		{% endif %}
+    <!-- Here is a section for the control room operator signoff -->
+    {% if operator_signoff_authorized and operator_signoff_active %}
+    <div class="signoff-area">
+      <h3> {{signoff_instrument}} Operator Signoff </h3>
+      <p> You are seeing this section because you've connected from a machine that, 
+      according to our records, is in the {{signoff_instrument}} control room. 
+      {% if operator_signoff_object %}
+      This event has already been signed off on.
+      Use the form below if you wish to edit or delete the record. </p>
+      <form action="{% url "modify_signoff" object.graceid %}" method="post">
+        <table>
+          <tr><th><label for="id_status">Status:</label></th><td><select id="id_status" name="status">
+                <option value="">---------</option>
+                {% if operator_signoff_object.status == "OK" %}
+                <option value="OK" selected="selected">OKAY</option>
+                <option value="NO">NOT OKAY</option>
+                {% else %}
+                <option value="OK">OKAY</option>
+                <option value="NO" selected="selected">NOT OKAY</option>
+                {% endif %}
+              </select></td></tr>
+              <tr><th><label for="id_comment">Comment:</label></th><td>
+                  <textarea cols="40" id="id_comment" name="comment" rows="10">{{operator_signoff_object.comment}}</textarea></td></tr>
+              <input type="hidden" name="signoff_type" value="operator">
+              <input type="hidden" name="action" value="edit">
+              <tr> <th> Delete </th> <td> <input type="checkbox" name="delete" value="true"> </td> </tr>
+              <tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
+        </table>
+      </form>
 
-		{# Neighbors #}
-		<script type="text/javascript">
-			var refresh_neighbors= function() { alert("NOT SET YET"); };
+      {% else %}
+      This event still requires operator signoff. </p> 
+      <p> Please answer the following (and optionally enter a comment): At the time of the 
+      {% if signoff_instrument == 'H1' %}
+      event ({{ object.gpstime|gpsdate_tz:"lho" }}),
+      {% elif signoff_instrument == 'L1' %}
+      event ({{ object.gpstime|gpsdate_tz:"llo" }}),
+      {% elif signoff_instrument == 'V1' %}
+      event ({{ object.gpstime|gpsdate_tz:"virgo" }}),
+      {% else %}
+      event,
+      {% endif %}
+      was the operating status of the detector basically okay, or not? </p>
+      <form action="{% url "modify_signoff" object.graceid %}" method="post">
+        <table>
+          {{ signoff_form.as_table }}
+          <input type="hidden" name="signoff_type" value="operator">
+          <input type="hidden" name="action" value="create">
+          <tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
+        </table>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Here is a section for the EM advocate signoffs. -->
+    <!-- XXX So much ugliness here. Is there a way to do this with the JS? -->
+    {% if advocate_signoff_authorized and advocate_signoff_active %}
+    <div class="signoff-area">
+      <h3> Advocate Signoff </h3>
+      <p> You are seeing this section because you're a designated EM followup 
+      advocate.
+      {% if advocate_signoff_object %}
+      This event has already been signed off on.
+      Use the form below if you wish to edit or delete the record. </p>
+      <form action="{% url "modify_signoff" object.graceid %}" method="post">
+        <table>
+          <tr><th><label for="id_status">Status:</label></th><td><select id="id_status" name="status">
+                <option value="">---------</option>
+                {% if advocate_signoff_object.status == "OK" %}
+                <option value="OK" selected="selected">OKAY</option>
+                <option value="NO">NOT OKAY</option>
+                {% else %}
+                <option value="OK">OKAY</option>
+                <option value="NO" selected="selected">NOT OKAY</option>
+                {% endif %}
+              </select></td></tr>
+              <tr><th><label for="id_comment">Comment:</label></th><td>
+                  <textarea cols="40" id="id_comment" name="comment" rows="10">{{advocate_signoff_object.comment}}</textarea></td></tr>
+              <input type="hidden" name="signoff_type" value="advocate">
+              <input type="hidden" name="action" value="edit">
+              <tr> <th> Delete </th> <td> <input type="checkbox" name="delete" value="true"> </td> </tr>
+              <tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
+        </table>
+      </form>
+
+      {% else %}
+      This event still requires EM Followup advocate signoff. </p> 
+      <form action="{% url "modify_signoff" object.graceid %}" method="post">
+        <table>
+          {{ signoff_form.as_table }}
+          <input type="hidden" name="signoff_type" value="advocate">
+          <input type="hidden" name="action" value="create">
+          <tr> <td></td> <td> <input type="submit" value="Submit" class="searchButtonClass"> </td> </tr>
+        </table>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% endif %} {# lvem_view not in request.path #}
+
+
+    {% block basic_info %}
+    <div class="row my-3 justify-content-center">
+      <div class="col-md-10">
+
+        <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
+          <thead>
+            <tr>
+              <th colspan="2"><h3>Basic Event Information</h3></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>UID</td>
+              <td>{{ object.graceid }}</td>
+            </tr>
+            <tr>
+              <td>Labels</td>
+              <td>
+                {% if object.labelling_set.all %}
+                {% for labelling in object.labelling_set.all %}
+                <span style="color: {{labelling.label.defaultColor}};" class="label"
+                                                                       data-toggle="tooltip"
+                                                                       data-placement="top"
+                                                                       data-html="true"
+                                                                       title="<em>{{labelling.label.description}}</em><br>
+                                                                       <b>Added by:</b> {{labelling.creator.get_full_name}}<br>
+                                                                       <b>Added:</b> {{labelling.created}}">
+                                                                       {{ labelling.label.name }}</span>
+                {% endfor %}
+                {% else %}
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td>Group</td>
+              <td>{{ object.group.name }} </td>
+            </tr>
+            <tr>
+              <td>Pipeline</td>
+              <td>{{ object.pipeline.name }} </td>
+            </tr>
+            <tr>
+              <td>Search</td>
+              <td>{{ object.search.name }} </td>
+            </tr>
+            <tr>
+              <td>Instruments</td>
+              <td>{{ object.instruments }}</td>
+            </tr>
+            <tr>
+              <td>
+                {{ "gps"|timeselect:"gps" }}
+              </td>
+              <td>{% if object.gpstime %}
+                {{ object.gpstime|multiTime:"gps" }}
+                {% endif %}</td>
+            </tr>
+            <tr>
+              <td>FAR (Hz)</td>
+              {# NOTE: XXX Using event_far so it can be floored for external users. #}
+              <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far|scientific }}</td>
+            </tr>
+            <tr>
+              <td>FAR (yr<sup>-1</sup>)</td>
+              <td>{% if far_is_upper_limit %} &lt; {% endif %}{{ display_far_yr }}</td>
+            </tr>
+            <tr>
+              <td>Latency (s)</td>
+              <td>{{ object.reporting_latency|floatformat:"-3" }} </td>
+            </tr>
+            <tr>
+              <td>Links</td>
+              <td><a href="{{ object.weburl }}">Data</a></td>
+            </tr>
+            <tr>
+              <td>
+                {{ "submitted"|timeselect:"utc" }}
+              </td>
+              <td>{{ object.created|multiTime:"submitted" }}</td>
+            </tr>
+            {% if object.superevent %}
+            <tr>
+              <td>Superevent</td>
+              <td><a href="{{ object.superevent.get_web_url }}">{{ object.superevent.superevent_id }}</a></td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endblock %}
+
+    {% if user_is_external %}
+    {# Analysis-specific attributes which can be exposed to external partners #}
+    {% block external_analysis_specific %}
+    {# Empty by default #}
+    {% endblock %}
+    {% else %}
+    {# Analysis-specific attributes #}
+    {% block analysis_specific %}
+    {# This block is empty in the base event_detail template #}
+    {% endblock %}
+    {% endif %}
+
+    {# Neighbors #}
+    <script type="text/javascript">
+      var refresh_neighbors= function() { alert("NOT SET YET"); };
 require(["dojo/dom", "dojo/html", "dojo/request", "dojo/domReady!"],
-	function (dom, html, request) {
-		refresh_neighbors = function(delta) {
-			delta = delta.replace(/[ [\]]/g, "");
-			if (delta.match(/^-?\d+$/) == null & delta.match(/^[-+]?\d+,[-+]?\d+$/) == null) {
-				alert("Bad neighborhood specified.")
-				return;
-			}
-			var neighborUrlPattern = "{% url "neighbors" object.graceid "000" %}"
-			var neighbor_div = dom.byId("gdb-table-neighbors");
-			neighborUrl = neighborUrlPattern.replace("000", delta);
-			request(neighborUrl).then(
-				function(text){
-					html.set(neighbor_div, text, {parseContent:true} );
-				},
-				function(error){
-					inbox = '<input value="" size="6" onchange="refresh_neighbors(this.value)">'
-					html.set(neighbor_div, inbox+"<br>Failed to find neighbors.<br>"+error);
-				});
-		};
-		// refresh_neighbors("5");
-	});
+  function (dom, html, request) {
+    refresh_neighbors = function(delta) {
+      delta = delta.replace(/[ [\]]/g, "");
+      if (delta.match(/^-?\d+$/) == null & delta.match(/^[-+]?\d+,[-+]?\d+$/) == null) {
+        alert("Bad neighborhood specified.")
+        return;
+      }
+      var neighborUrlPattern = "{% url "neighbors" object.graceid "000" %}"
+      var neighbor_div = dom.byId("gdb-table-neighbors");
+      neighborUrl = neighborUrlPattern.replace("000", delta);
+      request(neighborUrl).then(
+        function(text){
+          html.set(neighbor_div, text, {parseContent:true} );
+        },
+        function(error){
+          inbox = '<input value="" size="6" onchange="refresh_neighbors(this.value)">'
+          html.set(neighbor_div, inbox+"<br>Failed to find neighbors.<br>"+error);
+        });
+    };
+    // refresh_neighbors("5");
+  });
 require(["dijit/InlineEditBox", "dijit/form/NumberSpinner", "dijit/form/TextBox"]);
-		</script>
-		{% include "gracedb/neighbors_frag.html" %}
-        {% if log_too_big %}
-           <center>
-            <div class="alert alert-danger" role="alert" style="max-width:750px;">
-                Event {{ object.graceid }}'s log length ({{ log_length }} entries) exceeds the 
-                maximum of {{ max_log }}, and has been quarantined. Please contact an
-                administrator for assistance in viewing this event.
-            </div>
-            </center>
+    </script>
 
-        {% else %}
-		   {% include "gracedb/log_entry_details.html" %}
-        {% endif %}
-	</div>
+    <!-- temporary (HA!) fix to prevent nested rendering when 
+         changing the neighbors range -->
+    <h2> Neighbors </h2>
+    <hr style="width:250px; text-align:left; margin-left:0;">
+
+    <div class="row my-3 justify-content-center">
+      <div class="col-md-10">
+        {% include "gracedb/neighbors_frag.html" %}
+
+      </div>
+    </div>
+
+
+    {% if log_too_big %}
+    <center>
+      <div class="alert alert-danger" role="alert" style="max-width:750px;">
+        Event {{ object.graceid }}'s log length ({{ log_length }} entries) exceeds the 
+        maximum of {{ max_log }}, and has been quarantined. Please contact an
+        administrator for assistance in viewing this event.
+      </div>
+    </center>
+
+    {% else %}
+    {% include "gracedb/log_entry_details.html" %}
+    {% endif %}
+  </div>
 </div>
 
 {% endblock %}
