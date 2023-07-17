@@ -11,7 +11,7 @@ except ImportError:  # python >= 3
 from django.conf import settings
 from django.contrib.auth.models import User, Permission, Group as DjangoGroup
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, FieldError
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseForbidden, \
     HttpResponseNotFound, HttpResponseServerError, HttpResponseBadRequest
@@ -399,7 +399,11 @@ class EventList(InheritPermissionsAPIView):
 
         events = filter_events_for_user(events, request.user, 'view')
 
-        events = events.order_by(sort).select_subclasses()
+        try:
+            events = events.order_by(sort).select_subclasses()
+        except FieldError as e:
+            d = {'error': str(e) }
+            return Response(d, status=status.HTTP_400_BAD_REQUEST)
 
         start = int(start)
         count = int(count)
