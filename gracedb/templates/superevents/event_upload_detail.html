@@ -18,7 +18,7 @@
       <!-- Table Header -->
       <thead>
       <tr>
-        <th colspan="9"><h3>GW Event Upload Information</h3>
+        <th colspan="10"><h3>GW Event Upload Information</h3>
         </th>
       </tr>
 
@@ -26,6 +26,7 @@
         <th> UID </th>
         <th> Group </th>
         <th> Pipeline </th>
+        <th> Search </th>
         <th> FAR (Hz) </th>
         <th> SNR </th>
         <th> Labels </th>
@@ -40,6 +41,7 @@
          <td><a href="{% url "view" e.graceid %}">{{ e.graceid }}</a></td>
          <td> {{ e.group.name }} </td>
          <td> {{ e.pipeline.name }} </td>
+         <td> {{ e.search.name }} </td>
          <td>
              {% if e.far|scientific %}
              {{ e.far|scientific }} 
