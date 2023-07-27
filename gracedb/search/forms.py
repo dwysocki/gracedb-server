@@ -21,6 +21,18 @@ logger = logging.getLogger(__name__)
 htmlEntityStar = "&#9733;"
 errorMarker = '<span style="color:red;">'+htmlEntityStar+'</span>'
 
+# Helpful status messages:
+created_vs_t0 = 'Invalid query. Hint: date queries on the created: field take the form YYYY-MM-DD .. ' \
+        'YYYY-MM-DD. Date queries with gpstime are supported using the t_0: field'
+
+
+# Helper function to capture superevent created vs t_0 gpstime queries 
+# and return it to the user:
+def se_gpstime_parseerror(err):
+    if "ParseResults" in str(err) and 'miltime' in str(err):
+        return created_vs_t0
+    else:
+        return err
 
 class MainSearchForm(forms.Form):
     QUERY_TYPE_EVENT = 'E'
@@ -85,6 +97,8 @@ class MainSearchForm(forms.Form):
             err = "Error: invalid query. (" + escape(e.pstr[:e.loc]) + \
                 errorMarker + escape(e.pstr[e.loc:]) + ")"
             raise forms.ValidationError({'query': mark_safe(err)})
+        except KeyError as e:
+            raise forms.ValidationError(se_gpstime_parseerror(e))
         except Exception as e:
             # What could this be and how can we handle it better? XXX
             logger.error('{t}: {e}'.format(t=str(type(e)), e=str(e)))

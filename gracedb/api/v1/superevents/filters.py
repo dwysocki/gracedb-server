@@ -6,6 +6,7 @@ from django.http import HttpResponseBadRequest
 
 from rest_framework import filters, exceptions
 
+from search.forms import se_gpstime_parseerror
 from search.query.labels import filter_for_labels
 from search.query.superevents import parseSupereventQuery
 
@@ -40,7 +41,8 @@ class SupereventSearchFilter(filters.SearchFilter):
             qs = filter_for_labels(qs, query).distinct()
         except ParseException as e:
             raise exceptions.ParseError('Invalid query')
-
+        except KeyError as e:
+            raise exceptions.ParseError(se_gpstime_parseerror(e))
         return qs
 
 
