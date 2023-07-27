@@ -10,7 +10,7 @@ from django.db.models import Q
 from functools import reduce
 
 from events.models import Event, Tag
-from gracedb.core.urls import build_absolute_uri
+from gracedb.core.urls import build_apiweb_uri
 import io
 import os
 
@@ -163,7 +163,7 @@ def card_content(tagged_log_list, tag_name):
 
         # Include a link the tagged file, if applicable.
         if l.filename:
-            msg += """ (<a href="{}">{}</a>)""".format(build_absolute_uri(l.fileurl()),
+            msg += """ (<a href="{}">{}</a>)""".format(build_apiweb_uri(l.fileurl()),
                                                        l.filename)
         
         rv += comment_card_div.format(msg, rv_title)
@@ -182,7 +182,7 @@ def img_div(logline, tag_name):
 
 
     # Construct absolute uri:
-    img_uri = build_absolute_uri(logline.fileurl())
+    img_uri = build_apiweb_uri(logline.fileurl())
 
     # Format div:
     rv = image_card_div.format(img_uri, 
@@ -351,7 +351,7 @@ def rrt_event_filter(event_list, rrt_subcategory):
 
     for event in event_list:
         if is_in_rrt_subcategory(event, rrt_subcategory):
-            event_url = build_absolute_uri(f"/events/{event.graceid}/view/")
+            event_url = build_apiweb_uri(f"/events/{event.graceid}/view/")
             event_snr = get_event_snr(event)
 
             ret_strio.write(rrt_event_fmt.format(
@@ -362,7 +362,7 @@ def rrt_event_filter(event_list, rrt_subcategory):
 
 @register.filter(is_safe=True)
 def event_link_filter(event):
-    event_url = build_absolute_uri(f"/events/{event.graceid}/view/")
+    event_url = build_apiweb_uri(f"/events/{event.graceid}/view/")
     if not event.far:
         safe_far=""
     else:

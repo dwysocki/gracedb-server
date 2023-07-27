@@ -77,12 +77,12 @@ suburlpatterns = [
     # by writing a log message
 
     # VOEvent list and creation
-    re_path(r'^voevents/$', never_cache(SupereventVOEventViewSet.as_view({'get': 'list',
-        'post': 'create'})), name='superevent-voevent-list'),
+    re_path(r'^voevents/$', SupereventVOEventViewSet.as_view({'get': 'list',
+        'post': 'create'}), name='superevent-voevent-list'),
     # VOEvent detail
     re_path(r'^voevents/(?P<{lookup_url_kwarg}>\d+)/$'.format(lookup_url_kwarg=
         SupereventVOEventViewSet.lookup_url_kwarg),
-        never_cache(SupereventVOEventViewSet.as_view({'get': 'retrieve'})),
+        SupereventVOEventViewSet.as_view({'get': 'retrieve'}),
         name='superevent-voevent-detail'),
 
     # EMObservation list and creation

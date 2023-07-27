@@ -3,6 +3,7 @@ from collections import OrderedDict
 import logging
 import os
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -65,6 +66,8 @@ logger = logging.getLogger(__name__)
 # Retrying parameters: 
 EFS_RETRY_MAX = 5
 EFS_RETRY_WAIT = 0.01
+
+APIWEB_ROOT = 'apiweb'
 
 
 class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
@@ -366,6 +369,7 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
 
     @retry(exceptions=OSError, tries=EFS_RETRY_MAX, delay=EFS_RETRY_WAIT, logger=logger)
     def retrieve(self, request, *args, **kwargs):
+
         # Get parent superevent
         parent_superevent = self.get_parent_object()
 
@@ -405,7 +409,16 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
         # Get full file path for serving
         parent_superevent = self.get_parent_object()
         file_path = os.path.join(parent_superevent.datadir, full_filename)
-        return check_and_serve_file(request, file_path, ResponseClass=Response)
+
+        response = check_and_serve_file(request, file_path, ResponseClass=Response)
+
+        # if the request is for apiweb, set the cache max-age equal to the cache 
+        # on the public page. the primary use case for this is showing images 
+        # on the public and on superevent pages. 
+        if request.path.split('/')[1] == APIWEB_ROOT:
+            response.headers['Cache-control'] = f'max-age={settings.PUBLIC_PAGE_CACHING}'
+
+        return response
 
 
 class SupereventVOEventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
