@@ -228,12 +228,14 @@ COINC_PIPELINES = [
                     'MBTAOnline',
                     'pycbc',
                     'MBTA',
+                    'PyGRB',
                    ]
 GRB_PIPELINES = [
                     'Fermi',
                     'Swift',
                     'INTEGRAL',
                     'AGILE',
+                    'CHIME',
                 ]
 
 # List of pipelines that have been depreciated:

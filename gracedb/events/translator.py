@@ -109,7 +109,7 @@ def handle_uploaded_data(event, datafilename,
 
     pipeline = event.pipeline.name
 
-    if pipeline in [ 'gstlal', 'spiir', 'pycbc', ] or (pipeline in ['MBTA', 'MBTAOnline'] and '.xml' in datafilename):
+    if pipeline in [ 'gstlal', 'spiir', 'pycbc', 'PyGRB'] or (pipeline in ['MBTA', 'MBTAOnline'] and '.xml' in datafilename):
         log_comment = "Log File Created"
         # Wildly speculative wrt HM
 
@@ -346,7 +346,7 @@ def handle_uploaded_data(event, datafilename,
                            comment=comment)
             log.save()
 
-    elif pipeline in ['Swift', 'Fermi', 'SNEWS', 'INTEGRAL','AGILE']:
+    elif pipeline in ['Swift', 'Fermi', 'SNEWS', 'INTEGRAL','AGILE', 'CHIME']:
         # Get the event time from the VOEvent file
         error = None
         populateGrbEventFromVOEventFile(datafilename, event)
