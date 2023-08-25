@@ -17,9 +17,9 @@ before_script:
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
 
 .test: &test
-  image: igwn/base:buster
+  image: igwn/base:bullseye
   services:
-    - postgres:12.5
+    - postgres:13.11
     - memcached
   variables:
     AWS_SES_ACCESS_KEY_ID: "fake_aws_id"
@@ -66,7 +66,6 @@ before_script:
     - apt-get -yqq update
     - apt-get -o dir::cache::archives="${APT_CACHE_DIR}" install -yqq
           git
-          libmariadbclient-dev
           libldap2-dev
           libsasl2-dev
           libssl-dev
@@ -78,11 +77,10 @@ before_script:
           pkg-config 
           libpng-dev 
           libfreetype6-dev 
-          libmariadb-dev-compat 
           libxslt-dev
           ${PYTHON}-pip
-          postgresql-12 
-          postgresql-client-12 
+          postgresql-13
+          postgresql-client-13
           libpq-dev
     # upgrade pip (requirement for lalsuite)
     - ${PYTHON} -m pip install --upgrade pip

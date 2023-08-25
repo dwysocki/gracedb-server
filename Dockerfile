@@ -1,16 +1,15 @@
-FROM igwn/base:buster
+FROM igwn/base:bullseye
 LABEL name="LIGO GraceDB Django application" \
       maintainer="alexander.pace@ligo.org" \
-      date="20200807"
+      date="20230802"
 ARG SETTINGS_MODULE="config.settings.container.dev"
 
 COPY docker/SWITCHaai-swdistrib.gpg /etc/apt/trusted.gpg.d
 COPY docker/backports.pref /etc/apt/preferences.d
-RUN echo 'deb http://pkg.switch.ch/switchaai/debian buster main' > /etc/apt/sources.list.d/shibboleth.list
-RUN echo 'deb http://deb.debian.org/debian buster-backports main' > /etc/apt/sources.list.d/backports.list
-RUN echo 'deb http://apt.postgresql.org/pub/repos/apt buster-pgdg main' > /etc/apt/sources.list.d/pgdg.list
+RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list
+RUN echo 'deb http://apt.postgresql.org/pub/repos/apt bullseye-pgdg main' > /etc/apt/sources.list.d/pgdg.list
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get update && \
     apt-get install --install-recommends --assume-yes \
         apache2 \
@@ -18,6 +17,7 @@ RUN apt-get update && \
         git \
         krb5-user \
         libkrb5-dev \
+        libapache2-mod-shib \
         libapache2-mod-xsendfile \
         libldap2-dev \
         libsasl2-dev \
@@ -33,16 +33,16 @@ RUN apt-get update && \
         nodejs \
         osg-ca-certs \
         php \
-        php7.3-mysql \
-        php7.3-pgsql \
-        php7.3-mbstring \
-        postgresql-client-12 \
-        python3.7 \
-        python3.7-dev \
+        php7.4-pgsql \
+        php7.4-mbstring \
+        postgresql-client-13 \
+        python3.9 \
+        python3.9-dev \
         python3-libxml2 \
         python3-pip \
         procps \
-        shibboleth \
+        shibboleth-sp-common \
+        shibboleth-sp-utils \
         libssl-dev \
         swig \
         htop \

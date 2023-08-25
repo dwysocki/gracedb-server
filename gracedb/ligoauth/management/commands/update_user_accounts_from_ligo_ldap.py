@@ -479,9 +479,6 @@ class LdapKagraResultProcessor(LdapPersonResultProcessor):
         self.assign_genericldapuser_to_cert(ldap_x509_subjects)
 
         # Get certs to add and remove
-        # certs_to_add = ldap_x509_subjects.difference(db_x509_subjects)
-        # certs_to_remove = db_x509_subjects.difference(ldap_x509_subjects)
-
         certs_to_add = ldap_x509_subjects - db_x509_subjects
         certs_to_remove = db_x509_subjects - ldap_x509_subjects
 
@@ -635,8 +632,6 @@ class KagraPeopleLdap(LigoPeopleLdap):
             raise TypeError(err_msg)
 
         # Return result data that has been filtered with DNs:
-
-        #return self.get_kagra_users_with_dns(result_data)
         return result_data
     
 
@@ -644,7 +639,6 @@ class KagraPeopleLdap(LigoPeopleLdap):
 # NOTE: not using robot OU right now since we are waiting
 # for some auth infrastructure changes to be able to properly group
 # certificates into a user account
-#LDAP_CLASSES = {l.name: l for l in (LigoPeopleLdap,)}
 LDAP_CLASSES = {l.name: l for l in (LigoPeopleLdap, KagraPeopleLdap,)}
 
 
@@ -662,8 +656,8 @@ class Command(BaseCommand):
             raise ValueError('Not properly set up for robot OU')
         verbose = not options['quiet']
         if verbose:
-            self.stdout.write('Refreshing users from LIGO LDAP at {0}' \
-                .format(datetime.datetime.utcnow()))
+            self.stdout.write('Refreshing users from {0} LDAP at {1}' \
+                .format(options['ldap'], datetime.datetime.utcnow()))
 
         # Set up ldap connection
         ldap_connection = LDAP_CLASSES[options['ldap']](verbose=verbose)
