@@ -31,7 +31,7 @@
                 {# inputs are disabled here, enabled by jquery code on page load. Otherwise users who click quickly can activate the form before the jquery is fully loaded #}
                 {% if advocate_signoff_exists %}
                 {% with advocate_signoff_type|add:advocate_signoff_instrument as typeinst %}
-                {% with signoff_confirm_text="update_advocate_signoff"|confirmation_text %}
+                {% with signoff_confirm_text="update_advocate_signoff,"|add:superevent.superevent_id|confirmation_text %}
                 <input type="submit"
                        formaction="{% url "legacy_apiweb:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}"
                        value="Update signoff"
@@ -39,7 +39,7 @@
                        id="update" disabled
                        onclick="return advClickConfirm('{{signoff_confirm_text}}')">
                 {% endwith %}
-                {% with signoff_confirm_text="delete_advocate_signoff"|confirmation_text %}
+                {% with signoff_confirm_text="delete_advocate_signoff,"|add:superevent.superevent_id|confirmation_text %}
                 <input type="submit"
                        formaction="{% url "legacy_apiweb:default:superevents:superevent-signoff-detail" superevent.superevent_id typeinst %}"
                        value="Delete signoff"
@@ -49,7 +49,7 @@
                 {% endwith %}
                 {% endwith %}
                 {% else %}
-                {% with signoff_confirm_text="create_advocate_signoff"|confirmation_text %} 
+                {% with signoff_confirm_text="create_advocate_signoff,"|add:superevent.superevent_id|confirmation_text %} 
                 <input type="submit"
                        value="Create signoff"
                        class="btn btn-success"
