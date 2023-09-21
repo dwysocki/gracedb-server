@@ -97,10 +97,10 @@ RUN pip3 install -r requirements.txt
 RUN pip3 install supervisor
 
 # Give pip-installed packages priority over distribution packages
-ENV PYTHONPATH /usr/local/lib/python3.7/dist-packages:$PYTHONPATH
+ENV PYTHONPATH /usr/local/lib/python3.9/dist-packages:$PYTHONPATH
 ENV ENABLE_SHIBD false
 ENV ENABLE_OVERSEER true
-ENV VIRTUAL_ENV dummy
+ENV VIRTUAL_ENV /dummy/
 
 # Expose port and run Gunicorn
 EXPOSE 8000
