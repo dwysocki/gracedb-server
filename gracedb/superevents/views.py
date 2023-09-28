@@ -16,7 +16,7 @@ from django.views.generic import ListView
 
 from guardian.shortcuts import get_objects_for_user
 
-from core.file_utils import get_file_list
+from core.file_utils import get_file_list, flexible_skymap_to_png
 from core.time_utils import utc_datetime_decimal_seconds
 from events.models import EMGroup
 from events.models import Label
@@ -315,11 +315,16 @@ class SupereventPublic(DisplayFarMixin, ListView):
         # Try to get skymap from latest non-retraction VOEvent
         if voevent is not None and voevent.skymap_filename is not None:
             # Assume filename is the same, with a different suffix.
-            voevent_skymap_image = voevent.skymap_filename.replace('fits.gz',
-                                                                   'png')
-            # See if a public log exists with that filename
-            if public_logs.filter(filename=voevent_skymap_image).exists():
-                skymap_image = voevent_skymap_image
+
+            voevent_skymap_image, version = flexible_skymap_to_png(voevent.skymap_filename) 
+
+            # See if a public log exists with that filename:
+            if version and public_logs.filter(filename=voevent_skymap_image,
+                                file_version=version).exists():
+                    skymap_image = voevent_skymap_image
+            elif public_logs.filter(filename=voevent_skymap_image).exists():
+                    skymap_image = voevent_skymap_image
+ 
 
         # If skymap_image is None, we didn't find an image based on the
         # skymap file in the VOEvent, so try the default. The name of a default
