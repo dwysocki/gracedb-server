@@ -8,7 +8,7 @@ from superevents.models import Log
 register = template.Library()
 
 template_link_format = "<a href='{notice_url}'>[Notice]</a> <a href='{circular_url}'>[Circular]</a>"
-dqr_link_format = "<a href='https://ldas-jobs.ligo.caltech.edu/~dqr/o4dqr/online/events/{yearmonth}/{sid}' target='_blank'>[Data Quality Report]</a>"
+dqr_link_format = "<a href='https://ldas-jobs.ligo.caltech.edu/~dqr/o4dqr/online/events/{yearmonth}/{sid}/5_min_tier_index.html' target='_blank'>[Data Quality Report]</a>"
 
 
 @register.filter(is_safe=True)
