@@ -83,5 +83,4 @@ class TestSupereventSerializerViaWeb(SupereventSetup, GraceDbApiTestBase):
         self.assertNotIn('preferred_event', response_keys)
         self.assertNotIn('gw_events', response_keys)
         self.assertNotIn('em_events', response_keys)
-        self.assertNotIn('pipeline_preferred_events', response_keys)
         self.assertNotIn('events', response_links)

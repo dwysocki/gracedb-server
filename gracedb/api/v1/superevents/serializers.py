@@ -164,15 +164,40 @@ class SupereventSerializer(serializers.ModelSerializer):
         return [ev.graceid for ev in obj.get_internal_events()]
 
     def get_pipeline_preferred_events(self, obj):
-        request=self.context.get('request', None)
         ppe_data = {}
-        for ev in obj.pipeline_preferred_events.all():
-            rv = {}
-            rv.update(event_basic_info_to_dict(ev, request))
-            rv.update({'labels': [l.name for l in ev.labels.all()]})
-            rv.update({'extra_attributes': assemble_event_extra_attributes(ev, request,
-                self.is_alert)})
-            ppe_data.update({ev.pipeline.name: rv})
+        request=self.context.get('request', None)
+        if request and request.user.is_anonymous:
+            for ev in obj.pipeline_preferred_events.all():
+                rv = {}
+                # Get search, if available:
+                if ev.search:
+                   search_name = ev.search.name
+                else:
+                   search_name = ""
+
+                # Get gpstime, if available:
+                if ev.gpstime:
+                   gpstime = ev.gpstime
+                else:
+                   gpstime = ""
+               
+                rv = {
+                    'graceid': ev.graceid,
+                    'group': ev.group.name,
+                    'pipeline': ev.pipeline.name,
+                    'search': search_name,
+                    'gpstime': gpstime,
+                    'far': ev.far,
+                }
+                ppe_data.update({ev.pipeline.name: rv})
+        else:
+            for ev in obj.pipeline_preferred_events.all():
+                rv = {}
+                rv.update(event_basic_info_to_dict(ev, request))
+                rv.update({'labels': [l.name for l in ev.labels.all()]})
+                rv.update({'extra_attributes': assemble_event_extra_attributes(ev, request,
+                    self.is_alert)})
+                ppe_data.update({ev.pipeline.name: rv})
         return ppe_data
 
     def get_em_events(self, obj):
@@ -207,7 +232,6 @@ class SupereventSerializer(serializers.ModelSerializer):
         if request and request.user.is_anonymous:
             ret.pop('gw_events')
             ret.pop('em_events')
-            ret.pop('pipeline_preferred_events')
             ret.pop('preferred_event')
         return ret
 

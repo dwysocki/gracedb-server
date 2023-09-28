@@ -37,6 +37,12 @@
             {% endif %}
         </td>
       </tr>
+
+      <tr>
+        <td> FAR (Hz)</td>
+        <td>{{ preferred_event.far|scientific }}</td>
+      </tr>
+
       <tr>
         <td> {{ "nsubmitted"|timeselect:"utc" }} </td>
         <td>{{ preferred_event.created|multiTime:"nsubmitted" }}</td>

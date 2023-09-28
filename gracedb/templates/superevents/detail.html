@@ -26,6 +26,8 @@
         return confirm(" {{confirmation_dialog_text}} ");
     }
 </script>
+
+{% if user.is_authenticated %}
 <script type="text/javascript" class="init">
     $(document).ready(function () {
         $('#pipeline-preferred').DataTable({
@@ -36,6 +38,18 @@
         });
 });
 </script>
+{% else %}
+<script type="text/javascript" class="init">
+    $(document).ready(function () {
+        $('#pipeline-preferred').DataTable({
+            paging:false,
+            searching:false,
+            info:false,
+            order: [[5, 'desc']],
+        });
+});
+</script>
+{% endif %}
 
 {% endblock %}
 
@@ -177,6 +191,9 @@
                 {% include "superevents/pipeline_preferred_event_info_table.html" %}
                 {% else %}
                 {% include "superevents/preferred_event_info_table_public.html" %}
+                <br />
+                <br />
+                {% include "superevents/pipeline_preferred_event_info_table_public.html" %}
                 {% endif %}
                 {% endblock %}
 

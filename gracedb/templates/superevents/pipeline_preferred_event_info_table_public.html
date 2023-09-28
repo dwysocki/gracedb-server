@@ -7,7 +7,7 @@
       <!-- Table Header -->
       <thead>
       <tr>
-        <th colspan="8"><h3>Per-Pipeline Event Information</h3></th>
+        <th colspan="6"><h3>Per-Pipeline Event Information</h3></th>
       </tr>
 
       <tr>
@@ -17,8 +17,6 @@
         <th> Search </th>
         <th> gpstime </th>
         <th> FAR (Hz) </th>
-        <th><span style="font-family: monospace">p_astro</span></th>
-        <th><span style="font-family: monospace">em_bright</span></th>
       </tr>
       </thead>
 
@@ -36,9 +34,6 @@
              {% else %}
              &nbsp; &nbsp; &nbsp; &nbsp;
              {% endif %}
-         <td> {{ preferred_event.graceid | json_text:"p_astro,newline,showprob" }} </td>
-         <td> {{ preferred_event.graceid | json_text:"em_bright,newline,showprob" }} </td>
-
 
         </tr>
       {% endfor %}
