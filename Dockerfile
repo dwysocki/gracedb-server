@@ -9,7 +9,6 @@ COPY docker/backports.pref /etc/apt/preferences.d
 RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list
 RUN echo 'deb http://apt.postgresql.org/pub/repos/apt bullseye-pgdg main' > /etc/apt/sources.list.d/pgdg.list
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get update && \
     apt-get install --install-recommends --assume-yes \
         apache2 \
@@ -31,6 +30,7 @@ RUN apt-get update && \
         libsqlite3-dev \
         ligo-ca-certs \
         nodejs \
+        npm \
         osg-ca-certs \
         php \
         php7.4-pgsql \
