@@ -19,8 +19,7 @@
 {% block headcontents %}
 
     <!-- import scripts -->
-    {# remove requests for favicon #}
-    <link rel="icon" href="data:,">
+    <link rel="icon" type="image/png" href="{% static "images/favicon.png" %}">
     <title>GraceDB | {% block title %}{% endblock %}</title>
     <!-- START TESTING -->
     <script type="text/javascript">
