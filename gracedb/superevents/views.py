@@ -18,6 +18,7 @@ from guardian.shortcuts import get_objects_for_user
 
 from core.file_utils import get_file_list, flexible_skymap_to_png
 from core.time_utils import utc_datetime_decimal_seconds
+from core.utils import display_far_hr_to_yr
 from events.models import EMGroup
 from events.models import Label
 from events.mixins import DisplayFarMixin
@@ -26,7 +27,7 @@ from ligoauth.decorators import public_if_public_access_allowed
 from .mixins import ExposeHideMixin, OperatorSignoffMixin, \
     AdvocateSignoffMixin, PermissionsFilterMixin, ConfirmGwFormMixin, \
     RRTViewMixin
-from .models import Superevent, VOEvent
+from .models import Superevent, VOEvent, Log
 from search.constants import RUN_MAP
 from .utils import get_superevent_by_date_id_or_404, \
     get_superevent_by_sid_or_gwid_or_404
@@ -204,7 +205,6 @@ class SupereventPublic(DisplayFarMixin, ListView):
     gcnurl_template = 'https://gcn.nasa.gov/circulars?query={sd_id}'
     default_skymap_filename = 'bayestar.png'
     burst_skymap_filename = '{pipeline}.png'
-    pe_results_tagname = 'pe_results'
     show_button_text = 'Show All Public Events'
     hide_button_text = 'Show Significant Events Only'
 
@@ -265,9 +265,16 @@ class SupereventPublic(DisplayFarMixin, ListView):
     # Modify get_queryset() to filter for significant vs insignificant:
     def get_queryset(self, showall=False, **kwargs):
         if showall:
-            return self.get_public_superevents()
+            superevents = self.get_public_superevents()
         else:
-            return self.significant_events(self.get_public_superevents())
+            superevents = self.significant_events(self.get_public_superevents())
+
+        return (
+            superevents
+            .prefetch_related('voevent_set', 'log_set')
+            .select_related('preferred_event')
+        )
+
 
     # Get all publicly exposed production superevents:
     def get_public_superevents(self, **kwargs):
@@ -279,8 +286,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
 
         qs = Superevent.objects.filter(is_exposed=True,
             category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION,
-            t_0__range=RUN_MAP[self.obsrun]) \
-            .prefetch_related('voevent_set', 'log_set')
+            t_0__range=RUN_MAP[self.obsrun])
         return qs
 
 
@@ -319,10 +325,15 @@ class SupereventPublic(DisplayFarMixin, ListView):
             voevent_skymap_image, version = flexible_skymap_to_png(voevent.skymap_filename) 
 
             # See if a public log exists with that filename:
-            if version and public_logs.filter(filename=voevent_skymap_image,
-                                file_version=version).exists():
+            if version:
+                skymap_log =list(public_logs.filter(filename=voevent_skymap_image,
+                                file_version=version).order_by('-file_version'))
+                if skymap_log:
                     skymap_image = voevent_skymap_image
-            elif public_logs.filter(filename=voevent_skymap_image).exists():
+            else: 
+                skymap_log = list(public_logs.filter(filename=voevent_skymap_image)\
+                                        .order_by('-file_version'))
+                if skymap_log:
                     skymap_image = voevent_skymap_image
  
 
@@ -334,21 +345,21 @@ class SupereventPublic(DisplayFarMixin, ListView):
             if superevent.preferred_event.group.name == 'Burst':
                 # Set up a filter for mixed (pipeline) case. 
                 # In O4, the convention was all lower case, but O3 was mixed case. argghhhh
-                skymap_log_list = public_logs.filter(filename__iexact=self.burst_skymap_filename.format(
-                    pipeline=superevent.preferred_event.pipeline.name))
+                skymap_log = list(public_logs.filter(filename__iexact=self.burst_skymap_filename.format(
+                    pipeline=superevent.preferred_event.pipeline.name)))
 
-                if skymap_log_list.exists():
-                    skymap_image = skymap_log_list.first().filename
+                if skymap_log:
+                    skymap_image = skymap_log[0].filename
 
             # Other events:
-            elif public_logs.filter(filename=self.default_skymap_filename).exists():
-                skymap_image = self.default_skymap_filename
+            else:
+                skymap_log = list(public_logs.filter(filename=self.default_skymap_filename))
+                if skymap_log:
+                    skymap_image = self.default_skymap_filename
 
         if skymap_image:
             # Add version to image name to be safe
-            log = public_logs.filter(filename=skymap_image) \
-                .order_by('-file_version').first()
-            skymap_image = log.versioned_filename
+            skymap_image = skymap_log[0].versioned_filename
 
             skymap_image = reverse(
                 'legacy_apiweb:default:superevents:superevent-file-detail',
@@ -362,15 +373,61 @@ class SupereventPublic(DisplayFarMixin, ListView):
         # Get the total number of public events:
         context['total_events'] = self.get_public_superevents().count()
 
-        # For each superevent, get list of log messages and construct pastro
-        # string
-        candidates = 0
-        retractions = 0
+        # Determine if this is an external request:
+        external_user = is_external(self.request.user)
 
         # get insignificant events
-        sig_events = self.significant_events(self.get_public_superevents())
+        sig_events = list(self.significant_events(self.get_public_superevents()))
 
-        # Filter and loop over exposed superevents for the given run:
+        # get retracted events, and count the number of candidates and
+        # and retractions:
+        retracted_events = list(self.object_list.filter(
+                                       voevent__voevent_type=VOEvent.VOEVENT_TYPE_RETRACTION))
+        retractions = len(retracted_events)
+        candidates = self.object_list.count() - retractions
+
+        # prefetch the latest, non-retraction voevent. it's used in two places
+        # in the loop below:
+        #    1) to get the skymap name
+        #    2) to get p_astro quantities
+
+        voe_query = VOEvent.objects.filter(superevent__in=self.object_list)\
+                                    .exclude(voevent_type=VOEvent.VOEVENT_TYPE_RETRACTION)\
+                                    .order_by('superevent_id', '-N')\
+                                    .distinct('superevent_id')
+
+        # construct a dictionary where the key is a superevent_id and the value is the
+        # associated voevent from the query above. This hits the database for every one of
+        # the voevents, but it's outside the loop so it should only have to do this once:
+
+        voevent_dict = {vo.superevent.superevent_id: vo for vo in voe_query}
+
+        # Construct a queryset for all the public, analyst_comment log messages that are
+        # part of the object_list. This is going to be a small, small subset compared to 
+        # the total number of superevents:
+
+        public_comments_set = Log.objects.filter(superevent__in=self.object_list)\
+                                         .filter(tags__name='public')\
+                                         .filter(tags__name='analyst_comments')
+
+        # Construct a list of unique superevent ids that have public analyst comments.
+        # This hits the database once:
+        public_comments_sids = list(public_comments_set.values_list('superevent__superevent_id', flat=True).distinct())
+
+        # Construct a dictionary where the key is a superevent_id and the value is the
+        # associated concatenated comment. This hits the database once for each value
+        # in public_comments_sids. But again this is less than O(1%) or less than the
+        # total number of public superevents:
+
+        comments_dict = {}
+
+        for sid in public_comments_sids:
+             comments_dict.update(
+                 {sid: ' ** '.join(public_comments_set.filter(superevent__superevent_id=sid)\
+                                             .values_list('comment', flat=True))})
+
+        ## Filter and loop over exposed superevents for the given run:
+        ## This is the main object loop:
         for se in self.object_list:
 
             # External links to GCN notice and circular
@@ -387,44 +444,32 @@ class SupereventPublic(DisplayFarMixin, ListView):
             se.t0_utc = se.t0_iso.split()[1]
 
             # Get display FARs for preferred_event
-            se.far_hz, se.far_hr, se.far_limit = self.get_display_far(
-                obj=se.preferred_event)
 
-            # Get list of voevents, filtering out retractions
-            voe = se.voevent_set.exclude(voevent_type=
-                VOEvent.VOEVENT_TYPE_RETRACTION).order_by('-N').first()
+            if external_user and (se.far < settings.VOEVENT_FAR_FLOOR):
+                se.far_hz = settings.VOEVENT_FAR_FLOOR
+            else:
+                se.far_hz = se.far
+
+            se.far_hr = display_far_hr_to_yr(se.far_hz)
+
+            # Get the latest, non-retraction voevent:
+            voe = voevent_dict.get(se.superevent_id, None)
 
             # Get skymap image (if a public one exists)
             se.skymap_image = self.get_skymap_image(se, voe)
 
             # Was the candidate retracted?
-            se.retract = se.voevent_set.filter(voevent_type=
-                VOEvent.VOEVENT_TYPE_RETRACTION).exists()
-            candidates += int(not se.retract)
-            retractions += int(se.retract)
-
+            se.retract = se in retracted_events
             # is the candidate significant?
             se.signif = se in sig_events
 
-            # Get list of viewable logs for user which are tagged with
-            # 'analyst_comments'
-            viewable_logs = se.log_set.filter(tags__name='public').filter(
-                tags__name='analyst_comments')
-            # Compile comments from these logs
-            se.comments = ' ** '.join(list(viewable_logs.values_list(
-                'comment', flat=True)))
+            # get the analyst comments from the comments_dict using the current
+            # superevent_id, otherwise return a blank string.
+            se.comments = comments_dict.get(se.superevent_id, '')
             if se.retract:
                 if se.comments:
                     se.comments = " ** " + se.comments
                 se.comments = "RETRACTED" + se.comments
-
-            # Get list of PE results
-            pe_results = get_objects_for_user(self.request.user,
-                self.log_view_permission,
-                klass=se.log_set.filter(tags__name=self.pe_results_tagname))
-            # Compile comments from these logs
-            se.pe = ' ** '.join(list(pe_results.values_list(
-                'comment', flat=True)))
 
             # Get p_astro probabilities
             if voe is not None:
@@ -450,7 +495,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
         context['signif_docs'] = self.insignificant_docs(self.obsrun)
         context['events'] = self.object_list
         context['run'] = self.obsrun
-        context['total_sig'] = sig_events.count()
+        context['total_sig'] = len(sig_events)
         context['total_insig'] = context['total_events'] - context['total_sig']
         context['candidates'] = candidates
         context['retractions'] = retractions

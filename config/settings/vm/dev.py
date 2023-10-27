@@ -75,3 +75,6 @@ Events and associated data may change or be removed at any time.
 <li>Only LIGO logins are provided (no login via InCommon or Google).</li>
 </ul>
 """.format(INSTANCE_LIST)
+
+# Turn off public page caching for development and testing:
+PUBLIC_PAGE_CACHING = 0

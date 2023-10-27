@@ -11,6 +11,9 @@ ALPHABET = string.ascii_lowercase
 BASE = len(ALPHABET)
 ASCII_ALPHABET_START = ord('a') - 1
 
+# Unit conversions
+far_hr_to_yr = 86400*365.25
+
 
 def int_to_letters(num, positive_only=True):
     """
@@ -57,3 +60,23 @@ def letters_to_int(letters):
         enumerate(letters[::-1])])
 
     return num
+
+
+def display_far_hr_to_yr(display_far):
+    """
+    A helper function to change /hr far value to a nicely formatted
+    /year value for use in tables and such.
+    """
+
+    # Determine "human-readable" FAR to display
+    display_far_hr = display_far
+    if display_far:
+        # FAR in units of yr^-1
+        far_yr = display_far * far_hr_to_yr
+        if (far_yr < 1):
+            display_far_hr = "1 per {0:0.5g} years".format(1.0/far_yr)
+        else:
+            display_far_hr = "{0:0.5g} per year".format(far_yr)
+
+    return display_far_hr
+

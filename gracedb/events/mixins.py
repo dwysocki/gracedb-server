@@ -3,6 +3,7 @@
 from django.conf import settings
 
 from .permission_utils import is_external
+from core.utils import display_far_hr_to_yr
 
 class DisplayFarMixin(object):
 
@@ -21,14 +22,4 @@ class DisplayFarMixin(object):
             display_far = settings.VOEVENT_FAR_FLOOR
             far_is_upper_limit = True
 
-        # Determine "human-readable" FAR to display
-        display_far_hr = display_far
-        if display_far:
-            # FAR in units of yr^-1
-            far_yr = display_far * (86400*365.25)
-            if (far_yr < 1):
-                display_far_hr = "1 per {0:0.5g} years".format(1.0/far_yr)
-            else:
-                display_far_hr = "{0:0.5g} per year".format(far_yr)
-
-        return display_far, display_far_hr, far_is_upper_limit 
+        return display_far, display_far_hr_to_yr(display_far), far_is_upper_limit 
