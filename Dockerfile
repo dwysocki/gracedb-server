@@ -73,6 +73,12 @@ COPY docker/supervisord-aws-xray.conf /etc/supervisor/conf.d/aws-xray.conf
 COPY docker/apache-config /etc/apache2/sites-available/gracedb.conf
 COPY docker/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf
 
+# Enable mpm_event module:
+
+RUN rm /etc/apache2/mods-enabled/mpm_prefork.*
+RUN rm /etc/apache2/mods-enabled/php7.4.*
+RUN cp  /etc/apache2/mods-available/mpm_event.* /etc/apache2/mods-enabled/
+
 # Shibboleth configs and certs:
 COPY docker/shibboleth-ds /etc/shibboleth-ds
 COPY docker/login.ligo.org.cert.LIGOCA.pem /etc/shibboleth/login.ligo.org.cert.LIGOCA.pem

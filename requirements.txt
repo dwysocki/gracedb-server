@@ -19,10 +19,7 @@ dnspython==2.4.1
 flake8==3.9.2
 gpstime==0.6.2
 gssapi==1.8.2
-#gunicorn==20.1.0
-# Run the fixed version of gunicorn until a release comes out:
-# https://github.com/benoitc/gunicorn/issues/2917
-git+https://github.com/benoitc/gunicorn.git@a423fca8e5bf78f64ee10e0e754b7b65eabc69cf
+gunicorn[gthread]==21.2.0
 hop-client==0.8.0
 html5lib==1.1.0
 igwn-alert-overseer==0.6.0

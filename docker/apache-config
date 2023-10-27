@@ -40,7 +40,7 @@ ServerName ${DJANGO_PRIMARY_FQDN}
   ProxyPass "/static" "!"
   ProxyPass "/documentation" "!"
   ProxyPass "/admin_docs" "!"
-  ProxyPass "/" "http://localhost:8080/" timeout=30
+  ProxyPass "/" "http://localhost:8080/" timeout=120
   ProxyPassReverse "/" "http://localhost:8080/"
 
   # This section is for apache2 timeout and keepalive tuning parameters. 

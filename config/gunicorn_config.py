@@ -51,7 +51,7 @@ threads = int(get_from_env('GUNICORN_THREADS',
 # Worker connections. Limit the number of connections between apache<-->gunicorn
 # This avoids the situation 
 
-worker_connections = workers
+worker_connections = workers * threads
 
 # Worker class ----------------------------------------------------------------
 # sync by default, generally safe and low-resource:
