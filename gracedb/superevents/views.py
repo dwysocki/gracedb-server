@@ -382,7 +382,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
         # get retracted events, and count the number of candidates and
         # and retractions:
         retracted_events = list(self.object_list.filter(
-                                       voevent__voevent_type=VOEvent.VOEVENT_TYPE_RETRACTION))
+                                       voevent__voevent_type=VOEvent.VOEVENT_TYPE_RETRACTION).distinct())
         retractions = len(retracted_events)
         candidates = self.object_list.count() - retractions
 
