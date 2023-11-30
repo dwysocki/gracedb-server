@@ -72,6 +72,12 @@ def issue_xmpp_alerts_local(event_or_superevent, alert_type, serialized_object,
     if not settings.SEND_XMPP_ALERTS:
         return
 
+    # FIXME: quarantine detchar and hardwareinjection events for now
+    if (is_event(event_or_superevent) and
+           (event_or_superevent.group.name == 'Detchar' or 
+            event_or_superevent.pipeline.name == 'HardwareInjection')):
+        return
+
     # Determine LVAlert node names
     node_names = get_xmpp_node_names(event_or_superevent)
 

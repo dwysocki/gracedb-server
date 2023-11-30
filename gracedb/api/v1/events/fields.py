@@ -28,7 +28,7 @@ class EventGraceidField(GenericField, serializers.RelatedField):
         # data should be a string at this point
         prefix = data[0]
         suffix = data[1:]
-        if not prefix in 'GEHMT':
+        if not prefix in 'GEHMTD':
             self.fail('bad_graceid')
         try:
             suffix = int(suffix)

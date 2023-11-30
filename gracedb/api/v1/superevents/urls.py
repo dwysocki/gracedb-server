@@ -24,7 +24,7 @@ suburlpatterns = [
     re_path(r'^events/$', never_cache(SupereventEventViewSet.as_view({'get': 'list',
         'post': 'create'})), name='superevent-event-list'),
     # Event detail and delete (remove from superevent)
-    re_path(r'^events/(?P<{lookup_url_kwarg}>[GEHMT]\d+)/$'.format(
+    re_path(r'^events/(?P<{lookup_url_kwarg}>[GEHMTD]\d+)/$'.format(
         lookup_url_kwarg=SupereventEventViewSet.lookup_url_kwarg),
         never_cache(SupereventEventViewSet.as_view({'get': 'retrieve',
         'delete': 'destroy'})), name='superevent-event-detail'),
@@ -33,7 +33,7 @@ suburlpatterns = [
     re_path(r'^pipeline_preferred_events/$', never_cache(SupereventPipelinePreferredEventViewSet.as_view({'get': 'list',
         'post': 'create'})), name='superevent-pipeline-preferred-event-list'),
     # Event detail and delete (remove from superevent)
-    re_path(r'^pipeline_preferred_events/(?P<{lookup_url_kwarg}>[GEHMT]\d+)/$'.format(
+    re_path(r'^pipeline_preferred_events/(?P<{lookup_url_kwarg}>[GEHMTD]\d+)/$'.format(
         lookup_url_kwarg=SupereventPipelinePreferredEventViewSet.lookup_url_kwarg),
         never_cache(SupereventPipelinePreferredEventViewSet.as_view({'get': 'retrieve',
         'delete': 'destroy'})), name='superevent-pipeline-preferred-event-detail'),

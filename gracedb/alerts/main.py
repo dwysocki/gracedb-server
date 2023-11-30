@@ -42,6 +42,7 @@ def issue_phone_and_email_alerts(event_or_superevent, alert_type, **kwargs):
         return
 
     # Don't send phone or email alerts for MDC or Test cases, or offline
+    # edit: include detchar events
     if is_event(event_or_superevent):
         # Test/MDC events
         event = event_or_superevent
@@ -50,6 +51,11 @@ def issue_phone_and_email_alerts(event_or_superevent, alert_type, **kwargs):
 
         # Offline events
         if event.offline:
+            return
+
+        # Detchar events:
+        if (event.group.name == 'Detchar' or 
+                event.pipeline.name == 'HardwareInjection'):
             return
     else:
         # Test/MDC superevents

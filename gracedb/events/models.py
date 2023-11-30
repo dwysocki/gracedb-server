@@ -255,6 +255,8 @@ class Event(ComputedFieldsModel):
             return "M%04d" % self.id
         elif getattr(self.pipeline, 'name', 'null')  == "HardwareInjection":
             return "H%04d" % self.id
+        elif getattr(self.group, 'name', 'null')  == "Detchar":
+            return "D%04d" % self.id
         elif getattr(self.group, 'name', 'null')  == "External":
             return "E%04d" % self.id
         return "G%04d" % self.id
@@ -363,6 +365,8 @@ class Event(ComputedFieldsModel):
         if (id[0] == "H") and (e.pipeline.name == "HardwareInjection"):
             return e
         if (id[0] == "E") and (e.group.name == "External"):
+            return e
+        if (id[0] == "D") and (e.group.name == "Detchar"):
             return e
         if (id[0] == "M") and (e.search and e.search.name == "MDC"):
             return e
