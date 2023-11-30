@@ -77,6 +77,8 @@ Here is a table showing the currently available labels and their meanings.
 +-------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | L1OPS                   | L1 operator signoff requested.                                                                                                         |
 +-------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
+| LENSED_CANDIDATE        | Candidate event was uploaded as part of a lensed search.                                                                               |
++-------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | LLAMA_COMPLETE          | LLAMA has completed annotating the superevent.                                                                                         |
 +-------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | LOW_SIGNIF_LOCKED       | The GraceID associated with this event has all annotations required for an alert, passes the low-significance public alert threshold,  |
@@ -103,7 +105,7 @@ Here is a table showing the currently available labels and their meanings.
 +-------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | SOG_READY               | A coincidence should trigger a speed of gravity measurement.                                                                           |
 +-------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
-| SNR_OPTIMIZED           | Indicates that the event was uploaded by the PyCBC SNR optimizer as followup to another PyCBC event.                                   |
+| SNR_OPTIMIZED           | Indicates that the event was SNR-optimized as followup to another uploaded event.                                                      |
 +-------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
 | SWIFT_GO                | Send notification to SWIFT telescope.                                                                                                  |
 +-------------------------+----------------------------------------------------------------------------------------------------------------------------------------+
