@@ -303,6 +303,12 @@ class SupereventPublic(DisplayFarMixin, ListView):
 
         return sevents.filter(significant_filter)
 
+    # Get events with ADVNO:
+    def retracted_events(self, sevents):
+        retraction_filter = Q(labels__name='ADVNO')
+
+        return sevents.filter(retraction_filter)
+
 
     # and some documentation for the definition of significance.
     # Note: this value is also used as a trigger to show the significance
@@ -381,8 +387,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
 
         # get retracted events, and count the number of candidates and
         # and retractions:
-        retracted_events = list(self.object_list.filter(
-                                       voevent__voevent_type=VOEvent.VOEVENT_TYPE_RETRACTION).distinct())
+        retracted_events = list(self.retracted_events(self.get_public_superevents()))
         retractions = len(retracted_events)
         candidates = self.object_list.count() - retractions
 
