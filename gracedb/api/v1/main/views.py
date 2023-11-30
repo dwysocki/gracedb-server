@@ -107,6 +107,13 @@ class GracedbRoot(APIView):
                                       request=request)
         update_grbevent = update_grbevent.replace("G1200", "{graceid}")
 
+        gwtc_number_list = api_reverse('gwtc:gwtc-number-list', args=['4a-1'], request=request)
+        gwtc_number_list = gwtc_number_list.replace('4a-1', '{number}')
+
+        gwtc_version_detail = api_reverse('gwtc:gwtc-version-detail', args=['4a-1', '10'], request=request)
+        gwtc_version_detail = gwtc_version_detail.replace('4a-1', '{number}')
+        gwtc_version_detail = gwtc_version_detail.replace('10', '{version}')
+
         # XXX Need a template for the tag list?
 
         templates = {
@@ -124,6 +131,8 @@ class GracedbRoot(APIView):
                 "taglist-template" : taglist,
                 "signoff-list-template": signofflist,
                 "update-grbevent-template": update_grbevent,
+                "gwtc-number-list": gwtc_number_list,
+                "gwtc-version-detail": gwtc_version_detail,
                 }
 
         # Get superevent templates
@@ -135,6 +144,7 @@ class GracedbRoot(APIView):
                 "superevents" : api_reverse("superevents:superevent-list",
                     request=request),
                 "events"      : api_reverse("events:event-list", request=request),
+                "gwtc"	      : api_reverse("gwtc:gwtc-list", request=request),
                 "self"        : api_reverse("root", request=request),
                 "performance" : api_reverse("performance-info", request=request),
                 "user-info": api_reverse("user-info", request=request),

@@ -215,6 +215,56 @@ class SupereventManagersGroupAndUserSetup(TestCase):
             codename__in=sm_permissions_codenames)
         cls.sm_group.permissions.add(*perms)
 
+class catalog_managers_group_and_user_setup(TestCase):
+    """
+    Base class which sets up cata;pg_managers group and user
+    These are accessible with self.cm_group and self.cm_user.
+    Also adds appropriate permissions.
+    """
+    @classmethod
+    def setUpTestData(cls):
+
+        # Run super
+        super(catalog_managers_group_and_user_setup, cls).setUpTestData()
+
+        # Get or create access managers
+        cls.cm_group, _ = AuthGroup.objects.get_or_create(
+            name='catalog_managers')
+
+        # Get or create user
+        cls.cm_user, _ = UserModel.objects.get_or_create(
+            username='catalog.manager')
+
+        # Add user to catalog managers group
+        cls.cm_group.user_set.add(cls.cm_user)
+
+        # Also add user to internal group
+        internal_group, created = AuthGroup.objects.get_or_create(
+            name=settings.LVC_GROUP)
+        if created:
+            internal_group.ldap_name = 'internal_ldap_group'
+            internal_group.save(update_fields=['ldap_name'])
+
+        # Create AuthorizedLdapMember, link it to internal group:
+        authldapmember, created = AuthorizedLdapMember.objects.get_or_create(
+            name='TestLDAPAuthMember')
+        if created:
+            authldapmember.ldap_gname='internal_ldap_group'
+            authldapmember.ldap_authgroup=internal_group
+            authldapmember.save()
+
+        internal_group.user_set.add(cls.cm_user)
+
+        # Get permissions
+        cm_permissions_codenames = [
+            'add_gwtc_catalog',
+            'delete_gwtc_catalog',
+        ]
+        perms = Permission.objects.filter(
+            content_type__app_label='gwtc',
+            codename__in=cm_permissions_codenames)
+        cls.cm_group.permissions.add(*perms)
+
 
 class AccessManagersGroupAndUserSetup(TestCase):
     """

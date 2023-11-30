@@ -398,6 +398,7 @@ INSTALLED_APPS = [
     'ligoauth',
     'search',
     'superevents',
+    'gwtc',
     'rest_framework',
     'guardian',
     'django_twilio',

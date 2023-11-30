@@ -7,7 +7,7 @@ from django.contrib.auth.models import Group as AuthGroup, Permission
 from django.contrib.contenttypes.models import ContentType
 
 from core.tests.utils import GraceDbTestBase
-from events.models import Event, Group, Pipeline, Search, Tag
+from events.models import Event, Group, Pipeline, Search, Tag, CoincInspiralEvent
 from events.permission_utils import assign_default_event_perms
 from events.views import update_event_perms_for_group
 
@@ -53,6 +53,42 @@ class EventCreateMixin(object):
 
         return event
 
+    @staticmethod
+    def create_coinc_event(group_name, pipeline_name, search_name=None,
+        user=None):
+        """
+        """
+
+        # Create group, pipeline, and optionally, user
+        group, _ = Group.objects.get_or_create(name=group_name)
+        pipeline, _ = Pipeline.objects.get_or_create(name=pipeline_name)
+        if user is None:
+            user, _ = UserModel.objects.get_or_create(username='event.user')
+
+        # Compile event dict
+        event_dict = {
+            'group': group,
+            'pipeline': pipeline,
+            'submitter': user,
+            'gpstime': 123,
+        }
+
+        # Set up search (if not None) and add to event_dict
+        if search_name is not None:
+            search, _ = Search.objects.get_or_create(name=search_name)
+            event_dict['search'] = search
+
+        # Create event and return
+        event = CoincInspiralEvent.objects.create(**event_dict)
+
+        # Save event to trigger field computation:
+        event.save()
+
+        # Make data directory (should get removed at the end by
+        # GraceDbTestBase tearDown function)
+        os.makedirs(event.datadir)
+
+        return event
 
 class EventSetup(GraceDbTestBase, EventCreateMixin):
     """

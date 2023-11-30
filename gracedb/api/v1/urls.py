@@ -7,6 +7,7 @@ from .main.views import GracedbRoot, PerformanceInfo, TagList, UserInfoView, \
 
 from .events import urls as event_urls
 from .superevents import urls as superevent_urls
+from .gwtc import urls as gwtc_urls
 
 # Turn off api caching:
 from django.views.decorators.cache import never_cache
@@ -36,4 +37,7 @@ urlpatterns = [
 
     # Superevents section of the API ------------------------------------------
     re_path(r'^superevents/', include((superevent_urls, 'superevents'))),
+
+    # Catalog section of the API ----------------------------------------------
+    re_path(r'^gwtc/', include((gwtc_urls, 'gwtc'))),
 ]
