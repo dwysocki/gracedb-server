@@ -52,6 +52,8 @@ UNAUTHENTICATED_ACCESS = parse_envvar_bool(
 # Miscellaneous settings ------------------------------------------------------
 # Debug mode is off by default
 DEBUG = False
+# When debug mode is enabled, use custom reporter
+DEFAULT_EXCEPTION_REPORTER = 'core.utils.CustomExceptionReporter'
 
 # Number of results to show on latest page
 LATEST_RESULTS_NUMBER = 25

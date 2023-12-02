@@ -1,5 +1,10 @@
 import logging
+from pathlib import Path
+import re
 import string
+
+from django.conf import settings
+from django.views.debug import ExceptionReporter
 
 from six import string_types
 
@@ -80,3 +85,17 @@ def display_far_hr_to_yr(display_far):
 
     return display_far_hr
 
+
+class CustomExceptionReporter(ExceptionReporter):
+    """
+    Custom Django exception reporter, used in DEBUG mode.  Overrides default
+    templates with ones that do not expose our settings.
+    """
+
+    @property
+    def html_template_path(self):
+        return Path(settings.PROJECT_ROOT) / 'templates' / 'technical_500.html'
+
+    @property
+    def text_template_path(self):
+        return Path(settings.PROJECT_ROOT) / 'templates' / 'technical_500.txt'
