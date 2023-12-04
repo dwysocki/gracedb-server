@@ -7,9 +7,9 @@ from django.db import migrations
 
 GROUPS = {
     'catalog_managers': ['cbcflow', 'chad.hanna@ligo.org', 'rhiannon.udall@ligo.org',
-                         'chad.hanna@ligo.org', 'rebecca.ewing@ligo.org',
+                         'gstlalcbc', 'rebecca.ewing@ligo.org', 'pycbclive', 'mbtaalert',
                          'prathamesh.joshi@ligo.org', 'divya.singh@ligo.org',
-                         'alexander.pace@ligo.org'],
+                         'leo.tsukada@ligo.org', 'tito.canton@ligo.org'],
 }
 
 def add_groups(apps, schema_editor):
