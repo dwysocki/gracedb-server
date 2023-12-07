@@ -280,46 +280,46 @@ def superevent_datatables_response(request, objects):
     # select related objects to reduce the number of queries.
     objects = objects.select_related('submitter', 'preferred_event')
     objects = objects.prefetch_related('events', 'labels')
- 
+
     # Initialize 'data':
-    data =[]
+    num_objects = objects.count()
+    data =[None] * num_objects
 
     # Loop through objects:
-    for s in objects:
-        row = []
-        # UID:
-        row.append(EVENT_HTTP_TEMPLATE.format(
+    for row_num, s in enumerate(objects):
+        row = [None] * 8
+        # Column 1, UID:
+        row[0] = EVENT_HTTP_TEMPLATE.format(
             django_reverse("superevents:view", args=[s.superevent_id]),
-            s.superevent_id))
+            s.superevent_id)
 
-        # Labels, unformatted for now:
-        # row.append(' '.join([a.label.name for a in s.labelling_set.all()]))
-        row.append(" ".join([LABEL_HTML_TEMPLATE.format(a.label.defaultColor, a.label.name) for a in s.labelling_set.all()]))
+        # Column 2, Labels:
+        row[1] = " ".join([LABEL_HTML_TEMPLATE.format(a.label.defaultColor, a.label.name) for a in s.labelling_set.all()])
 
-        # FAR
-        row.append(s.far)
+        # Column 3, FAR:
+        row[2] = s.far
 
-        # Preferred Event:
-        row.append(EVENT_HTTP_TEMPLATE.format(
+        # Column 4, Preferred Event:
+        row[3] = EVENT_HTTP_TEMPLATE.format(
             django_reverse("view", args=[s.preferred_event.graceid,]),
-            s.preferred_event.graceid))
+            s.preferred_event.graceid)
 
-        # GW Events:
-        row.append(' '.join([EVENT_HTTP_TEMPLATE.format(
+        # Column 5, GW Events:
+        row[4] = ' '.join([EVENT_HTTP_TEMPLATE.format(
              django_reverse("view", args=[a.graceid]),
-             a.graceid) for a in s.events.all()]))
+             a.graceid) for a in s.events.all()])
 
-        # t_0:
-        row.append(str(round(s.t_0,3)))
+        # Column 6,  t_0:
+        row[5] = str(round(s.t_0,3))
 
-        # Submission Time:
-        row.append(timeSelections(s.created)['utc'])
+        # Column 7, Submission Time:
+        row[6] = timeSelections(s.created)['utc']
 
-        # Submitted By:
-        row.append(s.submitter.get_full_name())
+        # Column 8, Submitted By:
+        row[7] = s.submitter.get_full_name()
 
         # Add the row to the data output:
-        data.append(row)
+        data[row_num] = row
 
     msg = json.dumps({"data": data})
     response['Content-length'] = len(msg)
@@ -341,60 +341,61 @@ def event_datatables_response(request, objects):
     #  9. Submitted
     # 10. Submitted By
 
-    # Initialize 'data':
-    data =[]
+    # select related objects to reduce the number of queries.
     objects = objects.select_related('group', 'pipeline', 'search', 'submitter')
 
-    # Determine if this is an external request: 
+    # Initialize 'data':
+    num_objects = objects.count()
+    data =[None] * num_objects
 
+    # Determine if this is an external request: 
     ext_req = is_external(request.user)
 
-    for e in objects:
-        row = []
-        # UID:
-        row.append(EVENT_HTTP_TEMPLATE.format(
+    for row_num, e in enumerate(objects):
+        row = [None] * 10
+        # Column 1, UID:
+        row[0] = EVENT_HTTP_TEMPLATE.format(
             django_reverse("view", args=[e.graceid,]),
-            e.graceid))
+            e.graceid)
 
-        # Labels, unformatted for now:
-        row.append(" ".join([LABEL_HTML_TEMPLATE.format(a.label.defaultColor, a.label.name) for a in e.labelling_set.all()]))
+        # Column 2, Labels:
+        row[1] = " ".join([LABEL_HTML_TEMPLATE.format(a.label.defaultColor, a.label.name) for a in e.labelling_set.all()])
 
-        # Group:
-        row.append(e.group.name)
+        # Column 3, Group:
+        row[2] = e.group.name
 
-        # Pipeline
-        row.append(e.pipeline.name)
+        # Column 4, Pipeline
+        row[3] = e.pipeline.name
 
-        # Search, might be empty:
+        # Column 5, Search (might be empty):
         if e.search:
             search_name = e.search.name
         else:
             search_name = ' '
-        row.append(search_name)
+        row[4] = search_name
 
-        # Event Time
-        row.append(timeSelections(e.gpstime).get('gps'))
+        # Column 6, Event Time:
+        row[5] = timeSelections(e.gpstime).get('gps')
 
-        # Instruments:
-        row.append(e.instruments)
+        # Column 7, Instruments:
+        row[6] = e.instruments
 
-        # FAR: Note, the switch is in here to hide the "true" FAR from 
+        # Coluimn 8, FAR: Note, the switch is in here to hide the "true" FAR from 
         # external searches. 
         display_far = scientific(e.far)
         if e.far and ext_req:
             if e.far < settings.VOEVENT_FAR_FLOOR:
                 display_far = "< %s" % scientific(settings.VOEVENT_FAR_FLOOR)
-        row.append(display_far)
+        row[7] = display_far
 
-        # Submitted:
-        row.append(timeSelections(e.created)['utc'])
+        # Column 9, Submitted:
+        row[8] = timeSelections(e.created)['utc']
 
-        # Submitted By:
-        row.append(e.submitter.get_full_name())
+        # Column 10, Submitted By:
+        row[9] = e.submitter.get_full_name()
 
         # Add the row to the data output:
-        data.append(row)
-
+        data[row_num] = row
 
     msg = json.dumps({"data": data})
     response['Content-length'] = len(msg)
