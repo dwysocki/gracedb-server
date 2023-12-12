@@ -58,7 +58,6 @@ from ...utils import api_reverse
 
 # Retry imports:
 from time import sleep
-from retry import retry
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -367,8 +366,9 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
     # move it into production before the root cause
     # can be determined.
 
-    @retry(exceptions=OSError, tries=EFS_RETRY_MAX, delay=EFS_RETRY_WAIT, logger=logger)
     def retrieve(self, request, *args, **kwargs):
+        efs_access_attempt = 1
+        efs_access_success = False
 
         # Get parent superevent
         parent_superevent = self.get_parent_object()
@@ -376,49 +376,63 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
         # Get file name from URL kwargs
         full_filename = self.kwargs.get(self.lookup_url_kwarg)
 
-        # Try to split into name,version (for log lookup)
-        try:
-            filename, version = Log.split_versioned_filename(full_filename)
-        except FileVersionError as e:
-            # Bad version specifier
-            return Response('File not found, version string should be an int',
-                status=status.HTTP_404_NOT_FOUND)
-        except FileVersionNameError as e:
-            # File name doesn't match versioning scheme (likely has a comma
-            # in it that isn't part of the versioning scheme)
-            return Response(('Invalid filename: filename should not contain '
-                'commas'), status=status.HTTP_400_BAD_REQUEST)
+        while not efs_access_success:
+            try:
 
-        # Get logs which are viewable by the current user and
-        # have files attached
-        filtered_logs = self.filter_log_queryset(self.get_log_queryset())
+                # Try to split into name,version (for log lookup)
+                try:
+                    filename, version = Log.split_versioned_filename(full_filename)
+                except FileVersionError as e:
+                    # Bad version specifier
+                    return Response('File not found, version string should be an int',
+                        status=status.HTTP_404_NOT_FOUND)
+                except FileVersionNameError as e:
+                    # File name doesn't match versioning scheme (likely has a comma
+                    # in it that isn't part of the versioning scheme)
+                    return Response(('Invalid filename: filename should not contain '
+                        'commas'), status=status.HTTP_400_BAD_REQUEST)
+        
+                # Get logs which are viewable by the current user and
+                # have files attached
+                filtered_logs = self.filter_log_queryset(self.get_log_queryset())
+        
+                # If no version provided, it's a symlink to the most recent version.
+                # So we follow the symlink and get the version that way.
+                if version is None:
+                    full_file_path = os.path.join(parent_superevent.datadir, filename)
+                    target_file = os.path.realpath(full_file_path)
+                    target_basename = os.path.basename(target_file)
+                    _, version = Log.split_versioned_filename(target_basename)
+        
+                # Get specific log based on filename and version to check if user has
+                # access.
+                log = get_object_or_404(filtered_logs, **{'filename': filename,
+                    'file_version': version})
+        
+                # Get full file path for serving
+                parent_superevent = self.get_parent_object()
+                file_path = os.path.join(parent_superevent.datadir, full_filename)
+        
+                response = check_and_serve_file(request, file_path, ResponseClass=Response)
+        
+                # if the request is for apiweb, set the cache max-age equal to the cache 
+                # on the public page. the primary use case for this is showing images 
+                # on the public and on superevent pages. 
+                if request.path.split('/')[1] == APIWEB_ROOT:
+                    response.headers['Cache-control'] = f'max-age={settings.PUBLIC_PAGE_CACHING}'
 
-        # If no version provided, it's a symlink to the most recent version.
-        # So we follow the symlink and get the version that way.
-        if version is None:
-            full_file_path = os.path.join(parent_superevent.datadir, filename)
-            target_file = os.path.realpath(full_file_path)
-            target_basename = os.path.basename(target_file)
-            _, version = Log.split_versioned_filename(target_basename)
+                return response
 
-        # Get specific log based on filename and version to check if user has
-        # access.
-        log = get_object_or_404(filtered_logs, **{'filename': filename,
-            'file_version': version})
-
-        # Get full file path for serving
-        parent_superevent = self.get_parent_object()
-        file_path = os.path.join(parent_superevent.datadir, full_filename)
-
-        response = check_and_serve_file(request, file_path, ResponseClass=Response)
-
-        # if the request is for apiweb, set the cache max-age equal to the cache 
-        # on the public page. the primary use case for this is showing images 
-        # on the public and on superevent pages. 
-        if request.path.split('/')[1] == APIWEB_ROOT:
-            response.headers['Cache-control'] = f'max-age={settings.PUBLIC_PAGE_CACHING}'
-
-        return response
+            except OSError:
+                logger.warning("Retrying EFS access. Attempt number "
+                        "{}".format(efs_access_attempt))
+                sleep(EFS_RETRY_WAIT)
+                efs_access_attempt += 1
+                if efs_access_attempt > EFS_RETRY_MAX:
+                    return Response("File system hiccup, please retry",
+                            status=status.HTTP_409_CONFLICT)
+            else:
+                efs_access_success = True
 
 
 class SupereventVOEventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
