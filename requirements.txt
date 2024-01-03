@@ -18,7 +18,7 @@ djangorestframework==3.12.2
 djangorestframework-guardian==0.3.0
 dnspython==2.4.1
 flake8==3.9.2
-gpstime==0.6.2
+gpstime==0.8.1
 gssapi==1.8.2
 gunicorn[gthread]==21.2.0
 hop-client==0.8.0
