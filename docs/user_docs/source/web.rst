@@ -20,7 +20,8 @@ Latest events and superevents
 =============================
 
 The "LATEST" page shows the most recent events or superevents (by submission time).
-You can also do searches from this page.
+Users can also do searches from this page, however only a limited number (currently 25) of the most
+recent events will be displayed. 
 
 Understanding the event detail page
 ===================================
@@ -52,3 +53,4 @@ Understanding the superevent detail page
 
 The detail page for a superevent can be accessed similarly to an event page.
 The content is analogous to that shown on the event page, although it contains information about the superevent in general, as well as a table summarizing the information about the superevent's preferred event.
+Additional tables show preferred events by pipeline and a summary of the superevent's constituent event uploads. 

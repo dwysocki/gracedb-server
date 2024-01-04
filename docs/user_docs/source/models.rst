@@ -1,7 +1,7 @@
 .. _models:
 
 ==========================
-Data models
+Data Models
 ==========================
 
 What characterizes an event?
@@ -10,7 +10,7 @@ What characterizes an event?
 The different types of events in GraceDB are distinguished by the following parameters:
 
 - ``Group``: the working group responsible for finding the candidate
-    - values: ``CBC``, ``Burst``, ``External``, ``Test`` 
+    - values: ``CBC``, ``Burst``, ``Detchar``, ``External``, ``Test`` 
 - ``Pipeline``: the data analysis software tool used make the detection 
     - values: ``MBTA``, ``MBTAOnline``, ``CWB``, ``CWB2G``, ``gstlal``, ``pycbc``, ``spiir``, ``HardwareInjection``, ``Fermi``, ``Swift``, ``INTEGRAL``, ``AGILE``, ``SNEWS``, ``oLIB``, ``MLy``
 - ``Search``: the search activity which led to the detection 
@@ -93,7 +93,7 @@ What is a superevent?
 In reality, what we called "events" above might be better characterized as "triggers", since different analysis pipelines may detect the same physical GW event and submit it to GraceDB.
 In order to collect the information about a single physical event in one place, reduce the amount of follow-up processing needed, and issue alerts about only one GraceDB entry per physical event, we have created the "superevent" data model.
 
-A downstream process which is separate from GraceDB listens for event creations, analyzes their attributes, and determines how to aggregate events into superevents.
+A `downstream process <https://rtd.igwn.org/projects/gwcelery/en/latest/index.html>`__ separate from GraceDB listens for event creations, analyzes their attributes, and determines how to aggregate events into superevents.
 
 .. _superevent_data_model:
 

@@ -17,5 +17,4 @@ Contents:
    labels
    igwn_alert
    notifications
-   lvem
 

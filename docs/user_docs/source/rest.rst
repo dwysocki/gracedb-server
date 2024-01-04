@@ -41,8 +41,7 @@ Otherwise, a description of the API representation for various objects is availa
 
 Using the API programmatically
 ==============================
-At present, the GraceDB API is not well-documented, and it may be challenging to write a custom client for accessing it.
-The LSC maintains a Python package, ligo-gracedb, for simplifying access to the API.
+IGWN maintains a Python package, ligo-gracedb, for simplifying access to the API.
 This package's `documentation <https://ligo-gracedb.readthedocs.io/en/latest/>`__ is comprehensive and includes basic installation, configuration, and usage.
 For non-Python users, ligo-gracedb also comes with a command-line client.
 
