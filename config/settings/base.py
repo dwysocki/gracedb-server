@@ -36,7 +36,7 @@ INFO_BANNER_MESSAGE = "TEST MESSAGE"
 BETA_REPORTS_LINK = False
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.24.0'
+PROJECT_VERSION = '2.24.0-2'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -63,7 +63,8 @@ LATEST_RESULTS_NUMBER = 25
 # but just put in the hard cutoff for right now
 # Set to cover this:
 # https://gracedb.ligo.org/events/G184098
-TOO_MANY_LOG_ENTRIES = 500
+TOO_MANY_LOG_ENTRIES = int(get_from_env('DJANGO_TOO_MANY_LOG_ENTRIES',
+    fail_if_not_found=False, default_value=2000))
 
 # Path to root URLconf
 ROOT_URLCONF = '{module}.urls'.format(module=os.path.basename(CONFIG_ROOT))
