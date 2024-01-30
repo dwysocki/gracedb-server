@@ -150,6 +150,10 @@ SEND_MATTERMOST_ALERTS = False
 # IGWN_ALERT_GROUP environment variable. 
 DEFAULT_IGWN_ALERT_GROUP = 'lvalert-dev'
 
+# overseer timeout:
+OVERSEER_TIMEOUT = float(get_from_env('IGWN_ALERT_OVERSEER_TIMEOUT',
+    fail_if_not_found=False, default_value=0.1))
+
 # Use LVAlert Overseer?
 USE_LVALERT_OVERSEER = True
 # For each LVAlert server, a separate instance of LVAlert Overseer
