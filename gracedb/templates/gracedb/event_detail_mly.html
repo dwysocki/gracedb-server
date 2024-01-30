@@ -11,7 +11,7 @@
             <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
                 <thead>
                     <tr>
-                        <th colspan="2"><h3>MLy Info</h3></th>
+                        <th colspan="2"><h3>Machine Learning Info</h3></th>
                     </tr>
                 </thead>
                 <tr> <td> Bandwidth (Hz)  </th> <td> {{object.bandwidth|floatformat:"-4"}} </td> </tr>
@@ -19,12 +19,13 @@
                 <tr> <td> Central Frequency (s)  </th> <td> {{object.central_freq|floatformat:"-4"}} </td> </tr>
                 <tr> <td> Duration (s)  </th> <td> {{object.duration|floatformat:"-4"}} </td> </tr>
                 <tr> <td> SNR  </th> <td> {{object.snr|floatformat:"-4"}} </td> </tr>
+                <tr> <td> Detection Statistic  </th> <td> {{object.detection_statistic|floatformat:"-4"}} </td> </tr>
             </table>
         </div>
     </div>
 </div>
 
-
+{% if object.score_coher %}
 <div class="row my-3 justify-content-md-center">
     <div class="col-md-10">
         <div id="table-coinc-event">
@@ -41,5 +42,6 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 {% endblock %}

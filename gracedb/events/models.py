@@ -762,15 +762,16 @@ class CoincInspiralEvent(Event):
                    models.Index(fields=['combined_far', ])]
 
 class MLyBurstEvent(Event):
-    ifos             = models.CharField(max_length=20, default="")
-    score_coinc      = models.FloatField(null=True)
-    score_coher      = models.FloatField(null=True)
-    score_comb       = models.FloatField(null=True)
-    central_freq     = models.FloatField(null=True)
-    bandwidth        = models.FloatField(null=True)
-    duration         = models.FloatField(null=True)
-    central_time     = models.FloatField(null=True)
-    snr              = models.FloatField(null=True)
+    ifos             	= models.CharField(max_length=20, default="")
+    score_coinc      	= models.FloatField(null=True)
+    score_coher      	= models.FloatField(null=True)
+    score_comb       	= models.FloatField(null=True)
+    central_freq     	= models.FloatField(null=True)
+    bandwidth        	= models.FloatField(null=True)
+    duration         	= models.FloatField(null=True)
+    central_time     	= models.FloatField(null=True)
+    detection_statistic	= models.FloatField(null=True)
+    snr              	= models.FloatField(null=True)
 
 # Adding too many index tables can adversely affect write performance.
 # So I'm going to minimize how many of these are actually implemented. 
@@ -785,6 +786,7 @@ class MLyBurstEvent(Event):
                    models.Index(fields=['bandwidth', ]),
                    models.Index(fields=['duration', ]),
                    models.Index(fields=['snr', ]),
+                   models.Index(fields=['detection_statistic', ]),
                    models.Index(fields=['central_time', ])]
 
 class MultiBurstEvent(Event):

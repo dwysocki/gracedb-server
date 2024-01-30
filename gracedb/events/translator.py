@@ -384,7 +384,7 @@ def handle_uploaded_data(event, datafilename,
         event.frequency_median = n_float(event_dict.get('frequency_posterior_median', None))
         event.save()
 
-    elif pipeline == 'MLy':
+    elif pipeline in ['MLy', 'aframe']:
         # copying this bit for MLy json files.
         # lambda function for converting to a type if not None
         typecast = lambda t, v: t(v) if v is not None else v
@@ -402,11 +402,12 @@ def handle_uploaded_data(event, datafilename,
         event.far       = n_float(event_dict.get('far'))
 
         # Extract other attributes:
-        event.central_freq  = n_float(event_dict.get('central_freq', None))
-        event.central_time  = n_float(event_dict.get('central_time', None))
-        event.bandwidth     = n_float(event_dict.get('bandwidth', None))
-        event.duration      = n_float(event_dict.get('duration', None))
-        event.snr           = n_float(event_dict.get('SNR', None))
+        event.central_freq  		= n_float(event_dict.get('central_freq', None))
+        event.central_time  		= n_float(event_dict.get('central_time', None))
+        event.bandwidth     		= n_float(event_dict.get('bandwidth', None))
+        event.duration      		= n_float(event_dict.get('duration', None))
+        event.snr           		= n_float(event_dict.get('SNR', None))
+        event.detection_statistic	= n_float(event_dict.get('detection_statistic', None))
 
         # event.instruments is attached to the base Event and event.ifos is
         # part of the MLyBurstEvent

@@ -785,6 +785,7 @@ def mlyburst_to_dict(event):
             "central_time": event.central_time,
             "duration": event.duration,
             "SNR": event.snr,
+            "detection_statistic": event.detection_statistic,
             })
     except:
         pass

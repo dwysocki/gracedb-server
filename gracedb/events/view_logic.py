@@ -64,7 +64,7 @@ def _createEventFromForm(request, form):
             event = SimInspiralEvent()
         elif pipeline.name in ['oLIB',]:
             event = LalInferenceBurstEvent()
-        elif pipeline.name in ['MLy']:
+        elif pipeline.name in ['MLy', 'aframe']:
             event = MLyBurstEvent()
         else:
             event = Event()
