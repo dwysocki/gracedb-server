@@ -4,6 +4,7 @@ from pyparsing import Keyword, CaselessKeyword, oneOf, Literal, Or, \
     OneOrMore, ZeroOrMore, Optional, Suppress
 
 from django.db.models import Q
+from django.core.exceptions import BadRequest
 
 from events.models import Label
 from ..utils import handle_binary_ops
@@ -92,8 +93,8 @@ def filter_for_labels(qs, queryString):
     not_indices = [i for i, x in enumerate(toks) if x == '~' or x=='-']
     for i in not_indices:
         if not isinstance(toks[i+1], Q):
-            raise ValueError("NOT operator should precede a Label name."
-                             " Bad Query.")
+            raise BadRequest("Bad label query: NOT operator ('~' or '-') "
+                "should precede a label name.")
         toks[i+1] = ~toks[i+1]
 
     # Now that we've applied the NOTs, remove them from the list
@@ -116,6 +117,7 @@ def filter_for_labels(qs, queryString):
 
     # By this time, the list of tokens should be down to a single QuerySet.
     if len(toks)>1:
-        raise ValueError("The label query didn't reduce properly.")
+        raise BadRequest("Bad label query: You are likely missing a binary operator "
+            "in your label expression. All labels must be separated by & or |")
 
     return toks[0]
