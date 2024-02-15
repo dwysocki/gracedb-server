@@ -276,7 +276,7 @@ def is_in_rrt_subcategory(event, rrt_subcategory):
 
             return (
                 event.group.name == "CBC"
-                and not event.search.name == "EarlyWarning"
+                and not event.search.name in {"EarlyWarning", "VTInjection"}
             ) | (
                     event.group.name == "Burst"
                     and event.search
