@@ -48,7 +48,7 @@ def get_xmpp_node_names(event_or_superevent):
         gp_node = "{group}_{pipeline}".format(group=event.group.name,
             pipeline=event.pipeline.name).lower()
         node_names.append(gp_node)
-        if event.search:
+        if event.search and settings.SEND_TO_SEARCH_TOPICS:
             gps_node = gp_node + "_{search}".format(
                 search=event.search.name.lower())
             node_names.append(gps_node)

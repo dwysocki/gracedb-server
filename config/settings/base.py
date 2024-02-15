@@ -150,6 +150,13 @@ SEND_MATTERMOST_ALERTS = False
 # IGWN_ALERT_GROUP environment variable. 
 DEFAULT_IGWN_ALERT_GROUP = 'lvalert-dev'
 
+# enable/disable sending alerts to topics that have the search tag
+# for g/e-events. default to false, so only send to {group}_{pipeline}
+SEND_TO_SEARCH_TOPICS = parse_envvar_bool(
+    get_from_env('IGWN_ALERT_SEARCH_TOPICS',
+                 fail_if_not_found=False, default_value="false")
+)
+
 # overseer timeout:
 OVERSEER_TIMEOUT = float(get_from_env('IGWN_ALERT_OVERSEER_TIMEOUT',
     fail_if_not_found=False, default_value=0.1))
