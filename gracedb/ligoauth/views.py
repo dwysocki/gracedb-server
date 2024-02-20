@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth import (
     get_user_model, update_session_auth_hash, REDIRECT_FIELD_NAME
 )
-from django.contrib.auth.views import SuccessURLAllowedHostsMixin
+from django.contrib.auth.views import RedirectURLMixin
 from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url, render
 from django.urls import reverse
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 #      user is then redirected to the original page where they logged in from.
 @method_decorator(sensitive_post_parameters(), name='dispatch')
 @method_decorator(never_cache, name='dispatch')
-class ShibLoginView(SuccessURLAllowedHostsMixin, RedirectView):
+class ShibLoginView(RedirectURLMixin, RedirectView):
     redirect_authenticated_user = True
     redirect_field_name = REDIRECT_FIELD_NAME
     post_login_view_name = 'post-login'
@@ -84,7 +84,7 @@ class ShibLoginView(SuccessURLAllowedHostsMixin, RedirectView):
 
 @method_decorator(sensitive_post_parameters(), name='dispatch')
 @method_decorator(never_cache, name='dispatch')
-class ShibPostLoginView(SuccessURLAllowedHostsMixin, RedirectView):
+class ShibPostLoginView(RedirectURLMixin, RedirectView):
     redirect_field_name = REDIRECT_FIELD_NAME
 
     def get_redirect_url(self):

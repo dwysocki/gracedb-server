@@ -173,6 +173,8 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
     # Class method overrides --------------------------------------------------
     def clean(self, *args, **kwargs):
 
+        pk_set = self._get_pk_val() is not None
+
         # External events can't be set as preferred events
         if (self.preferred_event and self.preferred_event.group.name ==
             settings.EXTERNAL_ANALYSIS_GROUP):
@@ -180,12 +182,23 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
                 _('External event cannot be set as preferred')})
 
         # Events must be part of a superevent to be added to the pipeline
-        # preferred list
-        for e in self.pipeline_preferred_events.difference(self.events.all()):
-            self.pipeline_preferred_events.remove(e)
-            raise ValidationError({'pipeline_preferred_events':
-                _('{} must be part of a superevent to be added as a pipeline'
-                    ' preferred event'.format(e.graceid))})
+        # preferred list.
+        #
+        # Edit: as of django 4.1+, objects must have a primary key set before
+        # modifying or querying foreign key relationships, otherwise the error:
+        #
+        # ValueError: 'Superevent' instance needs to have a primary key value
+        # before this relationship can be used.
+        #
+        # So, check for the primary key before doing the pipeline_preferred
+        # stuff since we don't do that at superevent creation anyway. Note to
+        # self: the *.create() method does a clean, and then a save.
+        if pk_set:
+            for e in self.pipeline_preferred_events.difference(self.events.all()):
+                self.pipeline_preferred_events.remove(e)
+                raise ValidationError({'pipeline_preferred_events':
+                    _('{} must be part of a superevent to be added as a pipeline'
+                        ' preferred event'.format(e.graceid))})
 
         # FIXME: someone will have to deal with this in 2080
         # Make sure t_0 is in the appropriate range [1980 - 2079)
@@ -199,7 +212,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
                 end=SUPEREVENT_DATE_END.__str__()))})
 
         # Set t_0_date on insert
-        if self._get_pk_val() is None:
+        if not pk_set:
             self.t_0_date = t_0_UTC.date()
 
         super(Superevent, self).clean(*args, **kwargs)

@@ -7,9 +7,9 @@ logger = logging.getLogger(__name__)
 
 
 class DjangoObjectAndGlobalPermissionsFilter(
-    filters.DjangoObjectPermissionsFilter):
+    filters.ObjectPermissionsFilter):
     """
-    Same as DjangoObjectPermissionsFilter, except it allows global permissions.
+    Same as ObjectPermissionsFilter, except it allows global permissions.
     """
-    shortcut_kwargs = filters.DjangoObjectPermissionsFilter.shortcut_kwargs
+    shortcut_kwargs = filters.ObjectPermissionsFilter.shortcut_kwargs
     shortcut_kwargs['accept_global_perms'] = True

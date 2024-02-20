@@ -31,6 +31,9 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
     group_delimiter = ';'
     active_url = reverse_lazy('post-login')
 
+    def __init__(self, get_response):
+        self.get_response = get_response
+
     def process_request(self, request):
 
         # This middleware should *only* be active at the post-login URL

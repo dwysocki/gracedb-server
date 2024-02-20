@@ -13,6 +13,9 @@ from ligoauth.middleware import (
     ControlRoomMiddleware, ShibbolethWebAuthMiddleware,
 )
 
+# For mocking get_response tests:
+import mock
+
 # See this test class for information about what groups and users
 # are already defined for use.
 from core.tests.utils import GraceDbTestBase
@@ -252,8 +255,14 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         # Attach request factory to class
         cls.factory = RequestFactory()
 
+        # Get a factory request:
+        request = cls.factory.get(cls.url)
+
+        # create a mock get_response:
+        cls.get_response = mock.MagicMock()
+
         # Attach middleware to class
-        cls.mw_instance = ShibbolethWebAuthMiddleware()
+        cls.mw_instance = ShibbolethWebAuthMiddleware(request)
 
         # Create robot group, or get an existing one. Removed the 
         # extra ldap_name constraint because it was causing integrity errors
@@ -279,8 +288,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         })
 
         # Necessary pre-processing middleware
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
+        SessionMiddleware(self.get_response).process_request(request)
+        AuthenticationMiddleware(self.get_response).process_request(request)
         self.mw_instance.process_request(request)
 
         # Make sure user is authenticated and was authenticated by
@@ -303,8 +312,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
             settings.SHIB_USER_HEADER: self.internal_user.username,
             settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
         })
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
+        SessionMiddleware(self.get_response).process_request(request)
+        AuthenticationMiddleware(self.get_response).process_request(request)
         self.mw_instance.process_request(request)
 
         # User should not be authenticated
@@ -327,8 +336,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
             new_lvem_ldap_member.save()
         
         # Necessary pre-processing middleware
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
+        SessionMiddleware(self.get_response).process_request(request)
+        AuthenticationMiddleware(self.get_response).process_request(request)
         self.mw_instance.process_request(request)
 
         # Make sure user is authenticated and was authenticated by
@@ -346,8 +355,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         """User can't be authenticated with no credentials at post-login"""
         request = self.factory.get(self.url)
         # Necessary pre-processing middleware
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
+        SessionMiddleware(self.get_response).process_request(request)
+        AuthenticationMiddleware(self.get_response).process_request(request)
         self.mw_instance.process_request(request)
 
         # Make sure user is not authenticated and is anonymous,
@@ -370,8 +379,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
             settings.SHIB_ATTRIBUTE_MAP['email']: new_user_dict['email'],
         })
         # Necessary pre-processing middleware
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
+        SessionMiddleware(self.get_response).process_request(request)
+        AuthenticationMiddleware(self.get_response).process_request(request)
         self.mw_instance.process_request(request)
 
         # Make sure user is authenticated and was authenticated by
@@ -411,8 +420,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
             new_test_lvem_ldap_member.save()
 
         # Necessary pre-processing middleware
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
+        SessionMiddleware(self.get_response).process_request(request)
+        AuthenticationMiddleware(self.get_response).process_request(request)
         self.mw_instance.process_request(request)
 
         
@@ -464,8 +473,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
             pk=self.internal_group.pk).exists())
 
         # Necessary pre-processing middleware
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
+        SessionMiddleware(self.get_response).process_request(request)
+        AuthenticationMiddleware(self.get_response).process_request(request)
         # Process request
         self.mw_instance.process_request(request)
 
@@ -504,8 +513,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
             pk=new_group.pk).exists())
 
         # Necessary pre-processing middleware
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
+        SessionMiddleware(self.get_response).process_request(request)
+        AuthenticationMiddleware(self.get_response).process_request(request)
         # Process request
         self.mw_instance.process_request(request)
 
@@ -546,8 +555,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
             pk=new_group.pk).exists())
 
         # Necessary pre-processing middleware
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
+        SessionMiddleware(self.get_response).process_request(request)
+        AuthenticationMiddleware(self.get_response).process_request(request)
         # Process request
         self.mw_instance.process_request(request)
 
@@ -686,8 +695,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
         self.assertEqual(email1, self.internal_user.email)
 
         # Necessary pre-processing middleware
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
+        SessionMiddleware(self.get_response).process_request(request)
+        AuthenticationMiddleware(self.get_response).process_request(request)
         # Process request
         self.mw_instance.process_request(request)
 
@@ -719,8 +728,8 @@ class TestShibbolethWebAuthMiddleware(GraceDbTestBase):
             settings.SHIB_GROUPS_HEADER: self.internal_group.ldap_name,
         })
         # Necessary pre-processing middleware
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
+        SessionMiddleware(self.get_response).process_request(request)
+        AuthenticationMiddleware(self.get_response).process_request(request)
         self.mw_instance.process_request(request)
 
         # User should be anonymous/not authenticated

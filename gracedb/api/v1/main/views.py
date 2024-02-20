@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as AuthGroup
 from django.http import HttpResponse, HttpResponseForbidden
-from django.utils.http import unquote_plus
 
 from rest_framework import parsers, status
 from rest_framework.permissions import IsAuthenticated
@@ -16,6 +15,8 @@ from rest_framework.reverse import reverse as drf_reverse
 from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView
+
+from urllib.parse import unquote_plus
 
 from api.backends import GraceDbX509FullCertAuthentication, \
     GraceDbX509CertInfosAuthentication

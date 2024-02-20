@@ -111,7 +111,7 @@ before_script:
   tags:
       - executor-docker
 
-test:3.7:
+test:3.9:
   <<: *test
 
 branch_image:

@@ -136,12 +136,12 @@ class DeleteNotificationView(DeleteView):
         # for deletion
         return self.delete(request, *args, **kwargs)
 
-    def delete(self, request, *args, **kwargs):
+    def form_valid(self, form, request, *args, **kwargs):
         response = super(DeleteNotificationView, self).delete(request, *args,
             **kwargs)
         messages.info(request, 'Notification "{n}" has been deleted.'.format(
             n=self.object.description))
-        return response
+        return super().delete(request, *args, **kwargs)
 
     def get_queryset(self):
         # Queryset should only contain the user's notifications
@@ -223,7 +223,7 @@ class DeleteContactView(DeleteView):
         # for deletion
         return self.delete(request, *args, **kwargs)
 
-    def delete(self, request, *args, **kwargs):
+    def form_valid(self, form, request, *args, **kwargs):
         # Get contact
         self.object = self.get_object()
 
@@ -239,6 +239,7 @@ class DeleteContactView(DeleteView):
             return HttpResponseRedirect(reverse('alerts:index'))
 
         # Otherwise, delete the contact and show a corresponding message.
+        self.object.is_deleted = True
         self.object.delete()
         messages.info(request, 'Contact "{cname}" has been deleted.'.format(
             cname=self.object.description))

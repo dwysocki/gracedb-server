@@ -1,5 +1,5 @@
-from django.conf.urls import url, include
-from django.urls import path
+from django.conf.urls import include
+from django.urls import path, re_path
 from .models import Superevent
 from . import views
 
@@ -11,10 +11,10 @@ app_name = 'superevents'
 suburlpatterns = [
 
     # Superevent detail view
-    url(r'^view/$', views.SupereventDetailView.as_view(), name="view"),
+    re_path(r'^view/$', views.SupereventDetailView.as_view(), name="view"),
 
     # File list (file detail/download is handled through the API)
-    url(r'^files/$', views.SupereventFileList.as_view(), name="file-list"),
+    re_path(r'^files/$', views.SupereventFileList.as_view(), name="file-list"),
 ]
 
 # Legacy URL patterns - don't really need them, but we use them for the

@@ -38,16 +38,12 @@ leapSeconds = list(map(calendar.timegm, [
 def gpsToPosixTime(gpsTime):
     if gpsTime is None:
         return None
-    # XXX
-    # So apparently this gpsTime occasionally comes in as a unicode string.
-    # I am not sure how this is possible, since the gpstime is a django DecimalField,
-    # and it should be a python decimal object. I don't want to cast it to a float unless 
-    # absolutely necessary, hence the try/except block.
-    #t = gpsEpoch + gpsTime
-    try:
-        t = gpsEpoch + gpsTime
-    except:
-        t = gpsEpoch + float(gpsTime)
+    # 20221122: some change from python3.7--> 3.10 caused 
+    # datetime.datetime.fromtimestamp to not handle decimal.Decimal
+    # values as an input. so, return this value as a float instead.
+
+    t = gpsEpoch + float(gpsTime)
+
     for leap in leapSeconds:
         if t >= leap:
             t = t - 1

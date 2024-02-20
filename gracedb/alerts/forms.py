@@ -9,7 +9,7 @@ from django.core.exceptions import NON_FIELD_ERRORS
 from django.db.models import Q
 from django.forms.utils import ErrorList
 from django.utils import timezone
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _

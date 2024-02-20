@@ -12,15 +12,13 @@ logger = logging.getLogger(__name__)
 
 class CustomHiddenDefault(fields.CurrentUserDefault):
     context_key = None
+    requires_context = True
 
     def __init__(self, *args, **kwargs):
         self.context_key = kwargs.pop('context_key', None)
 
-    def set_context(self, serializer_field):
-        self.custom_field = self.get_field_value(serializer_field)
-
-    def __call__(self, context_key=None):
-        return self.custom_field
+    def __call__(self, serializer_field):
+        return self.get_field_value(serializer_field)
 
     def get_field_value(self, serializer_field):
         # Derived classes will probably want to override this

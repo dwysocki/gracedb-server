@@ -19,6 +19,7 @@ from api.utils import api_reverse
 from ligoauth.middleware import ShibbolethWebAuthMiddleware
 from ligoauth.models import X509Cert
 
+import mock
 import scitokens
 import time
 from cryptography.hazmat.backends import default_backend
@@ -385,6 +386,7 @@ class TestGraceDbAuthenticatedAuthentication(GraceDbApiTestBase):
         # Attach request factory to class
         cls.backend_instance = GraceDbAuthenticatedAuthentication()
         cls.factory = APIRequestFactory()
+        cls.get_response = mock.MagicMock()
 
     def test_user_authenticate_to_api(self):
         """User can authenticate if already authenticated"""
@@ -404,8 +406,8 @@ class TestGraceDbAuthenticatedAuthentication(GraceDbApiTestBase):
         # as would be done in a view's initialize_request() method.
         request = self.factory.get(api_reverse('api:root'))
         # Preprocessing to set request.user to anonymous
-        SessionMiddleware().process_request(request)
-        AuthenticationMiddleware().process_request(request)
+        SessionMiddleware(self.get_response).process_request(request)
+        AuthenticationMiddleware(self.get_response).process_request(request)
         request = Request(request=request)
 
         # Try to authenticate user

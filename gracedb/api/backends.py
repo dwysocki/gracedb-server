@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import HttpResponseForbidden
 from django.utils import timezone
-from django.utils.http import unquote, unquote_plus
+from django.utils.http import unquote
 from django.utils.translation import gettext_lazy as _
 from django.urls import resolve
 
@@ -21,6 +21,7 @@ from .utils import is_api_request
 import scitokens
 from jwt import InvalidTokenError
 from scitokens.utils.errors import SciTokensException
+from urllib.parse import unquote_plus
 
 # Set up logger
 logger = logging.getLogger(__name__)
