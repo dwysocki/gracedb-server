@@ -63,7 +63,8 @@ if sentry_dsn is not None:
     sentry_sdk.init(
         environment='test',
         dsn=sentry_dsn,
-        integrations=[DjangoIntegration()]
+        integrations=[DjangoIntegration()],
+        before_send=before_send,
     )
 
     # Turn off default admin error emails

@@ -4,6 +4,7 @@ import os, time, logging
 from os.path import abspath, dirname, join
 import socket
 from django.core.exceptions import ImproperlyConfigured
+from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 
 # Set up path to root of project
 BASE_DIR = abspath(join(dirname(__file__), "..", ".."))
@@ -23,6 +24,17 @@ def get_from_env(envvar, default_value=None, fail_if_not_found=True):
 
 def parse_envvar_bool(x):
     return x.lower() in ['t', 'true', '1']
+
+# a sentry before_send function that filters aws SegmentNotFoundException's.
+# these exceptions are harmless and occur when performing management tasks
+# outside of the core gracedb app. but sentry picks it up and reports it as
+# an error which is ANNOYING.
+def before_send(event, hint):
+    if "exc_info" in hint:
+        exc_type, exc_value, tb = hint["exc_info"]
+        if isinstance(exc_value, (SegmentNotFoundException,)):
+            return None
+        return event
 
 # Maintenance mode
 MAINTENANCE_MODE = False
@@ -708,3 +720,5 @@ PUBLIC_PAGE_CACHING = int(get_from_env('DJANGO_PUBLIC_PAGE_CACHING',
 # Define the number of results per page on the public page:
 PUBLIC_PAGE_RESULTS = int(get_from_env('DJANGO_PUBLIC_PAGE_RESULTS',
     fail_if_not_found=False, default_value=15))
+
+

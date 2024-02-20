@@ -23,6 +23,24 @@ SEND_MATTERMOST_ALERTS = True
 # Add testserver to ALLOWED_HOSTS
 ALLOWED_HOSTS += ['testserver']
 
+# Set up Sentry for error logging
+sentry_dsn = get_from_env('DJANGO_SENTRY_DSN', fail_if_not_found=False)
+if sentry_dsn is not None:
+    USE_SENTRY = True
+
+    # Set up Sentry
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    sentry_sdk.init(
+        environment='playground',
+        dsn=sentry_dsn,
+        integrations=[DjangoIntegration()],
+        before_send=before_send,
+    )
+
+    # Turn off default admin error emails
+    LOGGING['loggers']['django.request']['handlers'] = []
+
 # Home page stuff
 INSTANCE_TITLE = 'GraceDB Playground'
 
