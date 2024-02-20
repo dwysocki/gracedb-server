@@ -358,7 +358,7 @@ X509_INFOS_HEADER = 'HTTP_X_FORWARDED_TLS_CLIENT_CERT_INFOS'
 CAPATH = '/etc/grid-security/certificates'
 
 # SciTokens claims settings
-SCITOKEN_ISSUER = "https://cilogon.org/igwn"
+SCITOKEN_ISSUER = ['https://cilogon.org/igwn', 'https://test.cilogon.org/igwn', 'https://osdf.igwn.org/cit']
 SCITOKEN_AUDIENCE = ["ANY"]
 SCITOKEN_SCOPE = "gracedb.read"
 

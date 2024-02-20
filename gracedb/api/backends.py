@@ -71,6 +71,16 @@ class GraceDbBasicAuthentication(authentication.BasicAuthentication):
 
 class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
 
+    class MultiIssuerEnforcer(scitokens.Enforcer):
+        def __init__(self, issuer, **kwargs):
+            if not isinstance(issuer, (tuple, list)):
+                issuer = [issuer]
+            super().__init__(issuer, **kwargs)
+
+        def _validate_iss(self, value):
+            return value in self._issuer
+
+
     def authenticate(self, request, public_key=None):
         # Get token from header
         try:
@@ -93,7 +103,7 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
             return None
 
         # Enforce scitoken logic
-        enforcer = scitokens.Enforcer(
+        enforcer = self.MultiIssuerEnforcer(
             settings.SCITOKEN_ISSUER,
             audience = settings.SCITOKEN_AUDIENCE,
         )

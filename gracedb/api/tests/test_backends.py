@@ -145,7 +145,7 @@ class TestGraceDbBasicAuthentication(GraceDbApiTestBase):
 class TestGraceDbSciTokenAuthentication(GraceDbTestBase):
     """Test SciToken auth backend for API"""
 
-    TEST_ISSUER = "local"
+    TEST_ISSUER = ['local', 'local2']
     TEST_AUDIENCE = ["TEST"]
     TEST_SCOPE = "gracedb.read"
 
