@@ -262,6 +262,7 @@ GRB_PIPELINES = [
                     'INTEGRAL',
                     'AGILE',
                     'CHIME',
+                    'SVOM',
                 ]
 
 # List of pipelines that have been depreciated:

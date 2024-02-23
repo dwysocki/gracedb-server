@@ -346,7 +346,8 @@ def handle_uploaded_data(event, datafilename,
                            comment=comment)
             log.save()
 
-    elif pipeline in ['Swift', 'Fermi', 'SNEWS', 'INTEGRAL','AGILE', 'CHIME']:
+    elif pipeline in ['Swift', 'Fermi', 'SNEWS', 'INTEGRAL',
+                      'AGILE', 'CHIME', 'SVOM']:
         # Get the event time from the VOEvent file
         error = None
         populateGrbEventFromVOEventFile(datafilename, event)
@@ -725,8 +726,16 @@ def populateGrbEventFromVOEventFile(filename, event):
     # Fermi uses Trig_Dur or Data_Integ, while Swift uses Integ_Time
     # One or the other may be present, but not both
     VOEvent_params = vp.convenience.get_toplevel_params(v)
+    # Also grab parameters from embedded group if there, needed for SVOM
+    Svom_ident = vp.convenience.get_grouped_params(v).get('Svom_Identifiers')
+    Svom_detect = vp.convenience.get_grouped_params(v).get('Detection_Info')
+    if Svom_ident is not None:
+        VOEvent_params.update(Svom_ident)
+    if Svom_detect is not None:
+        VOEvent_params.update(Svom_detect)
+
     trig_dur_params = ["Trig_Dur", "Trans_Duration", "Data_Integ", 
-                       "Integ_Time", "Trig_Timescale"]
+                       "Integ_Time", "Trig_Timescale", "Timescale"]
     trigger_duration = None
     for param in trig_dur_params:
         if (param in VOEvent_params):
@@ -742,7 +751,8 @@ def populateGrbEventFromVOEventFile(filename, event):
 
     # try to find a trigger_id value
     trigger_id = None
-    trigger_id_params = ['TrigID', 'Trans_Num', 'EventID']
+    trigger_id_params = ['TrigID', 'Trans_Num', 'EventID',
+                         'Burst_Id']
     for param in trigger_id_params:
         if (param in VOEvent_params):
             trigger_id = VOEvent_params.get(param).get('value')
