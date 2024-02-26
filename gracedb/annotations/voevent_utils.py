@@ -468,10 +468,13 @@ def construct_voevent_file(obj, voevent, request=None):
     ## Analysis specific attributes
     if voevent_type != 'retraction':
         ### Classification group (EM-Bright params; CBC only)
+        ### In should also be present in case of cWB-BBH
         em_bright_params = []
         source_properties_params = []
-        if (isinstance(event, CoincInspiralEvent) and
-            voevent_type != 'retraction'):
+        if ( (isinstance(event, CoincInspiralEvent) or
+              (event.search and (event.pipeline.name == 'CWB' and
+                                 event.search.name == 'BBH'))
+             ) and voevent_type != 'retraction'):
 
             # EM-Bright mass classifier information for CBC event candidates
             if voevent.prob_bns is not None:
