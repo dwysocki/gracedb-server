@@ -30,6 +30,9 @@ class gwtc_catalog(AutoIncrementModel):
     submitter = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
 
+    # Field for analyst comments:
+    comment = models.TextField(blank=True)
+
     def __str__(self):
         return f'GWTC{self.number}, version {self.version}' 
 
@@ -46,6 +49,8 @@ class gwtc_catalog(AutoIncrementModel):
 class gwtc_superevent(models.Model):
     superevent = models.ForeignKey(Superevent, on_delete=models.CASCADE)
     gwtc_catalog = models.ForeignKey(gwtc_catalog, on_delete=models.CASCADE)
+    far = models.FloatField(null=True)
+    pastro = models.JSONField(null=True)
 
     def __str__(self):
         return f'{self.superevent.superevent_id} in ' \
@@ -56,6 +61,9 @@ class gwtc_superevent(models.Model):
         unique_together = (
             ('superevent', 'gwtc_catalog'),
         )
+        # TODO: create custom index when we decide on pastro
+        # key names
+        indexes = [models.Index(fields=['far', ]), ]
         default_permissions = ('add', 'view', 'delete')
 
 class gwtc_gevent(models.Model):
