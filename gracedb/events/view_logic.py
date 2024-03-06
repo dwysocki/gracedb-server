@@ -6,6 +6,7 @@ from .models import Pipeline, Search
 from .models import CoincInspiralEvent
 from .models import MultiBurstEvent
 from .models import MLyBurstEvent
+from .models import NeutrinoEvent
 from .models import GrbEvent
 from .models import SimInspiralEvent
 from .models import LalInferenceBurstEvent
@@ -67,6 +68,8 @@ def _createEventFromForm(request, form):
             event = LalInferenceBurstEvent()
         elif pipeline.name in ['MLy', 'aframe']:
             event = MLyBurstEvent()
+        elif pipeline.name in ['IceCube']:
+            event = NeutrinoEvent()
         else:
             event = Event()
 

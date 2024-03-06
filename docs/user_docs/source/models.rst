@@ -12,9 +12,9 @@ The different types of events in GraceDB are distinguished by the following para
 - ``Group``: the working group responsible for finding the candidate
     - values: ``CBC``, ``Burst``, ``Detchar``, ``External``, ``Test`` 
 - ``Pipeline``: the data analysis software tool used make the detection 
-    - values: ``MBTA``, ``MBTAOnline``, ``CWB``, ``CWB2G``, ``gstlal``, ``pycbc``, ``spiir``, ``HardwareInjection``, ``Fermi``, ``Swift``, ``INTEGRAL``, ``AGILE``, ``SNEWS``, ``oLIB``, ``MLy``
+    - values: ``CWB2G``, ``spiir``, ``HardwareInjection``, ``X``, ``Q``, ``Omega``, ``Ringdown``, ``Fermi``, ``Swift``, ``CWB``, ``SNEWS``, ``oLIB``, ``pycbc``, ``INTEGRAL``, ``AGILE``, ``gstlal``, ``MLy``, ``MBTAOnline``, ``MBTA``, ``CHIME``, ``PyGRB``, ``aframe``, ``SVOM``, ``IceCube``
 - ``Search``: the search activity which led to the detection 
-    - values: ``AllSky``, ``AllSkyLong``, ``LowMass``, ``HighMass``, ``GRB``, ``Supernova``, ``MDC``, ``BBH``, ``EarlyWarning``, ``IMBH``, ``SubGRB``, ``SubGRBTargeted``, ``VTInjection``
+    - values: ``AllSky``, ``LowMass``, ``HighMass``, ``GRB``, ``Supernova``, ``MDC``, ``LowMassSim``, ``AllSkyLong``, ``O2VirgoTest``, ``BBH``, ``IMBH``, ``SubGRB``, ``EarlyWarning``, ``SubGRBTargeted``, ``SSM``, ``FRB``, ``LensingSubthreshold``, ``VTInjection``, ``HEN``
 
 An individual "event stream" is specified by setting the values of these three parameters.
 For example, choosing ``Group=CBC``, ``Pipeline=gstlal``, and ``Search=LowMass`` selects the event stream consisting of low-mass inspiral events detected by the gstlal pipeline from the CBC group.
@@ -77,11 +77,24 @@ oLIB
 .. literalinclude:: dicts/event_olib.json
   :language: JSON
 
+Machine Learning (MLy, aframe)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-External
-~~~~~~~~
+.. literalinclude:: dicts/event_ml.json
+  :language: JSON
 
-.. literalinclude:: dicts/event_external.json
+
+External (GRB)
+~~~~~~~~~~~~~~
+
+.. literalinclude:: dicts/event_external_grb.json
+  :language: JSON
+
+
+External (Neutrino)
+~~~~~~~~~~~~~~~~~~~
+
+.. literalinclude:: dicts/event_external_neutrino.json
   :language: JSON
 
 

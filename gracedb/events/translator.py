@@ -13,6 +13,7 @@ from core.ligolw import GraceDBFlexibleContentHandler
 import voeventparse as vp
 
 from core.time_utils import utc_datetime_to_gps_float
+from core.utils import return_far_in_hz
 from core.vfile import create_versioned_file
 from .models import EventLog
 from .models import SingleInspiral
@@ -30,6 +31,13 @@ logger = logging.getLogger(__name__)
 
 # okay?
 use_in(GraceDBFlexibleContentHandler)
+
+# some attributes for NeutrinoEvents. These are case-sensitive
+# to how they are written in the VOEvent:
+
+neutrino_event_attrs = ['signalness', 'energy', 'src_error_90',
+                        'src_error_50', 'AMON_ID', 'run_id', 'event_id',
+                        'Stream']
 
 # A small helper function to unzip gzipped files. normally ligolw would
 # handle all this, but since we're selectively parsing certain tables,
@@ -351,6 +359,7 @@ def handle_uploaded_data(event, datafilename,
         # Get the event time from the VOEvent file
         error = None
         populateGrbEventFromVOEventFile(datafilename, event)
+
     elif pipeline == 'oLIB':
         # lambda function for converting to a type if not None
         typecast = lambda t, v: t(v) if v is not None else v
@@ -425,6 +434,8 @@ def handle_uploaded_data(event, datafilename,
 
         event.save()
 
+    elif pipeline in ['IceCube']:
+        populate_neutrinoevent_from_voevent(datafilename, event)
     else:
         # XXX should we do something here?
         pass
@@ -767,4 +778,45 @@ def populateGrbEventFromVOEventFile(filename, event):
         event.far = float(VOEvent_params.get('FAR').get('value'))
 
     # Save event
+    event.save()
+
+def populate_neutrinoevent_from_voevent(filename, event):
+    # Load file into vp.Voevent instance
+    with open(filename, 'rb') as f:
+        v = vp.load(f)
+
+    # Get gpstime:
+    utc_time = vp.convenience.get_event_time_as_utc(v)
+    gpstime = utc_datetime_to_gps_float(utc_time)
+
+    # Get position:
+    pos2d = vp.get_event_position(v)
+
+    # get top-level 'What' params:
+    voevent_what_params = vp.convenience.get_toplevel_params(v)
+
+    # Assign information to event
+    event.gpstime = gpstime
+
+    # NeutrinoEvent attributes:
+    event.ivorn = v.get('ivorn')
+    event.coord_system = pos2d.system
+    event.ra = pos2d.ra
+    event.dec = pos2d.dec
+    event.error_radius = pos2d.err
+
+    for param in neutrino_event_attrs:
+        if param in voevent_what_params:
+            setattr(event, param.lower(), voevent_what_params.get(param).get('value'))
+
+    # see if we captured FAR, and if so, parse the unit:
+    if 'FAR' in voevent_what_params:
+
+        event.far_ne = float(voevent_what_params.get('FAR').get('value'))
+        event.far_unit = voevent_what_params.get('FAR').get('unit')
+
+        # Now try and convert the far into hz for the base far:
+        event.far = return_far_in_hz(event.far_ne, event.far_unit)
+
+    # save the event:
     event.save()

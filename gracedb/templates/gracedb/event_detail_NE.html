@@ -5,7 +5,7 @@
 {% block basic_info %}
 <div class="row my-3 justify-content-center">
   <div class="col-md-10">
-    <div id="gdb-table-basic-grb">
+    <div id="gdb-table-basic-ne">
       <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
 	<thead>
 	  <tr>
@@ -58,16 +58,16 @@
 	      {{ object.gpstime|multiTime:"gps" }}
 	      {% endif %}</td>
 	  </tr>
-	  <tr>
-	    <td>Latency (s)</td>
-	    <td>{{ object.reporting_latency|floatformat:"-3" }} </td>
-	  </tr>
 	  {% if object.far %}
 	  <tr>
 	    <td>FAR (Hz)</td>
 	    <td data-title="FAR">{{ object.far | scientific }} </td>
 	  </tr>
 	  {% endif %}
+	  <tr>
+	    <td>Latency (s)</td>
+	    <td>{{ object.reporting_latency|floatformat:"-3" }} </td>
+	  </tr>
 	  <tr>
 	    <td>Links</td>
 	    <td data-title="Links"><a href="{{ object.weburl }}">Data</a></td>
@@ -95,45 +95,44 @@
 {% endblock %}
 
 {% block analysis_specific %}
-{% if object.grbevent %}
+{% if object.neutrinoevent %}
 <div class="row my-3 justify-content-center">
   <div class="col-md-10">
-    <div id="grb-info">
+    <div id="ne-info">
       <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
 	<thead>
 	  <tr>
-	    <th colspan="2"><h3>GRB Info</h3></th>
+	    <th colspan="2"><h3>Neutrino Observation Info</h3></th>
 	  </tr>
 	</thead>
 	<tr><td>IVORN</td><td>{{object.ivorn}}</td></tr>
-	<tr><td>Author</td><td>{{object.author_shortname}}</td></tr>
-	<tr><td>Author IVORN</td><td>{{object.author_ivorn}}</td></tr>
-	<tr><td>Observatory</td><td>{{object.observatory_location_id}}</td></tr>
-	<tr><td>How</th><td>
-	    {% if object.how_reference_url %}
-	    <a href="{{object.how_reference_url}}" target="_new">{{object.how_description}}</a>
-	    {% else %}
-	    {{object.how_description}}
-	    {% endif %}
-	  </td></tr>
-	  {% if object.trigger_id %}
-	  <tr><td>Trigger ID</td><td>{{object.trigger_id}}</td></tr>
-	  {% endif %}
-	  {% if object.trigger_duration %}
-	  <tr><td>Trigger duration</td><td>{{object.trigger_duration}}</td></tr>
-	  {% endif %}
-	  {% if object.far %}
-	  <tr><td>FAR (Hz)</td><td>{{object.far}}</td></tr>
-	  {% endif %}
-	  {% if object.t90 %}
-	  <tr><td>T90</td><td>{{object.t90}}</td></tr>
-	  {% endif %}
-	  {% if object.redshift %}
-	  <tr><td>Redshift</td><td>{{object.redshift}}</td></tr>
-	  {% endif %}
-	  {% if object.designation %}
-	  <tr><td>Event designation</td><td>{{object.designation}}</td></tr>
-	  {% endif %}
+	{% if object.amon_id %}
+	<tr><td>Alert Identification Number</td><td>{{object.amon_id}}</td></tr>
+	{% endif %}
+	{% if object.run_id %}
+	<tr><td>Run ID</td><td>{{object.run_id}}</td></tr>
+	{% endif %}
+	{% if object.event_id %}
+	<tr><td>Event ID</td><td>{{object.event_id}}</td></tr>
+	{% endif %}
+	{% if object.stream %}
+	<tr><td>IceCube Coincidence Stream ID</td><td>{{object.stream}}</td></tr>
+	{% endif %}
+	{% if object.far_ne %}
+	<tr><td>FAR ({{ object.far_unit }}) </td><td>{{object.far_ne}}</td></tr>
+	{% endif %}
+	{% if object.signalness %}
+	<tr><td>Signalness</td><td>{{object.signalness}}</td></tr>
+	{% endif %}
+	{% if object.energy %}
+	<tr><td>Energy</td><td>{{object.energy}}</td></tr>
+	{% endif %}
+	{% if object.src_err_90 %}
+	<tr><td>Source Angular Error (90%)</td><td>{{object.src_err_90}}</td></tr>
+	{% endif %}
+	{% if object.src_err_50 %}
+	<tr><td>Source Angular Error (50%)</td><td>{{object.src_err_50}}</td></tr>
+	{% endif %}
       </table>
     </div>
   </div>
@@ -141,11 +140,11 @@
 
 <div class="row my-3 justify-content-center">
   <div class="col-md-10">
-    <div id="grb-info">
+    <div id="ne-loc">
       <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
 	<thead>
 	  <tr>
-	    <th colspan="2"><h3>GRB Location</h3></th>
+	    <th colspan="2"><h3>Neutrino Location</h3></th>
 	  </tr>
 	</thead>
 	<tbody>
@@ -160,32 +159,7 @@
 </div>
 
 
-{% if can_update_grbevent %}
-<div class="row my-3 justify-content-center">
-  <div class="col-md-10">
-    <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
-      <thead>
-	<tr>
-	  <th colspan="2"><h3>Update GRB Event</h3></th>
-	</tr>
-      </thead>
-      <tbody>
-
-	<form id="update_grbevent_form" action="{% url "legacy_apiweb:default:events:update-grbevent" object.graceid %}">
-	  {{ update_grbevent_form.as_table }}
-	  <tr>
-	    <td></td>
-	    <td><input type="submit" value="Update" disabled></td>
-	  </tr>
-	</form>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-
 {% endif %}
 
-{% endif %}
 {% endblock %}
 

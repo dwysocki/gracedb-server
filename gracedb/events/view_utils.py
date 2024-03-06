@@ -221,6 +221,11 @@ def assemble_event_extra_attributes(event, request, is_alert):
                     event.mlyburstevent)
         except:
             pass
+        try:
+            extra_attributes_dict['NeutrinoEvent'] = neutrino_to_dict(
+                    event.neutrinoevent)
+        except:
+            pass
 
 
     # Finally add extra attributes for any SingleInspiral objects associated with this event
@@ -812,6 +817,31 @@ def lalinferenceburst_to_dict(event):
             "hrss_median" : event.hrss_median,
             "frequency_mean": event.frequency_mean,
             "frequency_median": event.frequency_median,
+            })
+    except:
+        pass
+    return return_dict
+
+def neutrino_to_dict(event):
+    # A safe routine for returning a neutrinoevent dict
+    return_dict = {}
+    try:
+        return_dict.update({
+            "ivorn": event.ivorn,
+            "coord_system": event.coord_system,
+            "ra": event.ra,
+            "dec": event.dec,
+            "error_radius": event.error_radius,
+            "far_ne": event.far_ne,
+            "far_unit": event.far_unit,
+            "signalness": event.signalness,
+            "energy": event.energy,
+            "src_error_90": event.src_error_90,
+            "src_error_50": event.src_error_50,
+            "amon_id": event.amon_id,
+            "run_id": event.run_id,
+            "event_id": event.event_id,
+            "stream": event.stream,
             })
     except:
         pass

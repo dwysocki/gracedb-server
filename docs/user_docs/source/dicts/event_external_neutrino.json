@@ -1,0 +1,48 @@
+{
+    "warnings": [],
+    "submitter": "wolfgang.pauli@ligo.org",
+    "created": "2024-03-01 20:18:46 UTC",
+    "group": "External",
+    "graceid": "E653136",
+    "pipeline": "IceCube",
+    "gpstime": 1384986914.64,
+    "reporting_latency": 8372630.079705,
+    "instruments": "",
+    "nevents": null,
+    "offline": false,
+    "search": "HEN",
+    "far": 4.667681380010147e-09,
+    "far_is_upper_limit": false,
+    "likelihood": null,
+    "labels": [],
+    "extra_attributes": {
+        "NeutrinoEvent": {
+            "ivorn": "ivo://nasa.gsfc.gcn/AMON#ICECUBE_GOLD_Event2023-11-25T22:34:56.64_24_138599_039138591_0",
+            "coord_system": "UTC-FK5-GEO",
+            "ra": 176.2601,
+            "dec": 52.6366,
+            "error_radius": 0.7792,
+            "far_ne": 0.1472,
+            "far_unit": "yr^-1",
+            "signalness": 0.6312,
+            "energy": 191.7344,
+            "src_error_90": 0.7792,
+            "src_error_50": 0.3035,
+            "amon_id": 13859939138591,
+            "run_id": 138599,
+            "event_id": 39138591,
+            "stream": 24
+        }
+    },
+    "superevent": null,
+    "superevent_neighbours": {},
+    "links": {
+        "neighbors": "https://gracedb-test.ligo.org/api/events/E653136/neighbors/",
+        "log": "https://gracedb-test.ligo.org/api/events/E653136/log/",
+        "emobservations": "https://gracedb-test.ligo.org/api/events/E653136/emobservation/",
+        "files": "https://gracedb-test.ligo.org/api/events/E653136/files/",
+        "labels": "https://gracedb-test.ligo.org/api/events/E653136/labels/",
+        "self": "https://gracedb-test.ligo.org/api/events/E653136",
+        "tags": "https://gracedb-test.ligo.org/api/events/E653136/tag/"
+    }
+}

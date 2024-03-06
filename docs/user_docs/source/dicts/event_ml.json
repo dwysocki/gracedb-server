@@ -1,0 +1,43 @@
+{
+    "submitter": "alan.turing@ligo.org",
+    "created": "2024-02-20 16:41:20 UTC",
+    "group": "Burst",
+    "graceid": "G648217",
+    "pipeline": "MLy",
+    "gpstime": 1392456472.379048,
+    "reporting_latency": 26026.564137,
+    "instruments": "H1,L1",
+    "nevents": null,
+    "offline": false,
+    "search": "AllSky",
+    "far": 5.855080848625316e-05,
+    "far_is_upper_limit": false,
+    "likelihood": null,
+    "labels": [],
+    "extra_attributes": {
+        "MLyBurst": {
+            "bandwidth": 64.0,
+            "central_freq": 309.246308659392,
+            "central_time": 1392456472.379048,
+            "duration": 0.1875,
+            "SNR": 6.015912207824155,
+            "detection_statistic": null,
+            "scores": {
+                "coherency": 0.0799756646156311,
+                "coincidence": 0.2124568223953247,
+                "combined": 0.016991375573191192
+            }
+        }
+    },
+    "superevent": null,
+    "superevent_neighbours": {},
+    "links": {
+        "neighbors": "https://gracedb-test.ligo.org/api/events/G648217/neighbors/",
+        "log": "https://gracedb-test.ligo.org/api/events/G648217/log/",
+        "emobservations": "https://gracedb-test.ligo.org/api/events/G648217/emobservation/",
+        "files": "https://gracedb-test.ligo.org/api/events/G648217/files/",
+        "labels": "https://gracedb-test.ligo.org/api/events/G648217/labels/",
+        "self": "https://gracedb-test.ligo.org/api/events/G648217",
+        "tags": "https://gracedb-test.ligo.org/api/events/G648217/tag/"
+    }
+}

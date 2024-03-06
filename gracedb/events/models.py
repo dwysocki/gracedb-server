@@ -734,6 +734,41 @@ class GrbEvent(Event):
 #                  models.Index(fields=['redshift', ]),
 #                  models.Index(fields=['ivorn', ])]
 
+# External event subclass for neutrino observations. Created in 
+# support of IceCube integration. 
+class NeutrinoEvent(Event):
+    ivorn = models.CharField(max_length=200, null=True)
+    coord_system = models.CharField(max_length=200, null=True)
+    ra = models.FloatField(null=True)
+    dec = models.FloatField(null=True)
+    error_radius = models.FloatField(null=True)
+    signalness = models.FloatField(null=True)
+    energy = models.FloatField(null=True)
+    src_error_90 = models.FloatField(null=True)
+    src_error_50 = models.FloatField(null=True)
+    amon_id = models.BigIntegerField(null=True)
+    run_id = models.PositiveIntegerField(null=True)
+    event_id = models.PositiveIntegerField(null=True)
+    stream = models.PositiveIntegerField(null=True)
+    far_ne = models.FloatField(null=True) #neutrino event far
+    far_unit = models.CharField(max_length=10, null=True)
+
+    class Meta:
+        indexes = [models.Index(fields=['ivorn', ]),
+                   models.Index(fields=['coord_system', ]),
+                   models.Index(fields=['ra', ]),
+                   models.Index(fields=['dec', ]),
+                   models.Index(fields=['error_radius', ]),
+                   models.Index(fields=['signalness', ]),
+                   models.Index(fields=['energy', ]),
+                   models.Index(fields=['src_error_90', ]),
+                   models.Index(fields=['src_error_50', ]),
+                   models.Index(fields=['amon_id', ]),
+                   models.Index(fields=['run_id', ]),
+                   models.Index(fields=['event_id', ]),
+                   models.Index(fields=['far_ne', ]),
+                   models.Index(fields=['stream', ])]
+
 
 class CoincInspiralEvent(Event):
     ifos             = models.CharField(max_length=20, default="")
