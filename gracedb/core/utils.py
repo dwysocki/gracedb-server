@@ -21,9 +21,10 @@ ASCII_ALPHABET_START = ord('a') - 1
 # in the web page display, so there's thankfully no values in the
 # database to go back and fix.
 
-far_hr_to_yr = 24*365 	 # 1/yr = 1/hr * (8760 hr/year)
-far_yr_to_sec = 1.0/(60*60*24*365)    # 1/sec = 1/yr * (1 yr / 3.154e7 sec)
-far_hr_to_sec = far_hr_to_yr * far_yr_to_sec   # 1/sec =  1/hr * (8760 hr/ yr) * (1 yr/ 3.154e7 sec)
+far_hr_to_yr = 24*settings.DAYS_PER_YEAR 		# 1/yr = 1/hr * (8760ish hr/year)
+far_sec_to_year = 60*60*24*settings.DAYS_PER_YEAR	# 1 yr = (sec/min) * (min/hr) * (hr/day) * (day/year) sec
+far_yr_to_sec = 1.0/far_sec_to_year			# ^^ inverse of that
+far_hr_to_sec = far_hr_to_yr * far_yr_to_sec   		# 1/sec =  1/hr * (8760 hr/ yr) * (1 yr/ 3.154e7 sec)
 
 # Unit formats:
 per_hr_formats = ['1/hr', 'hr^-1', '1/hour', 'hour^-1']
@@ -77,9 +78,9 @@ def letters_to_int(letters):
     return num
 
 
-def display_far_hr_to_yr(display_far):
+def display_far_hz_to_yr(display_far):
     """
-    A helper function to change /hr far value to a nicely formatted
+    A helper function to change hz far value to a nicely formatted
     /year value for use in tables and such.
     """
 
@@ -87,7 +88,7 @@ def display_far_hr_to_yr(display_far):
     display_far_hr = display_far
     if display_far:
         # FAR in units of yr^-1
-        far_yr = display_far * far_hr_to_yr
+        far_yr = display_far * far_sec_to_year
         if (far_yr < 1):
             display_far_hr = "1 per {0:0.5g} years".format(1.0/far_yr)
         else:

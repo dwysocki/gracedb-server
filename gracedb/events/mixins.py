@@ -3,7 +3,7 @@
 from django.conf import settings
 
 from .permission_utils import is_external
-from core.utils import display_far_hr_to_yr
+from core.utils import display_far_hz_to_yr
 
 class DisplayFarMixin(object):
 
@@ -22,4 +22,4 @@ class DisplayFarMixin(object):
             display_far = settings.VOEVENT_FAR_FLOOR
             far_is_upper_limit = True
 
-        return display_far, display_far_hr_to_yr(display_far), far_is_upper_limit 
+        return display_far, display_far_hz_to_yr(display_far), far_is_upper_limit 

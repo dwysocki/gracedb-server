@@ -14,6 +14,7 @@ from django.views.generic.edit import UpdateView
 
 from core.file_utils import get_file_list
 from core.http import check_and_serve_file
+from core.utils import far_sec_to_year
 from .models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
 from .models import EMGroup, Signoff, PipelineLog
 from .forms import CreateEventForm, SignoffForm, GrbEventUpdateForm
@@ -396,7 +397,7 @@ def view(request, event):
     display_far_yr = display_far
     # Make sure far is not None (handle case of External events)
     if display_far:
-        far_yr = display_far * (86400*365.25) # yr^-1
+        far_yr = display_far * far_sec_to_year # yr^-1
         if (far_yr < 1):
             display_far_yr = "1 per {0:0.5g} years".format(1.0/far_yr)
         else:

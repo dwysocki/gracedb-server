@@ -722,4 +722,14 @@ PUBLIC_PAGE_CACHING = int(get_from_env('DJANGO_PUBLIC_PAGE_CACHING',
 PUBLIC_PAGE_RESULTS = int(get_from_env('DJANGO_PUBLIC_PAGE_RESULTS',
     fail_if_not_found=False, default_value=15))
 
+# Choose whether to use to Julian or Civil definition of year 
+# when displaying far's in /year:
+DISPLAY_CIVIL_YEAR_FAR = parse_envvar_bool(
+    get_from_env('DJANGO_DISPLAY_CIVIL_YEAR_FAR',
+                 fail_if_not_found=False, default_value="false")
+)
 
+if DISPLAY_CIVIL_YEAR_FAR:
+    DAYS_PER_YEAR = 365.0
+else:
+    DAYS_PER_YEAR = 365.25

@@ -18,7 +18,7 @@ from guardian.shortcuts import get_objects_for_user
 
 from core.file_utils import get_file_list, flexible_skymap_to_png
 from core.time_utils import utc_datetime_decimal_seconds
-from core.utils import display_far_hr_to_yr
+from core.utils import display_far_hz_to_yr
 from events.models import EMGroup
 from events.models import Label
 from events.mixins import DisplayFarMixin
@@ -455,7 +455,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
             else:
                 se.far_hz = se.far
 
-            se.far_hr = display_far_hr_to_yr(se.far_hz)
+            se.far_hr = display_far_hz_to_yr(se.far_hz)
 
             # Get the latest, non-retraction voevent:
             voe = voevent_dict.get(se.superevent_id, None)
