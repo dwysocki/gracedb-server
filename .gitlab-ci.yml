@@ -17,9 +17,9 @@ before_script:
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
 
 .test: &test
-  image: igwn/base:bullseye
+  image: igwn/base:bookworm
   services:
-    - postgres:13.11
+    - postgres:15.6
     - memcached
   variables:
     AWS_SES_ACCESS_KEY_ID: "fake_aws_id"
@@ -61,11 +61,13 @@ before_script:
     - PYTHON_MAJOR="${PYTHON_VERSION:0:1}"
     - PYTHON="python3"
     # install build requirements
+    - apt-get -y install gnupg
     - sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
     - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
     - apt-get -yqq update
     - apt-get -o dir::cache::archives="${APT_CACHE_DIR}" install -yqq
           git
+          gnupg
           libldap2-dev
           libsasl2-dev
           libssl-dev
@@ -79,13 +81,13 @@ before_script:
           libfreetype6-dev 
           libxslt-dev
           ${PYTHON}-pip
-          postgresql-13
-          postgresql-client-13
+          postgresql-15
+          postgresql-client-15
           libpq-dev
     # upgrade pip (requirement for lalsuite)
-    - ${PYTHON} -m pip install --upgrade pip
+    - ${PYTHON} -m pip install --upgrade pip --break-system-packages
     # install everything else from pip
-    - ${PYTHON} -m pip install -r requirements.txt
+    - ${PYTHON} -m pip install -r requirements.txt --break-system-packages
     # create logs path required for tests
     - mkdir -pv ../logs/
     # list packages
@@ -111,7 +113,7 @@ before_script:
   tags:
       - executor-docker
 
-test:3.9:
+test:3.11:
   <<: *test
 
 branch_image:

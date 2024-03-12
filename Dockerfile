@@ -1,15 +1,17 @@
-FROM igwn/base:bullseye
+FROM igwn/base:bookworm
 LABEL name="LIGO GraceDB Django application" \
       maintainer="alexander.pace@ligo.org" \
-      date="20230802"
+      date="20240306"
 ARG SETTINGS_MODULE="config.settings.container.dev"
 
 COPY docker/SWITCHaai-swdistrib.gpg /etc/apt/trusted.gpg.d
 COPY docker/backports.pref /etc/apt/preferences.d
-RUN echo 'deb http://deb.debian.org/debian bullseye-backports main' > /etc/apt/sources.list.d/backports.list
-RUN echo 'deb http://apt.postgresql.org/pub/repos/apt bullseye-pgdg main' > /etc/apt/sources.list.d/pgdg.list
+RUN apt-get -y install gnupg
+RUN echo 'deb http://deb.debian.org/debian bookworm-backports main' > /etc/apt/sources.list.d/backports.list
+RUN echo 'deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main' > /etc/apt/sources.list.d/pgdg.list
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 RUN apt-get update && \
+    apt-get upgrade && \
     apt-get install --install-recommends --assume-yes \
         apache2 \
         gcc \
@@ -19,6 +21,7 @@ RUN apt-get update && \
         libapache2-mod-shib \
         libapache2-mod-xsendfile \
         libldap2-dev \
+        libldap-2.5-0 \
         libsasl2-dev \
         libsasl2-modules-gssapi-mit \
         libxml2-dev \
@@ -33,11 +36,11 @@ RUN apt-get update && \
         npm \
         osg-ca-certs \
         php \
-        php7.4-pgsql \
-        php7.4-mbstring \
-        postgresql-client-13 \
-        python3.9 \
-        python3.9-dev \
+        php8.2-pgsql \
+        php8.2-mbstring \
+        postgresql-client-15 \
+        python3 \
+        python3-dev \
         python3-libxml2 \
         python3-pip \
         procps \
@@ -46,8 +49,7 @@ RUN apt-get update && \
         libssl-dev \
         swig \
         htop \
-        telnet \
-        vim && \
+        telnet && \
     apt-get clean && \
     curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     apt-get update && apt-get install --assume-yes yarn && \
@@ -76,7 +78,7 @@ COPY docker/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf
 # Enable mpm_event module:
 
 RUN rm /etc/apache2/mods-enabled/mpm_prefork.*
-RUN rm /etc/apache2/mods-enabled/php7.4.*
+RUN rm /etc/apache2/mods-enabled/php8.2.*
 RUN cp  /etc/apache2/mods-available/mpm_event.* /etc/apache2/mods-enabled/
 
 # Shibboleth configs and certs:
@@ -96,14 +98,14 @@ ADD . /app/gracedb_project
 # install gracedb application itself
 WORKDIR /app/gracedb_project
 RUN bower install --allow-root
-RUN pip3 install --upgrade pip
-RUN pip3 install -r requirements.txt
+RUN pip3 install --upgrade pip --break-system-packages
+RUN pip3 install -r requirements.txt --break-system-packages
 
 # install supervisor from pip
-RUN pip3 install supervisor
+RUN pip3 install supervisor --break-system-packages
 
 # Give pip-installed packages priority over distribution packages
-ENV PYTHONPATH /usr/local/lib/python3.9/dist-packages:$PYTHONPATH
+ENV PYTHONPATH /usr/local/lib/python3.11/dist-packages:$PYTHONPATH
 ENV ENABLE_SHIBD false
 ENV ENABLE_OVERSEER true
 ENV VIRTUAL_ENV /dummy/
@@ -166,6 +168,10 @@ RUN mkdir /app/scitokens_cache && \
     chown gracedb:www-data /app/scitokens_cache && \
     chmod 0750 /app/scitokens_cache
 ENV XDG_CACHE_HOME /app/scitokens_cache
+
+# patch voeventparse for python3.10+:
+RUN sed -i 's/collections.Iterable/collections.abc.Iterable/g' /usr/local/lib/python3.11/dist-packages/voeventparse/voevent.py
+
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint" ]
 CMD ["/usr/local/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]

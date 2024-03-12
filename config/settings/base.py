@@ -1,4 +1,4 @@
-from cloghandler import ConcurrentRotatingFileHandler
+from concurrent_log_handler import ConcurrentRotatingFileHandler
 from datetime import datetime, timedelta
 import os, time, logging
 from os.path import abspath, dirname, join
