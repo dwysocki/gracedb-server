@@ -3,8 +3,8 @@ adrf==0.1.2
 aws-xray-sdk==2.12.1
 concurrent-log-handler==0.9.20
 confluent-kafka==2.3.0
-cryptography==42.0.3
-Django==4.2.10
+cryptography==42.0.5
+Django==4.2.11
 django-computedfields==0.2.5
 django-debug-toolbar==4.3.0
 django-extensions==3.2.3
