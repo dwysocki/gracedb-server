@@ -5,6 +5,12 @@ from django.core.management.base import BaseCommand
 from events.models import Event, Group
 from superevents.models import Superevent
 
+try:
+    from aws_xray_sdk.core import xray_recorder
+    xray_recorder.begin_segment("remove-test-events-segment")
+except ModuleNotFoundError:
+    print("aws_xray_sdk not found, skipping.")
+
 
 class Command(BaseCommand):
     help="Remove test superevents and events older than three weeks."
