@@ -68,17 +68,21 @@ def check_and_serve_file(request, file_path, ResponseClass=HttpResponse):
     This function returns a response, so it should be called within a view,
     not from within a view subfunction or method.
     """
-
-    if not os.path.exists(file_path):
-        err_msg = "File {0} not found".format(os.path.basename(file_path))
-        # File not found - return 404 NOT FOUND response
-        response = ResponseClass(err_msg, status=404)
-    elif not os.access(file_path, os.R_OK):
-        err_msg = "File {0} is not readable".format(
-            os.path.basename(file_path))
-        # File not readable - return 500 SERVER ERROR response
-        response = ResponseClass(err_msg, status=500)
-    elif os.path.isfile(file_path):
+    try:
+        # Check if requested file can be opened
+        with open(file_path, "rb"):
+            pass
         response = serve_file(file_path, ResponseClass)
+    except FileNotFoundError:
+        err_msg = "File {0} not found".format(os.path.basename(file_path))
+        response = ResponseClass(err_msg, status=404)
+    except PermissionError:
+        err_msg = "Access to file {0} forbidden".format(
+            os.path.basename(file_path))
+        response = ResponseClass(err_msg, status=403)
+    except Exception:
+        err_msg = "Unhandled exception serving the file {0}".format(
+            os.path.basename(file_path))
+        response = ResponseClass(err_msg, status=500)
 
     return response
