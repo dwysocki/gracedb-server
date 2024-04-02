@@ -11,7 +11,7 @@ RUN echo 'deb http://deb.debian.org/debian bookworm-backports main' > /etc/apt/s
 RUN echo 'deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main' > /etc/apt/sources.list.d/pgdg.list
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 RUN apt-get update && \
-    apt-get upgrade && \
+    apt-get --assume-yes upgrade && \
     apt-get install --install-recommends --assume-yes \
         apache2 \
         gcc \
