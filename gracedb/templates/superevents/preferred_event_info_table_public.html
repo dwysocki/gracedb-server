@@ -11,7 +11,13 @@
       <tbody>
       <tr>
         <td> Group </td>
-        <td>{{ preferred_event.group.name }} </td>
+        <td>
+	  {% if preferred_event.search.name == "BBH" %} 
+	  CBC
+	  {% else %}
+	  {{ preferred_event.group.name }}
+	  {% endif %}
+	</td>
       </tr>
 
       <tr>

@@ -286,12 +286,25 @@ def construct_voevent_file(obj, voevent, request=None):
         v.What.append(p_significant)
 
         ## Analysis group
-        p_group = vp.Param(
-            "Group",
-            value=event.group.name,
-            ucd="meta.code",
-            dataType="string"
-        )
+        ## Special case: BURST-CWB-BBH search is a CBC group alert.
+        if (event.group.name == "Burst" and
+            (event.search and (event.pipeline.name == 'CWB' and
+                               event.search.name == 'BBH'))
+            ):
+            p_group = vp.Param(
+                "Group",
+                value="CBC",
+                ucd="meta.code",
+                dataType="string"
+            )
+        else:
+            p_group = vp.Param(
+                "Group",
+                value=event.group.name,
+                ucd="meta.code",
+                dataType="string"
+            )
+
         p_group.Description = "Data analysis working group"
         v.What.append(p_group)
 

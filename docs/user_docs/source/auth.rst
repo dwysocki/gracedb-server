@@ -41,7 +41,7 @@ Creating new events in a *non-test* group (e.g., CBC or Burst) requires
 a special ``populate`` permission on the relevant pipeline object. These 
 permissions are set at the user (rather than group) level and are 
 maintained by hand. Send email to the GraceDB maintainer 
-or the `IGWN Computing Helpdesk <mailto:computing-help@igwn.org>`__ 
+or the `IGWN Computing Helpdesk <mailto:computing-help@ligo.org>`__ 
 if you need a new pipeline or pipeline permission.
 
 Robot certificates

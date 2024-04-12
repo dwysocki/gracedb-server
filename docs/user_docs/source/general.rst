@@ -58,4 +58,4 @@ This documentation is not as great as it could be, but we are working on it.
 LIGO/Virgo/KAGRA users can join the `GraceDB channel <https://chat.ligo.org/ligo/channels/gracedb>`__  in the collaboration's Mattermost instance or email the Compsoft mailing list for help.
 
 To report a problem, either `post an issue <https://git.ligo.org/lscsoft/gracedb/issues>`__ or email the 
-`IGWN Computing Helpdesk <mailto:computing-help@igwn.org>`__.
+`IGWN Computing Helpdesk <mailto:computing-help@ligo.org>`__.

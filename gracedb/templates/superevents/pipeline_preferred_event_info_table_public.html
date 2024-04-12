@@ -24,7 +24,13 @@
       {% for e in pipeline_preferred_events %}
         <tr>
          <td> {{ e.graceid }} </td>
-         <td> {{ e.group.name }} </td>
+         <td> 
+	  {% if e.search.name == "BBH" %} 
+	  CBC
+	  {% else %}
+	  {{ e.group.name }}
+	  {% endif %}
+	 </td>
          <td> {{ e.pipeline.name }} </td>
 	 <td> {{ e.search.name }} </td>
          <td> {{ e.gpstime | floatformat:"3" }} </td>
@@ -34,7 +40,6 @@
              {% else %}
              &nbsp; &nbsp; &nbsp; &nbsp;
              {% endif %}
-
         </tr>
       {% endfor %}
       </tbody>

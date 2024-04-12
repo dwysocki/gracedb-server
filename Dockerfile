@@ -14,6 +14,7 @@ RUN apt-get update && \
     apt-get --assume-yes upgrade && \
     apt-get install --install-recommends --assume-yes \
         apache2 \
+        emacs-nox \
         gcc \
         git \
         krb5-user \
@@ -49,7 +50,8 @@ RUN apt-get update && \
         libssl-dev \
         swig \
         htop \
-        telnet && \
+        telnet \
+        vim && \
     apt-get clean && \
     curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     apt-get update && apt-get install --assume-yes yarn && \
