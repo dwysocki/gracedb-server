@@ -76,6 +76,8 @@
               {{ preferred_event.coincinspiralevent.snr|floatformat:"3" }}
             {% elif preferred_event.multiburstevent %}
               {{ preferred_event.multiburstevent.snr|floatformat:"3" }}
+            {% elif preferred_event.mlyburstevent %}
+              {{ preferred_event.mlyburstevent.snr|floatformat:"3" }}
             {% elif preferred_event.lalinferenceburstevent %}
               {{ preferred_event.lalinferenceburstevent.omicron_snr_network|floatformat:"3" }}
             {% endif %}
