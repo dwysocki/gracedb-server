@@ -17,11 +17,21 @@ ExpressionOperator.setParseAction(lambda toks: EXPR_OPERATORS[toks[0]])
 
 # Dict of LIGO run names (keys) and GPS time range tuples (values)
 RUN_MAP = {
-    # O4 Start May 24, 2023...1500UTC? 18 months later...Nov. 24, 2024.
-    # FIXME: change the end date in a future release:
-    "O4": (1368975618, 1416495618),
-    # ER15 start Apr 26, 2023 1600 UTC
-    "ER15": (1366560018, 1368975618), 
+    "O4": {
+            # https://observing.docs.ligo.org/plan/
+            # The LIGO Hanford (LHO), LIGO Livingston (LLO), and Virgo detectors transitioned
+            # to the regular observing run O4b at 15:00 UTC on 10 April 2024. O4b will run
+            # until February 2025 (FIXME specific date TBD), with no further planned breaks
+            # in observing.
+            "O4b": (1396796418, 1423238418),
+            # O4a started May 24, 2023 1500UTC and ended Jan 16, 2024 1600UTC
+            "O4a": (1368975618, 1389456018),
+          },
+    # ER16 started March 20, 2024 1500UTC, ended when O4b started
+    # https://dcc.ligo.org/DocDB/0191/M2300233/002/ER16_O4b_Start.pdf
+    "ER16": (1394982018, 1396796418),
+    # ER15 start Apr 26, 2023 1500 UTC
+    "ER15": (1366556418, 1368975618),
     # O3 suspended early due to COVID-19:
     # https://www.ligo.caltech.edu/news/ligo20200326
     # 01 Apr 2019 15:00:00 UTC - 27 Mar 2020 16:00:00 UTC
@@ -59,3 +69,22 @@ RUN_MAP = {
     "S6D" : (956707143, 971622087),
 }
 
+# Flattens run map, creating a consistently typed dict mapping
+# run/segment names to a list of (start, stop) gpstimes.
+def flatten_run_map(dictionary):
+    flattened = {}
+    for key, value in dictionary.items():
+        if isinstance(value, dict):
+            # Insert the full run
+            flattened[key] = list(value.values())
+            # Insert the individual segments
+            for segment_name, segment_times in value.items():
+                flattened[segment_name] = [segment_times]
+        else:
+            # Insert a full run that has no segments
+            flattened[key] = [value]
+
+    return flattened
+
+# A flat RUN_MAP list to use in queries:
+RUN_MAP_FLAT = flatten_run_map(RUN_MAP)

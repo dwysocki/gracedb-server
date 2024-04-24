@@ -3,6 +3,7 @@ from pyparsing import Keyword, CaselessKeyword, oneOf, Literal, Or, \
     OneOrMore, ZeroOrMore, Optional, Suppress
 
 from django.db.models import Q, QuerySet
+from .constants import RUN_MAP_FLAT
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -74,3 +75,20 @@ def handle_binary_ops(toks, op="or"):
         new_toks = toks
 
     return new_toks, updated
+
+
+# Given a string representation of an observing/engineering period (like 'O4'),
+# and a time range parameter (t_0 for superevents, gpstime for events), then 
+# return a Q filter over that range, or period of ranges.
+#--------------------------------------------------------------------------
+def run_map_search_filter(obsrun, param):
+    # start with a blank filter:
+    q_filt = Q()
+
+    if obsrun not in RUN_MAP_FLAT:
+        raise ValueError('observation period not found in RUN_MAP_FLAT')
+
+    for tup in RUN_MAP_FLAT[obsrun]:
+        q_filt |= Q(**{f'{param}__range': tup})
+
+    return q_filt

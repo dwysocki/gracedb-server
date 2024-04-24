@@ -136,6 +136,95 @@ Examples:
 - ``is_preferred_event: True``
 - ``is_preferred_event: False``
 
+By run identifier
+-----------------
+Events (and superevents) can be queried by Observation/Engineering/Science run identifier,
+which is based on a preset ``gpstime`` range. The ``runid:`` keyword is optional.
+Examples and available options are below: 
+
+- ``runid: O4``
+- ``O3``
+- ``O1 O2``
+
+.. list-table:: GraceDB Queryable Run ID's
+   :widths: 25 25
+   :header-rows: 1
+
+   * - runid
+     - gpstime/t_0 range
+
+   * - ``O4``
+     - (1368975618, 1389456018), (1396796418, 1423238418)
+
+   * - ``O4b``
+     - (1396796418, 1423238418)
+
+   * - ``O4a``
+     - (1368975618, 1389456018)
+
+   * - ``ER16``
+     - (1394982018, 1396796418)
+
+   * - ``ER15``
+     - (1366556418, 1368975618)
+
+   * - ``O3``
+     - (1238166018, 1269363618)
+
+   * - ``ER14``
+     - (1235750418, 1238166018)
+
+   * - ``ER13``
+     - (1228838418, 1229176818)
+
+   * - ``O2``
+     - (1164556817, 1187733618)
+
+   * - ``O1``
+     - (1126623617, 1136649617)
+
+   * - ``ER8``
+     - (1123858817, 1126623617)
+
+   * - ``ER7``
+     - (1117400416, 1118329216)
+
+   * - ``ER6``
+     - (1102089616, 1102863616)
+
+   * - ``ER5``
+     - (1073822416, 1078876816)
+
+   * - ``ER4``
+     - (1057881616, 1061856016)
+
+   * - ``ER3``
+     - (1044136816, 1045785616)
+
+   * - ``ER2``
+     - (1026666016, 1028480416)
+
+   * - ``ER1``
+     - (1011601640, 1013299215)
+
+   * - ``ER1test``
+     - (1010944815, 1011601640)
+
+   * - ``S6``
+     - (931035296, 971622087)
+
+   * - ``S6A``
+     - (931035296, 935798487)
+
+   * - ``S6B``
+     - (937800015, 947260815)
+
+   * - ``S6C``
+     - (949449543, 961545687)
+
+   * - ``S6D``
+     - (956707143, 971622087)
+
 
 Superevent queries
 ==================
@@ -217,6 +306,10 @@ Same as for events.
 
 By label
 --------
+Same as for events.
+
+By run identifier
+-----------------
 Same as for events.
 
 By public status

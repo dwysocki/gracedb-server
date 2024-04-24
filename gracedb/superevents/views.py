@@ -29,6 +29,7 @@ from .mixins import ExposeHideMixin, OperatorSignoffMixin, \
     RRTViewMixin
 from .models import Superevent, VOEvent, Log
 from search.constants import RUN_MAP
+from search.utils import run_map_search_filter
 from .utils import get_superevent_by_date_id_or_404, \
     get_superevent_by_sid_or_gwid_or_404
 
@@ -284,10 +285,12 @@ class SupereventPublic(DisplayFarMixin, ListView):
         if self.obsrun not in settings.PUBLIC_PAGE_RUNS:
             raise Http404
 
+        # The base query for exposed production superevents:
         qs = Superevent.objects.filter(is_exposed=True,
-            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION,
-            t_0__range=RUN_MAP[self.obsrun])
-        return qs
+            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION)
+         
+        # return the events in the date range:
+        return qs.filter(run_map_search_filter(self.obsrun, 't_0'))
 
 
     # Define significance per run:
@@ -296,7 +299,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
         # https://git.ligo.org/computing/gracedb/server/-/issues/303#note_725082
         # So use Q filters for these:
         significant_filter = Q()
-        if self.obsrun in ['ER15', 'O4']:
+        if self.obsrun in ['ER15', 'ER16', 'O4a', 'O4b', 'O4']:
            significant_filter = Q(labels__name='ADVREQ') | \
                                 Q(labels__name='ADVOK') | \
                                 Q(labels__name='ADVNO')
@@ -314,7 +317,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
     # Note: this value is also used as a trigger to show the significance
     # button and bullet.
     def insignificant_docs(self, run):
-        if run in ['ER15', 'O4']:
+        if run in ['ER15', 'ER16', 'O4a', 'O4b', 'O4']:
             return 'https://emfollow.docs.ligo.org/userguide/content.html#significance'
         else:
             return None

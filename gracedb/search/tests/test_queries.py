@@ -10,7 +10,8 @@ from django.conf import settings
 from django.db.models import Q
 
 from superevents.models import Superevent
-from search.constants import RUN_MAP
+from search.constants import RUN_MAP, RUN_MAP_FLAT
+from search.utils import run_map_search_filter
 from search.query.events import parseQuery
 from search.query.superevents import parseSupereventQuery
 
@@ -142,8 +143,8 @@ SUPEREVENT_QUERY_TEST_DATA = [
         Q(events__id__range=[123, 129])),
 ]
 # Add tests based on run IDs
-RUNID_QUERY_DATA = [(k, Q(t_0__range=v) & (DEFAULT_Q))
-    for k,v in RUN_MAP.items()]
+RUNID_QUERY_DATA = [(k, run_map_search_filter(k, 't_0') & (DEFAULT_Q))
+    for k in RUN_MAP_FLAT]
 SUPEREVENT_QUERY_TEST_DATA.extend(RUNID_QUERY_DATA)
 
 @pytest.mark.parametrize("query,expected_Q_result", SUPEREVENT_QUERY_TEST_DATA)
@@ -296,11 +297,20 @@ EVENT_QUERY_TEST_DATA = [
     ("is_preferred_event: False", Q(superevent_preferred_for__isnull=True) &
         DEFAULT_EVENT_Q),
     # By run name
-    ("runid: O1", Q(gpstime__range=RUN_MAP["O1"]) & DEFAULT_EVENT_Q),
-    ("O1", Q(gpstime__range=RUN_MAP["O1"]) & DEFAULT_EVENT_Q),
+    ("runid: O1", run_map_search_filter("O1", "gpstime") & DEFAULT_EVENT_Q),
+    ("O1", run_map_search_filter("O1", "gpstime") & DEFAULT_EVENT_Q),
     ("O1 O2",
-        ( Q(gpstime__range=RUN_MAP["O1"])
-        | Q(gpstime__range=RUN_MAP["O2"])) & DEFAULT_EVENT_Q),
+        ( run_map_search_filter("O1", "gpstime")
+        | run_map_search_filter("O2", "gpstime")) & DEFAULT_EVENT_Q),
+    # try out the O4 filters:
+    ("O4", run_map_search_filter("O4", "gpstime") & DEFAULT_EVENT_Q),
+    # Manually test O4:
+    ("O4", (Q(gpstime__range=RUN_MAP_FLAT["O4"][0]) |
+            Q(gpstime__range=RUN_MAP_FLAT["O4"][1])) & DEFAULT_EVENT_Q),
+    # test one of O4's subranges:
+    ("O4a", run_map_search_filter("O4a", "gpstime") & DEFAULT_EVENT_Q),
+    # and manually:
+    ("O4b", Q(gpstime__range=RUN_MAP_FLAT["O4b"][0]) & DEFAULT_EVENT_Q),
     # 'nevents'
     ("nevents: 5", Q(nevents="5") & DEFAULT_EVENT_Q),
 ]

@@ -16,8 +16,8 @@ from core.utils import letters_to_int, int_to_letters
 from events.nltime import nlTimeExpression as nltime_
 from superevents.models import Superevent
 from .labels import getLabelQ
-from ..constants import RUN_MAP, ExpressionOperator
-from ..utils import maybeRange
+from ..constants import RUN_MAP, RUN_MAP_FLAT, ExpressionOperator
+from ..utils import maybeRange, run_map_search_filter
 
 from pyparsing import Word, nums, Literal, CaselessLiteral, delimitedList, \
     Suppress, QuotedString, Keyword, Combine, Or, Optional, OneOrMore, \
@@ -96,10 +96,10 @@ parameter_dicts = {
     'runid': {
         'keyword': 'runid',
         'keywordOptional': True,
-        'value': Or(list(map(CaselessLiteral, list(RUN_MAP)))).setName(
+        'value': Or(list(map(CaselessLiteral, RUN_MAP_FLAT))).setName(
             "run id"),
         'doRange': False,
-        'parseAction': lambda toks: ("t_0", Q(t_0__range=RUN_MAP[toks[0]])),
+        'parseAction': lambda toks: ("t_0", run_map_search_filter(toks[0], 't_0')),
     },
     # t_0: 123456.0987 OR gpstime: 123456.0987
     't_0': {

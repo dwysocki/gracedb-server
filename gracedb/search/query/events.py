@@ -30,8 +30,8 @@ nltime = nltime_.setParseAction(lambda toks: toks["calculatedTime"])
 from events.models import Group, Pipeline, Search
 from .labels import getLabelQ
 from .superevents import parse_superevent_id, superevent_expr
-from ..constants import RUN_MAP, ExpressionOperator
-from ..utils import maybeRange
+from ..constants import RUN_MAP, RUN_MAP_FLAT, ExpressionOperator
+from ..utils import maybeRange, run_map_search_filter
 
 
 # hasfar flag
@@ -46,11 +46,10 @@ gpsQ = Optional(Suppress(Keyword("gpstime:"))) + (gpstime^gpstimeRange)
 gpsQ = gpsQ.setParseAction(maybeRange("gpstime"))
 
 # run ids
-runid = Or(list(map(CaselessLiteral, list(RUN_MAP)))).setName("run id")
+runid = Or(list(map(CaselessLiteral, list(RUN_MAP_FLAT)))).setName("run id")
 #runidList = OneOrMore(runid).setName("run id list")
 runQ = (Optional(Suppress(Keyword("runid:"))) + runid)
-runQ = runQ.setParseAction(lambda toks: ("gpstime", Q(gpstime__range=
-                                                        RUN_MAP[toks[0]])))
+runQ = runQ.setParseAction(lambda toks: ("gpstime", run_map_search_filter(toks[0], 'gpstime')))
 
 # Gracedb ID
 gid = Suppress(Word("gG", exact=1)) + Word("0123456789")
