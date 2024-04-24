@@ -5,6 +5,13 @@ from __future__ import unicode_literals
 from django.db import migrations
 from django.conf import settings
 import socket
+import os
+
+# Change to conform to the convention in:
+# config/settings/container/base.py:
+# -- hosts_from_env = os.environ.get('DJANGO_ALLOWED_HOSTS', None)
+full_domain = socket.gethostname() + '.ligo.org'
+full_domain = os.environ.get('DJANGO_PRIMARY_FQDN', full_domain)
 
 SITES = {
     'old': {
@@ -12,8 +19,8 @@ SITES = {
         'name': 'example.com',
     },
     'new': {
-        'domain': socket.gethostname() + '.ligo.org',
-        'name': 'ligo.org',
+        'domain': full_domain,
+        'name': full_domain.partition('.')[2],
     },
 }
 
