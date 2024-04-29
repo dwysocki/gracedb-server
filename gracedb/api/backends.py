@@ -121,7 +121,11 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
         try:
             user = User.objects.get(username=token['sub'].lower())
         except User.DoesNotExist:
-            return None
+            try:
+                # Catch Kagra and robot accounts that don't have @ligo.org usernames
+                user = User.objects.get(username=token['sub'].split('@')[0].lower())
+            except User.DoesNotExist:
+                return None
 
         if not user.is_active:
             raise exceptions.AuthenticationFailed(

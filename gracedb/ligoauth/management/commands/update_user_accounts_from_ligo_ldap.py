@@ -26,14 +26,13 @@ UserModel = get_user_model()
 
 
 # Classes for processing LDAP results into user accounts ----------------------
-class LdapPersonResultProcessor(object):
+class LdapPersonResultProcessor:
     stdout = None
 
     def __init__(self, ldap_dn, ldap_result, ldap_connection=None,
         verbose=True, stdout=None, 
         ldap_member_name='Communities:LSCVirgoLIGOGroupMembers', 
         *args, **kwargs):
-        super(LdapPersonResultProcessor, self).__init__(*args, **kwargs)
         self.ldap_dn = ldap_dn
         self.ldap_result = ldap_result
         self.verbose = verbose
@@ -387,38 +386,157 @@ class LdapPersonResultProcessor(object):
         pass
 
 
-class LdapRobotResultProcessor(LdapPersonResultProcessor):
+class LdapSciTokenRobotResultProcessor(LdapPersonResultProcessor):
+
+    def __init__(self, ldap_dn, ldap_result, ldap_connection=None,
+        verbose=True, stdout=None,
+        ldap_member_name='Services:GraceDB:SciTokens:scopes:read:authorized',
+        *args, **kwargs):
+        super().__init__(
+            ldap_dn, ldap_result, ldap_connection=ldap_connection,
+            verbose=verbose, stdout=stdout,
+            ldap_member_name=ldap_member_name,
+            *args, **kwargs)
 
     def extract_user_attributes(self):
         if self.ldap_connection is None:
             raise RuntimeError('LDAP connection not configured')
         memberships = [group_name.decode('utf-8') for group_name in
             self.ldap_result.get('isMemberOf', [])]
+        self.ldap_memberships = AuthorizedLdapMember.objects.filter(ldap_gname__in=
+                    memberships)
         self.user_data = {
-            'last_name': self.ldap_result['x-LIGO-TWikiName'][0].decode('utf-8'),
+            'first_name': self.ldap_result['uid'][0].decode('utf-8'),
+            'last_name': 'robot',
             'email': self.ldap_result['mail'][0].decode('utf-8'),
-            'is_active': (self.ldap_connection.groups.get(
-                name='robot_accounts').name in memberships),
-            'username': self.ldap_result['cn'][0].decode('utf-8').lower(),
+            'is_active': bool(self.ldap_connection.lvc_group.authorizedldapmember_set.all() &
+                              self.ldap_memberships),
+            'username': self.ldap_result['uid'][0].decode('utf-8').lower(),
         }
 
-    def check_situation(self, user_exists, l_user_exists):
-        if (not (user_exists or l_user_exists) and not self.user_data['is_active']):
-            err_msg = 'User {0} should not be added to the DB'.format(
-                self.user_data['username'])
-            self.write(err_msg)
-            raise self.UnacceptableUserError(err_msg)
+    def get_or_create_user(self):
 
-    def get_attributes_to_update(self):
-        attributes_to_update = [k for k in ['email', 'is_active']
-            if self.user_data[k] != getattr(self.ligoldapuser, k)]
-        return attributes_to_update
+        if not hasattr(self, 'user_data'):
+            self.extract_user_attributes()
 
-    def remove_certs(self, certs):
-        pass
-        # NOTE: for now (2019) we don't remove any robot certificates since
-        # there arestill some old LIGO CA certificates in use that aren't in
-        # the LDAP
+        # Determine if users exist
+        user_exists = UserModel.objects.filter(username=
+            self.user_data['username'].lower()).exists()
+        l_user_exists = GenericLdapUser.objects.filter(
+            ldap_dn=self.ldap_dn).exists()
+
+        # Determine if robot has gracedb.read scope
+        has_read_scope = self.ldap_authmember in self.ldap_memberships
+
+        # Run any necessary checks at this point
+        self.check_situation(user_exists, l_user_exists)
+
+        # Handle different cases
+        self.user_created = False
+        if l_user_exists:
+            # GenericLdapUser exists already (and thus, User object exists too)
+            l_user = GenericLdapUser.objects.get(ldap_dn=self.ldap_dn)
+            user = l_user.user
+        else:
+            # Robot has gracedb.read scope
+            if has_read_scope:
+                # GenericLdapUser doesn't exist
+                if user_exists:
+                    # User object exists, though, so we have to carefully create
+                    # the GenericLdapUser object
+                    user = UserModel.objects.get(username=
+                        self.user_data['username'].lower())
+                    l_user, created = GenericLdapUser.objects.get_or_create(ldap_dn=self.ldap_dn,
+                                             ldap_member=self.ldap_authmember,
+                                             user=user)
+                    if (created and self.verbose):
+                        self.write("Created genericldapuser for {0}".format(
+                            user.username))
+                else:
+                    # No User object either, so we do a simple creation
+                    user = UserModel(**self.user_data)
+                    user.save()
+                    l_user, created = GenericLdapUser.objects.get_or_create(ldap_dn=self.ldap_dn,
+                                             ldap_member=self.ldap_authmember,
+                                             user=user)
+                    if (created and self.verbose):
+                        self.write("Created user and ligoldapuser for {0}".format(
+                        user.username))
+                    self.user_created = True
+
+            else:
+                raise self.UnacceptableUserError('User dose not have gracedb.read scope')
+
+        # Attach some information to this instance
+        self.ligoldapuser = l_user
+        self.user = user
+        self.l_user_exists = l_user_exists
+        self.user_exists = user_exists
+
+        self.check_user_accounts()
+
+    def update_user(self):
+        if not hasattr(self, 'user'):
+            raise RuntimeError('User object missing')
+        self.update_user_attributes()
+        self.update_user_groups()
+
+    def update_user_groups(self):
+        # Get list of group names that the user belongs to from the LDAP result
+        memberships = [group_name.decode('utf-8') for group_name in
+            self.ldap_result.get('isMemberOf', [])]
+
+        # Get groups which are listed for the user in the LDAP and whose
+        # membership is controlled by the LDAP
+        ldap_group_ids = self.ldap_memberships.values_list('id')
+        session_groups = self.validauthgroup_set.filter(authorizedldapmember__in=ldap_group_ids)
+
+        # Determine if robot has gracedb.read scope
+        has_read_scope = self.ldap_authmember in self.ldap_memberships
+
+        # Robot has gracedb.read scope
+        if has_read_scope:
+            # Add the user to these groups
+            if self.verbose and session_groups.exclude(id__in=self.ligoldapuser.user.groups.all()).exists():
+                self.write("Adding {0} to {1}".format(self.ligoldapuser.user.username,
+                    " and ".join(list(session_groups.values_list(
+                    'name', flat=True)))))
+            self.user.groups.add(*session_groups)
+
+            # Get groups which are *not* listed for the user in the LDAP and whose
+            # membership is controlled by the LDAP. First, get the set of groups that
+            # are ldap-controlled and currently in the user's group set. In other words,
+            # don't consider non-ldap groups like 'executives'.
+
+            # Note: this has to be updated to exclude groups from other ldaps. So that
+            # updating from kagra doesn't take out em_advocates, for instance.
+
+            ldap_groups_in_user_set = self.validauthgroup_set.filter(id__in=self.ligoldapuser.user.groups.all())
+
+            # Next get a list of groups to remove. So, the list of ldap groups in the set
+            # that are not currently in session_groups.
+
+            ldap_groups_to_remove = ldap_groups_in_user_set.exclude(id__in=session_groups)
+
+            # Remove the user from these groups
+            if self.verbose and ldap_groups_to_remove.exists():
+                self.write("Removing {0} from {1}".format(
+                    self.ligoldapuser.user.username,
+                    " and ".join(list(ldap_groups_to_remove.values_list(
+                    'name', flat=True)))))
+            self.ligoldapuser.user.groups.remove(*ldap_groups_to_remove)
+        else:
+            ldap_groups_in_user_set = self.validauthgroup_set.filter(id__in=self.ligoldapuser.user.groups.all())
+            ldap_groups_to_remove = ldap_groups_in_user_set.exclude(id__in=session_groups)
+
+            # Remove the user from these groups
+            if self.verbose and ldap_groups_to_remove.exists():
+                self.write("Removing {0} from {1}".format(
+                    self.ligoldapuser.user.username,
+                    " and ".join(list(ldap_groups_to_remove.values_list(
+                    'name', flat=True)))))
+            self.ligoldapuser.user.groups.remove(*ldap_groups_to_remove)
+
 
 class LdapKagraResultProcessor(LdapPersonResultProcessor):
 
@@ -426,11 +544,11 @@ class LdapKagraResultProcessor(LdapPersonResultProcessor):
         verbose=True, stdout=None, 
         ldap_member_name='gw-astronomy:KAGRA-LIGO:members', 
         *args, **kwargs):
-        super(LdapKagraResultProcessor, self).__init__(
-        ldap_dn, ldap_result, ldap_connection=ldap_connection,
-        verbose=verbose, stdout=stdout,
-        ldap_member_name=ldap_member_name,
-        *args, **kwargs)
+        super().__init__(
+            ldap_dn, ldap_result, ldap_connection=ldap_connection,
+            verbose=verbose, stdout=stdout,
+            ldap_member_name=ldap_member_name,
+            *args, **kwargs)
 
     def extract_user_attributes(self):
         if self.ldap_connection is None:
@@ -500,7 +618,7 @@ class LdapKagraResultProcessor(LdapPersonResultProcessor):
 
 
 # Classes for handling LDAP connections and queries ---------------------------
-class LigoPeopleLdap(object):
+class LigoPeopleLdap:
     name = 'ligo'
     ldap_host = "ldaps://ldap.ligo.org"
     ldap_port = 636
@@ -520,7 +638,6 @@ class LigoPeopleLdap(object):
     user_processor_class = LdapPersonResultProcessor
 
     def __init__(self, verbose=True, *args, **kwargs):
-        super(LigoPeopleLdap, self).__init__(*args, **kwargs)
         # Check configuration
         if not self.base_dn:
             raise ValueError('self.base_dn must be set')
@@ -564,21 +681,26 @@ class LigoPeopleLdap(object):
         return result_data
 
 
-class LigoRobotsLdap(LigoPeopleLdap):
+class LigoSciTokenRobotsLdap(LigoPeopleLdap):
     name = 'robots'
-    base_dn = "ou=keytab,ou=robot,dc=ligo,dc=org"
-    search_filter = "(cn=*)"
+    base_dn = "ou=scitoken,ou=robot,dc=ligo,dc=org"
+    search_filter = "(isMemberOf=Services:GraceDB:SciTokens:scopes:read:authorized)"
     search_scope = ldap.SCOPE_SUBTREE
     attribute_list = [
-        'cn',
-        'uid',
-        'gridX509subject',
-        'mail',
-        'isMemberOf',
-        'x-LIGO-TWikiName',
+        "uid",
+        "mail",
+        "isMemberOf",
     ]
-    group_names = ['internal_users', 'robot_accounts']
-    user_processor_class = LdapRobotResultProcessor
+    group_names = ['internal_users']
+    user_processor_class = LdapSciTokenRobotResultProcessor
+
+    def __init__(self, verbose=True, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Check configuration
+        if not self.base_dn:
+            raise ValueError('self.base_dn must be set')
+        #if not self.attribute_list:
+        #    raise ValueError('self.attribute_list must be set')
 
 
 class KagraPeopleLdap(LigoPeopleLdap):
@@ -643,10 +765,7 @@ class KagraPeopleLdap(LigoPeopleLdap):
     
 
 # Dict of LDAP classes with names as keys
-# NOTE: not using robot OU right now since we are waiting
-# for some auth infrastructure changes to be able to properly group
-# certificates into a user account
-LDAP_CLASSES = {l.name: l for l in (LigoPeopleLdap, KagraPeopleLdap,)}
+LDAP_CLASSES = {l.name: l for l in (LigoPeopleLdap, LigoSciTokenRobotsLdap, KagraPeopleLdap,)}
 
 
 class Command(BaseCommand):
@@ -659,8 +778,6 @@ class Command(BaseCommand):
             default=False, help='Suppress output')
 
     def handle(self, *args, **options):
-        if options['ldap'] == 'robots':
-            raise ValueError('Not properly set up for robot OU')
         verbose = not options['quiet']
         if verbose:
             self.stdout.write('Refreshing users from {0} LDAP at {1}' \
