@@ -183,6 +183,25 @@ class RRTViewMixin(ContextMixin):
         return context
 
 
+# Enable/Disable the "make log message public" checkbox based on the user's
+# group membership ("access_managers"). It hasn't come up often, but early O4a
+# a couple users got a gnarly javascript error when they tried to check that 
+# box but weren't part of the group. So this will just hide it. 
+
+class AreAccessManagersMixin(ContextMixin):
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Check if user is in the access_managers group: 
+        am_group_exists = self.request.user.groups.filter(
+            name=settings.ACCESS_MANAGERS_GROUP).exists()
+
+        context['am_group_authorized'] = am_group_exists
+
+        return context
+
+
 class ExposeHideMixin(ContextMixin):
     expose_perm_name = 'superevents.expose_superevent'
     hide_perm_name = 'superevents.hide_superevent'
