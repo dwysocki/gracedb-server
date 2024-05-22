@@ -145,7 +145,7 @@ ServerName ${DJANGO_PRIMARY_FQDN}
     AuthType Shibboleth
     ShibRequestSetting requireSession true
     ShibUseHeaders On
-    Require shib-user duncan.meacher@LIGO.ORG alexander.pace@LIGO.ORG daniel.wysocki@LIGO.ORG patrick.brady@LIGO.ORG
+    Require shib-user duncan.meacher@ligo.org alexander.pace@ligo.org daniel.wysocki@ligo.org patrick.brady@ligo.org
   </Location>
 
 </VirtualHost>
