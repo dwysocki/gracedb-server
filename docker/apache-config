@@ -84,6 +84,9 @@ ServerName ${DJANGO_PRIMARY_FQDN}
   # Set X_FORWARDED_PROTO to https
   RequestHeader set X_FORWARDED_PROTO "https"
 
+  # Increase the max allowable header size:
+  LimitRequestFieldSize 16384
+
   # Set up mod_xsendfile for serving static event files as directed by Django
   XSendFile On
   XSendFilePath /app/db_data/
