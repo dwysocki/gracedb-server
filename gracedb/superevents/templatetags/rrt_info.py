@@ -60,3 +60,17 @@ def get_dqr_status(sevent):
            sid=sevent.superevent_id))
     else:
         return mark_safe("<span style='font-family: monospace;'>DQR_REQUEST</span> label not applied")
+
+@register.filter(is_safe=True)
+def get_rrt_skymap_url(sevent):
+
+    # Is the preferred event a burst event? Then set the filename to the
+    # pipeline name.
+
+    if sevent.preferred_event.group.name == 'Burst':
+        skymap_filename = sevent.preferred_event.pipeline.name.lower()
+    else:
+        skymap_filename = 'bayestar'
+
+    return build_absolute_uri(reverse('api:default:superevents:superevent-file-detail',
+        args=[sevent.superevent_id, f'{skymap_filename}.png']))
