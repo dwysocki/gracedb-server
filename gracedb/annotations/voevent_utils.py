@@ -585,6 +585,17 @@ def construct_voevent_file(obj, voevent, request=None):
                                           "least one object between 3 and 5 "
                                           "solar masses")
                 source_properties_params.append(p_pmassgap)
+            if voevent.prob_has_ssm is not None:
+                p_phasssm = vp.Param(
+                    "HasSSM",
+                    value=voevent.prob_has_ssm,
+                    ucd="stat.probability",
+                    ac=True
+                )
+                p_phasssm.Description = ("Probability that the source has at "
+                                         "least one object less than 1 "
+                                         "solar mass")
+                source_properties_params.append(p_phasssm)
 
         elif isinstance(event, MultiBurstEvent):
             ### Central frequency

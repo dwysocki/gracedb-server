@@ -757,6 +757,8 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         max_value=1, required=False)
     HasMassGap = serializers.FloatField(write_only=True, min_value=0,
         max_value=1, required=False)
+    HasSSM = serializers.FloatField(write_only=True, min_value=0,
+        max_value=1, required=False)
     Significant = serializers.BooleanField(write_only=True, default=False)
 
     # Additional RAVEN fields
@@ -779,9 +781,10 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
             'issuer', 'filename', 'N', 'links', 'skymap_type',
             'skymap_filename', 'internal', 'open_alert', 'hardware_inj',
             'CoincComment', 'ProbHasNS', 'ProbHasRemnant', 'BNS', 'NSBH',
-            'BBH', 'Terrestrial', 'MassGap', 'HasMassGap', 'coinc_comment', 'prob_has_ns',
+            'BBH', 'Terrestrial', 'MassGap', 'HasMassGap', 'HasSSM', 'coinc_comment', 'prob_has_ns',
             'prob_has_remnant', 'prob_bns', 'prob_nsbh', 'prob_bbh', 'significant',
-            'prob_terrestrial', 'prob_has_mass_gap', 'superevent', 'user', 'Significant')
+            'prob_terrestrial', 'prob_has_mass_gap', 'prob_has_ssm', 'superevent', 'user',
+            'Significant')
 
         raven_fields = ('raven_coinc','ext_gcn', 'ext_pipeline', 'ext_search',
             'time_coinc_far', 'space_coinc_far', 'combined_skymap_filename',
@@ -794,7 +797,8 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
         super(SupereventVOEventSerializer, self).__init__(*args, **kwargs)
         read_only_fields = ['file_version', 'filename', 'ivorn',
             'coinc_comment', 'prob_has_ns', 'prob_has_remnant', 'prob_bns',
-            'prob_nsbh', 'prob_bbh', 'prob_terrestrial', 'prob_has_mass_gap', ]
+            'prob_nsbh', 'prob_bbh', 'prob_terrestrial', 'prob_has_mass_gap',
+            'prob_has_ssm']
         for f in read_only_fields:
             self.fields.get(f).read_only = True
 
