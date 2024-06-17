@@ -21,9 +21,8 @@ RUN_MAP = {
             # https://observing.docs.ligo.org/plan/
             # The LIGO Hanford (LHO), LIGO Livingston (LLO), and Virgo detectors transitioned
             # to the regular observing run O4b at 15:00 UTC on 10 April 2024. O4b will run
-            # until February 2025 (FIXME specific date TBD), with no further planned breaks
-            # in observing.
-            "O4b": (1396796418, 1423238418),
+            # until 9 June 2025 (assuming 15:00 UTC but FIXME later).
+            "O4b": (1396796418, 1433516418),
             # O4a started May 24, 2023 1500UTC and ended Jan 16, 2024 1600UTC
             "O4a": (1368975618, 1389456018),
           },
