@@ -723,6 +723,10 @@ PUBLIC_PAGE_CACHING = int(get_from_env('DJANGO_PUBLIC_PAGE_CACHING',
 PUBLIC_PAGE_RESULTS = int(get_from_env('DJANGO_PUBLIC_PAGE_RESULTS',
     fail_if_not_found=False, default_value=15))
 
+# Define DATA_UPLOAD_MAX_MEMORY_SIZE for larger uploads:
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(get_from_env('DJANGO_DATA_UPLOAD_MAX_MEMORY_SIZE',
+    fail_if_not_found=False, default_value=20*1024*1024))
+
 # Choose whether to use to Julian or Civil definition of year 
 # when displaying far's in /year:
 DISPLAY_CIVIL_YEAR_FAR = parse_envvar_bool(
