@@ -740,13 +740,20 @@ def populateGrbEventFromVOEventFile(filename, event):
     # Also grab parameters from embedded group if there, needed for SVOM
     Svom_ident = vp.convenience.get_grouped_params(v).get('Svom_Identifiers')
     Svom_detect = vp.convenience.get_grouped_params(v).get('Detection_Info')
+    Chime_observe = vp.convenience.get_grouped_params(v).get('observatory parameters')
+    Chime_event = vp.convenience.get_grouped_params(v).get('event parameters')
     if Svom_ident is not None:
         VOEvent_params.update(Svom_ident)
     if Svom_detect is not None:
         VOEvent_params.update(Svom_detect)
+    if Chime_observe is not None:
+        VOEvent_params.update(Chime_observe)
+    if Chime_event is not None:
+        VOEvent_params.update(Chime_event)
 
     trig_dur_params = ["Trig_Dur", "Trans_Duration", "Data_Integ", 
-                       "Integ_Time", "Trig_Timescale", "Timescale"]
+                       "Integ_Time", "Trig_Timescale", "Timescale",
+                       "sampling_time"]
     trigger_duration = None
     for param in trig_dur_params:
         if (param in VOEvent_params):
@@ -763,7 +770,7 @@ def populateGrbEventFromVOEventFile(filename, event):
     # try to find a trigger_id value
     trigger_id = None
     trigger_id_params = ['TrigID', 'Trans_Num', 'EventID',
-                         'Burst_Id']
+                         'Burst_Id', 'event_no']
     for param in trigger_id_params:
         if (param in VOEvent_params):
             trigger_id = VOEvent_params.get(param).get('value')
