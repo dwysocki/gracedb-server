@@ -6,4 +6,5 @@ python3 /app/gracedb_project/manage.py update_user_accounts_from_ligo_ldap robot
 python3 /app/gracedb_project/manage.py update_catalog_managers_group
 python3 /app/gracedb_project/manage.py remove_inactive_alerts
 python3 /app/gracedb_project/manage.py clearsessions 2>&1 | grep -v segment
+python3 /app/gracedb_project/manage.py remove_old_mdc_public_perms
 PGPASSWORD=$DJANGO_DB_PASSWORD psql -h $DJANGO_DB_HOST -U $DJANGO_DB_USER -c "VACUUM VERBOSE ANALYZE;" $DJANGO_DB_NAME
