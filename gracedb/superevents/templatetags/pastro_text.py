@@ -75,4 +75,4 @@ def json_text(graceid, data_format):
         prob = ''
 
     return mark_safe(join_char.join([html_format.format(prob=prob, source=i,
-        value=round(data[i], 6)) for i in data]))
+        value=(round(data[i], 6) if isinstance(data[i], float) else data[i])) for i in data]))
