@@ -105,11 +105,11 @@
 	    <th colspan="2"><h3>GRB Info</h3></th>
 	  </tr>
 	</thead>
-	<tr><td>IVORN</td><td>{{object.ivorn}}</td></tr>
-	<tr><td>Author</td><td>{{object.author_shortname}}</td></tr>
-	<tr><td>Author IVORN</td><td>{{object.author_ivorn}}</td></tr>
-	<tr><td>Observatory</td><td>{{object.observatory_location_id}}</td></tr>
-	<tr><td>How</th><td>
+	<tr><th class="collapsed-header">IVORN</th><td>{{object.ivorn}}</td></tr>
+	<tr><th class="collapsed-header">Author</th><td>{{object.author_shortname}}</td></tr>
+	<tr><th class="collapsed-header">Author IVORN</th><td>{{object.author_ivorn}}</td></tr>
+	<tr><th class="collapsed-header">Observatory</th><td>{{object.observatory_location_id}}</td></tr>
+	<tr><th class="collapsed-header">How</th><td>
 	    {% if object.how_reference_url %}
 	    <a href="{{object.how_reference_url}}" target="_new">{{object.how_description}}</a>
 	    {% else %}
@@ -117,22 +117,22 @@
 	    {% endif %}
 	  </td></tr>
 	  {% if object.trigger_id %}
-	  <tr><td>Trigger ID</td><td>{{object.trigger_id}}</td></tr>
+	  <tr><th class="collapsed-header">Trigger ID</th><td>{{object.trigger_id}}</td></tr>
 	  {% endif %}
 	  {% if object.trigger_duration %}
-	  <tr><td>Trigger duration</td><td>{{object.trigger_duration}}</td></tr>
+	  <tr><th class="collapsed-header">Trigger duration</th><td>{{object.trigger_duration}}</td></tr>
 	  {% endif %}
 	  {% if object.far %}
-	  <tr><td>FAR (Hz)</td><td>{{object.far}}</td></tr>
+	  <tr><th class="collapsed-header">FAR (Hz)</th><td>{{object.far}}</td></tr>
 	  {% endif %}
 	  {% if object.t90 %}
-	  <tr><td>T90</td><td>{{object.t90}}</td></tr>
+	  <tr><th class="collapsed-header">T90</th><td>{{object.t90}}</td></tr>
 	  {% endif %}
 	  {% if object.redshift %}
-	  <tr><td>Redshift</td><td>{{object.redshift}}</td></tr>
+	  <tr><th class="collapsed-header">Redshift</th><td>{{object.redshift}}</td></tr>
 	  {% endif %}
 	  {% if object.designation %}
-	  <tr><td>Event designation</td><td>{{object.designation}}</td></tr>
+	  <tr><th class="collapsed-header">Event designation</th><td>{{object.designation}}</td></tr>
 	  {% endif %}
       </table>
     </div>
@@ -149,10 +149,10 @@
 	  </tr>
 	</thead>
 	<tbody>
-	  <tr><td>Coord System</td><td>{{object.coord_system}}</td></tr>
-	  <tr><td>RA</td><td>{{object.ra}}</td></tr>
-	  <tr><td>Dec</td><td>{{object.dec}}</td></tr>
-	  <tr><td>Err</td><td>{{object.error_radius}}</td></tr>
+	  <tr><th class="collapsed-header">Coord System</th><td>{{object.coord_system}}</td></tr>
+	  <tr><th class="collapsed-header">RA</th><td>{{object.ra}}</td></tr>
+	  <tr><th class="collapsed-header">Dec</th><td>{{object.dec}}</td></tr>
+	  <tr><th class="collapsed-header">Err</th><td>{{object.error_radius}}</td></tr>
 	</tbody>
       </table> 
     </div>

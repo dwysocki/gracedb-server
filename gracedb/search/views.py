@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
+from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_GET
 
 from guardian.shortcuts import get_objects_for_user
@@ -31,6 +32,7 @@ def search(request):
         raw_query = request.GET['query']
 
         if form.is_valid():
+
             objects = form.cleaned_data.get('query')
             query_type = form.cleaned_data.get('query_type')
             get_neighbors = form.cleaned_data.get('get_neighbors')
@@ -44,7 +46,22 @@ def search(request):
             else:
                 return HttpResponseBadRequest(
                     "query_type should be 'S' or 'E'")
+
+            # Limit visibility of results based on user perms:
             objects = get_objects_for_user(request.user, view_perm, klass=objects)
+            num_objects = objects.count()
+
+            # Limit the number of results for web queries:
+            if num_objects > settings.MAX_DATATABLES_RESULTS:
+              err_msg = (f'The query you have entered returned more results '
+                         f'({num_objects}) than the allowable maximum '
+                         f' for viewing in the browser '
+                         f'({settings.MAX_DATATABLES_RESULTS}). Please limit '
+                         f'your query or utilize the '
+                         f'<a href="https://ligo-gracedb.readthedocs.io/en/latest/api.html">'
+                         f'client API</a>.')
+              form.add_error('query', mark_safe(err_msg))
+              return render(request, 'search/query.html', context={'form': form})
 
             # Get call from template for populating datatable
             if _format == 'F':
@@ -55,6 +72,7 @@ def search(request):
                         "results. Set 'results_format' to 'S' in your "
                         "query parameters.")
                     return HttpResponseBadRequest(err_msg)
+
                 # datatable format
                 if query_type == 'S':
                     # Superevent query

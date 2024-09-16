@@ -23,6 +23,13 @@ ServerName ${DJANGO_PRIMARY_FQDN}
     Require all granted
   </Directory>
 
+  # Improve proxy behavior with gunicorn:
+  # https://serverfault.com/questions/206738/intermittent-error-when-using-mod-proxy-to-do-reverse-proxy-to-soap-service#comment1327184_209006
+  # https://github.com/benoitc/gunicorn/issues/207
+
+  SetEnv force-proxy-request-1.0 1
+  SetEnv proxy-nokeepalive 1
+
   ## Custom fragment
   # gUnicorn edits
   Alias /shibboleth-ds/idpselect_config.js /etc/shibboleth-ds/idpselect_config.js

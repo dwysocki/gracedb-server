@@ -14,10 +14,10 @@
                         <th colspan="2"><h3>Omicron SNR</h3></th>
                     </tr>
                 </thead>
-                <tr> <td> Network </td> <td> {{object.omicron_snr_network|floatformat:"-4"}} </td> </tr> 
-                <tr> <td> H1 </td> <td> {{object.omicron_snr_H1|floatformat:"-4"}} </td> </tr> 
-                <tr> <td> L1 </td> <td> {{object.omicron_snr_L1|floatformat:"-4"}} </td> </tr> 
-                <tr> <td> V1 </td> <td> {{object.omicron_snr_V1|floatformat:"-4"}} </td> </tr> 
+                <tr> <th class="collapsed-header"> Network </th> <td> {{object.omicron_snr_network|floatformat:"-4"}} </td> </tr> 
+                <tr> <th class="collapsed-header"> H1 </th> <td> {{object.omicron_snr_H1|floatformat:"-4"}} </td> </tr> 
+                <tr> <th class="collapsed-header"> L1 </th> <td> {{object.omicron_snr_L1|floatformat:"-4"}} </td> </tr> 
+                <tr> <th class="collapsed-header"> V1 </th> <td> {{object.omicron_snr_V1|floatformat:"-4"}} </td> </tr> 
             </table>
         </div>
     </div>
@@ -32,9 +32,9 @@
                    <tr> <th></th><th>Mean</th><th>Median</th></tr>
 
                 </thead>
-                <tr> <td> Frequency (Hz) </td> <td>{{object.frequency_mean|floatformat:"-4"}}</td> <td>{{object.frequency_median|floatformat:"-4"}}</td> </tr> 
-                <tr> <td> hrss </td> <td>{{object.hrss_mean|scientific}}           </td> <td>{{object.hrss_median|scientific}} </td> </tr> 
-                <tr> <td> Quality </td> <td>{{object.quality_mean|floatformat:"-4"}}  </td> <td>{{object.quality_median|floatformat:"-4"}}</td> </tr> 
+                <tr> <th class="collapsed-header"> Frequency (Hz) </th> <td>{{object.frequency_mean|floatformat:"-4"}}</td> <td>{{object.frequency_median|floatformat:"-4"}}</td> </tr> 
+                <tr> <th class="collapsed-header"> hrss </th> <td>{{object.hrss_mean|scientific}}           </td> <td>{{object.hrss_median|scientific}} </td> </tr> 
+                <tr> <th class="collapsed-header"> Quality </th> <td>{{object.quality_mean|floatformat:"-4"}}  </td> <td>{{object.quality_median|floatformat:"-4"}}</td> </tr> 
             </table>
         </div>
     </div>
@@ -49,8 +49,8 @@
                         <th colspan="2"><h3>Additional oLIB Data</h3></th>
                     </tr>
                 </thead>
-                <tr> <td> BCI </td> <td> {{object.bci|floatformat:"-4"}} </td> </tr> 
-                <tr> <td> BSN </td> <td> {{object.bsn|floatformat:"-4"}} </td> </tr> 
+                <tr> <th class="collapsed-header"> BCI </th> <td> {{object.bci|floatformat:"-4"}} </td> </tr> 
+                <tr> <th class="collapsed-header"> BSN </th> <td> {{object.bsn|floatformat:"-4"}} </td> </tr> 
             </table>
         </div>
     </div>

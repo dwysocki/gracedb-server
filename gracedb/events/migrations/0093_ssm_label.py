@@ -18,7 +18,7 @@ def add_labels(apps, schema_editor):
     # Create labels
     for label_dict in LABELS:
         l, created = Label.objects.get_or_create(name=label_dict['name'])
-        if not created:
+        if created:
             l.defaultColor = label_dict['defaultColor']
             l.description = label_dict['description']
             l.save()

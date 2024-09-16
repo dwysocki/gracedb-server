@@ -738,3 +738,8 @@ if DISPLAY_CIVIL_YEAR_FAR:
     DAYS_PER_YEAR = 365.0
 else:
     DAYS_PER_YEAR = 365.25
+
+# Define MAX_DATATABLES_RESULTS to limit memory usage for web queries:
+MAX_DATATABLES_RESULTS = int(get_from_env('DJANGO_MAX_DATATABLES_RESULTS',
+    fail_if_not_found=False, default_value=1000))
+
