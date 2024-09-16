@@ -6,44 +6,101 @@
 
 {% block content %}
 <center>
-This page is currently in <span style="color:red;font-weight: bold;">beta</span>.
-Use for cross-checking and validation purposes only.
+  This page is currently in <span style="color:red;font-weight: bold;">beta</span>.
+  Use for cross-checking and validation purposes only.
 </center>
 
-{% autoescape off %}
-{{ latency_plot_div }}
-{% endautoescape %}
+<center>
+  <form action="" method="post">
+    {% csrf_token %}
+    <table>
+      {{ form.as_table }}
+    </table>
+    <input type="submit" value="Submit" class="btn btn-primary">
+  </form>
+</center>
 
-<div class="row my-3 justify-content-md-center">
-    <div class="col-md-8">
-        <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" style="text-align:center">
-            <thead>
-                <td> Pipeline </td>
-                <td> Uploads </td>
-                <td> Min. Latency (s) </td>
-                <td> Max Latency (s) </td>
-                <td> Avg. Latency (s) </td> 
-                <td> Std. Dev.  (s) </td> 
-            </thead>
-            {% for data in pipeline_stats %}
-              <tr>
-                  <!--<td style="font-family: monospace;"> {{data.name}} </td> -->
-                  <td style="font-family: 'Courier New', Courier, monospace; font-size: 12px; white-space: pre;"> {{data.name}} </td>
-                  <td> {{data.count}} </td>
-                  <td> {% if data.min %} {{data.min|floatformat:3}} 
-                           (<a href="{% url "view" data.min_gid %}">{{ data.min_gid }}</a>)
-                       {% endif %}
-                  </td>
-                  <td> {% if data.max %} {{data.max|floatformat:3}} 
-                           (<a href="{% url "view" data.max_gid %}">{{ data.max_gid }}</a>)
-                       {% endif %}
-                  </td>
-                  <td> {{data.avg|floatformat:3}} </td>
-                  <td> {{data.std|floatformat:3}} </td>
-              </tr>
-            {% endfor %}
-        </table>
+<ul class="nav nav-tabs" id="perfTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="latency-tab" data-toggle="tab" data-target="#latency" type="button" role="tab" aria-controls="latency" aria-selected="true">Event Latency</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tta-tab" data-toggle="tab" data-target="#tta" type="button" role="tab" aria-controls="tta" aria-selected="false">Time-to-Alert</button>
+  </li>
+</ul>
+
+<div class="tab-content" id="myTabContent">
+  <div class="tab-pane fade show active" id="latency" role="tabpanel" aria-labelledby="latency-tab">
+
+
+    {% autoescape off %}
+    {{ hist.latency_plot_div }}
+    {% endautoescape %}
+
+    <div class="row my-3 justify-content-md-center">
+      <div class="col-md-8">
+	<table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" style="text-align:center">
+	  <thead>
+	    <td> Pipeline </td>
+	    <td> # Uploads </td>
+	    <td> Median Latency (s) </td> 
+	    <td> 95th Percentile (s) </td> 
+	    <td> Min. Latency (s) </td>
+	    <td> Max Latency (s) </td>
+	  </thead>
+	  {% for data in hist.pipeline_stats %}
+	  <tr>
+	    <!--<td style="font-family: monospace;"> {{data.name}} </td> -->
+	    <td style="font-family: 'Courier New', Courier, monospace; font-size: 12px; white-space: pre;"> {{data.name}} </td>
+	    <td> {{data.count}} </td>
+	    <td> {{data.med|floatformat:3}} </td>
+	    <td> {{data.nfp|floatformat:3}} </td>
+	    <td> {% if data.min %} {{data.min|floatformat:3}} 
+	      (<a href="{% url "view" data.min_gid %}">{{ data.min_gid }}</a>)
+	      {% endif %}
+	    </td>
+	    <td> {% if data.max %} {{data.max|floatformat:3}} 
+	      (<a href="{% url "view" data.max_gid %}">{{ data.max_gid }}</a>)
+	      {% endif %}
+	    </td>
+	  </tr>
+	  {% endfor %}
+	</table>
+      </div>
     </div>
+
+  </div>
+
+  <div class="tab-pane fade" id="tta" role="tabpanel" aria-labelledby="tta-tab">
+    <br>
+    <p width='90%'>
+    The below chart shows the time-to-alert superevents currently in GraceDB within
+    the specified time range. Time-to-alert (in seconds) is calculated by subtracting
+    the <b>time of the astrophysical phenomenon</b>
+    (<span class="text-monospace">t<sub>0</sub></span> of the superevent) from the
+    <b>time when the <span class="text-monospace">GCN_PRELIM_SENT</span> label was applied.</b>
+    The actual receipt time of the alert by observing partners likely differs from this
+    estimate. Identify the Superevent ID by hovering over the data point.
+    </p>
+    <p width='90%'>
+    A single data-point at zero indicates that no superevents were labelled
+    <span class="text-monospace">GCN_PRELIM_SENT</span> within the specified time window.
+    </p>
+    {% autoescape off %}
+    {{ tta.tta_plot_div }}
+    {% endautoescape %}
+
+        <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" style="text-align:center; width:auto; margin-left: auto; margin-right: auto;">
+          <thead>
+            <td> Median Time-to-Alert (s) </td><td> 95th Percentile (s)</td>
+           </thead>
+           <tr>
+            <td>{{tta.tta_stats.med|floatformat:1}}</td><td>{{tta.tta_stats.nfp|floatformat:1}}</td>
+          </tr>
+
+        </table>
+
+  </div>
 </div>
 
 {% endblock %}

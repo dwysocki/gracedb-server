@@ -38,8 +38,9 @@ matplotlib==3.6.2
 mock==4.0.3
 numpy==1.25.2
 packaging==23.1
+pandas==2.2.2
 phonenumbers==8.13.18
-plotly==5.15.0
+plotly==5.23.0
 psycopg==3.1.12
 PyJWT==2.8.0
 python-ldap==3.4.4
@@ -61,5 +62,4 @@ pytest-django==4.5.2
 pytz==2023.3
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
-# pinning setuptools because of 2to3 errors from ConcurrentLogHandler:
-#setuptools==54.2.0
+tailslide==0.2.0
