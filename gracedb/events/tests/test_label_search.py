@@ -11,7 +11,6 @@ from search.query.labels import filter_for_labels
 def get_pks_for_query(queryString):
     qs = Event.objects.filter(parseQuery(queryString))
     qs = filter_for_labels(qs, queryString)
-    qs = qs.distinct()
     return [int(obj.id) for obj in qs]
 
 class LabelSearchTestCase(TestCase):

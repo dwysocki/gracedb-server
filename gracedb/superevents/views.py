@@ -9,6 +9,7 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.safestring import mark_safe
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_headers
 from django.views.generic.detail import DetailView
@@ -23,6 +24,7 @@ from events.models import EMGroup
 from events.models import Label
 from events.mixins import DisplayFarMixin
 from events.permission_utils import is_external
+from events.templatetags.mediaviews import tag_selecter
 from ligoauth.decorators import public_if_public_access_allowed
 from .mixins import ExposeHideMixin, OperatorSignoffMixin, \
     AdvocateSignoffMixin, PermissionsFilterMixin, ConfirmGwFormMixin, \
@@ -70,7 +72,10 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
     def get_gw_event_details(self, superevent=None):
 
         # Start with the list of gw_events:
-        gw_events = superevent.get_internal_events().order_by('id')
+        gw_events = superevent.get_internal_events() \
+                        .select_related('group', 'pipeline', 'search') \
+                        .prefetch_related('labelling_set', 'eventlog_set') \
+                        .order_by('id')
 
         # Loop over events and get info: 
         for gw in gw_events:
@@ -79,12 +84,12 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
             added = gw.eventlog_set.filter(comment__contains='Added to superevent')
             # Get when (and if) the event was set as preferred:
             set_as_preferred = gw.eventlog_set.filter(comment__contains='Set as preferred')
-            if added:
+            if added.exists():
                 gw.added_to_superevent = utc_datetime_decimal_seconds(added.last().created)
-            elif set_as_preferred:
+            elif set_as_preferred.exists():
                 gw.added_to_superevent = utc_datetime_decimal_seconds(set_as_preferred.first().created)
 
-            if set_as_preferred:
+            if set_as_preferred.exists():
                 gw.set_as_preferred = utc_datetime_decimal_seconds(set_as_preferred.first().created)
 
             # when the superevent was uploaded:
@@ -136,9 +141,14 @@ class SupereventDetailView(OperatorSignoffMixin, AdvocateSignoffMixin,
         log_set_query_kwargs = {}
         if context['user_is_external']:
             log_set_query_kwargs['tags__name'] = 'public'
-        context['log_list'] = superevent.log_set.filter(**log_set_query_kwargs)
+        context['log_list'] = superevent.log_set.filter(**log_set_query_kwargs) \
+                              .select_related('issuer') \
+                              .prefetch_related('tags')
 
-        # Get the associated event and timing info. 
+        # Render the tag selecter html
+        template = tag_selecter()
+        context['tag_selecter_name'] = mark_safe(template.format(form_name='name'))
+        context['tag_selecter_tagname'] = mark_safe(template.format(form_name='tagname'))
 
         return context
 

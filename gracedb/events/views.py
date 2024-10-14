@@ -9,6 +9,7 @@ from django.urls import reverse, reverse_lazy
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.decorators import method_decorator
+from django.utils.safestring import mark_safe
 from django.views.generic import ListView
 from django.views.generic.edit import UpdateView
 
@@ -18,6 +19,7 @@ from core.utils import far_sec_to_year
 from .models import Event, Group, EventLog, Label, Tag, Pipeline, Search, GrbEvent
 from .models import EMGroup, Signoff, PipelineLog
 from .forms import CreateEventForm, SignoffForm, GrbEventUpdateForm
+from .templatetags.mediaviews import tag_selecter
 
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import User, Permission
@@ -422,7 +424,7 @@ def view(request, event):
             except:
                 context['operator_signoff_object'] = None
             req_label = instrument + 'OPS'
-            label_exists = req_label in [l.label.name for l in event.labelling_set.all()]
+            label_exists = event.labels.filter(name=req_label).exists()
 
             context['operator_signoff_active'] = label_exists or context['operator_signoff_object']
 
@@ -443,7 +445,7 @@ def view(request, event):
             except:
                 context['advocate_signoff_object'] = None
             req_label = 'ADVREQ'
-            label_exists = req_label in [l.label.name for l in event.labelling_set.all()]
+            label_exists = event.labels.filter(name=req_label).exists()
 
             context['advocate_signoff_active'] = label_exists or context['advocate_signoff_object']
 
@@ -455,6 +457,11 @@ def view(request, event):
         context['log_too_big'] = True
         context['log_length'] = event.eventlog_set.count()
         context['max_log'] = settings.TOO_MANY_LOG_ENTRIES
+
+    # pre-render the tag_selecter html to limit hits to the db:
+    template = tag_selecter()
+    context['tag_selecter_tag_name'] = mark_safe(template.format(form_name='tag_name'))
+    context['tag_selecter_tagname'] = mark_safe(template.format(form_name='tagname'))
 
     # Choose your template according to the event's pipeline.
     templates = ['gracedb/event_detail.html',]
@@ -472,7 +479,7 @@ def view(request, event):
         templates.insert(0, 'gracedb/event_detail_injection.html')
     elif event.pipeline.name in ['oLIB',]:
         templates.insert(0, 'gracedb/event_detail_oLIB.html')
-    elif event.pipeline.name in ['MLy', 'aframe']:
+    elif event.pipeline.name in ['MLy', 'aframe', 'GWAK']:
         templates.insert(0, 'gracedb/event_detail_mly.html')
     elif event.pipeline.name in ['IceCube']:
         templates.insert(0, 'gracedb/event_detail_NE.html')
@@ -834,6 +841,8 @@ def modify_signoff(request, event):
             signoff_type = get_signoff_type(signoff_type))
 
         # Remove the request label.
+        # FIXME: This loop is kind of dumb, but g-event signoffs are vistigial
+        # at this point so i'm not sure this code gets executed anymore.
         for l in event.labelling_set.all():
             if l.label.name == req_label:
                 delete_label(event, request, req_label,

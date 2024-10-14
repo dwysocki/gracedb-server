@@ -28,7 +28,7 @@ class GraceQueryField(forms.CharField):
         queryString = forms.CharField.clean(self, queryString)
         try:
             qs = self.do_filtering(queryString)
-            return qs.distinct()
+            return qs
         except ParseException as e:
             err = "Error: " + escape(e.pstr[:e.loc]) + errorMarker + escape(e.pstr[e.loc:])
             raise forms.ValidationError(mark_safe(err))

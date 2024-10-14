@@ -215,17 +215,16 @@ def logboxes(log_list, autoescape=None):
     # database queries. 
 
     for tag_name in blessed_tag_priority_order:
-        # retrieve the tag object:
-        tag, created  = Tag.objects.get_or_create(name=tag_name)
-        #tag = Tag.objects.get(name=tag_name)
 
         # Filter the log list that contain the tag:
-        tagged_log_list = log_list.filter(tags=tag)
+        tagged_log_list = log_list.filter(tags__name=tag_name)
         
         # If there are log entries, then construct buttons
         # and a box:
         
-        if tagged_log_list:
+        if tagged_log_list.exists():
+            # Fetch the tag object to get the displayName
+            tag = Tag.objects.get(name=tag_name)
             rv_buttons += button_template.format(tag_name,
                     tag_name,
                     tag.displayName)
@@ -256,14 +255,12 @@ def filter_logs(log_list, tag_name=None, autoescape=None):
     return log_list 
 
 @register.filter
-def tag_selecter(name, autoescape=None):
+def tag_selecter(autoescape=None):
     rv = """"""
     rv += """<select class="form-control" multiple="multiple"
-                      name="{}">""".format(name)
-    for tag_name in blessed_tag_priority_order:
-        # retrieve the tag object:
-        tag, created  = Tag.objects.get_or_create(name=tag_name)
-        rv += """<option value="{tag_name}">{disp} ({tag_name})</option>""".format(tag_name=tag_name,
+                      name="{form_name}">"""
+    for tag in Tag.objects.filter(name__in=blessed_tag_priority_order):
+        rv += """<option value="{tag_name}">{disp} ({tag_name})</option>""".format(tag_name=tag.name,
                                                                       disp=tag.displayName)
     rv += """</select>"""
 

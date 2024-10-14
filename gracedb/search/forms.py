@@ -90,7 +90,7 @@ class MainSearchForm(forms.Form):
         try:
             qs = model.objects.filter(parse_func(query_string)) \
                 .select_related(*s_rel).prefetch_related(*p_rel)
-            qs = filter_for_labels(qs, query_string).distinct()
+            qs = filter_for_labels(qs, query_string)
             cleaned_data['query'] = qs
             return cleaned_data
         except ParseException as e:

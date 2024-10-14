@@ -38,7 +38,7 @@ class SupereventSearchFilter(filters.SearchFilter):
         try:
             filter_params = parseSupereventQuery(query)
             qs = queryset.filter(filter_params)
-            qs = filter_for_labels(qs, query).distinct()
+            qs = filter_for_labels(qs, query)
         except ParseException as e:
             raise exceptions.ParseError('Invalid query')
         except KeyError as e:

@@ -128,10 +128,14 @@ def latest(request):
         # the full queryset for viewing
         if query_type == 'E':
             objects = objects.exclude(null_events)
+            objects = objects.select_related('group', 'pipeline', 'search')
+            objects = objects.prefetch_related('labels')
             objects_key = 'events'
             view_perm = 'events.view_event'
         elif query_type == 'S':
             objects = objects.exclude(null_sevents)
+            objects = objects.select_related('preferred_event')
+            objects = objects.prefetch_related('events', 'labels')
             objects_key = 'superevents'
             view_perm = 'superevents.view_superevent'
         else:

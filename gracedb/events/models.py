@@ -682,6 +682,9 @@ class Labelling(m2mThroughBase):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     label = models.ForeignKey(Label, on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = (('event', 'label'),)
+
     def __str__(self):
         return six.text_type(
             "{graceid} | {label}".format(
@@ -807,6 +810,14 @@ class MLyBurstEvent(Event):
     central_time     	= models.FloatField(null=True)
     detection_statistic	= models.FloatField(null=True)
     snr              	= models.FloatField(null=True)
+    bbh     	        = models.FloatField(null=True)
+    sglf        	= models.FloatField(null=True)
+    sghf         	= models.FloatField(null=True)
+    background          = models.FloatField(null=True)
+    glitch              = models.FloatField(null=True)
+    freq_correlation    = models.FloatField(null=True)
+    channels           	= models.CharField(max_length=1024, blank=True)
+
 
 # Adding too many index tables can adversely affect write performance.
 # So I'm going to minimize how many of these are actually implemented. 
@@ -822,7 +833,14 @@ class MLyBurstEvent(Event):
                    models.Index(fields=['duration', ]),
                    models.Index(fields=['snr', ]),
                    models.Index(fields=['detection_statistic', ]),
-                   models.Index(fields=['central_time', ])]
+                   models.Index(fields=['central_time', ]),
+                   models.Index(fields=['bbh', ]),
+                   models.Index(fields=['sglf', ]),
+                   models.Index(fields=['sghf', ]),
+                   models.Index(fields=['background', ]),
+                   models.Index(fields=['glitch', ]),
+                   models.Index(fields=['freq_correlation', ]),
+            ]
 
 class MultiBurstEvent(Event):
     ifos             = models.CharField(max_length=20, default="")

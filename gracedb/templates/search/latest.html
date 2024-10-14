@@ -70,8 +70,8 @@
     <tr data-toggle="collapse" data-target="#{{ ev.graceid }}" class="accordian-toggle collapse-row collapsed">
         <td><a class="no-collapse-link" href="{% url "view" ev.graceid %}">{{ ev.graceid }}</a></td>
         <td>
-             {% for labelling in ev.labelling_set.all %}
-                <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
+             {% for label in ev.labels.all %}
+                <span style="color: {{ label.defaultColor }}">{{ label.name }}</span>
              {% endfor %}
         </td>
         <td>{{ ev.pipeline.name }} </td>
@@ -159,8 +159,8 @@
 
         <td><a class="no-collapse-link" href="{% url "superevents:view" sv.superevent_id %}" >{{ sv.superevent_id }}</a></td>
         <td>
-             {% for labelling in sv.labelling_set.all %}
-                <span title="{{labelling.creator.name}}  {{labelling.created|utc}}" style="color: {{labelling.label.defaultColor}}">{{ labelling.label.name }}</span>
+             {% for label in sv.labels.all %}
+                <span style="color: {{label.defaultColor}}">{{ label.name }}</span>
              {% endfor %}
         </td>
 
@@ -204,7 +204,7 @@
               <tr>
                <td><b>GW Events:</b></td>
                <td>
-                {% for ev in sv.get_internal_events %}
+                {% for ev in sv.get_internal_events.select_related.all %}
                       {{ ev | event_link_filter }}
                 {% endfor %}
                </td>

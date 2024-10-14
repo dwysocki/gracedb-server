@@ -1,4 +1,4 @@
-
+from django.db import IntegrityError
 from django.http import HttpResponse
 from django.urls import reverse
 from .models import Event, Group, EventLog, Labelling, Label
@@ -66,7 +66,7 @@ def _createEventFromForm(request, form):
             event = SimInspiralEvent()
         elif pipeline.name in ['oLIB',]:
             event = LalInferenceBurstEvent()
-        elif pipeline.name in ['MLy', 'aframe']:
+        elif pipeline.name in ['MLy', 'aframe', 'GWAK']:
             event = MLyBurstEvent()
         elif pipeline.name in ['IceCube']:
             event = NeutrinoEvent()
@@ -139,16 +139,14 @@ def _createEventFromForm(request, form):
                 warnings += [message]
 
             # Add labels here - need event to have been saved already
+            # Note: it's not possible to add duplicate labels at upload time
+            # because duplicates are removed from the label_list by cleaning form
+            # data. But, let's leave this here to catch other warnings from create_label
             for label in label_list:
-
-                # If event already has this label, don't do anything.
-                # Append a warning message.
-                if label in event.labels.all():
-                    warnings.append("Event {0} already labeled with '{1}'" \
-                        .format(event.graceid, label))
-                else:
-                    create_label(event, request, label.name,
-                        can_add_protected=False)
+                label_warn, label_created = create_label(event, request, label.name,
+                                               can_add_protected=False)
+                if not label_created:
+                    warnings.append(json.loads(label_warn)['warning'])
 
         except Exception as e:
             message = "Problem scanning data. No alert issued (%s)" % e
@@ -178,8 +176,8 @@ def create_label(event, request, labelName, can_add_protected=False,
     creator = request.user
     d = {}
     try:
-        label = Label.objects.filter(name=labelName)[0]
-    except IndexError:
+        label = Label.objects.get(name=labelName)
+    except Label.DoesNotExist:
         raise ValueError("No such Label '%s'" % labelName)
 
     # Check if label is protected
@@ -192,9 +190,7 @@ def create_label(event, request, labelName, can_add_protected=False,
     # track whether label is actually created so as to
     # send the correct HTTP response code
     label_created = False
-    if label in event.labels.all():
-        d['warning'] = "Event %s already labeled with '%s'" % (event.graceid, labelName)
-    else:
+    try:
         labelling = Labelling(
                 event = event,
                 label = label,
@@ -217,6 +213,8 @@ def create_label(event, request, labelName, can_add_protected=False,
         except Exception as e:
             logger.exception('Problem issuing alert (%s)' % str(e))
             d['warning'] = "Problem issuing alert (%s)" % str(e)
+    except IntegrityError:
+        d['warning'] = "Event %s already labeled with '%s'" % (event.graceid, labelName)
 
     # Return warning/error messages (for passing back to client)
     # and label_created bool
@@ -233,8 +231,8 @@ def delete_label(event, request, labelName, can_remove_protected=False,
     # First,throw out an error if the label doesn't exist in the list of available
     # labels.
     try:
-        label = Label.objects.filter(name=labelName)[0]
-    except IndexError:
+        label = Label.objects.get(name=labelName)
+    except Label.DoesNotExist:
         raise ValueError("No such Label '%s'" % labelName)
 
     # Check if label is protected

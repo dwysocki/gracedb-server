@@ -784,13 +784,23 @@ def mlyburst_to_dict(event):
     except:
         pass
     try:
+        channels_out = None
+        if event.channels:
+           channels_out = event.channels.split(',')
         return_dict.update({
             "bandwidth": event.bandwidth,
             "central_freq": event.central_freq,
             "central_time": event.central_time,
+            "channels": channels_out,
             "duration": event.duration,
             "SNR": event.snr,
             "detection_statistic": event.detection_statistic,
+            "bbh": event.bbh,
+            "sglf": event.sglf,
+            "sghf": event.sghf,
+            "background": event.background,
+            "glitch": event.glitch,
+            "freq_correlation": event.freq_correlation,
             })
     except:
         pass

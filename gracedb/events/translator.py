@@ -394,7 +394,7 @@ def handle_uploaded_data(event, datafilename,
         event.frequency_median = n_float(event_dict.get('frequency_posterior_median', None))
         event.save()
 
-    elif pipeline in ['MLy', 'aframe']:
+    elif pipeline in ['MLy', 'aframe', 'GWAK']:
         # copying this bit for MLy json files.
         # lambda function for converting to a type if not None
         typecast = lambda t, v: t(v) if v is not None else v
@@ -411,6 +411,30 @@ def handle_uploaded_data(event, datafilename,
         event.gpstime   = n_float(event_dict.get('gpstime'))
         event.far       = n_float(event_dict.get('far'))
 
+        # Get a channel list, and then convert it into a string representation
+        # ["IFO1:CHANNEL_NAME","IFO2:CHANNEL_NAME"]-->
+        #      "IFO1:CHANNEL_NAME,IFO2:CHANNEL_NAME"
+        channels_list = event_dict.get('channels')
+        sanitized_channels_list = None
+
+        # if it's a string representation of a list, then convert it:
+        if isinstance(channels_list, str):
+            try:
+                # Try converting it to a list:
+                sanitized_channels_list = json.loads(channels_list)
+            except JSONDecodeError:
+                try:
+                    # Maybe it's a single/double quotes thing?
+                    sanitized_channels_list = json.loads(channels_list.replace('\'', '"'))
+                except JSONDecodeError:
+                    # oh well
+                    pass
+        elif isinstance(channels_list, list):
+            sanitized_channels_list = channels_list
+
+        if sanitized_channels_list:
+            event.channels = ','.join(sanitized_channels_list)
+
         # Extract other attributes:
         event.central_freq  		= n_float(event_dict.get('central_freq', None))
         event.central_time  		= n_float(event_dict.get('central_time', None))
@@ -418,6 +442,14 @@ def handle_uploaded_data(event, datafilename,
         event.duration      		= n_float(event_dict.get('duration', None))
         event.snr           		= n_float(event_dict.get('SNR', None))
         event.detection_statistic	= n_float(event_dict.get('detection_statistic', None))
+
+        # Extract new attributes:
+        event.bbh		  	= n_float(event_dict.get('bbh', None))
+        event.sglf		  	= n_float(event_dict.get('sglf', None))
+        event.sghf		  	= n_float(event_dict.get('sghf', None))
+        event.background	  	= n_float(event_dict.get('background', None))
+        event.glitch	  		= n_float(event_dict.get('glitch', None))
+        event.freq_correlation  	= n_float(event_dict.get('freq_correlation', None))
 
         # event.instruments is attached to the base Event and event.ifos is
         # part of the MLyBurstEvent

@@ -47,7 +47,41 @@ Examples:
 
 Attributes in the common event object (e.g. ``gpstime``, ``far``, ``instruments``) do not need qualifiers.
 Attributes specific to inspiral or burst events, for example, require qualification.
-Abbreviations are available: ``si`` for ``singleinspiral``, ``ci`` for coincinspiral and ``mb`` for ``multiburst``.
+Abbreviations are available: ``si`` for ``singleinspiral``, ``ci`` for coincinspiral and ``mb`` for ``multiburst``. A full mapping of available abbreviations are in the table below:
+
+.. list-table:: Event Subclass Query Abbreviations
+   :widths: 25 25
+   :header-rows: 1
+
+   * - Event Subclass
+     - Query Abbreviation
+
+   * - ``coincinspiralevent``
+     - ``ci``, ``coincinspiral``
+
+   * - ``grbevent``
+     - ``grb``
+
+   * - ``lalinferenceburstevent``
+     - ``li``
+
+   * - ``mlyburstevent``
+     - ``ml``
+
+   * - ``multiburstevent``
+     - ``mb``, ``multiburst``
+
+   * - ``siminspiralevent``
+     - ``inj``
+
+   * - ``singleinspiral``
+     - ``si``
+
+Note that by a quirk of the query parser, querying for ``MLyBurstEvent`` attributes
+**must** use the ``ml`` abbreviation. In other words, querying for 
+``mlyburstevent.detection_statistic > 1.0`` will fail, but ``ml.detection_statistic > 1.0``
+will succeed. 
+
 
 By GPS time
 -----------

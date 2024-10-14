@@ -115,7 +115,7 @@ def superevent_flexigrid_response(request, objects):
                 django_reverse("superevents:view", args=[
                 object.superevent_id]), object.superevent_id),
             #Labels
-            " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();" style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name) for label in object.labelling_set.all()]),
+            " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();" style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name) for label in object.labelling_set.all().select_related()]),
             str(object.far),
             t_start_times.get('gps', ""),
             t_0_times.get('gps', ""),
@@ -217,7 +217,7 @@ def event_flexigrid_response(request, objects):
                             (django_reverse("view", args=[object.graceid]), object.graceid),
                          #Labels
                         " ".join(["""<span onmouseover="tooltip.show(tooltiptext('%s', '%s', '%s'));" onmouseout="tooltip.hide();"  style="color: %s"> %s </span>""" % (label.label.name, label.creator.username, label.created, label.label.defaultColor, label.label.name)
-                                for label in object.labelling_set.all()]),
+                                for label in object.labelling_set.all().select_related()]),
                         object.group.name,
                         object.pipeline.name,
                         search_name,
@@ -294,7 +294,7 @@ def superevent_datatables_response(request, objects):
             s.superevent_id)
 
         # Column 2, Labels:
-        row[1] = " ".join([LABEL_HTML_TEMPLATE.format(a.label.defaultColor, a.label.name) for a in s.labelling_set.all()])
+        row[1] = " ".join([LABEL_HTML_TEMPLATE.format(a.defaultColor, a.name) for a in s.labels.all()])
 
         # Column 3, FAR:
         row[2] = s.far
@@ -343,6 +343,7 @@ def event_datatables_response(request, objects):
 
     # select related objects to reduce the number of queries.
     objects = objects.select_related('group', 'pipeline', 'search', 'submitter')
+    objects = objects.prefetch_related('labels')
 
     # Initialize 'data':
     num_objects = objects.count()
@@ -359,7 +360,7 @@ def event_datatables_response(request, objects):
             e.graceid)
 
         # Column 2, Labels:
-        row[1] = " ".join([LABEL_HTML_TEMPLATE.format(a.label.defaultColor, a.label.name) for a in e.labelling_set.all()])
+        row[1] = " ".join([LABEL_HTML_TEMPLATE.format(a.defaultColor, a.name) for a in e.labels.all()])
 
         # Column 3, Group:
         row[2] = e.group.name

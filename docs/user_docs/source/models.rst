@@ -12,7 +12,7 @@ The different types of events in GraceDB are distinguished by the following para
 - ``Group``: the working group responsible for finding the candidate
     - values: ``CBC``, ``Burst``, ``Detchar``, ``External``, ``Test`` 
 - ``Pipeline``: the data analysis software tool used make the detection 
-    - values: ``CWB2G``, ``spiir``, ``HardwareInjection``, ``X``, ``Q``, ``Omega``, ``Ringdown``, ``Fermi``, ``Swift``, ``CWB``, ``SNEWS``, ``oLIB``, ``pycbc``, ``INTEGRAL``, ``AGILE``, ``gstlal``, ``MLy``, ``MBTAOnline``, ``MBTA``, ``CHIME``, ``PyGRB``, ``aframe``, ``SVOM``, ``IceCube``
+    - values: ``CWB2G``, ``spiir``, ``HardwareInjection``, ``X``, ``Q``, ``Omega``, ``Ringdown``, ``Fermi``, ``Swift``, ``CWB``, ``SNEWS``, ``oLIB``, ``pycbc``, ``INTEGRAL``, ``AGILE``, ``gstlal``, ``MLy``, ``MBTAOnline``, ``MBTA``, ``CHIME``, ``PyGRB``, ``aframe``, ``SVOM``, ``IceCube``, ``GWAK``
 - ``Search``: the search activity which led to the detection 
     - values: ``AllSky``, ``LowMass``, ``HighMass``, ``GRB``, ``Supernova``, ``MDC``, ``LowMassSim``, ``AllSkyLong``, ``O2VirgoTest``, ``BBH``, ``IMBH``, ``SubGRB``, ``EarlyWarning``, ``SubGRBTargeted``, ``SSM``, ``FRB``, ``LensingSubthreshold``, ``VTInjection``, ``HEN``
 
@@ -77,8 +77,8 @@ oLIB
 .. literalinclude:: dicts/event_olib.json
   :language: JSON
 
-Machine Learning (MLy, aframe)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Machine Learning (MLy, aframe, GWAK)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. literalinclude:: dicts/event_ml.json
   :language: JSON

@@ -163,6 +163,7 @@ tableTranslations = {
         'multiburst': 'multiburstevent',
         'grb': 'grbevent',
         'inj': 'siminspiralevent',
+        'ml': 'mlyburstevent',
         }
 
 def buildDjangoQueryField(toks):

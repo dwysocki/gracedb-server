@@ -819,7 +819,7 @@ class EventLabel(InheritPermissionsAPIView):
             return Response(labelToDict(theLabel, request=request))
         else:
             labels = [ labelToDict(x,request=request)
-                    for x in event.labelling_set.all() ]
+                    for x in event.labelling_set.all().select_related() ]
             return Response({
                 'links' : [{
                     'self': request.build_absolute_uri(),

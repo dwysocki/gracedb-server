@@ -2,7 +2,6 @@
 
 {%load scientific %}
 
-{# Analysis-specific attributes for a cWB event#}
 {% block analysis_specific %}
 
 <div class="row my-3 justify-content-md-center">
@@ -14,12 +13,19 @@
                         <th colspan="2"><h3>Machine Learning Info</h3></th>
                     </tr>
                 </thead>
-                <tr> <td> Bandwidth (Hz)  </th> <td> {{object.bandwidth|floatformat:"-4"}} </td> </tr>
-                <tr> <td> Central Time (s)  </th> <td> {{object.central_time|floatformat:"-4"}} </td> </tr>
-                <tr> <td> Central Frequency (s)  </th> <td> {{object.central_freq|floatformat:"-4"}} </td> </tr>
-                <tr> <td> Duration (s)  </th> <td> {{object.duration|floatformat:"-4"}} </td> </tr>
-                <tr> <td> SNR  </th> <td> {{object.snr|floatformat:"-4"}} </td> </tr>
-                <tr> <td> Detection Statistic  </th> <td> {{object.detection_statistic|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> Bandwidth (Hz)  </th> <td> {{object.bandwidth|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> Central Time (s)  </th> <td> {{object.central_time|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> Central Frequency (s)  </th> <td> {{object.central_freq|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> Channels  </th> <td> <span class="text-monospace"> {{object.channels}} </span></td> </tr>
+                <tr> <th class="collapsed-header"> Duration (s)  </th> <td> {{object.duration|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> SNR  </th> <td> {{object.snr|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> Detection Statistic  </th> <td> {{object.detection_statistic|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> BBH Weighted Score  </th> <td> {{object.bbh|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> Sine-Gaussian Low-Frequency Weighted Score  </th> <td> {{object.sglf|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> Sine-Gaussian High Frequency Weighted Score  </th> <td> {{object.sghf|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> Background Weighted Score  </th> <td> {{object.background|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> Glitch Weighted Score  </th> <td> {{object.glitch|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> Frequency Correlation Weighted Score  </th> <td> {{object.freq_correlation|floatformat:"-4"}} </td> </tr>
             </table>
         </div>
     </div>
@@ -35,9 +41,9 @@
                         <th colspan="2"><h3>MLy Score</h3></th>
                     </tr>
                 </thead>
-                <tr> <td> Coincidence </th> <td> {{object.score_coinc|floatformat:"-4"}} </td> </tr>
-                <tr> <td> Coherency </th> <td> {{object.score_coher|floatformat:"-4"}} </td> </tr>
-                <tr> <td> Combined </th> <td> {{object.score_comb|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> Coincidence </th> <td> {{object.score_coinc|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> Coherency </th> <td> {{object.score_coher|floatformat:"-4"}} </td> </tr>
+                <tr> <th class="collapsed-header"> Combined </th> <td> {{object.score_comb|floatformat:"-4"}} </td> </tr>
             </table>
         </div>
     </div>

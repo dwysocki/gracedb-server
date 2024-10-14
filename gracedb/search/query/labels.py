@@ -107,8 +107,16 @@ def filter_for_labels(qs, queryString):
     # Handle the ORs. We take the union of all QuerySets separated by 
     # OR operators.
     updated = True
+    or_filter_applied = False
     while updated:
         toks, updated = handle_binary_ops(toks,"or")
+        # Check to see if toks was updated and set the check variable
+        # to true. If there were no "or"s to begin with, it's never updated
+        # and so the variable remains false. But if updated is set to true
+        # at any point in this loop, then flip the variable and apply the
+        # distinct to the final queryset before returning.
+        if updated:
+            or_filter_applied = True
 
     # Handle the ANDs. Same kinda thang.
     updated = True
@@ -120,4 +128,9 @@ def filter_for_labels(qs, queryString):
         raise BadRequest("Bad label query: You are likely missing a binary operator "
             "in your label expression. All labels must be separated by & or |")
 
-    return toks[0]
+    # return the final queryset, and apply the "distinct" if there was a "or"
+    # somewhere in the label query.
+    if or_filter_applied:
+        return toks[0].distinct()
+    else:
+        return toks[0]
