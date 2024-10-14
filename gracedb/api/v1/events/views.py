@@ -73,6 +73,10 @@ use_in(ThoroughFlexibleContentHandler)
 REST_FRAMEWORK_SETTINGS = getattr(settings, 'REST_FRAMEWORK', {})
 PAGINATE_BY = REST_FRAMEWORK_SETTINGS.get('PAGINATE_BY', 10)
 
+# a "temporary" error message:
+xml_err_msg = ('ligolw-xml rendering has been disabled, please use the '
+               'ligo-gracedb API to download event coinc xml data.')
+
 # Custom APIView class for inheriting default permissions
 class InheritPermissionsAPIView(InheritDefaultPermissionsMixin, APIView):
     pass
@@ -374,6 +378,14 @@ class EventList(InheritPermissionsAPIView):
 
         events = Event.objects.filter(graceid__isnull=False)
 
+        # FIXME 20240923: ligolw rendering has been completely broken
+        # since the switch from glue. That hasn't stopped some random
+        # processes from requesting /api/events/ in the browser and throwing
+        # up errors. Return a 400 for now, and revisit fixing this later
+        # on (HA, sure).
+        if request.accepted_renderer.format == 'xml':
+            return HttpResponseBadRequest(xml_err_msg)
+
         if query:
             # If the user is external, we must check to make sure that any query on FAR
             # value is within the safe range.
@@ -410,9 +422,10 @@ class EventList(InheritPermissionsAPIView):
         numRows = events.count()
 
         # Fail if the output format is ligolw, and there are more than 1000 events
-        if request.accepted_renderer.format == 'xml' and numRows > 1000:
-            d = {'error': 'Too many events.' }
-            return Response(d, status=status.HTTP_400_BAD_REQUEST)
+        # FIXME when xml format is fixed
+        #if request.accepted_renderer.format == 'xml' and numRows > 1000:
+        #    d = {'error': 'Too many events.' }
+        #    return Response(d, status=status.HTTP_400_BAD_REQUEST)
 
         last = max(0, (numRows // count)) * count
         rv = {}
@@ -568,6 +581,14 @@ class EventDetail(InheritPermissionsAPIView):
         response = Response(eventToDict(event, request=request))
 
         response["Cache-Control"] = "no-cache"
+
+        # FIXME 20240923: ligolw rendering has been completely broken
+        # since the switch from glue. That hasn't stopped some random
+        # processes from requesting /api/events/ in the browser and throwing
+        # up errors. Return a 400 for now, and revisit fixing this later
+        # on (HA, sure).
+        if request.accepted_renderer.format == 'xml':
+            return HttpResponseBadRequest(xml_err_msg)
 
         # XXX Next, we try finalizing and rendering the response. According to
         # the django rest framework docs (see .render() in
