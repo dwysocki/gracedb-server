@@ -488,7 +488,8 @@ class EventList(InheritPermissionsAPIView):
         # AEP (May 2020): begin to depreciate pipelines that are no longer 
         # maintained or supported. Not sure this conditional is the best way
         # to do it, but it's a start.
-        if pipeline_name not in settings.DEPRECIATED_PIPELINES:
+        if pipeline_name not in settings.DEPRECIATED_PIPELINES + \
+            settings.UNAPPROVED_PIPELINES:
             # Check user authorization for pipeline. 
             group_name = request.data.get('group', None) 
             if not group_name=='Test':
@@ -540,9 +541,13 @@ class EventList(InheritPermissionsAPIView):
                 rv['errors'] = ["%s: %s" % (key, form.errors[key].as_text())
                         for key in form.errors]
                 return Response(rv, status=status.HTTP_400_BAD_REQUEST)
-        else:
+        elif pipeline_name in settings.DEPRECIATED_PIPELINES:
             err_msg =("The %s pipeline is no longer supported in GraceDB. Please "
                     "contact an administrator to re-enable support." % pipeline_name)
+            return HttpResponseBadRequest(err_msg)
+        elif pipeline_name in settings.UNAPPROVED_PIPELINES:
+            err_msg =("The %s pipeline is not approved to upload to GraceDB. "
+                    "Contact an administrator to enable uploads" % pipeline_name)
             return HttpResponseBadRequest(err_msg)
 
 

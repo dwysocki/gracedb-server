@@ -48,7 +48,7 @@ INFO_BANNER_MESSAGE = "TEST MESSAGE"
 BETA_REPORTS_LINK = False
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.28.2'
+PROJECT_VERSION = '2.29.0'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -271,6 +271,8 @@ DEPRECIATED_PIPELINES = [
                           'Q',
                           'Omega',
                         ]
+
+UNAPPROVED_PIPELINES = []
 
 # VOEvent stream --------------------------------------------------------------
 VOEVENT_STREAM = 'gwnet/LVC'

@@ -78,3 +78,6 @@ Events and associated data may change or be removed at any time.
 
 # Turn off public page caching for development and testing:
 PUBLIC_PAGE_CACHING = 0
+
+# Hardcode pipelines not approved for production (for vm testing)
+# UNAPPROVED_PIPELINES += ['aframe', 'GWAK']

@@ -85,3 +85,6 @@ mechanisms are:
 # Safety check on debug mode for production
 if (DEBUG == True):
     raise RuntimeError("Turn off debug mode for production")
+
+# Hardcode pipelines not approved for production:
+UNAPPROVED_PIPELINES += ['aframe', 'GWAK']
