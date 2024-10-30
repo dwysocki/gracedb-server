@@ -16,6 +16,48 @@ stages:
 before_script:
   - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
 
+include:
+  # Container scanning
+  - component: $CI_SERVER_FQDN/computing/gitlab/components/container-scanning/container-scanning@~latest
+    inputs:
+      job_name: branch_scan
+
+  # Software scanning
+  - component: $CI_SERVER_FQDN/computing/gitlab/components/sast/sast@~latest
+    inputs:
+      run_advanced_sast: true
+  - component: $CI_SERVER_FQDN/computing/gitlab/components/secret-detection/secret-detection@~latest
+  - component: $CI_SERVER_FQDN/computing/gitlab/components/python/dependency-scanning@~latest
+
+# -- software scanning
+# overwrite some settings for the scanning jobs
+
+dependency_scanning:
+  stage: test
+  needs: []
+  variables:
+    DEBIAN_FRONTEND: "noninteractive"
+  before_script:
+    # install some underlying utilities using `apt` so that the dependency
+    # scanner can use pip to install everything else
+    - apt-get update -yqq
+    - apt-get install -yqq
+        libkrb5-dev
+        libldap-dev
+        libsasl2-dev
+
+.sast-analyzer:
+  stage: test
+  needs: []
+  before_script: []
+
+secret_detection:
+  stage: test
+  needs: []
+  before_script: []
+
+# -- testing
+
 .test: &test
   image: igwn/base:bookworm
   services:
@@ -116,6 +158,8 @@ before_script:
 test:3.11:
   <<: *test
 
+# -- docker
+
 branch_image:
   stage: branch
   script:
@@ -128,6 +172,22 @@ branch_image:
       - stuck_or_timeout_failure
   tags:
       - executor-docker
+
+branch_scan:
+  stage: branch
+  needs: [branch_image]
+  # default rules spawn a merge request pipeline, we don't want that
+  rules:
+    - if: $CI_COMMIT_BRANCH
+  variables:
+    GIT_STRATEGY: fetch
+    # image to scan
+    CS_IMAGE: "$DOCKER_BRANCH"
+    # image to compare to
+    CS_DEFAULT_BRANCH_IMAGE: "$CI_REGISTRY/computing/gitlab/server:latest"
+    # path to Dockerfile for remediation
+    CS_DOCKERFILE_PATH: "Dockerfile"
+  before_script: []
 
 latest_image:
   stage: latest
