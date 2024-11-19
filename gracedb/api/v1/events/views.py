@@ -17,7 +17,6 @@ from django.http import HttpResponse, HttpResponseForbidden, \
     HttpResponseNotFound, HttpResponseServerError, HttpResponseBadRequest
 from django.http.request import QueryDict
 from django.utils.functional import wraps
-from django.utils.http import urlencode
 
 # Stuff for the LigoLwRenderer (converted from glue to ligo.lw)
 from ligo.lw import ligolw
@@ -28,7 +27,8 @@ from core.ligolw import ThoroughFlexibleContentHandler
 from ligo.lw.lsctables import use_in
 
 from guardian.models import GroupObjectPermission
-from rest_framework import authentication, parsers, serializers, status
+from rest_framework import authentication, parsers, \
+    serializers, status
 from rest_framework.exceptions import ValidationError as DrfValidationError
 from rest_framework.permissions import IsAuthenticated, BasePermission, \
     SAFE_METHODS
@@ -59,6 +59,8 @@ from search.forms import SimpleSearchForm
 from search.query.events import parseQuery, ParseException
 from superevents.models import Superevent
 from .permissions import CanUpdateGrbEvent
+from .paginators import CustomEventPagination
+from .serializers import EventSerializer, EventLogSerializer
 from .throttling import EventCreationThrottle, AnnotationThrottle
 from ..mixins import InheritDefaultPermissionsMixin
 from ...utils import api_reverse
@@ -76,6 +78,14 @@ PAGINATE_BY = REST_FRAMEWORK_SETTINGS.get('PAGINATE_BY', 10)
 # a "temporary" error message:
 xml_err_msg = ('ligolw-xml rendering has been disabled, please use the '
                'ligo-gracedb API to download event coinc xml data.')
+
+# parameters for select_related:
+event_related_objects = ('group', 'pipeline', 'search', 'submitter',
+                         'superevent')
+event_prefetch_objects = ('labels', 'grbevent', \
+    'neutrinoevent', 'coincinspiralevent', 'mlyburstevent', \
+    'multiburstevent', 'lalinferenceburstevent', 'siminspiralevent',
+    'singleinspiral_set')
 
 # Custom APIView class for inheriting default permissions
 class InheritPermissionsAPIView(InheritDefaultPermissionsMixin, APIView):
@@ -183,52 +193,6 @@ def event_perm_object_required(view):
         return view(self, request, event, group, permission, *args, **kwargs)
     return inner
 
-#class EventSerializer(serializers.ModelSerializer):
-#    # Overloaded fields.
-#    group = serializers.CharField(source="group.name")
-#    submitter = serializers.CharField(source="submitter.name")
-#    graceid = serializers.Field(source="graceid")
-#    analysisType = serializers.Field(source="get_analysisType_display")
-#
-#    # New fields.
-#    labels = serializers.SerializerMethodField('get_labels') 
-#    links = serializers.SerializerMethodField('get_links')
-#
-#    class Meta:
-#        model = Event
-#        fields = ('submitter', 'created', 'group', 'graceid',
-#                  'analysisType', 'gpstime', 'instruments',
-#                  'nevents', 'far', 'likelihood', 'labels',
-#                  'links',)
-#
-#    def get_labels(self,obj):
-#        request = self.context['request']
-#        graceid = obj.graceid
-#        return dict([
-#            (labelling.label.name,
-#                reverse("labels",
-#                    args=[graceid, labelling.label.name],
-#                    request=request))
-#            for labelling in obj.labelling_set.all()])
-#
-#    def get_links(self,obj):
-#        request = self.context['request']
-#        graceid = obj.graceid
-#        return {
-#            "neighbors" : reverse("neighbors", args=[graceid], request=request),
-#            "log"   : reverse("eventlog-list", args=[graceid], request=request),
-#            "files" : reverse("files", args=[graceid], request=request),
-#            "labels" : reverse("labels", args=[graceid], request=request),
-#            "self"  : reverse("event-detail", args=[graceid], request=request),
-#            "tags"  : reverse("eventtag-list", args=[graceid], request=request),
-#            }
-
-class EventLogSerializer(serializers.ModelSerializer):
-    """docstring for EventLogSerializer"""
-    comment =  serializers.CharField(required=True, max_length=200)
-    class Meta:
-        model = EventLog
-        fields = ('comment', 'issuer', 'created')
 #==================================================================
 # Custom renderers and various accoutrements
 
@@ -359,23 +323,22 @@ class EventList(InheritPermissionsAPIView):
     `curl -X POST -F "group=Test" -F "type=LM" -F "eventFile=@coinc.xml" --insecure --cert $X509_USER_PROXY https://gracedb.ligo.org/api/events/`
 
     """
-    #model = Event
-    #serializer_class = EventSerializer
+    model = Event
     permission_classes = (IsAuthenticated,IsAuthorizedForPipeline)
     parser_classes = (parsers.MultiPartParser,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LigoLwRenderer, TSVRenderer,)
     throttle_classes = (BurstAnonRateThrottle, EventCreationThrottle,)
+    paginator = CustomEventPagination()
 
     def get(self, request, *args, **kwargs):
-
         """I am the GET docstring for EventList"""
         query = request.query_params.get("query")
         count = request.query_params.get("count", PAGINATE_BY)
-        start = request.query_params.get("start", 0)
         sort = request.query_params.get("sort", "-created")
         columns = request.query_params.get("columns", "")
 
-
+        # Start with the base events queryset, all events in the db
+        # with a valid graceid:
         events = Event.objects.filter(graceid__isnull=False)
 
         # FIXME 20240923: ligolw rendering has been completely broken
@@ -386,10 +349,13 @@ class EventList(InheritPermissionsAPIView):
         if request.accepted_renderer.format == 'xml':
             return HttpResponseBadRequest(xml_err_msg)
 
+        # Check if this is an external request, only hit the db once:
+        request_is_external = is_external(request.user)
+
         if query:
             # If the user is external, we must check to make sure that any query on FAR
             # value is within the safe range.
-            if is_external(request.user):
+            if request_is_external:
                 try:
                     check_query_far_range(parseQuery(query))
                 except BadFARRange:
@@ -417,67 +383,20 @@ class EventList(InheritPermissionsAPIView):
             d = {'error': str(e) }
             return Response(d, status=status.HTTP_400_BAD_REQUEST)
 
-        start = int(start)
-        count = int(count)
-        numRows = events.count()
+        # For some reason, the query and filtering process broke the 
+        # select_related and prefetch_related, so do it now right before
+        # paginating the result. I think that's best practice anyway? 
+        events = events.select_related(*event_related_objects) \
+                     .prefetch_related(*event_prefetch_objects)
 
-        # Fail if the output format is ligolw, and there are more than 1000 events
-        # FIXME when xml format is fixed
-        #if request.accepted_renderer.format == 'xml' and numRows > 1000:
-        #    d = {'error': 'Too many events.' }
-        #    return Response(d, status=status.HTTP_400_BAD_REQUEST)
+        # Set up paginated reply:
+        serializer_context = {'request': request,
+            'request_is_external': request_is_external}
+        paginated_results = self.paginator.paginate_queryset(events, request)
+        serializer = EventSerializer(paginated_results, many=True,
+                         context=serializer_context)
+        return self.paginator.get_paginated_response(serializer.data)
 
-        last = max(0, (numRows // count)) * count
-        rv = {}
-        links = {}
-        rv['links'] = links
-        rv['events'] = [eventToDict(e, request=request)
-                for e in events[start:start+count]]
-        baseuri = api_reverse('events:event-list', request=request)
-
-        links['self'] = request.build_absolute_uri()
-
-        d = { 'start' : 0, "count": count, "sort": sort }
-        if query: d['query'] = query
-        links['first'] = baseuri + "?" + urlencode(d)
-
-        d['start'] = last
-        links['last'] = baseuri + "?" + urlencode(d)
-
-        if start != last:
-            d['start'] = start+count
-            links['next'] = baseuri + "?" + urlencode(d)
-        rv['numRows'] = numRows
-
-        response = Response(rv)
-
-        # XXX Next, we try finalizing and rendering the response. According to
-        # the django rest framework docs (see .render() in
-        # http://django-rest-framework.org/api-guide/responses.html), this is
-        # unusual. But we want to handle the exceptions raised during rendering 
-        # ourselves.  And that is not easy to do if the exceptions are raised 
-        # somewhere deep inside the entrails of django.
-        # NOTE: This will not result in two calls to render().  Django will check
-        # the _is_rendered property of the response before attempteding to render.
-        # I have tested this by putting logging commands inside the custom renderers.
-        try:
-            if request.accepted_renderer.format == 'xml':
-                response['Content-Disposition'] = 'attachment; filename=gracedb-query.xml'
-            # XXX Get the columns into renderer_context. Bizarre? Why, yes.
-            setattr(self, 'kwargs', {'columns': columns})
-            # NOTE When finalize_response is calld in its natural habitat, the 
-            # args and kwargs are the same as those passed to the 'handler', i.e., 
-            # the function we are presently inside.
-            response = self.finalize_response(request, response, *args, **kwargs)
-            response.render()
-        except Exception as e:
-            try:
-                status_code = e.status_code
-            except:
-                status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-            return Response({'error': str(e)}, status=status_code)
-
-        return response
 
     #@pipeline_auth_required
     def post(self, request, format=None):
@@ -574,7 +493,7 @@ class LigoLwParser(parsers.MultiPartParser):
 class EventDetail(InheritPermissionsAPIView):
     #parser_classes = (LigoLwParser, RawdataParser)
     parser_classes = (parsers.MultiPartParser,)
-    #serializer_class = EventSerializer
+    serializer_class = EventSerializer
     permission_classes = (IsAuthenticated,IsAuthorizedForEvent,)
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, LigoLwRenderer,)
 
@@ -582,8 +501,7 @@ class EventDetail(InheritPermissionsAPIView):
 
     @event_and_auth_required
     def get(self, request, event):
-        #response = Response(self.serializer_class(event, context={'request': request}).data)
-        response = Response(eventToDict(event, request=request))
+        response = Response(self.serializer_class(event, context={'request': request}).data)
 
         response["Cache-Control"] = "no-cache"
 

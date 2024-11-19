@@ -5,9 +5,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from guardian.models import GroupObjectPermission
 
+from api.v1.events.serializers import EventSerializer
 from core.urls import build_absolute_uri
 from events.shortcuts import is_event
-from events.view_utils import eventToDict, eventLogToDict, signoffToDict, \
+from events.view_utils import eventLogToDict, signoffToDict, \
     emObservationToDict, embbEventLogToDict, groupeventpermissionToDict, \
     labelToDict, voeventToDict
 from ..main import issue_alerts
@@ -20,14 +21,14 @@ logger = logging.getLogger(__name__)
 # NOTE: we have to be careful in all of these serializers since we want to
 # serialize the event subclass always, not the base event object.
 class AlertIssuerWithParentEvent(AlertIssuerWithParentObject):
-    parent_serializer_class = staticmethod(eventToDict)
+    parent_serializer_class = EventSerializer
 
     def serialize_obj(self):
         return self.serializer_class(self.obj)
 
     def serialize_parent(self):
         return self.parent_serializer_class(self.get_parent_obj(),
-            is_alert=True)
+            context={'is_alert': True}).data
 
     def _get_parent_obj(self):
         # Assumes that the obj has a direct relation to an event
@@ -44,14 +45,14 @@ class AlertIssuerWithParentEvent(AlertIssuerWithParentObject):
 
 
 class EventAlertIssuer(AlertIssuerWithParentEvent):
-    serializer_class = staticmethod(eventToDict)
+    serializer_class = EventSerializer
     alert_types = ['new', 'update', 'selected_as_preferred',
         'removed_as_preferred', 'added_to_superevent',
         'removed_from_superevent']
 
     def serialize_obj(self):
         return self.serializer_class(self.obj.get_subclass_or_self(),
-            is_alert=True)
+            context={'is_alert': True}).data
 
     def _get_parent_obj(self):
         return self.obj.get_subclass_or_self()
