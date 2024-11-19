@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 
 from guardian.shortcuts import get_objects_for_user
 from rest_framework import mixins, parsers, permissions, serializers, status, \
-    viewsets
+    viewsets, pagination
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -18,10 +18,18 @@ from gwtc.models import gwtc_catalog, gwtc_gevent, gwtc_superevent
 from .serializers import gwtc_serializer
 from .permissions import gwtc_model_permissions
 
+
+class custom_gwtc_paginator(pagination.LimitOffsetPagination):
+    default_limit = 10
+    limit_query_param = 'count'
+    offset_query_param = 'start'
+
+
 class gwtc_viewset(SafeCreateMixin, InheritDefaultPermissionsMixin,
                    viewsets.ModelViewSet):
     queryset = gwtc_catalog.objects.all()
     serializer_class = gwtc_serializer 
+    pagination_class = custom_gwtc_paginator
     permission_classes = (gwtc_model_permissions, )
 
     # This function gets called for 'list' methods, and returns a queryset. This
@@ -32,14 +40,15 @@ class gwtc_viewset(SafeCreateMixin, InheritDefaultPermissionsMixin,
         selected_number = self.kwargs.get('number')
         selected_version = self.kwargs.get('version')
 
-        # if no catalog number is specified, return all the catalogs
-        if not selected_number:
-            return self.queryset
-        else:
-            # if the user specified a number, but not a version, return all the versions
-            # of that catalog number
+        # if the catalog number is specified, then return the filtered queryset
+        if selected_number:
+            self.queryset = self.queryset.filter(number=selected_number)
 
-           return self.queryset.filter(number=selected_number)
+        return self.queryset.prefetch_related('gwtc_superevent_set',
+            'gwtc_superevent_set__superevent',
+            'gwtc_superevent_set__gwtc_gevent_set',
+            'gwtc_superevent_set__gwtc_gevent_set__gevent',
+            'gwtc_superevent_set__gwtc_gevent_set__gevent__pipeline')
 
     # This function gets called for 'list' methods, and returns a queryset. This
     # is called for `GET` requests to /api/gwtc/{number}/{version}

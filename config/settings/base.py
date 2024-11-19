@@ -463,7 +463,7 @@ REST_FRAMEWORK = {
     'ALLOWED_VERSIONS': ['default', 'v1', 'v2'],
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 1e7,
+    'PAGE_SIZE': 100,
     'DEFAULT_THROTTLE_CLASSES': (
         'api.throttling.BurstAnonRateThrottle',
     ),
