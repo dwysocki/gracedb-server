@@ -3,7 +3,8 @@ import os
 from lal import gpstime
 
 from django.conf import settings
-from django.db.models import Q
+from django.core.cache import cache
+from django.db.models import Prefetch, Q
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
@@ -218,10 +219,10 @@ class SupereventPublic(DisplayFarMixin, ListView):
     burst_skymap_filename = '{pipeline}.png'
     show_button_text = 'Show All Public Events'
     hide_button_text = 'Show Significant Events Only'
-
     button_text_dict = {'show_button_text': show_button_text,
             'hide_button_text': hide_button_text
             }
+    skymap_cache_key = '{sid}-skymap'
 
     # Override the standard get() method to allow for browser vs ajax requests.
     def get(self, request, **args):
@@ -282,8 +283,10 @@ class SupereventPublic(DisplayFarMixin, ListView):
 
         return (
             superevents
-            .prefetch_related('voevent_set', 'log_set')
-            .select_related('preferred_event')
+            .prefetch_related(Prefetch('log_set',
+                queryset=Log.objects.filter(filename__contains='omegascan'),
+                to_attr='omega_scan_logs'))
+            .select_related('preferred_event', 'preferred_event__group', 'preferred_event__pipeline')
         )
 
 
@@ -335,56 +338,53 @@ class SupereventPublic(DisplayFarMixin, ListView):
 
     def get_skymap_image(self, superevent, voevent=None):
         skymap_image = None
+        skymap_log_object = None
         public_logs = superevent.log_set.filter(tags__name='public')
 
         # Try to get skymap from latest non-retraction VOEvent
         if voevent is not None and voevent.skymap_filename is not None:
             # Assume filename is the same, with a different suffix.
-
             voevent_skymap_image, version = flexible_skymap_to_png(voevent.skymap_filename) 
 
             # See if a public log exists with that filename:
             if version:
-                skymap_log =list(public_logs.filter(filename=voevent_skymap_image,
-                                file_version=version).order_by('-file_version'))
-                if skymap_log:
-                    skymap_image = voevent_skymap_image
+                skymap_log = public_logs.filter(filename=voevent_skymap_image,
+                       file_version=version).order_by('-file_version')
             else: 
-                skymap_log = list(public_logs.filter(filename=voevent_skymap_image)\
-                                        .order_by('-file_version'))
-                if skymap_log:
-                    skymap_image = voevent_skymap_image
- 
+                skymap_log = public_logs.filter(filename=voevent_skymap_image)\
+                       .order_by('-file_version')
 
-        # If skymap_image is None, we didn't find an image based on the
+            skymap_log_object = skymap_log.first()
+
+        # If skymap_log_object is None, we didn't find a file based on the
         # skymap file in the VOEvent, so try the default. The name of a default
         # skymap will change if it's a burst event or not. 
-        if skymap_image is None:
+        if skymap_log_object is None:
             # Burst events:
             if superevent.preferred_event.group.name == 'Burst':
                 # Set up a filter for mixed (pipeline) case. 
                 # In O4, the convention was all lower case, but O3 was mixed case. argghhhh
-                skymap_log = list(public_logs.filter(filename__iexact=self.burst_skymap_filename.format(
-                    pipeline=superevent.preferred_event.pipeline.name)))
+                skymap_log = public_logs.filter(
+                        filename__iexact=self.burst_skymap_filename.format(
+                            pipeline=superevent.preferred_event.pipeline.name))
 
-                if skymap_log:
-                    skymap_image = skymap_log[0].filename
+                skymap_log_object = skymap_log.first()
 
             # Other events:
             else:
-                skymap_log = list(public_logs.filter(filename=self.default_skymap_filename))
-                if skymap_log:
-                    skymap_image = self.default_skymap_filename
+                skymap_log = public_logs.filter(filename=self.default_skymap_filename)
+                skymap_log_object = skymap_log.first()
 
-        if skymap_image:
+        if skymap_log_object:
             # Add version to image name to be safe
-            skymap_image = skymap_log[0].versioned_filename
+            skymap_image = skymap_log_object.versioned_filename
 
             skymap_image = reverse(
                 'legacy_apiweb:default:superevents:superevent-file-detail',
                 args=[superevent.default_superevent_id, skymap_image]
             )
         return skymap_image
+
 
     def get_context_data(self, **kwargs):
         context = super(SupereventPublic, self).get_context_data(**kwargs)
@@ -412,7 +412,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
         voe_query = VOEvent.objects.filter(superevent__in=self.object_list)\
                                     .exclude(voevent_type=VOEvent.VOEVENT_TYPE_RETRACTION)\
                                     .order_by('superevent_id', '-N')\
-                                    .distinct('superevent_id')
+                                    .distinct('superevent_id').select_related('superevent')
 
         # construct a dictionary where the key is a superevent_id and the value is the
         # associated voevent from the query above. This hits the database for every one of
@@ -426,7 +426,9 @@ class SupereventPublic(DisplayFarMixin, ListView):
 
         public_comments_set = Log.objects.filter(superevent__in=self.object_list)\
                                          .filter(tags__name='public')\
-                                         .filter(tags__name='analyst_comments')
+                                         .filter(tags__name='analyst_comments')\
+                                         .select_related('superevent')\
+                                         .prefetch_related('tags')
 
         # Construct a list of unique superevent ids that have public analyst comments.
         # This hits the database once:
@@ -473,8 +475,14 @@ class SupereventPublic(DisplayFarMixin, ListView):
             # Get the latest, non-retraction voevent:
             voe = voevent_dict.get(se.superevent_id, None)
 
-            # Get skymap image (if a public one exists)
-            se.skymap_image = self.get_skymap_image(se, voe)
+            # Get skymap image (if a public one exists). First see if the value is
+            # cached for the current superevent (key is superevent_id
+            se.skymap_image = cache.get(
+                self.skymap_cache_key.format(sid=se.superevent_id))
+            if not se.skymap_image:
+                se.skymap_image = self.get_skymap_image(se, voe)
+                cache.set(self.skymap_cache_key.format(sid=se.superevent_id),
+                    se.skymap_image, settings.PUBLIC_PAGE_CACHING)
 
             # Was the candidate retracted?
             se.retract = se in retracted_events

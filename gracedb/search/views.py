@@ -21,6 +21,21 @@ logger = logging.getLogger(__name__)
 null_events =  Q(graceid__isnull=True)
 null_sevents = Q(superevent_id__isnull=True)
 
+# related selecting and prefetching:
+sevent_select_set = ('preferred_event', 'preferred_event__pipeline',
+                'preferred_event__group',
+                'preferred_event__search',
+                'preferred_event__submitter',
+                'preferred_event__superevent',
+                'preferred_event__grbevent',
+                'preferred_event__neutrinoevent',
+                'preferred_event__coincinspiralevent',
+                'preferred_event__mlyburstevent',
+                'preferred_event__multiburstevent',
+                'preferred_event__lalinferenceburstevent',
+                'preferred_event__siminspiralevent',
+             )
+
 @require_GET
 def search(request):
 
@@ -134,7 +149,7 @@ def latest(request):
             view_perm = 'events.view_event'
         elif query_type == 'S':
             objects = objects.exclude(null_sevents)
-            objects = objects.select_related('preferred_event')
+            objects = objects.select_related(*sevent_select_set)
             objects = objects.prefetch_related('events', 'labels')
             objects_key = 'superevents'
             view_perm = 'superevents.view_superevent'
