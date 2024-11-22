@@ -20,6 +20,7 @@ from .settings import SUPEREVENT_LOOKUP_URL_KWARG
 from ..fields import ParentObjectDefault, DelimitedOrListField, \
     ChoiceDisplayField, CustomDecimalField
 from ..events.fields import EventGraceidField
+from ..events.serializers import EventSerializer
 from ...utils import api_reverse
 
 from events.view_utils import eventToDict
@@ -161,7 +162,14 @@ class SupereventSerializer(serializers.ModelSerializer):
         return obj.default_superevent_id
 
     def get_gw_events(self, obj):
-        return [ev.graceid for ev in obj.get_internal_events()]
+        # returned prefetched data, if it exists. Otherwise use the default
+        # method
+        try:
+            gw_events_list = [ev.graceid for ev in obj.internal_events]
+        except AttributeError:
+            gw_events_list = [ev.graceid for ev in obj.get_internal_events()]
+
+        return gw_events_list
 
     def get_pipeline_preferred_events(self, obj):
         ppe_data = {}
@@ -191,17 +199,26 @@ class SupereventSerializer(serializers.ModelSerializer):
                 }
                 ppe_data.update({ev.pipeline.name: rv})
         else:
+            serializer_context = {'request': request,
+                                  'is_alert': self.is_alert}
+            if request:
+                serializer_context.update(
+                    {'request_is_external': request.user.is_anonymous})
             for ev in obj.pipeline_preferred_events.all():
-                rv = {}
-                rv.update(event_basic_info_to_dict(ev, request))
-                rv.update({'labels': [l.name for l in ev.labels.all()]})
-                rv.update({'extra_attributes': assemble_event_extra_attributes(ev, request,
-                    self.is_alert)})
+                rv = EventSerializer(ev,
+                         context=serializer_context).data
                 ppe_data.update({ev.pipeline.name: rv})
         return ppe_data
 
     def get_em_events(self, obj):
-        return [ev.graceid for ev in obj.get_external_events()]
+        # returned prefetched data, if it exists. Otherwise use the default
+        # method
+        try:
+            ext_events_list = [ev.graceid for ev in obj.external_events]
+        except AttributeError:
+            ext_events_list = [ev.graceid for ev in obj.get_external_events()]
+
+        return ext_events_list
 
     def get_links(self, obj):
         bound_reverse = functools.partial(api_reverse,
@@ -237,7 +254,13 @@ class SupereventSerializer(serializers.ModelSerializer):
 
     def get_preferred_event_data(self, obj):
         request = self.context.get('request', None)
-        return eventToDict(obj.preferred_event, request=request, is_alert=self.is_alert)
+        serializer_context = {'request': request,
+                              'is_alert': self.is_alert}
+        if request:
+            serializer_context.update(
+                {'request_is_external': request.user.is_anonymous})
+        return EventSerializer(obj.preferred_event.get_subclass(),
+                   context=serializer_context).data
 
 
 class SupereventUpdateSerializer(SupereventSerializer):

@@ -5,6 +5,7 @@ import os
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db.models import Prefetch
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
@@ -68,6 +69,27 @@ EFS_RETRY_WAIT = 0.01
 
 APIWEB_ROOT = 'apiweb'
 
+# Add select_related and prefetch_related parameters:
+EVENT_SELECT_RELATED = ('pipeline', 'group', 'search', 'submitter',
+    'superevent', 'grbevent', 'neutrinoevent', 'coincinspiralevent',
+    'mlyburstevent', 'multiburstevent', 'lalinferenceburstevent',
+    'siminspiralevent'
+)
+SEVENT_SELECT_RELATED = ('preferred_event',
+    'preferred_event__pipeline',
+    'preferred_event__group',
+    'preferred_event__search',
+    'preferred_event__submitter',
+    'preferred_event__superevent',
+    'preferred_event__grbevent',
+    'preferred_event__neutrinoevent',
+    'preferred_event__coincinspiralevent',
+    'preferred_event__mlyburstevent',
+    'preferred_event__multiburstevent',
+    'preferred_event__lalinferenceburstevent',
+    'preferred_event__siminspiralevent',
+)
+
 
 class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
     viewsets.ModelViewSet):
@@ -89,6 +111,32 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
         'gw_date_number', 'category',
         'default_superevent_id',
         'time_coinc_far','space_coinc_far','em_type')
+
+    def get_queryset(self):
+
+        SEVENT_EVENT_PREFETCH = Prefetch('events', 
+            queryset=Event.objects.select_related(*EVENT_SELECT_RELATED))
+        SEVENT_EXTEVENT_PREFETCH = Prefetch('events', 
+            queryset=Event.objects.filter(group__name=settings.EXTERNAL_ANALYSIS_GROUP)\
+            .select_related(*EVENT_SELECT_RELATED),
+            to_attr='external_events')
+        SEVENT_INTEVENT_PREFETCH = Prefetch('events', 
+            queryset=Event.objects.exclude(group__name=settings.EXTERNAL_ANALYSIS_GROUP)\
+            .select_related(*EVENT_SELECT_RELATED),
+            to_attr='internal_events')
+        SEVENT_PPEVENT_PREFETCH = Prefetch('pipeline_preferred_events',
+            queryset=Event.objects.select_subclasses()\
+                .select_related(*EVENT_SELECT_RELATED))
+        SEVENT_PREFETCH_SET = (SEVENT_EVENT_PREFETCH,
+            SEVENT_EXTEVENT_PREFETCH,
+            SEVENT_INTEVENT_PREFETCH,
+            SEVENT_PPEVENT_PREFETCH,
+            'labels'
+        )
+
+        return self.queryset\
+            .select_related(*SEVENT_SELECT_RELATED)\
+            .prefetch_related(*SEVENT_PREFETCH_SET)
 
     def get_serializer_class(self):
         """Select a different serializer for updates"""

@@ -159,6 +159,8 @@ class EventSerializer(serializers.ModelSerializer):
 
     # New fields.
     labels = serializers.SerializerMethodField('get_labels')
+    created = serializers.DateTimeField(format=settings.GRACE_STRFTIME_FORMAT,
+        read_only=True)
     far_is_upper_limit = serializers.SerializerMethodField()
     extra_attributes = serializers.SerializerMethodField(allow_null=True)
     links = serializers.SerializerMethodField('get_links')
@@ -224,11 +226,12 @@ class EventSerializer(serializers.ModelSerializer):
         graceid = obj.graceid
         return {
             "neighbors" : api_reverse("events:neighbors", args=[graceid], request=self.request),
-            "log"   : api_reverse("events:eventlog-list", args=[graceid], request=self.request),
+            "log" : api_reverse("events:eventlog-list", args=[graceid], request=self.request),
+            "emobservations" : api_reverse("events:emobservation-list", args=[graceid], request=self.request),
             "files" : api_reverse("events:files", args=[graceid], request=self.request),
             "labels" : api_reverse("events:labels", args=[graceid], request=self.request),
-            "self"  : api_reverse("events:event-detail", args=[graceid], request=self.request),
-            "tags"  : api_reverse("events:eventtag-list", args=[graceid], request=self.request),
+            "self" : api_reverse("events:event-detail", args=[graceid], request=self.request),
+            "tags" : api_reverse("events:eventtag-list", args=[graceid], request=self.request),
             }
 
     # This is a dummy placeholder since it gets overwritten by to_representation
