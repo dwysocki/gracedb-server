@@ -7,6 +7,14 @@
 {% block content %}
 <p>Test and MDC events and superevents are not included in the search results by default. See the query help (link below) for information on how to search for events and superevents in those categories.</p>
 
+{% if message_text is not None %}
+
+<div class="alert alert-warning" role="alert">
+  {{ message_text }}
+</div>
+
+{% endif %}
+
 <form method="GET" name="search_form">
     <table width="100%">
         {{ form.as_table }}

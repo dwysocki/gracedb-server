@@ -71,12 +71,12 @@ def search(request):
               err_msg = (f'The query you have entered returned more results '
                          f'({num_objects}) than the allowable maximum '
                          f' for viewing in the browser '
-                         f'({settings.MAX_DATATABLES_RESULTS}). Please limit '
-                         f'your query or utilize the '
+                         f'({settings.MAX_DATATABLES_RESULTS}), and have been '
+                         f'truncated below. For complete results, please utilize the '
                          f'<a href="https://ligo-gracedb.readthedocs.io/en/latest/api.html">'
                          f'client API</a>.')
-              form.add_error('query', mark_safe(err_msg))
-              return render(request, 'search/query.html', context={'form': form})
+              context['message_text'] = mark_safe(err_msg)
+              objects=objects[:settings.MAX_DATATABLES_RESULTS]
 
             # Get call from template for populating datatable
             if _format == 'F':
@@ -111,6 +111,7 @@ def search(request):
     else:
         # Initial page with no query
         form = MainSearchForm()
+        context['message_text'] = None
 
     # Update context
     context['form'] = form
