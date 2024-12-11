@@ -38,8 +38,8 @@ class MainSearchForm(forms.Form):
     QUERY_TYPE_EVENT = 'E'
     QUERY_TYPE_SUPEREVENT = 'S'
     QUERY_TYPE_CHOICES = (
-        (QUERY_TYPE_EVENT, 'Event'),
-        (QUERY_TYPE_SUPEREVENT, 'Superevent'),
+        (QUERY_TYPE_EVENT, 'Events'),
+        (QUERY_TYPE_SUPEREVENT, 'Superevents'),
     )
     FORMAT_CHOICE_STANDARD = 'S'
     FORMAT_CHOICE_FLEXIGRID = 'F'
@@ -51,9 +51,17 @@ class MainSearchForm(forms.Form):
     )
 
     query = forms.CharField(required=False, widget=forms.TextInput(
-        attrs={'size': 40, 'style': 'width:85%'}))
+        attrs={'size': 40,
+               'class': 'form-control',
+               'placeholder': 'Enter query (e.g. O4 gstlal)'
+               }
+        ))
     query_type = forms.ChoiceField(required=True,
-        choices=QUERY_TYPE_CHOICES, label="Search for", initial='S')
+        choices=QUERY_TYPE_CHOICES, label="Search for", initial='S',
+        widget=forms.Select(
+            attrs={'class': 'form-control',
+                   'style': 'width:fit-content;'}
+        ))
     get_neighbors = forms.BooleanField(required=False,
         help_text="(Events only)")
     results_format = forms.ChoiceField(required=False, initial='S',

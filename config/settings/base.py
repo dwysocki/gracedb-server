@@ -48,7 +48,7 @@ INFO_BANNER_MESSAGE = "TEST MESSAGE"
 BETA_REPORTS_LINK = False
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.29.0'
+PROJECT_VERSION = '2.30.0'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -463,7 +463,7 @@ REST_FRAMEWORK = {
     'ALLOWED_VERSIONS': ['default', 'v1', 'v2'],
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 100,
+    'PAGE_SIZE': 1e7,
     'DEFAULT_THROTTLE_CLASSES': (
         'api.throttling.BurstAnonRateThrottle',
     ),

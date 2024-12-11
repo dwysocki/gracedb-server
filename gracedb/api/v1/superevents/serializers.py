@@ -286,6 +286,7 @@ class SupereventUpdateSerializer(SupereventSerializer):
         # We don't want to use the SupereventSerializer's validate method,
         # which is why we use that class in the super() call here
         data = super(SupereventSerializer, self).validate(data)
+
         preferred_event = data.get('preferred_event')
 
         # Only pass through attributes which are being changed
@@ -323,6 +324,16 @@ class SupereventUpdateSerializer(SupereventSerializer):
         updater = getattr(request, 'user', None)
         instance = update_superevent(instance, updater, add_log_message=True,
             issue_alert=True, **validated_data)
+
+        # In some cases when updating a superevent, the user can get an outdated
+        # version of the gw_events and external_events list from older instance
+        # of the superevent view. Note that this is only for the httpresponse and
+        # not the igwn-alert. This clears out the attributes that were previously
+        # fetched and stored in memory so that when sending the httpresponse, the
+        # the serializer makes an updated database pull:
+        for attr in ['external_events', 'internal_events']:
+           delattr(instance, attr)
+
         return instance
 
 
