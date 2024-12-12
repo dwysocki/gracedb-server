@@ -29,7 +29,8 @@ from ligo.lw.lsctables import use_in
 from guardian.models import GroupObjectPermission
 from rest_framework import authentication, parsers, \
     serializers, status
-from rest_framework.exceptions import ValidationError as DrfValidationError
+from rest_framework.exceptions import ValidationError as DrfValidationError, \
+    ErrorDetail
 from rest_framework.permissions import IsAuthenticated, BasePermission, \
     SAFE_METHODS
 from rest_framework.renderers import BaseRenderer, JSONRenderer, \
@@ -235,13 +236,23 @@ def assembleLigoLw(data):
 class LigoLwRenderer(BaseRenderer):
     media_type = 'application/xml'
     format = 'xml'
+    error_xml = '<?xml version="1.0" encoding="UTF-8" ?>'\
+        '<root><detail>{message}</detail>'\
+        '</root>'
 
     def render(self, data, media_type=None, renderer_context=None):
         # XXX If there was an error, we will return the error message
         # in plain text, effectively ignoring the accepts header. 
-        # Somewhat irregular?
+        # Somewhat irregular? edit: i would argue probably impossible, but
+        # let's fix this anyway.
         if 'error' in data:
-            return data['error']
+            return self.error_xml.format(message=data['error'])
+
+        # If data contains an expected error message, return the error, like
+        # if there is no authentication. Error is still in xml format since
+        # that's what browsers are expecting to render.
+        if isinstance(data.get('detail', None), ErrorDetail):
+            return self.error_xml.format(message=data['detail'])
         
         xmldoc = assembleLigoLw(data)
         # XXX Aaargh! Just give me the contents of the xml doc. Annoying.
@@ -346,6 +357,7 @@ class EventList(InheritPermissionsAPIView):
         # processes from requesting /api/events/ in the browser and throwing
         # up errors. Return a 400 for now, and revisit fixing this later
         # on (HA, sure).
+
         if request.accepted_renderer.format == 'xml':
             return HttpResponseBadRequest(xml_err_msg)
 
