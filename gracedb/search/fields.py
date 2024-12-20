@@ -12,6 +12,7 @@ from events.models import Event
 
 htmlEntityStar = "&#9733;"
 errorMarker = '<span style="color:red;">'+htmlEntityStar+'</span>'
+si_prefixes = ['si.', 'singleinspiral.']
 
 
 # NOTE: this is only used in SimpleSearchForm and should be removed
@@ -22,6 +23,9 @@ class GraceQueryField(forms.CharField):
         """Method for getting queryset based on a query string"""
         qs = Event.objects.filter(parseQuery(query_string))
         qs = filter_for_labels(qs, query_string)
+        # Hack to remove duplicate singleinspiral results:
+        if any(s in query_string for s in si_prefixes):
+           qs = qs.distinct()
         return qs
 
     def clean(self, queryString):

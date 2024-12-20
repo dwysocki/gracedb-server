@@ -25,6 +25,8 @@ errorMarker = '<span style="color:red;">'+htmlEntityStar+'</span>'
 created_vs_t0 = 'Invalid query. Hint: date queries on the created: field take the form YYYY-MM-DD .. ' \
         'YYYY-MM-DD. Date queries with gpstime are supported using the t_0: field'
 
+si_prefixes = ['si.', 'singleinspiral.']
+
 
 # Helper function to capture superevent created vs t_0 gpstime queries 
 # and return it to the user:
@@ -99,6 +101,9 @@ class MainSearchForm(forms.Form):
             qs = model.objects.filter(parse_func(query_string)) \
                 .select_related(*s_rel).prefetch_related(*p_rel)
             qs = filter_for_labels(qs, query_string)
+            # Hack to remove duplicate singleinspiral results:
+            if any(s in query_string for s in si_prefixes):
+               qs = qs.distinct()
             cleaned_data['query'] = qs
             return cleaned_data
         except ParseException as e:
