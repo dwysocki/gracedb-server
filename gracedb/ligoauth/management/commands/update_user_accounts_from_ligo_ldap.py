@@ -705,8 +705,8 @@ class LigoSciTokenRobotsLdap(LigoPeopleLdap):
 
 class KagraPeopleLdap(LigoPeopleLdap):
     name = 'kagra'
-    base_dn = "ou=people,o=KAGRA-LIGO,o=CO,dc=gwastronomy-data,dc=cgca,dc=uwm,dc=edu"
-    ldap_host = "ldaps://ldap.gw-astronomy.cilogon.org"
+    base_dn = "ou=people,o=KAGRA,dc=igwn,dc=org"
+    ldap_host = "ldaps://ldap.igwn.org"
     ldap_port = 636
     search_filter = "(cn=*)"
     search_scope = ldap.SCOPE_SUBTREE
@@ -741,12 +741,6 @@ class KagraPeopleLdap(LigoPeopleLdap):
             if (self.kagra_dn_key_substring in ''.join(val[1].keys())):
                 filtered_results.append(val)
         return filtered_results
-
-    def initialize(self):
-        ldap_address = '{host}:{port}'.format(host=self.ldap_host,
-            port=self.ldap_port)
-        self.ldap_object = ldap.initialize(ldap_address)
-        self.ldap_object.protocol_version = self.ldap_protocol_version
 
     def perform_query(self):
         ldap_result_id = self.ldap_object.search(self.base_dn,
