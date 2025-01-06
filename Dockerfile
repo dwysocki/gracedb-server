@@ -1,4 +1,4 @@
-FROM igwn/base:bookworm
+FROM debian:bookworm
 LABEL name="LIGO GraceDB Django application" \
       maintainer="alexander.pace@ligo.org" \
       date="20240306"
@@ -6,10 +6,13 @@ ARG SETTINGS_MODULE="config.settings.container.dev"
 
 COPY docker/SWITCHaai-swdistrib.gpg /etc/apt/trusted.gpg.d
 COPY docker/backports.pref /etc/apt/preferences.d
-RUN apt-get -y install gnupg
+RUN apt-get update && \
+    apt-get -y install gnupg curl
+
+
 RUN echo 'deb http://deb.debian.org/debian bookworm-backports main' > /etc/apt/sources.list.d/backports.list
 RUN echo 'deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main' > /etc/apt/sources.list.d/pgdg.list
-RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 RUN apt-get update && \
     apt-get --assume-yes upgrade && \
     apt-get install --install-recommends --assume-yes \
@@ -32,10 +35,6 @@ RUN apt-get update && \
         libfreetype6-dev \
         libxslt-dev \
         libsqlite3-dev \
-        ligo-ca-certs \
-        nodejs \
-        npm \
-        osg-ca-certs \
         php \
         php8.2-pgsql \
         php8.2-mbstring \
@@ -54,13 +53,22 @@ RUN apt-get update && \
         vim && \
     apt-get clean && \
     curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    apt-get update && apt-get install --assume-yes yarn && \
-    npm install -g bower
+    apt-get update && apt-get install --assume-yes yarn
 
 # Install AWS X-ray daemon
-RUN wget https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.deb
+RUN curl -O https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.deb
 RUN dpkg -i aws-xray-daemon-3.x.deb
 RUN rm aws-xray-daemon-3.x.deb
+
+# Install osg-ca-certs:
+RUN curl -O https://hypatia.aei.mpg.de/lsc-amd64-bookworm/osg-ca-certs_1.132NEW-1+deb12u0_all.deb
+RUN dpkg -i osg-ca-certs_1.132NEW-1+deb12u0_all.deb
+RUN rm osg-ca-certs_1.132NEW-1+deb12u0_all.deb
+
+# Install ligo-ca-certs:
+RUN curl -O https://hypatia.aei.mpg.de/lsc-amd64-bookworm/ligo-ca-certs_1.0.2-0+deb12u0_all.deb
+RUN dpkg -i ligo-ca-certs_1.0.2-0+deb12u0_all.deb
+RUN rm ligo-ca-certs_1.0.2-0+deb12u0_all.deb
 
 # Docker scripts:
 COPY docker/entrypoint /usr/local/bin/entrypoint
@@ -99,7 +107,6 @@ ADD . /app/gracedb_project
 
 # install gracedb application itself
 WORKDIR /app/gracedb_project
-RUN bower install --allow-root
 RUN pip3 install --upgrade pip --break-system-packages
 RUN pip3 install -r requirements.txt --break-system-packages
 
@@ -174,6 +181,10 @@ ENV XDG_CACHE_HOME /app/scitokens_cache
 # patch voeventparse for python3.10+:
 RUN sed -i 's/collections.Iterable/collections.abc.Iterable/g' /usr/local/lib/python3.11/dist-packages/voeventparse/voevent.py
 
+# Remove packages that expose security vulnerabilities and close out.
+# Edit: zlib1g* can't be removed because of a PrePend error
+RUN apt-get --assume-yes --purge autoremove wget libaom3 node-ip
+RUN apt-get clean
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint" ]
 CMD ["/usr/local/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]

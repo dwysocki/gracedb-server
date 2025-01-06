@@ -1,22 +1,7 @@
 {
   "name": "gracedb",
   "dependencies": {
-    "dgrid": "0.4.0",
     "dijit": "1.10.4",
-    "dojox": "1.10.4",
-    "jquery": "3.2.1",
-    "jquery-ui": "1.12.1",
-    "moment-timezone": "0.5.0",
-    "moment": "2.11.1",
-    "tablesaw": "3.1.2",
-    "materialize": "1.0.0",
-    "bootstrap": "4.1.0",
-    "datatables.net": "^1.10.22",
-    "datatables.net-bs4": "^3.2.2",
-    "ekko-lightbox": "^5.3.0",
-    "trumbowyg": "2.21.0"
-  },
-  "resolutions": {
-    "webcomponentsjs": "^0.6.0"
+    "dojox": "1.10.4"
   }
 }

@@ -258,7 +258,7 @@ def filter_logs(log_list, tag_name=None, autoescape=None):
 def tag_selecter(autoescape=None):
     rv = """"""
     rv += """<select class="form-control" multiple="multiple"
-                      name="{form_name}">"""
+                      name="{form_name}" id="tagSelect">"""
     for tag in Tag.objects.filter(name__in=blessed_tag_priority_order):
         rv += """<option value="{tag_name}">{disp} ({tag_name})</option>""".format(tag_name=tag.name,
                                                                       disp=tag.displayName)
