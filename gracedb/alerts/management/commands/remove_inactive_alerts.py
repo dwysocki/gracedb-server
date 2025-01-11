@@ -7,11 +7,12 @@ from django.core.management.base import BaseCommand, CommandError
 from alerts.models import Contact, Notification
 
 # Turn on x-ray tracing for improved performance in AWS
-try:
-    from aws_xray_sdk.core import xray_recorder
-    xray_recorder.begin_segment("remove-alerts-segment")
-except ModuleNotFoundError:
-    print("aws_xray_sdk not found, skipping.")
+if getattr(settings, 'ENABLE_AWS_XRAY', None):
+    try:
+        from aws_xray_sdk.core import xray_recorder
+        xray_recorder.begin_segment("remove-alerts-segment")
+    except ModuleNotFoundError:
+        print("aws_xray_sdk not found, skipping.")
 
 
 class Command(BaseCommand):

@@ -383,7 +383,6 @@ class SupereventEventSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Function-level import to prevent circular import in alerts
         from superevents.utils import add_event_to_superevent
-        from superevents.utils import add_event_to_superevent_followup
 
         superevent = validated_data.pop('superevent')
         event = validated_data.pop('event')
@@ -391,16 +390,6 @@ class SupereventEventSerializer(serializers.ModelSerializer):
         add_event_to_superevent(superevent, event, submitter,
             add_superevent_log=True, add_event_log=True,
             issue_alert=True)
-
-        # Compile keyword options for log and alert followup to the
-        # ResponseThenRun object. FIXME: turned off for xray testing
-        #self.resp_callback = add_event_to_superevent_followup
-        #self.resp_callback_kwargs = {'superevent': superevent,
-        #                             'event': event,
-        #                             'user': submitter,
-        #                             'add_event_log': True,
-        #                             'add_superevent_log': True,
-        #                             'issue_alert': True}
 
         return event
 

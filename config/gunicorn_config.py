@@ -28,7 +28,7 @@ bind = "127.0.0.1:{port}".format(port=GUNICORN_PORT)
 # deployment? 
 
 workers  = int(get_from_env('GUNICORN_WORKERS',
-                   default_value=multiprocessing.cpu_count()*4 + 1,
+                   default_value=multiprocessing.cpu_count()*3 + 1,
                    fail_if_not_found=False))
 
 # NOTE: it was found in extensive testing that threads > 1 are prone
@@ -49,7 +49,6 @@ threads = int(get_from_env('GUNICORN_THREADS',
                    fail_if_not_found=False))
 
 # Worker connections. Limit the number of connections between apache<-->gunicorn
-# This avoids the situation 
 
 worker_connections = workers * threads
 

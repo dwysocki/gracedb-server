@@ -1,6 +1,6 @@
 from concurrent_log_handler import ConcurrentRotatingFileHandler
 from datetime import datetime, timedelta
-import os, time, logging
+import os, time, logging, multiprocessing
 from os.path import abspath, dirname, join
 import socket
 from django.core.exceptions import ImproperlyConfigured
@@ -435,6 +435,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'computedfields',
     'django_postgres_vacuum',
+    'django_q',
 ]
 
 # Aliases for django-extensions shell_plus
@@ -740,6 +741,52 @@ if DISPLAY_CIVIL_YEAR_FAR:
     DAYS_PER_YEAR = 365.0
 else:
     DAYS_PER_YEAR = 365.25
+
+# Put in some setting for the redis queue backend
+ENABLE_REDIS_QUEUE = parse_envvar_bool(
+    get_from_env('DJANGO_ENABLE_REDIS_QUEUE',
+                 fail_if_not_found=False, default_value="false")
+)
+
+REDIS_QUEUE_ADDRESS = get_from_env('DJANGO_REDIS_QUEUE_ADDRESS',
+                 fail_if_not_found=False, default_value="127.0.0.1")
+
+REDIS_QUEUE_PORT = int(get_from_env('DJANGO_REDIS_QUEUE_PORT',
+                 fail_if_not_found=False, default_value="6379")
+)
+
+REDIS_QUEUE_DATABASE = int(get_from_env('DJANGO_REDIS_QUEUE_DATABASE',
+                 fail_if_not_found=False, default_value=0)
+)
+
+REDIS_QUEUE_WORKERS = int(get_from_env('DJANGO_REDIS_QUEUE_WORKERS',
+                   default_value=multiprocessing.cpu_count(),
+                   fail_if_not_found=False))
+
+REDIS_QUEUE_RETRY = int(get_from_env('DJANGO_REDIS_QUEUE_RETRY',
+                   default_value=40,
+                   fail_if_not_found=False))
+
+REDIS_QUEUE_TIMEOUT = int(get_from_env('DJANGO_REDIS_QUEUE_TIMEOUT',
+                   default_value=30,
+                   fail_if_not_found=False))
+
+REDIS_QUEUE_RECYCLE = int(get_from_env('DJANGO_REDIS_QUEUE_RECYCLE',
+                   default_value=500,
+                   fail_if_not_found=False))
+
+ENABLE_REDIS_CLUSTERED = parse_envvar_bool(
+    get_from_env('DJANGO_ENABLE_REDIS_CLUSTERED',
+                 fail_if_not_found=False, default_value="false")
+)
+
+# Define some defaults for the q-cluster parameters:
+Q_CLUSTER_NAME = 'gracedb-async-queue'
+Q_CLUSTER_LABEL = 'gracedb q cluster'
+
+if not ENABLE_REDIS_CLUSTERED:
+    Q_CLUSTER_NAME+=f'-{INTERNAL_HOSTNAME}'
+    Q_CLUSTER_LABEL+=f', {INTERNAL_HOSTNAME}'
 
 # Define MAX_DATATABLES_RESULTS to limit memory usage for web queries:
 MAX_DATATABLES_RESULTS = int(get_from_env('DJANGO_MAX_DATATABLES_RESULTS',

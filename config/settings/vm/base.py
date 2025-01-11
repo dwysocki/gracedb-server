@@ -61,6 +61,7 @@ MIDDLEWARE = [
 ]
 
 # Set caches:
+CACHE_MIDDLEWARE_SECONDS = 5
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
@@ -77,8 +78,32 @@ CACHES = {
         'LOCATION': 'api_throttle_cache', # Table name
     },    
 }
- 
-CACHE_MIDDLEWARE_SECONDS = 5
+
+# FIXME: hardwire this for now in the VMs for testing
+ENABLE_REDIS_QUEUE = True
+
+if ENABLE_REDIS_QUEUE:
+    # For async alert follow-up:
+    CACHES.update({"async_followup": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{REDIS_QUEUE_ADDRESS}:{REDIS_QUEUE_PORT}/{REDIS_QUEUE_DATABASE}",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }})
+
+
+    # Set queue backend for async django tasks:
+    # example django-redis connection
+    Q_CLUSTER = {
+        'name': Q_CLUSTER_NAME,
+        'label': Q_CLUSTER_LABEL,
+        'retry': REDIS_QUEUE_RETRY,
+        'timeout': REDIS_QUEUE_TIMEOUT,
+        'workers': REDIS_QUEUE_WORKERS,
+        'recycle': REDIS_QUEUE_RECYCLE,
+        'django_redis': 'async_followup'
+    }
 
 # DB "cool-down" factor for when a db conflict is detected. This
 # factor scales a random number of seconds between zero and one.

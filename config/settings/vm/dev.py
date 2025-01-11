@@ -28,7 +28,6 @@ MIDDLEWARE += [
 # Add to installed apps
 INSTALLED_APPS += [
     'debug_toolbar',
-    #'silk'
 ]
 
 # Add testserver to ALLOWED_HOSTS

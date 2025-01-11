@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -6,11 +7,12 @@ from guardian.models import UserObjectPermission
 from events.models import Pipeline
 
 # Silence the annoying xray warnings:
-try:
-    from aws_xray_sdk.core import xray_recorder
-    xray_recorder.begin_segment("update-catalog-managers")
-except ModuleNotFoundError:
-    print("aws_xray_sdk not found, skipping.")
+if getattr(settings, 'ENABLE_AWS_XRAY', None):
+    try:
+        from aws_xray_sdk.core import xray_recorder
+        xray_recorder.begin_segment("update-catalog-managers")
+    except ModuleNotFoundError:
+        print("aws_xray_sdk not found, skipping.")
 
 # Define some stuff:
 CM_GROUP = 'catalog_managers'

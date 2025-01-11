@@ -44,6 +44,7 @@ RUN apt-get update && \
         python3-libxml2 \
         python3-pip \
         procps \
+        redis \
         shibboleth-sp-common \
         shibboleth-sp-utils \
         libssl-dev \
@@ -80,6 +81,7 @@ COPY docker/supervisord-apache2.conf /etc/supervisor/conf.d/apache2.conf
 COPY docker/supervisord-igwn-alert-overseer.conf /etc/supervisor/conf.d/igwn-overseer.conf
 COPY docker/supervisord-shibd.conf /etc/supervisor/conf.d/shibd.conf
 COPY docker/supervisord-aws-xray.conf /etc/supervisor/conf.d/aws-xray.conf
+COPY docker/supervisord-qcluster.conf /etc/supervisor/conf.d/qcluster.conf
 
 # Apache configs:
 COPY docker/apache-config /etc/apache2/sites-available/gracedb.conf

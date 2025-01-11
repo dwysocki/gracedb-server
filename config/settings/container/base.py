@@ -212,6 +212,29 @@ CACHES = {
     },
 }
 
+if ENABLE_REDIS_QUEUE:
+    # For async alert follow-up:
+    CACHES.update({"async_followup": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://{REDIS_QUEUE_ADDRESS}:{REDIS_QUEUE_PORT}/{REDIS_QUEUE_DATABASE}",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }})
+
+
+    # Set queue backend for async django tasks:
+    # example django-redis connection
+    Q_CLUSTER = {
+        'name': Q_CLUSTER_NAME,
+        'label': Q_CLUSTER_LABEL,
+        'retry': REDIS_QUEUE_RETRY,
+        'timeout': REDIS_QUEUE_TIMEOUT,
+        'workers': REDIS_QUEUE_WORKERS,
+        'recycle': REDIS_QUEUE_RECYCLE,
+        'django_redis': 'async_followup'
+    }
+
 MIDDLEWARE = [
     'django.middleware.cache.UpdateCacheMiddleware',
     'core.middleware.maintenance.MaintenanceModeMiddleware',
