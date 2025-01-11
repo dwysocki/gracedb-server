@@ -111,10 +111,10 @@
 										  server_action="removed from"
 										  log_num="{{ log.N }}"
 										  tag_name="{{ tag.name }}">
-										<a href="javascript:$('#deleteTag-{{ log.N}}-{{ tag.name }}').submit();" data-toggle="tooltip" title="Delete tag">&#10060;</a></form></span>
+										<a href="#" data-target="#deleteTag-{{ log.N}}-{{ tag.name }}" class="deleteTagObject" data-toggle="tooltip" title="Delete tag">&#10060;</a></form></span>
 								{% endfor %}
 								<div style="float: right">
-									<a href="javascript:$('#addTag-{{ log.N }}').modal()" class="badge badge-info" data-toggle="tooltip" title="Add tag for log #{{ log.N }}">+</a>
+									<a href="#" data-target="#addTag-{{ log.N }}" class="badge badge-info openModal" data-toggle="tooltip" title="Add tag for log #{{ log.N }}">+</a>
 								</div>
 							</td>
 						</tr>
@@ -200,4 +200,24 @@ $('.trumbowyg-editor').prev(".trumbowyg-editor").css("min-height", "100px");
 			location.reload(true);
 		});
 	});
+</script>
+
+<script>
+document.querySelectorAll('.openModal').forEach(function(element) {
+    element.addEventListener('click', function(event) {
+        event.preventDefault();
+        var target = this.getAttribute('data-target');
+        $(target).modal('show');
+    });
+});
+</script>
+
+<script>
+document.querySelectorAll('.deleteTagObject').forEach(function(element) {
+    element.addEventListener('click', function(event) {
+        event.preventDefault();
+        var target = this.getAttribute('data-target');
+        $(target).submit();
+    });
+});
 </script>

@@ -306,7 +306,8 @@ EVENT_QUERY_TEST_DATA = [
     ("O4", run_map_search_filter("O4", "gpstime") & DEFAULT_EVENT_Q),
     # Manually test O4:
     ("O4", (Q(gpstime__range=RUN_MAP_FLAT["O4"][0]) |
-            Q(gpstime__range=RUN_MAP_FLAT["O4"][1])) & DEFAULT_EVENT_Q),
+            Q(gpstime__range=RUN_MAP_FLAT["O4"][1]) |
+            Q(gpstime__range=RUN_MAP_FLAT["O4"][2])) & DEFAULT_EVENT_Q),
     # test one of O4's subranges:
     ("O4a", run_map_search_filter("O4a", "gpstime") & DEFAULT_EVENT_Q),
     # and manually:

@@ -716,7 +716,7 @@ EVENT_SUPEREVENT_WINDOW_AFTER = 100
 
 # Define which observation periods to show on the public events page:
 # TODO: Group O4b and O4a under O4, once implemented.
-PUBLIC_PAGE_RUNS = ['O4', 'O4b', 'O4a', 'ER16', 'ER15', 'O3']
+PUBLIC_PAGE_RUNS = ['O4', 'O4c', 'O4b', 'O4a', 'ER16', 'ER15', 'O3']
 
 # Define how long to cache the public page:
 PUBLIC_PAGE_CACHING = int(get_from_env('DJANGO_PUBLIC_PAGE_CACHING',

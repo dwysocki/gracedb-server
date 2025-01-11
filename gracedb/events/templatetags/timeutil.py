@@ -80,9 +80,9 @@ def get_multitime_value(t, label, autoescape, format):
     if isinstance(t, datetime.datetime):
         display_time = utc_time
     else:
-        display_time = gps_time
+        display_time = str(gps_time) + ' (GPS time)'
 
-    rv = '<time utc="%s" gps="%14.3f" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
+    rv = '<time utc="%s" gps="%14.3f (GPS time)" llo="%s" lho="%s" virgo="%s" jsparsable="%s"%s>%s</time>' % \
             (utc_time, gps_time, llo_time, lho_time, virgo_time, js_parsable_time, label_attr, display_time)
 
     return mark_safe(rv)

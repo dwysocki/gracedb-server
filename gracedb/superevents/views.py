@@ -312,7 +312,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
         # https://git.ligo.org/computing/gracedb/server/-/issues/303#note_725082
         # So use Q filters for these:
         significant_filter = Q()
-        if self.obsrun in ['ER15', 'ER16', 'O4a', 'O4b', 'O4']:
+        if self.obsrun in ['ER15', 'ER16', 'O4a', 'O4b', 'O4c', 'O4']:
            significant_filter = Q(labels__name='ADVREQ') | \
                                 Q(labels__name='ADVOK') | \
                                 Q(labels__name='ADVNO')
@@ -330,7 +330,7 @@ class SupereventPublic(DisplayFarMixin, ListView):
     # Note: this value is also used as a trigger to show the significance
     # button and bullet.
     def insignificant_docs(self, run):
-        if run in ['ER15', 'ER16', 'O4a', 'O4b', 'O4']:
+        if run in ['ER15', 'ER16', 'O4a', 'O4b', 'O4c', 'O4']:
             return 'https://emfollow.docs.ligo.org/userguide/content.html#significance'
         else:
             return None

@@ -57,6 +57,13 @@
                             <div class="form-group">
                                 <label for="tagSelect" class="col-form-label">Log Message Tag</label>
                                 {{ tag_selecter_tagname }}
+                                {% if user.is_authenticated and am_group_authorized %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="public" name="tagname" id="publicCheck">
+                                    <label class="form-check-label" for="publicCheck"> Make log message public </label>
+                                </div>
+                                {% endif %}
+
                             </div>
                             <div class="form-group">
                                 <label for="fileInput">(Optional) Upload File with Log Message</label>
@@ -109,7 +116,7 @@
                                   server_action="removed from"
                                   log_num="{{ log.N }}"
                                   tag_name="{{ tag.name }}">
-                                <a href="javascript:$('#deleteTag-{{ log.N}}-{{ tag.name }}').submit();" data-toggle="tooltip" title="Delete tag">&#10060;</a></form>
+                                <a href="#" data-target="#deleteTag-{{ log.N}}-{{ tag.name }}" class="deleteTagObject" data-toggle="tooltip" title="Delete tag">&#10060;</a></form>
                             {% endif %}
                         </span>
 
@@ -117,7 +124,7 @@
                         {% if user.is_authenticated %} 
                         <!--only show add button for authorized users -->
                         <div style="float: right">
-                            <a href="javascript:$('#addTag-{{ log.N }}').modal()" class="badge badge-info" data-toggle="tooltip" title="Add tag for log #{{ log.N }}">+</a>
+                            <a href="#" data-target='#addTag-{{ log.N }}' class="badge badge-info openModal" data-toggle="tooltip" title="Add tag for log #{{ log.N }}">+</a>
                         </div>
                         {% endif %}
                     </td>
@@ -228,3 +235,23 @@ $('.trumbowyg-editor').prev(".trumbowyg-editor").css("min-height", "100px");
                 });
             });
         </script>
+
+<script>
+document.querySelectorAll('.openModal').forEach(function(element) {
+    element.addEventListener('click', function(event) {
+        event.preventDefault();
+        var target = this.getAttribute('data-target');
+        $(target).modal('show');
+    });
+});
+</script>
+
+<script>
+document.querySelectorAll('.deleteTagObject').forEach(function(element) {
+    element.addEventListener('click', function(event) {
+        event.preventDefault();
+        var target = this.getAttribute('data-target');
+        $(target).submit();
+    });
+});
+</script>

@@ -18,11 +18,15 @@ ExpressionOperator.setParseAction(lambda toks: EXPR_OPERATORS[toks[0]])
 # Dict of LIGO run names (keys) and GPS time range tuples (values)
 RUN_MAP = {
     "O4": {
+            # https://wiki.ligo.org/Operations/Agenda250109
+            # O4b -> O4c transition will happen on Tuesday Jan. 28th at 1700 UTC
+            # (GPS: 1422118818)
+            "O4c": (1422118818, 1433516418),
             # https://observing.docs.ligo.org/plan/
             # The LIGO Hanford (LHO), LIGO Livingston (LLO), and Virgo detectors transitioned
             # to the regular observing run O4b at 15:00 UTC on 10 April 2024. O4b will run
             # until 9 June 2025 (assuming 15:00 UTC but FIXME later).
-            "O4b": (1396796418, 1433516418),
+            "O4b": (1396796418, 1422118818),
             # O4a started May 24, 2023 1500UTC and ended Jan 16, 2024 1600UTC
             "O4a": (1368975618, 1389456018),
           },
