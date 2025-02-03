@@ -25,7 +25,10 @@
     <button class="nav-link active" id="latency-tab" data-toggle="tab" data-target="#latency" type="button" role="tab" aria-controls="latency" aria-selected="true">Event Latency</button>
   </li>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tta-tab" data-toggle="tab" data-target="#tta" type="button" role="tab" aria-controls="tta" aria-selected="false">Time-to-Alert</button>
+    <button class="nav-link" id="tta-tab" data-toggle="tab" data-target="#tta" type="button" role="tab" aria-controls="tta" aria-selected="false">Event Time-to-Alert</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="uta-tab" data-toggle="tab" data-target="#uta" type="button" role="tab" aria-controls="uta" aria-selected="false">Upload Time-to-Alert</button>
   </li>
 </ul>
 
@@ -74,13 +77,18 @@
   <div class="tab-pane fade" id="tta" role="tabpanel" aria-labelledby="tta-tab">
     <br>
     <p width='90%'>
-    The below chart shows the time-to-alert superevents currently in GraceDB within
-    the specified time range. Time-to-alert (in seconds) is calculated by subtracting
+    The below chart shows the event time-to-alert of superevents currently in GraceDB within
+    the specified time range. Event time-to-alert (in seconds) is calculated by subtracting
     the <b>time of the astrophysical phenomenon</b>
     (<span class="text-monospace">t<sub>0</sub></span> of the superevent) from the
     <b>time when the <span class="text-monospace">GCN_PRELIM_SENT</span> label was applied.</b>
     The actual receipt time of the alert by observing partners likely differs from this
     estimate. Identify the Superevent ID by hovering over the data point.
+    </p>
+    <p width='90%'>
+    Event time-to-alert is a measure of the duration of the total end-to-end alert process,
+    which includes data acquisition, calibration, distribution, pipeline analysis, and 
+    follow-up.
     </p>
     <p width='90%'>
     A single data-point at zero indicates that no superevents were labelled
@@ -92,10 +100,46 @@
 
         <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" style="text-align:center; width:auto; margin-left: auto; margin-right: auto;">
           <thead>
-            <td> Median Time-to-Alert (s) </td><td> 95th Percentile (s)</td>
+            <td> Median Event Time-to-Alert (s) </td><td> 95th Percentile (s)</td>
            </thead>
            <tr>
             <td>{{tta.tta_stats.med|floatformat:1}}</td><td>{{tta.tta_stats.nfp|floatformat:1}}</td>
+          </tr>
+
+        </table>
+
+  </div>
+
+  <div class="tab-pane fade" id="uta" role="tabpanel" aria-labelledby="uta-tab">
+    <br>
+    <p width='90%'>
+    The below chart shows the upload time-to-alert of superevents currently in GraceDB within
+    the specified time range. Upload time-to-alert (in seconds) is calculated by subtracting
+    the <b>time of superevent's first GW event upload to GraceDB</b>
+    (<span class="text-monospace">t<sub>0</sub></span> of the superevent) from the
+    <b>time when the <span class="text-monospace">GCN_PRELIM_SENT</span> label was applied.</b>
+    The actual receipt time of the alert by observing partners likely differs from this
+    estimate. Identify the Superevent ID by hovering over the data point.
+    </p>
+    <p width='90%'>
+    Upload time-to-alert is a measure of the duration of the follow-up process
+    after the first event is uploaded to GraceDB, and does not include data acquisition,
+    distribution, calibration, or analysis time.
+    </p>
+    <p width='90%'>
+    A single data-point at zero indicates that no superevents were labelled
+    <span class="text-monospace">GCN_PRELIM_SENT</span> within the specified time window.
+    </p>
+    {% autoescape off %}
+    {{ tta.uta_plot_div }}
+    {% endautoescape %}
+
+        <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded" style="text-align:center; width:auto; margin-left: auto; margin-right: auto;">
+          <thead>
+            <td> Median Upload Time-to-Alert (s) </td><td> 95th Percentile (s)</td>
+           </thead>
+           <tr>
+            <td>{{tta.uta_stats.med|floatformat:1}}</td><td>{{tta.uta_stats.nfp|floatformat:1}}</td>
           </tr>
 
         </table>

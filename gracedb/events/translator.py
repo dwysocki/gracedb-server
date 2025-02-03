@@ -438,7 +438,6 @@ def handle_uploaded_data(event, datafilename,
         # Extract other attributes:
         event.central_freq  		= n_float(event_dict.get('central_freq', None))
         event.central_time  		= n_float(event_dict.get('central_time', None))
-        event.channel	  		= event_dict.get('channel', '')
         event.bandwidth     		= n_float(event_dict.get('bandwidth', None))
         event.duration      		= n_float(event_dict.get('duration', None))
         event.snr           		= n_float(event_dict.get('SNR', None))

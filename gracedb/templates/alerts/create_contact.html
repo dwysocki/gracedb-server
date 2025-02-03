@@ -3,12 +3,11 @@
 
 {% block headcontents %}
     {{ block.super }}
-    <link rel="stylesheet" href="{% static "jquery-ui/themes/base/jquery-ui.min.css" %}" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css" />
 {% endblock %}
 
 {% block jscript %}
-<script src="{% static "jquery/dist/jquery.min.js" %}"></script>
-<script src="{% static "jquery-ui/jquery-ui.min.js" %}"></script>
+<script src="https://code.jquery.com/ui/1.14.1/jquery-ui.min.js" integrity="sha256-AlTido85uXPlSyyaZNsjJXeCs07eSv3r43kyCVc8ChI=" crossorigin="anonymous"></script>
 <script type="text/javascript">
 $(document).ready(function() {
     $("#tabs").toggle();
@@ -36,7 +35,7 @@ $(document).ready(function() {
 </ul>
 </div>
 
-<div id="tabs" style="min-width: 300px; max-width: 400px; display: none;">
+<div id="tabs" style="min-width: 300px; max-width: 800px; display: none;">
   <ul>
     {% for form in forms %}
     <li><a href="#tab-{{ forloop.counter }}">{{ form.key|title }} Notification</a></li>

@@ -131,6 +131,11 @@ def time_to_alert(start_date, end_date, superevent_category):
     sevents_values = list(sevents.values_list('superevent_id', 't_0', 'created'))
     label_values = list(labs.values_list('superevent__superevent_id', 'created'))
 
+    # Try and construct a list of the submission time of the first gw event for each
+    # of the superevents in the set. 
+    first_event_times = [s.get_internal_events().order_by('created').values_list('created', flat=True)[0]
+        for s in sevents]
+
     # Construct a list where each item looks like:
     # [superevent_id (string), created (datetime), time-to-alert (float)]
     #results = 
@@ -156,15 +161,51 @@ def time_to_alert(start_date, end_date, superevent_category):
     scatter_fig.update_traces(marker_size=10)
 
     scatter_fig.update_layout(title={
-                                'text': 'Superevent Time-to-Alert',
+                                'text': 'Superevent Event Time-to-Alert',
                                 'xanchor': 'center',
                                 'x':0.5,},
                                xaxis_title="Date",
-                               yaxis_title="Time-to-Alert (s)",
+                               yaxis_title="Event Time-to-Alert (s)",
                                autosize=True,
                                paper_bgcolor='rgba(0, 0, 0, 0)',
                                margin={'l': 0, 'r': 0},
                     )
+
+
+    # Now repeat the process for upload-to-alert (uta = label_time-first_event_time)
+    # [superevent_id (string), created (datetime), upload-to-alert (float)]
+    if sevents_values:
+        results = [[s[0], 
+                    s[2],
+                    (label_values[i][1] - first_event_times[i]).total_seconds()] for i, s in enumerate(sevents_values)]
+        np_results = np.array(results)
+    else:
+        np_results = np.zeros((1,3))
+
+    # Try making a pandas dataframe:
+    uta_pd_results = pd.DataFrame(np_results,
+                     columns=['superevent_id', 'created', 'upload_to_alert'],
+                     )
+
+    # Make a scatter plot:
+    uta_scatter_fig = px.scatter(uta_pd_results,
+                             x='created',
+                             y='upload_to_alert',
+                             hover_data='superevent_id',
+                          )
+    uta_scatter_fig.update_traces(marker_size=10)
+
+    uta_scatter_fig.update_layout(title={
+                                    'text': 'Superevent Upload Time-to-Alert',
+                                    'xanchor': 'center',
+                                    'x':0.5,},
+                                   xaxis_title="Date",
+                                   yaxis_title="Upload Time-to-Alert (s)",
+                                   autosize=True,
+                                   paper_bgcolor='rgba(0, 0, 0, 0)',
+                                   margin={'l': 0, 'r': 0},
+                        )
+
 
 
     return {'tta_plot_div': to_html(scatter_fig,
@@ -173,6 +214,12 @@ def time_to_alert(start_date, end_date, superevent_category):
                                  default_width='100%',),
             'tta_stats': {'med': pd_results['time_to_alert'].median(),
                           'nfp': pd_results['time_to_alert'].quantile(0.95)},
+            'uta_plot_div': to_html(uta_scatter_fig,
+                                 include_plotlyjs=False,
+                                 full_html=False,
+                                 default_width='100%',),
+            'uta_stats': {'med': uta_pd_results['upload_to_alert'].median(),
+                          'nfp': uta_pd_results['upload_to_alert'].quantile(0.95)},
        }
 
 
