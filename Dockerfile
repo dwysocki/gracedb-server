@@ -12,6 +12,7 @@ RUN apt-get update && \
 
 RUN echo 'deb http://deb.debian.org/debian bookworm-backports main' > /etc/apt/sources.list.d/backports.list
 RUN echo 'deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main' > /etc/apt/sources.list.d/pgdg.list
+RUN echo 'deb [trusted=yes] https://hypatia.aei.mpg.de/lsc-amd64-bookworm ./' > /etc/apt/sources.list.d/lscsoft.list
 RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 RUN apt-get update && \
     apt-get --assume-yes upgrade && \
@@ -35,6 +36,8 @@ RUN apt-get update && \
         libfreetype6-dev \
         libxslt-dev \
         libsqlite3-dev \
+        ligo-ca-certs \
+        osg-ca-certs \
         php \
         php8.2-pgsql \
         php8.2-mbstring \
@@ -60,16 +63,6 @@ RUN apt-get update && \
 RUN curl -O https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.deb
 RUN dpkg -i aws-xray-daemon-3.x.deb
 RUN rm aws-xray-daemon-3.x.deb
-
-# Install osg-ca-certs:
-RUN curl -O https://hypatia.aei.mpg.de/lsc-amd64-bookworm/osg-ca-certs_1.132NEW-1+deb12u0_all.deb
-RUN dpkg -i osg-ca-certs_1.132NEW-1+deb12u0_all.deb
-RUN rm osg-ca-certs_1.132NEW-1+deb12u0_all.deb
-
-# Install ligo-ca-certs:
-RUN curl -O https://hypatia.aei.mpg.de/lsc-amd64-bookworm/ligo-ca-certs_1.0.2-0+deb12u0_all.deb
-RUN dpkg -i ligo-ca-certs_1.0.2-0+deb12u0_all.deb
-RUN rm ligo-ca-certs_1.0.2-0+deb12u0_all.deb
 
 # Docker scripts:
 COPY docker/entrypoint /usr/local/bin/entrypoint
