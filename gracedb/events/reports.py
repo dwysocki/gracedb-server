@@ -249,9 +249,13 @@ def latency_histo(days_back, start_date, end_date, event_searches):
         # valid value of reporting_latency. There has to be a way to combine these so you
         # hit the db once, but for now its just once for a list of values, and once for
         # aggregated values. 
-        pipeline_query = Event.objects.filter(search__name__in=event_searches,
+
+        pipeline_query = Event.objects.exclude(
+                                  group__name='Test').exclude(
+                                  search__name='MDC').filter(
+                                  search__name__in=event_searches,
                                   offline=False,
-                                  created__gt=date_cutoff,                                                                               reporting_latency__isnull=False,
+                                  created__gt=date_cutoff,                                                                           reporting_latency__isnull=False,
                                   pipeline=pipeline).order_by('reporting_latency')
 
         # Get the list of values to generate the histogram:

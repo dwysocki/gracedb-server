@@ -111,6 +111,8 @@ class OrderedListModelMixin(object):
     a user-provided tuple (list_view_order_by).
     """
     list_view_order_by = ()
+    prefetched_parameters = (None, )
+    select_related_parameters = (None, )
 
     def __init__(self, **kwargs):
         super(OrderedListModelMixin, self).__init__(**kwargs)
@@ -125,6 +127,10 @@ class OrderedListModelMixin(object):
 
         # Custom ordering
         queryset = queryset.order_by(*self.list_view_order_by)
+
+        # Prefetch and select related:
+        queryset = queryset.prefetch_related(*self.prefetched_parameters)\
+                       .select_related(*self.select_related_parameters)
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -152,3 +158,23 @@ class InheritDefaultPermissionsMixin(object):
 
         # Return full list of instantiated permissions
         return [permission() for permission in permission_list]
+
+
+class LogPrefetchModelMixin(object):
+    """
+    Specify the parameters to select and prefetch from the database
+    for Log (Superevent/Event) Lists
+    """
+
+    prefetched_parameters = ('tags', )
+    select_related_parameters = ('issuer', )
+
+
+class LabellingPrefetchModelMixin(object):
+    """
+    Specify the parameters to select and prefetch from the database
+    for Superevent Label Lists
+    """
+
+    prefetched_parameters = (None, )
+    select_related_parameters = ('label', 'creator')

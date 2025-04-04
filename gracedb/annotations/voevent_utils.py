@@ -319,6 +319,7 @@ def construct_voevent_file(obj, voevent, request=None):
         v.What.append(p_pipeline)
 
         ## Search type
+        # if a search isn't set, then event.search returns None
         if event.search:
             p_search = vp.Param(
                 "Search",
@@ -336,10 +337,11 @@ def construct_voevent_file(obj, voevent, request=None):
             emcoinc_params = []
 
             ## External GCN ID
-            if ext_event.trigger_id:
+            ext_event_trigger_id = getattr(ext_event, 'trigger_id', None)
+            if ext_event_trigger_id:
                 p_extid = vp.Param(
                     "External_GCN_Notice_Id",
-                    value=ext_event.trigger_id,
+                    value=ext_event_trigger_id,
                     ucd="meta.id",
                     dataType="string"
                 )
@@ -347,10 +349,11 @@ def construct_voevent_file(obj, voevent, request=None):
                 emcoinc_params.append(p_extid)
 
             ## External IVORN
-            if ext_event.ivorn:
+            ext_event_ivorn = getattr(ext_event, 'ivorn', None)
+            if ext_event_ivorn:
                 p_extivorn = vp.Param(
                     "External_Ivorn",
-                    value=ext_event.ivorn,
+                    value=ext_event_ivorn,
                     ucd="meta.id",
                     dataType="string"
                 )
@@ -394,10 +397,11 @@ def construct_voevent_file(obj, voevent, request=None):
                emcoinc_params.append(p_deltat)
 
             ## Temporal Coinc FAR
-            if obj.time_coinc_far:
+            obj_time_coinc_far = getattr(obj, 'time_coinc_far', None)
+            if obj_time_coinc_far:
                 p_coincfar = vp.Param(
                     "Time_Coincidence_FAR",
-                    value=obj.time_coinc_far,
+                    value=obj_time_coinc_far,
                     ucd="arith.rate;stat.falsealarm",
                     ac=True,
                     unit="Hz"
@@ -407,10 +411,11 @@ def construct_voevent_file(obj, voevent, request=None):
                 emcoinc_params.append(p_coincfar)
 
             ## Spatial-Temporal Coinc FAR
-            if obj.space_coinc_far:
+            obj_space_coinc_far = getattr(obj, 'space_coinc_far', None)
+            if obj_space_coinc_far:
                 p_coincfar_space = vp.Param(
                     "Time_Sky_Position_Coincidence_FAR",
-                    value=obj.space_coinc_far,
+                    value=obj_space_coinc_far,
                     ucd="arith.rate;stat.falsealarm",
                     ac=True,
                     unit="Hz"

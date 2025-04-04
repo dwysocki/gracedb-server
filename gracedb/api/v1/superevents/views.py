@@ -52,7 +52,8 @@ from .settings import SUPEREVENT_LOOKUP_URL_KWARG, SUPEREVENT_LOOKUP_REGEX
 from .viewsets import SupereventNestedViewSet
 from ..filters import DjangoObjectAndGlobalPermissionsFilter
 from ..mixins import SafeCreateMixin, SafeDestroyMixin, ValidateDestroyMixin, \
-    InheritDefaultPermissionsMixin, ResponseThenRunMixin
+    InheritDefaultPermissionsMixin, LogPrefetchModelMixin, \
+    LabellingPrefetchModelMixin
 from ..paginators import BasePaginationFactory, CustomLabelPagination, \
     CustomLogTagPagination
 from ...utils import api_reverse
@@ -181,8 +182,6 @@ class SupereventViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
         serializer = self.get_serializer(superevent)
         return Response(serializer.data)
 
-#FIXME: turning off responsethenrun for xray testing
-#class SupereventEventViewSet(ValidateDestroyMixin, ResponseThenRunMixin,
 class SupereventEventViewSet(ValidateDestroyMixin,
     InheritDefaultPermissionsMixin, SupereventNestedViewSet):
     """View for events attached to a superevent"""
@@ -270,7 +269,8 @@ class SupereventPipelinePreferredEventViewSet(ValidateDestroyMixin,
             add_event_log=True, issue_alert=False)
 
 class SupereventLabelViewSet(ValidateDestroyMixin,
-    InheritDefaultPermissionsMixin, SupereventNestedViewSet):
+    InheritDefaultPermissionsMixin,  LabellingPrefetchModelMixin,
+    SupereventNestedViewSet):
     """Superevent labels"""
     serializer_class = SupereventLabelSerializer
     pagination_class = CustomLabelPagination
@@ -295,7 +295,7 @@ class SupereventLabelViewSet(ValidateDestroyMixin,
 
 
 class SupereventLogViewSet(SafeCreateMixin, InheritDefaultPermissionsMixin,
-    SupereventNestedViewSet):
+    LogPrefetchModelMixin, SupereventNestedViewSet):
     """
     View for log messages attached to a superevent.
     """

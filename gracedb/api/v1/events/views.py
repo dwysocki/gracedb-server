@@ -745,16 +745,18 @@ class EventLabel(InheritPermissionsAPIView):
 
     @event_and_auth_required
     def get(self, request, event, label=None):
+
+        ls = event.labelling_set.select_related('label', 'creator')
         if label is not None:
-            theLabel = event.labelling_set.filter(label__name=label).all()
-            if len(theLabel) < 1:
+            try:
+                theLabel = ls.get(label__name=label)
+                return Response(labelToDict(theLabel, request=request))
+
+            except Labelling.DoesNotExist:
                 return Response("Label %s Not Found" % label,
                         status=status.HTTP_404_NOT_FOUND)
-            theLabel = theLabel[0]
-            return Response(labelToDict(theLabel, request=request))
         else:
-            labels = [ labelToDict(x,request=request)
-                    for x in event.labelling_set.all().select_related() ]
+            labels = [ labelToDict(x,request=request) for x in ls ]
             return Response({
                 'links' : [{
                     'self': request.build_absolute_uri(),
@@ -804,7 +806,9 @@ class EventLogList(InheritPermissionsAPIView):
 
     @event_and_auth_required
     def get(self, request, event):
-        logset = event.eventlog_set.order_by("created","N")
+        logset = event.eventlog_set.order_by("created","N")\
+                     .prefetch_related('tags')\
+                     .select_related('issuer')
 
         # Filter log messages for external users.
         if is_external(request.user):
@@ -813,7 +817,7 @@ class EventLogList(InheritPermissionsAPIView):
         count = logset.count()
 
         log = [ eventLogToDict(log, request)
-                for log in logset.iterator() ]
+                for log in logset ]
 
         rv = {
                 'start': 0,

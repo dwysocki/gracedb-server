@@ -25,18 +25,27 @@ ALLOWED_HOSTS += ['testserver']
 
 # Set up Sentry for error logging
 sentry_dsn = get_from_env('DJANGO_SENTRY_DSN', fail_if_not_found=False)
+# Set up sentry tracing:
+sentry_tracing = float(get_from_env('DJANGO_SENTRY_TRACES', fail_if_not_found=False,
+                     default_value=0.0))
 if sentry_dsn is not None:
     USE_SENTRY = True
 
     # Set up Sentry
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
-    sentry_sdk.init(
-        environment='playground',
-        dsn=sentry_dsn,
-        integrations=[DjangoIntegration()],
-        before_send=before_send,
-    )
+
+    sentry_init_kwargs = {
+        'environment': 'playground',
+        'dsn': sentry_dsn,
+        'integrations': [DjangoIntegration()],
+        'before_send': before_send,
+    }
+
+    if bool(sentry_tracing):
+        sentry_init_kwargs.update({'traces_sample_rate': sentry_tracing})
+
+    sentry_sdk.init(**sentry_init_kwargs)
 
     # Turn off default admin error emails
     LOGGING['loggers']['django.request']['handlers'] = []

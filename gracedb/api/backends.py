@@ -7,7 +7,7 @@ import re
 from django.contrib.auth import get_user_model, authenticate
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.http import HttpResponseForbidden
+from django.core.exceptions import BadRequest
 from django.utils import timezone
 from django.utils.http import unquote
 from django.utils.translation import gettext_lazy as _
@@ -88,9 +88,14 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
             bearer = request.headers["Authorization"]
         except KeyError:
             return None
-        auth_type, serialized_token = bearer.split()
-        if  auth_type != "Bearer":
-            return None
+
+        try:
+            auth_type, serialized_token = bearer.split()
+            if  auth_type != "Bearer":
+                return None
+        except ValueError:
+            raise BadRequest("Malformed 'Bearer' string "
+                       "in Authorization header")
 
         # Deserialize token
         try:
