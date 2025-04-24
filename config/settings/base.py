@@ -788,3 +788,8 @@ if not ENABLE_REDIS_CLUSTERED:
 MAX_DATATABLES_RESULTS = int(get_from_env('DJANGO_MAX_DATATABLES_RESULTS',
     fail_if_not_found=False, default_value=1000))
 
+DISABLE_X509 = parse_envvar_bool(
+    get_from_env('DJANGO_DISABLE_X509',
+                 fail_if_not_found=False, default_value="false")
+)
+

@@ -7,7 +7,6 @@ import re
 from django.contrib.auth import get_user_model, authenticate
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.exceptions import BadRequest
 from django.utils import timezone
 from django.utils.http import unquote
 from django.utils.translation import gettext_lazy as _
@@ -25,6 +24,12 @@ from urllib.parse import unquote_plus
 
 # Set up logger
 logger = logging.getLogger(__name__)
+
+X509_DEP_WARNING = (
+'Support for identity-based X.509 credentials for LIGO.ORG is no longer '
+'supported on this resource. For details on this change please see: '
+'https://computing.docs.ligo.org/guide/compsoft/roadmap/LVK/x509_retirement/'
+)
 
 
 class GraceDbBasicAuthentication(authentication.BasicAuthentication):
@@ -94,7 +99,7 @@ class GraceDbSciTokenAuthentication(authentication.BasicAuthentication):
             if  auth_type != "Bearer":
                 return None
         except ValueError:
-            raise BadRequest("Malformed 'Bearer' string "
+            raise exceptions.ValidationError("Malformed 'Bearer' string "
                        "in Authorization header")
 
         # Deserialize token
@@ -172,6 +177,8 @@ class GraceDbX509Authentication(authentication.BaseAuthentication):
         # If no user dn is found, pass on to the next auth method
         if not user_cert_dn:
             return None
+        elif settings.DISABLE_X509:
+            raise exceptions.ValidationError(X509_DEP_WARNING)
 
         return self.authenticate_credentials(user_cert_dn)
 
@@ -316,6 +323,8 @@ class GraceDbX509FullCertAuthentication(GraceDbX509Authentication):
         # If no certificate is found, abort
         if not cert_data:
             return None
+        elif settings.DISABLE_X509:
+            raise exceptions.ValidationError(X509_DEP_WARNING)
 
         # Verify certificate
         try:
