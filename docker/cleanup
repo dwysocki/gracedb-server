@@ -4,6 +4,7 @@ python3 /app/gracedb_project/manage.py update_user_accounts_from_ligo_ldap kagra
 python3 /app/gracedb_project/manage.py update_user_accounts_from_ligo_ldap ligo
 python3 /app/gracedb_project/manage.py update_user_accounts_from_ligo_ldap robots
 python3 /app/gracedb_project/manage.py update_catalog_managers_group
+python3 /app/gracedb_project/manage.py update_emfollow_dev_uploaders
 python3 /app/gracedb_project/manage.py remove_inactive_alerts
 python3 /app/gracedb_project/manage.py clearsessions 2>&1 | grep -v segment
 python3 /app/gracedb_project/manage.py remove_old_mdc_public_perms

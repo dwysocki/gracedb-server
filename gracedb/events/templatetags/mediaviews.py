@@ -29,7 +29,9 @@ blessed_tag_priority_order = [
     'sig_info',
     'audio',
     'em_follow',
-    'pe'
+    'pe',
+    'raven_report',
+    'cgmi',
 ]
 
 

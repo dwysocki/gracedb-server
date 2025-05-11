@@ -2,6 +2,10 @@ from django.urls import resolve
 import logging
 logger = logging.getLogger(__name__)
 
+HEADER_X509 = ['X-Forwarded-Tls-Client-Cert', 'Ssl-Client-S-Dn', 'Ssl-Client-I-Dn']
+HEADER_TOKEN = 'Authorization'
+HEADER_WEB = 'Cookie'
+
 class PerformanceMiddleware(object):
 
     def __init__(self, get_response):
@@ -53,10 +57,19 @@ class PerformanceMiddleware(object):
         except:
             pass
 
+        # Get the authentication method based on the user's request header:
+        auth_type = 'noauth'
+        if any(header in request.headers for header in HEADER_X509):
+            auth_type = 'x509'
+        elif HEADER_TOKEN in request.headers:
+            auth_type = 'scitoken'
+        elif HEADER_WEB in request.headers:
+            auth_type = 'shibboleth'
+
         if create:
             # Log the status.
-            self.logger.info("create: %d: %s" % (response.status_code, username))
+            self.logger.info("create: %d: %s %s" % (response.status_code, username, auth_type))
         elif annotate:
-            self.logger.info("annotate: %d: %s" % (response.status_code, username))
+            self.logger.info("annotate: %d: %s %s" % (response.status_code, username, auth_type))
         
         return response

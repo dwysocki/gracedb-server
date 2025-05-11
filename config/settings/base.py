@@ -245,6 +245,8 @@ BLESSED_TAGS = [
                  'pe',
                  'sig_info',
                  'audio',
+                 'raven_report',
+                 'cgmi',
                ]
 
 # Lists of pipelines used for selecting templates to serve
@@ -255,6 +257,7 @@ COINC_PIPELINES = [
                     'pycbc',
                     'MBTA',
                     'PyGRB',
+                    'SGNL',
                    ]
 GRB_PIPELINES = [
                     'Fermi',
