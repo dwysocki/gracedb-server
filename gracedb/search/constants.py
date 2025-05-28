@@ -21,9 +21,9 @@ RUN_MAP = {
             # https://wiki.ligo.org/Operations/Agenda250109
             # O4b -> O4c transition will happen on Tuesday Jan. 28th at 1700 UTC
             # (GPS: 1422118818).
-            # EDIT: O4c extended to Oct 7 2025 1500UTC:
-            # https://observing.docs.ligo.org/plan/
-            "O4c": (1422118818, 1443884418),
+            # EDIT: O4c extended to Nov 18 2025 1600UTC:
+            # https://dcc.ligo.org/LIGO-M2500083
+            "O4c": (1422118818, 1447516818),
             # https://observing.docs.ligo.org/plan/
             # The LIGO Hanford (LHO), LIGO Livingston (LLO), and Virgo detectors transitioned
             # to the regular observing run O4b at 15:00 UTC on 10 April 2024. O4b will run
