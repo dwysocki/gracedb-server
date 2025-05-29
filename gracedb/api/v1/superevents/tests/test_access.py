@@ -2561,6 +2561,16 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
             'MassGap': 0.4,
         }
 
+        # Define VOEvent that has a nan in it (should return 400)
+        cls.voevent_data_nan = {
+            'voevent_type': VOEvent.VOEVENT_TYPE_PRELIMINARY,
+            'internal': True,
+            'open_alert': False,
+            'hardware_inj': False,
+            'CoincComment': False,
+            'BBH': 'nan',
+        }
+
     def test_internal_user_get_voevent_list(self):
         """Internal user can get all VOEvents for all superevents"""
         for s in Superevent.objects.all():
@@ -2656,6 +2666,14 @@ class TestSupereventVOEventList(SupereventSetup, GraceDbApiTestBase):
             args=[self.internal_superevent.superevent_id])
         response = self.request_as_user(url, "POST", self.internal_user,
             data=self.voevent_data_massgap)
+        self.assertEqual(response.status_code, 400)
+
+    def test_internal_user_create_nan_voevent(self):
+        """Internal user gets an error when they create a VOEVent with a nan"""
+        url = v_reverse('superevents:superevent-voevent-list',
+            args=[self.internal_superevent.superevent_id])
+        response = self.request_as_user(url, "POST", self.internal_user,
+            data=self.voevent_data_nan)
         self.assertEqual(response.status_code, 400)
 
     def test_lvem_user_create_voevent_for_hidden_superevent(self):

@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import functools
 import logging
+import math
 import os
 
 from django.conf import settings
@@ -43,6 +44,15 @@ req_labels = {
     'L1OPS': ['L1NO', 'L1OK'],
     'V1OPS': ['V1NO', 'V1OK'],
 }
+
+
+class NoNaNFloatField(serializers.FloatField):
+    def to_internal_value(self, data):
+        value = super().to_internal_value(data)
+        if math.isnan(value):
+            raise ValidationError('NaN values are not allowed.')
+        return value
+
 
 class SupereventSerializer(serializers.ModelSerializer):
     # Error messages
@@ -766,21 +776,21 @@ class SupereventVOEventSerializer(serializers.ModelSerializer):
     CoincComment = serializers.BooleanField(write_only=True, default=False)
     ProbHasNS = serializers.FloatField(write_only=True, min_value=0,
         max_value=1, required=False)
-    ProbHasRemnant = serializers.FloatField(write_only=True, min_value=0,
+    ProbHasRemnant = NoNaNFloatField(write_only=True, min_value=0,
         max_value=1, required=False)
-    BNS = serializers.FloatField(write_only=True, min_value=0, max_value=1,
+    BNS = NoNaNFloatField(write_only=True, min_value=0, max_value=1,
         required=False)
-    NSBH = serializers.FloatField(write_only=True, min_value=0, max_value=1,
+    NSBH = NoNaNFloatField(write_only=True, min_value=0, max_value=1,
         required=False)
-    BBH = serializers.FloatField(write_only=True, min_value=0, max_value=1,
+    BBH = NoNaNFloatField(write_only=True, min_value=0, max_value=1,
         required=False)
-    Terrestrial = serializers.FloatField(write_only=True, min_value=0,
+    Terrestrial = NoNaNFloatField(write_only=True, min_value=0,
         max_value=1, required=False)
-    MassGap = serializers.FloatField(write_only=True, min_value=0,
+    MassGap = NoNaNFloatField(write_only=True, min_value=0,
         max_value=1, required=False)
-    HasMassGap = serializers.FloatField(write_only=True, min_value=0,
+    HasMassGap = NoNaNFloatField(write_only=True, min_value=0,
         max_value=1, required=False)
-    HasSSM = serializers.FloatField(write_only=True, min_value=0,
+    HasSSM = NoNaNFloatField(write_only=True, min_value=0,
         max_value=1, required=False)
     Significant = serializers.BooleanField(write_only=True, default=False)
 
