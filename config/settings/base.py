@@ -266,6 +266,7 @@ GRB_PIPELINES = [
                     'AGILE',
                     'CHIME',
                     'SVOM',
+                    'SNEWS',
                 ]
 
 # List of pipelines that have been depreciated:
