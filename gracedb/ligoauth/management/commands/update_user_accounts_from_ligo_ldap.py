@@ -3,6 +3,7 @@ import datetime
 import ldap
 import pytz
 import re
+import sentry_sdk
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -22,6 +23,9 @@ if getattr(settings, 'ENABLE_AWS_XRAY', None):
         xray_recorder.begin_segment("ldap-user-account-segment")
     except ModuleNotFoundError:
         print("aws_xray_sdk not found, skipping.")
+
+user_config_error = ('ERROR: requires manual investigation. LDAP '
+                'username: {0}, ligoldapuser.user_ptr.username: {1}')
 
 UserModel = get_user_model()
 
@@ -174,11 +178,10 @@ class LdapPersonResultProcessor:
         # Note this is legit because gracedb ignores case for usernames specifically. 
         if (self.user.username.lower() != self.user_data['username'].lower() and
             self.user_exists):
-            self.write(('ERROR: requires manual investigation. LDAP '
-                'username: {0}, ligoldapuser.user_ptr.username: {1}')
-                .format(self.user_data['username'],
-                self.ligoldapuser.user.username))
-            raise self.UserConfigError('User configuration error')
+            msg = user_config_error.format(self.user_data['username'], 
+                      self.ligoldapuser.user.username)
+            self.write(msg)
+            raise self.UserConfigError(msg)
 
     def update_user(self):
         if not hasattr(self, 'user'):
@@ -797,9 +800,12 @@ class Command(BaseCommand):
                 user_processor.extract_user_attributes()
                 user_processor.get_or_create_user()
             except user_processor.UserConfigError as e:
-                continue
+                sentry_sdk.capture_exception(e)
             except user_processor.UnacceptableUserError as e:
                 # Indicates that the user shouldn't be added
+                # We shouldn't get alerted each time there's one of these people
+                # ("What do you mean 'these people'?")
+                # So don't send the error to sentry.
                 continue
 
             # Update user based on LDAP information - this includes
