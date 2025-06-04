@@ -491,7 +491,8 @@ def construct_voevent_file(obj, voevent, request=None):
         source_properties_params = []
         if ( (isinstance(event, CoincInspiralEvent) or
               (event.search and (event.pipeline.name == 'CWB' and
-                                 event.search.name == 'BBH'))
+                                 event.search.name == 'BBH')) or
+              (event.pipeline.name == 'aframe')
              ) and voevent_type != 'retraction'):
 
             # EM-Bright mass classifier information for CBC event candidates
@@ -649,26 +650,28 @@ def construct_voevent_file(obj, voevent, request=None):
             v.What.append(p_duration)
 
         elif isinstance(event, MLyBurstEvent):
-            p_central_freq = vp.Param(
-                "CentralFreq",
-                value=float(event.central_freq),
-                ucd="gw.frequency",
-                unit="Hz",
-                ac=True,
-            )
-            p_central_freq.Description = \
-                "Central frequency of GW burst signal"
-            v.What.append(p_central_freq)
+            if event.central_freq:
+                p_central_freq = vp.Param(
+                    "CentralFreq",
+                    value=float(event.central_freq),
+                    ucd="gw.frequency",
+                    unit="Hz",
+                    ac=True,
+                )
+                p_central_freq.Description = \
+                    "Central frequency of GW burst signal"
+                v.What.append(p_central_freq)
 
-            p_duration = vp.Param(
-                "Duration",
-                value=float(event.duration),
-                unit="s",
-                ucd="time.duration",
-                ac=True,
-            )
-            p_duration.Description = "Measured duration of GW burst signal"
-            v.What.append(p_duration)
+            if event.duration:
+                p_duration = vp.Param(
+                    "Duration",
+                    value=float(event.duration),
+                    unit="s",
+                    ucd="time.duration",
+                    ac=True,
+                )
+                p_duration.Description = "Measured duration of GW burst signal"
+                v.What.append(p_duration)
 
         ## Create classification group
         classification_group = vp.Group(

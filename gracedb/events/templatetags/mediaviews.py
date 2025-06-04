@@ -11,6 +11,7 @@ from functools import reduce
 
 from events.models import Event, Tag
 from gracedb.core.urls import build_apiweb_uri
+from gracedb.core.utils import return_safe_value
 import io
 import os
 
@@ -310,7 +311,7 @@ rrt_event_fmt = """\
    data-original-title="<b>{event.graceid}</b><br>
    <b>Pipeline:</b> {event.pipeline.name}<br>
    <b>FAR:</b> {event.far:.3e}<br>
-   <b>SNR:</b> {event_snr:.3f}">
+   <b>SNR:</b> {event_snr}">
    {event.graceid}
 </a>"""
 
@@ -341,7 +342,10 @@ def get_event_snr(event):
     else:
         # Return a blank string
         event_snr = ""
-    return event_snr
+
+    # Fix for Nones before formatting and returning:
+    event_snr = return_safe_value(event_snr)
+    return f"{event_snr:.3f}" if isinstance(event_snr, (int, float)) else str(event_snr)
 
 
 @register.filter(is_safe=True)
@@ -368,8 +372,6 @@ def event_link_filter(event):
         safe_far="{:.3e}".format(event.far)
 
     snr = get_event_snr(event)
-    if snr:
-        snr = "{:.3f}".format(snr)
 
     rv = tooltip_fmt.format(event_url=event_url,
             graceid=event.graceid,

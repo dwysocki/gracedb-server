@@ -96,6 +96,7 @@ def display_far_hz_to_yr(display_far):
 
     return display_far_hr
 
+
 def return_far_in_hz(far_in, units=None):
     """
     A helper function that takes in a far value and a set of units
@@ -127,6 +128,10 @@ def return_far_in_hz(far_in, units=None):
     else:
         logger.debug('could not recognize input far units')
         return None
+
+
+def return_safe_value(val, string=""):
+    return val if val is not None else string
 
 
 class CustomExceptionReporter(ExceptionReporter):
