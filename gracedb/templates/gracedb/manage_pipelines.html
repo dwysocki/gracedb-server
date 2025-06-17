@@ -18,6 +18,7 @@ When a pipeline is disabled, non-Test, non-MDC events cannot be submitted for it
 This functionality is intended to mitigate the effects of a pipeline that is misbehaving and submitting erroneous event data.</p>
 <p>All users: if you suspect any problems with a pipeline, you should contact one of the EM advocates who is currently on duty. The EM advocate schedule for O4 is <a href="https://emfollow.docs.ligo.org/followup-advocate-guide/roster.html" target="_blank">here</a>.</p>
 <p>EM advocates: after you disable or enable a pipeline, you should contact the <a href="mailto:emfollow@ligo.org">low-latency group</a> to describe the action you have taken and the reasons for it.</p>
+<p>Unapproved or deprecated pipelines are marked in <mark style="background: #D3D3D3">gray</mark>. Event submissions to these pipelines are blocked by GraceDB and will return an error to the submitting user. To enable a pipeline on this instance, please <a href="https://git.ligo.org/computing/gracedb/server/issues">report an issue on Gitlab</a>.
 </div>
 
 {% if user_can_manage %}
@@ -50,10 +51,19 @@ This functionality is intended to mitigate the effects of a pipeline that is mis
     </tr>
     </thead>
     {% for pipeline in pipeline_list %}
+
+    {% if pipeline.unapproved or pipeline.deprecated %}
+    <tr bgcolor="#D3D3D3">
+    {% else %}
     <tr>
+    {% endif %}
         <td>{{ pipeline.name }}</td>
         <td class="center">
-        {% if pipeline.enabled %}
+        {% if pipeline.unapproved %}
+            <span style="color: black; font-weight: bold;">Unapproved</span>
+        {% elif pipeline.deprecated %}
+            <span style="color: black; font-weight: bold;">Deprecated</span>
+        {% elif pipeline.enabled %}
             <span style="color: green; font-weight: bold;">Enabled</span>
         {% else %}
             <span style="color: red; font-weight: bold;">Disabled</span>
@@ -67,17 +77,20 @@ This functionality is intended to mitigate the effects of a pipeline that is mis
             <td class="center">{{ n_events_list.3 }}</td>
         {% endwith %}
         <td class="center">
-        {% if pipeline.enabled %}
-            {% if user_can_manage %}
-            <a class="btn btn-sm btn-danger" href="{% url "disable-pipeline" pipeline.pk %}">Disable</a>
+
+        {% if not pipeline.unapproved and not pipeline.deprecated %}
+            {% if pipeline.enabled %}
+                {% if user_can_manage %}
+                <a class="btn btn-sm btn-danger" href="{% url "disable-pipeline" pipeline.pk %}">Disable</a>
+                {% else %}
+                <button class="btn btn-sm btn-danger" disabled>Disable</button>
+                {% endif %}
             {% else %}
-            <button class="btn btn-sm btn-danger" disabled>Disable</button>
-            {% endif %}
-        {% else %}
-            {% if user_can_manage %}
-            <a class="btn btn-sm btn-success" href="{% url "enable-pipeline" pipeline.pk %}">Enable</a>
-            {% else %}
-            <button class="btn btn-sm btn-success" disabled>Enable</button>
+                {% if user_can_manage %}
+                <a class="btn btn-sm btn-success" href="{% url "enable-pipeline" pipeline.pk %}">Enable</a>
+                {% else %}
+                <button class="btn btn-sm btn-success" disabled>Enable</button>
+                {% endif %}
             {% endif %}
         {% endif %}
         </td>

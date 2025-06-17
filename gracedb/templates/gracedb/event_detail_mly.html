@@ -20,7 +20,7 @@
                 <tr> <th class="collapsed-header"> Central Time (s) </th> <td> {{ object.central_time|floatformat:"-4" }} </td> </tr>
                 {% endif %}
                 {% if object.central_freq %}
-                <tr> <th class="collapsed-header"> Central Frequency (s) </th> <td> {{ object.central_freq|floatformat:"-4" }} </td> </tr>
+                <tr> <th class="collapsed-header"> Central Frequency (Hz) </th> <td> {{ object.central_freq|floatformat:"-4" }} </td> </tr>
                 {% endif %}
                 {% if object.channels %}
                 <tr> <th class="collapsed-header"> Channels </th> <td> <span class="text-monospace"> {{ object.channels }} </span></td> </tr>

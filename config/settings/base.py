@@ -48,7 +48,7 @@ INFO_BANNER_MESSAGE = "TEST MESSAGE"
 BETA_REPORTS_LINK = False
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.31.2'
+PROJECT_VERSION = '2.31.3'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -269,11 +269,12 @@ GRB_PIPELINES = [
                     'SNEWS',
                 ]
 
-# List of pipelines that have been depreciated:
-DEPRECIATED_PIPELINES = [
+# List of pipelines that have been deprecated:
+DEPRECATED_PIPELINES = [
                           'X',
                           'Q',
                           'Omega',
+                          'oLIB',
                         ]
 
 UNAPPROVED_PIPELINES = []

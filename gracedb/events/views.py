@@ -992,6 +992,11 @@ class PipelineManageView(ListView):
             last_event = p.event_set.exclude(group__name='Test').exclude(
                 search__name='MDC').order_by('-pk').first()
             submission_dict[p.name] = getattr(last_event, 'created', None)
+
+            # Set up flag for deprecated and unapproved pipelines:
+            p.unapproved = p.name in settings.UNAPPROVED_PIPELINES
+            p.deprecated = p.name in settings.DEPRECATED_PIPELINES
+
         context['n_events_dict'] = n_events_dict
         context['submission_dict'] = submission_dict
 

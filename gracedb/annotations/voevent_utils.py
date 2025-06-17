@@ -338,7 +338,7 @@ def construct_voevent_file(obj, voevent, request=None):
 
             ## External GCN ID
             ext_event_trigger_id = getattr(ext_event, 'trigger_id', None)
-            if ext_event_trigger_id:
+            if ext_event_trigger_id is not None:
                 p_extid = vp.Param(
                     "External_GCN_Notice_Id",
                     value=ext_event_trigger_id,
@@ -650,7 +650,7 @@ def construct_voevent_file(obj, voevent, request=None):
             v.What.append(p_duration)
 
         elif isinstance(event, MLyBurstEvent):
-            if event.central_freq:
+            if event.central_freq is not None:
                 p_central_freq = vp.Param(
                     "CentralFreq",
                     value=float(event.central_freq),
@@ -662,7 +662,7 @@ def construct_voevent_file(obj, voevent, request=None):
                     "Central frequency of GW burst signal"
                 v.What.append(p_central_freq)
 
-            if event.duration:
+            if event.duration is not None:
                 p_duration = vp.Param(
                     "Duration",
                     value=float(event.duration),

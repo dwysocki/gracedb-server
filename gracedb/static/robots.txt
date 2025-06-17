@@ -149,3 +149,6 @@ Disallow: /
 
 User-agent: ZumBot
 Disallow: / 
+
+User-agent: Scrapy
+Disallow: / 
