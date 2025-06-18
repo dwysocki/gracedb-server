@@ -6,6 +6,7 @@ import os
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -332,8 +333,16 @@ class SupereventUpdateSerializer(SupereventSerializer):
         # from the request.
         request = self.context.get('request', None)
         updater = getattr(request, 'user', None)
-        instance = update_superevent(instance, updater, add_log_message=True,
-            issue_alert=True, **validated_data)
+
+        # Trying to update the superevent with bad values raises a *django*
+        # ValidationError, which causes the server to 500 back to the user.
+        # Catch the error and re-raise it as a rest_framework.exception, which
+        # properly returns a 400 bad request with a messge to the user.
+        try:
+            instance = update_superevent(instance, updater, add_log_message=True,
+                issue_alert=True, **validated_data)
+        except DjangoValidationError as e:
+            raise ValidationError(str(e))
 
         # In some cases when updating a superevent, the user can get an outdated
         # version of the gw_events and external_events list from older instance
