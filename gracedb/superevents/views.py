@@ -369,7 +369,12 @@ class SupereventPublic(DisplayFarMixin, ListView):
                             pipeline=superevent.preferred_event.pipeline.name))
 
                 skymap_log_object = skymap_log.first()
-
+            # aframe events:
+            elif superevent.preferred_event.pipeline.name == 'aframe':
+                skymap_image = reverse(
+                    'legacy_apiweb:default:superevents:superevent-file-detail',
+                    args=[superevent.default_superevent_id, 'amplfi.png']
+                )
             # Other events:
             else:
                 skymap_log = public_logs.filter(filename=self.default_skymap_filename)

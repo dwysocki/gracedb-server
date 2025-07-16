@@ -64,10 +64,10 @@ def get_dqr_status(sevent):
 @register.filter(is_safe=True)
 def get_rrt_skymap_url(sevent):
 
-    # Is the preferred event a burst event? Then set the filename to the
-    # pipeline name.
-
-    if sevent.preferred_event.group.name == 'Burst':
+    # Pipelines have various conventions for skymap names:
+    if sevent.preferred_event.pipeline.name == 'aframe':
+        skymap_filename = 'amplfi'
+    elif sevent.preferred_event.group.name == 'Burst':
         skymap_filename = sevent.preferred_event.pipeline.name.lower()
     else:
         skymap_filename = 'bayestar'

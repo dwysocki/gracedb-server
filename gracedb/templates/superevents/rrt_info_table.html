@@ -142,24 +142,27 @@
       </tr>
 
       <tr>
-        <td> EM-Bright</td>
+        <td>EM-Bright</td>
         <td>
-	  <object data="{{ superevent_files_url|add:'em_bright.png' }}" 
-          type="image/png" style="max-width:100%;">
-	    N/A
-	  </object>
+	  <img src="{{ superevent_files_url|add:'em_bright.png' }}" alt="EM-Bright Info"
+          onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<span>N/A</span>');" style="max-width:100%;">
         </td>
       </tr> 
       
       <tr>
-        <td> Sky-Localization</td>
+        <td>Sky-Localization</td>
         <td>
-	  <object data="{{ superevent | get_rrt_skymap_url }}"
-          type="image/png" style="max-width:100%;">
-	    N/A
-	  </object>
+	  <img src="{{ superevent | get_rrt_skymap_url }}" alt="Skymap Image"
+           onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<span>N/A</span>');" style="max-width:100%;">
         </td>
       </tr>
 
+      <tr>
+        <td>CGMI</td>
+        <td>
+	  <img src="{{ superevent_files_url|add:'mchirp_source.png' }}" alt="CGMI Info"
+          onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<span>N/A</span>');" style="max-width:100%;">
+        </td>
+      </tr>
 
     </table>
