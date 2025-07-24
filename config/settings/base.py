@@ -25,6 +25,14 @@ def get_from_env(envvar, default_value=None, fail_if_not_found=True):
 def parse_envvar_bool(x):
     return x.lower() in ['t', 'true', '1']
 
+def get_list_from_env(envvar, fail_if_not_found=False):
+    envlist = os.getenv(envvar, "")
+    if (envlist == "" and fail_if_not_found):
+        raise ImproperlyConfigured(
+            'Could not get environment variable {0}'.format(envvar))
+    return [item.strip() for item in envlist.split(",") if item.strip()]
+
+
 # a sentry before_send function that filters aws SegmentNotFoundException's.
 # these exceptions are harmless and occur when performing management tasks
 # outside of the core gracedb app. but sentry picks it up and reports it as
@@ -269,15 +277,12 @@ GRB_PIPELINES = [
                     'SNEWS',
                 ]
 
-# List of pipelines that have been deprecated:
-DEPRECATED_PIPELINES = [
-                          'X',
-                          'Q',
-                          'Omega',
-                          'oLIB',
-                        ]
+# Get pipelines that have been deprecated or not approved
+# from deployment variables so that they can be changed with
+# a code release.
+DEPRECATED_PIPELINES = get_list_from_env('DJANGO_DEPRECATED_PIPELINES')
+UNAPPROVED_PIPELINES = get_list_from_env('DJANGO_UNAPPROVED_PIPELINES')
 
-UNAPPROVED_PIPELINES = []
 
 # VOEvent stream --------------------------------------------------------------
 VOEVENT_STREAM = 'gwnet/LVC'
