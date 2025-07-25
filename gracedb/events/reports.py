@@ -30,7 +30,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-YEAR_RANGE = list(range(datetime.now().year, 2013, -1))
 INITIAL_DAYS_BACK = 31
 
 EVENT_SEARCH_CHOICES = (
@@ -49,6 +48,7 @@ SUPEREVENT_CATEGORIES = (
 )
 
 class lookback_days_form(forms.Form):
+    YEAR_RANGE = list(range(datetime.now().year, 2013, -1))
     start_date = forms.DateField(label='Start Date',
         widget=forms.SelectDateWidget(years=YEAR_RANGE),
                     )
