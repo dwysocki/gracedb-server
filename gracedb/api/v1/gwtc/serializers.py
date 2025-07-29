@@ -14,7 +14,8 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import fields, serializers, validators
 from rest_framework.exceptions import ValidationError
 
-from gwtc.models import gwtc_catalog, gwtc_gevent, gwtc_superevent
+from gwtc.models import gwtc_catalog, gwtc_gevent, gwtc_superevent, \
+    dot_slug_validator
 from superevents.models import Superevent
 from events.models import Event, Pipeline
 
@@ -28,7 +29,8 @@ logger = logging.getLogger(__name__)
 PIPELINE_KEY = 'pipelines'
 
 class gwtc_serializer(serializers.ModelSerializer):
-    number = serializers.SlugField(required=True, allow_null=False, allow_blank=False)
+    number = serializers.CharField(required=True, allow_null=False,
+        allow_blank=False, validators=[dot_slug_validator])
     smap = serializers.JSONField(required=True, write_only=True, allow_null=False)
     version = serializers.ReadOnlyField()
     comment = serializers.CharField(allow_blank=True, allow_null=True, required=False)

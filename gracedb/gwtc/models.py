@@ -3,6 +3,7 @@ from django.db import models
 
 # Generic python stuff:
 import logging
+from django.core.validators import RegexValidator
 
 # Import GraceDB stuff:
 from core.models import AutoIncrementModel
@@ -16,11 +17,20 @@ from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 UserModel = get_user_model()
 logger = logging.getLogger(__name__)
 
+# Modify SlugField to allow for dots:
+dot_slug_validator = RegexValidator(
+    regex=r'^[a-zA-Z0-9._-]+$',
+    message='Only letters, numbers, dots, underscores, and hyphens are allowed.'
+)
 
 
 class gwtc_catalog(AutoIncrementModel):
     # Catalog versioning fields:
-    number = models.SlugField(null=False, max_length=50)
+    number = models.CharField(
+        max_length=25,
+        validators=[dot_slug_validator]
+    )
+
     version = models.PositiveIntegerField(null=False)
 
     AUTO_FIELD = 'version'
