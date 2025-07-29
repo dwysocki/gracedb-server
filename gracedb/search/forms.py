@@ -55,7 +55,7 @@ class MainSearchForm(forms.Form):
     query = forms.CharField(required=False, widget=forms.TextInput(
         attrs={'size': 40,
                'class': 'form-control',
-               'placeholder': 'Enter query (e.g. O4 gstlal)'
+               'placeholder': 'Enter query'
                }
         ))
     query_type = forms.ChoiceField(required=True,
