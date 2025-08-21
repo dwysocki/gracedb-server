@@ -51,7 +51,9 @@ class MLyBurstEventSerializer(serializers.ModelSerializer):
         model = MLyBurstEvent
         fields =('ifos', 'central_freq', 'bandwidth', 'duration', 'central_time', \
                  'detection_statistic', 'SNR', 'bbh', 'sglf', 'sghf', \
-                 'background', 'glitch', 'freq_correlation', 'channels', 'scores')
+                 'background', 'glitch', 'freq_correlation', 'channels', 'scores', \
+                 'mass1', 'mass2', 'mtotal', 'mchirp', 'spin1z', 'spin2z', \
+                 'end_time', 'end_time_ns', 'template_duration')
 
     def to_representation(self, obj):
         channels_out = None

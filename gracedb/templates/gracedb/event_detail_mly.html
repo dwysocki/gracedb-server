@@ -13,45 +13,70 @@
                         <th colspan="2"><h3>Machine Learning Info</h3></th>
                     </tr>
                 </thead>
-                {% if object.bandwidth %}
+                {% if object.bandwidth is not None %}
                 <tr> <th class="collapsed-header"> Bandwidth (Hz) </th> <td> {{ object.bandwidth|floatformat:"-4" }} </td> </tr>
                 {% endif %}
-                {% if object.central_time %}
+                {% if object.central_time is not None %}
                 <tr> <th class="collapsed-header"> Central Time (s) </th> <td> {{ object.central_time|floatformat:"-4" }} </td> </tr>
                 {% endif %}
-                {% if object.central_freq %}
+                {% if object.central_freq is not None %}
                 <tr> <th class="collapsed-header"> Central Frequency (Hz) </th> <td> {{ object.central_freq|floatformat:"-4" }} </td> </tr>
                 {% endif %}
-                {% if object.channels %}
+                {% if object.channels is not None %}
                 <tr> <th class="collapsed-header"> Channels </th> <td> <span class="text-monospace"> {{ object.channels }} </span></td> </tr>
                 {% endif %}
-                {% if object.duration %}
+                {% if object.duration is not None %}
                 <tr> <th class="collapsed-header"> Duration (s) </th> <td> {{ object.duration|floatformat:"-4" }} </td> </tr>
                 {% endif %}
-                {% if object.snr %}
+                {% if object.snr is not None %}
                 <tr> <th class="collapsed-header"> SNR </th> <td> {{ object.snr|floatformat:"-4" }} </td> </tr>
                 {% endif %}
-                {% if object.detection_statistic %}
+                {% if object.detection_statistic is not None %}
                 <tr> <th class="collapsed-header"> Detection Statistic </th> <td> {{ object.detection_statistic|floatformat:"-4" }} </td> </tr>
                 {% endif %}
-                {% if object.bbh %}
+                {% if object.bbh is not None %}
                 <tr> <th class="collapsed-header"> BBH Weighted Score </th> <td> {{ object.bbh|floatformat:"-4" }} </td> </tr>
                 {% endif %}
-                {% if object.sglf %}
+                {% if object.sglf is not None %}
                 <tr> <th class="collapsed-header"> Sine-Gaussian Low-Frequency Weighted Score </th> <td> {{ object.sglf|floatformat:"-4" }} </td> </tr>
                 {% endif %}
-                {% if object.sghf %}
+                {% if object.sghf is not None %}
                 <tr> <th class="collapsed-header"> Sine-Gaussian High Frequency Weighted Score </th> <td> {{ object.sghf|floatformat:"-4" }} </td> </tr>
                 {% endif %}
-                {% if object.background %}
+                {% if object.background is not None %}
                 <tr> <th class="collapsed-header"> Background Weighted Score </th> <td> {{ object.background|floatformat:"-4" }} </td> </tr>
                 {% endif %}
-                {% if object.glitch %}
+                {% if object.glitch is not None %}
                 <tr> <th class="collapsed-header"> Glitch Weighted Score </th> <td> {{ object.glitch|floatformat:"-4" }} </td> </tr>
                 {% endif %}
-                {% if object.freq_correlation %}
+                {% if object.freq_correlation is not None %}
                 <tr> <th class="collapsed-header"> Frequency Correlation Weighted Score </th> <td> {{ object.freq_correlation|floatformat:"-4" }} </td> </tr>
                 {% endif %}
+                {% if object.mass1 is not None %}
+                <tr> <th class="collapsed-header"> mass1 (M<sub>&#x2299;</sub>) </th> <td> {{ object.mass1|floatformat:"-4" }} </td> </tr>
+                {% endif %}
+                {% if object.mass2 is not None %}
+                <tr> <th class="collapsed-header"> mass2 (M<sub>&#x2299;</sub>) </th> <td> {{ object.mass2|floatformat:"-4" }} </td> </tr>
+                {% endif %}
+                {% if object.mtotal is not None %}
+                <tr> <th class="collapsed-header"> Total Mass (M<sub>&#x2299;</sub>) </th> <td> {{ object.mtotal|floatformat:"-4" }} </td> </tr>
+                {% endif %}
+                {% if object.mchirp is not None %}
+                <tr> <th class="collapsed-header"> Chirp Mass (M<sub>&#x2299;</sub>) </th> <td> {{ object.mchirp|floatformat:"-4" }} </td> </tr>
+                {% endif %}
+                {% if object.spin1z is not None %}
+                <tr> <th class="collapsed-header"> spin1z </th> <td> {{ object.spin1z|floatformat:"-4" }} </td> </tr>
+                {% endif %}
+                {% if object.spin2z is not None %}
+                <tr> <th class="collapsed-header"> spin2z </th> <td> {{ object.spin2z|floatformat:"-4" }} </td> </tr>
+                {% endif %}
+                {% if object.end_time is not None and object.end_time_ns is not None %}
+                <tr> <th class="collapsed-header"> End Time (GPS) </th> <td> {{ object.end_time|floatformat:"-4" }}.{{ object.end_time_ns|floatformat:"-4" }} </td> </tr>
+                {% endif %}
+                {% if object.template_duration is not None %}
+                <tr> <th class="collapsed-header"> Template Duration (s) </th> <td> {{ object.template_duration|floatformat:"-4" }} </td> </tr>
+                {% endif %}
+
             </table>
         </div>
     </div>

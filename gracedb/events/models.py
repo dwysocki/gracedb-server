@@ -817,6 +817,15 @@ class MLyBurstEvent(Event):
     glitch              = models.FloatField(null=True)
     freq_correlation    = models.FloatField(null=True)
     channels           	= models.CharField(max_length=1024, blank=True)
+    mass1               = models.FloatField(null=True)
+    mass2               = models.FloatField(null=True)
+    mchirp              = models.FloatField(null=True)
+    mtotal              = models.FloatField(null=True)
+    spin1z              = models.FloatField(null=True)
+    spin2z              = models.FloatField(null=True)
+    end_time         	= models.PositiveIntegerField(null=True)
+    end_time_ns      	= models.PositiveIntegerField(null=True)
+    template_duration 	= models.FloatField(null=True)
 
 
 # Adding too many index tables can adversely affect write performance.
@@ -840,6 +849,15 @@ class MLyBurstEvent(Event):
                    models.Index(fields=['background', ]),
                    models.Index(fields=['glitch', ]),
                    models.Index(fields=['freq_correlation', ]),
+                   models.Index(fields=['mass1', ]),
+                   models.Index(fields=['mass2', ]),
+                   models.Index(fields=['mchirp', ]),
+                   models.Index(fields=['mtotal', ]),
+                   models.Index(fields=['spin1z', ]),
+                   models.Index(fields=['spin2z', ]),
+#                   models.Index(fields=['end_time', ]),
+#                   models.Index(fields=['end_time_ns', ]),
+#                   models.Index(fields=['template_duration', ]),
             ]
 
 class MultiBurstEvent(Event):

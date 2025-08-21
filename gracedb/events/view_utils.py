@@ -801,6 +801,15 @@ def mlyburst_to_dict(event):
             "background": event.background,
             "glitch": event.glitch,
             "freq_correlation": event.freq_correlation,
+            "mass1": event.mass1,
+            "mass2": event.mass2,
+            "mtotal": event.mtotal,
+            "mchirp": event.mchirp,
+            "spin1z": event.spin1z,
+            "spin2z": event.spin2z,
+            "end_time": event.end_time,
+            "end_time_ns": event.end_time_ns,
+            "template_duration": event.template_duration,
             })
     except:
         pass

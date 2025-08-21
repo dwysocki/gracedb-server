@@ -435,21 +435,17 @@ def handle_uploaded_data(event, datafilename,
         if sanitized_channels_list:
             event.channels = ','.join(sanitized_channels_list)
 
-        # Extract other attributes:
-        event.central_freq  		= n_float(event_dict.get('central_freq', None))
-        event.central_time  		= n_float(event_dict.get('central_time', None))
-        event.bandwidth     		= n_float(event_dict.get('bandwidth', None))
-        event.duration      		= n_float(event_dict.get('duration', None))
-        event.snr           		= n_float(event_dict.get('SNR', None))
-        event.detection_statistic	= n_float(event_dict.get('detection_statistic', None))
+        # Define all attributes to extract
+        attributes = [
+            'central_freq', 'central_time', 'bandwidth', 'duration', 'SNR', 'detection_statistic',
+            'bbh', 'sglf', 'sghf', 'background', 'glitch', 'freq_correlation',
+            'mass1', 'mass2', 'mtotal', 'mchirp', 'spin1z', 'spin2z',
+            'end_time', 'end_time_ns', 'template_duration'
+        ]
 
-        # Extract new attributes:
-        event.bbh		  	= n_float(event_dict.get('bbh', None))
-        event.sglf		  	= n_float(event_dict.get('sglf', None))
-        event.sghf		  	= n_float(event_dict.get('sghf', None))
-        event.background	  	= n_float(event_dict.get('background', None))
-        event.glitch	  		= n_float(event_dict.get('glitch', None))
-        event.freq_correlation  	= n_float(event_dict.get('freq_correlation', None))
+        # Assign attributes using setattr
+        for attr in attributes:
+            setattr(event, attr, n_float(event_dict.get(attr, None)))
 
         # event.instruments is attached to the base Event and event.ifos is
         # part of the MLyBurstEvent
