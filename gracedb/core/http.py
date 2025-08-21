@@ -34,6 +34,10 @@ def serve_file(file_path, ResponseClass=HttpResponse):
     # Configure response to have Apache serve the file with X-Sendfile
     response['X-Sendfile'] = file_path
 
+    # Add UTF-8 encoding for plain text files:
+    if content_type == 'text/plain':
+        content_type += '; charset=UTF-8'
+
     # Set content type (have to set both since different ones are used
     # depending on whether the response is a Django response or
     # a rest_framework response)
