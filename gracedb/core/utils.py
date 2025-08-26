@@ -147,3 +147,14 @@ class CustomExceptionReporter(ExceptionReporter):
     @property
     def text_template_path(self):
         return Path(settings.PROJECT_ROOT) / 'templates' / 'technical_500.txt'
+
+
+# A custom url converter which is like a slug, but allows for periods.
+class DotSlugConverter:
+    regex = '[a-zA-Z0-9._-]+'
+
+    def to_python(self, value):
+        return value
+
+    def to_url(self, value):
+        return value

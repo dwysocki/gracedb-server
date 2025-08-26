@@ -463,6 +463,10 @@ def view(request, event):
     context['tag_selecter_tag_name'] = mark_safe(template.format(form_name='tag_name'))
     context['tag_selecter_tagname'] = mark_safe(template.format(form_name='tagname'))
 
+    # Fetch gwtc entries for the event, if they exist:
+    context['gwtc'] = [gc.gwtc_catalog for gc in event.gwtc_gevent_set.all()] if \
+        event.gwtc_gevent_set.exists() else None
+
     # Choose your template according to the event's pipeline.
     templates = ['gracedb/event_detail.html',]
     if event.pipeline.name in settings.COINC_PIPELINES:

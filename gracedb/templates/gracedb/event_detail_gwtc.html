@@ -1,0 +1,38 @@
+{% load timeutil %}
+{% load scientific %}
+
+<div class="row my-3 justify-content-md-center">
+  <div class="col-md-10">
+    <div id="table-gwtc-event">
+      <table class="table-hover table-condensed table-resp-gracedb shadow p-3 mb-5 rounded">
+        <thead>
+          <tr>
+            <th colspan="3"><h3>{{ object.graceid }} in GWTC</h3></th>
+          </tr>
+          <tr>
+            <th> Catalog </th>
+            <th> Submitter </th>
+            <th> Submission Time (UTC) </th>
+          </tr>
+
+        </thead>
+        {% for gc in gwtc %}
+        <tr>
+          <td>
+            <a href="{{ gc.url }}" target="_blank">
+              GWTC-{{ gc.number }}, version {{ gc.version }}
+            </a>
+          </td>
+          <td>
+             {{ gc.submitter.get_full_name }}
+          </td>
+          <td>
+             {{ gc.created|date:"Y-m-d H:i:s" }}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+

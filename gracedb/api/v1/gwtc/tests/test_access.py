@@ -160,8 +160,8 @@ class test_gwtc_list(GraceDbApiTestBase, gwtc_create_mixin,
         response = self.request_as_user(self.url, "GET", self.cm_user)
 
         # confirm there are two catalog entries:
-        data = response.data['results']
-        self.assertEqual(len(data), 2)
+        obj_count = response.data['count']
+        self.assertEqual(obj_count, 2)
 
 
     def test_cm_user_create_gwtc_with_comment(self):
@@ -178,10 +178,11 @@ class test_gwtc_list(GraceDbApiTestBase, gwtc_create_mixin,
 
         # get the new list and confirm version numbers, etc:
         response = self.request_as_user(self.url, "GET", self.cm_user)
+        data = response.data['results']
 
         # confirm there are two catalog entries:
-        data = response.data['results']
-        self.assertEqual(len(data), 2)
+        obj_count = response.data['count']
+        self.assertEqual(obj_count, 2)
 
         # confirm that the comment is in the first (latest) catalog:
         self.assertEqual(data[0]['comment'], test_comment)
@@ -205,14 +206,14 @@ class test_gwtc_list(GraceDbApiTestBase, gwtc_create_mixin,
 
         # get all the gwtc's and confirm there are three:
         response = self.request_as_user(self.url, "GET", self.internal_user)
-        data = response.data['results']
-        self.assertEqual(len(data), 3)
+        obj_count = response.data['count']
+        self.assertEqual(obj_count, 3)
 
         # get all 'test1' gwtc's and count there are two:
         response = self.request_as_user(self.url+'test1/',
             "GET", self.internal_user)
-        data = response.data['results']
-        self.assertEqual(len(data), 2)
+        obj_count = response.data['count']
+        self.assertEqual(obj_count, 2)
 
         # get the 'latest' test1 gtwc, verify that it's version=2
         response = self.request_as_user(self.url+'test1/latest/',

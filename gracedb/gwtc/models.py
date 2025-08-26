@@ -6,6 +6,7 @@ import logging
 from django.core.validators import RegexValidator
 
 # Import GraceDB stuff:
+from api.utils import api_reverse
 from core.models import AutoIncrementModel
 from events.models import Event, Pipeline
 from superevents.models import Superevent
@@ -45,6 +46,12 @@ class gwtc_catalog(AutoIncrementModel):
 
     def __str__(self):
         return f'GWTC{self.number}, version {self.version}' 
+
+    # Return the api url:
+    @property
+    def url(self):
+        return api_reverse('gwtc:gwtc-version-detail',
+                   args=(self.number, self.version))
 
     class Meta:
         ordering = ["-id"]

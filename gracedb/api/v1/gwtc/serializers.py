@@ -45,11 +45,12 @@ class gwtc_serializer(serializers.ModelSerializer):
     # Custom display fields. These are read-only fields for displaying/GET'ing
     # with the API:
     gwtc_superevents = serializers.SerializerMethodField(read_only=True)
+    url = serializers.SerializerMethodField(read_only=True)
 
 
     class Meta:
         model = gwtc_catalog
-        fields = ('number', 'version', 'created', 'submitter', 
+        fields = ('number', 'version', 'created', 'submitter', 'url',
                   'smap', 'user', 'gwtc_superevents', 'comment')
 
     # Make sure the comment is a blank and not null:
@@ -196,3 +197,6 @@ class gwtc_serializer(serializers.ModelSerializer):
                      'pastro': se.pastro,
                    }
                 for se in obj.gwtc_superevent_set.all()}
+
+    def get_url(self, obj):
+        return obj.url

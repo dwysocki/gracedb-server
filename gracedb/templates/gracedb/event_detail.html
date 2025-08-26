@@ -256,6 +256,12 @@
     {% block analysis_specific %}
     {# This block is empty in the base event_detail template #}
     {% endblock %}
+    {# gwtc attributes #}
+    {% if gwtc %}
+      {% block gwtc %}
+      {% include "gracedb/event_detail_gwtc.html" %}
+      {% endblock %}
+    {% endif %}
     {% endif %}
 
     {# Neighbors #}

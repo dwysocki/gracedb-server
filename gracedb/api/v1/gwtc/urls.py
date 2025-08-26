@@ -1,8 +1,11 @@
-from django.urls import re_path, include, path
+from django.urls import re_path, include, path, register_converter
 from rest_framework import routers
 
+from core.utils import DotSlugConverter
 from .viewsets import *
 
+
+register_converter(DotSlugConverter, 'dotslug')
 
 urlpatterns = [
     # Listing of all gwtc's:
@@ -12,6 +15,6 @@ urlpatterns = [
     path('<str:number>/', gwtc_viewset.as_view({'get': 'list',}), name='gwtc-number-list'),
 
     # show a single version of a gwtc number:
-    path('<slug:number>/<slug:version>/', gwtc_viewset.as_view({'get': 'retrieve',}), name='gwtc-version-detail'),
+    path('<dotslug:number>/<slug:version>/', gwtc_viewset.as_view({'get': 'retrieve',}), name='gwtc-version-detail'),
 
 ]

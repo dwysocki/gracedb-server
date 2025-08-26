@@ -20,7 +20,7 @@ from .permissions import gwtc_model_permissions
 
 
 class custom_gwtc_paginator(pagination.LimitOffsetPagination):
-    default_limit = 10
+    default_limit = 1
     limit_query_param = 'count'
     offset_query_param = 'start'
 
