@@ -3431,6 +3431,22 @@ class TestSupereventFileDetail(SupereventSetup, GraceDbApiTestBase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, data1)
 
+    def test_file_detail_invalid_filename_comma(self):
+        """Should return 404 for filename containing a comma (invalid format)"""
+        url = v_reverse('superevents:superevent-file-detail',
+            args=[self.public_superevent.superevent_id, 'bad,file.txt'])
+        response = self.request_as_user(url, "GET")
+        self.assertEqual(response.status_code, 404)
+        self.assertIn('version string should be an int', str(response.data))
+
+    def test_file_detail_invalid_version_nonint(self):
+        """Should return 404 for filename with non-integer version specifier"""
+        url = v_reverse('superevents:superevent-file-detail',
+            args=[self.public_superevent.superevent_id, 'file1.txt,notanint'])
+        response = self.request_as_user(url, "GET")
+        self.assertEqual(response.status_code, 404)
+        self.assertIn('version string should be an int', str(response.data))
+
 
 class TestSupereventGroupObjectPermissionList(SupereventSetup,
     GraceDbApiTestBase):

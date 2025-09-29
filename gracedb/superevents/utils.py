@@ -273,23 +273,22 @@ def create_log(issuer, comment, event_or_superevent, filename="",
         logger.error(err_msg)
         raise TypeError(err_msg)
 
+    # Create versioned file, and get the file_version attribute if
+    # data_file was supplied.
+    if data_file:
+
+        # If creating the file fails, we don't want to create the log
+        # object. Raising the exception through django DRF should return
+        # an error to the user (like a bad request).
+        version = create_versioned_file(filename,
+            event_or_superevent.datadir, data_file)
+
+        # Update file_version
+        log_dict.update({'file_version': version})
+
     # Create log object
     log_set = getattr(event_or_superevent, log_attr)
     log = log_set.create(**log_dict)
-
-    # Create versioned file
-    if data_file:
-        try:
-            version = create_versioned_file(filename,
-                event_or_superevent.datadir, data_file)
-        except Exception as e:
-            # If creating the file fails, we want to delete the log entry
-            log.delete()
-            raise e
-
-        # Update file_version
-        log.file_version = version
-        log.save(update_fields=['file_version'])
 
     # Add tags to log messages
     for t in tags:

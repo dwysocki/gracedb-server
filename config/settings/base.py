@@ -553,7 +553,7 @@ ANONYMOUS_USER_ID = -1
 GUARDIAN_RENDER_403 = True
 # Used by guardian for dealing with errors related to the user model
 # See http://django-guardian.readthedocs.io/en/latest/userguide/custom-user-model.html
-GUARDIAN_MONKEY_PATCH = False
+GUARDIAN_MONKEY_PATCH_USER = False
 
 # Lifetime of verification codes for contacts
 VERIFICATION_CODE_LIFETIME = timedelta(hours=1)

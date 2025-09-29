@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import logging
 import os
 
@@ -359,14 +359,17 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
     lookup_url_kwarg = 'file_name'
 
     def get_log_queryset(self):
-        # Get full list of logs for parent superevent
+        # Filter logs with non-empty filenames and order them efficiently
         parent_superevent = self.get_parent_object()
-        return parent_superevent.log_set.all()
+        return parent_superevent.log_set.filter(filename__gt='').order_by('-created', '-N')
 
     def filter_log_queryset(self, log_queryset):
-        # Filter queryset based on the user's view permissions
-        return get_objects_for_user(self.request.user,
-            'superevents.view_log', klass=log_queryset)
+        # Use guardian to filter logs based on user permissions
+        return get_objects_for_user(
+            self.request.user,
+            'superevents.view_log',
+            klass=log_queryset
+        )
 
     # This is a bandaid to overcome some very very
     # intermittent errors we've been seeing on AWS.
@@ -382,18 +385,36 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
         # Get logs which are viewable by the current user and
         # have files attached
         parent_superevent = self.get_parent_object()
-        viewable_logs = self.filter_log_queryset(self.get_log_queryset())
+        logs = self.filter_log_queryset(self.get_log_queryset())
 
         while not efs_access_success:
             try: 
-                # Get list of filenames
-                file_list = get_file_list(viewable_logs, parent_superevent.datadir)
+                versioned_files = set()
+                symlinks = set()
+                latest_versions = defaultdict(lambda: 0)
 
-                # Compile sorted dict of filenames and links
-                file_dict = OrderedDict((f,
-                    api_reverse('superevents:superevent-file-detail',
-                    args=[parent_superevent.superevent_id, f], request=request))
-                    for f in sorted(file_list))
+                # Track latest version per filename
+                for log in parent_superevent.log_set.filter(filename__gt=''):
+                    latest_versions[log.filename] = max(latest_versions[log.filename], log.file_version)
+
+                # Add versioned filenames and symlinks if latest version is exposed
+                for log in logs:
+                    if log.filename:
+                        versioned_name = f"{log.filename},{log.file_version}"
+                        versioned_files.add(versioned_name)
+
+                        if log.file_version == latest_versions.get(log.filename):
+                            symlinks.add(log.filename)
+
+                all_files = versioned_files.union(symlinks)
+
+                file_dict = OrderedDict(
+                    (f, api_reverse('superevents:superevent-file-detail',
+                                    args=[parent_superevent.superevent_id, f],
+                                    request=request))
+                    for f in sorted(all_files)
+                )
+
             except OSError:
                 logger.warning("Retrying EFS access. Attempt number "
                         "{}".format(efs_access_attempt))

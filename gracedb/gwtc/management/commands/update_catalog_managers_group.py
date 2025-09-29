@@ -48,7 +48,14 @@ class Command(BaseCommand):
         p_perm = Permission.objects.get(codename=P_PERM)
     
         # Now get the UserObjectPermission set associated with the pipelines
-        # and permissions:
+        # and permissions. Check to see the type object_pk, and convert between
+        # strings and integers as need be. ANNOYING.
+        object_pk_type = type(UserObjectPermission.objects.filter(permission=p_perm,
+                                 content_type=ctype).first().object_pk)
+
+        if not isinstance(gw_ids[0], object_pk_type):
+            gw_ids = [object_pk_type(s) for s in gw_ids]
+
         pipeline_perms = UserObjectPermission.objects.filter(permission=p_perm,
                              content_type=ctype, object_pk__in=gw_ids)
     
@@ -57,6 +64,7 @@ class Command(BaseCommand):
     
         # Now get the difference between the uploaders and the catalog managers:
         users_to_add = perm_user_ids.difference(cm_user_ids)
+
     
         # loop over and add the users:
         for uid in users_to_add:
