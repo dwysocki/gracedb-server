@@ -78,6 +78,11 @@ group_sub_bullet = """<ul>
 </ul>""".format(LVALERT_OVERSEER_INSTANCES[0]['igwn_alert_group'])
 INSTANCE_LIST = INSTANCE_LIST + group_sub_bullet
 
+# Add bullets about data retention:
+INSTANCE_LIST += f"""
+<li> Hourly mock MDC events and superevents are removed after {MDC_RETENTION_DAYS} days </li>
+"""
+
 INSTANCE_INFO = """
 <h5>GraceDB Notifications</h5>
 <hr>
@@ -88,6 +93,7 @@ mechanisms are:
 </p>
 <ul>
 {}
+<li>Only LIGO/Virgo/KAGRA logins are provided</li>
 </ul>
 """.format(INSTANCE_LIST)
 

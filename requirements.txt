@@ -47,7 +47,7 @@ PyJWT==2.8.0
 python-ldap==3.4.4
 pymemcache==4.0.0
 #pyopenssl==23.0.0
-redis==5.0.4
+humanize==4.13.0
 scipy==1.11.1
 scitokens==1.8.1
 sentry-sdk==2.19.2

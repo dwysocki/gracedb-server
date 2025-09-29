@@ -59,6 +59,12 @@ group_sub_bullet = """<ul>
 </ul>""".format(LVALERT_OVERSEER_INSTANCES[0]['igwn_alert_group'])
 INSTANCE_LIST = INSTANCE_LIST + group_sub_bullet
 
+# Add bullets about data retention:
+INSTANCE_LIST += f"""
+<li> Test events and superevents are removed after 21 days </li>
+<li> Hourly mock MDC events and superevents are removed after {MDC_RETENTION_DAYS} days </li>
+"""
+
 INSTANCE_INFO = """
 <h5>Playground instance</h5>
 <hr>
@@ -68,9 +74,8 @@ applications. It mimics the production instance in all but the following ways:
 </p>
 <ul>
 {}
-<li>Only LIGO logins are provided (no login via InCommon or Google).</li>
-<li>Events and associated data will <b>not</b> be preserved indefinitely.
-A nightly cron job removes events older than 21 days.</li>
+<li>Production-like events and associated data will be preserved on a best-effort basis</li>
+<li>Only LIGO logins are provided (no login via InCommon or Google)</li>
 </ul>
 """.format(INSTANCE_LIST)
 

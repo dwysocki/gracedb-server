@@ -803,3 +803,7 @@ DISABLE_X509 = parse_envvar_bool(
                  fail_if_not_found=False, default_value="false")
 )
 
+# Retention period for MDC events and superevents
+MDC_RETENTION_DAYS = int(get_from_env('DJANGO_MDC_RETENTION_DAYS',
+                   default_value=30,
+                   fail_if_not_found=False))

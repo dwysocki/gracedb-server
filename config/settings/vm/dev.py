@@ -60,6 +60,12 @@ if (len(LVALERT_OVERSEER_INSTANCES) == 2):
     </ul>""".format(igwn_alert_group)
     INSTANCE_LIST = INSTANCE_LIST + group_sub_bullet
 
+# Add bullets about data retention:
+INSTANCE_LIST += f"""
+<li> Test events and superevents are removed after 21 days </li>
+<li> Hourly mock MDC events and superevents are removed after {MDC_RETENTION_DAYS} days </li>
+"""
+
 INSTANCE_INFO = """
 <h5>Development Instance</h5>
 <hr>
@@ -71,7 +77,7 @@ Events and associated data may change or be removed at any time.
 </p>
 <ul>
 {}
-<li>Only LIGO logins are provided (no login via InCommon or Google).</li>
+<li>Only LIGO/Virgo/KAGRA logins are provided </li>
 </ul>
 """.format(INSTANCE_LIST)
 
