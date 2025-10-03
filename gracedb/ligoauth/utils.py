@@ -164,10 +164,15 @@ def get_pipeline_perms_for_user(user):
     p = Permission.objects.get(codename='populate_pipeline')
     ctype = ContentType.objects.get(app_label='events', model='pipeline')
 
+    # get the data type of the pipeline primary key
+    pipeline_pk_type = type(Pipeline.objects.first().id)
+
     pk_list = UserObjectPermission.objects.filter(permission=p,
                   content_type=ctype, user=user).values_list('object_pk', flat=True)
 
     if pk_list.exists():
+        if not isinstance(pk_list[0], pipeline_pk_type):
+            pk_list = [pipeline_pk_type(p) for p in pk_list]
         return Pipeline.objects.filter(id__in=pk_list)
     else:
         return Pipeline.objects.none()
