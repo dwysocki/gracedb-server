@@ -23,7 +23,7 @@ urlpatterns = [
 
     # Neighbors
     re_path((r'^(?P<graceid>[GEHMTD]\d+)/neighbors/\(?(?P<delta1>[-+]?\d+)'
-         '(,(?P<delta2>[-+]?\d+)\)?)?/$'), views.neighbors, name="neighbors"),
+         r'(,(?P<delta2>[-+]?\d+)\)?)?/$'), views.neighbors, name="neighbors"),
 
     # Form processing ---------------------------------------------------------
     # Modify permissions
@@ -57,6 +57,6 @@ urlpatterns = [
 
     # Neighbors
     re_path((r'^neighbors/(?P<graceid>[GEHMTD]\d+)/\(?(?P<delta1>[-+]?\d+)'
-         '(,(?P<delta2>[-+]?\d+)\)?)?'), views.neighbors,
+         r'(,(?P<delta2>[-+]?\d+)\)?)?'), views.neighbors,
         name="legacyneighbors"),
 ]

@@ -906,7 +906,7 @@ def groupeventpermissionToDict(gop, event=None, request=None):
 #---------------------------------------------------------------------------------------
 
 def assembleLigoLw(objects):
-    from ligo.lw import ligolw
+    from igwn_ligolw import ligolw
     # Branson:
     # #lsctables MUST be loaded before utils.
     #
@@ -916,13 +916,10 @@ def assembleLigoLw(objects):
     #    from glue.ligolw.ligolw import LIGOLWContentHandler
     #    from glue.ligolw.lsctables import use_in <---- ?
 
-    from ligo.lw.lsctables import use_in
-    from ligo.lw import utils
-    from ligo.lw.utils import ligolw_add
+    from igwn_ligolw import utils
+    from igwn_ligolw.utils import ligolw_add
     # AEP load custom ContentHandler for glue-->ligo.lw compatibility
     from core.ligolw import FlexibleLIGOLWContentHandler
-
-    use_in(FlexibleLIGOLWContentHandler)
 
     xmldoc = ligolw.Document()
     for obj in objects:

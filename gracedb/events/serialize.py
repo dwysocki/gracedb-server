@@ -4,9 +4,9 @@ import os
 from time import gmtime, strftime
 
 from lal import LIGOTimeGPS
-from ligo.lw import ligolw
-from ligo.lw import table
-from ligo.lw import lsctables
+from igwn_ligolw import ligolw
+from igwn_ligolw.ligolw import Table, Column
+from igwn_ligolw import lsctables
 
 from core.vfile import VersionedFile, create_versioned_file
 

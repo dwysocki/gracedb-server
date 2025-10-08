@@ -18,11 +18,10 @@ from guardian.models import GroupObjectPermission
 import logging; log = logging.getLogger(__name__)
 
 import os
-import ligo.lw
-import ligo.lw.ligolw
-from ligo.lw import utils as ligolw_utils
-from ligo.lw import table as ligolw_table
-from ligo.lw import lsctables
+import igwn_ligolw
+import igwn_ligolw.ligolw
+from igwn_ligolw import utils as ligolw_utils
+from igwn_ligolw import lsctables
 
 # AEP: import FlexibleLIGOLWContentHandler for 
 # compatibility:

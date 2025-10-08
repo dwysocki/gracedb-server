@@ -59,7 +59,7 @@ secret_detection:
 # -- testing
 
 .test: &test
-  image: igwn/base:bookworm
+  image: debian:trixie
   services:
     - postgres:15.6
     - memcached
@@ -102,10 +102,12 @@ secret_detection:
     - PYTHON_VERSION="${CI_JOB_NAME##*:}"
     - PYTHON_MAJOR="${PYTHON_VERSION:0:1}"
     - PYTHON="python3"
+    # build apt cache:
+    - apt-get -yqq update
     # install build requirements
-    - apt-get -y install gnupg
+    - apt-get -y install gnupg lsb-release curl
     - sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-    - wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+    - curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
     - apt-get -yqq update
     - apt-get -o dir::cache::archives="${APT_CACHE_DIR}" install -yqq
           git
@@ -126,8 +128,6 @@ secret_detection:
           postgresql-15
           postgresql-client-15
           libpq-dev
-    # upgrade pip (requirement for lalsuite)
-    - ${PYTHON} -m pip install --upgrade pip --break-system-packages
     # install everything else from pip
     - ${PYTHON} -m pip install -r requirements.txt --break-system-packages
     # create logs path required for tests
@@ -155,7 +155,7 @@ secret_detection:
   tags:
       - executor-docker
 
-test:3.11:
+test:3.13:
   <<: *test
 
 # -- docker

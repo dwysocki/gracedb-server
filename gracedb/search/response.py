@@ -9,7 +9,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, \
     HttpResponseServerError
 from django.urls import reverse as django_reverse
 
-from ligo.lw import utils as ligolw_utils
+from igwn_ligolw import utils as ligolw_utils
 
 from events.models import Label
 from events.permission_utils import is_external

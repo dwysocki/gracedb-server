@@ -19,12 +19,11 @@ from django.http.request import QueryDict
 from django.utils.functional import wraps
 
 # Stuff for the LigoLwRenderer (converted from glue to ligo.lw)
-from ligo.lw import ligolw
+from igwn_ligolw import ligolw
 # lsctables MUST be loaded before utils.
-from ligo.lw import utils
-from ligo.lw.utils import ligolw_add
+from igwn_ligolw import utils
+from igwn_ligolw.utils import ligolw_add
 from core.ligolw import ThoroughFlexibleContentHandler
-from ligo.lw.lsctables import use_in
 
 from guardian.models import GroupObjectPermission
 from rest_framework import authentication, parsers, \
@@ -68,9 +67,6 @@ from ...utils import api_reverse
 
 # Set up logger
 logger = logging.getLogger(__name__)
-
-# Set up content handler
-use_in(ThoroughFlexibleContentHandler)
 
 # For checking queries in the event that the user is external
 REST_FRAMEWORK_SETTINGS = getattr(settings, 'REST_FRAMEWORK', {})

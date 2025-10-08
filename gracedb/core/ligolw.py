@@ -1,9 +1,8 @@
 # Tools to read and manipulate ligolw xml files
 
-from ligo.lw.ligolw import Table, LIGOLWContentHandler
-from ligo.lw.lsctables import TableByName, CoincInspiralTable
-from ligo.lw.lsctables import SnglInspiralTable, CoincTable
-from ligo.lw import table as ligolw_table
+from igwn_ligolw.ligolw import Table, LIGOLWContentHandler, Column
+from igwn_ligolw.lsctables import TableByName, CoincInspiralTable
+from igwn_ligolw.lsctables import SnglInspiralTable, CoincTable
 from xml.sax.xmlreader import AttributesImpl
 
 import logging
@@ -207,7 +206,7 @@ class FlexibleLIGOLWContentHandler(LIGOLWContentHandler):
             # Name="table:column" format, so the ColumnName method strips away what is
             # not necessary for the validcolumn lookup.
 
-            col_name = ligolw_table.Column.ColumnName(attrs.getValue((None,'Name')))
+            col_name = Column.ColumnName(attrs.getValue((None,'Name')))
 
             # Next get the data type corresponding to that column in the current tab:
 
@@ -297,7 +296,7 @@ class GraceDBFlexibleContentHandler(FlexibleLIGOLWContentHandler):
     def __init__(self, xmldoc):
         super(GraceDBFlexibleContentHandler, self).__init__(xmldoc, lambda name,
                 attrs: (name in Table.tagName) and
-                (ligolw_table.Table.TableName(attrs["Name"]) in
+                (Table.TableName(attrs["Name"]) in
                     gracedb_ligolw_tables))
 
 # A content handler that falls back to the old behavior of the flexibleligolw 
@@ -306,5 +305,5 @@ class ThoroughFlexibleContentHandler(FlexibleLIGOLWContentHandler):
     def __init__(self, xmldoc):
         super(GraceDBFlexibleContentHandler, self).__init__(xmldoc, lambda name,
                 attrs: (name in Table.tagName) and
-                (ligolw_table.Table.TableName(attrs["Name"]) in
+                (Table.TableName(attrs["Name"]) in
                     lsctables_to_parse))

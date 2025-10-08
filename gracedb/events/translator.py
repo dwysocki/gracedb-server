@@ -6,9 +6,9 @@ import numbers
 import os
 
 from json import JSONDecodeError
-from ligo.lw.utils import load_filename, load_fileobj
-from ligo.lw.lsctables import CoincInspiralTable, SnglInspiralTable, use_in
-from ligo.lw.lsctables import SimInspiralTable, CoincTable
+from igwn_ligolw.utils import load_filename, load_fileobj
+from igwn_ligolw.lsctables import CoincInspiralTable, SnglInspiralTable
+from igwn_ligolw.lsctables import SimInspiralTable, CoincTable
 from core.ligolw import GraceDBFlexibleContentHandler
 import voeventparse as vp
 
@@ -28,9 +28,6 @@ except ImportError:  # python >= 3
 
 # Set up logger
 logger = logging.getLogger(__name__)
-
-# okay?
-use_in(GraceDBFlexibleContentHandler)
 
 # some attributes for NeutrinoEvents. These are case-sensitive
 # to how they are written in the VOEvent:
@@ -285,10 +282,10 @@ def handle_uploaded_data(event, datafilename,
             # fails, then it will return the same errors as before:
 
             if datafilename:
-                xmldoc = load_filename(datafilename, contenthandler=FlexibleLIGOLWContentHandler)
+                xmldoc = load_filename(datafilename, contenthandler=GraceDBFlexibleContentHandler)
             elif file_contents:
                 f = StringIO(file_contents)
-                xmldoc, digest = load_fileobj(f, contenthandler=FlexibleLIGOLWContentHandler)
+                xmldoc, digest = load_fileobj(f, contenthandler=GraceDBFlexibleContentHandler)
             else:
                 msg = "If you wanna make an injection event, "\
                       "I'm gonna need a filepath or filecontents."

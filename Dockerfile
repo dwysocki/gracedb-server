@@ -1,7 +1,7 @@
-FROM debian:bookworm
+FROM debian:trixie
 LABEL name="LIGO GraceDB Django application" \
       maintainer="alexander.pace@ligo.org" \
-      date="20240306"
+      date="20250925"
 ARG SETTINGS_MODULE="config.settings.container.dev"
 
 COPY docker/SWITCHaai-swdistrib.gpg /etc/apt/trusted.gpg.d
@@ -10,10 +10,10 @@ RUN apt-get update && \
     apt-get -y install gnupg curl
 
 
-RUN echo 'deb http://deb.debian.org/debian bookworm-backports main' > /etc/apt/sources.list.d/backports.list
-RUN echo 'deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main' > /etc/apt/sources.list.d/pgdg.list
-RUN echo 'deb [trusted=yes] https://hypatia.aei.mpg.de/lsc-amd64-bookworm ./' > /etc/apt/sources.list.d/lscsoft.list
-RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+RUN echo 'deb http://deb.debian.org/debian trixie-backports main' > /etc/apt/sources.list.d/backports.list
+RUN echo 'deb http://apt.postgresql.org/pub/repos/apt trixie-pgdg main' > /etc/apt/sources.list.d/pgdg.list
+RUN echo 'deb [trusted=yes] https://hypatia.aei.mpg.de/lsc-amd64-trixie ./' > /etc/apt/sources.list.d/lscsoft.list
+RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
 RUN apt-get update && \
     apt-get --assume-yes upgrade && \
     apt-get install --install-recommends --assume-yes \
@@ -26,21 +26,20 @@ RUN apt-get update && \
         libapache2-mod-shib \
         libapache2-mod-xsendfile \
         libldap2-dev \
-        libldap-2.5-0 \
         libsasl2-dev \
         libsasl2-modules-gssapi-mit \
         libxml2-dev \
         pkg-config \
         libpng-dev \
         libpq-dev \
-        libfreetype6-dev \
-        libxslt-dev \
+        libfreetype-dev \
+        libxslt1-dev \
         libsqlite3-dev \
         ligo-ca-certs \
         osg-ca-certs \
         php \
-        php8.2-pgsql \
-        php8.2-mbstring \
+        php8.4-pgsql \
+        php8.4-mbstring \
         postgresql-client-15 \
         python3 \
         python3-dev \
@@ -55,9 +54,8 @@ RUN apt-get update && \
         htop \
         telnet \
         vim && \
-    apt-get clean && \
-    curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    apt-get update && apt-get install --assume-yes yarn
+    apt-get clean 
+
 
 # Install AWS X-ray daemon
 RUN curl -O https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.deb
@@ -83,7 +81,7 @@ COPY docker/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf
 # Enable mpm_event module:
 
 RUN rm /etc/apache2/mods-enabled/mpm_prefork.*
-RUN rm /etc/apache2/mods-enabled/php8.2.*
+RUN rm /etc/apache2/mods-enabled/php8.4.*
 RUN cp  /etc/apache2/mods-available/mpm_event.* /etc/apache2/mods-enabled/
 
 # Shibboleth configs and certs:
@@ -102,7 +100,6 @@ ADD . /app/gracedb_project
 
 # install gracedb application itself
 WORKDIR /app/gracedb_project
-RUN pip3 install --upgrade pip --break-system-packages
 RUN pip3 install -r requirements.txt --break-system-packages
 
 # install supervisor from pip
@@ -172,9 +169,6 @@ RUN mkdir /app/scitokens_cache && \
     chown gracedb:www-data /app/scitokens_cache && \
     chmod 0750 /app/scitokens_cache
 ENV XDG_CACHE_HOME /app/scitokens_cache
-
-# patch voeventparse for python3.10+:
-RUN sed -i 's/collections.Iterable/collections.abc.Iterable/g' /usr/local/lib/python3.11/dist-packages/voeventparse/voevent.py
 
 # Remove packages that expose security vulnerabilities and close out.
 # Edit: zlib1g* can't be removed because of a PrePend error

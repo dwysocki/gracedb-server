@@ -820,3 +820,16 @@ ZERO_BYTES_RETRIES = int(get_from_env('DJANGO_ZERO_BYTES_RETRIES',
 MDC_RETENTION_DAYS = int(get_from_env('DJANGO_MDC_RETENTION_DAYS',
                    default_value=30,
                    fail_if_not_found=False))
+
+# Add some EFS zero-bytes check parameters:
+ZERO_BYTES_CHECK = parse_envvar_bool(
+    get_from_env('DJANGO_ZERO_BYTES_CHECK',
+                 fail_if_not_found=False, default_value="false"))
+
+ZERO_BYTES_WAIT = float(get_from_env('DJANGO_ZERO_BYTES_WAIT',
+                   default_value=0.05,
+                   fail_if_not_found=False))
+
+ZERO_BYTES_RETRIES = int(get_from_env('DJANGO_ZERO_BYTES_RETRIES',
+                  default_value=3,
+                  fail_if_not_found=False))
