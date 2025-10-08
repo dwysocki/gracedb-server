@@ -155,11 +155,93 @@ def test_superevent_queries(query, expected_Q_result):
         # Set up mocks
         mock_labels_list.return_value = MOCK_LABEL_LIST
         mock_now.return_value = MOCK_NOW_DT
-
         # Run query
         Q_result = parseSupereventQuery(query)
-
     assert Q_result == expected_Q_result
+
+def test_superevent_id_wildcard():
+    # S250908* should match all superevents for that day
+    query = "S250908*"
+    expected_Q = Q(superevent_id__startswith="S250908")
+    with mock.patch('search.query.labels.Label.objects.values_list') as mock_labels_list, \
+        mock.patch('events.nltime.timezone.now') as mock_now:
+        mock_labels_list.return_value = MOCK_LABEL_LIST
+        mock_now.return_value = MOCK_NOW_DT
+        Q_result = parseSupereventQuery(query)
+    assert Q_result == expected_Q
+
+def test_superevent_id_invalid_wildcard():
+    # Query with an invalid wildcard character (e.g., '?') should raise a ValueError with a specific message
+    query = "S250908?"
+    with mock.patch('search.query.labels.Label.objects.values_list') as mock_labels_list, \
+        mock.patch('events.nltime.timezone.now') as mock_now:
+        mock_labels_list.return_value = MOCK_LABEL_LIST
+        mock_now.return_value = MOCK_NOW_DT
+        with pytest.raises(ValueError) as excinfo:
+            parseSupereventQuery(query)
+        assert "Invalid wildcard in query" in str(excinfo.value)
+
+def test_superevent_id_invalid_prefix():
+    # Query with an invalid prefix (e.g., 'XS250908*') should raise a ValueError with a specific message
+    query = "XS250908*"
+    with mock.patch('search.query.labels.Label.objects.values_list') as mock_labels_list, \
+        mock.patch('events.nltime.timezone.now') as mock_now:
+        mock_labels_list.return_value = MOCK_LABEL_LIST
+        mock_now.return_value = MOCK_NOW_DT
+        with pytest.raises(ValueError) as excinfo:
+            parseSupereventQuery(query)
+        assert "Invalid superevent prefix in query" in str(excinfo.value)
+
+def test_superevent_id_event_graceid():
+    # Querying superevents with an event graceid (e.g., 'G0029') should raise a ValueError with a specific message
+    query = "G0029"
+    with mock.patch('search.query.labels.Label.objects.values_list') as mock_labels_list, \
+        mock.patch('events.nltime.timezone.now') as mock_now:
+        mock_labels_list.return_value = MOCK_LABEL_LIST
+        mock_now.return_value = MOCK_NOW_DT
+        with pytest.raises(ValueError) as excinfo:
+            parseSupereventQuery(query)
+        assert "looks like an event graceid" in str(excinfo.value)
+
+
+@pytest.mark.parametrize("query,expected_msg", [
+    ("R001", "is not a valid superevent ID or query"),
+    ("R001*", "is not a valid superevent ID or query"),
+    ("R001%", "Invalid wildcard in query"),
+])
+def test_superevent_id_generic_invalid(query, expected_msg):
+    # Test generic invalid superevent ID scenarios and error messages
+    with mock.patch('search.query.labels.Label.objects.values_list') as mock_labels_list, \
+        mock.patch('events.nltime.timezone.now') as mock_now:
+        mock_labels_list.return_value = MOCK_LABEL_LIST
+        mock_now.return_value = MOCK_NOW_DT
+        with pytest.raises(ValueError) as excinfo:
+            parseSupereventQuery(query)
+        assert expected_msg in str(excinfo.value)
+
+
+def test_superevent_id_wildcard_prefixes():
+    # S25*, S2509*, S250908*, MS25*, TS25*, GW25* should match all superevents with those prefixes
+    for prefix in ["S25", "S2509", "S250908", "MS25", "TS25", "GW25"]:
+        query = f"{prefix}*"
+        expected_Q = Q(superevent_id__startswith=prefix)
+        with mock.patch('search.query.labels.Label.objects.values_list') as mock_labels_list, \
+            mock.patch('events.nltime.timezone.now') as mock_now:
+            mock_labels_list.return_value = MOCK_LABEL_LIST
+            mock_now.return_value = MOCK_NOW_DT
+            Q_result = parseSupereventQuery(query)
+        assert Q_result == expected_Q
+
+def test_superevent_id_exact_vs_wildcard():
+    # An exact query like 'S250908a' should not be treated as a wildcard query
+    query = "S250908a"
+    expected_Q = Q(**Superevent.get_filter_kwargs_for_date_id_lookup("S250908a"))
+    with mock.patch('search.query.labels.Label.objects.values_list') as mock_labels_list, \
+        mock.patch('events.nltime.timezone.now') as mock_now:
+        mock_labels_list.return_value = MOCK_LABEL_LIST
+        mock_now.return_value = MOCK_NOW_DT
+        Q_result = parseSupereventQuery(query)
+    assert Q_result == expected_Q
 
 
 # Group, pipeline, search names to use in mocks

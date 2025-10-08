@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import datetime
 import logging
 import pytz
+import re
 try:
     from functools import reduce
 except ImportError:  # python < 3
@@ -31,12 +32,21 @@ logger = logging.getLogger(__name__)
 
 # Function for parsing matched superevent ID tokens
 def parse_superevent_id(name, toks, filter_prefix=None):
-    # toks = components of matched superevent id
+    # Wildcard support: if wildcard is present, match all superevents starting with the parsed string
+    if hasattr(toks, 'wildcard') and toks.wildcard == '*':
+        s_id_prefix = toks.preprefix + toks.prefix + toks.date
+        if hasattr(toks, 'suffix') and toks.suffix:
+            s_id_prefix += toks.suffix
+        f_kwargs = {
+            '{}__startswith'.format('superevent_id' if not filter_prefix else filter_prefix + 'superevent_id'): s_id_prefix
+        }
+        fullQ = Q(**f_kwargs)
+        return (name, fullQ)
 
     # If no suffix, add either 'a' or 'A' depending on GW status
     # This allows queries like GW150914 to match the first superevent
     # on that date
-    if not toks.suffix:
+    if not hasattr(toks, 'suffix') or not toks.suffix:
         toks['suffix'] = int_to_letters(1)
         if (toks.prefix == Superevent.GW_ID_PREFIX):
             toks['suffix'] = toks.suffix.upper()
@@ -55,30 +65,33 @@ def parse_superevent_id(name, toks, filter_prefix=None):
     # that are part of a given superevent, we have to add the 'superevent__'
     # prefix to the filter kwargs.
     if filter_prefix:
-
-        # Add '__' to end of filter_prefix
         if not filter_prefix.endswith('__'):
             filter_prefix += '__'
+        f_kwargs = {'{pref}{k}'.format(pref=filter_prefix, k=k): v for k,v in f_kwargs.items()}
 
-        f_kwargs = {'{pref}{k}'.format(pref=filter_prefix, k=k): v for
-            k,v in f_kwargs.items()}
-
-    # Convert to a Q object
     fullQ = Q(**f_kwargs)
-
     return (name, fullQ)
+
 
 
 # Construct an expression for date-based superevent ids
 superevent_preprefix = Optional(Or([CaselessLiteral(pref) for pref in
     [Superevent.SUPEREVENT_CATEGORY_TEST, Superevent.SUPEREVENT_CATEGORY_MDC]])
     ).setResultsName('preprefix')
+# Allow S, MS, TS, GW as valid prefixes
 superevent_prefix = Or([CaselessLiteral(pref) for pref in
-    (Superevent.DEFAULT_ID_PREFIX, Superevent.GW_ID_PREFIX)]).setResultsName('prefix')
-superevent_date = Word(nums, exact=6).setResultsName('date')
+    ('S', 'MS', 'TS', 'GW')]).setResultsName('prefix')
+# Exact match: 6 digits
+superevent_date_exact = Word(nums, exact=6).setResultsName('date')
 superevent_suffix = Word(alphas).setResultsName('suffix')
-superevent_expr = superevent_preprefix + superevent_prefix + \
-    superevent_date + Optional(superevent_suffix)
+# Wildcard match: 1+ digits, must end with '*'
+superevent_date_flex = Word(nums, min=1).setResultsName('date')
+superevent_wildcard = Literal('*').setResultsName('wildcard')
+# Patterns
+superevent_expr_wildcard = superevent_preprefix + superevent_prefix + superevent_date_flex + Optional(superevent_suffix) + superevent_wildcard
+superevent_expr_exact = superevent_preprefix + superevent_prefix + superevent_date_exact + Optional(superevent_suffix)
+# Prioritize wildcard pattern first
+superevent_expr = (superevent_expr_wildcard | superevent_expr_exact)
 
 # Dict of queryable parameters which are compiled into a pyparsing
 # expression below
@@ -274,6 +287,7 @@ combined_expr = Or(expr_list)
 
 def parseSupereventQuery(s):
 
+
     # Clean the label-related parts of the query out of the query string.
     labelQ = getLabelQ()
     s = labelQ.transformString(s)
@@ -289,8 +303,30 @@ def parseSupereventQuery(s):
     if not s:
         return default_Q
 
-    # Match query string to parsers
-    matches = (stringStart + OneOrMore(q) + stringEnd).parseString(s).asList()
+    try:
+        # Match query string to parsers
+        matches = (stringStart + OneOrMore(q) + stringEnd).parseString(s).asList()
+    except ParseException as e:
+        msg = str(e)
+        allowed_prefixes = ['S', 'MS', 'TS', 'GW']
+        # Check for invalid wildcard (should be '*')
+        if '*' not in s and any(w in s for w in ['?', '#', '%', '$']):
+            raise ValueError(f"Invalid wildcard in query: '{s}'. Only '*' is supported as a wildcard.")
+        # Check for event-like grace ID (e.g., G0029)
+        if re.match(r"^G\d+$", s.strip()):
+            raise ValueError(f"'{s}' looks like an event graceid. Only superevent IDs (S, MS, TS, GW) are valid in this search.")
+        # Check for invalid prefix: look for a word at the start that is not in the allowed set
+        m = re.match(r"([A-Za-z]+)\d{6,}\*?", s)
+        if m and m.group(1) not in allowed_prefixes:
+            raise ValueError(f"Invalid superevent prefix in query: '{m.group(1)}'. Allowed prefixes are: {', '.join(allowed_prefixes)}.")
+        # If the query doesn't match any known superevent or event pattern, give a clear error
+        if not re.match(r"^(S|MS|TS|GW)\d{6,}([a-zA-Z]*)\*?$", s.strip()) and not re.match(r"^G\d+$", s.strip()):
+            raise ValueError(f"'{s}' is not a valid superevent ID or query. Valid superevent IDs start with S, MS, TS, or GW followed by a date and optional suffix. Example: S250908a or GW250908A.")
+        # Check for invalid wildcard (should be '*')
+        if '*' not in s and any(w in s for w in ['?', '#', '%', '$']):
+            raise ValueError(f"Invalid wildcard in query: '{s}'. Only '*' is supported as a wildcard.")
+        # Fallback generic error
+        raise ValueError(f"Invalid superevent query: '{s}'. {msg}")
 
     # Append default category query if category is not specified in the query
     # OR if a superevent ID is not directly specified in the query

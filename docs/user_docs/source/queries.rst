@@ -283,6 +283,36 @@ Examples:
 - ``TS181212xz``
 
 
+Superevent ID prefixes and wildcards
+------------------------------------
+Superevent IDs can have the following valid prefixes:
+
+- ``S`` (production superevent)
+- ``MS`` (MDC superevent)
+- ``TS`` (test superevent)
+- ``GW`` (confirmed Gravitational Wave)
+
+You can use a ``*`` at the end of a superevent ID prefix to match all superevents that start with that prefix. This enables flexible searches for multiple superevents on a given day or with a common prefix. Only ``*`` is supported as a wildcard, and it must appear at the end of the prefix.
+
+**Examples:**
+
+- ``S250908*`` (matches all superevents for 2025-09-08)
+- ``S2509*`` (matches all superevents for September 2025)
+- ``S25*`` (matches all superevents for 2025)
+- ``GW250908*`` (matches all GW superevents for 2025-09-08)
+
+**Invalid queries and error messages:**
+
+- Using an invalid wildcard (e.g., ``S250908%``):
+  ``Invalid wildcard in query: 'S250908%'. Only '*' is supported as a wildcard.``
+- Using an invalid prefix (e.g., ``XS250908*``):
+  ``Invalid superevent prefix in query: 'XS'. Allowed prefixes are: S, MS, TS, GW.``
+- Querying with an event graceid (e.g., ``G0029``):
+  ``'G0029' looks like an event graceid. Only superevent IDs (S, MS, TS, GW) are valid in this search.``
+- Querying with a completely invalid string (e.g., ``R001``):
+  ``'R001' is not a valid superevent ID or query. Valid superevent IDs start with S, MS, TS, or GW followed by a date and optional suffix. Example: S250908a or GW250908A.``
+
+
 .. _superevent_query_category:
 
 By category
