@@ -482,7 +482,12 @@ class SupereventFileViewSet(InheritDefaultPermissionsMixin,
                 parent_superevent = self.get_parent_object()
                 file_path = os.path.join(parent_superevent.datadir, full_filename)
         
-                response = check_and_serve_file(request, file_path, ResponseClass=Response)
+                response = check_and_serve_file(request,
+                     file_path,
+                     ResponseClass=Response,
+                     zero_bytes_check=settings.ZERO_BYTES_CHECK,
+                     zero_bytes_wait=settings.ZERO_BYTES_WAIT,
+                     zero_bytes_retries=settings.ZERO_BYTES_RETRIES)
         
                 # if the request is for apiweb, set the cache max-age equal to the cache 
                 # on the public page. the primary use case for this is showing images 

@@ -1,11 +1,13 @@
 # Request/response utilities
 import logging
 import os
+import time
+import sentry_sdk
 
 from django.http import HttpResponse
 from django.urls import resolve, Resolver404
 
-from .vfile import VersionedFile
+from .vfile import VersionedFile, FileSizeZeroError
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -63,7 +65,8 @@ def serve_file(file_path, ResponseClass=HttpResponse):
     return response
 
 
-def check_and_serve_file(request, file_path, ResponseClass=HttpResponse):
+def check_and_serve_file(request, file_path, ResponseClass=HttpResponse,
+    zero_bytes_check=False, zero_bytes_wait=0.05, zero_bytes_retries=3):
     """
     Checks whether a file exists and is readable. If so, the file is served.
     Does not check permissions - that should be done before this function
@@ -72,6 +75,53 @@ def check_and_serve_file(request, file_path, ResponseClass=HttpResponse):
     This function returns a response, so it should be called within a view,
     not from within a view subfunction or method.
     """
+
+    # Perform zero-byte check with retries if enabled
+    if zero_bytes_check:
+        attempt = 0
+        while attempt <= zero_bytes_retries:
+            try:
+                file_size = os.path.getsize(file_path)
+                if file_size > 0:
+
+                    # Throw out a warning alerting the logger if there was a sleeping and
+                    # retrying attempt that worked:
+                    if 0 < attempt <= zero_bytes_retries:
+                        logger.warning(
+                            f"RECOVERY: file {os.path.basename(file_path)} is non-zero bytes "
+                            f"after {attempt} retry attempts."
+                            )
+
+                    break  # File is non-zero, proceed
+                else:
+                    logger.warning(
+                        f"Attempt {attempt + 1}: File size is zero for {file_path}. "
+                        f"Retrying after {zero_bytes_wait} seconds..."
+                    )
+                    time.sleep(zero_bytes_wait)
+                    attempt += 1
+            except FileNotFoundError:
+                return ResponseClass(f"File {os.path.basename(file_path)} not found", status=404)
+            except Exception as e:
+                return ResponseClass(f"Unhandled exception serving the file {os.path.basename(file_path)}", status=500)
+
+        if attempt > zero_bytes_retries:
+            # Log the incident:
+            msg = f"File {file_path} remains zero bytes after {zero_bytes_retries} retries."
+            logger.error(msg)
+
+            # Send an error to sentry:
+            exc = FileSizeZeroError(msg)
+
+            with sentry_sdk.push_scope() as scope:
+                scope.fingerprint = ['FileSizeZeroError']
+                sentry_sdk.capture_exception(exc)
+
+            # Return an HTTPError to the user:
+            return ResponseClass(f"File {os.path.basename(file_path)} is empty or unavailable", status=409)
+
+
+    # Proceed with original try-except block
     try:
         # Check if requested file can be opened
         with open(file_path, "rb"):

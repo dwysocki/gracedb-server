@@ -23,6 +23,10 @@ class FileVersionNameError(Exception):
     # filename)
     pass
 
+class FileSizeZeroError(Exception):
+    # The file is zero bytes, likely because of a transient error in EFS
+    pass
+
 
 class VersionedFile(object):
     """

@@ -1542,8 +1542,12 @@ class Files(InheritPermissionsAPIView):
                 if not check_external_file_access(event, filename):
                     msg = "You do not have permission to view this file."
                     return HttpResponseForbidden(msg)
-            response = check_and_serve_file(request, filepath,
-                ResponseClass=Response)
+            response = check_and_serve_file(request,
+                filepath,
+                ResponseClass=Response,
+                zero_bytes_check=settings.ZERO_BYTES_CHECK,
+                zero_bytes_wait=settings.ZERO_BYTES_WAIT,
+                zero_bytes_retries=settings.ZERO_BYTES_RETRIES)
         elif not filename:
             # Get list of files w/urls.
             rv = {}
