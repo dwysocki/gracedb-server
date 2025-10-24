@@ -75,7 +75,7 @@ applications. It mimics the production instance in all but the following ways:
 <ul>
 {}
 <li>Production-like events and associated data will be preserved on a best-effort basis</li>
-<li>Only LIGO logins are provided (no login via InCommon or Google)</li>
+<li>Only LIGO logins are provided</li>
 </ul>
 """.format(INSTANCE_LIST)
 

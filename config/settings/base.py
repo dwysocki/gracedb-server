@@ -56,7 +56,7 @@ INFO_BANNER_MESSAGE = "TEST MESSAGE"
 BETA_REPORTS_LINK = False
 
 # Version ---------------------------------------------------------------------
-PROJECT_VERSION = '2.32.1'
+PROJECT_VERSION = '2.33.0'
 
 # Unauthenticated access ------------------------------------------------------
 # This variable should eventually control whether unauthenticated access is
@@ -803,33 +803,20 @@ DISABLE_X509 = parse_envvar_bool(
                  fail_if_not_found=False, default_value="false")
 )
 
-# Add some EFS zero-bytes check parameters:
-ZERO_BYTES_CHECK = parse_envvar_bool(
-    get_from_env('DJANGO_ZERO_BYTES_CHECK',
-                 fail_if_not_found=False, default_value="false"))
-
-ZERO_BYTES_WAIT = float(get_from_env('DJANGO_ZERO_BYTES_WAIT',
-                   default_value=0.05,
-                   fail_if_not_found=False))
-
-ZERO_BYTES_RETRIES = int(get_from_env('DJANGO_ZERO_BYTES_RETRIES',
-                  default_value=3,
-                  fail_if_not_found=False))
-
 # Retention period for MDC events and superevents
 MDC_RETENTION_DAYS = int(get_from_env('DJANGO_MDC_RETENTION_DAYS',
-                   default_value=30,
-                   fail_if_not_found=False))
+                 default_value=30,
+                 fail_if_not_found=False))
 
 # Add some EFS zero-bytes check parameters:
 ZERO_BYTES_CHECK = parse_envvar_bool(
-    get_from_env('DJANGO_ZERO_BYTES_CHECK',
+                 get_from_env('DJANGO_ZERO_BYTES_CHECK',
                  fail_if_not_found=False, default_value="false"))
 
 ZERO_BYTES_WAIT = float(get_from_env('DJANGO_ZERO_BYTES_WAIT',
-                   default_value=0.05,
-                   fail_if_not_found=False))
+                 default_value=0.05,
+                 fail_if_not_found=False))
 
 ZERO_BYTES_RETRIES = int(get_from_env('DJANGO_ZERO_BYTES_RETRIES',
-                  default_value=3,
-                  fail_if_not_found=False))
+                 default_value=3,
+                 fail_if_not_found=False))
