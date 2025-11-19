@@ -38,6 +38,13 @@ def get_list_from_env(envvar, fail_if_not_found=False):
 # outside of the core gracedb app. but sentry picks it up and reports it as
 # an error which is ANNOYING.
 def before_send(event, hint):
+    # Filter out user input validation errors from search queries
+    # (unless USER_INPUT_TO_SENTRY is explicitly enabled)
+    from django.conf import settings
+    if not settings.USER_INPUT_TO_SENTRY:
+        if event.get('tags', {}).get('error_category') == 'user_input':
+            return None
+
     if "exc_info" in hint:
         exc_type, exc_value, tb = hint["exc_info"]
         if isinstance(exc_value, (SegmentNotFoundException,)):
@@ -820,3 +827,9 @@ ZERO_BYTES_WAIT = float(get_from_env('DJANGO_ZERO_BYTES_WAIT',
 ZERO_BYTES_RETRIES = int(get_from_env('DJANGO_ZERO_BYTES_RETRIES',
                  default_value=3,
                  fail_if_not_found=False))
+
+# Control whether user input validation errors should be sent to Sentry
+# Default to False - don't send user input errors to Sentry
+USER_INPUT_TO_SENTRY = parse_envvar_bool(
+    get_from_env('DJANGO_USER_INPUT_TO_SENTRY',
+                 fail_if_not_found=False, default_value="false"))

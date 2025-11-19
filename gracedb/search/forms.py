@@ -115,7 +115,7 @@ class MainSearchForm(forms.Form):
         except Exception as e:
             # What could this be and how can we handle it better? XXX
             logger.error('{t}: {e}'.format(t=str(type(e)), e=str(e)))
-            raise forms.ValidationError(str(e))
+            raise forms.ValidationError({'query': str(e)})
 
 
 # NOTE: this form is from the old events-only search, but is used in several

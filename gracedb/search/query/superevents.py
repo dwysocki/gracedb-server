@@ -8,6 +8,11 @@ try:
 except ImportError:  # python < 3
     pass
 
+try:
+    import sentry_sdk
+except ImportError:
+    sentry_sdk = None
+
 from django.conf import settings
 from django.db.models import Q
 from django.db.models.query import QuerySet
@@ -309,24 +314,51 @@ def parseSupereventQuery(s):
     except ParseException as e:
         msg = str(e)
         allowed_prefixes = ['S', 'MS', 'TS', 'GW']
-        # Check for invalid wildcard (should be '*')
-        if '*' not in s and any(w in s for w in ['?', '#', '%', '$']):
-            raise ValueError(f"Invalid wildcard in query: '{s}'. Only '*' is supported as a wildcard.")
-        # Check for event-like grace ID (e.g., G0029)
-        if re.match(r"^G\d+$", s.strip()):
-            raise ValueError(f"'{s}' looks like an event graceid. Only superevent IDs (S, MS, TS, GW) are valid in this search.")
-        # Check for invalid prefix: look for a word at the start that is not in the allowed set
-        m = re.match(r"([A-Za-z]+)\d{6,}\*?", s)
-        if m and m.group(1) not in allowed_prefixes:
-            raise ValueError(f"Invalid superevent prefix in query: '{m.group(1)}'. Allowed prefixes are: {', '.join(allowed_prefixes)}.")
-        # If the query doesn't match any known superevent or event pattern, give a clear error
-        if not re.match(r"^(S|MS|TS|GW)\d{6,}([a-zA-Z]*)\*?$", s.strip()) and not re.match(r"^G\d+$", s.strip()):
-            raise ValueError(f"'{s}' is not a valid superevent ID or query. Valid superevent IDs start with S, MS, TS, or GW followed by a date and optional suffix. Example: S250908a or GW250908A.")
-        # Check for invalid wildcard (should be '*')
-        if '*' not in s and any(w in s for w in ['?', '#', '%', '$']):
-            raise ValueError(f"Invalid wildcard in query: '{s}'. Only '*' is supported as a wildcard.")
-        # Fallback generic error
-        raise ValueError(f"Invalid superevent query: '{s}'. {msg}")
+
+        # Mark this as a user input error to prevent Sentry reporting
+        if sentry_sdk:
+            with sentry_sdk.push_scope() as scope:
+                scope.set_tag("error_category", "user_input")
+                scope.fingerprint = ["user-query-validation-error"]
+
+                # Check for invalid wildcard (should be '*')
+                if '*' not in s and any(w in s for w in ['?', '#', '%', '$']):
+                    raise ValueError(f"Invalid wildcard in query: '{s}'. Only '*' is supported as a wildcard.")
+                # Check for event-like grace ID (e.g., G0029)
+                if re.match(r"^G\d+$", s.strip()):
+                    raise ValueError(f"'{s}' looks like an event graceid. Only superevent IDs (S, MS, TS, GW) are valid in this search.")
+                # Check for invalid prefix: look for a word at the start that is not in the allowed set
+                m = re.match(r"([A-Za-z]+)\d{6,}\*?", s)
+                if m and m.group(1) not in allowed_prefixes:
+                    raise ValueError(f"Invalid superevent prefix in query: '{m.group(1)}'. Allowed prefixes are: {', '.join(allowed_prefixes)}.")
+                # If the query doesn't match any known superevent or event pattern, give a clear error
+                if not re.match(r"^(S|MS|TS|GW)\d{6,}([a-zA-Z]*)\*?$", s.strip()) and not re.match(r"^G\d+$", s.strip()):
+                    raise ValueError(f"'{s}' is not a valid superevent ID or query. Valid superevent IDs start with S, MS, TS, or GW followed by a date and optional suffix. Example: S250908a or GW250908A.")
+                # Check for invalid wildcard (should be '*')
+                if '*' not in s and any(w in s for w in ['?', '#', '%', '$']):
+                    raise ValueError(f"Invalid wildcard in query: '{s}'. Only '*' is supported as a wildcard.")
+                # Fallback generic error
+                raise ValueError(f"Invalid superevent query: '{s}'. {msg}")
+        else:
+            # If sentry_sdk is not available, just raise the errors normally
+            # Check for invalid wildcard (should be '*')
+            if '*' not in s and any(w in s for w in ['?', '#', '%', '$']):
+                raise ValueError(f"Invalid wildcard in query: '{s}'. Only '*' is supported as a wildcard.")
+            # Check for event-like grace ID (e.g., G0029)
+            if re.match(r"^G\d+$", s.strip()):
+                raise ValueError(f"'{s}' looks like an event graceid. Only superevent IDs (S, MS, TS, GW) are valid in this search.")
+            # Check for invalid prefix: look for a word at the start that is not in the allowed set
+            m = re.match(r"([A-Za-z]+)\d{6,}\*?", s)
+            if m and m.group(1) not in allowed_prefixes:
+                raise ValueError(f"Invalid superevent prefix in query: '{m.group(1)}'. Allowed prefixes are: {', '.join(allowed_prefixes)}.")
+            # If the query doesn't match any known superevent or event pattern, give a clear error
+            if not re.match(r"^(S|MS|TS|GW)\d{6,}([a-zA-Z]*)\*?$", s.strip()) and not re.match(r"^G\d+$", s.strip()):
+                raise ValueError(f"'{s}' is not a valid superevent ID or query. Valid superevent IDs start with S, MS, TS, or GW followed by a date and optional suffix. Example: S250908a or GW250908A.")
+            # Check for invalid wildcard (should be '*')
+            if '*' not in s and any(w in s for w in ['?', '#', '%', '$']):
+                raise ValueError(f"Invalid wildcard in query: '{s}'. Only '*' is supported as a wildcard.")
+            # Fallback generic error
+            raise ValueError(f"Invalid superevent query: '{s}'. {msg}")
 
     # Append default category query if category is not specified in the query
     # OR if a superevent ID is not directly specified in the query

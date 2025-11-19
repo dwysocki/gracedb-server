@@ -43,6 +43,8 @@ class SupereventSearchFilter(filters.SearchFilter):
             raise exceptions.ParseError('Invalid query')
         except KeyError as e:
             raise exceptions.ParseError(se_gpstime_parseerror(e))
+        except ValueError as e:
+            raise exceptions.ParseError(str(e))
         return qs
 
 
