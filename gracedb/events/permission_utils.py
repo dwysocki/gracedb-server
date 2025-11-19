@@ -23,8 +23,30 @@ def user_has_perm(user, shortname, obj):
 
 
 def filter_events_for_user(events, user, shortname):
-    perm_codename = 'events.{verb}_event'.format(verb=shortname)
-    return get_objects_for_user(user, perm_codename, klass=events)
+    """
+    Filter events based on user permissions using denormalized perms field.
+
+    This uses the Event.perms JSON field which stores permission strings like
+    "GroupName_can_view" for fast filtering without JOINs to guardian tables.
+
+    Note: This requires Event.perms to be kept in sync with guardian permissions.
+    Use Event.refresh_perms() to update the perms field when permissions change.
+    """
+    # If user is None, unauthenticated, or has no groups return empty queryset
+    if not user or not user.is_authenticated or not user.groups.exists():
+        return events.none()
+
+    # If events queryset is empty, return it as-is
+    if not events.exists():
+        return events
+
+    # Build filter for each of the user's groups
+    auth_filter = Q()
+    for group in user.groups.all():
+        perm_string = f'{group.name}_can_{shortname}'
+        auth_filter |= Q(perms__contains=perm_string)
+
+    return events.filter(auth_filter)
 
 #-------------------------------------------------------------------------------
 # Filter a queryset of Event objects according to user permissions.
@@ -140,7 +162,7 @@ def lvem_user_required(view):
     return inner
 
 #-------------------------------------------------------------------------------
-# A utility for determining whether a user is 'external' (i.e., not part of the 
+# A utility for determining whether a user is 'external' (i.e., not part of the
 # LVC). This is useful for controlling which pieces of information to display
 # in a view.
 #-------------------------------------------------------------------------------
@@ -155,10 +177,10 @@ def is_external(user):
 
 
 #-------------------------------------------------------------------------------
-# A utility for determining whether an external user should have access to a 
+# A utility for determining whether an external user should have access to a
 # particular file, given the event and filename. This is done by finding the
 # log message associated with that file and checking that the log message is
-# tagged for external access. Returns True if the user should have access, and 
+# tagged for external access. Returns True if the user should have access, and
 # False if not. Note that this presumes that the user is external and does not
 # check this.
 #-------------------------------------------------------------------------------
@@ -191,12 +213,12 @@ def check_external_file_access(event, filename):
     count = logs.count()
     log = None
     if count == 0:
-        # Could not find logfile 
+        # Could not find logfile
         # XXX Write log
         return False
     elif count > 1:
         # There should only be one file. Ugh. What's going on?
-        # XXX Write log 
+        # XXX Write log
         return False
     else:
         log = logs[0]
@@ -206,4 +228,3 @@ def check_external_file_access(event, filename):
     if settings.EXTERNAL_ACCESS_TAGNAME not in tagnames:
         return False
     return True
-

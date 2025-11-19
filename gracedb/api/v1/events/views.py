@@ -383,7 +383,11 @@ class EventList(InheritPermissionsAPIView):
                 d = {'error': 'Invalid query' }
                 return Response(d,status=status.HTTP_400_BAD_REQUEST)
 
-        events = filter_events_for_user(events, request.user, 'view')
+        # All internal users have permission to view internal events, so 
+        # this additional "view" permission is not needed. Any unauthenticated
+        # requests get 403'ed before they even hit this view. Leaving the line
+        # commented on the chance it needs to be FIXME'd in the future. 
+        # events = filter_events_for_user(events, request.user, 'view')
 
         try:
             events = events.order_by(sort).select_subclasses()
