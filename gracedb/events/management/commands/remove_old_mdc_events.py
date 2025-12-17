@@ -64,3 +64,4 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS("Done."))
         else:
             self.stdout.write(self.style.WARNING("Skipping deletion step (dry run). Use --delete to actually delete the events and superevents."))
+

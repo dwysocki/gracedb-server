@@ -1,46 +1,90 @@
 #!/bin/bash
 
-export LVALERT_OVERSEER_RESOURCE=${LVALERT_USER}_overseer_$(python3  -c 'import uuid; print(uuid.uuid4().hex)')
+# Unified entrypoint for both production and local development
+# Behavior controlled by LOCAL_BUILD environment variable
 
-# Change the file permissions and ownership on /app/db_data:
+# Common setup: set permissions on /app/db_data
 chown gracedb:www-data /app/db_data
 chmod 755 /app/db_data
 
-## PGA: 2019-10-15: use certs from secrets for Shibboleth SP
-SHIB_SP_CERT=/run/secrets/saml_certificate
-SHIB_SP_KEY=/run/secrets/saml_private_key
-if [[ -f $SHIB_SP_CERT && -f $SHIB_SP_KEY ]]
-then
+if [ "$LOCAL_BUILD" = "true" ]; then
+    # ===========================================
+    # LOCAL DEVELOPMENT PATH
+    # ===========================================
+
+    # Check secret key
+    if [[ -z "${DJANGO_SECRET_KEY}" ]]; then
+        echo "Environment variable DJANGO_SECRET_KEY is not set."
+        exit 1
+    fi
+
+    # Do migrations and create cache table
+    python3 manage.py migrate
+    python3 manage.py createcachetable
+
+    # Set permissions for static files and collect them
+    chown -R gracedb:www-data /app/gracedb_project/static_root
+    chmod -R 755 /app/gracedb_project/static_root
+    python3 manage.py collectstatic --noinput
+
+    # Create user
+    CREATE_USER_CMD="from django.contrib.auth import get_user_model
+UserModel = get_user_model()
+user, created = UserModel.objects.get_or_create(username='${DJANGO_USERNAME}')
+if created:
+    print('User {} created'.format(user.username))
+    user.set_password('${DJANGO_USER_PASSWORD}')
+    user.is_staff = user.is_superuser = True
+    user.last_name = user.username
+    user.save()
+    from ligoauth.models import AuthGroup
+    for ag in AuthGroup.objects.filter(name__in=['internal_users', 'em_advocates']):
+        ag.user_set.add(user)
+"
+    echo -e "${CREATE_USER_CMD}" | python3 manage.py shell
+
+else
+    # ===========================================
+    # PRODUCTION PATH
+    # ===========================================
+
+    export LVALERT_OVERSEER_RESOURCE=${LVALERT_USER}_overseer_$(python3 -c 'import uuid; print(uuid.uuid4().hex)')
+
+    # Use certs from secrets for Shibboleth SP
+    SHIB_SP_CERT=/run/secrets/saml_certificate
+    SHIB_SP_KEY=/run/secrets/saml_private_key
+    if [[ -f $SHIB_SP_CERT && -f $SHIB_SP_KEY ]]
+    then
         echo "Using Shibboleth Cert from docker secrets over the image one"
         cp -f $SHIB_SP_CERT /etc/shibboleth/sp-cert.pem
         cp -f $SHIB_SP_KEY /etc/shibboleth/sp-key.pem
         chown _shibd:_shibd /etc/shibboleth/sp-{cert,key}.pem
         chmod 0600 /etc/shibboleth/sp-key.pem
-fi
+    fi
 
-## PGA 2019-10-16: use secrets for sensitive environment variables
-LIST="aws_ses_access_key_id
-  aws_ses_secret_access_key
-  django_db_password
-  django_secret_key
-  django_twilio_account_sid
-  django_twilio_auth_token
-  lvalert_password
-  igwn_alert_password
-  gracedb_ldap_keytab
-  egad_url
-  egad_api_key
-  django_sentry_dsn"
+    # Use secrets for sensitive environment variables
+    LIST="aws_ses_access_key_id
+      aws_ses_secret_access_key
+      django_db_password
+      django_secret_key
+      django_twilio_account_sid
+      django_twilio_auth_token
+      lvalert_password
+      igwn_alert_password
+      gracedb_ldap_keytab
+      egad_url
+      egad_api_key
+      django_sentry_dsn"
 
-for SECRET in $LIST
-do
+    for SECRET in $LIST
+    do
         VARNAME=$( tr [:lower:] [:upper:] <<<$SECRET)
         [  -f /run/secrets/$SECRET ] && export $VARNAME="$(< /run/secrets/$SECRET)"
-done
+    done
 
-# get x509 cert for ldap access from environment variable. 
-echo "${GRACEDB_LDAP_KEYTAB}" | base64 -d | install -m 0600 /dev/stdin keytab
-kinit ldap/gracedb.ligo.org@LIGO.ORG -k -t keytab
+    # Get x509 cert for ldap access from environment variable
+    echo "${GRACEDB_LDAP_KEYTAB}" | base64 -d | install -m 0600 /dev/stdin keytab
+    kinit ldap/gracedb.ligo.org@LIGO.ORG -k -t keytab
+fi
 
 exec "$@"
-

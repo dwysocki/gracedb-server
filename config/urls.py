@@ -12,8 +12,9 @@ from events.feeds import EventFeed, feedview
 import events.reports
 import events.views
 from ligoauth.views import (
-    manage_password, ShibLoginView, ShibPostLoginView
+    manage_password, ShibLoginView, ShibPostLoginView, PasswordLoginView
 )
+from ligoauth.debug_views import debug_shib_headers
 import search.views
 
 # Django admin auto-discover
@@ -50,7 +51,6 @@ urlpatterns = [
     re_path(r'^search/$', search.views.search, name="mainsearch"),
 
     # Authentication
-    re_path(r'^login/$', ShibLoginView.as_view(), name='login'),
     re_path(r'^post-login/$', ShibPostLoginView.as_view(), name='post-login'),
     re_path(r'^logout/$', LogoutView.as_view(), name='logout'),
 
@@ -76,6 +76,14 @@ urlpatterns = [
 
 ]
 
+# Append the login view depending on the instance;
+login_view = ShibLoginView
+if not settings.USE_SHIBBOLETH_LOGIN:
+    login_view = PasswordLoginView
+urlpatterns.append(
+    re_path(r'^login/$', login_view.as_view(), name='login')
+)
+
 # We don't require settings.DEBUG for django-silk since running unit tests
 # by default setings settings.DEBUG to False, unless you use the
 # --debug-mode flag
@@ -84,6 +92,11 @@ if ('silk' in settings.INSTALLED_APPS):
     urlpatterns = [
         re_path(r'^silk/', include('silk.urls', namespace='silk'))
     ] + urlpatterns
+
+# Add Shibboleth login debug view. DEBUG=False for playground
+# and production instances
+if settings.DEBUG and settings.USE_SHIBBOLETH_LOGIN:
+    urlpatterns.append(re_path(r'^debug-shib/$', debug_shib_headers, name='debug-shib'),)
 
 # Add django-debug-toolbar
 if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:

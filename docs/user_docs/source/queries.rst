@@ -282,6 +282,17 @@ Examples:
 - ``GW180428C``
 - ``TS181212xz``
 
+Wildcard superevent_id queries
+-----------------------------
+You can use a ``*`` at the end of a superevent ID prefix to match all superevents that start with that prefix. This enables flexible searches for multiple superevents on a given day or with a common prefix.
+Examples:
+
+- ``S250908*`` (matches all superevents for 2025-09-08)
+- ``S2509*`` (matches all superevents for September 2025)
+- ``S25*`` (matches all superevents for 2025)
+
+Only production superevents are returned by default unless you specify a category.
+
 
 Superevent ID prefixes and wildcards
 ------------------------------------

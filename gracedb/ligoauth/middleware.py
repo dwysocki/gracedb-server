@@ -29,17 +29,29 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
     user_header = getattr(settings, 'SHIB_USER_HEADER', 'REMOTE_USER')
     group_header = getattr(settings, 'SHIB_GROUPS_HEADER', 'isMemberOf')
     group_delimiter = ';'
-    active_url = reverse_lazy('post-login')
 
     def __init__(self, get_response):
         self.get_response = get_response
+        # Check if proxy auth mode is enabled
+        self.proxy_mode = getattr(settings, 'PROXY_SHIBBOLETH_AUTH', False)
+        if self.proxy_mode:
+            # In proxy mode, skip auth for these paths
+            self.excluded_paths = ['/static/', '/robots.txt', '/documentation/']
+        else:
+            # Traditional mode - only process at post-login URL
+            self.active_url = reverse_lazy('post-login')
 
     def process_request(self, request):
 
-        # This middleware should *only* be active at the post-login URL
-        # where shibboleth is also active.
-        if not (request.path == self.active_url):
-            return
+        # Check which mode we're in
+        if self.proxy_mode:
+            # Proxy mode: process all requests except excluded paths
+            if any(request.path.startswith(path) for path in self.excluded_paths):
+                return
+        else:
+            # Traditional mode: only process at post-login URL
+            if not (request.path == self.active_url):
+                return
 
         # AuthenticationMiddleware is required so that request.user exists.
         if not hasattr(request, 'user'):

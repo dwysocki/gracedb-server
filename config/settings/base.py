@@ -159,6 +159,8 @@ SESSION_ENGINE = 'user_sessions.backends.db'
 
 # Login/logout settings -------------------------------------------------------
 # Login pages
+USE_SHIBBOLETH_LOGIN = True
+
 # URL of Shibboleth login page
 LOGIN_URL = 'login'
 SHIB_LOGIN_URL = '/Shibboleth.sso/Login'

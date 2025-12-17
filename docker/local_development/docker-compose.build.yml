@@ -1,0 +1,10 @@
+version: "3.7"
+services:
+  gracedb:
+    image: gracedb-local
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    volumes:
+      # Mount source code for local development (../../ is project root relative to docker/local_development/)
+      - "../../:/app/gracedb_project"

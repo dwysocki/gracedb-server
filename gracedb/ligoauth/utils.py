@@ -144,6 +144,7 @@ def get_pipeline_uploaders(pipeline):
     else:
         return User.objects.none()
 
+
 def get_pipeline_perms_for_user(user):
     """
     Function that returns a queryset of pipelines to which the input user

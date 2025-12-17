@@ -34,7 +34,6 @@ RUN apt-get update && \
         libpq-dev \
         libfreetype-dev \
         libxslt1-dev \
-        libsqlite3-dev \
         ligo-ca-certs \
         osg-ca-certs \
         php \
@@ -54,42 +53,42 @@ RUN apt-get update && \
         htop \
         telnet \
         vim && \
-    apt-get clean 
+    apt-get clean
 
 
 # Install AWS X-ray daemon
-RUN curl -O https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.deb
-RUN dpkg -i aws-xray-daemon-3.x.deb
-RUN rm aws-xray-daemon-3.x.deb
+RUN curl -O https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.deb && \
+    dpkg -i aws-xray-daemon-3.x.deb && \
+    rm aws-xray-daemon-3.x.deb
 
-# Docker scripts:
-COPY docker/entrypoint /usr/local/bin/entrypoint
-COPY docker/cleanup /usr/local/bin/cleanup
+# Install osg-ca-certs
+RUN curl -O https://hypatia.aei.mpg.de/lsc-amd64-trixie/osg-ca-certs/osg-ca-certs_1.137NEW_all.deb && \
+    dpkg -i osg-ca-certs_1.137NEW_all.deb && \
+    rm osg-ca-certs_1.137NEW_all.deb
 
-# Supervisord configs:
+# Install ligo-ca-certs
+RUN curl -O https://hypatia.aei.mpg.de/lsc-amd64-trixie/ligo-ca-certs_1.0.2-0+deb13u0_all.deb && \
+    dpkg -i ligo-ca-certs_1.0.2-0+deb13u0_all.deb && \
+    rm ligo-ca-certs_1.0.2-0+deb13u0_all.deb
+
+
+# Supervisord configs (all services - controlled by env vars at runtime):
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker/supervisord-apache2.conf /etc/supervisor/conf.d/apache2.conf
 COPY docker/supervisord-igwn-alert-overseer.conf /etc/supervisor/conf.d/igwn-overseer.conf
+COPY docker/supervisord-qcluster.conf /etc/supervisor/conf.d/qcluster.conf
 COPY docker/supervisord-shibd.conf /etc/supervisor/conf.d/shibd.conf
 COPY docker/supervisord-aws-xray.conf /etc/supervisor/conf.d/aws-xray.conf
-COPY docker/supervisord-qcluster.conf /etc/supervisor/conf.d/qcluster.conf
 
 # Apache configs:
 COPY docker/apache-config /etc/apache2/sites-available/gracedb.conf
 COPY docker/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf
 
-# Enable mpm_event module:
+# Enable mpm_event module and do some more apache stuff:
 
 RUN rm /etc/apache2/mods-enabled/mpm_prefork.*
 RUN rm /etc/apache2/mods-enabled/php8.4.*
 RUN cp  /etc/apache2/mods-available/mpm_event.* /etc/apache2/mods-enabled/
-
-# Shibboleth configs and certs:
-COPY docker/shibboleth-ds /etc/shibboleth-ds
-COPY docker/login.ligo.org.cert.LIGOCA.pem /etc/shibboleth/login.ligo.org.cert.LIGOCA.pem
-COPY docker/inc-md-cert.pem /etc/shibboleth/inc-md-cert.pem
-COPY docker/check_shibboleth_status /usr/local/bin/check_shibboleth_status
-
 RUN a2dissite 000-default.conf && \
     a2ensite gracedb.conf && \
     a2enmod headers proxy proxy_http rewrite xsendfile
@@ -97,6 +96,16 @@ RUN a2dissite 000-default.conf && \
 # this line is unfortunate because "." updates for nearly any change to the
 # repository and therefore docker build rarely caches the steps below
 ADD . /app/gracedb_project
+
+# Docker scripts (unified entrypoint handles both local and production)
+COPY docker/entrypoint /usr/local/bin/entrypoint
+COPY docker/cleanup /usr/local/bin/cleanup
+
+# Shibboleth configs and certs (used in production, ignored in local)
+RUN cp -r /app/gracedb_project/docker/shibboleth-ds /etc/shibboleth-ds && \
+    cp /app/gracedb_project/docker/login.ligo.org.cert.LIGOCA.pem /etc/shibboleth/login.ligo.org.cert.LIGOCA.pem && \
+    cp /app/gracedb_project/docker/inc-md-cert.pem /etc/shibboleth/inc-md-cert.pem && \
+    cp /app/gracedb_project/docker/check_shibboleth_status /usr/local/bin/check_shibboleth_status
 
 # install gracedb application itself
 WORKDIR /app/gracedb_project
@@ -106,9 +115,11 @@ RUN pip3 install -r requirements.txt --break-system-packages
 RUN pip3 install supervisor --break-system-packages
 
 # Give pip-installed packages priority over distribution packages
-ENV PYTHONPATH /usr/local/lib/python3.11/dist-packages:$PYTHONPATH
+ENV PYTHONPATH /usr/local/lib/python3.13/dist-packages:$PYTHONPATH
 ENV ENABLE_SHIBD false
+ENV ENABLE_AWS_XRAY false
 ENV ENABLE_OVERSEER true
+ENV LOCAL_BUILD false
 ENV VIRTUAL_ENV /dummy/
 
 # Expose port and run Gunicorn

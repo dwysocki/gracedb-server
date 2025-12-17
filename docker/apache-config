@@ -78,6 +78,9 @@ ServerName ${DJANGO_PRIMARY_FQDN}
   # Unset certain headers to help prevent spoofing
   RequestHeader unset REMOTE_USER
   RequestHeader unset ISMEMBEROF
+  RequestHeader unset MAIL
+  RequestHeader unset GIVENNAME
+  RequestHeader unset SN
   RequestHeader unset X_FORWARDED_FOR
   RequestHeader unset REMOTE_ADDR
   RequestHeader unset SSL_CLIENT_S_DN
@@ -129,20 +132,42 @@ ServerName ${DJANGO_PRIMARY_FQDN}
     Require all granted
   </Location>
 
+  # Shibboleth authentication configuration
+
+  # PROXY MODE: Map headers from external proxy (envoy) for vm-proxy deployments
+  # External proxy handles Shibboleth authentication and passes X-Authenticated-User header
+  # This only activates when X-Authenticated-User header is present (doesn't interfere with traditional mode)
+  <LocationMatch "^/(?!(static|robots\.txt|documentation|Shibboleth\.sso|shibboleth-ds|shibboleth-sp|post-login))">
+    # Use RewriteEngine to capture X-Authenticated-User header into environment variable
+    RewriteEngine On
+    RewriteCond %{HTTP:X-Authenticated-User} (.+)
+    RewriteRule .* - [E=PROXY_USER:%1]
+
+    # Set REMOTE_USER from the captured environment variable
+    RequestHeader set REMOTE_USER %{PROXY_USER}e
+
+    # TODO: Add mappings for other headers if external proxy provides them
+    # Example for groups:
+    # RewriteCond %{HTTP:X-Authenticated-Groups} (.+)
+    # RewriteRule .* - [E=PROXY_GROUPS:%1]
+    # RequestHeader set ISMEMBEROF %{PROXY_GROUPS}e
+  </LocationMatch>
+
+  # TRADITIONAL MODE: Shibboleth SP protection for /post-login/ endpoint
+  # Used when clicking login button in traditional deployments
   <Location "/post-login/">
     AuthType Shibboleth
     Require shibboleth
     ShibRequestSetting requireSession true
     ShibUseHeaders On
 
-    # use funky method to get REMOTE_USER variable
+    # Extract REMOTE_USER variable from Shibboleth SP
     RewriteEngine On
     RewriteCond %{LA-U:REMOTE_USER} (.+)
     RewriteRule . - [E=RU:%1]
     RequestHeader set REMOTE_USER %{RU}e
 
-    # this way only works with SSLEngine On because REMOTE_USER is secure variable
-    #RequestHeader set REMOTE_USER %{REMOTE_USER}s
+    # Set group membership header
     RequestHeader set ISMEMBEROF "%{ISMEMBEROF}e" env=ISMEMBEROF
   </Location>
 

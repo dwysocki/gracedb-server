@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth import (
     get_user_model, update_session_auth_hash, REDIRECT_FIELD_NAME
 )
-from django.contrib.auth.views import RedirectURLMixin
+from django.contrib.auth.views import RedirectURLMixin, LoginView
 from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url, render
 from django.urls import reverse
@@ -95,6 +95,11 @@ class ShibPostLoginView(RedirectURLMixin, RedirectView):
             require_https=self.request.is_secure(),
         )
         return redirect_to if url_is_safe else ''
+
+
+# Add view for basic auth login:
+class PasswordLoginView(LoginView):
+    template_name = 'ligoauth/basic_auth_login.html'
 
 
 @lvem_observers_only(superuser_allowed=True)
