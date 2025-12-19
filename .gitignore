@@ -10,3 +10,4 @@ static_root/*
 .pytest_cache
 junit.xml
 .coverage
+.claude

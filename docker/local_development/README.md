@@ -67,6 +67,6 @@ This setup supports two deployment modes:
   Note: This will delete all persistent data including the database.
 - The `db_data` and `logs` directories are created automatically if they do not exist.
 - To change the registry image path, update the `image:` line in `docker-compose.yml` and the registry path in the Makefile `clean` target.
-- To use a different image tag, set `GRACEDB_TAG` environment variable (e.g., `GRACEDB_TAG=gracedb-2.33.1 make up`).
+- To use a different image tag, set `GRACEDB_TAG` environment variable (e.g., `GRACEDB_TAG=gracedb-2.34.0 make up`).
 
 

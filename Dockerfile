@@ -56,11 +56,6 @@ RUN apt-get update && \
     apt-get clean
 
 
-# Install AWS X-ray daemon
-RUN curl -O https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.deb && \
-    dpkg -i aws-xray-daemon-3.x.deb && \
-    rm aws-xray-daemon-3.x.deb
-
 # Install osg-ca-certs
 RUN curl -O https://hypatia.aei.mpg.de/lsc-amd64-trixie/osg-ca-certs/osg-ca-certs_1.137NEW_all.deb && \
     dpkg -i osg-ca-certs_1.137NEW_all.deb && \
@@ -78,7 +73,19 @@ COPY docker/supervisord-apache2.conf /etc/supervisor/conf.d/apache2.conf
 COPY docker/supervisord-igwn-alert-overseer.conf /etc/supervisor/conf.d/igwn-overseer.conf
 COPY docker/supervisord-qcluster.conf /etc/supervisor/conf.d/qcluster.conf
 COPY docker/supervisord-shibd.conf /etc/supervisor/conf.d/shibd.conf
-COPY docker/supervisord-aws-xray.conf /etc/supervisor/conf.d/aws-xray.conf
+
+# Install AWS X-Ray daemon and supervisor config (only on amd64)
+COPY --chmod=0644 docker/supervisord-aws-xray.conf /tmp/supervisord-aws-xray.conf
+RUN ARCH=$(dpkg --print-architecture) && \
+    if [ "$ARCH" = "amd64" ]; then \
+        curl -O https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-3.x.deb && \
+        dpkg -i aws-xray-daemon-3.x.deb && \
+        rm aws-xray-daemon-3.x.deb && \
+        mv /tmp/supervisord-aws-xray.conf /etc/supervisor/conf.d/aws-xray.conf; \
+    else \
+        echo "Skipping AWS X-Ray daemon installation on $ARCH architecture" && \
+        rm /tmp/supervisord-aws-xray.conf; \
+    fi
 
 # Apache configs:
 COPY docker/apache-config /etc/apache2/sites-available/gracedb.conf
