@@ -5,12 +5,17 @@ variables:
   APT_CACHE_DIR: "${CI_PROJECT_DIR}/.cache/apt"
   DOCKER_DRIVER: overlay
   DOCKER_BRANCH: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+  DOCKER_BRANCH_AMD64: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME-amd64
+  DOCKER_BRANCH_ARM64: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME-arm64
   DOCKER_LATEST: $CI_REGISTRY_IMAGE:latest
+  DOCKER_LATEST_AMD64: $CI_REGISTRY_IMAGE:latest-amd64
+  DOCKER_LATEST_ARM64: $CI_REGISTRY_IMAGE:latest-arm64
   PIP_CACHE_DIR: "${CI_PROJECT_DIR}/.cache/pip"
 
 stages:
   - test
-  - branch
+  - build
+  - manifest
   - latest
 
 before_script:
@@ -160,22 +165,51 @@ test:3.13:
 
 # -- docker
 
-branch_image:
-  stage: branch
+build:amd64:
+  stage: build
   script:
-    - docker build --pull -t $DOCKER_BRANCH .
-    - docker push $DOCKER_BRANCH
+    - docker build --pull -t $DOCKER_BRANCH_AMD64 .
+    - docker push $DOCKER_BRANCH_AMD64
   retry:
     max: 2
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
   tags:
-      - executor-docker
+    - executor-docker
+
+build:arm64:
+  stage: build
+  script:
+    - docker build --pull -t $DOCKER_BRANCH_ARM64 .
+    - docker push $DOCKER_BRANCH_ARM64
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+  tags:
+    - executor-docker-aarch64
+
+create_manifest:
+  stage: manifest
+  needs: [build:amd64, build:arm64]
+  script:
+    - docker manifest create $DOCKER_BRANCH
+        $DOCKER_BRANCH_AMD64
+        $DOCKER_BRANCH_ARM64
+    - docker manifest push $DOCKER_BRANCH
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+  tags:
+    - executor-docker
 
 branch_scan:
-  stage: branch
-  needs: [branch_image]
+  stage: manifest
+  needs: [create_manifest]
   # default rules spawn a merge request pipeline, we don't want that
   rules:
     - if: $CI_COMMIT_BRANCH
@@ -191,16 +225,24 @@ branch_scan:
 
 latest_image:
   stage: latest
-  dependencies:
-    - branch_image
+  needs: [create_manifest]
   script:
-    - docker pull $DOCKER_BRANCH
-    - docker tag $DOCKER_BRANCH $DOCKER_LATEST
-    - docker push $DOCKER_LATEST
+    # Tag arch-specific images as latest
+    - docker pull $DOCKER_BRANCH_AMD64
+    - docker tag $DOCKER_BRANCH_AMD64 $DOCKER_LATEST_AMD64
+    - docker push $DOCKER_LATEST_AMD64
+    - docker pull $DOCKER_BRANCH_ARM64
+    - docker tag $DOCKER_BRANCH_ARM64 $DOCKER_LATEST_ARM64
+    - docker push $DOCKER_LATEST_ARM64
+    # Create and push manifest for latest
+    - docker manifest create $DOCKER_LATEST
+        $DOCKER_LATEST_AMD64
+        $DOCKER_LATEST_ARM64
+    - docker manifest push $DOCKER_LATEST
   retry:
     max: 2
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
   tags:
-      - executor-docker
+    - executor-docker
