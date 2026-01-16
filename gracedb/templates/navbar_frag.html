@@ -19,16 +19,16 @@ $( document ).ready( function () {
 </script>
 
 <div class="fixed-top" style="margin-top: -75px; padding-top: 75px; box-shadow: 0 0 0.2rem rgba(0,0,0,.1), 0 0.2rem 0.4rem rgba(0,0,0,.2);">
-  <nav class="navbar navbar-expand-md navbar-gracedb navbar-dark">
-    <a class="navbar-brand text-white" href="/">
-      <img src="{% static "images/logo.svg" %}" style="width:30px;">
-      GraceDB  
+  <nav class="navbar navbar-expand-md navbar-gracedb navbar-dark" aria-label="Main navigation">
+    <a class="navbar-brand text-white" href="/" aria-label="GraceDB home">
+      <img src="{% static "images/logo.svg" %}" style="width:30px;" alt="GraceDB logo">
+      GraceDB
       {% if config_name %}
       <span class="text-danger">({{ config_name }})</span>
       {% endif %}
     </a>
 
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar" aria-label="Toggle navigation menu">
     <span class="navbar-toggler-icon"></span>
   </button>
 
@@ -108,7 +108,7 @@ $( document ).ready( function () {
   </nav>
 
   <div class="container-fluid navbar-gracedb text-left">
-           <span class="text-light" style="font-size:8pt">  
+           <span class="text-light text-sm">
            {% if user.is_authenticated %}
            Authenticated as:
            {% if user.first_name %}

@@ -307,8 +307,10 @@
 {% endif %} <!-- if eventss -->
 
      <script type="text/javascript">
-        $('.no-collapse-link').on('click', function (e) {
-            e.stopPropagation();
+        $(document).ready(function() {
+            $('.no-collapse-link').on('click', function (e) {
+                e.stopPropagation();
+            });
         });
      </script>
 

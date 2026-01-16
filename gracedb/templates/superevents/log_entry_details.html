@@ -180,9 +180,20 @@
     <!-- Custom Text Box -->
 
     <script type="text/javascript">
-        $('.trumbowyg-editor').trumbowyg();
+        $('.trumbowyg-editor').trumbowyg({
+		semantic: false,
+		autogrow: true
+	});
 $('.trumbowyg-editor').closest(".trumbowyg-box").css("min-height", "100px");
 $('.trumbowyg-editor').prev(".trumbowyg-editor").css("min-height", "100px");
+
+// Strip outer <p> tags before form submission
+$('#logcomment').on('submit', function() {
+	var content = $('#logtextarea').trumbowyg('html');
+	// Remove wrapping <p></p> tags if they exist
+	content = content.replace(/^<p>(.*)<\/p>$/i, '$1');
+	$('#logtextarea').trumbowyg('html', content);
+});
     </script>
 
     <!-- js/ajax for superevent requests -->

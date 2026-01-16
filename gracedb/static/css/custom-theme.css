@@ -1,0 +1,420 @@
+/* GraceDB Custom Theme - Fresca-inspired */
+/* Extracted essentials from themecolors.css to avoid loading duplicate Bootstrap framework */
+
+/* Import Muli font from Google Fonts with optimized loading */
+@import url('https://fonts.googleapis.com/css2?family=Muli:wght@200;300;400;700&display=swap');
+
+/* ========================================
+   CSS Custom Properties (Design Tokens)
+   ======================================== */
+:root {
+    /* Brand Colors */
+    --primary: #07689F;
+    --primary-hover: #055275;
+    --primary-active: #044a6a;
+    --secondary: #C9D6DF;
+    --secondary-hover: #afc2d0;
+    --success: #11D3BC;
+    --success-hover: #0eb09d;
+    --info: #A2D5F2;
+    --info-hover: #80c6ed;
+    --warning: #FF7E67;
+    --warning-hover: #ff5e41;
+    --danger: #F67280;
+    --danger-hover: #f44e60;
+    --danger-active: #f34255;
+    --light: #FAFAFA;
+    --light-hover: #e1e1e1;
+    --dark: #4e4e4e;
+    --dark-hover: #353535;
+
+    /* Gray Scale - Consolidated from 11 scattered grays */
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+
+    /* Semantic Colors - Headers, Navbars, Tables */
+    --navbar-bg: var(--gray-700);
+    --navbar-text: #ffffff;
+    --table-header-bg: var(--gray-600);
+    --table-header-text: #ffffff;
+    --border-color: var(--gray-300);
+
+    /* Text Colors */
+    --text-primary: #212529;
+    --text-secondary: var(--gray-600);
+    --text-muted: var(--gray-500);
+
+    /* Spacing Scale - Consistent spacing using 4px base unit */
+    --space-0: 0;
+    --space-1: 0.25rem;   /* 4px */
+    --space-2: 0.5rem;    /* 8px */
+    --space-3: 0.75rem;   /* 12px */
+    --space-4: 1rem;      /* 16px */
+    --space-5: 1.25rem;   /* 20px */
+    --space-6: 1.5rem;    /* 24px */
+    --space-8: 2rem;      /* 32px */
+    --space-10: 2.5rem;   /* 40px */
+    --space-12: 3rem;     /* 48px */
+    --space-16: 4rem;     /* 64px */
+    --space-20: 5rem;     /* 80px */
+
+    /* Border Radius */
+    --radius-sm: 0.125rem;  /* 2px */
+    --radius-md: 0.25rem;   /* 4px */
+    --radius-lg: 0.5rem;    /* 8px */
+    --radius-xl: 1rem;      /* 16px */
+    --radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+    /* Typography Scale */
+    --font-size-xs: 0.75rem;    /* 12px */
+    --font-size-sm: 0.875rem;   /* 14px */
+    --font-size-base: 1rem;     /* 16px */
+    --font-size-lg: 1.125rem;   /* 18px */
+    --font-size-xl: 1.25rem;    /* 20px */
+    --font-size-2xl: 1.5rem;    /* 24px */
+    --font-size-3xl: 1.875rem;  /* 30px */
+    --font-size-4xl: 2.25rem;   /* 36px */
+    --font-size-5xl: 3rem;      /* 48px */
+
+    /* Line Heights */
+    --line-height-tight: 1.2;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+
+    /* Font Weights */
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* Font Families */
+    --font-family-sans: Muli, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-family-serif: "Century Schoolbook L", Georgia, serif;
+    --font-family-mono: "Courier New", Courier, monospace;
+}
+
+/* ========================================
+   Typography - Consistent Type Scale
+   ======================================== */
+
+/* Body text */
+body {
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+    font-weight: var(--font-weight-normal);
+    color: var(--text-primary);
+}
+
+/* Heading hierarchy - Modern, lighter weights for larger headings */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-sans);
+    line-height: var(--line-height-tight);
+    margin-top: var(--space-4);
+    margin-bottom: var(--space-3);
+}
+
+h1 {
+    font-size: var(--font-size-5xl);
+    font-weight: var(--font-weight-light);
+}
+
+h2 {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-light);
+}
+
+h3 {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-normal);
+}
+
+h4 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-normal);
+}
+
+h5 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-light);
+}
+
+h6 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Remove margins from headings inside table headers */
+th h1, th h2, th h3, th h4, th h5, th h6 {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* Utility classes for text sizes */
+.text-xs { font-size: var(--font-size-xs); }
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.text-lg { font-size: var(--font-size-lg); }
+.text-xl { font-size: var(--font-size-xl); }
+.text-2xl { font-size: var(--font-size-2xl); }
+.text-3xl { font-size: var(--font-size-3xl); }
+.text-4xl { font-size: var(--font-size-4xl); }
+
+/* Font weight utilities */
+.font-light { font-weight: var(--font-weight-light); }
+.font-normal { font-weight: var(--font-weight-normal); }
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-semibold { font-weight: var(--font-weight-semibold); }
+.font-bold { font-weight: var(--font-weight-bold); }
+
+/* Button Overrides - Using CSS Variables */
+.btn-primary {
+    color: #fff;
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary.focus {
+    color: #fff;
+    background-color: var(--primary-hover);
+    border-color: var(--primary-active);
+}
+.btn-primary.disabled,
+.btn-primary:disabled {
+    color: #fff;
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-secondary {
+    color: var(--text-primary);
+    background-color: var(--secondary);
+    border-color: var(--secondary);
+}
+.btn-secondary:hover {
+    color: var(--text-primary);
+    background-color: var(--secondary-hover);
+    border-color: var(--secondary-hover);
+}
+
+.btn-success {
+    color: var(--text-primary);
+    background-color: var(--success);
+    border-color: var(--success);
+}
+.btn-success:hover {
+    color: var(--text-primary);
+    background-color: var(--success-hover);
+    border-color: var(--success-hover);
+}
+
+.btn-info {
+    color: var(--text-primary);
+    background-color: var(--info);
+    border-color: var(--info);
+}
+.btn-info:hover {
+    color: var(--text-primary);
+    background-color: var(--info-hover);
+    border-color: var(--info-hover);
+}
+
+.btn-warning {
+    color: var(--text-primary);
+    background-color: var(--warning);
+    border-color: var(--warning);
+}
+.btn-warning:hover {
+    color: #fff;
+    background-color: var(--warning-hover);
+    border-color: var(--warning-hover);
+}
+
+.btn-danger {
+    color: var(--text-primary);
+    background-color: var(--danger);
+    border-color: var(--danger);
+}
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-danger.focus {
+    color: #fff;
+    background-color: var(--danger-hover);
+    border-color: var(--danger-active);
+}
+.btn-danger.disabled,
+.btn-danger:disabled {
+    color: var(--text-primary);
+    background-color: var(--danger);
+    border-color: var(--danger);
+}
+.btn-danger:not(:disabled):not(.disabled):active,
+.btn-danger:not(:disabled):not(.disabled).active {
+    color: #fff;
+    background-color: var(--danger-active);
+    border-color: var(--danger-active);
+}
+
+.btn-light {
+    color: var(--text-primary);
+    background-color: var(--light);
+    border-color: var(--light);
+}
+.btn-light:hover {
+    color: var(--text-primary);
+    background-color: var(--light-hover);
+    border-color: var(--light-hover);
+}
+
+.btn-dark {
+    color: #fff;
+    background-color: var(--dark);
+    border-color: var(--dark);
+}
+.btn-dark:hover {
+    color: #fff;
+    background-color: var(--dark-hover);
+    border-color: var(--dark-hover);
+}
+
+/* Badge Overrides - Using CSS Variables */
+.badge-primary {
+    color: #fff;
+    background-color: var(--primary);
+}
+.badge-secondary {
+    color: var(--text-primary);
+    background-color: var(--secondary);
+}
+.badge-success {
+    color: var(--text-primary);
+    background-color: var(--success);
+}
+.badge-info {
+    color: var(--text-primary);
+    background-color: var(--info);
+}
+.badge-warning {
+    color: var(--text-primary);
+    background-color: var(--warning);
+}
+.badge-danger {
+    color: var(--text-primary);
+    background-color: var(--danger);
+}
+.badge-light {
+    color: var(--text-primary);
+    background-color: var(--light);
+}
+.badge-dark {
+    color: #fff;
+    background-color: var(--dark);
+}
+
+/* Background Color Overrides */
+.bg-primary {
+    background-color: var(--primary) !important;
+}
+.bg-secondary {
+    background-color: var(--secondary) !important;
+}
+.bg-success {
+    background-color: var(--success) !important;
+}
+.bg-info {
+    background-color: var(--info) !important;
+}
+.bg-warning {
+    background-color: var(--warning) !important;
+}
+.bg-danger {
+    background-color: var(--danger) !important;
+}
+.bg-light {
+    background-color: var(--light) !important;
+}
+.bg-dark {
+    background-color: var(--dark) !important;
+}
+
+/* Text Color Overrides */
+.text-primary {
+    color: var(--primary) !important;
+}
+.text-secondary {
+    color: var(--secondary) !important;
+}
+.text-success {
+    color: var(--success) !important;
+}
+.text-info {
+    color: var(--info) !important;
+}
+.text-warning {
+    color: var(--warning) !important;
+}
+.text-danger {
+    color: var(--danger) !important;
+}
+.text-light {
+    color: var(--light) !important;
+}
+.text-dark {
+    color: var(--dark) !important;
+}
+
+/* ========================================
+   Accessibility - Enhanced Focus Indicators
+   ======================================== */
+
+/* Modern focus ring - only visible for keyboard navigation */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.btn:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(7, 104, 159, 0.2);
+}
+
+/* Remove default focus outline for mouse clicks, keep for keyboard */
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+.btn:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Fallback for browsers that don't support :focus-visible */
+@supports not selector(:focus-visible) {
+    a:focus,
+    button:focus,
+    input:focus,
+    select:focus,
+    textarea:focus,
+    .btn:focus {
+        outline: 3px solid var(--primary);
+        outline-offset: 2px;
+    }
+}
