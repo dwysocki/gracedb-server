@@ -234,6 +234,14 @@ if ENABLE_REDIS_QUEUE:
         'recycle': REDIS_QUEUE_RECYCLE,
         'django_redis': 'async_followup'
     }
+else:
+    # Define Q_CLUSTER with retry > timeout to avoid django-q2 warning
+    Q_CLUSTER = {
+        'name': Q_CLUSTER_NAME,
+        'label': Q_CLUSTER_LABEL,
+        'retry': REDIS_QUEUE_RETRY,
+        'timeout': REDIS_QUEUE_TIMEOUT,
+    }
 
 MIDDLEWARE = [
     'django.middleware.cache.UpdateCacheMiddleware',
