@@ -5,11 +5,7 @@ variables:
   APT_CACHE_DIR: "${CI_PROJECT_DIR}/.cache/apt"
   DOCKER_DRIVER: overlay
   DOCKER_BRANCH: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
-  DOCKER_BRANCH_AMD64: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME-amd64
-  DOCKER_BRANCH_ARM64: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME-arm64
   DOCKER_LATEST: $CI_REGISTRY_IMAGE:latest
-  DOCKER_LATEST_AMD64: $CI_REGISTRY_IMAGE:latest-amd64
-  DOCKER_LATEST_ARM64: $CI_REGISTRY_IMAGE:latest-arm64
   PIP_CACHE_DIR: "${CI_PROJECT_DIR}/.cache/pip"
 
 stages:
@@ -60,6 +56,7 @@ secret_detection:
   stage: test
   needs: []
   before_script: []
+
 
 # -- testing
 
@@ -163,13 +160,10 @@ secret_detection:
 test:3.13:
   <<: *test
 
-# -- docker
 
-build:amd64:
-  stage: build
-  script:
-    - docker build --pull -t $DOCKER_BRANCH_AMD64 .
-    - docker push $DOCKER_BRANCH_AMD64
+# -- Docker
+
+.docker-job:
   retry:
     max: 2
     when:
@@ -178,34 +172,31 @@ build:amd64:
   tags:
     - executor-docker
 
-build:arm64:
+# Build each architecture in parallel
+build:
+  extends: .docker-job
   stage: build
+  parallel:
+    matrix:
+    - ARCH: amd64
+      RUNNER_TAG: executor-docker
+    - ARCH: arm64
+      RUNNER_TAG: executor-docker-aarch64
   script:
-    - docker build --pull -t $DOCKER_BRANCH_ARM64 .
-    - docker push $DOCKER_BRANCH_ARM64
-  retry:
-    max: 2
-    when:
-      - runner_system_failure
-      - stuck_or_timeout_failure
+    - docker build --pull -t $DOCKER_BRANCH-$ARCH .
+    - docker push $DOCKER_BRANCH-$ARCH
   tags:
-    - executor-docker-aarch64
+    - $RUNNER_TAG
 
 create_manifest:
+  extends: .docker-job
   stage: manifest
-  needs: [build:amd64, build:arm64]
+  needs: [build]
   script:
     - docker manifest create $DOCKER_BRANCH
-        $DOCKER_BRANCH_AMD64
-        $DOCKER_BRANCH_ARM64
+        $DOCKER_BRANCH-amd64
+        $DOCKER_BRANCH-arm64
     - docker manifest push $DOCKER_BRANCH
-  retry:
-    max: 2
-    when:
-      - runner_system_failure
-      - stuck_or_timeout_failure
-  tags:
-    - executor-docker
 
 branch_scan:
   stage: manifest
@@ -223,26 +214,20 @@ branch_scan:
     CS_DOCKERFILE_PATH: "Dockerfile"
   before_script: []
 
+# Tag image for each architecture in parallel and update manifest
 latest_image:
+  extends: .docker-job
   stage: latest
   needs: [create_manifest]
   script:
     # Tag arch-specific images as latest
-    - docker pull $DOCKER_BRANCH_AMD64
-    - docker tag $DOCKER_BRANCH_AMD64 $DOCKER_LATEST_AMD64
-    - docker push $DOCKER_LATEST_AMD64
-    - docker pull $DOCKER_BRANCH_ARM64
-    - docker tag $DOCKER_BRANCH_ARM64 $DOCKER_LATEST_ARM64
-    - docker push $DOCKER_LATEST_ARM64
-    # Create and push manifest for latest
+    - |
+      for ARCH in amd64 arm64; do
+        docker pull $DOCKER_BRANCH-$ARCH
+        docker tag $DOCKER_BRANCH-$ARCH $DOCKER_LATEST-$ARCH
+        docker push $DOCKER_LATEST-$ARCH
+      done
     - docker manifest create $DOCKER_LATEST
-        $DOCKER_LATEST_AMD64
-        $DOCKER_LATEST_ARM64
+        $DOCKER_LATEST-amd64
+        $DOCKER_LATEST-arm64
     - docker manifest push $DOCKER_LATEST
-  retry:
-    max: 2
-    when:
-      - runner_system_failure
-      - stuck_or_timeout_failure
-  tags:
-    - executor-docker
