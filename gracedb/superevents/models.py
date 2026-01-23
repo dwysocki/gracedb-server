@@ -69,7 +69,7 @@ class Superevent(CleanSaveModel, AutoIncrementModel, ComputedFieldsModel):
     # Full date-based ID regex:
     # (T|M)?S180709abc OR (T|M)?GW180709ABC
     ID_REGEX = (r'(({test}|{mdc})?({0})(\d{{6}})([a-z]+)|'
-        '({test}|{mdc})?({1})(\d{{6}})([A-Z]+))').format(DEFAULT_ID_PREFIX,
+        r'({test}|{mdc})?({1})(\d{{6}})([A-Z]+))').format(DEFAULT_ID_PREFIX,
         GW_ID_PREFIX, test=SUPEREVENT_CATEGORY_TEST,
         mdc=SUPEREVENT_CATEGORY_MDC)
 

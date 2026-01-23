@@ -44,7 +44,7 @@ def parse_label_query(s, keep_binary_ops=False):
 
 def convert_superevent_id_to_speech(sid):
     """Used for Twilio voice calls"""
-    grps = list(re.match('^(\w+)(\d{2})(\d{2})(\d{2})(\w+)$', sid).groups())
+    grps = list(re.match(r'^(\w+)(\d{2})(\d{2})(\d{2})(\w+)$', sid).groups())
 
     # Add spaces between all letters in prefix and suffix
     grps[0] = " ".join(grps[0])
