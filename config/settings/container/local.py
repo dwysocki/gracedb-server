@@ -21,7 +21,7 @@ SEND_EMAIL_ALERTS = False
 USE_SHIBBOLETH_LOGIN = False
 
 # Allowed hosts
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS += ['localhost', '127.0.0.1']
 
 # Adjust ADMINS for dev instances
 ADMINS = []
