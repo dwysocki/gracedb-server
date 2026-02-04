@@ -240,7 +240,10 @@ class Event(ComputedFieldsModel):
                    models.Index(fields=['created', ]), 
                    models.Index(fields=['instruments', ]), 
                    models.Index(fields=['far', ]), 
-                   models.Index(fields=['likelihood', ]),]
+                   models.Index(fields=['likelihood', ]),
+                   # Composite index for common query pattern
+                   models.Index(fields=['gpstime', 'pipeline_id', 'far']),
+                  ]
 
     @computed(models.CharField(max_length=32, null=True), 
               depends=[['self', ['id']], 
