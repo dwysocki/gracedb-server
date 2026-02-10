@@ -1,58 +1,49 @@
 from collections import OrderedDict
-from django.utils.functional import cached_property
+
+from django.conf import settings
+from django.core.cache import cache
 from django.utils.http import urlencode
 from rest_framework import pagination
 from rest_framework.response import Response
 
+from api.utils import get_count_cache_key
+
 
 class CustomEventPagination(pagination.LimitOffsetPagination):
-    default_limit = 100
+    default_limit = settings.EVENT_PAGINATION_DEFAULT_LIMIT
+    max_limit = settings.EVENT_PAGINATION_MAX_LIMIT
     limit_query_param = 'count'
     offset_query_param = 'start'
-    
-
-    # Override the built-in counting method from here:
-    # https://github.com/encode/django-rest-framework/blob/3.4.7/rest_framework/pagination.py#L47
-    # And see if it can be cached. Like suggested here:
-    # https://stackoverflow.com/a/47357445
-    # update: caching works but I noticed in the browser that sometimes the numRows
-    # field retains its value from pervious queries. I don't know yet if it affects
-    # data fetching in the API, but i'm going to leave it commented for now. 
-
-    # Another update: it would seem that fetching just the integer row-id for query
-    # results and then counting is faster than fetching the entire queryset. I didn't
-    # observe any change when doing large-ish counts on dev1 (~33000 events), but 
-    # maybe postgres gets clever enough when doing larger queries. I'll leave it in 
-    # and see what happens: https://stackoverflow.com/a/47357445
-
-#    @cached_property
-    @property
-    def _get_count(self):
-        """
-        Determine an object count, supporting either querysets or regular lists.
-        """
-        try:
-            return self.queryset.values('id').count()
-        except (AttributeError, TypeError):
-            return len(self.queryset)
-
 
     def paginate_queryset(self, queryset, request, view=None):
+        self.request = request
         self.limit = self.get_limit(request)
-        self.queryset = queryset
-
         if self.limit is None:
             return None
 
         self.offset = self.get_offset(request)
-        self.count = self._get_count
-        self.request = request
+
+        # Try to get count from cache
+        cache_key = get_count_cache_key(
+            request, 'event', self.limit_query_param, self.offset_query_param)
+        count = cache.get(cache_key)
+        if count is None:
+            # Use values('id').count() as it can be faster for large querysets
+            try:
+                count = queryset.values('id').count()
+            except (AttributeError, TypeError):
+                count = len(queryset)
+            cache.set(cache_key, count, settings.QUERY_COUNT_CACHE_TIMEOUT)
+
+        self.count = count
+
         if self.count > self.limit and self.template is not None:
             self.display_page_controls = True
 
         if self.count == 0 or self.offset > self.count:
             return []
-        return list(self.queryset[self.offset:self.offset + self.limit])
+
+        return list(queryset[self.offset:self.offset + self.limit])
 
     def get_paginated_response(self, data):
         numRows = self.count

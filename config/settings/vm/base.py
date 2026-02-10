@@ -16,6 +16,9 @@ DATABASES = {
         'HOST':'127.0.0.1',
         'PORT':'5432',
         'CONN_MAX_AGE': 3600,
+        'OPTIONS': {
+            'options': f'-c random_page_cost={PSQL_RANDOM_PAGE_COST}'
+        },
     },
 }
 

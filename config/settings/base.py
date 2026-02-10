@@ -322,6 +322,12 @@ FEED_MAX_RESULTS = 50
 
 # Django and server settings --------------------------------------------------
 
+# PostgreSQL random_page_cost setting. Default 1.1 is appropriate for SSD storage
+# (PostgreSQL default of 4.0 assumes spinning disks). Lower values make the query
+# planner more likely to choose index scans over sequential scans.
+PSQL_RANDOM_PAGE_COST = float(get_from_env('PSQL_RANDOM_PAGE_COST',
+    fail_if_not_found=False, default_value='1.1'))
+
 # Location of database
 GRACEDB_DATA_DIR = join(BASE_DIR, "..", "db_data")
 # First level subdirs with 2 chars, second level with 1 char
@@ -740,6 +746,27 @@ PUBLIC_PAGE_CACHING = int(get_from_env('DJANGO_PUBLIC_PAGE_CACHING',
 # Define the number of results per page on the public page:
 PUBLIC_PAGE_RESULTS = int(get_from_env('DJANGO_PUBLIC_PAGE_RESULTS',
     fail_if_not_found=False, default_value=15))
+
+# Superevent API pagination settings:
+SUPEREVENT_PAGINATION_DEFAULT_LIMIT = int(get_from_env(
+    'DJANGO_SUPEREVENT_PAGINATION_DEFAULT_LIMIT',
+    fail_if_not_found=False, default_value=100))
+SUPEREVENT_PAGINATION_MAX_LIMIT = int(get_from_env(
+    'DJANGO_SUPEREVENT_PAGINATION_MAX_LIMIT',
+    fail_if_not_found=False, default_value=1000))
+
+# Event API pagination settings:
+EVENT_PAGINATION_DEFAULT_LIMIT = int(get_from_env(
+    'DJANGO_EVENT_PAGINATION_DEFAULT_LIMIT',
+    fail_if_not_found=False, default_value=100))
+EVENT_PAGINATION_MAX_LIMIT = int(get_from_env(
+    'DJANGO_EVENT_PAGINATION_MAX_LIMIT',
+    fail_if_not_found=False, default_value=1000))
+
+# Cache timeout for event/superevent count queries (seconds):
+QUERY_COUNT_CACHE_TIMEOUT = int(get_from_env(
+    'DJANGO_QUERY_COUNT_CACHE_TIMEOUT',
+    fail_if_not_found=False, default_value=30))
 
 # Define DATA_UPLOAD_MAX_MEMORY_SIZE for larger uploads:
 DATA_UPLOAD_MAX_MEMORY_SIZE = int(get_from_env('DJANGO_DATA_UPLOAD_MAX_MEMORY_SIZE',

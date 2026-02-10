@@ -318,6 +318,9 @@ DATABASES = {
         'HOST': os.environ.get('DJANGO_DB_HOST', ''),
         'PORT': os.environ.get('DJANGO_DB_PORT', ''),
         'CONN_MAX_AGE': 3600,
+        'OPTIONS': {
+            'options': f'-c random_page_cost={PSQL_RANDOM_PAGE_COST}'
+        },
         'TEST' : {
             'NAME': 'gracedb_test_db',
         },

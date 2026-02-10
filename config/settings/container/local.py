@@ -67,5 +67,8 @@ DATABASES = {
         'PASSWORD': get_from_env('POSTGRES_PASSWORD', fail_if_not_found=False, default_value='gracedb_password'),
         'HOST': get_from_env('POSTGRES_HOST', fail_if_not_found=False, default_value='postgres'),
         'PORT': get_from_env('POSTGRES_PORT', fail_if_not_found=False, default_value='5432'),
+        'OPTIONS': {
+            'options': f'-c random_page_cost={PSQL_RANDOM_PAGE_COST}'
+        },
     },
 }
