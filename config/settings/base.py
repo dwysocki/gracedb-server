@@ -398,9 +398,15 @@ X509_INFOS_HEADER = 'HTTP_X_FORWARDED_TLS_CLIENT_CERT_INFOS'
 CAPATH = '/etc/grid-security/certificates'
 
 # SciTokens claims settings
-SCITOKEN_ISSUER = ['https://cilogon.org/igwn', 'https://test.cilogon.org/igwn', 'https://osdf.igwn.org/cit']
-SCITOKEN_AUDIENCE = ["ANY"]
-SCITOKEN_SCOPE = "gracedb.read"
+# These can be overridden via environment variables:
+#   SCITOKEN_ISSUERS - comma-separated list of trusted issuer URLs
+#   SCITOKEN_AUDIENCES - comma-separated list of accepted audiences
+#   SCITOKEN_SCOPE - required scope for authentication
+_scitoken_issuers_default = ['https://cilogon.org/igwn', 'https://test.cilogon.org/igwn', 'https://osdf.igwn.org/cit']
+_scitoken_audiences_default = ["ANY"]
+SCITOKEN_ISSUER = get_list_from_env('SCITOKEN_ISSUERS', fail_if_not_found=False) or _scitoken_issuers_default
+SCITOKEN_AUDIENCE = get_list_from_env('SCITOKEN_AUDIENCES', fail_if_not_found=False) or _scitoken_audiences_default
+SCITOKEN_SCOPE = get_from_env('SCITOKEN_SCOPE', default_value="gracedb.read", fail_if_not_found=False)
 
 # List of authentication backends to use when attempting to authenticate
 # a user.  Will be used in this order.  Authentication for the API is

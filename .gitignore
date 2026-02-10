@@ -11,3 +11,9 @@ static_root/*
 junit.xml
 .coverage
 .claude
+
+# Local development artifacts (docker/local_development)
+docker/local_development/local-issuer/
+docker/local_development/issuer-htdocs/
+docker/local_development/db_data/
+docker/local_development/logs/

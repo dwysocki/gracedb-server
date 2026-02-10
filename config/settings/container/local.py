@@ -20,8 +20,8 @@ SEND_EMAIL_ALERTS = False
 # Turn off shibboleth logins on this instance
 USE_SHIBBOLETH_LOGIN = False
 
-# Allowed hosts
-ALLOWED_HOSTS += ['localhost', '127.0.0.1']
+# Allowed hosts (includes 'gracedb' for docker service name access)
+ALLOWED_HOSTS += ['localhost', '127.0.0.1', 'gracedb']
 
 # Adjust ADMINS for dev instances
 ADMINS = []

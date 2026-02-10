@@ -1,4 +1,3 @@
-version: "3.7"
 services:
   gracedb:
     image: containers.ligo.org/computing/gracedb/server:${GRACEDB_TAG:-latest}
@@ -12,10 +11,50 @@ services:
       - POSTGRES_DB=gracedb
       - POSTGRES_USER=gracedb_user
       - POSTGRES_PASSWORD=gracedb_password
+      # DJANGO_PRIMARY_FQDN: "localhost" for standalone, "gracedb" when using client
+      - DJANGO_PRIMARY_FQDN=${DJANGO_PRIMARY_FQDN:-localhost}
+      # Trust the local SciToken issuer's self-signed certificate (only used with client profile)
+      - SSL_CERT_FILE=${SSL_CERT_FILE:-}
+      - REQUESTS_CA_BUNDLE=${REQUESTS_CA_BUNDLE:-}
     volumes:
       - "gracedb_storage:/app/db_data"
       - "gracedb_logs:/app/logs"
       - "static_files:/app/gracedb_project/static_root"
+      # Mount shared certificate from the issuer (only populated when issuer runs)
+      - "issuer_certs:/app/certs:ro"
+    depends_on:
+      - postgres
+
+  gracedb-scitokens-issuer:
+    image: httpd:2.4
+    hostname: gracedb-scitokens-issuer
+    restart: unless-stopped
+    user: root
+    expose:
+      - "8443"
+    volumes:
+      # Apache configuration with SSL
+      - "./local-issuer/httpd-ssl.conf:/usr/local/apache2/conf/httpd.conf:ro"
+      # Web content (JWKS, openid-configuration) - docker-specific
+      - "./issuer-htdocs:/usr/local/apache2/htdocs:ro"
+      # SSL certificates
+      - "./local-issuer/certs/server.crt:/usr/local/apache2/conf/server.crt:ro"
+      - "./local-issuer/certs/server.key:/usr/local/apache2/conf/server.key:ro"
+      # Share certificate with gracedb container
+      - "issuer_certs:/shared/certs"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        mkdir -p /shared/certs
+        cp /usr/local/apache2/conf/server.crt /shared/certs/issuer.crt
+        exec httpd-foreground
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    profiles:
+      - client
 
   postgres:
     image: postgres:15
@@ -29,8 +68,35 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  gracedb-scitokens-client:
+    build:
+      context: ./scitokens_client
+      dockerfile: Dockerfile
+    hostname: gracedb-scitokens-client
+    stdin_open: true
+    tty: true
+    environment:
+      # Token configuration - subject matches DJANGO_USERNAME
+      - TOKEN_ISSUER=https://gracedb-scitokens-issuer:8443
+      - TOKEN_SUBJECT=${DJANGO_USERNAME:-test_user}
+      - TOKEN_SCOPE=gracedb.read
+      - TOKEN_AUDIENCE=ANY
+      - TOKEN_LIFETIME=3600
+      # GraceDB client configuration
+      - GRACEDB_SERVICE_URL=http://gracedb/api/
+    volumes:
+      # Mount issuer keys for token generation
+      - "./local-issuer/keys:/issuer/keys:ro"
+      # Mount issuer certs for SSL trust
+      - "./local-issuer/certs:/issuer/certs:ro"
+    depends_on:
+      - gracedb-scitokens-issuer
+    profiles:
+      - client
+
 volumes:
   postgres_data:
   gracedb_storage:
   gracedb_logs:
   static_files:
+  issuer_certs:

@@ -22,6 +22,10 @@ if [ "$LOCAL_BUILD" = "true" ]; then
     python3 manage.py migrate
     python3 manage.py createcachetable
 
+    # Update site domain to match DJANGO_PRIMARY_FQDN
+    # This ensures the Site is in sync with the environment variable
+    python3 manage.py update_site_domain
+
     # Set permissions for static files and collect them
     chown -R gracedb:www-data /app/gracedb_project/static_root
     chmod -R 755 /app/gracedb_project/static_root
