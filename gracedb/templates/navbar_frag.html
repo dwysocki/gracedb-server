@@ -93,15 +93,19 @@ $( document ).ready( function () {
       {% endif %}
 
       {% if user.is_authenticated %}
-
+         {# FIXME: Re-enable logout link for proxy_shibboleth_auth once a proper #}
+         {# Shibboleth/federation logout endpoint has been exposed #}
+         {% if not proxy_shibboleth_auth %}
          <li class="nav-item">
             <a class="nav-link text-light font-weight-light" href="{% url "logout" %}?next={{ request.path }}">Logout</a>
          </li>
-
+         {% endif %}
       {% else %}
+         {% if not proxy_shibboleth_auth %}
          <li class="nav-item">
             <a class="nav-link text-light font-weight-light" href="{% url "login" %}?next={{ request.path }}">Login</a>
          </li>
+         {% endif %}
       {% endif %}
     </ul>
   </div>

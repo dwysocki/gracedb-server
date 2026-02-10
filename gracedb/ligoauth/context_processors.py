@@ -19,4 +19,5 @@ def LigoAuthContext(request):
             user_is_advocate = True
 
     return {'user': user, 'user_is_internal': user_is_internal,
-        'user_is_lvem': user_is_lvem, 'user_is_advocate': user_is_advocate}
+        'user_is_lvem': user_is_lvem, 'user_is_advocate': user_is_advocate,
+        'proxy_shibboleth_auth': getattr(settings, 'PROXY_SHIBBOLETH_AUTH', False)}

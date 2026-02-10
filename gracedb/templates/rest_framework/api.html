@@ -14,9 +14,15 @@ GraceDB &mdash; REST API
     {% if user.is_authenticated %}
     Authenticated as: {{ user.first_name }} {{ user.last_name }}
     </li>
+    {# FIXME: Re-enable logout link for proxy_shibboleth_auth once a proper #}
+    {# Shibboleth/federation logout endpoint has been exposed #}
+    {% if not proxy_shibboleth_auth %}
     <li><a href="{% url "logout" %}">Logout</a></li>
+    {% endif %}
     {% else %}
+    {% if not proxy_shibboleth_auth %}
     <a href="{% url "login" %}"><b>Login</b></a>
+    {% endif %}
     {% endif %}
     </li>
 {% endblock %}

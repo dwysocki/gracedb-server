@@ -1,0 +1,37 @@
+services:
+  gracedb:
+    image: containers.ligo.org/computing/gracedb/server:${GRACEDB_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "${SERVICE_PORT:-80}:80"
+    env_file:
+      - ./gracedb.env
+    environment:
+      - LOCAL_BUILD=true
+      - DJANGO_DB_HOST=postgres
+    volumes:
+      - gracedb_storage:/app/db_data
+      - gracedb_logs:/app/logs
+      - static_files:/app/gracedb_project/static_root
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    env_file:
+      - ./gracedb.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  gracedb_storage:
+  gracedb_logs:
+  static_files:

@@ -92,8 +92,9 @@ class ShibbolethWebAuthMiddleware(PersistentRemoteUserMiddleware):
             request.user = user
             auth.login(request, user)
 
-            # Update the user's groups
-            self.update_user_groups(request, user)
+            # Update the user's groups if the groups header is present
+            if request.META.get(self.group_header):
+                self.update_user_groups(request, user)
 
     @classmethod
     def update_user_groups(cls, request, user):
