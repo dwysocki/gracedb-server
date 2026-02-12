@@ -7,6 +7,7 @@
 # Also, there are almost certainly failing edge cases at leap second adjustment times.
 # Oh yea, and I don't think this works exactly right for some periods 2006-2008, say.
 
+from astropy.time import Time
 import pytz
 import datetime
 
@@ -71,12 +72,17 @@ def isoToGpsFloat(t):
     # second.  We'll add that back later.
     if not t:
         return None
-    t=t.strip()
+    # Often looks like 2012-10-28T05:04:31.91Z indicating is in UTC, fixed by
+    # removing Zs
+    t=t.strip().strip('Z')
     ISOTime = t.split('.')[0]
     ISOTime = datetime.datetime.strptime(ISOTime,"%Y-%m-%dT%H:%M:%S")
     # Need to set UTC time zone or this is interpreted as local time.
     ISOTime = ISOTime.replace(tzinfo=pytz.utc)
-    sec_substr = t.split('.')[1]
+    try:
+        sec_substr = t.split('.')[1]
+    except IndexError:
+        sec_substr = '0'
     if sec_substr:
         fracSec = float('0.' + sec_substr)
     else:
@@ -96,3 +102,8 @@ def utc_datetime_to_gps_float(dt):
 
 def utc_datetime_decimal_seconds(dt):
     return dt.strftime('%Y-%m-%d %H:%M:%S') + '.{:02d}'.format(round(dt.microsecond, -4))[:3]
+
+
+def jdToGpsFloat(dt):
+    time = Time(dt, format='jd', scale='utc')
+    return time.gps

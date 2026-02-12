@@ -12,7 +12,8 @@ from igwn_ligolw.lsctables import SimInspiralTable, CoincTable
 from core.ligolw import GraceDBFlexibleContentHandler
 import voeventparse as vp
 
-from core.time_utils import utc_datetime_to_gps_float
+from core.time_utils import isoToGpsFloat, jdToGpsFloat, \
+    utc_datetime_to_gps_float
 from core.utils import return_far_in_hz
 from core.vfile import create_versioned_file
 from .models import EventLog
@@ -351,11 +352,19 @@ def handle_uploaded_data(event, datafilename,
                            comment=comment)
             log.save()
 
+    # FIXME: Do migrations and officially add EinsteinProbe and Rubin here
     elif pipeline in ['Swift', 'Fermi', 'SNEWS', 'INTEGRAL',
-                      'AGILE', 'CHIME', 'SVOM']:
-        # Get the event time from the VOEvent file
+                      'AGILE', 'CHIME', 'SVOM', 'IceCube']:
         error = None
-        populateGrbEventFromVOEventFile(datafilename, event)
+        # Use Kafka method for JSON packet
+        try:
+            populateGrbEventFromKafkaFile(datafilename, event, pipeline)
+        # If JSON doesn't load, default back to VOEvent XML method
+        except JSONDecodeError:
+            # This means we won't be able to support VOEvent IceCube or CHIME
+            # notices. This shouldn't be a problem since we historically
+            # haven't.
+            populateGrbEventFromVOEventFile(datafilename, event)
 
     elif pipeline == 'oLIB':
         # lambda function for converting to a type if not None
@@ -459,8 +468,6 @@ def handle_uploaded_data(event, datafilename,
 
         event.save()
 
-    elif pipeline in ['IceCube']:
-        populate_neutrinoevent_from_voevent(datafilename, event)
     else:
         # XXX should we do something here?
         pass
@@ -851,4 +858,94 @@ def populate_neutrinoevent_from_voevent(filename, event):
         event.far = return_far_in_hz(event.far_ne, event.far_unit)
 
     # save the event:
+    event.save()
+
+
+def populateGrbEventFromKafkaFile(filename, event, pipeline):
+
+    # Load file into dictionary packet
+    with open(filename, 'rb') as f:
+        v = json.load(f)
+
+    # Get gpstime
+    # FIXME: Rubin notices do not sure trigger time and use JD instead
+    utc_time = v.get('trigger_time')
+    jd = v.get('jd')
+    if utc_time is not None:
+        gpstime = isoToGpsFloat(utc_time)
+    elif jd is not None:
+        gpstime = jdToGpsFloat(jd)
+
+    # Assign information to event
+    event.gpstime = gpstime
+
+    # Note: This is not provided in Kafka notices
+    # We can provide a static value
+    event.observatory_location_id = "GEOLUN"
+    event.coord_system = "UTC-FK5-GEO"
+
+    ra = v.get('ra')
+    dec = v.get('dec')
+    # Try to get dec first then ra, None if both misssing
+    error = None
+    error_params = ['dec_uncertainty', 'ra_uncertainty', 'ra_dec_error']
+    for param in error_params:
+        if param in v.keys():
+            error = v[param]
+            break
+    if isinstance(error, list):
+        error = error[0]
+    event.ra = ra
+    event.dec = dec
+    event.error_radius = error
+
+    instrument = v.get('instrument')
+    event.how_description = f'{pipeline} Satellite'
+    if instrument:
+       event.how_description += f', {instrument} Instrument'
+
+    # Ivorn isn't currently generally supported, but might as well try
+    ivorn = v.get('ivorn')
+    if ivorn is None:
+        ivorn = f"ivo://nasa.gsfc.gcn/{pipeline}"
+        if instrument is not None:
+            ivorn += f'/{instrument}'
+    event.ivorn = ivorn
+    event.author_shortname = pipeline
+    event.author_ivorn = 'ivo://nasa.gsfc.tan/gcn'
+    event.how_reference_url = v.get('data_archive_page')
+
+    # Try to find a trigger_duration value
+    # Go through list of possible values for durations, 0. if no keys match
+    duration = None
+    duration_params = ['rate_duration', 'image_duration']
+    for param in duration_params:
+        if param in v.keys():
+            duration = v[param]
+            break
+    # Fermi GCNs (after the first one) often set Trig_Dur or Data_Integ
+    # to 0.000 (not sure why). We don't want to overwrite the currently
+    # existing value in the database with 0.000 if this has happened, so
+    # we only update the value if trigger_duration is non-zero.
+    if duration:
+        event.trigger_duration = duration
+
+    # try to find a trigger_id value
+    id = None
+    id_params = ['id', 'objectId']
+    for param in id_params:
+        if param in v.keys():
+            id = v[param]
+    # If ID is list, combine into single string
+    if isinstance(id, list):
+        event.trigger_id = '_'.join(str(x) for x in id)
+    else:
+        event.trigger_id = id
+
+    # Check for the existance of FAR in the VOEvent_params. if it exists,
+    # Then add it to the event. This change was made on 2/7/2020 in support
+    # of SWIFT event uploads. Note: FAR is in Hz.
+    event.far = v.get('far')
+
+    # Save event
     event.save()

@@ -67,8 +67,6 @@ def _createEventFromForm(request, form):
             event = LalInferenceBurstEvent()
         elif pipeline.name in ['MLy', 'aframe', 'GWAK']:
             event = MLyBurstEvent()
-        elif pipeline.name in ['IceCube']:
-            event = NeutrinoEvent()
         else:
             event = Event()
 

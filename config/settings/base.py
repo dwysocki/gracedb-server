@@ -284,6 +284,7 @@ GRB_PIPELINES = [
                     'CHIME',
                     'SVOM',
                     'SNEWS',
+                    'IceCube'
                 ]
 
 # Get pipelines that have been deprecated or not approved

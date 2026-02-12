@@ -1,5 +1,6 @@
 adc-streaming==2.3.2
 adrf==0.1.2
+astropy==7.2.0
 aws-xray-sdk==2.12.1
 concurrent-log-handler==0.9.20
 confluent-kafka==2.6.0
