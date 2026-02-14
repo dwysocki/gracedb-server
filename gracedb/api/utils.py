@@ -84,7 +84,7 @@ def api_reverse(viewname, args=None, kwargs=None, request=None, format=None,
     # Get URL
     url = django_reverse(viewname, args=args, kwargs=kwargs, **extra)
     if absolute_path:
-        url = build_absolute_uri(url)
+        url = build_absolute_uri(url, request=request)
 
     return url
 
