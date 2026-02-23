@@ -85,7 +85,7 @@ urlpatterns.append(
 )
 
 # We don't require settings.DEBUG for django-silk since running unit tests
-# by default setings settings.DEBUG to False, unless you use the
+# by default sets settings.DEBUG to False, unless you use the
 # --debug-mode flag
 if ('silk' in settings.INSTALLED_APPS):
     # Add django-silk
