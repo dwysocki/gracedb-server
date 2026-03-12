@@ -57,14 +57,14 @@ RUN apt-get update && \
 
 
 # Install osg-ca-certs
-RUN curl -O https://hypatia.aei.mpg.de/lsc-amd64-trixie/osg-ca-certs/osg-ca-certs_1.137NEW_all.deb && \
-    dpkg -i osg-ca-certs_1.137NEW_all.deb && \
-    rm osg-ca-certs_1.137NEW_all.deb
-
-# Install ligo-ca-certs
-RUN curl -O https://hypatia.aei.mpg.de/lsc-amd64-trixie/ligo-ca-certs_1.0.2-0+deb13u0_all.deb && \
-    dpkg -i ligo-ca-certs_1.0.2-0+deb13u0_all.deb && \
-    rm ligo-ca-certs_1.0.2-0+deb13u0_all.deb
+#RUN curl -O https://hypatia.aei.mpg.de/lsc-amd64-trixie/osg-ca-certs/osg-ca-certs_1.137NEW_all.deb && \
+#    dpkg -i osg-ca-certs_1.137NEW_all.deb && \
+#    rm osg-ca-certs_1.137NEW_all.deb
+#
+## Install ligo-ca-certs
+#RUN curl -O https://hypatia.aei.mpg.de/lsc-amd64-trixie/ligo-ca-certs_1.0.2-0+deb13u0_all.deb && \
+#    dpkg -i ligo-ca-certs_1.0.2-0+deb13u0_all.deb && \
+#    rm ligo-ca-certs_1.0.2-0+deb13u0_all.deb
 
 
 # Supervisord configs (all services - controlled by env vars at runtime):
