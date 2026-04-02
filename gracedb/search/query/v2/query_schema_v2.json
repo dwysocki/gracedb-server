@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "gracedb/search/query/v2/query_schema_v2.json",
+  "title": "GraceDB v2 Search Query",
+  "description": "Structural JSON Schema for v2 search query trees. Enforces tree shape, operator names, and value types for the 'between', 'in', and 'is_null' operators. Semantic validation (valid fields per object type, valid operators per field, value ranges, label existence) is handled by the Python validator in gracedb/search/query/v2/validator.py.",
+  "$defs": {
+    "node": {
+      "description": "Any query tree node: leaf comparison or AND/OR/NOT combinator.",
+      "oneOf": [
+        { "$ref": "#/$defs/leaf" },
+        { "$ref": "#/$defs/and_node" },
+        { "$ref": "#/$defs/or_node" },
+        { "$ref": "#/$defs/not_node" }
+      ]
+    },
+
+    "leaf": {
+      "description": "A leaf node: a single field comparison. Requires 'field', 'op', and 'value'. The value type constraints below are structural; semantic constraints (e.g., valid operator for the field) are enforced by the Python validator.",
+      "type": "object",
+      "required": ["field", "op", "value"],
+      "properties": {
+        "field": {
+          "description": "Field name or recognized alias (e.g., 'far', 'si.snr', 'category'). Dot notation for attribute sub-table fields.",
+          "type": "string",
+          "minLength": 1
+        },
+        "op": {
+          "description": "Comparison operator.",
+          "type": "string",
+          "enum": [
+            "=",
+            "!=",
+            "<",
+            "<=",
+            ">",
+            ">=",
+            "between",
+            "in",
+            "contains",
+            "startswith",
+            "is_null",
+            "has",
+            "not_has"
+          ]
+        },
+        "value": {
+          "description": "The comparison value. Type is constrained by op (see subschemas below) and further constrained by field type in the Python validator.",
+          "oneOf": [
+            { "$ref": "#/$defs/scalar_value" },
+            { "$ref": "#/$defs/between_value" },
+            { "$ref": "#/$defs/in_value" },
+            { "$ref": "#/$defs/is_null_value" }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "description": "If op is 'between', value must be a 2-element array.",
+          "if": {
+            "properties": { "op": { "const": "between" } },
+            "required": ["op"]
+          },
+          "then": {
+            "properties": {
+              "value": { "$ref": "#/$defs/between_value" }
+            }
+          }
+        },
+        {
+          "description": "If op is 'in', value must be a non-empty array.",
+          "if": {
+            "properties": { "op": { "const": "in" } },
+            "required": ["op"]
+          },
+          "then": {
+            "properties": {
+              "value": { "$ref": "#/$defs/in_value" }
+            }
+          }
+        },
+        {
+          "description": "If op is 'is_null', value must be a boolean.",
+          "if": {
+            "properties": { "op": { "const": "is_null" } },
+            "required": ["op"]
+          },
+          "then": {
+            "properties": {
+              "value": { "$ref": "#/$defs/is_null_value" }
+            }
+          }
+        },
+        {
+          "description": "If op is a scalar comparison operator, value must be a scalar (string, number, or boolean).",
+          "if": {
+            "properties": {
+              "op": {
+                "enum": ["=", "!=", "<", "<=", ">", ">=", "contains", "startswith", "has", "not_has"]
+              }
+            },
+            "required": ["op"]
+          },
+          "then": {
+            "properties": {
+              "value": { "$ref": "#/$defs/scalar_value" }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+
+    "and_node": {
+      "description": "AND combinator: matches objects satisfying all child conditions.",
+      "type": "object",
+      "required": ["and"],
+      "properties": {
+        "and": {
+          "description": "List of child nodes. All must be satisfied. Must contain at least one child.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/node" },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "or_node": {
+      "description": "OR combinator: matches objects satisfying at least one child condition.",
+      "type": "object",
+      "required": ["or"],
+      "properties": {
+        "or": {
+          "description": "List of child nodes. At least one must be satisfied. Must contain at least one child.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/node" },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "not_node": {
+      "description": "NOT combinator: inverts a single child condition.",
+      "type": "object",
+      "required": ["not"],
+      "properties": {
+        "not": {
+          "description": "The single child node to negate.",
+          "$ref": "#/$defs/node"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "scalar_value": {
+      "description": "A scalar value for single-valued operators (=, !=, <, <=, >, >=, contains, startswith, has, not_has). May be a string, number, or boolean. Further type constraints (e.g., must be a number for FAR comparisons) are enforced by the Python validator.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" }
+      ]
+    },
+
+    "between_value": {
+      "description": "A 2-element array [lo, hi] for the 'between' operator. Both elements must be the same type (both numbers or both strings). The constraint lo <= hi is enforced by the Python validator.",
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "type": "number" },
+          { "type": "string" }
+        ]
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+
+    "in_value": {
+      "description": "A non-empty array for the 'in' (set membership) operator. Elements must be strings or numbers. Homogeneity and field-type compatibility are enforced by the Python validator.",
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "number" }
+        ]
+      },
+      "minItems": 1
+    },
+
+    "is_null_value": {
+      "description": "A boolean value for the 'is_null' operator. true = field IS NULL; false = field IS NOT NULL.",
+      "type": "boolean"
+    }
+  },
+
+  "$ref": "#/$defs/node",
+
+  "examples": [
+    {
+      "_comment": "Simple FAR filter on superevent",
+      "and": [
+        { "field": "category", "op": "=",  "value": "Production" },
+        { "field": "far",      "op": "<",  "value": 1e-5 }
+      ]
+    },
+    {
+      "_comment": "Label AND query (has both labels)",
+      "and": [
+        { "field": "label", "op": "has", "value": "EM_READY" },
+        { "field": "label", "op": "has", "value": "ADVOK" }
+      ]
+    },
+    {
+      "_comment": "GPS time range using between",
+      "field": "gpstime", "op": "between", "value": [1135136350.6, 1187733618.0]
+    },
+    {
+      "_comment": "Set membership for pipeline",
+      "field": "pipeline", "op": "in", "value": ["gstlal", "pycbc"]
+    },
+    {
+      "_comment": "Null check",
+      "field": "far", "op": "is_null", "value": true
+    },
+    {
+      "_comment": "Attribute sub-table query with NOT",
+      "and": [
+        { "field": "group",  "op": "=",  "value": "CBC" },
+        { "field": "si.snr", "op": ">",  "value": 12.0 },
+        { "not": { "field": "label", "op": "has", "value": "DQV" } }
+      ]
+    }
+  ]
+}

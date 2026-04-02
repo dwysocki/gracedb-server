@@ -42,9 +42,15 @@ def parse_superevent_id(name, toks, filter_prefix=None):
         s_id_prefix = toks.preprefix + toks.prefix + toks.date
         if hasattr(toks, 'suffix') and toks.suffix:
             s_id_prefix += toks.suffix
-        f_kwargs = {
-            '{}__startswith'.format('superevent_id' if not filter_prefix else filter_prefix + 'superevent_id'): s_id_prefix
-        }
+        # Construct the filter field name with proper prefix handling
+        if filter_prefix:
+            if not filter_prefix.endswith('__'):
+                filter_prefix += '__'
+            field_name = filter_prefix + 'superevent_id__startswith'
+        else:
+            field_name = 'superevent_id__startswith'
+
+        f_kwargs = {field_name: s_id_prefix}
         fullQ = Q(**f_kwargs)
         return (name, fullQ)
 
