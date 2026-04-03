@@ -65,6 +65,16 @@ SUPEREVENT_CATEGORY_CHOICES = ['Production', 'Test', 'MDC']
 # Valid run ID names (from RUN_MAP_FLAT, normalised to uppercase for lookup)
 VALID_RUN_IDS = set(RUN_MAP_FLAT.keys())
 
+# Event fields excluded from preferred_event.FOO delegation on superevents.
+# These either reference the superevent relationship (circular) or expand
+# using a GPS field name that has no meaning in the preferred_event context.
+_EXCLUDED_PREFERRED_EVENT_FIELDS = frozenset({
+    'superevent',          # superevent_id_ref — circular back-reference
+    'in_superevent',       # boolean_derived from superevent FK — always True
+    'is_preferred_event',  # boolean_derived from preferred_for FK — always True
+    'runid',               # virtual_enum that expands a GPS field by name
+})
+
 # ---------------------------------------------------------------------------
 # Attribute sub-table definitions
 # Only indexed fields are listed (see events/models.py Meta.indexes).
@@ -178,6 +188,25 @@ def _build_attr_fields():
                 'help_text':      f'{short}.{field_name}',
             }
     return result
+
+
+def _make_preferred_event_schema(event_schema_entry):
+    """
+    Return a copy of an event field schema dict adapted for use as a
+    ``preferred_event.FOO`` field on a superevent.
+
+    The ORM path (and ``isnull_orm_path``, if present) is prefixed with
+    ``'preferred_event__'`` so the translator can use it directly without
+    any additional manipulation.  The ``type``, ``operators``,
+    ``needs_distinct``, and any other keys are copied unchanged.
+    """
+    entry = dict(event_schema_entry)
+    if entry.get('orm_path') is not None:
+        entry['orm_path'] = 'preferred_event__' + entry['orm_path']
+    if 'isnull_orm_path' in entry:
+        entry['isnull_orm_path'] = 'preferred_event__' + entry['isnull_orm_path']
+    entry['help_text'] = 'Preferred event: ' + entry.get('help_text', '')
+    return entry
 
 
 # ---------------------------------------------------------------------------
@@ -337,14 +366,6 @@ _SUPEREVENT_CORE_FIELDS = {
         'needs_distinct': False,
         'help_text':      'End of superevent time window (GPS)',
     },
-    'far': {
-        # Shorthand for preferred_event__far
-        'type':           'float',
-        'operators':      NULLABLE_COMPARISON_OPS,
-        'orm_path':       'preferred_event__far',
-        'needs_distinct': False,
-        'help_text':      'False alarm rate of the preferred event (Hz)',
-    },
     'created': {
         'type':           'datetime',
         'operators':      COMPARISON_OPS,
@@ -464,6 +485,14 @@ def normalize_field_name(field, object_type):
       - Direct lookup:      'singleinspiral.snr' → 'singleinspiral.snr'
       - Short alias:        'si.snr'  → 'singleinspiral.snr'
       - Long alias:         'coincinspiral.mass' → 'coincinspiralevent.mass'
+
+    For superevent queries, any valid event field can be accessed via the
+    ``preferred_event.`` prefix, which is resolved by delegating the suffix
+    to the event schema:
+      - 'preferred_event.far'    → 'preferred_event.far'
+      - 'preferred_event.si.snr' → 'preferred_event.singleinspiral.snr'
+    The resulting canonical key is only meaningful to ``get_field_schema``;
+    it is NOT a key in ``SUPEREVENT_FIELDS``.
     """
     aliases = ALIASES.get(object_type, {})
     field_schema = FIELDS.get(object_type, {})
@@ -473,6 +502,19 @@ def normalize_field_name(field, object_type):
 
     if field in field_schema:
         return field
+
+    # preferred_event.FOO delegation (superevent queries only).
+    # Must come before the generic dot-notation branch so that e.g.
+    # 'preferred_event.far' is not misinterpreted as table 'preferred_event',
+    # sub-field 'far' (which would not match any entry in SUPEREVENT_FIELDS).
+    if object_type == 'superevent' and field.startswith('preferred_event.'):
+        sub_field = field[len('preferred_event.'):]
+        event_canonical = normalize_field_name(sub_field, 'event')
+        if event_canonical is None:
+            return None
+        if event_canonical in _EXCLUDED_PREFERRED_EVENT_FIELDS:
+            return None
+        return f'preferred_event.{event_canonical}'
 
     # Dot-notation: resolve any table alias/short-form to the canonical table name
     if '.' in field:
@@ -489,8 +531,20 @@ def get_field_schema(field, object_type):
     """
     Return the schema dict for *field* in *object_type*, or None if unknown.
     Always normalises the field name first.
+
+    For superevent ``preferred_event.FOO`` canonicals, synthesises the schema
+    on the fly by prefixing ORM paths from the event schema.
     """
     canonical = normalize_field_name(field, object_type)
     if canonical is None:
         return None
+
+    # preferred_event.FOO delegation: synthesise schema from the event schema
+    if object_type == 'superevent' and canonical.startswith('preferred_event.'):
+        sub_canonical = canonical[len('preferred_event.'):]
+        event_schema = FIELDS['event'].get(sub_canonical)
+        if event_schema is None:
+            return None
+        return _make_preferred_event_schema(event_schema)
+
     return FIELDS.get(object_type, {}).get(canonical)

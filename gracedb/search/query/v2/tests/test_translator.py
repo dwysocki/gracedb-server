@@ -251,15 +251,6 @@ def test_superevent_t0_between():
     assert q == Q(t_0__range=[1234.0, 5678.0])
 
 
-def test_superevent_far_shorthand():
-    assert q_only({'field': 'far', 'op': '<', 'value': 1e-7}, 'superevent') == Q(preferred_event__far__lt=1e-7)
-
-
-def test_superevent_far_between():
-    q, _ = t({'field': 'far', 'op': 'between', 'value': [1e-9, 1e-5]}, 'superevent')
-    assert q == Q(preferred_event__far__range=[1e-9, 1e-5])
-
-
 def test_superevent_category_eq():
     assert q_only({'field': 'category', 'op': '=', 'value': 'Production'}, 'superevent') == Q(category='P')
 
@@ -309,6 +300,112 @@ def test_superevent_event_alias():
     q, nd = t({'field': 'event', 'op': 'startswith', 'value': 'G12'}, 'superevent')
     assert q == Q(events__graceid__istartswith='G12')
     assert nd is True
+
+
+# ---------------------------------------------------------------------------
+# preferred_event.FOO delegation (superevent object_type)
+# ---------------------------------------------------------------------------
+
+def test_preferred_event_far_lt():
+    q, nd = t({'field': 'preferred_event.far', 'op': '<', 'value': 1e-7}, 'superevent')
+    assert q == Q(preferred_event__far__lt=1e-7)
+    assert nd is False
+
+
+def test_preferred_event_far_between():
+    q, nd = t({'field': 'preferred_event.far', 'op': 'between', 'value': [1e-9, 1e-5]}, 'superevent')
+    assert q == Q(preferred_event__far__range=[1e-9, 1e-5])
+    assert nd is False
+
+
+def test_preferred_event_far_is_null():
+    q, nd = t({'field': 'preferred_event.far', 'op': 'is_null', 'value': True}, 'superevent')
+    assert q == Q(preferred_event__far__isnull=True)
+    assert nd is False
+
+
+def test_preferred_event_group_eq():
+    q, nd = t({'field': 'preferred_event.group', 'op': '=', 'value': 'CBC'}, 'superevent')
+    assert q == Q(preferred_event__group__name__iexact='CBC')
+    assert nd is False
+
+
+def test_preferred_event_pipeline_contains():
+    q, nd = t({'field': 'preferred_event.pipeline', 'op': 'contains', 'value': 'gstlal'}, 'superevent')
+    assert q == Q(preferred_event__pipeline__name__icontains='gstlal')
+    assert nd is False
+
+
+def test_preferred_event_search_is_null():
+    # db_enum with isnull_orm_path — both paths get prefixed
+    q, nd = t({'field': 'preferred_event.search', 'op': 'is_null', 'value': True}, 'superevent')
+    assert q == Q(preferred_event__search__isnull=True)
+    assert nd is False
+
+
+def test_preferred_event_gpstime_between():
+    q, nd = t({'field': 'preferred_event.gpstime', 'op': 'between', 'value': [1187008882.0, 1187008900.0]}, 'superevent')
+    assert q == Q(preferred_event__gpstime__range=[1187008882.0, 1187008900.0])
+    assert nd is False
+
+
+def test_preferred_event_si_snr_gt():
+    # Attr sub-field via short alias: needs_distinct propagates from event schema
+    q, nd = t({'field': 'preferred_event.si.snr', 'op': '>', 'value': 12.0}, 'superevent')
+    assert q == Q(preferred_event__singleinspiral__snr__gt=12.0)
+    assert nd is True
+
+
+def test_preferred_event_si_snr_canonical():
+    # Canonical form resolves identically to the short alias
+    q, nd = t({'field': 'preferred_event.singleinspiral.snr', 'op': '>', 'value': 12.0}, 'superevent')
+    assert q == Q(preferred_event__singleinspiral__snr__gt=12.0)
+    assert nd is True
+
+
+def test_preferred_event_submitter_contains():
+    # Submitter: hardcoded Q paths receive the preferred_event__ prefix
+    q, nd = t({'field': 'preferred_event.submitter', 'op': 'contains', 'value': 'einstein'}, 'superevent')
+    expected = (Q(preferred_event__submitter__username__icontains='einstein') |
+                Q(preferred_event__submitter__last_name__icontains='einstein'))
+    assert q == expected
+    assert nd is False
+
+
+def test_preferred_event_label_has():
+    # Label: uses _preferred_event_label_exists_q (event through-table, OuterRef preferred_event_id)
+    q, nd = label_t({'field': 'preferred_event.label', 'op': 'has', 'value': 'EM_READY'}, 'superevent')
+    assert _is_exists_q(q)
+    assert nd is False
+
+
+def test_preferred_event_label_not_has():
+    q, nd = label_t({'field': 'preferred_event.label', 'op': 'not_has', 'value': 'DQV'}, 'superevent')
+    assert _is_not_exists_q(q)
+    assert nd is False
+
+
+def test_preferred_event_graceid_unchanged():
+    # The top-level 'preferred_event' field (graceid) is not affected by delegation
+    q, nd = t({'field': 'preferred_event', 'op': '=', 'value': 'G123456'}, 'superevent')
+    assert q == Q(preferred_event__graceid__iexact='G123456')
+    assert nd is False
+
+
+def test_preferred_event_far_shorthand_removed():
+    # 'far' is no longer a valid superevent field — must use preferred_event.far
+    from search.query.v2.schema import normalize_field_name
+    assert normalize_field_name('far', 'superevent') is None
+
+
+def test_preferred_event_excluded_fields():
+    # Circular back-references are excluded from delegation
+    from search.query.v2.schema import normalize_field_name
+    for field in ('preferred_event.superevent', 'preferred_event.in_superevent',
+                  'preferred_event.is_preferred_event', 'preferred_event.runid'):
+        assert normalize_field_name(field, 'superevent') is None, (
+            f"Expected {field!r} to be excluded from preferred_event delegation"
+        )
 
 
 # ---------------------------------------------------------------------------

@@ -148,6 +148,33 @@ def _label_exists_q(label_name, model_class):
     )))
 
 
+def _preferred_event_label_exists_q(label_name, model_class):
+    """
+    Build a Q(Exists(...)) subquery for "the superevent's preferred event has
+    label *label_name*".
+
+    *model_class* is the **Superevent** model class.  We navigate via the
+    ``preferred_event`` FK to reach the Event model, then use Event's label
+    M2M through table filtered by ``event_id = OuterRef('preferred_event_id')``.
+
+    Use ``~_preferred_event_label_exists_q(...)`` for ``not_has``.
+    """
+    if model_class is None:
+        raise ValueError(
+            "model_class is required when the query contains label conditions. "
+            "Pass the model class (e.g., Superevent) to translate()."
+        )
+    event_model = model_class._meta.get_field('preferred_event').related_model
+    through = event_model._meta.get_field('labels').remote_field.through
+    fk_name = next(
+        f.name for f in through._meta.get_fields()
+        if hasattr(f, 'related_model') and f.related_model == event_model
+    )
+    return Q(Exists(through.objects.filter(
+        **{fk_name: OuterRef('preferred_event_id'), 'label__name': label_name}
+    )))
+
+
 # ---------------------------------------------------------------------------
 # Leaf translation
 # ---------------------------------------------------------------------------
@@ -168,11 +195,25 @@ def _translate_leaf(node, object_type, model_class):
     field_type = schema['type']
     orm_path   = schema.get('orm_path')
 
+    # True when translating a preferred_event.FOO field on a superevent query.
+    # The schema's orm_path is already prefixed ('preferred_event__...') by
+    # _make_preferred_event_schema, so most field types need no special handling.
+    # Only 'label' and 'submitter' construct Q paths outside of orm_path and
+    # need explicit awareness of the prefix.
+    pref_event = (
+        object_type == 'superevent'
+        and canonical is not None
+        and canonical.startswith('preferred_event.')
+    )
+
     # ----------------------------------------------------------------
     # Label fields: always use Exists subqueries
     # ----------------------------------------------------------------
     if field_type == 'label':
-        q = _label_exists_q(value, model_class)
+        if pref_event:
+            q = _preferred_event_label_exists_q(value, model_class)
+        else:
+            q = _label_exists_q(value, model_class)
         if op == 'not_has':
             q = ~q
         return q, False
@@ -189,8 +230,9 @@ def _translate_leaf(node, object_type, model_class):
     # Submitter: OR of username__icontains and last_name__icontains
     # ----------------------------------------------------------------
     if field_type == 'submitter':
-        q = (Q(submitter__username__icontains=value) |
-             Q(submitter__last_name__icontains=value))
+        prefix = 'preferred_event__' if pref_event else ''
+        q = (Q(**{f'{prefix}submitter__username__icontains': value}) |
+             Q(**{f'{prefix}submitter__last_name__icontains': value}))
         return q, False
 
     # ----------------------------------------------------------------
