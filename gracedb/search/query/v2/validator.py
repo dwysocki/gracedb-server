@@ -162,7 +162,7 @@ def _validate_scalar_value(field_type, value, path):
             return {'message': "Expected a run ID string (e.g., O3, O4b)", 'path': path}
         if value.upper() not in VALID_RUN_IDS and value not in VALID_RUN_IDS:
             return {'message': f"Unknown run ID '{value}'", 'path': path}
-    elif field_type in ('string', 'db_enum', 'instruments', 'graceid',
+    elif field_type in ('string', 'db_enum', 'graceid',
                         'superevent_id', 'superevent_id_ref', 'label', 'submitter'):
         if not _is_string(value):
             return {'message': f"Expected a string, got {type(value).__name__}", 'path': path}
@@ -270,8 +270,15 @@ def _validate_node(node, object_type, path, errors, strict):
         # Resolve field name
         canonical = normalize_field_name(raw_field, object_type)
         if canonical is None:
-            _add_error(errors, strict,
-                f"Unknown field '{raw_field}' for object type '{object_type}'", path)
+            msg = f"Unknown field '{raw_field}' for object type '{object_type}'"
+            # If this is a superevent query and raw_field is a valid event field,
+            # suggest the preferred_event.FOO form to help users who are used to
+            # querying event fields directly.
+            if object_type == 'superevent':
+                candidate = f'preferred_event.{raw_field}'
+                if normalize_field_name(candidate, 'superevent') is not None:
+                    msg += f". Did you mean 'preferred_event.{raw_field}'?"
+            _add_error(errors, strict, msg, path)
             return
 
         schema = get_field_schema(canonical, object_type)

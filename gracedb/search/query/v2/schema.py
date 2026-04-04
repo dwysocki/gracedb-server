@@ -66,13 +66,17 @@ SUPEREVENT_CATEGORY_CHOICES = ['Production', 'Test', 'MDC']
 VALID_RUN_IDS = set(RUN_MAP_FLAT.keys())
 
 # Event fields excluded from preferred_event.FOO delegation on superevents.
-# These either reference the superevent relationship (circular) or expand
-# using a GPS field name that has no meaning in the preferred_event context.
 _EXCLUDED_PREFERRED_EVENT_FIELDS = frozenset({
-    'superevent',          # superevent_id_ref — circular back-reference
-    'in_superevent',       # boolean_derived from superevent FK — always True
+    'superevent',          # superevent_id_ref — circular back-reference to the
+                           # containing superevent; meaningless in this context
+    'in_superevent',       # boolean_derived from superevent FK — always True for
+                           # the preferred event of any superevent
     'is_preferred_event',  # boolean_derived from preferred_for FK — always True
-    'runid',               # virtual_enum that expands a GPS field by name
+                           # by definition in this context
+    'runid',               # virtual_enum that translates to a GPS range; the
+                           # superevent already has its own 'runid' field (based
+                           # on t_0), and 'preferred_event.runid' would be a
+                           # confusingly near-duplicate of it
 })
 
 # ---------------------------------------------------------------------------
@@ -199,8 +203,12 @@ def _make_preferred_event_schema(event_schema_entry):
     ``'preferred_event__'`` so the translator can use it directly without
     any additional manipulation.  The ``type``, ``operators``,
     ``needs_distinct``, and any other keys are copied unchanged.
+
+    ``operators`` is shallow-copied so callers cannot accidentally mutate
+    the original event schema entry by modifying the returned list.
     """
     entry = dict(event_schema_entry)
+    entry['operators'] = list(entry['operators'])
     if entry.get('orm_path') is not None:
         entry['orm_path'] = 'preferred_event__' + entry['orm_path']
     if 'isnull_orm_path' in entry:
@@ -494,6 +502,9 @@ def normalize_field_name(field, object_type):
     The resulting canonical key is only meaningful to ``get_field_schema``;
     it is NOT a key in ``SUPEREVENT_FIELDS``.
     """
+    if field is None:
+        return None
+
     aliases = ALIASES.get(object_type, {})
     field_schema = FIELDS.get(object_type, {})
 

@@ -398,6 +398,31 @@ def test_preferred_event_far_shorthand_removed():
     assert normalize_field_name('far', 'superevent') is None
 
 
+def test_validator_suggests_preferred_event_prefix():
+    # When a user writes a bare event field name in a superevent query,
+    # the error message should suggest the preferred_event.FOO form.
+    from search.query.v2.validator import validate, QueryValidationError
+    with pytest.raises(QueryValidationError) as exc_info:
+        validate({'field': 'far', 'op': '<', 'value': 1e-7}, 'superevent')
+    assert "preferred_event.far" in str(exc_info.value)
+
+
+def test_validator_no_hint_for_truly_unknown_fields():
+    # Completely unknown field should not get a misleading hint
+    from search.query.v2.validator import validate, QueryValidationError
+    with pytest.raises(QueryValidationError) as exc_info:
+        validate({'field': 'banana', 'op': '=', 'value': 'x'}, 'superevent')
+    assert "preferred_event" not in str(exc_info.value)
+
+
+def test_validator_no_hint_for_excluded_event_fields():
+    # Excluded back-reference fields should not be suggested
+    from search.query.v2.validator import validate, QueryValidationError
+    with pytest.raises(QueryValidationError) as exc_info:
+        validate({'field': 'in_superevent', 'op': '=', 'value': True}, 'superevent')
+    assert "preferred_event" not in str(exc_info.value)
+
+
 def test_preferred_event_excluded_fields():
     # Circular back-references are excluded from delegation
     from search.query.v2.schema import normalize_field_name
