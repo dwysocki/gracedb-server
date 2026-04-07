@@ -19,7 +19,7 @@ from ...constants import RUN_MAP_FLAT
 
 COMPARISON_OPS          = ['=', '!=', '<', '<=', '>', '>=', 'between']
 NULLABLE_COMPARISON_OPS = COMPARISON_OPS + ['is_null']  # for fields that can be NULL in the DB
-STRING_OPS_FULL = ['=', '!=', 'contains', 'startswith', 'in', 'is_null']
+STRING_OPS_FULL = ['=', '!=', 'contains', 'in', 'is_null']
 STRING_OPS_BASIC = ['=', '!=', 'contains', 'in']
 ENUM_OPS = ['=', '!=', 'in']
 BOOLEAN_OPS = ['=']
@@ -64,6 +64,18 @@ SUPEREVENT_CATEGORY_CHOICES = ['Production', 'Test', 'MDC']
 
 # Valid run ID names (from RUN_MAP_FLAT, normalised to uppercase for lookup)
 VALID_RUN_IDS = set(RUN_MAP_FLAT.keys())
+
+# ---------------------------------------------------------------------------
+# Accepted datetime input formats (tried in order).
+# Defined here so that the validator and translator share a single list.
+# ---------------------------------------------------------------------------
+
+DATETIME_FORMATS = (
+    '%Y-%m-%dT%H:%M:%SZ',
+    '%Y-%m-%dT%H:%M:%S',
+    '%Y-%m-%d %H:%M:%S',
+    '%Y-%m-%d',
+)
 
 # Event fields excluded from preferred_event.FOO delegation on superevents.
 _EXCLUDED_PREFERRED_EVENT_FIELDS = frozenset({

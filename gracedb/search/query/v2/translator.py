@@ -56,12 +56,12 @@ import pytz
 from django.db.models import Exists, OuterRef, Q
 
 from .schema import (
+    DATETIME_FORMATS,
     OP_SUFFIX,
     SUPEREVENT_CATEGORY_MAP,
     normalize_field_name,
     get_field_schema,
 )
-from ...constants import RUN_MAP_FLAT
 from ...utils import run_map_search_filter
 
 
@@ -82,8 +82,7 @@ def _parse_datetime(value):
     Parse an ISO 8601 datetime string to a timezone-aware datetime object.
     Assumes UTC if no timezone is given.
     """
-    for fmt in ('%Y-%m-%dT%H:%M:%SZ', '%Y-%m-%dT%H:%M:%S',
-                '%Y-%m-%d %H:%M:%S', '%Y-%m-%d'):
+    for fmt in DATETIME_FORMATS:
         try:
             return _UTC.localize(datetime.datetime.strptime(value, fmt))
         except ValueError:

@@ -35,6 +35,7 @@ import numbers
 from .schema import (
     get_field_schema, normalize_field_name,
     SUPEREVENT_CATEGORY_CHOICES, VALID_RUN_IDS,
+    DATETIME_FORMATS,
 )
 
 # ---------------------------------------------------------------------------
@@ -89,6 +90,16 @@ def _is_bool(v):
     return isinstance(v, bool)
 
 
+def _parse_datetime_value(value):
+    """Try each format in DATETIME_FORMATS; return the parsed datetime or None."""
+    for fmt in DATETIME_FORMATS:
+        try:
+            return datetime.datetime.strptime(value, fmt)
+        except ValueError:
+            continue
+    return None
+
+
 def _validate_value_for_field(schema, op, value, path):
     """
     Return an error dict (or None) for the given (schema, op, value) triple.
@@ -111,6 +122,10 @@ def _validate_value_for_field(schema, op, value, path):
             err = _check_datetime_value(lo, path) or _check_datetime_value(hi, path)
             if err:
                 return err
+            lo_dt = _parse_datetime_value(lo)
+            hi_dt = _parse_datetime_value(hi)
+            if lo_dt > hi_dt:
+                return {'message': f"'between' range: lo ({lo}) must be <= hi ({hi})", 'path': path}
         elif field_type in ('float', 'gpstime', 'integer'):
             if not (_is_numeric(lo) and _is_numeric(hi)):
                 return {'message': "'between' on a numeric field requires numeric values", 'path': path}
@@ -173,15 +188,9 @@ def _check_datetime_value(value, path):
     """Validate that value is a parseable ISO 8601 datetime string."""
     if not _is_string(value):
         return {'message': f"Datetime field requires an ISO 8601 string, got {type(value).__name__}", 'path': path}
-    # Accept common formats
-    for fmt in ('%Y-%m-%dT%H:%M:%SZ', '%Y-%m-%dT%H:%M:%S',
-                '%Y-%m-%d %H:%M:%S', '%Y-%m-%d'):
-        try:
-            datetime.datetime.strptime(value, fmt)
-            return None
-        except ValueError:
-            continue
-    return {'message': f"Cannot parse datetime '{value}'. Use ISO 8601 (e.g., 2017-08-17T12:41:04Z)", 'path': path}
+    if _parse_datetime_value(value) is None:
+        return {'message': f"Cannot parse datetime '{value}'. Use ISO 8601 (e.g., 2017-08-17T12:41:04Z)", 'path': path}
+    return None
 
 
 # ---------------------------------------------------------------------------
