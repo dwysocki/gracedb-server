@@ -6,14 +6,12 @@ Q objects directly (Django Q supports equality comparison) and inspect the
 needs_distinct return value.
 
 Label conditions are tested structurally (checking for Exists instances) using
-the test_gracedb models, which have the same M2M label shape as the production
-models.  No database access is required — model metadata and lazy QuerySet
-construction work without hitting the DB.
+the real production models.  No database access is required for label tests —
+model metadata and lazy QuerySet construction work without hitting the DB.
 
 Tests that require database access (e.g., superevent ID lookups via
 get_filter_kwargs_for_date_id_lookup) are marked with @pytest.mark.django_db.
 """
-import importlib
 from functools import reduce
 
 import pytest
@@ -26,6 +24,9 @@ from search.query.v2.translator import (
 )
 from search.query.v2.validator import QueryValidationError, validate
 from search.constants import RUN_MAP_FLAT
+
+from events.models import Event
+from superevents.models import Superevent
 
 
 # ---------------------------------------------------------------------------
@@ -43,27 +44,9 @@ def q_only(node, object_type='event', model_class=None):
     return q
 
 
-# test_gracedb model stubs — same M2M label structure as production models,
-# used to provide model_class for label Exists tests (no DB access needed).
-from test_gracedb.models import Event as _TestEvent
-from test_gracedb.models import Superevent as _TestSuperevent
-
-
-def _try_import(module_name):
-    """Import module_name and skip the test if it cannot be imported.
-
-    pytest.importorskip only handles ImportError; Django also raises
-    RuntimeError when a required app is missing from INSTALLED_APPS.
-    """
-    try:
-        return importlib.import_module(module_name)
-    except Exception as exc:
-        pytest.skip(f"Cannot import {module_name!r}: {exc}")
-
-
 def label_t(node, object_type='event'):
     """Translate a tree that contains label conditions."""
-    mc = _TestEvent if object_type == 'event' else _TestSuperevent
+    mc = Event if object_type == 'event' else Superevent
     return translate(node, object_type, mc)
 
 
@@ -455,7 +438,7 @@ def test_created_between():
 
 
 # ---------------------------------------------------------------------------
-# Leaf: label conditions (structural tests using test_gracedb models)
+# Leaf: label conditions (structural tests using production models)
 #
 # We check that the returned Q contains Exists instances rather than comparing
 # full Q equality, since Exists wraps a lazily-evaluated queryset object.
@@ -924,7 +907,6 @@ def test_superevent_id_startswith():
 
 @pytest.mark.django_db
 def test_superevent_id_eq_with_suffix():
-    Superevent = _try_import('superevents.models').Superevent
     q, _ = t({'field': 'id', 'op': '=', 'value': 'S230904a'}, 'superevent')
     expected_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup('S230904a')
     assert q == Q(**expected_kwargs)
@@ -932,7 +914,6 @@ def test_superevent_id_eq_with_suffix():
 
 @pytest.mark.django_db
 def test_superevent_id_eq_auto_suffix_s():
-    Superevent = _try_import('superevents.models').Superevent
     q, _ = t({'field': 'id', 'op': '=', 'value': 'S230904'}, 'superevent')
     expected_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup('S230904a')
     assert q == Q(**expected_kwargs)
@@ -940,7 +921,6 @@ def test_superevent_id_eq_auto_suffix_s():
 
 @pytest.mark.django_db
 def test_superevent_id_eq_auto_suffix_gw():
-    Superevent = _try_import('superevents.models').Superevent
     q, _ = t({'field': 'id', 'op': '=', 'value': 'GW150914'}, 'superevent')
     expected_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup('GW150914A')
     assert q == Q(**expected_kwargs)
@@ -948,7 +928,6 @@ def test_superevent_id_eq_auto_suffix_gw():
 
 @pytest.mark.django_db
 def test_superevent_id_neq():
-    Superevent = _try_import('superevents.models').Superevent
     q, _ = t({'field': 'id', 'op': '!=', 'value': 'S230904a'}, 'superevent')
     expected_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup('S230904a')
     assert q == ~Q(**expected_kwargs)
@@ -956,7 +935,6 @@ def test_superevent_id_neq():
 
 @pytest.mark.django_db
 def test_event_superevent_field():
-    Superevent = _try_import('superevents.models').Superevent
     q, _ = t({'field': 'superevent', 'op': '=', 'value': 'S230904a'}, 'event')
     expected_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup('S230904a')
     prefixed = {f'superevent__{k}': v for k, v in expected_kwargs.items()}
