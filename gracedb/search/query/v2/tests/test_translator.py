@@ -1283,6 +1283,11 @@ def make_event(db_user):
         if far is not None:
             kwargs['far'] = far
         event = Event.objects.create(**kwargs)
+        # Event.save() has a quirk: on first save it calls compute() which
+        # only returns the graceid value without persisting it.  A second
+        # save() goes through the else branch → ComputedFieldsModel.save()
+        # properly computes and stores graceid in the DB.
+        event.save()
         for name in labels:
             label, _ = Label.objects.get_or_create(name=name)
             Labelling.objects.create(event=event, label=label, creator=db_user)
@@ -1494,3 +1499,138 @@ def test_db_superevent_filter_label_not_has(make_superevent):
     results = list(Superevent.objects.filter(q))
     assert clean in results
     assert dqv not in results
+
+
+# ---------------------------------------------------------------------------
+# needs_distinct integration tests
+#
+# Some ORM paths multiply result rows via JOINs.  The translator signals this
+# with needs_distinct=True; callers must call .distinct() on the queryset.
+# These tests verify the behaviour with real DB rows:
+#
+#   - singleinspiral.*: one-to-many FK from Event means one event with N
+#     matching SI rows produces N duplicate rows without DISTINCT.
+#   - superevent.events.*: reverse FK means one superevent with N matching
+#     associated events produces N duplicate rows without DISTINCT.
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def make_single_inspiral(make_event):
+    """Factory: create a SingleInspiral row attached to the given event."""
+    from events.models import SingleInspiral
+
+    def factory(event, snr=10.0, ifo='H1'):
+        return SingleInspiral.objects.create(event=event, snr=snr, ifo=ifo)
+
+    return factory
+
+
+# needs_distinct is a static schema property; translate() is pure computation.
+def test_db_si_snr_needs_distinct_flag():
+    """translate() reports needs_distinct=True for singleinspiral fields."""
+    q, nd = t({'field': 'si.snr', 'op': '>', 'value': 8.0})
+    assert nd is True
+
+
+@pytest.mark.django_db
+def test_db_si_snr_without_distinct_duplicates(make_event, make_single_inspiral):
+    """Without DISTINCT, one event with two matching SI rows appears twice."""
+    event = make_event()
+    make_single_inspiral(event, snr=15.0, ifo='H1')
+    make_single_inspiral(event, snr=12.0, ifo='L1')
+    q, _ = t({'field': 'si.snr', 'op': '>', 'value': 8.0})
+    # No .distinct() — expect duplicate rows
+    results = list(Event.objects.filter(q))
+    assert results.count(event) == 2
+
+
+@pytest.mark.django_db
+def test_db_si_snr_with_distinct_no_duplicates(make_event, make_single_inspiral):
+    """With DISTINCT, an event with two matching SI rows appears exactly once,
+    while an event whose only SI row is below the threshold is excluded."""
+    event = make_event()
+    make_single_inspiral(event, snr=15.0, ifo='H1')
+    make_single_inspiral(event, snr=12.0, ifo='L1')
+    # Confirm the duplicate exists before asserting distinct() removes it
+    q, nd = t({'field': 'si.snr', 'op': '>', 'value': 8.0})
+    assert nd is True
+    assert Event.objects.filter(q).count() == 2  # two rows, same event
+
+    other = make_event()
+    make_single_inspiral(other, snr=5.0, ifo='H1')  # below threshold — should not appear
+    results = list(Event.objects.filter(q).distinct())
+    assert results.count(event) == 1
+    assert other not in results
+
+
+@pytest.mark.django_db
+def test_db_si_snr_single_row_unaffected_by_distinct(make_event, make_single_inspiral):
+    """An event with exactly one matching SI row appears once with or without
+    DISTINCT — distinct() must not suppress legitimate results."""
+    event = make_event()
+    make_single_inspiral(event, snr=20.0, ifo='H1')
+    q, _ = t({'field': 'si.snr', 'op': '>', 'value': 8.0})
+    assert list(Event.objects.filter(q).distinct()) == [event]
+
+
+# needs_distinct is a static schema property; translate() is pure computation.
+def test_db_superevent_events_needs_distinct_flag():
+    """translate() reports needs_distinct=True for superevent.events field."""
+    q, nd = t({'field': 'events', 'op': 'startswith', 'value': 'G'}, 'superevent')
+    assert nd is True
+
+
+@pytest.mark.django_db
+def test_db_superevent_events_without_distinct_duplicates(make_event, make_superevent):
+    """Without DISTINCT, a superevent with two matching associated events
+    appears twice in the results."""
+    se = make_superevent()
+    # se.events.add() issues a raw FK UPDATE, bypassing Event.save(), so the
+    # graceid already stored by make_event is preserved unchanged.
+    extra = make_event(gpstime=2000.0)
+    se.events.add(extra)
+
+    q, _ = t({'field': 'events', 'op': 'startswith', 'value': 'G'}, 'superevent')
+    results = list(Superevent.objects.filter(q))
+    assert results.count(se) == 2
+
+
+@pytest.mark.django_db
+def test_db_superevent_events_with_distinct_no_duplicates(make_event, make_superevent):
+    """With DISTINCT, each superevent appears exactly once even when multiple
+    associated events match; the pre-distinct duplicate count confirms the
+    fix is needed."""
+    se = make_superevent()
+    extra = make_event(gpstime=2000.0)
+    se.events.add(extra)
+
+    other_se = make_superevent(t_0=5000.0)
+
+    q, nd = t({'field': 'events', 'op': 'startswith', 'value': 'G'}, 'superevent')
+    assert nd is True
+    # Without distinct: se appears twice (two matching events), other_se once
+    assert Superevent.objects.filter(q).count() == 3
+    results = list(Superevent.objects.filter(q).distinct())
+    assert results.count(se) == 1
+    assert results.count(other_se) == 1
+
+
+@pytest.mark.django_db
+def test_db_superevent_events_non_matching_graceid_excluded(make_event, make_superevent):
+    """A superevent whose associated events all have non-'G' graceid prefixes
+    must not appear when filtering for graceid startswith 'G'."""
+    # Test-group events get graceid 'T<N>', not 'G<N>'
+    test_event = make_event(group_name='Test')
+    se_test = Superevent.objects.create(
+        t_start=999.0, t_0=1000.0, t_end=1001.0,
+        preferred_event=test_event,
+        submitter=test_event.submitter,
+        category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION,
+    )
+    # A normal superevent with a CBC event (graceid starts with 'G') for contrast
+    se_cbc = make_superevent(t_0=5000.0)
+
+    q, _ = t({'field': 'events', 'op': 'startswith', 'value': 'G'}, 'superevent')
+    results = list(Superevent.objects.filter(q))
+    assert se_cbc in results
+    assert se_test not in results
