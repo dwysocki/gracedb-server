@@ -9,8 +9,8 @@ Label conditions are tested structurally (checking for Exists instances) using
 the real production models.  No database access is required for label tests —
 model metadata and lazy QuerySet construction work without hitting the DB.
 
-Tests that require database access (e.g., superevent ID lookups via
-get_filter_kwargs_for_date_id_lookup) are marked with @pytest.mark.django_db.
+Tests that require database access (e.g., creating real Event objects to
+verify queryset filtering end-to-end) are marked with @pytest.mark.django_db.
 """
 from functools import reduce
 
@@ -896,44 +896,48 @@ def test_validate_not_double_negative_label():
 
 
 # ---------------------------------------------------------------------------
-# Superevent ID translation (requires django_db for get_filter_kwargs)
+# Superevent ID translation
 # ---------------------------------------------------------------------------
+# get_filter_kwargs_for_date_id_lookup is pure computation (regex + date
+# arithmetic) — no database access is required for any of these tests.
 
-@pytest.mark.django_db
 def test_superevent_id_startswith():
     q, _ = t({'field': 'id', 'op': 'startswith', 'value': 'S230904'}, 'superevent')
     assert q == Q(superevent_id__istartswith='S230904')
 
 
-@pytest.mark.django_db
 def test_superevent_id_eq_with_suffix():
     q, _ = t({'field': 'id', 'op': '=', 'value': 'S230904a'}, 'superevent')
     expected_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup('S230904a')
     assert q == Q(**expected_kwargs)
 
 
-@pytest.mark.django_db
 def test_superevent_id_eq_auto_suffix_s():
     q, _ = t({'field': 'id', 'op': '=', 'value': 'S230904'}, 'superevent')
     expected_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup('S230904a')
     assert q == Q(**expected_kwargs)
 
 
-@pytest.mark.django_db
 def test_superevent_id_eq_auto_suffix_gw():
     q, _ = t({'field': 'id', 'op': '=', 'value': 'GW150914'}, 'superevent')
     expected_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup('GW150914A')
     assert q == Q(**expected_kwargs)
 
 
-@pytest.mark.django_db
 def test_superevent_id_neq():
     q, _ = t({'field': 'id', 'op': '!=', 'value': 'S230904a'}, 'superevent')
     expected_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup('S230904a')
     assert q == ~Q(**expected_kwargs)
 
 
-@pytest.mark.django_db
+def test_superevent_id_in():
+    # 'in' reduces over _build_superevent_id_q for each value
+    q, _ = t({'field': 'id', 'op': 'in', 'value': ['S230904a', 'S230905b']}, 'superevent')
+    q1 = Q(**Superevent.get_filter_kwargs_for_date_id_lookup('S230904a'))
+    q2 = Q(**Superevent.get_filter_kwargs_for_date_id_lookup('S230905b'))
+    assert q == q1 | q2
+
+
 def test_event_superevent_field():
     q, _ = t({'field': 'superevent', 'op': '=', 'value': 'S230904a'}, 'event')
     expected_kwargs = Superevent.get_filter_kwargs_for_date_id_lookup('S230904a')
@@ -1122,3 +1126,371 @@ def test_mixed_label_and_non_label_three_conditions_in_or():
     assert q.connector == 'OR'
     # Two label conditions → two Exists subqueries
     assert len(_collect_exists(q)) == 2
+
+
+# ---------------------------------------------------------------------------
+# Missing operator coverage: graceid != and db_enum !=
+# ---------------------------------------------------------------------------
+
+def test_event_id_neq():
+    assert q_only({'field': 'id', 'op': '!=', 'value': 'G123456'}) == ~Q(graceid__iexact='G123456')
+
+
+def test_group_neq():
+    assert q_only({'field': 'group', 'op': '!=', 'value': 'Test'}) == ~Q(group__name__iexact='Test')
+
+
+def test_pipeline_neq():
+    assert q_only({'field': 'pipeline', 'op': '!=', 'value': 'CWB'}) == ~Q(pipeline__name__iexact='CWB')
+
+
+def test_superevent_preferred_event_neq():
+    # graceid != on a superevent's preferred_event field
+    q, nd = t({'field': 'preferred_event', 'op': '!=', 'value': 'G123456'}, 'superevent')
+    assert q == ~Q(preferred_event__graceid__iexact='G123456')
+    assert nd is False
+
+
+# ---------------------------------------------------------------------------
+# Additional datetime operator coverage
+# ---------------------------------------------------------------------------
+
+def test_created_eq():
+    import pytz
+    import datetime as dt
+    q, _ = t({'field': 'created', 'op': '=', 'value': '2023-01-01'})
+    expected_dt = pytz.utc.localize(dt.datetime(2023, 1, 1))
+    assert q == Q(created=expected_dt)
+
+
+def test_created_neq():
+    import pytz
+    import datetime as dt
+    q, _ = t({'field': 'created', 'op': '!=', 'value': '2023-01-01'})
+    expected_dt = pytz.utc.localize(dt.datetime(2023, 1, 1))
+    assert q == ~Q(created=expected_dt)
+
+
+def test_created_gt():
+    import pytz
+    import datetime as dt
+    q, _ = t({'field': 'created', 'op': '>', 'value': '2023-06-15T12:00:00Z'})
+    expected_dt = pytz.utc.localize(dt.datetime(2023, 6, 15, 12, 0, 0))
+    assert q == Q(created__gt=expected_dt)
+
+
+# ---------------------------------------------------------------------------
+# Validator: missing cases
+# ---------------------------------------------------------------------------
+
+def test_validate_between_lo_gt_hi_numeric():
+    with pytest.raises(QueryValidationError, match='lo'):
+        validate({'field': 'far', 'op': 'between', 'value': [1e-3, 1e-10]}, 'event')
+
+
+def test_validate_between_lo_gt_hi_datetime():
+    with pytest.raises(QueryValidationError, match='lo'):
+        validate({'field': 'created', 'op': 'between',
+                  'value': ['2024-01-01', '2023-01-01']}, 'event')
+
+
+def test_validate_in_empty_list():
+    with pytest.raises(QueryValidationError, match='non-empty'):
+        validate({'field': 'group', 'op': 'in', 'value': []}, 'event')
+
+
+def test_validate_or_empty_list():
+    # 'or' with empty children list is invalid (mirrors the existing and test)
+    with pytest.raises(QueryValidationError):
+        validate({'or': []}, 'event')
+
+
+# ---------------------------------------------------------------------------
+# inject_default_filter: gaps
+# ---------------------------------------------------------------------------
+
+def test_inject_default_filter_event_with_graceid_alias():
+    # 'graceid' is an alias for 'id' — should suppress the default filter
+    tree = {'field': 'graceid', 'op': '=', 'value': 'G123456'}
+    assert inject_default_filter(tree, 'event') is tree
+
+
+def test_inject_default_filter_event_with_search():
+    # 'search' in the query should suppress the default filter
+    tree = {'field': 'search', 'op': '=', 'value': 'AllSky'}
+    assert inject_default_filter(tree, 'event') is tree
+
+
+def test_inject_default_filter_suppress_field_in_nested_or():
+    # Suppress field found inside an OR branch
+    tree = {'or': [
+        {'field': 'group', 'op': '=', 'value': 'CBC'},
+        {'field': 'far', 'op': '<', 'value': 1e-5},
+    ]}
+    assert inject_default_filter(tree, 'event') is tree
+
+
+def test_inject_default_filter_suppress_field_in_nested_not():
+    # Suppress field found inside a NOT wrapper
+    tree = {'not': {'field': 'group', 'op': '=', 'value': 'Test'}}
+    assert inject_default_filter(tree, 'event') is tree
+
+
+def test_inject_default_filter_superevent_with_category_in_and():
+    # Category inside AND suppresses the default filter
+    tree = {'and': [
+        {'field': 'category', 'op': '=', 'value': 'Production'},
+        {'field': 't_0', 'op': '>', 'value': 1234567890.0},
+    ]}
+    assert inject_default_filter(tree, 'superevent') is tree
+
+
+# ---------------------------------------------------------------------------
+# Database integration tests
+#
+# These tests create real Event and Superevent objects and verify that the
+# Q objects produced by translate() filter the queryset correctly.
+# The core value: structural Q-equality tests cannot catch wrong ORM paths
+# or incorrect label semantics (e.g., the M2M AND bug).
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def db_user(db):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    user, _ = User.objects.get_or_create(username='translator.db.test')
+    return user
+
+
+@pytest.fixture
+def make_event(db_user):
+    """Factory: make_event(...) → Event saved to the test DB."""
+    from events.models import Group, Pipeline, Search, Label, Labelling
+
+    def factory(group_name='CBC', pipeline_name='GstLAL', search_name=None,
+                gpstime=1000.0, far=None, labels=()):
+        group, _ = Group.objects.get_or_create(name=group_name)
+        pipeline, _ = Pipeline.objects.get_or_create(name=pipeline_name)
+        kwargs = {
+            'group': group,
+            'pipeline': pipeline,
+            'submitter': db_user,
+            'gpstime': gpstime,
+        }
+        if search_name is not None:
+            search, _ = Search.objects.get_or_create(name=search_name)
+            kwargs['search'] = search
+        if far is not None:
+            kwargs['far'] = far
+        event = Event.objects.create(**kwargs)
+        for name in labels:
+            label, _ = Label.objects.get_or_create(name=name)
+            Labelling.objects.create(event=event, label=label, creator=db_user)
+        return event
+
+    return factory
+
+
+@pytest.fixture
+def make_superevent(db_user, make_event):
+    """Factory: make_superevent(...) → Superevent saved to the test DB."""
+    from events.models import Label
+    from superevents.models import Labelling as SupereventLabelling
+
+    def factory(t_0=1000.0,
+                category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION,
+                is_gw=False, labels=()):
+        event = make_event()
+        se = Superevent.objects.create(
+            t_start=t_0 - 1,
+            t_0=t_0,
+            t_end=t_0 + 1,
+            preferred_event=event,
+            submitter=db_user,
+            category=category,
+            is_gw=is_gw,
+        )
+        for name in labels:
+            label, _ = Label.objects.get_or_create(name=name)
+            SupereventLabelling.objects.create(
+                superevent=se, label=label, creator=db_user)
+        return se
+
+    return factory
+
+
+@pytest.mark.django_db
+def test_db_event_filter_by_group(make_event):
+    cbc = make_event(group_name='CBC')
+    burst = make_event(group_name='Burst')
+    q, _ = t({'field': 'group', 'op': '=', 'value': 'CBC'})
+    results = list(Event.objects.filter(q))
+    assert cbc in results
+    assert burst not in results
+
+
+@pytest.mark.django_db
+def test_db_event_filter_by_far(make_event):
+    low_far = make_event(far=1e-12)
+    high_far = make_event(far=1e-3)
+    no_far = make_event()
+    q, _ = t({'field': 'far', 'op': '<', 'value': 1e-10})
+    results = list(Event.objects.filter(q))
+    assert low_far in results
+    assert high_far not in results
+    assert no_far not in results
+
+
+@pytest.mark.django_db
+def test_db_event_filter_and(make_event):
+    match = make_event(group_name='CBC', far=1e-12)
+    wrong_far = make_event(group_name='CBC', far=1e-3)
+    wrong_group = make_event(group_name='Burst', far=1e-12)
+    node = {'and': [
+        {'field': 'group', 'op': '=', 'value': 'CBC'},
+        {'field': 'far', 'op': '<', 'value': 1e-10},
+    ]}
+    q, _ = t(node)
+    results = list(Event.objects.filter(q))
+    assert match in results
+    assert wrong_far not in results
+    assert wrong_group not in results
+
+
+@pytest.mark.django_db
+def test_db_event_filter_or(make_event):
+    cbc = make_event(group_name='CBC')
+    burst = make_event(group_name='Burst')
+    external = make_event(group_name='External')
+    node = {'or': [
+        {'field': 'group', 'op': '=', 'value': 'CBC'},
+        {'field': 'group', 'op': '=', 'value': 'Burst'},
+    ]}
+    q, _ = t(node)
+    results = list(Event.objects.filter(q))
+    assert cbc in results
+    assert burst in results
+    assert external not in results
+
+
+@pytest.mark.django_db
+def test_db_event_filter_not(make_event):
+    cbc = make_event(group_name='CBC')
+    test_event = make_event(group_name='Test')
+    q, _ = t({'not': {'field': 'group', 'op': '=', 'value': 'Test'}})
+    results = list(Event.objects.filter(q))
+    assert cbc in results
+    assert test_event not in results
+
+
+@pytest.mark.django_db
+def test_db_event_filter_label_has(make_event):
+    labelled = make_event(labels=['EM_READY'])
+    unlabelled = make_event()
+    q, _ = label_t({'field': 'label', 'op': 'has', 'value': 'EM_READY'})
+    results = list(Event.objects.filter(q))
+    assert labelled in results
+    assert unlabelled not in results
+
+
+@pytest.mark.django_db
+def test_db_event_filter_label_and_both_required(make_event):
+    """AND(has EM_READY, has ADVOK) must require BOTH labels.
+
+    This is the core M2M correctness bug: the old Q(labels__name='A') &
+    Q(labels__name='B') approach generated a single JOIN condition requiring
+    one row in the through-table to carry both label names simultaneously,
+    which is impossible.  With Exists subqueries each label is checked
+    independently, so AND correctly requires both to be present.
+    """
+    both = make_event(labels=['EM_READY', 'ADVOK'])
+    only_em_ready = make_event(labels=['EM_READY'])
+    neither = make_event()
+    node = {'and': [
+        {'field': 'label', 'op': 'has', 'value': 'EM_READY'},
+        {'field': 'label', 'op': 'has', 'value': 'ADVOK'},
+    ]}
+    q, _ = label_t(node)
+    results = list(Event.objects.filter(q))
+    assert both in results
+    assert only_em_ready not in results
+    assert neither not in results
+
+
+@pytest.mark.django_db
+def test_db_event_filter_label_or(make_event):
+    em_ready = make_event(labels=['EM_READY'])
+    advok = make_event(labels=['ADVOK'])
+    neither = make_event()
+    node = {'or': [
+        {'field': 'label', 'op': 'has', 'value': 'EM_READY'},
+        {'field': 'label', 'op': 'has', 'value': 'ADVOK'},
+    ]}
+    q, _ = label_t(node)
+    results = list(Event.objects.filter(q))
+    assert em_ready in results
+    assert advok in results
+    assert neither not in results
+
+
+@pytest.mark.django_db
+def test_db_event_filter_label_not_has(make_event):
+    dqv = make_event(labels=['DQV'])
+    clean = make_event()
+    q, _ = label_t({'field': 'label', 'op': 'not_has', 'value': 'DQV'})
+    results = list(Event.objects.filter(q))
+    assert clean in results
+    assert dqv not in results
+
+
+@pytest.mark.django_db
+def test_db_event_filter_label_or_mixed_with_non_label(make_event):
+    """OR(has EM_READY, far < 1e-10) with both branches satisfied by different events."""
+    by_label = make_event(labels=['EM_READY'], far=1.0)
+    by_far = make_event(far=1e-12)
+    neither = make_event(far=1.0)
+    node = {'or': [
+        {'field': 'label', 'op': 'has', 'value': 'EM_READY'},
+        {'field': 'far', 'op': '<', 'value': 1e-10},
+    ]}
+    q, _ = label_t(node)
+    results = list(Event.objects.filter(q))
+    assert by_label in results
+    assert by_far in results
+    assert neither not in results
+
+
+@pytest.mark.django_db
+def test_db_superevent_filter_by_category(make_superevent):
+    prod = make_superevent(category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION)
+    test = make_superevent(category=Superevent.SUPEREVENT_CATEGORY_TEST,
+                           t_0=2000.0)
+    q, _ = t({'field': 'category', 'op': '=', 'value': 'Production'}, 'superevent')
+    results = list(Superevent.objects.filter(q))
+    assert prod in results
+    assert test not in results
+
+
+@pytest.mark.django_db
+def test_db_superevent_filter_label_and_both_required(make_superevent):
+    """AND(has EM_READY, has ADVOK) on superevents requires both labels."""
+    both = make_superevent(labels=['EM_READY', 'ADVOK'])
+    one = make_superevent(labels=['EM_READY'], t_0=2000.0)
+    node = {'and': [
+        {'field': 'label', 'op': 'has', 'value': 'EM_READY'},
+        {'field': 'label', 'op': 'has', 'value': 'ADVOK'},
+    ]}
+    q, _ = label_t(node, 'superevent')
+    results = list(Superevent.objects.filter(q))
+    assert both in results
+    assert one not in results
+
+
+@pytest.mark.django_db
+def test_db_superevent_filter_label_not_has(make_superevent):
+    dqv = make_superevent(labels=['DQV'])
+    clean = make_superevent(t_0=2000.0)
+    q, _ = label_t({'field': 'label', 'op': 'not_has', 'value': 'DQV'}, 'superevent')
+    results = list(Superevent.objects.filter(q))
+    assert clean in results
+    assert dqv not in results
