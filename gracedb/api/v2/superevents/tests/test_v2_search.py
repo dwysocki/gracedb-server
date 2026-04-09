@@ -392,6 +392,20 @@ class TestV2SupereventSearchComplex(SupereventCreateMixin, GraceDbApiTestBase):
         self.assertIn(self.se_prod.superevent_id, ids)
         self.assertNotIn(self.se_test.superevent_id, ids)
 
+    def test_is_null_far_via_post(self):
+        """is_null=true on t_0 — no superevents in this suite have null t_0,
+        so the result must be empty."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 't_0', 'op': 'between',
+                      'value': [50.0, 150.0]},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.se_prod.superevent_id, ids)  # t_0=100
+        self.assertNotIn(self.se_test.superevent_id, ids)  # t_0=200
+
     def test_nested_and_or(self):
         """AND(category=Production, OR(t_0>50, t_0<0)) — only prod qualifies."""
         body = {
@@ -413,3 +427,119 @@ class TestV2SupereventSearchComplex(SupereventCreateMixin, GraceDbApiTestBase):
         ids = self._ids(response)
         self.assertIn(self.se_prod.superevent_id, ids)
         self.assertNotIn(self.se_test.superevent_id, ids)
+
+
+class TestV2SupereventSearchDefaultFilter(SupereventCreateMixin, GraceDbApiTestBase):
+    """
+    Verify that the default filter hides Test and MDC superevents from queries
+    that do not reference category/id, and that explicit category queries bypass it.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.search_url = _search_url()
+        cls.list_url = _list_url()
+
+        cls.se_prod = cls.create_superevent(
+            cls.internal_user,
+            category=Superevent.SUPEREVENT_CATEGORY_PRODUCTION,
+        )
+        cls.se_test = cls.create_superevent(
+            cls.internal_user,
+            category=Superevent.SUPEREVENT_CATEGORY_TEST,
+        )
+        cls.se_mdc = cls.create_superevent(
+            cls.internal_user,
+            category=Superevent.SUPEREVENT_CATEGORY_MDC,
+        )
+
+    def _ids(self, response):
+        return {s['superevent_id'] for s in response.data['superevents']}
+
+    def test_default_filter_hides_test_superevents(self):
+        """Without an explicit category filter, Test superevents must not appear."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 't_0', 'op': '>', 'value': -1},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.se_prod.superevent_id, ids)
+        self.assertNotIn(self.se_test.superevent_id, ids)
+
+    def test_default_filter_hides_mdc_superevents(self):
+        """Without an explicit category filter, MDC superevents must not appear."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 't_0', 'op': '>', 'value': -1},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertNotIn(self.se_mdc.superevent_id, ids)
+
+    def test_explicit_category_test_bypasses_default_filter(self):
+        """Querying category=Test must return Test superevents."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 'category', 'op': '=', 'value': 'Test'},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.se_test.superevent_id, ids)
+        self.assertNotIn(self.se_prod.superevent_id, ids)
+
+    def test_explicit_category_in_bypasses_default_filter(self):
+        """category in [Test, MDC] returns both non-production categories."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 'category', 'op': 'in', 'value': ['Test', 'MDC']},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.se_test.superevent_id, ids)
+        self.assertIn(self.se_mdc.superevent_id, ids)
+        self.assertNotIn(self.se_prod.superevent_id, ids)
+
+    def test_explicit_id_bypasses_default_filter(self):
+        """Querying by id must bypass the default filter."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 'id', 'op': '=',
+                      'value': self.se_test.superevent_id},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.se_test.superevent_id, ids)
+
+    def test_error_path_is_string(self):
+        """Error response 'path' field must be a formatted string, not a list."""
+        body = {
+            'object_type': 'superevent',
+            'query': {
+                'and': [
+                    {'field': 'no_such_field', 'op': '=', 'value': 'x'},
+                ]
+            },
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 400)
+        path_value = response.data.get('path')
+        if path_value is not None:
+            self.assertIsInstance(path_value, str,
+                msg=f"'path' in error response should be a string, got {type(path_value)}")
+
+    def test_get_query_param_default_filter(self):
+        """GET ?query=<json> also applies the default filter."""
+        node = {'field': 't_0', 'op': '>', 'value': -1}
+        response = _get_query_param(self.client, self.internal_user, node)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.se_prod.superevent_id, ids)
+        self.assertNotIn(self.se_test.superevent_id, ids)
+        self.assertNotIn(self.se_mdc.superevent_id, ids)

@@ -336,3 +336,182 @@ class TestV2EventSearchErrors(EventCreateMixin, GraceDbApiTestBase):
         response = self.client.get(self.list_url, {'query': 'not-valid-json'})
         self.client.logout()
         self._assert_invalid_query(response)
+
+
+class TestV2EventSearchDefaultFilter(EventCreateMixin, GraceDbApiTestBase):
+    """
+    Verify that the default filter hides Test-group and MDC-search events
+    from queries that do not explicitly reference group/search/id, and that
+    an explicit group=Test query does return those events.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.search_url = _search_url()
+        cls.list_url = _list_url()
+
+        cls.cbc_event = cls.create_event('CBC', 'gstlal', user=cls.internal_user)
+        cls.test_event = cls.create_event('Test', 'gstlal', user=cls.internal_user)
+        cls.mdc_event = cls.create_event('CBC', 'gstlal',
+                                         search_name='MDC',
+                                         user=cls.internal_user)
+
+    def _ids(self, response):
+        return {e['graceid'] for e in response.data['events']}
+
+    def test_default_filter_hides_test_group_events(self):
+        """Without an explicit group filter, Test-group events must not appear."""
+        body = {
+            'object_type': 'event',
+            'query': {'field': 'gpstime', 'op': '>', 'value': -1},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertNotIn(self.test_event.graceid, ids)
+        self.assertIn(self.cbc_event.graceid, ids)
+
+    def test_default_filter_hides_mdc_search_events(self):
+        """Without an explicit search filter, MDC-search events must not appear."""
+        body = {
+            'object_type': 'event',
+            'query': {'field': 'gpstime', 'op': '>', 'value': -1},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertNotIn(self.mdc_event.graceid, ids)
+
+    def test_explicit_group_test_bypasses_default_filter(self):
+        """An explicit group=Test condition must return Test-group events."""
+        body = {
+            'object_type': 'event',
+            'query': {'field': 'group', 'op': '=', 'value': 'Test'},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.test_event.graceid, ids)
+        self.assertNotIn(self.cbc_event.graceid, ids)
+
+    def test_explicit_search_mdc_bypasses_default_filter(self):
+        """An explicit search=MDC condition must return MDC events."""
+        body = {
+            'object_type': 'event',
+            'query': {'field': 'search', 'op': '=', 'value': 'MDC'},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.mdc_event.graceid, ids)
+
+    def test_explicit_id_bypasses_default_filter(self):
+        """Querying by id must bypass the default filter."""
+        body = {
+            'object_type': 'event',
+            'query': {'field': 'id', 'op': '=', 'value': self.test_event.graceid},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.test_event.graceid, ids)
+
+
+class TestV2EventSearchOperators(EventCreateMixin, GraceDbApiTestBase):
+    """
+    Integration tests for operators not covered elsewhere:
+    between, is_null, in, and the error response path format.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.search_url = _search_url()
+        cls.list_url = _list_url()
+
+        cls.event_low_far = cls.create_event('CBC', 'gstlal', user=cls.internal_user)
+        cls.event_low_far.far = 1e-12
+        cls.event_low_far.gpstime = 1000.0
+        cls.event_low_far.save()
+
+        cls.event_high_far = cls.create_event('CBC', 'pycbc', user=cls.internal_user)
+        cls.event_high_far.far = 1e-3
+        cls.event_high_far.gpstime = 2000.0
+        cls.event_high_far.save()
+
+        cls.event_no_far = cls.create_event('CBC', 'mbta', user=cls.internal_user)
+        cls.event_no_far.gpstime = 3000.0
+        cls.event_no_far.save()
+
+    def _ids(self, response):
+        return {e['graceid'] for e in response.data['events']}
+
+    def test_between_gpstime(self):
+        """between operator on gpstime filters correctly."""
+        body = {
+            'object_type': 'event',
+            'query': {'field': 'gpstime', 'op': 'between', 'value': [500.0, 1500.0]},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.event_low_far.graceid, ids)
+        self.assertNotIn(self.event_high_far.graceid, ids)
+
+    def test_is_null_far_true(self):
+        """is_null=true on far returns only events with no FAR."""
+        body = {
+            'object_type': 'event',
+            'query': {'field': 'far', 'op': 'is_null', 'value': True},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.event_no_far.graceid, ids)
+        self.assertNotIn(self.event_low_far.graceid, ids)
+
+    def test_is_null_far_false(self):
+        """is_null=false on far returns only events that have a FAR."""
+        body = {
+            'object_type': 'event',
+            'query': {'field': 'far', 'op': 'is_null', 'value': False},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.event_low_far.graceid, ids)
+        self.assertIn(self.event_high_far.graceid, ids)
+        self.assertNotIn(self.event_no_far.graceid, ids)
+
+    def test_in_pipeline(self):
+        """in operator on pipeline filters to the listed pipelines."""
+        body = {
+            'object_type': 'event',
+            'query': {'field': 'pipeline', 'op': 'in',
+                      'value': ['gstlal', 'pycbc']},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.event_low_far.graceid, ids)   # gstlal
+        self.assertIn(self.event_high_far.graceid, ids)  # pycbc
+        self.assertNotIn(self.event_no_far.graceid, ids) # mbta
+
+    def test_error_path_is_string(self):
+        """Error response 'path' field must be a formatted string, not a list."""
+        body = {
+            'object_type': 'event',
+            'query': {
+                'and': [
+                    {'field': 'bad_field', 'op': '=', 'value': 'x'},
+                ]
+            },
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 400)
+        path_value = response.data.get('path')
+        # path must be a string like "and[0]", not a list
+        if path_value is not None:
+            self.assertIsInstance(path_value, str,
+                msg=f"'path' in error response should be a string, got {type(path_value)}")

@@ -256,11 +256,15 @@ _EVENT_CORE_FIELDS = {
         'help_text':      'False alarm rate (Hz)',
     },
     'instruments': {
-        'type':           'string',
-        'operators':      ['=', 'contains'],
-        'orm_path':       'instruments',
-        'needs_distinct': False,
-        'help_text':      'Detector instruments (e.g., H1,L1,V1)',
+        'type':             'string',
+        'operators':        ['=', 'contains'],
+        'orm_path':         'instruments',
+        'needs_distinct':   False,
+        # Use case-insensitive exact match for '=': the spec requires
+        # iexact here because IFO names are always uppercase in the DB
+        # but callers should not need to care about case.
+        'case_insensitive': True,
+        'help_text':        'Detector instruments (e.g., H1,L1,V1)',
     },
     'nevents': {
         'type':           'integer',

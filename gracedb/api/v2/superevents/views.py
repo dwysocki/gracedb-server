@@ -38,7 +38,7 @@ from ..filters import DjangoObjectAndGlobalPermissionsFilter
 from .filters import V2SupereventSearchFilter, SupereventOrderingFilter, \
     _parse_body, _YAML_CONTENT_TYPES
 from search.query.v2.translator import inject_default_filter, apply_query
-from search.query.v2.validator import validate, QueryValidationError
+from search.query.v2.validator import validate, QueryValidationError, format_path
 from .filters import V2SearchError
 
 
@@ -174,7 +174,8 @@ class SupereventViewSet(SupereventViewSet):  # noqa: F811
             validate(query_node, 'superevent', strict=True)
         except QueryValidationError as exc:
             return Response(
-                _v2_error(str(exc), path=exc.path),
+                _v2_error(str(exc),
+                          path=format_path(exc.path) if exc.path else None),
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

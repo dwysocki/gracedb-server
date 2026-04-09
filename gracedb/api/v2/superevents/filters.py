@@ -29,7 +29,7 @@ import yaml
 from rest_framework import filters, exceptions, status
 
 from search.query.v2.translator import inject_default_filter, apply_query
-from search.query.v2.validator import validate, QueryValidationError
+from search.query.v2.validator import validate, QueryValidationError, format_path
 from .paginators import CustomSupereventPagination
 from ...v1.superevents.filters import SupereventOrderingFilter  # re-export unchanged
 
@@ -140,7 +140,9 @@ class V2SupereventSearchFilter(filters.BaseFilterBackend):
         try:
             validate(query_node, 'superevent', strict=True)
         except QueryValidationError as exc:
-            raise V2SearchError(str(exc), path=exc.path)
+            raise V2SearchError(
+                str(exc), path=format_path(exc.path) if exc.path else None
+            )
 
         # Inject the default category filter unless the query already
         # references category/id fields.

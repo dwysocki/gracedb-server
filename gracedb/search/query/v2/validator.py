@@ -62,7 +62,7 @@ class QueryValidationError(Exception):
 
 
 def _format_path(path):
-    """Convert a path list to a readable string: ['and', 1, 'or', 0] → 'and[1].or[0]'"""
+    """Convert a path list to a readable string: ['and', 1, 'or', 0] -> 'and[1].or[0]'"""
     parts = []
     for i, segment in enumerate(path):
         if isinstance(segment, int):
@@ -103,7 +103,7 @@ def _parse_datetime_value(value):
 def _validate_value_for_field(schema, op, value, path):
     """
     Return an error dict (or None) for the given (schema, op, value) triple.
-    Does NOT raise — the caller handles raising vs collecting.
+    Does NOT raise -- the caller handles raising vs collecting.
     """
     field_type = schema['type']
 
@@ -248,14 +248,16 @@ def _validate_node(node, object_type, path, errors, strict):
             _add_error(errors, strict,
                 f"'not' node must not have extra keys: {unexpected}", path)
         child = node['not']
-        # Reject NOT(label not_has X) — equivalent to (label has X) but the
-        # double-negative phrasing is needlessly confusing.
+        # Always validate the child first so all errors are reported.
+        # Then additionally flag NOT(label not_has X) — equivalent to
+        # (label has X) but the double-negative phrasing is needlessly
+        # confusing.  In strict mode _validate_node may raise before we
+        # reach this check, which is fine: the child error takes priority.
+        _validate_node(child, object_type, path + ['not'], errors, strict)
         if (isinstance(child, dict) and child.get('op') == 'not_has'
                 and _field_is_label(child.get('field', ''), object_type)):
             _add_error(errors, strict,
                 "NOT(label not_has ...) is redundant; use 'has' directly", path + ['not'])
-        else:
-            _validate_node(child, object_type, path + ['not'], errors, strict)
         return
 
     # ---- Leaf node ----
@@ -273,7 +275,7 @@ def _validate_node(node, object_type, path, errors, strict):
             _add_error(errors, strict, "Missing 'field'", path); return
         if op is None:
             _add_error(errors, strict, "Missing 'op'", path); return
-        if value is None and op != 'is_null':
+        if value is None:
             _add_error(errors, strict, "Missing 'value'", path); return
 
         # Resolve field name
@@ -322,6 +324,19 @@ def _field_is_label(field, object_type):
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
+def format_path(path):
+    """
+    Convert a validator path list to a human-readable dot-path string.
+
+    Example: ['and', 1, 'or', 0] -> 'and[1].or[0]'
+
+    Exposed so that API layers can format ``QueryValidationError.path``
+    into the same notation used in error response payloads and in the
+    ``str()`` representation of ``QueryValidationError``.
+    """
+    return _format_path(path)
+
 
 def validate(node, object_type, strict=True):
     """

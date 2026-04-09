@@ -15,7 +15,7 @@ import yaml
 from rest_framework import exceptions, status
 
 from search.query.v2.translator import inject_default_filter, apply_query
-from search.query.v2.validator import validate, QueryValidationError
+from search.query.v2.validator import validate, QueryValidationError, format_path
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +117,9 @@ def apply_v2_event_filter(request, base_queryset):
     try:
         validate(query_node, 'event', strict=True)
     except QueryValidationError as exc:
-        raise V2EventSearchError(str(exc), path=exc.path)
+        raise V2EventSearchError(
+            str(exc), path=format_path(exc.path) if exc.path else None
+        )
 
     query_node = inject_default_filter(query_node, 'event')
 

@@ -357,15 +357,21 @@ def _translate_leaf(node, object_type, model_class):
     # General numeric / string / boolean fields
     # ----------------------------------------------------------------
     nd = schema.get('needs_distinct', False)
+    case_insensitive = schema.get('case_insensitive', False)
 
     if op == 'is_null':
         return Q(**{f'{orm_path}__isnull': value}), nd
 
     if op == '!=':
+        if case_insensitive:
+            return ~Q(**{f'{orm_path}__iexact': value}), nd
         return ~Q(**{orm_path: value}), nd
 
     if op == 'between':
         return Q(**{f'{orm_path}__range': value}), nd
+
+    if op == '=' and case_insensitive:
+        return Q(**{f'{orm_path}__iexact': value}), nd
 
     if op not in OP_SUFFIX:
         raise ValueError(

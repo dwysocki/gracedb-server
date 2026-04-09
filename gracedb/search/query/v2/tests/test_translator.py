@@ -111,7 +111,8 @@ def test_instruments_contains():
 
 
 def test_instruments_eq():
-    assert q_only({'field': 'instruments', 'op': '=', 'value': 'H1,L1'}) == Q(instruments='H1,L1')
+    # '=' on instruments uses iexact (case-insensitive exact match per spec)
+    assert q_only({'field': 'instruments', 'op': '=', 'value': 'H1,L1'}) == Q(instruments__iexact='H1,L1')
 
 
 def test_instruments_alias_ifos():
@@ -1634,3 +1635,207 @@ def test_db_superevent_events_non_matching_graceid_excluded(make_event, make_sup
     results = list(Superevent.objects.filter(q))
     assert se_cbc in results
     assert se_test not in results
+
+
+# ---------------------------------------------------------------------------
+# Bug 1 regression: is_null with null or missing value must be rejected
+# ---------------------------------------------------------------------------
+
+def test_validate_is_null_missing_value_rejected():
+    """is_null without a 'value' key must be rejected (not silently treated as None)."""
+    with pytest.raises(QueryValidationError, match="Missing 'value'"):
+        validate({'field': 'far', 'op': 'is_null'}, 'event')
+
+
+def test_validate_is_null_null_value_rejected():
+    """is_null with explicit null value must be rejected — must be a boolean."""
+    # Simulate what happens when a client sends {"field": "far", "op": "is_null", "value": null}:
+    # json.loads produces None for null, node.get('value') returns None.
+    node = {'field': 'far', 'op': 'is_null', 'value': None}
+    with pytest.raises(QueryValidationError, match="Missing 'value'"):
+        validate(node, 'event')
+
+
+def test_validate_is_null_true_still_valid():
+    """is_null with value=True must still pass (regression guard)."""
+    assert validate({'field': 'far', 'op': 'is_null', 'value': True}, 'event',
+                    strict=False) == []
+
+
+def test_validate_is_null_false_still_valid():
+    """is_null with value=False must still pass (regression guard)."""
+    assert validate({'field': 'far', 'op': 'is_null', 'value': False}, 'event',
+                    strict=False) == []
+
+
+# ---------------------------------------------------------------------------
+# Bug 2 regression: instruments '=' must use iexact (case-insensitive)
+# ---------------------------------------------------------------------------
+
+def test_instruments_eq_produces_iexact():
+    """instruments '=' must produce __iexact, not exact match."""
+    assert q_only({'field': 'instruments', 'op': '=', 'value': 'H1,L1'}) == Q(instruments__iexact='H1,L1')
+
+
+def test_instruments_eq_lowercase_translates_to_iexact():
+    """Lowercase instruments value translates to the same iexact Q as uppercase."""
+    assert q_only({'field': 'instruments', 'op': '=', 'value': 'h1,l1'}) == Q(instruments__iexact='h1,l1')
+
+
+def test_instruments_alias_ifos_eq_iexact():
+    """'ifos' alias also produces iexact for '='."""
+    assert q_only({'field': 'ifos', 'op': '=', 'value': 'H1,L1,V1'}) == Q(instruments__iexact='H1,L1,V1')
+
+
+# ---------------------------------------------------------------------------
+# Bug 3 regression: NOT(label not_has X) must still validate the child
+# ---------------------------------------------------------------------------
+
+def test_not_label_not_has_also_validates_bad_field():
+    """In permissive mode, NOT({unknown_field, not_has}) must report both:
+    the unknown-field error from _validate_node AND the double-negative advisory.
+    Previously only the advisory was raised and the child was not validated.
+    """
+    node = {'not': {'field': 'no_such_field', 'op': 'not_has', 'value': 'DQV'}}
+    errors = validate(node, 'event', strict=False)
+    messages = [e['message'] for e in errors]
+    # Must report unknown field error
+    assert any('no_such_field' in m for m in messages), (
+        f"Expected unknown-field error, got: {messages}")
+    # In permissive mode we also get the double-negative advisory if the
+    # unknown field happens to be treated as a label — but more importantly,
+    # the unknown-field error is not swallowed.
+
+
+def test_not_label_not_has_strict_raises_child_error_first():
+    """In strict mode, child validation error must be raised (not swallowed)."""
+    node = {'not': {'field': 'no_such_field', 'op': 'not_has', 'value': 'DQV'}}
+    with pytest.raises(QueryValidationError) as exc_info:
+        validate(node, 'event', strict=True)
+    # The error must mention the unknown field, not just the double-negative
+    assert 'no_such_field' in str(exc_info.value)
+
+
+# ---------------------------------------------------------------------------
+# Additional translator coverage
+# ---------------------------------------------------------------------------
+
+# Superevent submitter
+def test_superevent_submitter_contains():
+    q, nd = t({'field': 'submitter', 'op': 'contains', 'value': 'hawking'}, 'superevent')
+    expected = (Q(submitter__username__icontains='hawking') |
+                Q(submitter__last_name__icontains='hawking'))
+    assert q == expected
+    assert nd is False
+
+
+# Datetime <=, >= (not exercised in the original test suite)
+def test_created_lte():
+    import pytz
+    import datetime as dt
+    q, _ = t({'field': 'created', 'op': '<=', 'value': '2023-12-31T23:59:59Z'})
+    expected_dt = pytz.utc.localize(dt.datetime(2023, 12, 31, 23, 59, 59))
+    assert q == Q(created__lte=expected_dt)
+
+
+def test_created_gte():
+    import pytz
+    import datetime as dt
+    q, _ = t({'field': 'created', 'op': '>=', 'value': '2022-01-01'})
+    expected_dt = pytz.utc.localize(dt.datetime(2022, 1, 1))
+    assert q == Q(created__gte=expected_dt)
+
+
+# superevent.id 'in' with bare IDs that need auto-suffix applied per element
+def test_superevent_id_in_bare_ids_auto_suffix():
+    """'in' on superevent id applies auto-suffix to each bare element."""
+    q, _ = t({'field': 'id', 'op': 'in', 'value': ['S230904', 'GW150914']}, 'superevent')
+    q1 = Q(**Superevent.get_filter_kwargs_for_date_id_lookup('S230904a'))
+    q2 = Q(**Superevent.get_filter_kwargs_for_date_id_lookup('GW150914A'))
+    assert q == q1 | q2
+
+
+# singleinspiral ifo with is_null
+def test_si_ifo_is_null():
+    q, nd = t({'field': 'si.ifo', 'op': 'is_null', 'value': True})
+    assert q == Q(singleinspiral__ifo__isnull=True)
+    assert nd is True
+
+
+# grbevent neq and startswith
+def test_grb_trigger_id_neq():
+    q, _ = t({'field': 'grb.trigger_id', 'op': '!=', 'value': 'GBM240825'})
+    assert q == ~Q(grbevent__trigger_id='GBM240825')
+
+
+def test_grb_trigger_id_startswith():
+    q, _ = t({'field': 'grb.trigger_id', 'op': 'startswith', 'value': 'GBM'})
+    assert q == Q(grbevent__trigger_id__istartswith='GBM')
+
+
+# coincinspiralevent ifos field
+def test_ci_ifos_contains():
+    q, nd = t({'field': 'ci.ifos', 'op': 'contains', 'value': 'H1'})
+    assert q == Q(coincinspiralevent__ifos__icontains='H1')
+    assert nd is False
+
+
+def test_ci_ifos_eq():
+    q, nd = t({'field': 'ci.ifos', 'op': '=', 'value': 'H1,L1'})
+    assert q == Q(coincinspiralevent__ifos='H1,L1')
+    assert nd is False
+
+
+# preferred_event datetime delegation
+def test_preferred_event_created_lt():
+    import pytz
+    import datetime as dt
+    q, nd = t({'field': 'preferred_event.created', 'op': '<',
+               'value': '2023-01-01T00:00:00Z'}, 'superevent')
+    expected_dt = pytz.utc.localize(dt.datetime(2023, 1, 1))
+    assert q == Q(preferred_event__created__lt=expected_dt)
+    assert nd is False
+
+
+# preferred_event integer field delegation
+def test_preferred_event_nevents_eq():
+    q, nd = t({'field': 'preferred_event.nevents', 'op': '=', 'value': 2}, 'superevent')
+    assert q == Q(preferred_event__nevents=2)
+    assert nd is False
+
+
+# preferred_event.in_superevent is excluded (would be circular)
+def test_validate_preferred_event_in_superevent_rejected():
+    """preferred_event.in_superevent is excluded from delegation and must give a
+    clear 'unknown field' error, not a misleading hint about preferred_event."""
+    with pytest.raises(QueryValidationError) as exc_info:
+        validate({'field': 'preferred_event.in_superevent', 'op': '=', 'value': True},
+                 'superevent')
+    msg = str(exc_info.value)
+    assert 'preferred_event.in_superevent' in msg
+    # Must not suggest preferred_event.preferred_event.in_superevent or similar
+    assert 'preferred_event.preferred_event' not in msg
+
+
+# multiburstevent code field
+def test_mb_code_eq():
+    q, _ = t({'field': 'mb.code', 'op': '=', 'value': 'Q'})
+    assert q == Q(multiburstevent__code='Q')
+
+
+def test_mb_code_in():
+    q, _ = t({'field': 'mb.code', 'op': 'in', 'value': ['Q', 'X']})
+    assert q == Q(multiburstevent__code__in=['Q', 'X'])
+
+
+# mlyburstevent bbh field
+def test_ml_bbh_gt():
+    q, _ = t({'field': 'ml.bbh', 'op': '>', 'value': 0.5})
+    assert q == Q(mlyburstevent__bbh__gt=0.5)
+
+
+# Validator: superevent_id field alias works
+def test_validate_superevent_id_alias():
+    """'superevent_id' is a valid alias for 'id' on superevents."""
+    assert validate({'field': 'superevent_id', 'op': 'startswith', 'value': 'S23'},
+                    'superevent', strict=False) == []
