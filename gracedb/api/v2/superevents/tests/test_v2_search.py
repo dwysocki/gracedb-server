@@ -13,7 +13,8 @@ from django.urls import reverse
 
 from api.tests.utils import GraceDbApiTestBase
 from core.tests.utils import GraceDbTestBase
-from superevents.models import Superevent
+from events.models import Label
+from superevents.models import Superevent, Labelling as SupereventLabelling
 from superevents.tests.mixins import SupereventCreateMixin, SupereventSetup
 from superevents.utils import expose_superevent
 from ...settings import API_VERSION
@@ -543,3 +544,325 @@ class TestV2SupereventSearchDefaultFilter(SupereventCreateMixin, GraceDbApiTestB
         self.assertIn(self.se_prod.superevent_id, ids)
         self.assertNotIn(self.se_test.superevent_id, ids)
         self.assertNotIn(self.se_mdc.superevent_id, ids)
+
+
+class TestV2SupereventSearchLabels(SupereventCreateMixin, GraceDbApiTestBase):
+    """
+    Integration tests for label has/not_has operators on superevents.
+
+    These exercise the _label_exists_q Exists-subquery path for the Superevent
+    model's M2M through table, which is separate from the Event label path.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.search_url = _search_url()
+
+        cls.lbl_a = Label.objects.create(name='SE_LBL_A', description='se test A')
+        cls.lbl_b = Label.objects.create(name='SE_LBL_B', description='se test B')
+
+        cls.se_a    = cls.create_superevent(cls.internal_user)
+        cls.se_b    = cls.create_superevent(cls.internal_user)
+        cls.se_ab   = cls.create_superevent(cls.internal_user)
+        cls.se_none = cls.create_superevent(cls.internal_user)
+
+        u = cls.internal_user
+        SupereventLabelling.objects.create(
+            superevent=cls.se_a,  label=cls.lbl_a, creator=u)
+        SupereventLabelling.objects.create(
+            superevent=cls.se_b,  label=cls.lbl_b, creator=u)
+        SupereventLabelling.objects.create(
+            superevent=cls.se_ab, label=cls.lbl_a, creator=u)
+        SupereventLabelling.objects.create(
+            superevent=cls.se_ab, label=cls.lbl_b, creator=u)
+
+    def _ids(self, response):
+        return {s['superevent_id'] for s in response.data['superevents']}
+
+    def test_label_has(self):
+        """has SE_LBL_A returns superevents that carry that label."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 'label', 'op': 'has', 'value': 'SE_LBL_A'},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.se_a.superevent_id, ids)
+        self.assertIn(self.se_ab.superevent_id, ids)
+        self.assertNotIn(self.se_b.superevent_id, ids)
+        self.assertNotIn(self.se_none.superevent_id, ids)
+
+    def test_label_not_has(self):
+        """not_has SE_LBL_A returns superevents without that label."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 'label', 'op': 'not_has', 'value': 'SE_LBL_A'},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertNotIn(self.se_a.superevent_id, ids)
+        self.assertNotIn(self.se_ab.superevent_id, ids)
+        self.assertIn(self.se_b.superevent_id, ids)
+        self.assertIn(self.se_none.superevent_id, ids)
+
+    def test_and_of_two_labels(self):
+        """AND(has A, has B) returns only superevents carrying both labels."""
+        body = {
+            'object_type': 'superevent',
+            'query': {
+                'and': [
+                    {'field': 'label', 'op': 'has', 'value': 'SE_LBL_A'},
+                    {'field': 'label', 'op': 'has', 'value': 'SE_LBL_B'},
+                ],
+            },
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.se_ab.superevent_id, ids)
+        self.assertNotIn(self.se_a.superevent_id, ids)
+        self.assertNotIn(self.se_b.superevent_id, ids)
+        self.assertNotIn(self.se_none.superevent_id, ids)
+
+    def test_not_wrapping_has(self):
+        """NOT(has A) is equivalent to not_has A."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'not': {'field': 'label', 'op': 'has', 'value': 'SE_LBL_A'}},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertNotIn(self.se_a.superevent_id, ids)
+        self.assertNotIn(self.se_ab.superevent_id, ids)
+        self.assertIn(self.se_b.superevent_id, ids)
+        self.assertIn(self.se_none.superevent_id, ids)
+
+
+class TestV2SupereventSearchPreferredEvent(SupereventCreateMixin, GraceDbApiTestBase):
+    """
+    Integration tests for the preferred_event.FOO cross-FK fields.
+
+    Verifies that the translator's pref_event path prefix logic correctly
+    routes queries through the preferred_event FK to the underlying Event fields.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.search_url = _search_url()
+
+        # Two superevents whose preferred events differ by group and pipeline.
+        cls.se_cbc = cls.create_superevent(
+            cls.internal_user,
+            event_group='CBC',
+            event_pipeline='gstlal',
+        )
+        cls.se_burst = cls.create_superevent(
+            cls.internal_user,
+            event_group='Burst',
+            event_pipeline='CWB',
+        )
+
+    def _ids(self, response):
+        return {s['superevent_id'] for s in response.data['superevents']}
+
+    def test_preferred_event_group_eq(self):
+        """preferred_event.group = 'CBC' returns only the CBC-backed superevent."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 'preferred_event.group', 'op': '=', 'value': 'CBC'},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.se_cbc.superevent_id, ids)
+        self.assertNotIn(self.se_burst.superevent_id, ids)
+
+    def test_preferred_event_group_case_insensitive(self):
+        """preferred_event.group = 'cbc' (lowercase) also matches (db_enum iexact)."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 'preferred_event.group', 'op': '=', 'value': 'cbc'},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.se_cbc.superevent_id, ids)
+        self.assertNotIn(self.se_burst.superevent_id, ids)
+
+    def test_preferred_event_pipeline_eq(self):
+        """preferred_event.pipeline = 'gstlal' returns the gstlal-backed superevent."""
+        body = {
+            'object_type': 'superevent',
+            'query': {
+                'field': 'preferred_event.pipeline', 'op': '=', 'value': 'gstlal',
+            },
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.se_cbc.superevent_id, ids)
+        self.assertNotIn(self.se_burst.superevent_id, ids)
+
+    def test_preferred_event_group_neq(self):
+        """preferred_event.group != 'CBC' excludes the CBC-backed superevent."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 'preferred_event.group', 'op': '!=', 'value': 'CBC'},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertNotIn(self.se_cbc.superevent_id, ids)
+        self.assertIn(self.se_burst.superevent_id, ids)
+
+    def test_wrong_event_field_suggests_preferred_event_prefix(self):
+        """Querying a raw event field on a superevent returns a helpful error."""
+        # 'group' is an event field; on superevents it must be 'preferred_event.group'.
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 'group', 'op': '=', 'value': 'CBC'},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('preferred_event', response.data.get('message', ''))
+
+
+class TestV2SupereventSearchIsNull(SupereventCreateMixin, GraceDbApiTestBase):
+    """
+    Tests for the is_null operator on superevent-accessible fields.
+
+    Specifically tests preferred_event.far, which can legitimately be NULL
+    on a freshly created event.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.search_url = _search_url()
+
+        cls.se_no_far  = cls.create_superevent(cls.internal_user)
+        cls.se_has_far = cls.create_superevent(cls.internal_user)
+
+        # Assign a FAR to only one of the preferred events.
+        cls.se_has_far.preferred_event.far = 1e-8
+        cls.se_has_far.preferred_event.save()
+
+    def _ids(self, response):
+        return {s['superevent_id'] for s in response.data['superevents']}
+
+    def test_preferred_event_far_is_null_true(self):
+        """preferred_event.far is_null=true returns SEs whose preferred event has no FAR."""
+        body = {
+            'object_type': 'superevent',
+            'query': {
+                'field': 'preferred_event.far', 'op': 'is_null', 'value': True,
+            },
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertIn(self.se_no_far.superevent_id, ids)
+        self.assertNotIn(self.se_has_far.superevent_id, ids)
+
+    def test_preferred_event_far_is_null_false(self):
+        """preferred_event.far is_null=false returns SEs whose preferred event has a FAR."""
+        body = {
+            'object_type': 'superevent',
+            'query': {
+                'field': 'preferred_event.far', 'op': 'is_null', 'value': False,
+            },
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+        ids = self._ids(response)
+        self.assertNotIn(self.se_no_far.superevent_id, ids)
+        self.assertIn(self.se_has_far.superevent_id, ids)
+
+
+class TestV2SupereventSearchEmptyBody(SupereventCreateMixin, GraceDbApiTestBase):
+    """POST /search/ with an empty body returns the full accessible set."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.search_url = _search_url()
+        cls.se = cls.create_superevent(cls.internal_user)
+
+    def test_post_empty_body_returns_accessible_set(self):
+        """POST to /search/ with no body returns all accessible superevents."""
+        self.client.force_login(self.internal_user)
+        response = self.client.post(
+            self.search_url,
+            data='',
+            content_type='application/json',
+        )
+        self.client.logout()
+        self.assertEqual(response.status_code, 200)
+        ids = {s['superevent_id'] for s in response.data['superevents']}
+        self.assertIn(self.se.superevent_id, ids)
+
+    def test_post_no_content_type_returns_accessible_set(self):
+        """POST with no content-type and no body also returns all superevents."""
+        self.client.force_login(self.internal_user)
+        response = self.client.post(self.search_url)
+        self.client.logout()
+        self.assertEqual(response.status_code, 200)
+        ids = {s['superevent_id'] for s in response.data['superevents']}
+        self.assertIn(self.se.superevent_id, ids)
+
+
+class TestV2SupereventSearchBug1Regression(SupereventCreateMixin, GraceDbApiTestBase):
+    """
+    Regression tests for Bug 1: is_null with a non-boolean value must be
+    rejected with 400, not silently accepted.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.search_url = _search_url()
+
+    def _assert_invalid_query(self, response):
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data.get('error'), 'invalid_query')
+
+    def test_is_null_string_value_rejected(self):
+        """is_null with a string value must return 400."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 'preferred_event.far', 'op': 'is_null', 'value': 'yes'},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self._assert_invalid_query(response)
+
+    def test_is_null_numeric_value_rejected(self):
+        """is_null with a numeric value must return 400."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 'preferred_event.far', 'op': 'is_null', 'value': 1},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self._assert_invalid_query(response)
+
+    def test_is_null_true_accepted(self):
+        """is_null with value=true is valid and returns 200."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 'preferred_event.far', 'op': 'is_null', 'value': True},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
+
+    def test_is_null_false_accepted(self):
+        """is_null with value=false is valid and returns 200."""
+        body = {
+            'object_type': 'superevent',
+            'query': {'field': 'preferred_event.far', 'op': 'is_null', 'value': False},
+        }
+        response = _post_json(self.client, self.internal_user, body)
+        self.assertEqual(response.status_code, 200)
