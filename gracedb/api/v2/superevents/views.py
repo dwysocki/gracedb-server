@@ -36,7 +36,7 @@ from ...v1.superevents.views import *  # noqa: F401,F403
 
 from ..filters import DjangoObjectAndGlobalPermissionsFilter
 from .filters import V2SupereventSearchFilter, SupereventOrderingFilter, \
-    _parse_body, _YAML_CONTENT_TYPES
+    _parse_body
 from search.query.v2.translator import inject_default_filter, apply_query
 from search.query.v2.validator import validate, QueryValidationError, format_path
 from .filters import V2SearchError
@@ -105,55 +105,15 @@ class SupereventViewSet(SupereventViewSet):  # noqa: F811
         GraceDB custom exception handler which flattens dict details into
         character arrays.
         """
-        import json
         import logging
-
-        import yaml
         from superevents.models import Superevent
 
         logger = logging.getLogger(__name__)
 
-        content_type = request.content_type or ''
-        use_yaml = any(ct in content_type for ct in _YAML_CONTENT_TYPES)
+        data = _parse_body(request)
 
-        # Decode request body.
-        raw = None
-        try:
-            body_bytes = request.body
-        except Exception:
-            body_bytes = b''
-        if body_bytes:
-            try:
-                raw = body_bytes.decode('utf-8')
-            except (UnicodeDecodeError, AttributeError):
-                pass
-
-        # Fall back to URL parameter.
-        if raw is None:
-            raw = request.query_params.get('query')
-
-        # No query supplied → return full accessible set.
-        if not raw:
-            qs = self._permission_filtered_queryset()
-            return self._paginated_response(qs)
-
-        # Parse JSON or YAML.
-        try:
-            if use_yaml:
-                data = yaml.safe_load(raw)
-            else:
-                data = json.loads(raw)
-        except (json.JSONDecodeError, yaml.YAMLError) as exc:
-            return Response(
-                _v2_error(f'Could not parse query body: {exc}'),
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if not isinstance(data, dict):
-            return Response(
-                _v2_error('Query body must be a JSON/YAML object.'),
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        if data is None:
+            return self._paginated_response(self._permission_filtered_queryset())
 
         # Validate object_type.
         declared_type = data.get('object_type')

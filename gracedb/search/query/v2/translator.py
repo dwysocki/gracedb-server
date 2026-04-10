@@ -430,21 +430,24 @@ def _translate_node(node, object_type, model_class):
 # Default filter injection
 # ---------------------------------------------------------------------------
 
-def _tree_has_field(node, field_names):
+def _tree_has_field(node, field_names, object_type):
     """
-    Return True if the tree contains any leaf whose raw field name is in
-    *field_names*.  Callers must include all alias forms in *field_names*
-    since field names are not normalised here.
+    Return True if the tree contains any leaf whose canonical field name
+    (after alias normalisation) is in *field_names*.
+
+    Field names are normalised via ``normalize_field_name`` so callers only
+    need to list canonical names -- aliases are resolved automatically.
     """
     if not isinstance(node, dict):
         return False
     if 'and' in node:
-        return any(_tree_has_field(c, field_names) for c in node['and'])
+        return any(_tree_has_field(c, field_names, object_type) for c in node['and'])
     if 'or' in node:
-        return any(_tree_has_field(c, field_names) for c in node['or'])
+        return any(_tree_has_field(c, field_names, object_type) for c in node['or'])
     if 'not' in node:
-        return _tree_has_field(node['not'], field_names)
-    return node.get('field', '') in field_names
+        return _tree_has_field(node['not'], field_names, object_type)
+    canonical = normalize_field_name(node.get('field', ''), object_type)
+    return canonical in field_names
 
 
 def build_default_filter(object_type):
@@ -470,10 +473,12 @@ def build_default_filter(object_type):
         }
 
 
-# Fields whose presence in the tree suppresses the default exclusion filter.
+# Canonical field names whose presence in the query tree suppresses the
+# default Test/MDC exclusion filter.  Only canonical names are needed here
+# because _tree_has_field normalises via normalize_field_name before checking.
 _NO_DEFAULT_FIELDS = {
-    'event':      frozenset(['id', 'graceid', 'group', 'search']),
-    'superevent': frozenset(['id', 'superevent_id', 'category']),
+    'event':      frozenset(['id', 'group', 'search']),
+    'superevent': frozenset(['id', 'category']),
 }
 
 
@@ -485,7 +490,7 @@ def inject_default_filter(user_tree, object_type):
     Returns a (possibly wrapped) tree dict.
     """
     suppress_fields = _NO_DEFAULT_FIELDS.get(object_type, frozenset())
-    if _tree_has_field(user_tree, suppress_fields):
+    if _tree_has_field(user_tree, suppress_fields, object_type):
         return user_tree
     default = build_default_filter(object_type)
     return {'and': [default, user_tree]}
