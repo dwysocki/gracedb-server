@@ -8,7 +8,7 @@ is normally deployed to Kubernetes via the chart in the sibling repo,
 `../gracedb-helm-charts`.
 
 ## Ground truth first
-Before doing anything else, run `scripts/doctor.sh` and read its output. It
+Before doing anything else, run `.claude/scripts/doctor.sh` and read its output. It
 reports versions of all tools and whether the Postgres / k3d stack is reachable.
 Don't trust any other assumption in this file if `doctor.sh` disagrees.
 
