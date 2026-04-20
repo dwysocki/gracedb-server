@@ -17,19 +17,49 @@ The correct settings module for container-based dev is:
 ```
 DJANGO_SETTINGS_MODULE=config.settings.container.dev
 ```
-This is already set in the environment. The settings hierarchy is:
+The settings hierarchy is:
 - `config/settings/base.py` — shared base
-- `config/settings/container/base.py` — container-specific base
+- `config/settings/container/base.py` — reads secrets from env vars
 - `config/settings/container/dev.py` — dev overrides (DEBUG=True, etc.)
 
-## Running for development without Kubernetes
-1. PostgreSQL 16 is already running on localhost:5432; user `gracedb`, db
+See `compose.yml` for the full list of required env vars.
+
+## Environment comparison
+
+| | Claude Code **web** (gVisor) | Claude Code **CLI / IDE** (native) |
+|---|---|---|
+| PostgreSQL | native service | native service |
+| Memcached | Podman container, host networking | Docker container |
+| GraceDB app | `runserver` or `docker compose up` | `runserver` or k3d helm deploy |
+| Docker daemon | ✔ via Podman socket | ✔ native |
+| Overlay filesystem | ✘ vfs only | ✔ |
+| k3d / Kubernetes | ✘ (cgroup/iptables missing) | ✔ |
+
+The SessionStart hook detects gVisor automatically and switches mode.
+
+## Running for development (native runserver)
+1. PostgreSQL is already running on `127.0.0.1:5432`; user `gracedb`, db
    `gracedb`. Do NOT recreate.
-2. `pip install -r requirements.txt`
-3. `python manage.py migrate`
-4. `DJANGO_SUPERUSER_PASSWORD=admin python manage.py createsuperuser \
-      --username admin --email admin@example.com --noinput`
-5. `python manage.py runserver 0.0.0.0:8000`
+2. Memcached is on `127.0.0.1:11211` (started by SessionStart in gVisor;
+   start manually otherwise).
+3. Install dependencies: `pip install -r requirements.txt`
+4. Set required env vars — copy from `compose.yml` `environment:` block and
+   set `DJANGO_DOCKER_MEMCACHED_ADDR=127.0.0.1:11211`.
+5. `python manage.py migrate && python manage.py runserver 0.0.0.0:8000`
+
+## Running via Docker Compose (gVisor / web)
+The `compose.yml` in the repo root provides postgres + memcached + gracedb as
+Podman containers. The Podman socket acts as a Docker-compatible API endpoint.
+
+```bash
+docker compose up          # first run builds the image (~10 min)
+docker compose up --build  # rebuild after Dockerfile changes
+docker compose down -v     # stop and remove volumes
+```
+App is at `http://localhost:8000`. Admin credentials: `admin` / `admin`.
+
+Note: the image build pulls packages from Debian repos. If any host is
+behind the environment allowlist the build will fail at that step.
 
 ## Running tests
 The repo uses pytest (see `pytest.ini`):
@@ -41,24 +71,20 @@ Run after every change.
 ## Running on Kubernetes (k3d)
 
 ### Environment compatibility
-The Claude Code **web** environment (claude.ai/code) runs inside a **gVisor**
-sandbox. gVisor does not expose the kernel interfaces required by container
-orchestrators:
+The Claude Code **web** environment runs inside a gVisor sandbox. gVisor does
+not expose the kernel interfaces required by container orchestrators:
 
 | Requirement | gVisor status | Effect |
 |---|---|---|
 | iptables / nftables | unsupported | Docker daemon cannot start; k3d fails |
 | overlay filesystem | unsupported | containerd image layers fail |
-| cgroup rootfs (`/sys/fs/cgroup`) | not fully exposed | kubelet ContainerManager panics |
+| cgroup rootfs | not fully exposed | kubelet ContainerManager panics |
 | `/dev/kmsg` | non-functional | kubelet cannot open it |
 
 k3d, k3s (direct), and Podman-backed Kubernetes all fail in this environment.
-The SessionStart hook detects gVisor and skips the cluster step automatically.
+Use the CLI or IDE extension on a native Linux host (kernel ≥ 5.4) instead.
 
-If you need the full Kubernetes stack, run Claude Code locally (CLI or IDE
-extension) on a Linux host with a kernel ≥ 5.4 and Docker installed.
-
-### When k3d IS available
+### When k3d IS available (CLI / IDE)
 1. A k3d cluster named `$K3D_CLUSTER_NAME` is created by the SessionStart hook.
    Kubeconfig is at `$KUBECONFIG`.
 2. Build the server image: `docker build -t gracedb-server:dev .`
@@ -73,8 +99,9 @@ For bare Django dev (`runserver`), verify that `SKIP_SHIBBOLETH=1` is honoured
 by grepping the codebase — if not, ask before disabling auth globally.
 
 ## Memcached
-The chart uses Memcached (not Redis) for caching. In bare `runserver` mode the
-cache backend falls back to local-memory and Memcached is not required.
+The chart and `compose.yml` both use Memcached (not Redis) for caching.
+In bare `runserver` mode the `CACHES` config has `ignore_exc: True`, so
+missing Memcached degrades gracefully.
 
 ## Conventions
 

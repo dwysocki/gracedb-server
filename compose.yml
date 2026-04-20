@@ -1,0 +1,79 @@
+# Development stack for gVisor environments (Claude Code on the web).
+# Runs via: docker compose up
+# The docker CLI talks to the Podman socket at /var/run/docker.sock which is
+# started by the SessionStart hook (see .claude/scripts/session-start.sh).
+#
+# gVisor does not support CNI bridge networking or overlay filesystem, so all
+# services use network_mode: host and Podman uses the vfs storage driver.
+# With host networking all services are reachable on 127.0.0.1:
+#   postgres   -> 127.0.0.1:5432
+#   memcached  -> 127.0.0.1:11211
+#   gracedb    -> 127.0.0.1:8000
+#
+# For k3d/Kubernetes deployment use the CLI or IDE extension on a native
+# Linux host (kernel >= 5.4) with Docker installed.
+
+services:
+
+  postgres:
+    image: postgres:16.2
+    network_mode: host
+    environment:
+      POSTGRES_USER: gracedb
+      POSTGRES_PASSWORD: gracedb
+      POSTGRES_DB: gracedb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gracedb"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  memcached:
+    image: memcached:1.6
+    network_mode: host
+
+  gracedb:
+    build: .
+    network_mode: host
+    depends_on:
+      postgres:
+        condition: service_healthy
+      memcached:
+        condition: service_started
+    # LOCAL_BUILD=true triggers the entrypoint's dev path: runs migrate,
+    # createcachetable, collectstatic, and creates the admin user, then
+    # execs the command below.
+    environment:
+      LOCAL_BUILD: "true"
+      DJANGO_SETTINGS_MODULE: config.settings.container.dev
+      DJANGO_DB_USER: gracedb
+      DJANGO_DB_PASSWORD: gracedb
+      DJANGO_DB_NAME: gracedb
+      DJANGO_DB_HOST: "127.0.0.1"
+      DJANGO_DB_PORT: "5432"
+      DJANGO_SECRET_KEY: "insecure-dev-only-do-not-use-in-prod"
+      DJANGO_PRIMARY_FQDN: localhost
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+      DJANGO_DOCKER_MEMCACHED_ADDR: "127.0.0.1:11211"
+      DJANGO_USERNAME: admin
+      DJANGO_USER_PASSWORD: admin
+      # Disabled integrations - fake values satisfy required-env checks
+      # in config/settings/container/base.py without enabling the features.
+      IGWN_ALERT_SERVER: disabled
+      IGWN_ALERT_OVERSEER_PORT: "2"
+      IGWN_ALERT_USER: disabled
+      IGWN_ALERT_PASSWORD: disabled
+      IGWN_ALERT_GROUP: disabled
+      DJANGO_TWILIO_ACCOUNT_SID: disabled
+      DJANGO_TWILIO_AUTH_TOKEN: disabled
+      AWS_SES_ACCESS_KEY_ID: disabled
+      AWS_SES_SECRET_ACCESS_KEY: disabled
+      DJANGO_ALERT_EMAIL_FROM: gracedb@localhost
+      ENABLE_IGWN_OVERSEER: "false"
+      SEND_LVALERT_XMPP_ALERTS: "false"
+    command: python3 manage.py runserver 0.0.0.0:8000
+
+volumes:
+  postgres_data:
