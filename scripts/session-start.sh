@@ -1,7 +1,11 @@
 #!/bin/bash
+# Initialises the k3d-based development environment at the start of a
+# Claude Code on the web session. Starts PostgreSQL, clones the sibling
+# gracedb-helm-charts repository if absent, and creates (or reattaches to)
+# a k3d cluster so that kubectl and helm are ready to use.
+# No-ops when run outside a Claude Code remote environment.
 set -euo pipefail
 
-# Only run in Claude Code remote (web) environments
 [[ "${CLAUDE_CODE_REMOTE:-}" != "true" ]] && exit 0
 
 echo "=== SessionStart: services ==="

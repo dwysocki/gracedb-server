@@ -1,5 +1,9 @@
 #!/bin/bash
-# Reports the state of the dev environment. Not an assertion — just observation.
+# Prints a summary of the local development environment: installed tool
+# versions, service reachability (PostgreSQL), Docker container state,
+# k3d cluster status, and whether the sibling gracedb-helm-charts
+# repository is present. Intended as a first-pass health check; it
+# reports observations only and does not modify any state.
 echo "--- tools ---"
 for t in python pip docker k3d kubectl helm psql memcached; do
     printf "%-12s " "$t"
