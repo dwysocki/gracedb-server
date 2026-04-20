@@ -39,6 +39,26 @@ pytest
 Run after every change.
 
 ## Running on Kubernetes (k3d)
+
+### Environment compatibility
+The Claude Code **web** environment (claude.ai/code) runs inside a **gVisor**
+sandbox. gVisor does not expose the kernel interfaces required by container
+orchestrators:
+
+| Requirement | gVisor status | Effect |
+|---|---|---|
+| iptables / nftables | unsupported | Docker daemon cannot start; k3d fails |
+| overlay filesystem | unsupported | containerd image layers fail |
+| cgroup rootfs (`/sys/fs/cgroup`) | not fully exposed | kubelet ContainerManager panics |
+| `/dev/kmsg` | non-functional | kubelet cannot open it |
+
+k3d, k3s (direct), and Podman-backed Kubernetes all fail in this environment.
+The SessionStart hook detects gVisor and skips the cluster step automatically.
+
+If you need the full Kubernetes stack, run Claude Code locally (CLI or IDE
+extension) on a Linux host with a kernel ≥ 5.4 and Docker installed.
+
+### When k3d IS available
 1. A k3d cluster named `$K3D_CLUSTER_NAME` is created by the SessionStart hook.
    Kubeconfig is at `$KUBECONFIG`.
 2. Build the server image: `docker build -t gracedb-server:dev .`
