@@ -57,8 +57,24 @@ The chart uses Memcached (not Redis) for caching. In bare `runserver` mode the
 cache backend falls back to local-memory and Memcached is not required.
 
 ## Conventions
-- This repo is a one-way mirror from git.ligo.org. Don't push to `master` —
-  mirror pushes will overwrite you. Work on feature branches off
-  `claude/setup-k3d-environment-A6RHo`.
+
+### Branch strategy
+`master` is a one-way mirror from git.ligo.org. Any commit pushed directly to
+`master` will be silently overwritten by the next mirror push from GitLab.
+
+Claude sessions **must not** target `master` for merges or direct pushes.
+
+Instead:
+1. Do all work on a short-lived feature branch (e.g. `claude/<topic>`).
+2. When the work is ready, merge the feature branch into **`claude-code`**.
+   `claude-code` is the durable integration branch that accumulates all
+   Claude-produced changes. It is never overwritten by the mirror.
+3. The maintainer periodically cherry-picks or pulls commits from `claude-code`
+   into the upstream GitLab repository.
+
+Summary: `claude/<topic>` → merge into `claude-code` → maintainer pulls to GitLab.
+Never merge into `master`.
+
+### Other conventions
 - Don't modify `docker/apache2.conf` or `supervisord.conf` unless asked.
-- Keep commits small and descriptive — they may get cherry-picked to GitLab.
+- Keep commits small and descriptive — they will be cherry-picked to GitLab.
